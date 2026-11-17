@@ -50,6 +50,15 @@ public sealed class AppProcessWorkflowStatus
     public int? FailedAttempts { get; init; }
 
     /// <summary>
+    /// When the first of the <see cref="FailedAttempts"/> failed, on the workflow engine's clock. Present only with
+    /// <see cref="FailedAttempts"/> and when supported by the engine. Compare with <see cref="CurrentTime"/> to tell
+    /// how long the step has kept failing, the same in every session.
+    /// </summary>
+    [JsonPropertyName("firstFailedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? FirstFailedAt { get; init; }
+
+    /// <summary>
     /// The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
     /// awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
     /// while <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/> and the

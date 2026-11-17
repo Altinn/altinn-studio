@@ -263,4 +263,62 @@ public static partial class ObjectUtils
     {
         return prop.PropertyType == typeof(Guid) && prop.Name == "AltinnRowId";
     }
+
+    /// <summary>
+    /// Replace string values (including strings in lists) that match a key in <paramref name="replacements"/>
+    /// </summary>
+    /// <param name="model">The object to mutate</param>
+    /// <param name="replacements">Map from the value to replace to its replacement</param>
+    internal static void ReplaceStringValues(object model, IReadOnlyDictionary<string, string> replacements)
+    {
+        var type = model.GetType();
+        if (type.Namespace?.StartsWith("System", StringComparison.Ordinal) == true)
+        {
+            return; // System.DateTime.Date causes infinite recursion, and we shouldn't recurse into system types anyway.
+        }
+
+        foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (prop.GetIndexParameters().Length > 0)
+            {
+                continue; // Indexers can't be read without an index
+            }
+
+            var value = prop.GetValue(model);
+            if (value is string s)
+            {
+                if (prop.SetMethod is not null && replacements.TryGetValue(s, out var replacement))
+                {
+                    prop.SetValue(model, replacement);
+                }
+            }
+            else if (value is IList list)
+            {
+                ReplaceStringValuesInList(list, replacements);
+            }
+            else if (value is not null)
+            {
+                ReplaceStringValues(value, replacements);
+            }
+        }
+    }
+
+    private static void ReplaceStringValuesInList(IList list, IReadOnlyDictionary<string, string> replacements)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i] is string item && replacements.TryGetValue(item, out var replacement))
+            {
+                list[i] = replacement;
+            }
+            else if (list[i] is IList childList)
+            {
+                ReplaceStringValuesInList(childList, replacements);
+            }
+            else if (list[i] is { } child)
+            {
+                ReplaceStringValues(child, replacements);
+            }
+        }
+    }
 }

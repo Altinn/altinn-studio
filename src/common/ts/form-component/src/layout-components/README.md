@@ -1,15 +1,5 @@
 # Layout components
 
-Layout components are the form-building blocks an app is composed of. Each one maps to a component
-type that can be configured in Altinn Studio and rendered by the runtime. Unlike the dumb components
-in `app-components`, layout components are allowed to use utilities like `useTranslation`.
-
-### `common/`
-
-Shared building blocks reused between layout components (see [`common/README.md`](./common/README.md)):
-
-- `HelpTextContainer` — the help-text tooltip used by several components.
-- `LabelAsSpan` — span-based label wrapper for display components (Date, Text, Number, …).
-- `storybook/` — the shared Storybook docs setup that splits a component's Studio-configurable props
-  from its runtime (injected) props. See [`common/README.md`](./common/README.md) for how to add it
-  to a component.
+The components that an app developer configures in Designer and the app renders, one per component type. Unlike
+[app components](../app-components/README.md), they may use the app's context, such as `useTranslation`.
+[common](common/README.md) holds what several of them share.

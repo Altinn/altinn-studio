@@ -2,8 +2,8 @@ import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdown, studioBetaTagClasses } from '@studio/components';
-import { UrlUtils } from '@studio/pure-functions';
+import { StudioDropdown, studioBetaTagClasses } from '@designer/components';
+import { UrlUtils } from '@designer/pure-functions';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 
 export type SmallHeaderMenuItemProps = {
@@ -26,6 +26,24 @@ export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): Rea
     );
   }
 
+  if (menuItem.action.isOutsideRouter) {
+    const { href, openInNewTab } = menuItem.action;
+    return (
+      <StudioDropdown.Item>
+        <StudioDropdown.Button asChild>
+          <a
+            href={href}
+            target={openInNewTab ? '_blank' : undefined}
+            rel={openInNewTab ? 'noopener noreferrer' : undefined}
+            role='menuitem'
+          >
+            {menuItem.name}
+          </a>
+        </StudioDropdown.Button>
+      </StudioDropdown.Item>
+    );
+  }
+
   const linkItemClassName: string =
     UrlUtils.extractLastRouterParam(menuItem.action.href) === currentRoutePath
       ? classes.active
@@ -38,8 +56,8 @@ export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): Rea
           className={`${linkItemClassName} ${menuItem.isBeta ? studioBetaTagClasses.isBeta : ''}`}
           to={menuItem.action.href}
           role='menuitem'
-          target={menuItem.action.openInNewTab ? '_blank' : ''}
-          rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
+          target={menuItem.action.openInNewTab ? '_blank' : undefined}
+          rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : undefined}
         >
           {t(menuItem.name)}
         </NavLink>

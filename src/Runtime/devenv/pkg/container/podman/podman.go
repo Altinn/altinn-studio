@@ -146,7 +146,7 @@ func (c *Client) BuildWithProgress(
 		Indeterminate: true,
 	})
 
-	output, err := runPodmanCommand(ctx, []string{"build", "-t", tag, "-f", dockerfile, contextPath})
+	output, err := runPodmanCommand(ctx, types.PodmanBuildArgs(contextPath, dockerfile, tag))
 	if err != nil {
 		return fmt.Errorf("podman build failed: %w\nOutput: %s", err, string(output))
 	}
@@ -264,8 +264,8 @@ func buildCreateArgs(cfg types.ContainerConfig) []string {
 	}
 
 	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
-	for _, cap := range caps {
-		args = append(args, "--cap-add", cap)
+	for _, capability := range caps {
+		args = append(args, "--cap-add", capability)
 	}
 
 	args = appendHealthCheckArgs(args, cfg.HealthCheck)

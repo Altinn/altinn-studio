@@ -61,28 +61,6 @@ public class PolicyOptionsClient : IPolicyOptions
         }
     }
 
-    public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        // Temp location. Will be moved to CDN
-        string url =
-            "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/actionoptions.json";
-
-        List<ActionOption> actionOptions;
-
-        try
-        {
-            HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
-            string actionOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-            actionOptions = System.Text.Json.JsonSerializer.Deserialize<List<ActionOption>>(actionOptionsString);
-            return actionOptions;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Something went wrong when retrieving Action options", ex);
-        }
-    }
-
     public async Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -9,8 +9,8 @@ import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useDataModelMetadataQuery } from '../../hooks/queries/useDataModelMetadataQuery';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   removeFeatureFlagFromLocalStorage,
   FeatureFlag,

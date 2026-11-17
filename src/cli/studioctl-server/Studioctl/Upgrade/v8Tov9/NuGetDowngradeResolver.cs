@@ -1,9 +1,5 @@
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Text;
 using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
-using Altinn.Studio.StudioctlServer.Platform;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -44,7 +40,14 @@ internal sealed class NuGetDowngradeResolver
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var restoreOutput = await RunRestoreAsync(projectFile, projectFolder, cancellationToken);
+            // NU1605 makes restore exit non-zero; we don't treat that as fatal - the downgrade text is what
+            // we're after, and it appears on stdout/stderr regardless of exit code.
+            var restoreOutput = await DotnetRestore.RunAsync(
+                projectFolder,
+                projectFile,
+                configuration: null,
+                cancellationToken
+            );
             var downgrades = ParseDowngrades(restoreOutput.Output);
 
             var pending = downgrades.Where(d => attempted.Add($"{d.PackageId}@{d.RequiredVersion}")).ToList();
@@ -54,13 +57,10 @@ internal sealed class NuGetDowngradeResolver
                 // failed restore too, so an upgrade cannot quietly claim the dependency graph is clean.
                 if (restoreOutput.ExitCode != 0)
                 {
-                    var lastLine = restoreOutput
-                        .Output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                        .LastOrDefault()
-                        ?.Trim();
+                    var error = DotnetRestore.FindError(restoreOutput.Output);
                     messages.Todo(
                         $"Could not complete dotnet restore (exit code {restoreOutput.ExitCode})"
-                            + (lastLine is null ? "." : $": {lastLine}")
+                            + (error is null ? "." : $": {error}")
                     );
                 }
                 break;
@@ -111,53 +111,6 @@ internal sealed class NuGetDowngradeResolver
         }
 
         return downgrades;
-    }
-
-    private static async Task<(string Output, int ExitCode)> RunRestoreAsync(
-        string projectFile,
-        string projectFolder,
-        CancellationToken cancellationToken
-    )
-    {
-        var startInfo = ProcessUtil.CreateDotnetStartInfo("restore", projectFile);
-        startInfo.WorkingDirectory = projectFolder;
-        startInfo.RedirectStandardOutput = true;
-        startInfo.RedirectStandardError = true;
-
-        using var process =
-            Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start dotnet restore.");
-        var stdoutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var stderrTask = process.StandardError.ReadToEndAsync(cancellationToken);
-        try
-        {
-            await process.WaitForExitAsync(cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // WaitForExitAsync only stops waiting on cancellation; the restore (and its child
-            // processes) keeps running unless killed explicitly.
-            try
-            {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                }
-            }
-            catch (Exception ex) when (ex is InvalidOperationException or Win32Exception or NotSupportedException)
-            {
-                // Best-effort: the process may have exited between the check and the kill.
-            }
-
-            throw;
-        }
-
-        // NU1605 makes restore exit non-zero; we don't treat that as fatal - the downgrade text is what
-        // we're after, and it appears on stdout/stderr regardless of exit code.
-        var builder = new StringBuilder();
-        builder.Append(await stdoutTask);
-        builder.Append('\n');
-        builder.Append(await stderrTask);
-        return (builder.ToString(), process.ExitCode);
     }
 
     /// <param name="PackageId">The package with a downgrade.</param>

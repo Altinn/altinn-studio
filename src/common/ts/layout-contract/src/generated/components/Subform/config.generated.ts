@@ -33,6 +33,7 @@ export type ISubformCellContent =
   | { query: string; default?: string };
 
 export interface SubformSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
   display?: 'table' | 'full';
 }
 
@@ -68,4 +69,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: SubformSummaryOverridesWithRef;
 };
 
-// Source hash: 673508553faa3818975d0fb46a1c9965e78ca78ec8e67ef5112ef6b8626dd600
+// Source hash: 4b20ee2151136223627e5e33f83fb52904d87358b750087e791b6a0b9a53281a

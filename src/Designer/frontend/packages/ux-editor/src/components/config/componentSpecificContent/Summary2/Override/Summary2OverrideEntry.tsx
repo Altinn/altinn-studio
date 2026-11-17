@@ -1,10 +1,9 @@
-import { CheckmarkIcon } from '@studio/icons';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { CheckmarkIcon } from '@designer/icons';
+import type { Summary2OverrideConfig } from '@altinn/ux-editor/types/Summary2Config';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import type { TargetComponentProps } from '../Summary2Target/targetUtils';
-import { Summary2OverrideCompactSwitch } from './OverrideFields/CompactViewSwitch';
 import { EmptyTextField } from './OverrideFields/EmptyTextField';
 import { OverrideShowComponentSwitch } from './OverrideFields/OverrideShowComponentSwitch';
 import { Summary2OverrideDisplaySelect } from './OverrideFields/Summary2OverrideDisplaySelect';
@@ -17,7 +16,7 @@ import {
   StudioProperty,
   StudioCard,
   StudioDivider,
-} from '@studio/components';
+} from '@designer/components';
 
 type Summary2OverrideEntryProps = {
   index: number;
@@ -148,8 +147,6 @@ const Summary2OverrideComponentSpecificConfig = ({
     case ComponentType.Checkboxes:
     case ComponentType.MultipleSelect:
       return <Summary2OverrideDisplayType onChange={onChange} override={override} />;
-    case ComponentType.Group:
-      return <Summary2OverrideCompactSwitch onChange={onChange} override={override} />;
     default:
       return null;
   }

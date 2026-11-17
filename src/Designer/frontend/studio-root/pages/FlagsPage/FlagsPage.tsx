@@ -1,7 +1,7 @@
 import type { ChangeEventHandler, ReactElement } from 'react';
 import { useCallback } from 'react';
-import { FeatureFlag, useFeatureToggle } from '@studio/feature-flags';
-import { StudioSwitch, StudioHeading } from '@studio/components';
+import { FeatureFlag, useFeatureToggle } from '@designer/feature-flags';
+import { StudioSwitch, StudioHeading } from '@designer/components';
 import classes from './FlagsPage.module.css';
 import { useTranslation } from 'react-i18next';
 

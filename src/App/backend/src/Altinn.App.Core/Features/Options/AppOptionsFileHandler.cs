@@ -7,11 +7,9 @@ namespace Altinn.App.Core.Features.Options;
 /// <inheritdoc/>
 internal sealed class AppOptionsFileHandler : IAppOptionsFileHandler
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new(JsonSerializerDefaults.Web)
+    );
 
     private readonly AppFilesAccessor _appFiles;
 

@@ -8,5 +8,7 @@ public class ResourcePolicy
 
     public string? RequiredAuthenticationLevelOrg { get; set; }
 
+    public string? RequiredAuthenticationLevelSystemUser { get; set; }
+
     public string? Version { get; set; }
 }

@@ -87,11 +87,15 @@ func main() {
 	})
 
 	pdfHandler := generatePdf(logger, httpClient, workerHTTPAddr, cfg.AppHostname, cfg.ServiceOwner)
+	// Behind the API key like /pdf, so a relay's check also covers its key.
+	healthHandler := workerHealth(logger, workerHTTPAddr, host.IsShuttingDown)
 	if apiKeys != nil {
 		go apiKeys.Watch(host.ServerContext(), auth.ReloadInterval)
 		pdfHandler = auth.RequireAPIKey(logger, apiKeys, pdfHandler)
+		healthHandler = auth.RequireAPIKey(logger, apiKeys, healthHandler)
 	}
 	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", pdfHandler))
+	http.HandleFunc("/pdf/health", healthHandler)
 
 	// Only register test output endpoint in test internals mode
 	if iruntime.IsTestInternalsMode {
@@ -373,7 +377,8 @@ func callWorker(
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here. Retries are logged at INFO, so they
-			// are not exported; running out of them is logged as an error below.
+			// are not exported; they are counted, and running out of them is logged as an error below.
+			telemetry.CountRetry(ctx, telemetry.ProxyWorkerRetriesMetric, telemetry.RetryTransportError)
 			logger.InfoContext(
 				ctx,
 				"Worker request failed, will retry",
@@ -432,6 +437,7 @@ func callWorker(
 
 	// Check if this is a retryable error (429 - queue full)
 	if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+		telemetry.CountRetry(ctx, telemetry.ProxyWorkerRetriesMetric, telemetry.RetryQueueFull)
 		logger.InfoContext(
 			ctx,
 			"Worker queue full, retrying",

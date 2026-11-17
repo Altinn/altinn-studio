@@ -11,8 +11,6 @@ public sealed class V9SdkRequirementTests : IDisposable
     public void Dispose() => _app.Dispose();
 
     [Theory]
-    [InlineData("11.0.100-rc.2")]
-    [InlineData("11.0.100-rc.2.26504.105")]
     [InlineData("11.0.100")]
     [InlineData("11.0.200")]
     [InlineData("12.0.100-preview.1")]
@@ -24,7 +22,7 @@ public sealed class V9SdkRequirementTests : IDisposable
     }
 
     [Theory]
-    [InlineData("11.0.100-rc.1.26425.128")]
+    [InlineData("11.0.100-rc.3.26522.148")]
     [InlineData("10.0.401")]
     public async Task FindProblem_OldSelectedSdk_RequiresTheMinimumSdk(string sdk)
     {
@@ -36,22 +34,27 @@ public sealed class V9SdkRequirementTests : IDisposable
         Assert.Contains("https://dotnet.microsoft.com/download/dotnet/11.0", problem);
     }
 
-    [Fact]
-    public async Task FindProblem_NewerSdkInstalledButNotSelected_RequiresChangingGlobalJson()
+    [Theory]
+    [InlineData("11.0.100", false)]
+    [InlineData("12.0.100-preview.1", true)]
+    public async Task FindProblem_NewerSdkInstalledButNotSelected_RequiresChangingGlobalJson(
+        string newerSdk,
+        bool needsAllowPrerelease
+    )
     {
         var globalJson = _app.Write("../global.json", """{ "sdk": { "version": "10.0.401" } }""");
 
         var problem = await FindProblem(
             new(0, "10.0.401", ""),
-            new(0, "10.0.401 [/dotnet/sdk]\n11.0.100-rc.2.26504.105 [/dotnet/sdk]\n", "")
+            new(0, $"10.0.401 [/dotnet/sdk]\n{newerSdk} [/dotnet/sdk]\n", "")
         );
 
         Assert.NotNull(problem);
         Assert.Contains("10.0.401", problem);
         Assert.Contains(Path.GetFullPath(globalJson), problem);
         Assert.Contains("sdk.version", problem);
-        Assert.Contains("11.0.100-rc.2.26504.105", problem);
-        Assert.Contains("allowPrerelease", problem);
+        Assert.Contains(newerSdk, problem);
+        Assert.Equal(needsAllowPrerelease, problem.Contains("allowPrerelease", StringComparison.Ordinal));
         Assert.DoesNotContain("https://", problem);
     }
 
@@ -94,15 +97,12 @@ public sealed class V9SdkRequirementTests : IDisposable
     public async Task FindProblem_InstalledSdkProbeFails_DoesNotTreatPartialOutputAsAnInventory()
     {
         const string stderr = "Failed to enumerate installed SDK directories.";
-        var problem = await FindProblem(
-            new(0, "10.0.401", ""),
-            new(42, "11.0.100-rc.2.26504.105 [/dotnet/sdk]", stderr)
-        );
+        var problem = await FindProblem(new(0, "10.0.401", ""), new(42, "11.0.100 [/dotnet/sdk]", stderr));
 
         Assert.NotNull(problem);
         Assert.Contains("42", problem);
         Assert.Contains(stderr, problem);
-        Assert.Contains("11.0.100-rc.2.26504.105 [/dotnet/sdk]", problem);
+        Assert.Contains("11.0.100 [/dotnet/sdk]", problem);
         Assert.DoesNotContain("Set sdk.version", problem);
         Assert.DoesNotContain("https://dotnet.microsoft.com/download", problem);
     }

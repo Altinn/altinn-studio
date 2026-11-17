@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import classes from './ViewToggler.module.css';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 
 export type SupportedView = 'mobile' | 'desktop';
 

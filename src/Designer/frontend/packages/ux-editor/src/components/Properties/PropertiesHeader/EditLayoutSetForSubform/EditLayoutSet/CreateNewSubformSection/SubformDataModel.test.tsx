@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { SubformDataModel, type SubformDataModelProps } from './SubformDataModel';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'dashboard/testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 
 vi.mock('app-shared/hooks/queries/useAppMetadataModelIdsQuery');

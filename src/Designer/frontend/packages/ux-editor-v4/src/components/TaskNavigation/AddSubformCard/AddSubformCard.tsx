@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioActionCard } from '@studio/components';
+import { StudioActionCard } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { CreateSubformMode } from './CreateSubformMode';
 

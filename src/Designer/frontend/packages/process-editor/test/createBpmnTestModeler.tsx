@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import BpmnModdle from 'bpmn-moddle';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import { StudioRecommendedNextActionContextProvider } from '@designer/components';
 import { BpmnContext } from '../src/contexts/BpmnContext';
 import { BpmnApiContext, type BpmnApiContextProps } from '../src/contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../src/contexts/BpmnConfigPanelContext';

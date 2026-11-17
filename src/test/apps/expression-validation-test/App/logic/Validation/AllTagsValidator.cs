@@ -41,7 +41,7 @@ public class AllTagsValidator(IAppOptionsService appOptionsService) : IValidator
                     Severity = ValidationIssueSeverity.Error,
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
                     DataElementId = dataElement.Id,
-                    CustomTextKey = $"Du må laste opp '{option.Label}'",
+                    Description = $"Du må laste opp '{option.Label}'",
                     Field = "root.vedlegg"
                 });
             }

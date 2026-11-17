@@ -78,9 +78,9 @@ public class EnvironmentsService : IEnvironmentsService
         return new Uri(environment.PlatformUrl);
     }
 
-    public async Task<Uri> GetAppClusterUri(string org, string envName)
+    public async Task<Uri> GetAppClusterUri(string org, string envName, CancellationToken cancellationToken = default)
     {
-        var environments = await GetEnvironments();
+        var environments = await GetEnvironments(cancellationToken);
 
         var environment = environments.FirstOrDefault(item => item.Name == envName);
         if (environment is null)

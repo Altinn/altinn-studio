@@ -105,6 +105,9 @@ interface Mockable {
   partyTypesAllowed?: ApplicationMetadata['partyTypesAllowed'];
   activeInstances?: false | ISimpleInstance[]; // Defaults to false
   onEntryShow?: ShowTypes;
+  validFrom?: ApplicationMetadata['validFrom'];
+  validTo?: ApplicationMetadata['validTo'];
+  disallowUserInstantiation?: ApplicationMetadata['disallowUserInstantiation'];
 }
 
 export function cyMockResponses(whatToMock: Mockable) {
@@ -137,7 +140,10 @@ export function cyMockResponses(whatToMock: Mockable) {
     whatToMock.appPromptForPartyOverride !== undefined ||
     whatToMock.partyTypesAllowed !== undefined ||
     whatToMock.onEntryShow !== undefined ||
-    whatToMock.doNotPromptForParty !== undefined
+    whatToMock.doNotPromptForParty !== undefined ||
+    whatToMock.validFrom !== undefined ||
+    whatToMock.validTo !== undefined ||
+    whatToMock.disallowUserInstantiation !== undefined
   ) {
     interceptAltinnAppGlobalData((globalData) => {
       if (whatToMock.appPromptForPartyOverride !== undefined) {
@@ -150,6 +156,11 @@ export function cyMockResponses(whatToMock: Mockable) {
         globalData.applicationMetadata.onEntry = { show: whatToMock.onEntryShow };
       }
 
+      for (const key of ['validFrom', 'validTo', 'disallowUserInstantiation'] as const) {
+        if (whatToMock[key] !== undefined) {
+          Object.assign(globalData.applicationMetadata, { [key]: whatToMock[key] });
+        }
+      }
       if (whatToMock.doNotPromptForParty !== undefined && globalData.userProfile !== undefined) {
         globalData.userProfile.profileSettingPreference.doNotPromptForParty = whatToMock.doNotPromptForParty;
       }

@@ -1,25 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormComponent } from '../../types/FormComponent';
-import { formItemConfigs } from '../../data/formItemConfig';
 import { internalSimpleComponentToExternal } from './internalSimpleComponentToExternal';
 
 // Test data:
 const id = '1';
 const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
-const propertyPath = formItemConfigs[type].propertyPath;
 
 describe('internalGroupComponentToExternal', () => {
   it('Correctly converts an internal simple component', () => {
     const internalSimpleComponent: FormComponent = {
       id,
-      itemType: 'COMPONENT',
-      pageIndex: null,
-      propertyPath,
       type,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      customProperty,
+      customProperties: { customProperty },
     };
     const result = internalSimpleComponentToExternal(internalSimpleComponent);
     expect(result).toEqual({

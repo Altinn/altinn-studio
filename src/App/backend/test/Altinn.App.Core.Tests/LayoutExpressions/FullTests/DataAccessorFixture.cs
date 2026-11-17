@@ -109,7 +109,7 @@ public sealed class DataAccessorFixture
                     [
                         new()
                         {
-                            Id = "backend.validation_errors.required",
+                            Id = "validation_errors.required",
                             Value = "{0} is required in component with id {1}.{2}.{3} for binding {4}",
                             Variables =
                             [
@@ -176,7 +176,7 @@ public sealed class DataAccessorFixture
             var dataType = new DataType()
             {
                 Id = spec.LayoutSetName + "_dataType",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new() { ClassRef = spec.ModelType.FullName },
                 MaxCount = spec.MaxCount,
             };
@@ -205,7 +205,7 @@ public sealed class DataAccessorFixture
             dataType = new DataType()
             {
                 Id = data.GetType().Name,
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 MaxCount = maxCount.Value,
                 AppLogic = new() { ClassRef = fullName },
             };

@@ -346,11 +346,17 @@ public class MailboxDeliveryBufferTests
             // 5 ÷ 3 = 1.67. A counter carrying the other's units would read 1.00 here and hide the split.
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 5 },
-                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.flushed",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
-                meters.ByTag("engine.mailbox_buffer.batches", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.batches",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
         }
         finally
@@ -705,12 +711,18 @@ public class MailboxDeliveryBufferTests
 
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
-                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.flushed",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
 
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 1 },
-                meters.ByTag("engine.mailbox_buffer.batches", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.batches",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
 
             repo.Reset();
@@ -729,11 +741,17 @@ public class MailboxDeliveryBufferTests
 
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 3 },
-                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.flushed",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["delivery"] = 1 },
-                meters.ByTag("engine.mailbox_buffer.batches", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.batches",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
         }
         finally

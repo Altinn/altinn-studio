@@ -64,9 +64,11 @@ export function validateSubformForNode(ctx: ComponentValidationContext<'Subform'
     .map((element) => element.id)
     .filter((dataElementId) => {
       const validations = ctx.formState.validation.otherDataElementBackendValidations[dataElementId];
+      const componentValidations = ctx.formState.validation.otherDataElementComponentValidations[dataElementId];
       return (
-        validations &&
-        Object.values(validations).some((validationList) => validationList.some((v) => v.severity === 'error'))
+        (validations &&
+          Object.values(validations).some((validationList) => validationList.some((v) => v.severity === 'error'))) ||
+        componentValidations?.some((v) => v.severity === 'error')
       );
     });
 

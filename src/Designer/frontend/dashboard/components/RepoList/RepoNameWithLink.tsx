@@ -1,5 +1,5 @@
-import { getRepoEditUrl } from '../../utils/urlUtils';
-import { StudioLink } from '@studio/components';
+import { getRepositoryEditUrl } from 'app-shared/utils/repository';
+import { StudioLink } from '@designer/components';
 import classes from './RepoNameWithLink.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +12,7 @@ export const RepoNameWithLink = ({ repoFullName }: RepoNameWithLinkProps): React
   const { t } = useTranslation();
 
   const [org, repoName] = repoFullName.split('/');
-  const editUrl = getRepoEditUrl({ org, repo: repoName });
+  const editUrl = getRepositoryEditUrl(org, repoName);
 
   return (
     <StudioLink

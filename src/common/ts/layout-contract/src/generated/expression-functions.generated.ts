@@ -25,6 +25,7 @@ export type ExpressionFunctionNameByReturn = {
     | 'externalApi'
     | 'displayValue'
     | 'optionLabel'
+    | 'formatNumber'
     | 'formatDate'
     | 'round'
     | 'text'
@@ -55,4 +56,4 @@ export type ExpressionFunctionNameByReturn = {
   __any__: 'argv' | 'value' | 'if' | 'frontendSettings' | 'component' | 'dataModel' | 'jmespath';
 };
 
-// Source hash: c50cb121be9fab841eff1f7ba55f52e044d8909b2f3897ffdd1307a5ced3f55d
+// Source hash: a3cccd3f85ef0db7022b731195a03d3090b5506643cf2ae4aa6d24d9457bf47d

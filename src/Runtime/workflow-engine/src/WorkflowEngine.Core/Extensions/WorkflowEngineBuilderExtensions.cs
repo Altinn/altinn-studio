@@ -59,32 +59,26 @@ public static class WorkflowEngineBuilderExtensions
             // Built-in commands
             builder.Services.AddCommand<WebhookCommand>();
 
-            // Telemetry (can be disabled via EngineSettings:EnableTelemetry = false)
-            bool enableTelemetry = builder.Configuration.GetValue(
-                $"EngineSettings:{nameof(EngineSettings.EnableTelemetry)}",
-                defaultValue: Defaults.EngineSettings.EnableTelemetry
+            // Telemetry is exported wherever the deployment sets the OTLP endpoint, as AddTelemetry documents.
+            bool enableDatabaseInstrumentation = builder.Configuration.GetValue(
+                $"EngineSettings:{nameof(EngineSettings.EnableDatabaseInstrumentation)}",
+                defaultValue: Defaults.EngineSettings.EnableDatabaseInstrumentation
             );
-            if (enableTelemetry)
-            {
-                bool enableDatabaseInstrumentation = builder.Configuration.GetValue(
-                    $"EngineSettings:{nameof(EngineSettings.EnableDatabaseInstrumentation)}",
-                    defaultValue: Defaults.EngineSettings.EnableDatabaseInstrumentation
-                );
-                bool enableDatabaseMetrics = builder.Configuration.GetValue(
-                    $"EngineSettings:{nameof(EngineSettings.EnableDatabaseMetrics)}",
-                    defaultValue: Defaults.EngineSettings.EnableDatabaseMetrics
-                );
-                double traceSamplingRate = builder.Configuration.GetValue(
-                    $"EngineSettings:{nameof(EngineSettings.TraceSamplingRate)}",
-                    defaultValue: Defaults.EngineSettings.TraceSamplingRate
-                );
-                builder.Services.AddTelemetry(
-                    emitQueryParameters: isDev,
-                    enableDatabaseInstrumentation: enableDatabaseInstrumentation,
-                    enableDatabaseMetrics: enableDatabaseMetrics,
-                    traceSamplingRate: traceSamplingRate
-                );
-            }
+            bool enableDatabaseMetrics = builder.Configuration.GetValue(
+                $"EngineSettings:{nameof(EngineSettings.EnableDatabaseMetrics)}",
+                defaultValue: Defaults.EngineSettings.EnableDatabaseMetrics
+            );
+            double traceSamplingRate = builder.Configuration.GetValue(
+                $"EngineSettings:{nameof(EngineSettings.TraceSamplingRate)}",
+                defaultValue: Defaults.EngineSettings.TraceSamplingRate
+            );
+            builder.Services.AddTelemetry(
+                builder.Configuration,
+                emitQueryParameters: isDev,
+                enableDatabaseInstrumentation: enableDatabaseInstrumentation,
+                enableDatabaseMetrics: enableDatabaseMetrics,
+                traceSamplingRate: traceSamplingRate
+            );
 
             // OpenAPI
             builder.Services.AddOpenApi(options =>

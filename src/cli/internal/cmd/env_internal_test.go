@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -254,4 +255,87 @@ func TestEnvHostsAddJSON(t *testing.T) {
 
 func defaultLocalHostnames() []string {
 	return envtopology.NewLocal(envtopology.DefaultIngressPortString()).HostFileHostnames()
+}
+
+func TestParseUpFlagsPort(t *testing.T) {
+	t.Parallel()
+
+	command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	got, _, err := command.parseUpFlags([]string{"--port", "8100"})
+	if err != nil {
+		t.Fatalf("parseUpFlags() error = %v", err)
+	}
+	if got.port != 8100 {
+		t.Fatalf("port = %d, want 8100", got.port)
+	}
+}
+
+func TestParseUpFlagsRejectsAPortOutOfRange(t *testing.T) {
+	t.Parallel()
+
+	for _, port := range []string{"0", "80", "1023", "65536"} {
+		command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+		_, _, err := command.parseUpFlags([]string{"--port", port})
+		if !errors.Is(err, ErrInvalidFlagValue) {
+			t.Fatalf("parseUpFlags(--port %s) error = %v, want ErrInvalidFlagValue", port, err)
+		}
+	}
+}
+
+func TestLocaltestPortChanged(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		recorded int
+		port     int
+		want     bool
+	}{
+		{name: "no --port", recorded: 8100, port: 0, want: false},
+		{name: "the default port, never changed", recorded: 0, port: 8000, want: false},
+		{name: "another port than the default", recorded: 0, port: 8100, want: true},
+		{name: "the recorded port", recorded: 8100, port: 8100, want: false},
+		{name: "back to the default", recorded: 8100, port: 8000, want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := &config.Config{DataDir: t.TempDir()}
+			if tt.recorded != 0 {
+				if err := envlocaltest.WriteState(cfg, envlocaltest.State{PublicPort: tt.recorded}); err != nil {
+					t.Fatalf("WriteState() error = %v", err)
+				}
+			}
+			got, err := localtestPortChanged(cfg, tt.port)
+			if err != nil {
+				t.Fatalf("localtestPortChanged() error = %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("localtestPortChanged() = %t, want %t", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestEnvStatusPrintsWhereLocaltestServes(t *testing.T) {
+	t.Parallel()
+
+	var out bytes.Buffer
+	err := envStatusOutput{
+		Status: &envlocaltest.Status{
+			URL:        "http://local.altinn.cloud:8100",
+			Containers: []envlocaltest.ContainerStatus{},
+			Running:    true,
+			AnyRunning: true,
+		},
+		Runtime:    runtimeLocaltest,
+		JSONOutput: false,
+	}.Print(ui.NewOutput(&out, io.Discard, false))
+	if err != nil {
+		t.Fatalf("Print() error = %v", err)
+	}
+	if want := "Access the platform at: http://local.altinn.cloud:8100"; !strings.Contains(out.String(), want) {
+		t.Fatalf("output = %q, want it to contain %q", out.String(), want)
+	}
 }

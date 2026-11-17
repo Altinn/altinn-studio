@@ -1,12 +1,12 @@
 import React from 'react';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './DefaultItems.module.css';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import type { AddedItem } from './types';
 import { ComponentButton } from './ComponentButton';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '@altinn/ux-editor/utils/generateId';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { getTitleByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 

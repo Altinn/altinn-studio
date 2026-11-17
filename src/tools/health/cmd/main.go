@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"sync"
 	"text/tabwriter"
@@ -30,9 +29,7 @@ var (
 	errUnknownCommand     = errors.New("unknown command")
 	errInvalidEnvironment = errors.New("invalid environment")
 	errNoValidEnvironment = errors.New("no valid environments provided")
-	errInvalidWeight      = errors.New("invalid weight")
 	errNoMatchingClusters = errors.New("no matching clusters found")
-	errUpdateHTTPRoutes   = errors.New("failed to update httproutes on some clusters")
 	errUnsupportedCommand = errors.New("unsupported command")
 	errCommandNotFound    = errors.New("command not found")
 	errCommandFailed      = errors.New("command failed on one or more clusters")
@@ -54,7 +51,6 @@ Available commands:
   help            Print CLI usage
   init            Discover clusters and configure credentials
   status          Check status of resources across clusters
-  set-weight      Update HTTPRoute weights
   exec            Execute kubectl/helm/flux commands across clusters
   logs            Aggregate deployment logs from multiple clusters
   nodes           Check node resource utilization
@@ -70,13 +66,8 @@ Examples:
   go run cmd/main.go status tt02 hr traefik/altinn-traefik
   go run cmd/main.go status tt02 ks runtime-pdf3/pdf3-app
   go run cmd/main.go status at22,at24 dep runtime-pdf3/pdf3-proxy
-  go run cmd/main.go status tt02 httproute pdf/pdf3-migration
+  go run cmd/main.go status at22,tt02 httproute pdf/pdf3
   go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
-
-  # Update HTTPRoute weights
-  go run cmd/main.go set-weight tt02 pdf/pdf3-migration 50 50
-  go run cmd/main.go set-weight at22,at24 pdf/pdf3-migration 0 100
-  go run cmd/main.go set-weight --dry-run tt02,prod pdf/pdf3-migration 0 100
 
   # Execute commands across clusters
   go run cmd/main.go exec tt02 kubectl get pods -n default
@@ -171,15 +162,6 @@ func listContextRuntimes(environments []string, serviceowner string) ([]kubernet
 	return runtimes, nil
 }
 
-func parseWeightArg(name string, raw string) (int, error) {
-	value, err := strconv.Atoi(raw)
-	if err != nil {
-		return 0, fmt.Errorf("%w %s %q: expected an integer", errInvalidWeight, name, raw)
-	}
-
-	return value, nil
-}
-
 func run() error {
 	if len(os.Args) < 2 {
 		return usageError(printUsage())
@@ -195,8 +177,6 @@ func run() error {
 		return runInit()
 	case "status":
 		return runStatus()
-	case "set-weight":
-		return runSetWeight()
 	case "exec":
 		return runExec()
 	case "logs":
@@ -241,226 +221,6 @@ func validateEnvironments(environmentsStr string) ([]string, error) {
 	}
 
 	return validated, nil
-}
-
-//nolint:funlen,gocognit,gocyclo,maintidx // CLI subcommand flow mixes parsing, confirmation, and per-environment reporting.
-func runSetWeight() error {
-	const desiredWeightSum = 100
-
-	setWeightCmd := flag.NewFlagSet("set-weight", flag.ExitOnError)
-	serviceowner := setWeightCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
-	setWeightCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
-	dryRun := setWeightCmd.Bool("dry-run", false, "Show what would change without applying")
-
-	args, err := parseCommandArgs(setWeightCmd)
-	if err != nil {
-		return err
-	}
-
-	if len(args) != 4 {
-		return usageError(
-			"usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
-				"Arguments:\n" +
-				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
-				"  namespace/name  HTTPRoute location (e.g., pdf/pdf3-migration)\n" +
-				"  weight1         Weight for first backendRef (0-100)\n" +
-				"  weight2         Weight for second backendRef (0-100)\n\n" +
-				"Flags:\n" +
-				"  -s, --service-owner string\n" +
-				"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
-				"  --dry-run\n" +
-				"                  Show what would change without applying",
-		)
-	}
-
-	environments, err := validateEnvironments(args[0])
-	if err != nil {
-		return err
-	}
-
-	namespace, name, err := parseNamespaceAndName(args[1])
-	if err != nil {
-		return err
-	}
-
-	weight1, err := parseWeightArg("weight1", args[2])
-	if err != nil {
-		return err
-	}
-	weight2, err := parseWeightArg("weight2", args[3])
-	if err != nil {
-		return err
-	}
-
-	if weight1 < 0 || weight2 < 0 {
-		return fmt.Errorf("%w: weight1=%d, weight2=%d", errInvalidWeight, weight1, weight2)
-	}
-
-	if weight1+weight2 != desiredWeightSum {
-		return fmt.Errorf(
-			"%w: weight1=%d + weight2=%d = %d",
-			errInvalidWeight,
-			weight1,
-			weight2,
-			weight1+weight2,
-		)
-	}
-
-	fmt.Println("Validating prerequisites...")
-
-	if validateErr := validateKubectl(); validateErr != nil {
-		return validateErr
-	}
-
-	envStr := strings.Join(environments, ", ")
-	fmt.Printf("Finding clusters for environment(s): %s", envStr)
-	if *serviceowner != "" {
-		fmt.Printf(" (serviceowner: %s)", *serviceowner)
-	}
-	fmt.Println()
-
-	// Get all kubectl runtimes and filter by environments and serviceowner
-	runtimes, err := listContextRuntimes(environments, *serviceowner)
-	if err != nil {
-		return err
-	}
-
-	if len(runtimes) == 0 {
-		return noMatchingClustersError(args[0], *serviceowner)
-	}
-
-	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
-
-	fmt.Printf("Fetching current HTTPRoute %s/%s from %d cluster(s)...\n", namespace, name, len(runtimes))
-
-	results := kubernetes.GetAllHTTPRoutes(runtimes, namespace, name, maxClusterWorkers)
-
-	// Create a map from cluster name to environment for filtering
-	clusterEnv := make(map[string]string, len(runtimes))
-	for _, runtime := range runtimes {
-		clusterEnv[runtime.GetName()] = runtime.GetEnvironment()
-	}
-
-	// Check for errors and identify clusters that need changes, grouped by environment
-	var routesToUpdate []kubernetes.HTTPRouteResult
-	for i, environment := range environments {
-		if i > 0 {
-			fmt.Println()
-		}
-
-		// Filter results for this environment
-		var envResults []kubernetes.HTTPRouteResult
-		for _, result := range results {
-			if clusterEnv[result.ClusterName] == environment {
-				envResults = append(envResults, result)
-			}
-		}
-
-		if len(envResults) == 0 {
-			continue
-		}
-
-		fmt.Printf("\n=== Environment: %s ===\n", environment)
-		fmt.Println("Current state:")
-		for _, result := range envResults {
-			if result.Error != nil {
-				fmt.Printf("  ✗ %s: ERROR - %v\n", result.ClusterName, result.Error)
-			} else {
-				needsUpdate := result.CurrentWeight1 != weight1 || result.CurrentWeight2 != weight2
-				if needsUpdate {
-					fmt.Printf(
-						"  → %s: weight1=%d, weight2=%d (will change)\n",
-						result.ClusterName,
-						result.CurrentWeight1,
-						result.CurrentWeight2,
-					)
-					routesToUpdate = append(routesToUpdate, result)
-				} else {
-					fmt.Printf(
-						"  ✓ %s: weight1=%d, weight2=%d (already correct)\n",
-						result.ClusterName,
-						result.CurrentWeight1,
-						result.CurrentWeight2,
-					)
-				}
-			}
-		}
-	}
-
-	if len(routesToUpdate) == 0 {
-		fmt.Printf("\n✓ All clusters already have the desired weights (weight1=%d, weight2=%d)\n", weight1, weight2)
-		return nil
-	}
-
-	fmt.Printf("\nProposed changes:\n")
-	fmt.Printf("  New weight distribution: weight1=%d, weight2=%d\n", weight1, weight2)
-	fmt.Printf("  Annotation to add: kustomize.toolkit.fluxcd.io/reconcile=disabled\n")
-	fmt.Printf("  Clusters to update: %d/%d\n", len(routesToUpdate), len(runtimes))
-	for _, result := range routesToUpdate {
-		fmt.Printf("    - %s\n", result.ClusterName)
-	}
-
-	if *dryRun {
-		fmt.Println("\nDry-run mode: No changes will be applied")
-		return nil
-	}
-
-	fmt.Println()
-	confirmed, err := promptConfirmation("Apply these changes to all clusters?")
-	if err != nil {
-		return err
-	}
-
-	if !confirmed {
-		fmt.Println("Operation cancelled")
-		return nil
-	}
-
-	fmt.Println("\nApplying weight changes...")
-	updateResults := kubernetes.UpdateAllHTTPRoutes(runtimes, routesToUpdate, weight1, weight2, maxClusterWorkers)
-
-	// Group results by environment (reuse clusterEnv map from above)
-	fmt.Println("\nResults:")
-	var updateErrors bool
-	for i, environment := range environments {
-		if i > 0 {
-			fmt.Println()
-		}
-
-		// Filter results for this environment
-		var envResults []kubernetes.HTTPRouteResult
-		for _, result := range updateResults {
-			if clusterEnv[result.ClusterName] == environment {
-				envResults = append(envResults, result)
-			}
-		}
-
-		if len(envResults) == 0 {
-			continue
-		}
-
-		fmt.Printf("=== Environment: %s ===\n", environment)
-		for _, result := range envResults {
-			if result.Error != nil {
-				fmt.Printf("  ✗ %s: FAILED - %v\n", result.ClusterName, result.Error)
-				updateErrors = true
-			} else {
-				fmt.Printf(
-					"  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n",
-					result.ClusterName,
-					result.CurrentWeight1,
-					result.CurrentWeight2,
-				)
-			}
-		}
-	}
-
-	if updateErrors {
-		return errUpdateHTTPRoutes
-	}
-
-	fmt.Println("\n✓ All HTTPRoutes updated successfully")
-	return nil
 }
 
 //nolint:funlen,gocognit,gocyclo // CLI status output groups results per environment and resource type.

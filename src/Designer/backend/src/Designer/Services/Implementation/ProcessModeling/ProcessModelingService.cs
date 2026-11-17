@@ -21,6 +21,7 @@ public class ProcessModelingService : IProcessModelingService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly IAppVersionService _appVersionService;
+    private static readonly XNamespace AltinnProcessNamespace = "http://altinn.no/process";
 
     public ProcessModelingService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -111,6 +112,63 @@ public class ProcessModelingService : IProcessModelingService
     }
 
     /// <inheritdoc/>
+    public async Task<bool> UpdateSubformUiFolder(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string uiFolder,
+        string? newUiFolder,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        XDocument processDefinition;
+        await using (Stream processDefinitionStream = altinnAppGitRepository.GetProcessDefinitionFile())
+        {
+            processDefinition = await XDocument.LoadAsync(
+                processDefinitionStream,
+                LoadOptions.PreserveWhitespace,
+                cancellationToken
+            );
+        }
+
+        List<XElement> references =
+        [
+            .. processDefinition
+                .Descendants(AltinnProcessNamespace + "subformUiFolder")
+                .Where(element => element.Value.Trim() == uiFolder),
+        ];
+        if (references.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (XElement reference in references)
+        {
+            if (newUiFolder is not null)
+            {
+                reference.Value = newUiFolder;
+                continue;
+            }
+            if (reference.PreviousNode is XText indentation && string.IsNullOrWhiteSpace(indentation.Value))
+            {
+                indentation.Remove();
+            }
+            reference.Remove();
+        }
+
+        await using MemoryStream outputStream = new();
+        await processDefinition.SaveAsync(outputStream, SaveOptions.DisableFormatting, cancellationToken);
+        outputStream.Position = 0;
+        await altinnAppGitRepository.SaveProcessDefinitionFileAsync(outputStream, cancellationToken);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public Stream GetProcessDefinitionStream(AltinnRepoEditingContext altinnRepoEditingContext)
     {
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
@@ -148,10 +206,11 @@ public class ProcessModelingService : IProcessModelingService
                 AllowedContentTypes =
                     allowedContentTypes?.Count > 0 ? allowedContentTypes : new List<string> { "application/json" },
                 MaxCount = 1,
-                TaskId = taskId,
             };
 
-            if (!_appVersionService.IsV9App(altinnRepoEditingContext))
+            bool isV9App = _appVersionService.IsV9App(altinnRepoEditingContext);
+            dataTypeToAdd.BindToTask(taskId, usesTaskIds: isV9App);
+            if (!isV9App)
             {
                 // V8 enables legacy PDF generation when this property is omitted.
 #pragma warning disable CS0618 // Required by apps using the v8 runtime

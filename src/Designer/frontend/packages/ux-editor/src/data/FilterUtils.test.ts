@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { formItemConfigs } from './formItemConfig';
 import { FilterUtils } from './FilterUtils';
 
@@ -18,6 +18,9 @@ describe('FilterUtils', () => {
 
   describe('filterUnsupportedSubformComponents', () => {
     it.each([
+      {
+        component: formItemConfigs[ComponentType.BrokerFileTransfer],
+      },
       {
         component: formItemConfigs[ComponentType.Button],
       },

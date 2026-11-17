@@ -5,12 +5,13 @@ import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { FormItemContextProvider } from '../FormItemContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import type { IInternalLayout } from '../../types/global';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const defaultProps: FormLayoutProps = {
   layout: layoutMock,
@@ -22,6 +23,19 @@ const emptyLayout: IInternalLayout = {
   order: {},
   customDataProperties: {},
   customRootProperties: {},
+};
+
+const navigationButtonsId = 'navigationButtons';
+const layoutWithOnlyNavigationButtons: IInternalLayout = {
+  ...emptyLayout,
+  components: {
+    [navigationButtonsId]: {
+      id: navigationButtonsId,
+      type: ComponentType.NavigationButtons,
+      itemType: 'COMPONENT',
+    },
+  },
+  order: { [BASE_CONTAINER_ID]: [navigationButtonsId] },
 };
 
 describe('FormLayout', () => {
@@ -73,6 +87,19 @@ describe('FormLayout', () => {
   it('Displays the add item button when the layout is empty and the add component modal flag is enabled', () => {
     render({ layout: emptyLayout }, [FeatureFlag.AddComponentModal]);
     expect(screen.getByRole('button', { name: addComponentButtonName })).toBeInTheDocument();
+  });
+
+  it('Displays the add item button above the tree when the layout only has navigation buttons and the add component modal flag is enabled', () => {
+    render({ layout: layoutWithOnlyNavigationButtons }, [FeatureFlag.AddComponentModal]);
+    const addButton = screen.getByRole('button', { name: addComponentButtonName });
+    expect(addButton.compareDocumentPosition(screen.getByRole('tree'))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
+  it('Does not display the add item button when the layout has other components than navigation buttons', () => {
+    render({}, [FeatureFlag.AddComponentModal]);
+    expect(screen.queryByRole('button', { name: addComponentButtonName })).not.toBeInTheDocument();
   });
 });
 

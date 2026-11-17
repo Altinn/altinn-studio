@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type { ManualOptionsDialogProps } from './';
 import { ManualOptionsDialog } from './';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { ITextResources, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import {
@@ -21,7 +21,7 @@ import type { MutableRefObject } from 'react';
 import { createRef } from 'react';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
 import { userEvent } from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { Option } from 'app-shared/types/Option';
 

@@ -7,8 +7,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppConfigQuery } from 'app-development/hooks/queries';
 import userEvent from '@testing-library/user-event';
 import { useNavigate } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, layoutSet, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, layoutSet, org } from '@designer/testing/testids';
 
 vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: vi.fn(),

@@ -87,6 +87,14 @@ public class Dummy
     [JsonProperty("missing-from-xsd")]
     [JsonPropertyName("missing-from-xsd")]
     public string? MissingFromXsd { get; set; }
+
+    [Range(0, 100)]
+    [XmlElement("hiddenRange", Order = 14)]
+    [JsonProperty("hiddenRange")]
+    [JsonPropertyName("hiddenRange")]
+    public decimal? HiddenRange { get; set; }
+
+    public bool ShouldSerializeHiddenRange() => HiddenRange.HasValue;
 }
 
 public class TagWithAttribute

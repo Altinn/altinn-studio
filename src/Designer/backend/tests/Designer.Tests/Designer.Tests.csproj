@@ -34,6 +34,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Designer\Designer.csproj" />
     <ProjectReference Include="..\SharedResources.Tests\SharedResources.Tests.csproj" />
   </ItemGroup>

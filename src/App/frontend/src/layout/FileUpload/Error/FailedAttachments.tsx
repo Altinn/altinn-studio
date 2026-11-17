@@ -4,12 +4,11 @@ import { Alert, Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type IFailedAttachment } from 'src/features/attachments';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { isDataPostError } from 'src/features/attachments/isDataPostError';
-import { Lang } from 'src/features/language/Lang';
+import { Lang, LangReference } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getValidationIssueMessage } from 'src/features/validation/backendValidation/backendValidationUtils';
 import classes from 'src/layout/FileUpload/Error/FailedAttachments.module.css';
@@ -74,25 +73,14 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
 }
 
 function ErrorDetails({ attachment: { data, error } }: { attachment: IFailedAttachment }) {
-  const backendFeatures = getApplicationMetadata().features ?? {};
   const [showingMore, setShowingMore] = useState(false);
 
   if (isAxiosError(error)) {
     const reply = error.response?.data;
-    const issues = isDataPostError(reply)
-      ? reply.uploadValidationIssues
-      : backendFeatures.jsonObjectInDataResponse && Array.isArray(reply) // This is the old API response
-        ? reply
-        : null;
+    const issues = isDataPostError(reply) ? reply.uploadValidationIssues : null;
 
     if (issues && issues.length === 1) {
-      const { key, customTextParameters } = getValidationIssueMessage(issues[0]);
-      return (
-        <Lang
-          id={key}
-          customTextParameters={customTextParameters}
-        />
-      );
+      return <LangReference reference={getValidationIssueMessage(issues[0])} />;
     }
     if (issues && issues.length > 1) {
       const isLong = issues.length > MAX_ITEMS_BEFORE_COLLAPSE;

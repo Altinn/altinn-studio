@@ -1,4 +1,4 @@
-name: Assistant-prompts
+name: Assistant - Prompts
 
 on:
   pull_request:

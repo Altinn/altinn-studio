@@ -1,0 +1,33 @@
+{
+  "name": "Patterns",
+  "disabledBackend": true,
+  "testCases": [
+    {
+      "name": "Pattern formatting",
+      "expression": [
+        "formatNumber",
+        12345678,
+        ["object", "number", ["object", "format", "## ## ## ##"]]
+      ],
+      "expects": "12 34 56 78"
+    },
+    {
+      "name": "Pattern mask characters",
+      "expression": [
+        "formatNumber",
+        123,
+        ["object", "number", ["object", "format", "### ##", "mask", "_"]]
+      ],
+      "expects": "123 __"
+    },
+    {
+      "name": "A dynamic pattern uses normal nested expressions",
+      "expression": [
+        "formatNumber",
+        1234,
+        ["object", "number", ["object", "format", ["concat", "##", "-##"]]]
+      ],
+      "expects": "12-34"
+    }
+  ]
+}

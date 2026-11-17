@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IFormLayouts } from '../types/global';
 import { generateComponentId, generateTextResourceId } from './generateId';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('generateComponentId', () => {
   const layouts: IFormLayouts = {
@@ -10,7 +10,6 @@ describe('generateComponentId', () => {
         container1: {
           id: 'container1',
           index: 0,
-          itemType: 'CONTAINER',
           type: ComponentType.Group,
         },
       },
@@ -18,7 +17,6 @@ describe('generateComponentId', () => {
         'Input-1bd34': {
           id: 'Input-1bd34',
           type: ComponentType.Input,
-          itemType: 'COMPONENT',
           dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
         },
       },
@@ -33,7 +31,6 @@ describe('generateComponentId', () => {
         container2: {
           id: 'container2',
           index: 0,
-          itemType: 'CONTAINER',
           type: ComponentType.Group,
         },
       },
@@ -41,7 +38,6 @@ describe('generateComponentId', () => {
         'Input-abfr34': {
           id: 'Input-abfr34',
           type: ComponentType.Input,
-          itemType: 'COMPONENT',
           dataModelBindings: { simpleBinding: { field: 'somePath', dataType: '' } },
         },
       },

@@ -13,7 +13,6 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -21,7 +20,7 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Process.ServiceTasks.Pdf;
 
-public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class PdfServiceTaskTests : ApiTestBase
 {
     private const string Org = "ttd";
     private const string App = "service-tasks";
@@ -30,8 +29,8 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
     private static readonly Guid _instanceGuid = new("a2af1cfd-db99-45f9-9625-9dfa1223485f");
     private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
 
-    public PdfServiceTaskTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public PdfServiceTaskTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         var eFormidlingServiceMock = new Mock<IEFormidlingService>();
         // This app's process runs the eFormidling task after the PDF one, and that task now waits for
@@ -59,64 +58,6 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
 
         TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
-    }
-
-    [Fact]
-    public async Task Reject_Is_Blocked_When_PdfServiceTask_Failed_And_Resume_Is_Required()
-    {
-        var sendAsyncCalled = false;
-
-        // Mock HttpClient for the expected pdf service call
-        SendAsync = message =>
-        {
-            message.RequestUri!.PathAndQuery.Should().Be($"/pdf");
-            sendAsyncCalled = true;
-
-            // Simulate failing PDF service
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
-        };
-
-        using HttpClient client = GetRootedUserClient(Org, App);
-
-        // Run process next to enter PDF task
-        using HttpResponseMessage nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/next?language={Language}",
-            null
-        );
-
-        string nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(nextResponseContent);
-
-        nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
-        sendAsyncCalled.Should().BeTrue();
-
-        // Run process next with reject to return to data task
-        var rejectProcessNext = new ProcessNext { Action = "reject" };
-        using var rejectContent = new StringContent(
-            JsonConvert.SerializeObject(rejectProcessNext),
-            Encoding.UTF8,
-            "application/json"
-        );
-
-        using HttpResponseMessage rejectResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{_instanceId}/process/next?language={Language}",
-            rejectContent
-        );
-
-        rejectResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
-
-        string rejectResponseContent = await rejectResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(rejectResponseContent);
-        JObject rejectProblem = JObject.Parse(rejectResponseContent);
-        rejectProblem["title"]!.Value<string>().Should().Be("Task must be resumed before it can continue.");
-        rejectProblem["status"]!.Value<int>().Should().Be((int)HttpStatusCode.Conflict);
-        rejectProblem["processNextState"]!.Value<string>().Should().Be("resumeRequired");
-
-        // The target service task is committed before its side effects run. A failure leaves
-        // that durable task in place so resume retries ExecuteServiceTask without reacquiring.
-        Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
-        instance.Process.CurrentTask.ElementId.Should().Be("Task_2");
-        instance.Process.CurrentTask.AltinnTaskType.Should().Be("pdf");
     }
 
     [Fact]

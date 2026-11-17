@@ -6,6 +6,7 @@ import { ShareChangesPopover } from './components/ShareChangesPopover';
 import { BranchDropdown } from './components/BranchDropdown';
 import { VersionControlButtonsContextProvider } from './context';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
+import { useRefreshRepoStatusAfterChanges } from './hooks/useRefreshRepoStatusAfterChanges';
 
 export type VersionControlButtonsProps = {
   onPullSuccess: () => void;
@@ -17,6 +18,7 @@ export const VersionControlButtons = ({
   const { owner, repoName } = useGiteaHeaderContext();
   const { data: currentRepo } = useRepoMetadataQuery(owner, repoName);
   const { data: repoStatus } = useRepoStatusQuery(owner, repoName);
+  useRefreshRepoStatusAfterChanges(owner, repoName);
 
   return (
     <VersionControlButtonsContextProvider

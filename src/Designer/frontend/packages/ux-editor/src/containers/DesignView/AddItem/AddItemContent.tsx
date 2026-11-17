@@ -1,4 +1,4 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IToolbarElement } from '../../../types/global';
 import classes from './AddItemContent.module.css';
@@ -7,7 +7,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
-import { StudioParagraph, StudioSearch } from '@studio/components';
+import { StudioParagraph, StudioSearch } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useSearchComponent } from './useSearchComponent';
 

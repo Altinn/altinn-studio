@@ -39,7 +39,7 @@ public class ValidationServiceOldTests
             new DataType()
             {
                 Id = "test",
-                TaskId = "Task_1",
+                TaskIds = ["Task_1"],
                 EnableFileScan = false,
                 ValidationErrorOnPendingFileScan = false,
             },
@@ -79,7 +79,7 @@ public class ValidationServiceOldTests
         var dataType = new DataType()
         {
             Id = "testScan",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             EnableFileScan = true,
         };
         _applicationMetadata.DataTypes.Add(dataType);
@@ -109,7 +109,7 @@ public class ValidationServiceOldTests
         var dataType = new DataType()
         {
             Id = "test",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AppLogic = null,
             EnableFileScan = true,
         };
@@ -140,7 +140,7 @@ public class ValidationServiceOldTests
         var dataType = new DataType()
         {
             Id = "testScan",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             EnableFileScan = true,
             ValidationErrorOnPendingFileScan = true,
         };
@@ -213,7 +213,7 @@ public class ValidationServiceOldTests
         var dataType = new DataType
         {
             Id = "data",
-            TaskId = taskId,
+            TaskIds = [taskId],
             MaxCount = 0,
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };
@@ -251,7 +251,7 @@ public class ValidationServiceOldTests
         var dataType = new DataType
         {
             Id = "data",
-            TaskId = taskId,
+            TaskIds = [taskId],
             MaxCount = 1,
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };

@@ -6,8 +6,8 @@ import {
   StudioCard,
   StudioSuggestion,
   type StudioSuggestionItem,
-} from '@studio/components';
-import { PencilIcon } from '@studio/icons';
+} from '@designer/components';
+import { PencilIcon } from '@designer/icons';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

@@ -1057,7 +1057,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
-                    MarkMutationResponseReplayed(record.ResponseBody),
+                    MarkMutationResponseReplayed(record.ResponseBody, _instances[instanceId]),
                     Encoding.UTF8,
                     "application/json"
                 ),
@@ -1081,9 +1081,11 @@ public class StorageClientInterceptor : HttpMessageHandler
         return null;
     }
 
-    private static string MarkMutationResponseReplayed(string responseBody)
+    private static string MarkMutationResponseReplayed(string responseBody, Instance instance)
     {
         var body = JObject.Parse(responseBody);
+        // Replay returns current standalone metadata with the original mutation's created IDs and versions.
+        body["instance"] = JObject.FromObject(instance);
         body["replayed"] = true;
         return body.ToString(Formatting.None);
     }

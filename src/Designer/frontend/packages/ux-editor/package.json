@@ -4,8 +4,9 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
-    "@studio/hooks": "workspace:^",
-    "@studio/icons": "workspace:^",
+    "@app/layout-contract": "workspace:*",
+    "@designer/hooks": "workspace:^",
+    "@designer/icons": "workspace:^",
     "classnames": "2.5.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -13,7 +14,7 @@
     "uuid": "13.0.2"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^"
+    "@designer/ui-test": "workspace:^"
   },
   "license": "MIT",
   "main": "index.js",

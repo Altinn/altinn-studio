@@ -93,6 +93,34 @@ public class RunTest2
 
         hidden.Select(d => d.Field).Should().BeEquivalentTo(["some.data[1].binding2"]);
     }
+
+    [Fact]
+    public async Task RemoveSingleRow_LegacyInit_SharesStateAcrossContexts()
+    {
+        var state = await LayoutTestUtils.GetLegacyLayoutModelTools(
+            new DataModel()
+            {
+                Some = new()
+                {
+                    NotRepeating = "showGroup",
+                    Data = new()
+                    {
+                        new() { Binding = "binding" },
+                        new() { Binding2 = 2, Binding3 = "hidden" },
+                    },
+                },
+            },
+            "Test2"
+        );
+
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        hidden.Select(d => d.Field).Should().BeEquivalentTo(["some.data[1].binding2"]);
+
+        // ["component", ...] lookups go through context.State, so a fresh state per call would regenerate all contexts
+        var contexts = (await state.GetComponentContexts()).SelectMany(c => c.Descendants).ToList();
+        Assert.NotEmpty(contexts);
+        Assert.All(contexts, context => Assert.Same(state, context.State));
+    }
 }
 
 public class DataModel

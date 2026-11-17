@@ -250,7 +250,7 @@ internal static class TestHelpers
 
     public class CustomFiksArkivMessageHandler : IFiksArkivMessageHandler
     {
-        public Task HandleMessage(FiksArkivReceivedMessage message, ServiceTaskContext context) =>
+        public Task HandleMessage(FiksArkivReceivedMessage message, StageContext context) =>
             throw new NotImplementedException();
     }
 
@@ -274,7 +274,7 @@ internal static class TestHelpers
                 logLevel,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>(
-                    (v, _) => v.ToString()!.Contains(partialMessage, StringComparison.OrdinalIgnoreCase)
+                    (v, _) => v != null && v.ToString()!.Contains(partialMessage, StringComparison.OrdinalIgnoreCase)
                 ),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()

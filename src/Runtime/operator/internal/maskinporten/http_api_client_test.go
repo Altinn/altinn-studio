@@ -557,6 +557,32 @@ func TestGetAllClients_MixedScenario(t *testing.T) {
 	g.Expect(clients[1].ClientId).To(Equal("match2"))
 }
 
+func TestRetryableHTTPDoKeepsRetryingAfterCancellation(t *testing.T) {
+	g := NewWithT(t)
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:1", nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	attempts := 0
+	req.GetBody = func() (io.ReadCloser, error) {
+		attempts++
+		if attempts > 1 {
+			return nil, io.ErrUnexpectedEOF // Stop after proving the cancelled request was retried.
+		}
+		return http.NoBody, nil
+	}
+
+	apiClient := &HttpApiClient{}
+	resp, err := apiClient.retryableHTTPDo(req)
+	if resp != nil {
+		g.Expect(resp.Body.Close()).To(Succeed())
+	}
+	g.Expect(resp).To(BeNil())
+	g.Expect(err).To(MatchError("retry Maskinporten request: unexpected EOF"))
+	g.Expect(attempts).To(Equal(2))
+	g.Expect(req.Context().Err()).To(MatchError(context.Canceled))
+}
+
 func TestRetryableHTTPDoPreservesBodyOnRetry(t *testing.T) {
 	g := NewWithT(t)
 	clock := opclock.NewFakeClock()

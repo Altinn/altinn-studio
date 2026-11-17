@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.App;
 
 /// <summary>
 /// Reads the feature flags from the <c>FeatureManagement</c> section of the configuration, where every flag is a
-/// boolean: <c>"FeatureManagement": { "JsonObjectInDataResponse": true }</c>. The flags are read again when the
+/// boolean: <c>"FeatureManagement": { "SimpleTableEnabled": true }</c>. The flags are read again when the
 /// configuration reloads.
 /// </summary>
 internal sealed class FrontendFeatures : IFrontendFeatures

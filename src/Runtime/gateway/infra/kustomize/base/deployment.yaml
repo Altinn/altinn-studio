@@ -102,6 +102,8 @@ spec:
               value: "k8s.pod.uid=$(POD_UID)"
             - name: OTEL_SERVICE_NAME
               value: "gateway"
+            - name: OTEL_METRIC_EXPORT_INTERVAL
+              value: "15000"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
             - name: ASPNETCORE_ENVIRONMENT

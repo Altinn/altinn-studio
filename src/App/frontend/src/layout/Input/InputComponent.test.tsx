@@ -82,6 +82,19 @@ describe('InputComponent', () => {
     expect(input).toHaveAttribute('aria-describedby', expect.stringContaining('mock-id-validations'));
   });
 
+  it('does not show the required tag on a required read-only field', async () => {
+    await render({
+      component: {
+        required: true,
+        readOnly: true,
+        textResourceBindings: { title: 'Input label' },
+      },
+    });
+
+    expect(screen.getByText('Input label')).toBeInTheDocument();
+    expect(screen.queryByText('Må fylles ut')).not.toBeInTheDocument();
+  });
+
   it('updates the error state when masked backend validations are shown', async () => {
     function ShowBackendValidations() {
       const showAll = FormStore.raw.useSelector((state) => state.validation.setShowAllUnboundValidations);
@@ -323,13 +336,31 @@ describe('InputComponent', () => {
       component: {
         autocomplete: 'name',
       },
-      queries: {
-        fetchFormData: () => Promise.resolve({ some: { field: initialValue } }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ some: { field: initialValue } }) },
     });
 
     const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
     expect(inputComponent).toHaveAttribute('autocomplete', 'name');
+  });
+
+  it('marks the label as optional when the field is not required', async () => {
+    await render({ component: { textResourceBindings: { title: 'Input label' } } });
+    expect(screen.getByText('Valgfritt')).toBeInTheDocument();
+  });
+
+  it('hides the optional marking when the app hides it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render({ component: { textResourceBindings: { title: 'Input label' } } });
+    expect(screen.getByRole('textbox', { name: 'Input label' })).toBeInTheDocument();
+    expect(screen.queryByText('Valgfritt')).not.toBeInTheDocument();
+  });
+
+  it('marks the label as optional when the app hides the marking but the component shows it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render({
+      component: { textResourceBindings: { title: 'Input label' }, labelSettings: { optionalIndicator: true } },
+    });
+    expect(screen.getByText('Valgfritt')).toBeInTheDocument();
   });
 
   const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>

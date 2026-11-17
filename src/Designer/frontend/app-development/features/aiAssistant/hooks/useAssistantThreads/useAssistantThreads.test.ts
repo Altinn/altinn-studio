@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { createElement } from 'react';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { MessageAuthor } from '@studio/assistant';
-import type { AssistantMessage, UserMessage } from '@studio/assistant';
+import { MessageAuthor } from '@designer/assistant';
+import type { AssistantMessage, UserMessage } from '@designer/assistant';
 import { useAssistantThreads } from './useAssistantThreads';
 import { useChatThreadsQuery } from 'app-shared/hooks/queries/useChatThreadsQuery';
 import { useCreateChatThreadMutation } from 'app-shared/hooks/mutations/useCreateChatThreadMutation';
@@ -59,8 +59,9 @@ describe('useAssistantThreads', () => {
     mockUseDeleteChatMessageMutation.mockReturnValue({ mutateAsync: vi.fn() } as any);
   });
 
-  it('invalidates the thread messages query on refreshMessages', () => {
+  it('cancels a running fetch of the thread messages and fetches them again on refreshMessages', async () => {
     const queryClient = new QueryClient();
+    const cancelQueries = vi.spyOn(queryClient, 'cancelQueries');
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderUseAssistantThreads(queryClient);
 
@@ -68,9 +69,9 @@ describe('useAssistantThreads', () => {
       result.current.refreshMessages(threadId);
     });
 
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['ChatMessages', 'testOrg', 'testApp', threadId],
-    });
+    const queryKey = ['ChatMessages', 'testOrg', 'testApp', threadId];
+    expect(cancelQueries).toHaveBeenCalledWith({ queryKey });
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey }));
   });
 
   it('updates current session when selecting a thread', () => {

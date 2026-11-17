@@ -4,64 +4,77 @@ import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler
 import { useSubformPdfConfig } from './useSubformPdfConfig';
 
 describe('useSubformPdfConfig', () => {
-  it('persists the selection and filename when an imported task has no config', async () => {
+  it('persists the UI folder and filename when an imported task has no config', async () => {
     const { result, saveXml } = renderSubformConfig();
     act(() => {
-      result.current.setSubformComponentAndDataTypeIds('vehicles', 'vehicle');
+      result.current.setSubformUiFolder('vehicleSubform');
       result.current.setFilenameTextResourceId('vehicle-pdf-name');
     });
 
     const xml = await saveXml();
-    expect(xml).toContain('<altinn:subformComponentId>vehicles</altinn:subformComponentId>');
-    expect(xml).toContain('<altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>');
+    expect(xml).toContain('<altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>');
     expect(xml).toContain(
       '<altinn:filenameTextResourceKey>vehicle-pdf-name</altinn:filenameTextResourceKey>',
     );
-    expect(result.current.subformComponentId).toBe('vehicles');
-    expect(result.current.subformDataTypeId).toBe('vehicle');
+    expect(result.current.subformUiFolder).toBe('vehicleSubform');
     expect(result.current.filenameTextResourceId).toBe('vehicle-pdf-name');
   });
 
-  it('preserves other settings when repairing a data type and clearing the selection', async () => {
-    const { result, saveXml } = renderSubformConfig();
-    act(() => result.current.setSubformComponentAndDataTypeIds('vehicles', 'old-type'));
-    act(() => result.current.setFilenameTextResourceId('vehicle-pdf-name'));
-    act(() => result.current.setSubformDataTypeId('vehicle'));
-    expect(await saveXml()).toContain(
-      '<altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>',
-    );
+  it('writes only the UI folder, leaving the v8 settings for the upgrade', async () => {
+    const { result, saveXml } = renderSubformConfig({
+      subformComponentId: 'vehicles',
+      subformDataTypeId: 'vehicle',
+    });
 
-    act(() => result.current.setSubformComponentAndDataTypeIds('', ''));
+    act(() => result.current.setSubformUiFolder('vehicleSubform'));
+
     const xml = await saveXml();
-    expect(xml).not.toContain('subformComponentId');
-    expect(xml).not.toContain('subformDataTypeId');
+    expect(xml).toContain('<altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>');
+    expect(xml).toContain('<altinn:subformComponentId>vehicles</altinn:subformComponentId>');
+    expect(xml).toContain('<altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>');
+  });
+
+  it('clears the UI folder without changing the filename', async () => {
+    const { result, saveXml } = renderSubformConfig();
+    act(() => result.current.setSubformUiFolder('vehicleSubform'));
+    act(() => result.current.setFilenameTextResourceId('vehicle-pdf-name'));
+    act(() => result.current.setSubformUiFolder(''));
+
+    const xml = await saveXml();
+    expect(xml).not.toContain('subformUiFolder');
     expect(xml).toContain('vehicle-pdf-name');
   });
 
-  it('clears the filename without changing the selected subform', async () => {
+  it('clears the filename without changing the UI folder', async () => {
     const { result, saveXml } = renderSubformConfig();
-    act(() => result.current.setSubformComponentAndDataTypeIds('vehicles', 'vehicle'));
+    act(() => result.current.setSubformUiFolder('vehicleSubform'));
     act(() => result.current.setFilenameTextResourceId('vehicle-pdf-name'));
     act(() => result.current.setFilenameTextResourceId(''));
 
     const xml = await saveXml();
     expect(xml).not.toContain('filenameTextResourceKey');
-    expect(xml).toContain('<altinn:subformComponentId>vehicles</altinn:subformComponentId>');
+    expect(xml).toContain('<altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>');
   });
 
-  it('does not create a command for an unchanged selection', () => {
+  it('does not create a command for an unchanged UI folder', () => {
     const { result, modeling } = renderSubformConfig();
-    act(() => result.current.setSubformComponentAndDataTypeIds('vehicles', 'vehicle'));
+    act(() => result.current.setSubformUiFolder('vehicleSubform'));
     modeling.updateModdleProperties.mockClear();
-    act(() => result.current.setSubformComponentAndDataTypeIds('vehicles', 'vehicle'));
+    act(() => result.current.setSubformUiFolder('vehicleSubform'));
     expect(modeling.updateModdleProperties).not.toHaveBeenCalled();
   });
 });
 
-function renderSubformConfig() {
+function renderSubformConfig(subformPdfConfig?: object) {
   const modeler = createBpmnTestModeler();
   modeler.businessObject.extensionElements = modeler.moddle.create('bpmn:ExtensionElements', {
-    values: [modeler.moddle.create('altinn:TaskExtension', { taskType: 'subformPdf' })],
+    values: [
+      modeler.moddle.create('altinn:TaskExtension', {
+        taskType: 'subformPdf',
+        subformPdfConfig:
+          subformPdfConfig && modeler.moddle.create('altinn:SubformPdfConfig', subformPdfConfig),
+      }),
+    ],
   });
   return { ...modeler, ...renderHook(() => useSubformPdfConfig(), { wrapper: modeler.Wrapper }) };
 }

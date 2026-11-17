@@ -1,6 +1,7 @@
 import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Download, Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 export class LocalChangesModal extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -30,6 +31,13 @@ export class LocalChangesModal extends BasePage {
   }
 
   public async verifyThatDeleteLocalChangesSuccessPageReload(): Promise<void> {
+    // The dialog only leaves the page when the reload after a successful reset replaces the document.
+    // Waiting for "load" alone returns at once, because the old document has already loaded.
+    const deleteDialogHeading = this.page.getByRole('heading', {
+      name: this.textMock('local_changes.modal_delete_modal_title'),
+      level: 1,
+    });
+    await expect(deleteDialogHeading).toBeHidden();
     await this.page.waitForLoadState('load');
   }
 

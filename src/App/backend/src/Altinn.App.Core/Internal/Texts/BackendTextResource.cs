@@ -1,0 +1,109 @@
+using System.Collections.Immutable;
+using System.Text.RegularExpressions;
+using Altinn.App.Core.Internal.Language;
+
+namespace Altinn.App.Core.Internal.Texts;
+
+/// <summary>
+/// A text that the backend provides a default for. An app overrides it by adding a text resource with the same
+/// <see cref="Key"/>.
+/// </summary>
+internal sealed partial class BackendTextResource
+{
+    private IReadOnlyList<BackendTextVariable>? _customTextParameters;
+    private TextTemplate? _nb;
+    private TextTemplate? _nn;
+    private TextTemplate? _en;
+
+    /// <summary>
+    /// The text resource id.
+    /// </summary>
+    public required string Key { get; init; }
+
+    /// <summary>
+    /// The default texts. Placeholders name a variable in <see cref="Variables"/>, like <c>{maxSize}</c>.
+    /// </summary>
+    public required LocalizedText Texts { get; init; }
+
+    /// <summary>
+    /// The variables the default texts use, of any source.
+    /// </summary>
+    public IReadOnlyList<BackendTextVariable> Variables { get; init; } = [];
+
+    /// <summary>
+    /// The variables the caller passes in customTextParameters, in the order they are passed.
+    /// </summary>
+    public IReadOnlyList<BackendTextVariable> CustomTextParameters =>
+        _customTextParameters ??= [
+            .. Variables.Where(variable => variable.Source is TextVariableSource.CustomTextParameter),
+        ];
+
+    /// <summary>
+    /// The template for nb, nn or en, built once, or null for any other language.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The text uses a placeholder that names no variable.</exception>
+    public TextTemplate? ToTemplate(string language) =>
+        language switch
+        {
+            LanguageConst.Nb => _nb ??= Parse(Texts.Nb),
+            LanguageConst.Nn => _nn ??= Parse(Texts.Nn),
+            LanguageConst.En => _en ??= Parse(Texts.En),
+            _ => null,
+        };
+
+    /// <summary>
+    /// Pairs <paramref name="values"/> with <see cref="CustomTextParameters"/> by position.
+    /// A null value leaves the parameter out. Returns null when the text takes no parameters.
+    /// </summary>
+    public Dictionary<string, string>? CreateCustomTextParameters(ReadOnlySpan<string?> values)
+    {
+        if (values.Length != CustomTextParameters.Count)
+        {
+            throw new ArgumentException(
+                $"Text resource '{Key}' takes {CustomTextParameters.Count} custom text parameters, but got {values.Length}",
+                nameof(values)
+            );
+        }
+        if (values.Length == 0)
+        {
+            return null;
+        }
+
+        var parameters = new Dictionary<string, string>(values.Length);
+        for (var i = 0; i < values.Length; i++)
+        {
+            if (values[i] is { } value)
+            {
+                parameters[CustomTextParameters[i].Name] = value;
+            }
+        }
+        return parameters;
+    }
+
+    /// <summary>
+    /// Splits <paramref name="text"/> at each <c>{name}</c> placeholder, with the source of the named variable.
+    /// </summary>
+    private TextTemplate Parse(string text)
+    {
+        var segments = ImmutableArray.CreateBuilder<string>();
+        var variables = ImmutableArray.CreateBuilder<TextVariableSource>();
+        var segmentStart = 0;
+        foreach (Match match in PlaceholderRegex().Matches(text))
+        {
+            var name = match.Groups[1].Value;
+            var variable =
+                Variables.FirstOrDefault(candidate => candidate.Name == name)
+                ?? throw new InvalidOperationException($"Text resource '{Key}' uses {{{name}}}, which is no variable");
+
+            segments.Add(text[segmentStart..match.Index]);
+            variables.Add(variable.Source);
+            segmentStart = match.Index + match.Length;
+        }
+        segments.Add(text[segmentStart..]);
+
+        return new TextTemplate(segments.ToImmutable(), variables.ToImmutable());
+    }
+
+    [GeneratedRegex(@"\{([^{}]+)\}")]
+    private static partial Regex PlaceholderRegex();
+}

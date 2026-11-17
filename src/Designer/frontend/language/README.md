@@ -1,15 +1,6 @@
-# Language support
+# Language files
 
-We currently are planning to add support for English and Norwegian in Altinn Studio. Since this is not implemented,
-this might seem like premature optimization. But we know that this is something that we will add at a point in the future.
+The texts of the [Designer frontend](../README.md), which says which file to add a text to.
 
-This workspace contains the language files and any tests of quality that we might introduce.
-
-## Sorting
-
-We require the text files to be sorted alphabetically by key in order to make it easier to find the text one is looking
-for, and to avoid merge conflicts. To sort the files, run the following command from this directory:
-
-```bash
-yarn run sort
-```
+A test requires the keys in each file to be sorted alphabetically, so that a text is easy to find and two changes
+seldom conflict. To sort the files, run `yarn sort-texts` from `src/Designer/frontend`.

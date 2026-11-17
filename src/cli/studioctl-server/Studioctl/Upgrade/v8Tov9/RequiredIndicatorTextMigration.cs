@@ -41,7 +41,7 @@ internal static class RequiredIndicatorTextMigration
 
     public static async Task<RequiredIndicatorTextMigrationResult> Migrate(string projectFolder)
     {
-        var textsDirectory = ResolveTextsDirectory(projectFolder);
+        var textsDirectory = AppTextResources.ResolveTextsDirectory(projectFolder);
         if (textsDirectory is null)
             return new RequiredIndicatorTextMigrationResult(0, 0, 0, []);
 
@@ -148,16 +148,6 @@ internal static class RequiredIndicatorTextMigration
             descriptionOverridesRemoved,
             warnings
         );
-    }
-
-    private static string? ResolveTextsDirectory(string projectFolder)
-    {
-        var appTexts = Path.Combine(projectFolder, "App", "config", "texts");
-        if (Directory.Exists(appTexts))
-            return appTexts;
-
-        var texts = Path.Combine(projectFolder, "config", "texts");
-        return Directory.Exists(texts) ? texts : null;
     }
 
     /// <summary>

@@ -51,9 +51,7 @@ internal static class V8Tov9Upgrade
     // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
     private const string FeaturesNamespace = "Altinn.App.Core.Features";
 
-    // Keep the release floor aligned with the app template. This release carries the .NET 11
-    // arithmetic fixes and compatible OpenAPI dependencies; earlier v9 packages cannot be retargeted alone.
-    private const string MinimumPackageVersion = "9.0.0-preview.8";
+    private const string MinimumPackageVersion = "9.0.0-preview.10";
 
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
@@ -193,6 +191,7 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+        returnCode = CombineExitCodes(returnCode, MigrateProcessTaskLifecycle(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAsyncSuffixApis(scanner));
@@ -235,13 +234,23 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveEnforceDataTypeTaskIdSetting(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateTextResourceKeys(projectFolder));
+
+        // After the text key renames, so a description set to a renamed key moves to the new key.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateValidationDescriptionTextKeys(scanner, projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         var layoutOutcome = await MigrateLayouts(projectFolder);
@@ -274,11 +283,28 @@ internal static class V8Tov9Upgrade
             );
         }
 
+        // After the layout-set conversion, so a subform PDF task's folder is ui/<taskId> and the subform's folder is
+        // named after its layout set, and before the service task page step, which deals with what the task's folder
+        // holds once the Subform component copy is gone.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateSubformPdfConfig(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
+
+        // After the layout migrations and the layout-set conversion, so a service task's folder is ui/<taskId> and
+        // holds v9 layouts.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckNavigationValidation(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
@@ -290,6 +316,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInsertedServiceTaskPolicy(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -297,6 +326,10 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAllowedContributors(projectFolder));
+
+        // After the PDF service task migration, so the PDF service tasks it adds are included.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
@@ -506,10 +539,7 @@ internal static class V8Tov9Upgrade
             string? targetVersion = null;
             if (options.ConvertPackageReferences)
                 sourceRoot = ValidateConversionRoot(options.ProjectFolder, options.StudioRoot);
-            else if (
-                !projectChecks.HasAltinnProjectReferences()
-                && !projectChecks.HasPackageVersionsAtLeast(MinimumPackageVersion)
-            )
+            else if (!projectChecks.HasAltinnProjectReferences())
             {
                 targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
                     options.ProjectFolder,
@@ -959,6 +989,33 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Gives app implementations of <c>IProcessTask</c> the <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c>
+    /// members v9 runs instead of the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>, each running the v8 method
+    /// as one stage, and makes an explicit implementation of a removed member the type's own method.
+    /// </summary>
+    static int MigrateProcessTaskLifecycle(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IProcessTask lifecycle stages");
+        try
+        {
+            var result = new ProcessTaskLifecycleMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IProcessTask lifecycle members to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the IProcessTask lifecycle members", ex);
+        }
+    }
+
+    /// <summary>
     /// Drops the Async suffix from app code using the SDK methods v9 renamed (the options and data list
     /// providers, IProcessExclusiveGateway.Filter, ISecretsClient, ...). Only SDK methods are renamed:
     /// .NET and third-party methods keep their names, and no string literal is touched.
@@ -1285,6 +1342,52 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes the FeatureManagement:JsonObjectInDataResponse flag from the appsettings files: v9 always returns
+    /// validation issues from the data API as JSON.
+    /// </summary>
+    static async Task<int> RemoveJsonObjectInDataResponseFlag(string projectFile)
+    {
+        UpgradeConsole.BeginStep("JsonObjectInDataResponse feature flag");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await JsonObjectInDataResponseMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No JsonObjectInDataResponse feature flag in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes AppSettings:EnforceDataTypeTaskId from the appsettings files: v9 always refuses changes through the app
+    /// APIs to a data type's data outside the tasks it is bound to.
+    /// </summary>
+    static async Task<int> RemoveEnforceDataTypeTaskIdSetting(string projectFile)
+    {
+        UpgradeConsole.BeginStep("EnforceDataTypeTaskId setting");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await EnforceDataTypeTaskIdMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No AppSettings:EnforceDataTypeTaskId in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing AppSettings:EnforceDataTypeTaskId from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
     /// names case-sensitively on every operating system.
     /// </summary>
@@ -1308,19 +1411,49 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
-    /// so a customized validation message keeps applying after the v9 key rename.
+    /// Rewrites the built-in text-resource keys v9 renamed in app-owned resource.*.json overrides,
+    /// so a customized message keeps applying after the upgrade.
     /// </summary>
-    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    static async Task<int> MigrateTextResourceKeys(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Datepicker text keys");
+        UpgradeConsole.BeginStep("Renamed text keys");
         try
         {
-            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+            return await TextResourceKeyMigration.Migrate(projectFolder);
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating Datepicker text-resource keys", ex);
+            return Fail("Error migrating renamed text-resource keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves text keys that app code sets as a validation issue's Description to CustomTextKey, since the v9 form
+    /// shows the description as text, and removes a Description that repeats CustomTextKey, in ValidationIssue
+    /// initializers and GenericFormDataValidator.CreateValidationIssue calls.
+    /// </summary>
+    static async Task<int> MigrateValidationDescriptionTextKeys(CSharpSourceScanner scanner, string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Validation issue text keys");
+        try
+        {
+            var textIds = await AppTextResources.ReadIds(projectFolder);
+            var renamedTextIds = TextResourceKeyMigration.KeyRenames.ToDictionary(
+                rename => rename.Old,
+                rename => rename.New,
+                StringComparer.Ordinal
+            );
+            var initializers = new ValidationDescriptionTextKeyMigration(scanner, textIds, renamedTextIds).Migrate();
+            var calls = new CreateValidationIssueDescriptionMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                new MigrationResult([.. initializers.Messages, .. calls.Messages]),
+                cleanText: "No validation issue sets Description to a text key or next to CustomTextKey",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving validation issue text keys to CustomTextKey", ex);
         }
     }
 
@@ -1799,6 +1932,28 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Rewrites each subform PDF task to name the subform's UI folder in subformUiFolder, and removes the Subform
+    /// component copy from the task's own UI folder.
+    /// </summary>
+    static async Task<int> MigrateSubformPdfConfig(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Subform PDF tasks");
+        try
+        {
+            var result = await SubformPdfConfigMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No subform PDF tasks to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating subform PDF tasks", ex);
+        }
+    }
+
     static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
     {
         UpgradeConsole.BeginStep("Invalid input validation lists");
@@ -1826,6 +1981,50 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Index.cshtml", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the page Altinn Studio generated and empty pages from each service task's UI folder, and a folder
+    /// left with nothing the app reads, and reports the other pages the folders list, which v9 shows while the task
+    /// runs.
+    /// </summary>
+    static async Task<int> MigrateServiceTaskPages(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Service task pages");
+        try
+        {
+            var result = await ServiceTaskPageMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No service task lists a page",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the pages of service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Replaces the taskId of the data types in applicationmetadata.json with taskIds, the only task binding v9 reads.
+    /// </summary>
+    static async Task<int> MigrateDataTypeTaskIds(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Data type taskIds");
+        try
+        {
+            var result = await DataTypeTaskIdsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No data type has a taskId",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error replacing taskId with taskIds in applicationmetadata.json", ex);
         }
     }
 
@@ -1914,7 +2113,30 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 11: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
+    /// Job 11: give users read/write on the PDF and eFormidling service tasks jobs 8 and 10 insert, where
+    /// the policy grants them those actions only in the task each service task follows. Runs after both,
+    /// so it sees every service task they insert.
+    /// </summary>
+    static async Task<int> MigrateInsertedServiceTaskPolicy(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("User access to inserted service tasks");
+        try
+        {
+            var migrator = new PolicyMigration.InsertedServiceTaskPolicyMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No user rule needs extending to the inserted service tasks"
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error extending user rules to the inserted service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 12: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
     /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
@@ -1937,8 +2159,26 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    private static async Task<int> CheckNavigationValidation(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Navigation validation");
+        try
+        {
+            var result = await new NavigationValidationAdvisor(projectFolder).Analyze();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No navigation validation changes need review",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception exception)
+        {
+            return Fail("Error checking navigation validation", exception);
+        }
+    }
+
     /// <summary>
-    /// Job 12: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
+    /// Job 13: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
     /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
     /// not followed by the exclusive gateway the v9 app requires at startup.
     /// </summary>
@@ -1962,7 +2202,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 13: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
+    /// Job 14: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
     /// to allowedContributors, the only spelling the application metadata schema accepts.
     /// </summary>
     static async Task<int> MigrateAllowedContributors(string projectFolder)
@@ -1980,6 +2220,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error renaming allowedContributers", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 15: let the data types the v9 app stores generated files in (a payment receipt, a signing PDF, signee
+    /// states, ref-data-as-pdf) accept the content types of those files. v9 refuses a file whose content type a
+    /// data type's allowedContentTypes leaves out; v8 did not check.
+    /// </summary>
+    static async Task<int> MigrateGeneratedFileContentTypes(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Content types for generated files");
+        try
+        {
+            var result = await GeneratedFileContentTypesMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "The data types for generated files accept their content types",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error adding content types for generated files", ex);
         }
     }
 

@@ -1,6 +1,7 @@
 import pQueue from 'p-queue';
 import { between, sleep, designerDomain } from '../utils.js';
 import axios from 'axios';
+import { localtestDeployments } from './localtest.js';
 
 const queue = new pQueue({ concurrency: 1 });
 const builds = [];
@@ -34,6 +35,8 @@ export const buildsRoute = async (req, res) => {
         envName: params.APP_ENVIRONMENT,
         tagName: params.TAGNAME,
         buildNumber: BuildNumber,
+        deploymentId: params.DEPLOYMENT_ID,
+        sourceEnvironment: studioEnvironment(params.ALTINN_STUDIO_HOSTNAME),
         time: new Date(),
       },
     ];
@@ -86,45 +89,10 @@ export const buildRoute = async (req, res) => {
   res.json(build);
 };
 
-export const kubernetesWrapperRoute = async (req, res) => {
-  const { org, env } = req.params;
-  const release = req.query.labelSelector?.slice('release='.length);
-
-  const kubernetesWrapperDeployments = [
-    { version: '123456', release: 'kuberneteswrapper' },
-    ...deploys
-      .filter((deploy) => deploy.envName === env && deploy.org === org)
-      .map((deploy) => ({
-        version: deploy.tagName,
-        release: `${deploy.org}-${deploy.app}`,
-      })),
-  ];
-
-  res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
-};
-
-export const runtimeGatewayDeploymentsRoute = async (req, res) => {
-  const { org, env, origin } = req.params;
-
-  res.json(
-    deploys
-      .filter((deploy) => deploy.org === org && deploy.envName === env)
-      .map((deploy) => ({
-        org: deploy.org,
-        env: deploy.envName,
-        app: deploy.app,
-        sourceEnvironment: origin,
-        buildId: deploy.buildNumber.toString(),
-        imageTag: deploy.tagName,
-      })),
-  );
-};
-
-export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
-  const { org, env, app, origin } = req.params;
-
-  const deployment = deploys
-    .filter((deploy) => deploy.org === org && deploy.envName === env && deploy.app === app)
+/** Every app deployed through local Studio, plus the apps the studioctl environment holds. */
+async function deploymentsFor(org, env, origin) {
+  const deployed = deploys
+    .filter((deploy) => deploy.org === org && deploy.envName === env)
     .map((deploy) => ({
       org: deploy.org,
       env: deploy.envName,
@@ -132,8 +100,26 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
       sourceEnvironment: origin,
       buildId: deploy.buildNumber.toString(),
       imageTag: deploy.tagName,
-    }))
-    .at(0);
+    }));
+  const deployedApps = new Set(deployed.map((deployment) => deployment.app));
+  const fromLocaltest = (await localtestDeployments(org, env, origin)).filter(
+    (deployment) => !deployedApps.has(deployment.app),
+  );
+  return [...deployed, ...fromLocaltest];
+}
+
+export const runtimeGatewayDeploymentsRoute = async (req, res) => {
+  const { org, env, origin } = req.params;
+
+  res.json(await deploymentsFor(org, env, origin));
+};
+
+export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
+  const { org, env, app, origin } = req.params;
+
+  const deployment = (await deploymentsFor(org, env, origin)).find(
+    (candidate) => candidate.app === app,
+  );
 
   if (!deployment) {
     res.sendStatus(404);
@@ -141,4 +127,69 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
   }
 
   res.json(deployment);
+};
+
+/** What the deploy pipeline sets STUDIO_ENVIRONMENT to, with Designer's fallback for local hosts. */
+function studioEnvironment(studioHostname = '') {
+  if (studioHostname.startsWith('dev.')) return 'dev';
+  if (studioHostname.startsWith('staging.')) return 'staging';
+  return 'prod';
+}
+
+/** The app's latest deploy through local Studio is what runs in the environment. */
+// A restart in the cluster replaces the app's pods. The mock keeps the app updating for a while instead.
+const RESTART_DURATION_MS = 10_000;
+const restarts = new Map();
+
+const findRunningDeploy = ({ org, env, app }) =>
+  deploys.findLast(
+    (candidate) => candidate.org === org && candidate.envName === env && candidate.app === app,
+  );
+
+const runningApp = (params, deploy) => {
+  const restart = restarts.get(`${params.org}/${params.env}/${params.app}`);
+  const updating = restart !== undefined && Date.now() < restart.until;
+  return {
+    release: `${params.org}-${params.app}`,
+    imageTag: deploy.tagName,
+    buildId: deploy.buildNumber.toString(),
+    sourceEnvironment: deploy.sourceEnvironment,
+    deploymentId: deploy.deploymentId,
+    status: updating ? 'updating' : 'ready',
+    restartedAt: restart?.restartedAt ?? null,
+  };
+};
+
+export const runtimeGatewayRunningAppRoute = (req, res) => {
+  const deploy = findRunningDeploy(req.params);
+  if (!deploy) {
+    res.sendStatus(204);
+    return;
+  }
+
+  res.json(runningApp(req.params, deploy));
+};
+
+export const runtimeGatewayRestartAppRoute = (req, res) => {
+  const deploy = findRunningDeploy(req.params);
+  if (!deploy) {
+    res.sendStatus(404);
+    return;
+  }
+
+  if (runningApp(req.params, deploy).status === 'updating') {
+    res.status(409).json({
+      type: 'urn:altinn:studio:gateway:app-updating',
+      title: 'App is updating',
+      status: 409,
+    });
+    return;
+  }
+
+  const now = Date.now();
+  restarts.set(`${req.params.org}/${req.params.env}/${req.params.app}`, {
+    restartedAt: new Date(now).toISOString(),
+    until: now + RESTART_DURATION_MS,
+  });
+  res.status(202).json(runningApp(req.params, deploy));
 };

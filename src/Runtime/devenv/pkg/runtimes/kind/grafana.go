@@ -3,6 +3,7 @@ package kind
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -14,12 +15,14 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/resource"
 	localbackend "altinn.studio/devenv/pkg/resource/executor/local"
@@ -39,6 +42,9 @@ const (
 	monitoringGrafanaCA = "monitoring-grafana-ca-bundle"
 	// dashboardsReloadSeconds is how often Grafana rereads the provisioned dashboards.
 	dashboardsReloadSeconds = 10
+	// dashboardsCheckoutTimeout bounds cloning or fetching the cached dashboards checkout, so
+	// a stalled network falls back to the cached copy instead of blocking the graph.
+	dashboardsCheckoutTimeout = 3 * time.Minute
 
 	// The shared Grafana reaches the observability-proxy at its public address; the
 	// local one reaches it in the cluster, with the local query token.
@@ -51,8 +57,9 @@ const (
 var errDashboardsDatasourceURL = errors.New("datasource URL is not on the observability-proxy")
 
 // resolveDashboardsRepository returns the dashboards checkout to read: the one given, or a
-// clone in the fixture's cache, updated to the repository's main branch when it can be.
-func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
+// clone in the fixture's cache, updated to the repository's main branch when it can be
+// fetched within dashboardsCheckoutTimeout.
+func resolveDashboardsRepository(ctx context.Context, explicit, cachePath string) (string, error) {
 	if explicit == "" {
 		explicit = os.Getenv(EnvDashboardsRepository)
 	}
@@ -73,9 +80,12 @@ func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 		Ref:     "main",
 		Path:    filepath.Join(cachePath, "altinn-dashboards-grafana"),
 	}
-	if err := localbackend.EnsureGitCheckout(checkout); err != nil {
-		// Offline, or with GitHub unavailable, the copy from an earlier start will do.
-		if _, statErr := os.Stat(filepath.Join(checkout.Path, ".git")); statErr != nil {
+	// Only a checkout from an earlier start is complete; a failed clone is not.
+	_, statErr := os.Stat(filepath.Join(checkout.Path, ".git"))
+	cached := statErr == nil
+	if err := localbackend.EnsureGitCheckout(ctx, checkout, dashboardsCheckoutTimeout); err != nil {
+		// Offline, with GitHub unavailable or too slow, the copy from an earlier start will do.
+		if !cached {
 			return "", fmt.Errorf("check out dashboards repository: %w", err)
 		}
 		log.Printf("warning: using the cached dashboards repository, which could not be updated: %v", err)
@@ -318,11 +328,11 @@ func addGrafanaResources(
 		return fmt.Errorf("resolve CA bundle: %w", err)
 	}
 	var grafanaCA *manifests.GrafanaCABundle
-	caSet, hasCASet, err := cabundle.KubernetesConfigMapObjectSet(
+	caSet, hasCASet, err := kubeartifact.KubernetesConfigMapObjectSet(
 		bundle,
 		cluster,
 		monitoringGrafanaCA,
-		[]cabundle.KubernetesWorkload{{Deployment: "grafana", Namespace: manifests.GrafanaNamespace}},
+		[]kubeartifact.KubernetesWorkload{{Deployment: "grafana", Namespace: manifests.GrafanaNamespace}},
 		deps,
 	)
 	if err != nil {

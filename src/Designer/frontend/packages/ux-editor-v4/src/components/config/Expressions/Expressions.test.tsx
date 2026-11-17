@@ -5,7 +5,7 @@ import { renderWithProviders } from '../../../testing/mocks';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
@@ -14,9 +14,9 @@ import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
-import { ObjectUtils } from '@studio/pure-functions';
-import { LogicalTupleOperator } from '@studio/components';
-import { app, org } from '@studio/testing/testids';
+import { ObjectUtils } from '@designer/pure-functions';
+import { LogicalTupleOperator } from '@designer/components';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutSetName = layoutSet1NameMock;

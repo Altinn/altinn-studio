@@ -18,7 +18,7 @@ public sealed class PdfTaskStartingProbe : IOnTaskStartingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_Pdf";
 
-    public Task<HookResult> Execute(OnTaskStartingContext context)
+    public Task<HandlerResult> Execute(OnTaskStartingContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         int taggedElementCount =
@@ -34,7 +34,7 @@ public sealed class PdfTaskStartingProbe : IOnTaskStartingHandler
         SnapshotLogger.LogInfo(
             $"GeneratedFromTaskCleanup.OnTaskStarting.Task_Pdf.TaggedElementCount={taggedElementCount}"
         );
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 

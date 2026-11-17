@@ -318,7 +318,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
                     MaxCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -893,7 +893,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -1151,7 +1151,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_CommitsDataAndProcessStateWithWorkflowPreconditions()
+    public async Task SaveWorkflowOwnedAggregate_CommitsDataWithWorkflowPreconditions()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"workflow-updated"}""");
@@ -1165,18 +1165,9 @@ public sealed class InstanceDataUnitOfWorkTests
         setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
-        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        var processStateChange = new ProcessStateChange
-        {
-            OldProcessState = setup.DataMutator.Instance.Process,
-            NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            Events = [new InstanceEvent { EventType = "process_StartTask" }],
-        };
-        setup.DataMutator.UpdateProcessState(processStateChange);
-        setup.DataMutator.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
-            changes,
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-save-key",
             CancellationToken.None
         );
@@ -1191,33 +1182,74 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal("7", mutationRequest.RequestHeaders.GetValues("If-Instance-Version-Match").Single());
         Assert.Equal("3", mutationRequest.RequestHeaders.GetValues("If-Process-State-Version-Match").Single());
         Assert.Equal("workflow-save-key", mutationRequest.RequestHeaders.GetValues("Idempotency-Key").Single());
-        Assert.Contains("\"processState\"", mutationRequest.RequestBody, StringComparison.Ordinal);
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
-        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
         Assert.Equal(BlobVersion(1), Assert.Single(mutation.UpdateDataElements).ExpectedCurrentBlobVersion);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
         );
-        Assert.Equal("Task_2", setup.DataMutator.Instance.Process.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Idle, setup.DataMutator.Instance.Process.Status);
 
-        (var storedInstance, var storedData) = setup.Services.Storage.GetInstanceAndData(
-            setup.InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        Assert.Equal("Task_2", storedInstance.Process?.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        (_, var storedData) = setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(storedData[setup.DataElement.Id].AsSpan().SequenceEqual(updatedBytes));
     }
 
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_BinaryUpdate_KeepsReferencesAndCachesTheWrittenBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"workflow-updated"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBytes,
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
+        DataElement element = setup.DataMutator.GetDataElement(setup.DataElement);
+        Guid referencedElement = Guid.NewGuid();
+        element.Refs = [referencedElement];
+        element.References =
+        [
+            new Reference
+            {
+                Relation = RelationType.GeneratedFrom,
+                ValueType = ReferenceType.Task,
+                Value = "Task_1",
+            },
+        ];
+
+        // Read first, so the cache holds the old bytes the way a step that rewrites its input does.
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-save-key",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        var mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(
+            DeserializeMutationRequest(mutationRequest.RequestBody!).UpdateDataElements
+        );
+        Assert.Equal("Task_1", update.GeneratedFromTask);
+        Assert.Equal([referencedElement], update.Refs);
+        Assert.True(setup.DataMutator.TryGetCachedBinaryData(setup.DataElement, out ReadOnlyMemory<byte> cached));
+        Assert.True(cached.Span.SequenceEqual(updatedBytes));
+    }
+
     [Theory]
-    [InlineData(ProcessStatus.Idle, null, ProcessStatus.Processing)]
-    [InlineData(ProcessStatus.Processing, ProcessStatus.Idle, ProcessStatus.Idle)]
-    public async Task SaveWorkflowOwnedAggregate_WithProcessStateMutation_OverwritesStagedStatusWithTransitionOrProcessingDefault(
+    [InlineData(ProcessStatus.Idle, false, ProcessStatus.Processing)]
+    [InlineData(ProcessStatus.Processing, true, ProcessStatus.Idle)]
+    public async Task SaveWorkflowOwnedAggregate_WithProcessStateMutation_OverwritesStagedStatusWithReleaseOrProcessingDefault(
         ProcessStatus stagedProcessStatus,
-        ProcessStatus? transitionProcessStatus,
+        bool release,
         ProcessStatus expectedPayloadProcessStatus
     )
     {
@@ -1245,9 +1277,9 @@ public sealed class InstanceDataUnitOfWorkTests
                 Events = [new InstanceEvent { EventType = "process_StartTask" }],
             }
         );
-        if (transitionProcessStatus is { } newProcessStatus)
+        if (release)
         {
-            setup.DataMutator.TransitionProcessStatus(ProcessStatus.Processing, newProcessStatus);
+            setup.DataMutator.ReleaseProcessingStatus();
         }
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
@@ -1449,7 +1481,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_DataSaveBeforeProcessCommit_PreservesAdvancedCallbackProcessSnapshot()
+    public async Task SaveWorkflowOwnedAggregate_WithStagedReleaseOnly_SavesAndClearsPendingRelease()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             "initial"u8.ToArray(),
@@ -1457,79 +1489,17 @@ public sealed class InstanceDataUnitOfWorkTests
             seedStorageVersions: true,
             blobVersionId: BlobVersion(1)
         );
+        setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
             setup.InstanceOwnerPartyId,
             setup.InstanceGuid
         );
         storedInstance.Process!.Status = ProcessStatus.Processing;
-        storedInstance.Process.CurrentTask = new ProcessElementInfo { ElementId = "Task_1" };
-        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
-        var advancedProcessSnapshot = new ProcessState
-        {
-            Status = ProcessStatus.Processing,
-            Ended = ended,
-            EndEvent = "EndEvent_1",
-            CurrentTask = null,
-        };
-        setup.DataMutator.Instance.Process = advancedProcessSnapshot;
-        setup.DataMutator.UpdateBinaryDataElement(
-            setup.DataElement,
-            setup.DataElement.ContentType!,
-            "updated-before-process-commit"u8.ToArray()
-        );
+        setup.DataMutator.ReleaseProcessingStatus();
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
-            "workflow-pre-commit-data-save",
-            CancellationToken.None
-        );
-
-        RequestResponse request = Assert.Single(
-            setup.Services.Storage.RequestsResponses,
-            request =>
-                request.RequestMethod == HttpMethod.Post
-                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
-        );
-        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        Assert.Null(mutation.ProcessState);
-        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Same(advancedProcessSnapshot, setup.DataMutator.Instance.Process);
-        Assert.Equal(ended, setup.DataMutator.Instance.Process?.Ended);
-        Assert.Equal("EndEvent_1", setup.DataMutator.Instance.Process?.EndEvent);
-        Assert.Null(setup.DataMutator.Instance.Process?.CurrentTask);
-        Assert.Equal(ProcessStatus.Processing, setup.DataMutator.Instance.Process?.Status);
-        Assert.Equal("Task_1", storedInstance.Process?.CurrentTask?.ElementId);
-        Assert.Null(storedInstance.Process?.Ended);
-        Assert.Null(storedInstance.Process?.EndEvent);
-        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
-    }
-
-    [Theory]
-    [InlineData(ProcessStatus.Idle, ProcessStatus.Processing)]
-    [InlineData(ProcessStatus.Processing, ProcessStatus.Idle)]
-    public async Task SaveWorkflowOwnedAggregate_WithStagedStatusTransition_SavesAndClearsPendingTransition(
-        ProcessStatus expectedProcessStatus,
-        ProcessStatus newProcessStatus
-    )
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
-            "initial"u8.ToArray(),
-            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
-            seedStorageVersions: true,
-            blobVersionId: BlobVersion(1)
-        );
-        setup.DataMutator.Instance.Process!.Status = expectedProcessStatus;
-        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
-            setup.InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        storedInstance.Process!.Status = expectedProcessStatus;
-        setup.DataMutator.TransitionProcessStatus(expectedProcessStatus, newProcessStatus);
-
-        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
-            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
-            "workflow-status-transition-key",
+            "workflow-release-key",
             CancellationToken.None
         );
 
@@ -1543,16 +1513,17 @@ public sealed class InstanceDataUnitOfWorkTests
             mutationRequest.RequestBody!
         )!;
         Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        Assert.Equal(expectedProcessStatus, mutation.ExpectedProcessStatus);
-        Assert.Equal(newProcessStatus, mutation.ProcessState?.State?.Status);
-        Assert.Equal(newProcessStatus, setup.DataMutator.Instance.Process?.Status);
-        Assert.Equal(newProcessStatus, storedInstance.Process?.Status);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
+        Assert.Equal("Task_1", mutation.ProcessState?.State?.CurrentTask?.ElementId);
+        Assert.Equal(ProcessStatus.Idle, setup.DataMutator.Instance.Process?.Status);
+        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
         Assert.Equal(8, setup.DataMutator.StorageVersions.InstanceVersion);
         Assert.Equal(4, setup.DataMutator.StorageVersions.ProcessStateVersion);
 
         WorkflowAggregateSaveOutcome secondOutcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
-            "workflow-status-after-success-key",
+            "workflow-release-after-success-key",
             CancellationToken.None
         );
 
@@ -1563,40 +1534,6 @@ public sealed class InstanceDataUnitOfWorkTests
                 request.RequestMethod == HttpMethod.Post
                 && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
-    }
-
-    [Fact]
-    public async Task TransitionProcessStatus_WhenTransitionAlreadyPending_ThrowsWithoutReplacingFirst()
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
-            "initial"u8.ToArray(),
-            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
-            seedStorageVersions: true
-        );
-        setup.DataMutator.TransitionProcessStatus(ProcessStatus.Idle, ProcessStatus.Processing);
-
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            setup.DataMutator.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle)
-        );
-        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
-            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
-            "workflow-first-status-transition-key",
-            CancellationToken.None
-        );
-
-        RequestResponse mutationRequest = Assert.Single(
-            setup.Services.Storage.RequestsResponses,
-            request =>
-                request.RequestMethod == HttpMethod.Post
-                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
-        );
-        StorageInstanceMutationRequest mutation = NewtonsoftJson.DeserializeObject<StorageInstanceMutationRequest>(
-            mutationRequest.RequestBody!
-        )!;
-        Assert.Contains("already staged", exception.Message, StringComparison.Ordinal);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        Assert.Equal(ProcessStatus.Idle, mutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Processing, mutation.ProcessState?.State?.Status);
     }
 
     [Fact]
@@ -1615,7 +1552,7 @@ public sealed class InstanceDataUnitOfWorkTests
         storedInstance.Process!.Status = ProcessStatus.Processing;
         byte[] storedBytesBefore = storedData[setup.DataElement.Id].ToArray();
         setup.DataMutator.HardDeleteInstance();
-        setup.DataMutator.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+        setup.DataMutator.ReleaseProcessingStatus();
 
         PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
             setup.DataMutator.SaveWorkflowOwnedAggregate(
@@ -1661,7 +1598,7 @@ public sealed class InstanceDataUnitOfWorkTests
             }
         );
         setup.DataMutator.HardDeleteInstance();
-        setup.DataMutator.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+        setup.DataMutator.ReleaseProcessingStatus();
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
@@ -1684,7 +1621,17 @@ public sealed class InstanceDataUnitOfWorkTests
             seedStorageVersions: true,
             blobVersionId: BlobVersion(1)
         );
-        setup.DataMutator.TransitionProcessStatus(ProcessStatus.Idle, ProcessStatus.Processing);
+        setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
+        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
+            setup.InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
+        storedInstance.Process!.Status = ProcessStatus.Processing;
+        setup.DataMutator.UpdateBinaryDataElement(
+            setup.DataElement,
+            setup.DataElement.ContentType!,
+            "updated"u8.ToArray()
+        );
 
         await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
@@ -1700,12 +1647,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 Events = [new InstanceEvent { EventType = "process_StartTask" }],
             }
         );
-        setup.DataMutator.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
-        setup.DataMutator.UpdateBinaryDataElement(
-            setup.DataElement,
-            setup.DataElement.ContentType!,
-            "updated"u8.ToArray()
-        );
+        setup.DataMutator.ReleaseProcessingStatus();
 
         await setup.DataMutator.SaveWorkflowOwnedAggregate(
             setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
@@ -1758,7 +1700,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_WhenStatusTransitionSaveFails_RetainsTransitionForRetry()
+    public async Task SaveWorkflowOwnedAggregate_WhenReleaseSaveFails_RetainsReleaseForRetry()
     {
         var versions = new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3);
         var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
@@ -1811,7 +1753,7 @@ public sealed class InstanceDataUnitOfWorkTests
                                 AppId = unitOfWork.Instance.AppId,
                                 Org = unitOfWork.Instance.Org,
                                 InstanceOwner = unitOfWork.Instance.InstanceOwner,
-                                Process = new ProcessState { Status = ProcessStatus.Processing },
+                                Process = new ProcessState { Status = ProcessStatus.Idle },
                                 Data = [],
                             },
                             new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4)
@@ -1819,15 +1761,15 @@ public sealed class InstanceDataUnitOfWorkTests
                     );
                 }
             );
-        unitOfWork.TransitionProcessStatus(ProcessStatus.Idle, ProcessStatus.Processing);
+        unitOfWork.ReleaseProcessingStatus();
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
-            unitOfWork.SaveWorkflowOwnedAggregate(changes, "workflow-status-retry-key", CancellationToken.None)
+            unitOfWork.SaveWorkflowOwnedAggregate(changes, "workflow-release-retry-key", CancellationToken.None)
         );
         WorkflowAggregateSaveOutcome retryOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             changes,
-            "workflow-status-retry-key",
+            "workflow-release-retry-key",
             CancellationToken.None
         );
 
@@ -1837,11 +1779,11 @@ public sealed class InstanceDataUnitOfWorkTests
             capturedMutations,
             mutation =>
             {
-                Assert.Equal(ProcessStatus.Idle, mutation.ExpectedProcessStatus);
-                Assert.Equal(ProcessStatus.Processing, mutation.ProcessState?.State?.Status);
+                Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+                Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
             }
         );
-        Assert.Equal(ProcessStatus.Processing, unitOfWork.Instance.Process?.Status);
+        Assert.Equal(ProcessStatus.Idle, unitOfWork.Instance.Process?.Status);
         mutationClientMock.Verify(
             x =>
                 x.CommitInstanceMutationWithStorageMetadata(
@@ -1980,134 +1922,57 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_CommitsStagedProcessStateAndLockStatus()
+    public async Task SaveWorkflowOwnedAggregate_WhenDerivedFieldsAreEmptyAndAbsentFromInstance_ReturnsNothingToSave()
     {
-        const int instanceOwnerPartyId = 1337;
-        Guid instanceGuid = Guid.NewGuid();
-        Guid dataElementId = Guid.NewGuid();
-        var dataElement = new DataElement
-        {
-            Id = dataElementId.ToString(),
-            InstanceGuid = instanceGuid.ToString(),
-            DataType = "task-data",
-            ContentType = "application/json",
-        };
-        var instance = new Instance
-        {
-            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-            AppId = "ttd/test-app",
-            Org = "ttd",
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
-            Data = [dataElement],
-        };
-        var versions = new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8);
-        var committedVersions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 5);
-        var appMetadata = new ApplicationMetadata(instance.AppId)
-        {
-            DataTypes = [new DataType { Id = "task-data", TaskId = "Task_1" }],
-        };
-        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
-        StorageInstanceMutationRequest? capturedMutation = null;
-        StorageWritePreconditions? capturedPreconditions = null;
-        Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
-        mutationClientMock
-            .Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? preconditions,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutation = mutation;
-                    capturedPreconditions = preconditions;
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = instance.Id,
-                            AppId = instance.AppId,
-                            Org = instance.Org,
-                            InstanceOwner = instance.InstanceOwner,
-                            Process = mutation.ProcessState?.State,
-                            Data =
-                            [
-                                new DataElement
-                                {
-                                    Id = dataElement.Id,
-                                    InstanceGuid = dataElement.InstanceGuid,
-                                    DataType = dataElement.DataType,
-                                    ContentType = dataElement.ContentType,
-                                    Locked = true,
-                                },
-                            ],
-                        },
-                        committedVersions
-                    );
-                }
-            );
-        var unitOfWork = new InstanceDataUnitOfWork(
-            instance,
-            versions,
-            dataClientMock.Object,
-            mutationClientMock.Object,
-            Mock.Of<IInstanceClientWithStorageMetadata>(),
-            appMetadata,
-            Mock.Of<ITranslationService>(),
-            new ModelSerializationService(null!),
-            Mock.Of<IAppResources>(),
-            Options.Create(new FrontEndSettings()),
-            taskId: "Task_1",
-            language: null
+        // Storage removes derived keys set to null or empty, so an empty form field leaves its key absent.
+        // Reporting it as an update anyway gave every callback that read the form a save that changed nothing.
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            """{"status":"created"}"""u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
         );
-        var processStateChange = new ProcessStateChange
-        {
-            OldProcessState = instance.Process,
-            NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            Events = [new InstanceEvent { EventType = "process_StartTask" }],
-        };
+        DataElement formDataElement = AddPersistedPaymentForm(
+            setup,
+            new PaymentForm { Status = null, CustomerName = "" },
+            blobVersionId: BlobVersion(1)
+        );
+        setup.Services.AppMetadata.DataFields =
+        [
+            new DataField
+            {
+                Id = "paymentStatus",
+                DataTypeId = formDataElement.DataType,
+                Path = nameof(PaymentForm.Status),
+            },
+        ];
+        setup.Services.AppMetadata.PresentationFields =
+        [
+            new DataField
+            {
+                Id = "customerName",
+                DataTypeId = formDataElement.DataType,
+                Path = nameof(PaymentForm.CustomerName),
+            },
+        ];
+        setup.DataMutator.Instance.DataValues = [];
+        setup.DataMutator.Instance.PresentationTexts = null;
 
-        unitOfWork.LockDataElementsForDataType("task-data");
-        unitOfWork.UpdateProcessState(processStateChange);
-        DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+        _ = await setup.DataMutator.GetFormData(formDataElement);
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
 
-        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
             changes,
-            "callback-step-id",
+            "unchanged-callback-key",
             CancellationToken.None
         );
 
-        Assert.Equal("Task_2", capturedMutation?.ProcessState?.State?.CurrentTask?.ElementId);
-        Assert.Single(capturedMutation?.ProcessState?.Events ?? []);
-        StorageInstanceMutationUpdateDataElement update = Assert.Single(capturedMutation?.UpdateDataElements ?? []);
-        Assert.Equal(dataElementId, update.DataElementId);
-        Assert.True(update.Locked);
-        Assert.Equal(12, capturedPreconditions?.InstanceVersion);
-        Assert.Equal(8, capturedPreconditions?.ProcessStateVersion);
-        Assert.Equal("callback-step-id", capturedPreconditions?.IdempotencyKey);
-        Assert.Equal(9, unitOfWork.StorageVersions.InstanceVersion);
-        Assert.Equal(5, unitOfWork.StorageVersions.ProcessStateVersion);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        WorkflowAggregateSaveOutcome secondOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
-            unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
-            "callback-step-id-after-save",
-            CancellationToken.None
+        Assert.Empty(changes.AllChanges);
+        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, outcome);
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
         );
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
     }
 
     [Fact]
@@ -2143,7 +2008,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "task-data",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -2362,7 +2227,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "payment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -2470,14 +2335,7 @@ public sealed class InstanceDataUnitOfWorkTests
             Encoding.UTF8.GetBytes("""{"status":"attempt-two"}""")
         );
         Guid stagedDataElementId = createdChange.DataElementIdentifier.Guid;
-        var processStateChange = new ProcessStateChange
-        {
-            OldProcessState = instance.Process,
-            NewProcessState = authoritativeInstance.Process,
-            Events = [new InstanceEvent { EventType = "process_StartTask" }],
-        };
-        unitOfWork.UpdateProcessState(processStateChange);
-        unitOfWork.TransitionProcessStatus(ProcessStatus.Idle, ProcessStatus.Processing);
+        unitOfWork.UpdateInstanceDataValue("attempt", "two");
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
@@ -3587,7 +3445,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = dataElement.DataType,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = [dataElement.ContentType],
                 },
             ],
@@ -3708,7 +3566,7 @@ public sealed class InstanceDataUnitOfWorkTests
         new()
         {
             Id = id,
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AllowedContentTypes = ["application/json"],
         };
 
@@ -4001,7 +3859,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -4111,7 +3969,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = dataTypeId,
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
             services.AddDataType(
@@ -4120,7 +3978,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "receipt",
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
 

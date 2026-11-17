@@ -13,12 +13,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from agents.graph.runner import (
-    _UNCLEAR_GOAL_MESSAGE,
     _UNSAFE_GOAL_MESSAGE,
     GoalRejected,
     WorkflowCancelled,
+    _check_security,
     _gate_goal,
-    _validate_intent,
 )
 from agents.graph.state import AgentState, ConversationMessage
 from agents.services.events.events import AgentEvent
@@ -28,6 +27,7 @@ from agents.services.llm.scope_checker import (
     build_scope_check_message,
     check_scope_async,
 )
+from agents.services.llm.security_checker import SecurityCheckResult
 
 
 def _state(**overrides) -> AgentState:
@@ -37,7 +37,8 @@ def _state(**overrides) -> AgentState:
         "repo_path": "/tmp/repo",
         "app_name": "test-app",
         "developer": "dev",
-        "org": "ttd",
+        "repo_owner": "ttd",
+        "cost_org": "ttd",
     }
     base.update(overrides)
     return AgentState(**base)
@@ -60,22 +61,7 @@ class TestCheckScopeAsync:
 
         assert result.in_scope is False
         assert result.decline_message == "Jeg kan bare hjelpe med Altinn."
-
-    async def test_strips_markdown_fences_around_the_json(self):
-        client = MagicMock()
-        client.call_async = AsyncMock(
-            return_value='```json\n{"in_scope": true, "decline_message": null, "reason": "layout"}\n```'
-        )
-        with (
-            patch("agents.services.llm.scope_checker.get_llm_client", return_value=client),
-            patch(
-                "agents.services.llm.scope_checker.get_prompt_with_langfuse",
-                return_value=("system", None),
-            ),
-        ):
-            result = await check_scope_async("legg til et tekstfelt")
-
-        assert result.in_scope is True
+        assert client.call_async.await_args.kwargs["response_schema"] is ScopeCheckResult
 
     async def test_fails_open_when_the_classifier_call_fails(self):
         client = MagicMock()
@@ -88,22 +74,6 @@ class TestCheckScopeAsync:
             ),
         ):
             result = await check_scope_async("legg til et tekstfelt")
-
-        assert result.in_scope is True
-
-    async def test_fails_open_when_in_scope_is_not_a_boolean(self):
-        client = MagicMock()
-        client.call_async = AsyncMock(
-            return_value='{"in_scope": "false", "decline_message": "Nei.", "reason": "travel"}'
-        )
-        with (
-            patch("agents.services.llm.scope_checker.get_llm_client", return_value=client),
-            patch(
-                "agents.services.llm.scope_checker.get_prompt_with_langfuse",
-                return_value=("system", None),
-            ),
-        ):
-            result = await check_scope_async("planlegg japanreisen min")
 
         assert result.in_scope is True
 
@@ -120,6 +90,7 @@ class TestCheckScopeAsync:
             result = await check_scope_async("legg til et tekstfelt")
 
         assert result.in_scope is True
+        assert "Sorry" not in (result.reason or "")
 
 
 def _event_sink() -> EventSink:
@@ -192,13 +163,13 @@ class TestGateGoal:
         sent = _delivered(event_sink)
         assert [event.type for event in sent] == ["assistant_message", "status"]
         assert sent[0].data["content"] == decline
-        assert sent[0].data["no_branch_operations"] is True
+        assert "pushedBranch" not in sent[0].data
         assert sent[1].data["done"] is True
         assert sent[1].data["success"] is True
         history = event_sink.get_conversation_history("sess-1")
         assert [entry["content"] for entry in history] == [decline]
 
-    async def test_in_scope_write_mode_runs_intent_validation(self):
+    async def test_in_scope_write_mode_runs_the_security_check(self):
         state = _state(allow_app_changes=True, user_goal="legg til et tekstfelt")
         in_scope = ScopeCheckResult(in_scope=True, reason="layout")
         with (
@@ -206,14 +177,14 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
+            patch("agents.graph.runner._check_security", new=AsyncMock()) as check_security,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
         assert decline is None
-        validate_intent.assert_awaited_once_with(state)
+        check_security.assert_awaited_once_with(state)
 
-    async def test_in_scope_read_only_skips_intent_validation(self):
+    async def test_in_scope_read_only_skips_the_security_check(self):
         state = _state(allow_app_changes=False, user_goal="hvordan fungerer uttrykk?")
         in_scope = ScopeCheckResult(in_scope=True, reason="Altinn concept question")
         with (
@@ -221,12 +192,12 @@ class TestGateGoal:
                 "agents.graph.runner.check_scope_async",
                 new=AsyncMock(return_value=in_scope),
             ),
-            patch("agents.graph.runner._validate_intent", new=AsyncMock()) as validate_intent,
+            patch("agents.graph.runner._check_security", new=AsyncMock()) as check_security,
         ):
             decline = await _gate_goal(state, event_sink=_sink())
 
         assert decline is None
-        validate_intent.assert_not_awaited()
+        check_security.assert_not_awaited()
 
     async def test_cancelling_during_the_scope_check_stops_the_turn(self):
         state = _state(allow_app_changes=False)
@@ -317,38 +288,30 @@ REJECTION_SUGGESTION = "Prøv A"
 UNSAFE_GATE_REASON = "targets a database"
 
 
-class TestValidateIntentRejectionCopy:
+class TestSecurityCheckRejectionCopy:
     """The user-facing half of a rejection: Norwegian, and free of the gate's
     own reasoning, which names the rule that was tripped."""
 
     async def _reject(self, parsed) -> GoalRejected:
         with (
-            patch("agents.graph.runner.parse_intent_async", AsyncMock(return_value=parsed)),
+            patch("agents.graph.runner.check_security_async", AsyncMock(return_value=parsed)),
             patch(
                 "agents.graph.runner.suggest_goal_correction",
                 return_value=[REJECTION_SUGGESTION],
             ),
             pytest.raises(GoalRejected) as excinfo,
         ):
-            await _validate_intent(_state(allow_app_changes=True))
+            await _check_security(_state(allow_app_changes=True))
         return excinfo.value
 
     async def test_an_unsafe_goal_does_not_leak_the_gate_reason(self):
-        parsed = MagicMock(safe=False, confidence=0.9, reason=UNSAFE_GATE_REASON)
+        parsed = SecurityCheckResult(safe=False, reason=UNSAFE_GATE_REASON)
 
         rejection = await self._reject(parsed)
 
         assert rejection.message == _UNSAFE_GOAL_MESSAGE
         assert rejection.suggestions == [REJECTION_SUGGESTION]
         assert UNSAFE_GATE_REASON not in rejection.message
-
-    async def test_an_unclear_goal_is_reported_in_norwegian(self):
-        parsed = MagicMock(safe=True, confidence=0.0, reason="unclear")
-
-        rejection = await self._reject(parsed)
-
-        assert rejection.message == _UNCLEAR_GOAL_MESSAGE
-        assert rejection.suggestions == [REJECTION_SUGGESTION]
 
 
 class TestTheClassifierSeesTheConversation:

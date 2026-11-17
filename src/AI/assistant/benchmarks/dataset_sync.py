@@ -10,7 +10,7 @@ from typing import Any, NamedTuple
 
 from langfuse import get_client
 
-from agents.services.llm.llm_client import build_intent_parse_message
+from agents.services.llm.llm_client import build_security_check_message
 from agents.services.llm.scope_checker import build_scope_check_message
 from benchmarks import registry
 from benchmarks.lf_api import LangfuseApi
@@ -61,7 +61,7 @@ def load_datasets() -> Iterator[Dataset]:
 
 MESSAGE_BUILDERS = {
     "scope_check": lambda item: build_scope_check_message(item["input"]["goal"], item["input"].get("conversation")),
-    "intent_check": lambda item: build_intent_parse_message(
+    "security_check": lambda item: build_security_check_message(
         item["input"]["goal"], item["input"].get("attachments"), item["input"].get("conversation")
     ),
 }

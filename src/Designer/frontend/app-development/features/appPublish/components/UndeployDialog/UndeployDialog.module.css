@@ -1,0 +1,11 @@
+.content,
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-5);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--ds-size-2);
+}

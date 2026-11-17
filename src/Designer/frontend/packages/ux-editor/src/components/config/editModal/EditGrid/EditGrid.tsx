@@ -3,14 +3,14 @@ import { useState } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import classes from './EditGrid.module.css';
 import { EditGridForGivenViewSize } from './EditGridForGivenViewSize';
-import { LaptopIcon, MobileIcon, MobileSmallIcon, TabletIcon } from '@studio/icons';
-import { ObjectUtils } from '@studio/pure-functions';
+import { LaptopIcon, MobileIcon, MobileSmallIcon, TabletIcon } from '@designer/icons';
+import { ObjectUtils } from '@designer/pure-functions';
 import { ViewSize } from './types/ViewSize';
 import type { GridSizes } from './types/GridSizes';
 import { useTranslation } from 'react-i18next';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioTabs } from '@studio/components';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { StudioTabs } from '@designer/components';
 
 const setGridOnComponent = <T extends ComponentType>(
   gridValues: GridSizes,
@@ -31,7 +31,14 @@ export const EditGrid = <T extends ComponentType>({
   handleComponentChange,
   component,
 }: IGenericEditComponent<T>) => {
-  const [gridValues, setGridValues] = useState<GridSizes>(component.grid ?? {});
+  const { xs, sm, md, lg } = component.grid ?? {};
+  const editableSize = (value: typeof xs) => (value === 'auto' ? undefined : value);
+  const [gridValues, setGridValues] = useState<GridSizes>({
+    xs: editableSize(xs),
+    sm: editableSize(sm),
+    md: editableSize(md),
+    lg: editableSize(lg),
+  });
   const [selectedViewSizeForGridProp, setSelectedViewSizeForGridProp] = useState<ViewSize>(
     ViewSize.Xs,
   );

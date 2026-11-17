@@ -26,13 +26,15 @@
   border-bottom: 1px solid var(--dsc-dialog-divider-border-color);
 }
 
+.buttonRowWrapper {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--ds-color-neutral-background-default);
+}
 .buttonRow {
   display: flex;
   align-items: center;
   gap: var(--ds-size-2);
-  position: sticky;
-  bottom: 0;
-  background-color: var(--ds-color-neutral-background-default);
 }
 
 .altinn2RolesAlert {

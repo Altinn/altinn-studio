@@ -3,9 +3,9 @@ import { TextComponent, type TextComponentProps } from './TextComponent';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { componentMocks } from '../../../../../../ux-editor-v4/src/testing/componentMocks';
 import { screen } from '@testing-library/react';
-import { DataLookupFuncName, type StringExpression } from '@studio/components';
+import { DataLookupFuncName, type StringExpression } from '@designer/components';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const { Text: textComponent } = componentMocks;
 const expressionValue: StringExpression = [DataLookupFuncName.DataModel, 'hello', 'world'];

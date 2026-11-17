@@ -881,6 +881,65 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationIssueWithSource"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
             "content": {
@@ -948,7 +1007,7 @@
           }
         ],
         "requestBody": {
-          "description": "Container object for the Json.Patch.JsonPatch and list of ignored validators",
+          "description": "Container object for the patch operations and list of ignored validators",
           "content": {
             "application/json": {
               "schema": {
@@ -1193,8 +1252,8 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
@@ -1352,6 +1411,66 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       },
@@ -1469,10 +1588,90 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataPostErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
             "content": {
               "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
@@ -1545,7 +1744,7 @@
           }
         ],
         "requestBody": {
-          "description": "Container object for the Json.Patch.JsonPatch and list of ignored validators",
+          "description": "Container object for the patch operations and list of ignored validators",
           "content": {
             "application/json": {
               "schema": {
@@ -1716,6 +1915,66 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataPostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -5108,6 +5367,145 @@
         }
       }
     },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/pdf/preview": {
+      "get": {
+        "tags": [
+          "Pdf"
+        ],
+        "summary": "Generate a preview of the PDF for the current task, or for a PDF or subform PDF service task in the process",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "unique identifier of the organization responsible for the app",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "application identifier which is unique within an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "unique id of the party that is the owner of the instance",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "unique id to identify the instance",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "The PDF or subform PDF service task to preview, also one the instance has not reached yet. Defaults to the current task.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dataElementId",
+            "in": "query",
+            "description": "The subform data element to preview. Required when previewing a subform PDF service task.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "The language of the preview, such as nb or en. Defaults to the user's language.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests"
+          }
+        }
+      }
+    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process": {
       "get": {
         "tags": [
@@ -5365,6 +5763,47 @@
               }
             }
           },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -5476,126 +5915,8 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess": {
-      "put": {
-        "tags": [
-          "Process"
-        ],
-        "summary": "Attempts to end the process by running next until an end event is reached.\nNotice that process must have been started.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "unique identifier of the organization responsible for the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerPartyId",
-            "in": "path",
-            "description": "unique id of the party that is the owner of the instance",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The currently used language by the user (or null if not available)",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
+          "202": {
+            "description": "Accepted",
             "content": {
               "text/plain": {
                 "schema": {
@@ -5649,36 +5970,27 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
-                }
-              },
-              "application/problem+json": {
-                "schema": {
                   "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ProblemDetails"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -7603,164 +7915,6 @@
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerId}/{instanceId}/data/{dataGuid}/validate": {
-      "get": {
-        "tags": [
-          "Validate"
-        ],
-        "summary": "Validate a single data element (deprecated).\nUse `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "Unique identifier of the organization responsible for the app.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "Application identifier which is unique within an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerId",
-            "in": "path",
-            "description": "Unique id of the party that is the owner of the instance.",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceId",
-            "in": "path",
-            "description": "Unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "dataGuid",
-            "in": "path",
-            "description": "Unique id identifying specific data element",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The currently used language by the user (or null if not available)",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidationIssueWithSource"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{commandKey}": {
       "post": {
         "tags": [
@@ -8516,6 +8670,11 @@
             "format": "int32",
             "nullable": true
           },
+          "firstFailedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "waitingReason": {
             "type": "string",
             "nullable": true
@@ -8543,6 +8702,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "AppStatus": {
+        "enum": [
+          "Completed",
+          "Deprecated",
+          "UnderDevelopment",
+          "Withdrawn"
+        ],
+        "type": "string"
       },
       "ApplicationLanguage": {
         "type": "object",
@@ -8721,6 +8889,9 @@
               "$ref": "#/components/schemas/AppMetadataContactPoint"
             },
             "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppStatus"
           },
           "id": {
             "type": "string"
@@ -8957,6 +9128,23 @@
           },
           "includeAttachments": {
             "type": "boolean"
+          },
+          "includeDueBefore": {
+            "type": "boolean"
+          },
+          "includedDataValues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "includedPresentationTexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9208,7 +9396,110 @@
         "type": "object",
         "properties": {
           "patch": {
-            "$ref": "#/components/schemas/JsonPatch"
+            "type": "array",
+            "items": {
+              "title": "JSON Patch operation",
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
+                },
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
+                },
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
+                }
+              ],
+              "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
+            },
+            "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations."
           },
           "ignoredValidators": {
             "type": "array",
@@ -9433,6 +9724,14 @@
           },
           "taskId": {
             "type": "string",
+            "nullable": true,
+            "deprecated": true
+          },
+          "taskIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "maxSize": {
@@ -10231,53 +10530,6 @@
         },
         "additionalProperties": false
       },
-      "JsonNode": {
-        "type": "object",
-        "properties": {
-          "options": {
-            "$ref": "#/components/schemas/JsonNodeOptions"
-          },
-          "parent": {
-            "$ref": "#/components/schemas/JsonNode"
-          },
-          "root": {
-            "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonNodeOptions": {
-        "type": "object",
-        "properties": {
-          "propertyNameCaseInsensitive": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonPatch": {
-        "type": "object",
-        "properties": {
-          "operations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PatchOperation"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "JsonPointer": {
-        "type": "object",
-        "properties": {
-          "segmentCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
       "KeyValueEntry": {
         "type": "object",
         "properties": {
@@ -10430,18 +10682,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "OperationType": {
-        "enum": [
-          "Unknown",
-          "add",
-          "remove",
-          "replace",
-          "move",
-          "copy",
-          "test"
-        ],
-        "type": "string"
       },
       "OrderDetails": {
         "required": [
@@ -10730,29 +10970,114 @@
             "format": "uuid"
           },
           "patch": {
-            "$ref": "#/components/schemas/JsonPatch"
+            "type": "array",
+            "items": {
+              "title": "JSON Patch operation",
+              "oneOf": [
+                {
+                  "title": "add",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "add"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Adds a value, inserts into an array, or replaces an existing member"
+                },
+                {
+                  "title": "remove",
+                  "required": [
+                    "op",
+                    "path"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "remove"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    }
+                  },
+                  "description": "Removes the value at the path"
+                },
+                {
+                  "title": "replace",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "replace"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Replaces the value at the path, which must exist"
+                },
+                {
+                  "title": "test",
+                  "required": [
+                    "op",
+                    "path",
+                    "value"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "op": {
+                      "enum": [
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "JSON Pointer (RFC 6901) to the location the operation applies to"
+                    },
+                    "value": {
+                      "description": "Any JSON value, including null"
+                    }
+                  },
+                  "description": "Checks that the value at the path equals the value. A failed test fails the whole patch"
+                }
+              ],
+              "description": "One operation of a JSON Patch document as defined in\n<a href=\"https://datatracker.ietf.org/doc/html/rfc6902\">RFC 6902</a>.\nA patch is an ordered list of operations, serialized as a JSON array."
+            },
+            "description": "The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations"
           }
         },
         "additionalProperties": false,
         "description": "Item class for the list of patches with Id"
-      },
-      "PatchOperation": {
-        "type": "object",
-        "properties": {
-          "op": {
-            "$ref": "#/components/schemas/OperationType"
-          },
-          "from": {
-            "$ref": "#/components/schemas/JsonPointer"
-          },
-          "path": {
-            "$ref": "#/components/schemas/JsonPointer"
-          },
-          "value": {
-            "$ref": "#/components/schemas/JsonNode"
-          }
-        },
-        "additionalProperties": false
       },
       "Payer": {
         "type": "object",
@@ -11899,6 +12224,18 @@
             "type": "string",
             "nullable": true
           },
+          "componentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "rowIndexes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
           "code": {
             "type": "string",
             "nullable": true
@@ -12047,8 +12384,7 @@
           "stepFailed",
           "dependencyFailed",
           "engineFault",
-          "timeout",
-          "acquireConflict"
+          "timeout"
         ],
         "type": "string"
       },
@@ -12239,6 +12575,9 @@
     },
     {
       "name": "Payment"
+    },
+    {
+      "name": "Pdf"
     },
     {
       "name": "Process"

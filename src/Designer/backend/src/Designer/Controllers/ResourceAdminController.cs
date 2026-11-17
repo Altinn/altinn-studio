@@ -41,6 +41,8 @@ public class ResourceAdminController : ControllerBase
     private readonly CacheSettings _cacheSettings;
     private readonly IOrgService _orgService;
     private readonly IResourceRegistry _resourceRegistry;
+    private readonly IResourceEnvironmentsService _resourceEnvironmentsService;
+    private readonly ISourceControl _sourceControl;
     private readonly ILogger<ResourceAdminController> _logger;
 
     /// <summary>
@@ -56,7 +58,9 @@ public class ResourceAdminController : ControllerBase
         IOptions<CacheSettings> cacheSettings,
         IOrgService orgService,
         IResourceRegistry resourceRegistry,
+        IResourceEnvironmentsService resourceEnvironmentsService,
         IEnvironmentsService environmentsService,
+        ISourceControl sourceControl,
         ILogger<ResourceAdminController> logger
     )
     {
@@ -67,6 +71,8 @@ public class ResourceAdminController : ControllerBase
         _cacheSettings = cacheSettings.Value;
         _orgService = orgService;
         _resourceRegistry = resourceRegistry;
+        _resourceEnvironmentsService = resourceEnvironmentsService;
+        _sourceControl = sourceControl;
         _logger = logger;
     }
 
@@ -213,7 +219,7 @@ public class ResourceAdminController : ControllerBase
             return StatusCode(403);
         }
 
-        List<string> envs = GetEnvironmentsForOrg(org);
+        IReadOnlyList<string> envs = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
         List<AccessList> allAccessLists = [];
         foreach (string environment in envs)
         {
@@ -235,7 +241,7 @@ public class ResourceAdminController : ControllerBase
     private async Task<bool> HasPublishResourcePermissionInAnyEnv(string org)
     {
         List<Team> teams = await _giteaClient.GetTeams();
-        List<string> envs = GetEnvironmentsForOrg(org);
+        IReadOnlyList<string> envs = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
 
         bool isTeamMember = teams.Any(team =>
             team.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
@@ -287,6 +293,19 @@ public class ResourceAdminController : ControllerBase
         }
 
         return StatusCode(204);
+    }
+
+    /// <summary>
+    /// Gets the environments the organization can publish resources to, in the order they should
+    /// be presented to the user.
+    /// </summary>
+    /// <param name="org">The short name of the organization</param>
+    /// <returns>The environment names, for example tt02 and prod</returns>
+    [HttpGet]
+    [Route("designer/api/{org}/resources/environments")]
+    public ActionResult<IReadOnlyList<string>> GetResourceEnvironments(string org)
+    {
+        return Ok(_resourceEnvironmentsService.GetEnvironmentsForOrg(org));
     }
 
     /*
@@ -377,7 +396,7 @@ public class ResourceAdminController : ControllerBase
             .ToList();
 
         ConcurrentBag<ResourceWithAltinn2Subject> altinn2ResourcePolicies = [];
-        List<FileSystemObject> resourceFiles = _repository.GetContents(org, GetRepositoryName(org));
+        List<FileSystemObject> resourceFiles = _repository.GetContents(org, RepositoryNames.Resources(org));
 
         await Parallel.ForEachAsync(
             resourcesToLoadPolicyFor,
@@ -437,7 +456,7 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        string repository = GetRepositoryName(org);
+        string repository = RepositoryNames.Resources(org);
         IEnumerable<ListviewServiceResource> resources;
         List<ServiceResource> repositoryResourceList;
         List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
@@ -468,29 +487,7 @@ public class ResourceAdminController : ControllerBase
         }
         else
         {
-            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-
-            async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    return await _giteaClient.MapServiceResourceToListViewResource(
-                        org,
-                        repository,
-                        resource,
-                        cancellationToken
-                    );
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }
-            IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource =>
-                ProcessResourceAsync(resource)
-            );
-            resources = await Task.WhenAll(tasks);
+            resources = await MapToListviewResourcesWithHistory(org, repository, repositoryResourceList);
         }
 
         foreach (ListviewServiceResource listviewResource in resources)
@@ -502,7 +499,7 @@ public class ResourceAdminController : ControllerBase
 
         if (includeEnvResources)
         {
-            IEnumerable<string> environments = GetEnvironmentsForOrg(org);
+            IEnumerable<string> environments = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
             foreach (string environment in environments)
             {
                 string cacheKey = $"resourcelist_${environment}";
@@ -570,6 +567,53 @@ public class ResourceAdminController : ControllerBase
             .ToList();
     }
 
+    private async Task<List<ListviewServiceResource>> MapToListviewResourcesWithHistory(
+        string org,
+        string repository,
+        List<ServiceResource> serviceResources
+    )
+    {
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            org,
+            repository,
+            AuthenticationHelper.GetDeveloperUserName(HttpContext)
+        );
+        Dictionary<string, FolderHistory> historyByFolder = _sourceControl.GetTopLevelFolderHistory(editingContext);
+
+        List<(ServiceResource Resource, FolderHistory? History)> resourcesWithHistory = serviceResources
+            .Select(resource =>
+                (
+                    resource,
+                    historyByFolder.GetValueOrDefault(
+                        ResourceAdminHelper.GetResourceFileStructureName(resource.Identifier)
+                    )
+                )
+            )
+            .ToList();
+
+        string[] authorNames = resourcesWithHistory
+            .Where(resourceWithHistory => resourceWithHistory.History is not null)
+            .Select(resourceWithHistory => resourceWithHistory.History!.FirstCommitAuthorName)
+            .Distinct()
+            .ToArray();
+        string[] authorFullNames = await Task.WhenAll(authorNames.Select(_giteaClient.GetUserFullName));
+        Dictionary<string, string> fullNameByAuthorName = authorNames
+            .Zip(authorFullNames)
+            .ToDictionary(names => names.First, names => names.Second);
+
+        return resourcesWithHistory
+            .Select(resourceWithHistory => new ListviewServiceResource
+            {
+                Identifier = resourceWithHistory.Resource.Identifier,
+                Title = resourceWithHistory.Resource.Title,
+                CreatedBy = resourceWithHistory.History is null
+                    ? null
+                    : fullNameByAuthorName[resourceWithHistory.History.FirstCommitAuthorName],
+                LastChanged = resourceWithHistory.History?.LastCommitTime.UtcDateTime,
+            })
+            .ToList();
+    }
+
     [HttpGet]
     [Route("designer/api/{org}/resources/{repository}/{id}")]
     public async Task<ActionResult<ServiceResource>> GetResourceById(
@@ -592,15 +636,9 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
-        if (resource == null)
-        {
-            return StatusCode(404);
-        }
+        ServiceResourceStatus resourceStatus = new() { PublishedVersions = [] };
 
-        ServiceResourceStatus resourceStatus = new() { ResourceVersion = resource.Version, PublishedVersions = [] };
-
-        IEnumerable<string> environments = GetEnvironmentsForOrg(org);
+        IEnumerable<string> environments = _resourceEnvironmentsService.GetEnvironmentsForOrg(org);
         foreach (string envir in environments)
         {
             resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
@@ -647,7 +685,7 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/addexistingresource/{resourceId}/{env}")]
     public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
     {
-        string repository = GetRepositoryName(org);
+        string repository = RepositoryNames.Resources(org);
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
             includeApps: true,
@@ -924,7 +962,7 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/publish/{repository}/{id}/{env}")]
     public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
     {
-        if (repository == $"{org}-resources")
+        if (repository == RepositoryNames.Resources(org))
         {
             string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(id);
             string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, resourceFileStructureName);
@@ -975,7 +1013,7 @@ public class ResourceAdminController : ControllerBase
             return new StatusCodeResult(403);
         }
 
-        if (repository == $"{org}-resources")
+        if (repository == RepositoryNames.Resources(org))
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(policyData);
 
@@ -1084,17 +1122,5 @@ public class ResourceAdminController : ControllerBase
     private string GetRepositoryName(string org)
     {
         return string.Format("{0}-resources", org);
-    }
-
-    private static List<string> GetEnvironmentsForOrg(string org)
-    {
-        List<string> defaultOrgs = ["prod", "tt02"];
-        return org.ToUpper() switch
-        {
-            "TTD" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
-            "DIGDIR" => [.. defaultOrgs, "at22", "at23", "at24", "yt01"],
-            "SKD" => [.. defaultOrgs, "yt01"],
-            _ => defaultOrgs,
-        };
     }
 }

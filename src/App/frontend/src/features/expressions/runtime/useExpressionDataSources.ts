@@ -4,7 +4,6 @@ import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { StoreApi } from 'zustand';
 
-import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders';
 import { type ExternalApisResult } from 'src/core/queries/externalApi';
@@ -116,7 +115,6 @@ type SnapshotInputs = {
   externalApiIds: string[];
   instanceId: string | undefined;
   store: StoreApi<FormStoreState> | typeof ContextNotProvided;
-  textResourcesApi: ReturnType<typeof useTextResourcesApi>;
   dataModelReaders: DataModelReaders;
   instanceQueries: ReturnType<typeof useExpressionQueryReaders>['instanceQueries'];
   queryCacheObserver: ReturnType<typeof useExpressionQueryReaders>['queryCacheObserver'];
@@ -232,7 +230,6 @@ function useExpressionDataSourcesRuntime(
   const { pageKey: currentPage, instanceOwnerPartyId, instanceGuid } = useAllNavigationParams();
   const currentDataModelPath = useCurrentDataModelLocation();
   const store = FormStore.raw.useLaxStore();
-  const textResourcesApi = useTextResourcesApi();
   const dataModelReaders = useDataModelReaders();
   const { instanceQueries, queryCacheObserver, externalApiQueries, textResourceQueries } = useExpressionQueryReaders();
 
@@ -248,7 +245,6 @@ function useExpressionDataSourcesRuntime(
     externalApiIds,
     instanceId,
     store,
-    textResourcesApi,
     dataModelReaders,
     instanceQueries,
     queryCacheObserver,
@@ -453,7 +449,7 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
     case 'displayValue':
       return dependency.componentId;
     case 'externalApi':
-      return inputs.externalApiQueries.getState(inputs.instanceId, dependency.externalApiId);
+      return inputs.externalApiQueries.getSnapshot(inputs.instanceId, dependency.externalApiId);
     case 'formData':
       return readFormDataFromStore(inputs.store, dependency.reference);
     case 'instanceDataElementCount':
@@ -582,7 +578,6 @@ function ensureTextResourcesFetched(inputs: SnapshotInputs) {
   inputs.textResourceQueries.ensureLoaded({
     selectedLanguage: inputs.currentLanguage,
     textResourcesFromWindow: window.altinnAppGlobalData.textResources,
-    textResourcesApi: inputs.textResourcesApi,
   });
 }
 

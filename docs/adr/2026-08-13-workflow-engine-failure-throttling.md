@@ -119,7 +119,7 @@ breaker is therefore a per-target breaker without the engine learning any Altinn
 
 ### A3
 
-- Bad, because it solves a different problem: fairness caps a namespace's *share* of workers but the
+- Bad, because it solves a different problem: fairness caps a namespace's _share_ of workers but the
   futile retries still run at that share forever — the target keeps getting hammered and the retry
   budget keeps burning (fails the core goal; B2's remedy never happens).
 - Bad, because it puts per-namespace grouping into the hottest query in the system permanently, paid
@@ -145,7 +145,7 @@ breaker is therefore a per-target breaker without the engine learning any Altinn
   absolute floor while the namespace-level count screams (violates B1's protective intent in the
   scenario that actually produces the largest storms).
 - Bad, because the concern it addresses is already structurally absent from A1: the namespace is the
-  *detection* scope, not the blast radius — only already-`Requeued` workflows are parked, so a
+  _detection_ scope, not the blast radius — only already-`Requeued` workflows are parked, so a
   failing service task never throttles healthy steps (see B1).
 - Bad, because per-key canary bookkeeping and a per-task ratio denominator ("active workflows
   currently at that step"?) multiply state and edge cases (violates B5).
@@ -201,12 +201,12 @@ breaker is therefore a per-target breaker without the engine learning any Altinn
   cardinality bound is the number of namespaces the deployment serves — accepted deliberately:
   series only materialize for namespaces that trip, the tagged metrics are incident-grade counters
   (per trip/extension/cohort, never per workflow), and unlabeled aggregates would leave operators
-  unable to tell *who* is throttled without leaving the metrics view.
+  unable to tell _who_ is throttled without leaving the metrics view.
 - **Explicitly deferred, with promotion triggers.** Gating fresh enqueues (promote if high-volume
   machine-to-machine producers make first attempts alone a hammer; mechanism would be a jittered
   delayed `StartAt`, not a 429). Failure-velocity counters for faster detection (promote if
   sweep-time counts prove too slow in practice). Detection keyed on `(namespace, failing-step
-  operation id)` (promote if large-namespace dilution shows up in production metrics). Command-
+operation id)` (promote if large-namespace dilution shows up in production metrics). Command-
   reported failure-domain keys, e.g. webhook target host (promote when a deployment mixes unrelated
   targets in one namespace).
 
@@ -239,7 +239,7 @@ Six details are load-bearing, and each is easy to "simplify" back into a defect.
   period exceeds the staleness bound so stragglers parked at the edge are still cleared.
 - **Canary outcomes are judged by progress, not liveness.** A canary observed with an increased
   requeue count has failed; one that left `Requeued` for a settled or advanced state with its count
-  unchanged has progressed; one that is currently executing is *neither* — being leased proves
+  unchanged has progressed; one that is currently executing is _neither_ — being leased proves
   nothing about the target, and in a hang-until-timeout storm an in-flight probe is the failure
   mode's signature, so counting it as progress would release cohorts into a hanging target that
   cannot even feed the re-trip signal until its attempts time out. The sweep waits for the attempt
@@ -248,7 +248,7 @@ Six details are load-bearing, and each is easy to "simplify" back into a defect.
   (a failure is in the requeue count the moment the canary requeues, and parking it afterwards just
   stops a proven-failing probe from hammering out the rest of the window), and rotation atomically
   unparks the replacements.
-- **Disabled means inert, not dormant.** With `Enabled: false` the sweep does not run *and* the
+- **Disabled means inert, not dormant.** With `Enabled: false` the sweep does not run _and_ the
   fetch query variant without the `throttled_until` predicate is selected at startup (configuration
   is restart-only, so the choice is per-process-lifetime and the SQL stays a compile-time constant).
   Merely stopping the sweep would leave previously parked workflows waiting out their windows after

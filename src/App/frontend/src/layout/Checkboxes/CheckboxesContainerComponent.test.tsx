@@ -3,14 +3,13 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { AppQueries } from 'src/queries/types';
+import type { AppQueries } from 'src/core/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [
@@ -64,8 +63,7 @@ const render = async ({
         }),
       fetchOptions: () =>
         options
-          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
+          ? Promise.resolve({ data: options, headers: {} })
           : Promise.reject(new Error('No options provided to render()')),
       ...queries,
     },
@@ -310,13 +308,38 @@ describe('CheckboxesContainerComponent', () => {
         },
       },
       options: [],
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut land');
+  });
+
+  it('required validation should not show when values are selected and labels are stored in an array', async () => {
+    await render({
+      component: {
+        showValidations: ['Required'],
+        required: true,
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+        },
+      },
+      options: [
+        { value: 'norway', label: 'Norway' },
+        { value: 'sweden', label: 'Sweden' },
+      ],
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { value: 'norway,sweden', label: ['Norway', 'Sweden'] };
+          }),
+      },
+    });
+
+    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'Sweden', isChecked: true })).toBeInTheDocument();
+    expect(screen.queryByText('Du må fylle ut land')).not.toBeInTheDocument();
   });
 
   it('required validation should show for group', async () => {
@@ -331,9 +354,7 @@ describe('CheckboxesContainerComponent', () => {
         deletionStrategy: 'hard',
       },
       options: [],
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', group: [] }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', group: [] }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

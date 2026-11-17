@@ -7,12 +7,12 @@ import {
   latestVersionString,
 } from '../../../utils/published-code-list-reference-utils';
 import { PublishedOptionListSelector } from '../../PublishedOptionListSelector';
-import { Guard } from '@studio/guard';
-import { StudioCodeFragment, StudioDeleteButton, StudioParagraph } from '@studio/components';
+import { Guard } from '@designer/guard';
+import { StudioCodeFragment, StudioDeleteButton, StudioParagraph } from '@designer/components';
 import { resetComponentOptions } from '../../../utils/optionsUtils';
 import type { PublishedCodeListReferenceValues } from '../../../types/PublishedCodeListReferenceValues';
 import classes from './PublishedCodeListEditor.module.css';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 
 export type PublishedCodeListEditorProps = {
   readonly component: FormItem<SelectionComponentType>;

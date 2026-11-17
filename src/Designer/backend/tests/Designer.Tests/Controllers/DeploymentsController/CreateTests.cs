@@ -77,7 +77,6 @@ public class CreateTests
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
                         "BuildDefinitionId": 1,
-                        "DecommissionDefinitionId": 3,
                         "GitOpsManagerDefinitionId": 4
                     }
                   },

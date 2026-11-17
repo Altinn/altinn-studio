@@ -31,7 +31,10 @@
       "ActionRequiredToRead": null,
       "ActionRequiredToWrite": null,
       "AppLogic": null,
-      "TaskId": "Task_1",
+      "TaskId": null,
+      "TaskIds": [
+        "Task_1"
+      ],
       "MaxSize": null,
       "MaxCount": 0,
       "MinCount": 0,
@@ -53,7 +56,10 @@
       "ActionRequiredToRead": null,
       "ActionRequiredToWrite": null,
       "AppLogic": null,
-      "TaskId": "Task_1",
+      "TaskId": null,
+      "TaskIds": [
+        "Task_1"
+      ],
       "MaxSize": null,
       "MaxCount": 0,
       "MinCount": 1,
@@ -86,6 +92,7 @@
   "Description": null,
   "Access": null,
   "ContactPoints": null,
+  "Status": null,
   "Created": "2019-09-16T22:22:22",
   "CreatedBy": "username",
   "LastChanged": null,

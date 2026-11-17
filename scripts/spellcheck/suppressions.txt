@@ -126,10 +126,6 @@ fpr
 @paths src/App/backend/Makefile **/BotAccounts/**
 ba
 
-# "Statistisk sentralbyrå" named in the codelists docs
-@paths src/App/codelists/**
-Statistisk
-
 # --------------- foreign-language content in otherwise-English code ---
 # Only the specific foreign tokens are accepted, and only where they occur
 # — a whole-directory exclude would hide real English typos as collateral.
@@ -229,7 +225,7 @@ som
 # so the old spellings are its working data: the rename map, the rewrite
 # reporting, the orchestration step, and the user-facing changelog entry
 # all must name the misspellings they remove.
-@paths src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/CSharpApiMigration/MisspelledApiMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/DatepickerTextResourceKeyMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs src/cli/CHANGELOG.md
+@paths src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/CSharpApiMigration/MisspelledApiMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/TextResourceKeyMigration.cs src/cli/studioctl-server/Studioctl/Upgrade/v8Tov9/V8Tov9Upgrade.cs src/cli/CHANGELOG.md
 Analyse
 analyser
 Analyser
@@ -274,8 +270,3 @@ litres
 # login page; no Nordic letter or signal word on the line for the classifier
 @paths src/Designer/development/fake-ansattporten/main.go
 selv
-
-# "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
-@paths src/AI/assistant/agents/prompts/intent_security.md
-ser
-

@@ -3,8 +3,8 @@ import { useFormItemContext } from '../../../../FormItemContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../hooks';
 import { useAddItemToLayoutMutation } from '../../../../../hooks/mutations/useAddItemToLayoutMutation';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { isSupportedComponentType } from '../../../../../data/formItemConfig';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { addItemOfType, getItem } from '../../../../../utils/formLayoutUtils';
 import { ItemType } from '../../../../../components/Properties/ItemType';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
@@ -20,14 +20,12 @@ export const useBaseAddComponentHandler = (layout: IInternalLayout) => {
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, layoutSet);
 
   const addItem = (
-    type: ComponentType | CustomComponentType,
+    type: ComponentType | ComponentPreset,
     parentId: string,
     index: number,
     newId: string,
     onDone: () => void,
   ) => {
-    if (!isSupportedComponentType(type)) return;
-
     const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
     addItemToLayout(

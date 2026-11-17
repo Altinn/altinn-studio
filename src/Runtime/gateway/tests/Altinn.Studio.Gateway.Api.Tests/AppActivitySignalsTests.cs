@@ -3,6 +3,7 @@ using System.Text.Json;
 using Altinn.Studio.Gateway.Api.Application;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Altinn.Studio.Gateway.Contracts.Metrics;
 using Azure;
 using Azure.Core;
@@ -179,12 +180,14 @@ public sealed class AppActivitySignalsTests
     [Fact]
     public async Task AzureMonitorClient_GetAppActivitySignals_ReturnsQueryRows()
     {
-        var logsQueryClient = new StubLogsQueryClient(_ =>
-            [
-                Row("app-a", AppActivitySignalCategory.Read, 10, _now.AddHours(-1)),
-                Row("app-a", AppActivitySignalCategory.Write, 4, _now.AddHours(-3)),
-                Row("", AppActivitySignalCategory.Write, 7, _now),
-            ]
+        var logsQueryClient = new StubLogsQueryClient(
+            _columns,
+            _ =>
+                [
+                    Row("app-a", AppActivitySignalCategory.Read, 10, _now.AddHours(-1)),
+                    Row("app-a", AppActivitySignalCategory.Write, 4, _now.AddHours(-3)),
+                    Row("", AppActivitySignalCategory.Write, 7, _now),
+                ]
         );
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
@@ -205,7 +208,7 @@ public sealed class AppActivitySignalsTests
     [Fact]
     public async Task AzureMonitorClient_GetAppActivitySignals_WhenRequestFails_ReturnsUnavailable()
     {
-        var logsQueryClient = new StubLogsQueryClient(_ => throw new RequestFailedException("boom"));
+        var logsQueryClient = new StubLogsQueryClient(_columns, _ => throw new RequestFailedException("boom"));
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
         var result = await metricsClient.GetAppActivitySignals(2, TestContext.Current.CancellationToken);
@@ -217,7 +220,7 @@ public sealed class AppActivitySignalsTests
     [Fact]
     public async Task AzureMonitorClient_GetAppActivitySignals_WhenUnexpectedErrorOccurs_ReturnsError()
     {
-        var logsQueryClient = new StubLogsQueryClient(_ => throw new InvalidOperationException("boom"));
+        var logsQueryClient = new StubLogsQueryClient(_columns, _ => throw new InvalidOperationException("boom"));
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
         var result = await metricsClient.GetAppActivitySignals(2, TestContext.Current.CancellationToken);
@@ -231,7 +234,7 @@ public sealed class AppActivitySignalsTests
     {
         using var cancellationTokenSource = new CancellationTokenSource();
         await cancellationTokenSource.CancelAsync();
-        var logsQueryClient = new StubLogsQueryClient(_ => throw new OperationCanceledException());
+        var logsQueryClient = new StubLogsQueryClient(_columns, _ => throw new OperationCanceledException());
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
@@ -242,7 +245,7 @@ public sealed class AppActivitySignalsTests
     [Fact]
     public async Task AzureMonitorClient_GetAppActivitySignals_WhenRequestTimesOut_ReturnsUnavailable()
     {
-        var logsQueryClient = new StubLogsQueryClient(_ => throw new TaskCanceledException("timeout"));
+        var logsQueryClient = new StubLogsQueryClient(_columns, _ => throw new TaskCanceledException("timeout"));
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
         var result = await metricsClient.GetAppActivitySignals(2, TestContext.Current.CancellationToken);
@@ -288,61 +291,9 @@ public sealed class AppActivitySignalsTests
                 }
             ),
             logsQueryClient,
+            new GatewayMetrics(TestMeterFactory.Shared),
             NullLogger<AzureMonitorClient>.Instance
         );
-
-    private sealed class StubLogsQueryClient(Func<string, IReadOnlyList<LogsTableRow>> rowsForQuery) : LogsQueryClient
-    {
-        public List<string> Queries { get; } = [];
-        public List<LogsQueryTimeRange> TimeRanges { get; } = [];
-
-        public override Task<Response<LogsQueryResult>> QueryResourceAsync(
-            ResourceIdentifier resourceId,
-            string query,
-            LogsQueryTimeRange timeRange,
-            LogsQueryOptions? options = null,
-            CancellationToken cancellationToken = default
-        )
-        {
-            Queries.Add(query);
-            TimeRanges.Add(timeRange);
-            var rows = rowsForQuery(query);
-            using var response = new EmptyResponse();
-            var result = LogsQueryModelFactory.LogsQueryResult(
-                [LogsQueryModelFactory.LogsTable("PrimaryResult", _columns, rows)],
-                error: BinaryData.FromString("null"),
-                statistics: BinaryData.FromString("{}"),
-                visualization: BinaryData.FromString("{}")
-            );
-            return Task.FromResult(Response.FromValue(result, response));
-        }
-    }
-
-    private sealed class EmptyResponse : Response
-    {
-        public override int Status => 200;
-        public override string ReasonPhrase => "OK";
-        public override Stream? ContentStream { get; set; }
-        public override string ClientRequestId { get; set; } = "";
-
-        public override void Dispose() { }
-
-        protected override bool ContainsHeader(string name) => false;
-
-        protected override IEnumerable<HttpHeader> EnumerateHeaders() => [];
-
-        protected override bool TryGetHeader(string name, [NotNullWhen(true)] out string? value)
-        {
-            value = null;
-            return false;
-        }
-
-        protected override bool TryGetHeaderValues(string name, [NotNullWhen(true)] out IEnumerable<string>? values)
-        {
-            values = null;
-            return false;
-        }
-    }
 
     private sealed class StaticOptionsMonitor<T>(T currentValue) : IOptionsMonitor<T>
     {

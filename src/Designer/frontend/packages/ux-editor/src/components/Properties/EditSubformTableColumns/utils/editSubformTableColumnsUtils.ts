@@ -1,5 +1,5 @@
 import { type FormItem } from '@altinn/ux-editor/types/FormItem';
-import { type ComponentType } from 'app-shared/types/ComponentType';
+import { type ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';
 import type { IInternalLayout, IFormLayouts } from '@altinn/ux-editor/types/global';
 import { getAllLayoutComponents } from '@altinn/ux-editor/utils/formLayoutUtils';

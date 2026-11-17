@@ -1534,8 +1534,8 @@ are contracts, scoped to where they are load-bearing), glossary.nb/nn/en/
 shared.txt (CORRECT words the dictionaries lack; shared = language-neutral
 tokens only), keys.txt (per-key @empty / @key-contract / @language). Each
 file's header documents its grammar; every entry is stale-checked, so an
-entry that stops doing work becomes a finding itself. Conventions: root
-AGENTS.md, "Spelling and language". Never run bare typos or
+entry that stops doing work becomes a finding itself. Conventions:
+scripts/spellcheck/README.md. Never run bare typos or
 typos --write-changes — use yarn spell:quick / spell:check / spell:fix.`);
   }
   process.exitCode = exitCode;

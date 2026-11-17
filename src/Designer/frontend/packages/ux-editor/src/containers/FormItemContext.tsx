@@ -15,7 +15,7 @@ import { useUpdateFormContainerMutation } from '../hooks/mutations/useUpdateForm
 import type { UpdateFormComponentMutationArgs } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateFormComponentMutation';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { LayoutItemType } from '../types/global';
+import * as formItemUtils from '../utils/formItemUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../hooks';
 import type { MutateOptions } from '@tanstack/react-query';
@@ -120,7 +120,7 @@ export const FormItemContextProvider = ({
           ...mutateOptions,
         };
 
-        if (updatedForm.itemType === LayoutItemType.Container) {
+        if (formItemUtils.isContainer(updatedForm)) {
           await updateFormContainer({ id, updatedContainer: updatedForm }, mutationOptions);
         } else {
           await updateFormComponent({ id, updatedComponent: updatedForm }, mutationOptions);

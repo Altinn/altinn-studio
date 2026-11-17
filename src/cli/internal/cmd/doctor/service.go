@@ -129,9 +129,10 @@ type App struct {
 	Found       bool   `json:"found"`
 }
 
-// Disk contains filesystem and local state validation results.
+// Disk contains filesystem and local state validation results, and how much space that state takes.
 type Disk struct {
 	Checks    []DiskCheck `json:"checks"`
+	Usage     []DiskUsage `json:"usage"`
 	HasIssues bool        `json:"hasIssues"`
 }
 

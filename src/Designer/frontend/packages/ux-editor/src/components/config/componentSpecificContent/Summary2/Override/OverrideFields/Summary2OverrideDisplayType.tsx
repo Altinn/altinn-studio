@@ -1,11 +1,11 @@
 import type {
   Summary2OverrideConfig,
   OverrideDisplayType,
-} from 'app-shared/types/ComponentSpecificConfig';
+} from '@altinn/ux-editor/types/Summary2Config';
 import { type CustomConfigType, useCustomConfigType } from '../hook/useCustomConfigType';
 import { useTranslation } from 'react-i18next';
 import { mapSelectedTypeToConfig } from '../utils';
-import { StudioCard, StudioSelect } from '@studio/components';
+import { StudioCard, StudioSelect } from '@designer/components';
 
 export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;

@@ -1,12 +1,17 @@
 import { Summary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { StudioParagraph, StudioHeading, StudioSelect, StudioTextfield } from '@studio/components';
+import {
+  StudioParagraph,
+  StudioHeading,
+  StudioSelect,
+  StudioTextfield,
+} from '@designer/components';
 import React from 'react';
 import classes from './Summary2Target.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type {
   Summary2TargetConfig,
   SummaryTargetType,
-} from 'app-shared/types/ComponentSpecificConfig';
+} from '@altinn/ux-editor/types/Summary2Config';
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';

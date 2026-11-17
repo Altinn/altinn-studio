@@ -8,6 +8,7 @@ using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Middleware;
+using Altinn.App.Api.Infrastructure.RateLimiting;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -26,6 +27,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
@@ -56,6 +58,9 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScopeAuthorization();
+        services.AddRateLimiter(options =>
+            options.AddPolicy<string, PdfPreviewRateLimiterPolicy>(PdfPreviewRateLimiterPolicy.Name)
+        );
 
         mvcBuilder
             .AddApplicationPart(typeof(InstancesController).Assembly)
@@ -194,6 +199,26 @@ public static class ServiceCollectionExtensions
 
         var appInsightsConnectionString = GetAppInsightsConnectionStringForOtel(config, env);
         var useOpenTelemetryCollector = config.GetValue<bool?>("AppSettings:UseOpenTelemetryCollector");
+        var useAzureMonitor =
+            useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString);
+        if (!isTest && useAzureMonitor)
+        {
+            // Defaults must run before both SDK configuration and service-owner Configure/PostConfigure callbacks,
+            // including callbacks registered before AddAltinnAppServices.
+            services.Insert(
+                0,
+                ServiceDescriptor.Singleton<IConfigureOptions<AzureMonitorExporterOptions>>(
+                    new ConfigureOptions<AzureMonitorExporterOptions>(options =>
+                    {
+                        // Preserve the original v8 policy: collect every trace and retain logs independently
+                        // of trace sampling. New Azure SDK defaults must not silently reduce telemetry.
+                        options.SamplingRatio = 1.0F;
+                        options.TracesPerSecond = null;
+                        options.EnableTraceBasedLogsSampler = false;
+                    })
+                )
+            );
+        }
 
         services
             .AddOpenTelemetry()
@@ -217,12 +242,9 @@ public static class ServiceCollectionExtensions
                 if (isTest)
                     return;
 
-                if (useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                if (useAzureMonitor)
                 {
-                    builder = builder.AddAzureMonitorTraceExporter(options =>
-                    {
-                        options.ConnectionString = appInsightsConnectionString;
-                    });
+                    builder = builder.AddAzureMonitorTraceExporter();
                 }
                 else
                 {
@@ -240,12 +262,9 @@ public static class ServiceCollectionExtensions
                 if (isTest)
                     return;
 
-                if (useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString))
+                if (useAzureMonitor)
                 {
-                    builder = builder.AddAzureMonitorMetricExporter(options =>
-                    {
-                        options.ConnectionString = appInsightsConnectionString;
-                    });
+                    builder = builder.AddAzureMonitorMetricExporter();
                 }
                 else
                 {
@@ -262,19 +281,24 @@ public static class ServiceCollectionExtensions
                 if (isTest)
                     return;
 
-                if (useOpenTelemetryCollector is not true && !string.IsNullOrWhiteSpace(appInsightsConnectionString))
-                {
-                    options.AddAzureMonitorLogExporter(options =>
-                    {
-                        options.ConnectionString = appInsightsConnectionString;
-                    });
-                }
-                else
+                if (!useAzureMonitor)
                 {
                     options.AddOtlpExporter();
                 }
             });
         });
+
+        if (!isTest && useAzureMonitor)
+        {
+            // The LoggerProviderBuilder overload consumes DI options, unlike the logger-options overload.
+            services.ConfigureOpenTelemetryLoggerProvider(builder => builder.AddAzureMonitorLogExporter());
+            // AddAzureMonitorTraceExporter above registers the SDK configurator, which reads the AzureMonitorExporter
+            // section and APPLICATIONINSIGHTS_CONNECTION_STRING. Setting the platform connection string after it keeps
+            // those settings from overriding it; owner Configure after AddAltinnAppServices and PostConfigure still win.
+            services.Configure<AzureMonitorExporterOptions>(options =>
+                options.ConnectionString = appInsightsConnectionString
+            );
+        }
     }
 
     private sealed class TelemetryInitialization(

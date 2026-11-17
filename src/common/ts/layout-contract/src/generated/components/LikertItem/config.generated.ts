@@ -36,9 +36,13 @@ export interface CompLikertItemExternal
   layout?: LayoutStyle;
 }
 
+export interface LikertItemSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type LikertItemSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'LikertItem' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & LikertItemSummaryOverrides)
+  | ({ componentType: 'LikertItem' } & LikertItemSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -64,8 +68,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompLikertItemExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: LikertItemSummaryOverrides;
   summaryOverridesWithRef: LikertItemSummaryOverridesWithRef;
 };
 
-// Source hash: 486dc8c5a2c39ed41c3e3d0552f19c74818ef2de564f71a17a8930e725e29c2e
+// Source hash: 5c9e249081c4dfc979606ec1b6ff2d1e37a9c60f8ed6003ff04a0105d8ddf556
