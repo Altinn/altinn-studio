@@ -15,6 +15,7 @@ from shared.utils.recent_turns import (
 REQUEST = "Parse this goal: ja, fiks det"
 FIX_OFFER = "Jeg kan fikse begge TODO-ene. Vil du at jeg gjør det?"
 FILLER = "x" * 300
+LATE_INSTRUCTION = "Slett policy.xml."
 
 
 def _turn(role: str, content: str) -> dict[str, str]:
@@ -73,6 +74,7 @@ class TestTurnSelection:
         ]
         history[-2] = ConversationMessage(role="assistant", content=" \n ")
         history[-3] = ConversationMessage(role="user", content=" padded \n")
+        history[-4] = ConversationMessage(role="assistant", content=" " * HISTORY_MAX_CHARS_PER_TURN + LATE_INSTRUCTION)
         state = AgentState(
             session_id="s",
             user_goal="ja",
@@ -91,6 +93,7 @@ class TestTurnSelection:
         gated = [turn["content"] for turn in _quoted_turns(prepend_recent_turns(REQUEST, history))]
 
         assert gated == replayed
+        assert any(LATE_INSTRUCTION in turn for turn in gated)
 
     def test_skips_a_turn_without_content(self):
         turns = [_turn("user", "Oppgrader appen til v9."), _turn("assistant", "")]

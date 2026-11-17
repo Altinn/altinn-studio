@@ -183,6 +183,20 @@ class TestCancellation:
         event_sink.send.assert_not_called()
         event_sink.add_to_conversation_history.assert_not_called()
 
+    async def test_cancelling_during_the_suggestions_stops_the_turn(self):
+        event_sink = _mock_event_sink()
+
+        async def suggest_while_the_user_cancels(*_args):
+            event_sink.is_cancelled.return_value = True
+            return [SUGGESTION]
+
+        with (
+            _judged(UNSAFE),
+            patch("agents.graph.runner._suggest_goals", new=suggest_while_the_user_cancels),
+            pytest.raises(WorkflowCancelled),
+        ):
+            await _gate_goal(_state(allow_app_changes=True), event_sink=event_sink)
+
     async def test_a_cancelled_session_never_calls_the_gate(self):
         with (
             patch("agents.graph.runner.judge_request", new=AsyncMock()) as judge,

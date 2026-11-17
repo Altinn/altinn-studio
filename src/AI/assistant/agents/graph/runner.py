@@ -158,7 +158,10 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
     if not judgment.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, judgment.concern)
-        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, await _suggest_goals(state, judgment.reason))
+        suggestions = await _suggest_goals(state, judgment.reason)
+        # The suggestions are model calls too, so a cancel can land while they run.
+        _raise_if_cancelled(state, event_sink)
+        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
     if not judgment.relevant:
         _log.info("Goal for session %s is not relevant", state.session_id)
         if state.allow_app_changes:
