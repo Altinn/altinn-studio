@@ -50,7 +50,7 @@ spec:
             # The core operator runs the v9 upgrade in a sandbox Job. In an environment without sandboxes, such as
             # staging, it offers no kinds, and the upgrade tool says that it cannot run.
             - name: CORE_OPERATOR_URL
-              value: "http://core-operator.core-operator.svc.cluster.local:8080"
+              value: "http://operator.core-operator.svc.cluster.local:8080"
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
@@ -86,6 +86,6 @@ spec:
           projected:
             sources:
               - serviceAccountToken:
-                  audience: core-operator
+                  audience: operator
                   expirationSeconds: 3600
                   path: token

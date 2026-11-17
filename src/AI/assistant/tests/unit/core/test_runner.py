@@ -160,7 +160,7 @@ class TestToRunResult:
 
 class TestCreateRunner:
     def test_creates_an_operator_runner_when_the_operator_url_is_set(self, monkeypatch):
-        monkeypatch.setattr(BaseConfig, "CORE_OPERATOR_URL", "http://core-operator.core-operator:8080")
+        monkeypatch.setattr(BaseConfig, "CORE_OPERATOR_URL", "http://operator.core-operator:8080")
 
         assert isinstance(create_runner(), CoreOperatorClient)
 

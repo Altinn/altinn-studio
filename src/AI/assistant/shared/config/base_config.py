@@ -55,7 +55,7 @@ class BaseConfig:
     # there is no runner, for example in local development.  The operator has no sandbox in some environments, for
     # example staging, and then says so.
     CORE_OPERATOR_URL = os.getenv("CORE_OPERATOR_URL", "")
-    # A projected ServiceAccount token with the audience `core-operator`.  The kubelet renews it in this file.
+    # A projected ServiceAccount token with the audience `operator`.  The kubelet renews it in this file.
     CORE_OPERATOR_TOKEN_PATH = os.getenv("CORE_OPERATOR_TOKEN_PATH", "/var/run/secrets/core-operator/token")
 
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"

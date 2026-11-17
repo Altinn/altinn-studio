@@ -139,7 +139,7 @@ spec:
           projected:
             sources:
               - serviceAccountToken:
-                  audience: core-operator
+                  audience: operator
                   expirationSeconds: 3600
                   path: token
       {{- end }}

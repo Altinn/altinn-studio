@@ -18,7 +18,7 @@ namespace Designer.Tests.TypedHttpClients.Operator;
 
 public class OperatorClientTests
 {
-    private const string BaseUrl = "http://core-operator.core-operator.svc.cluster.local:8080/";
+    private const string BaseUrl = "http://operator.core-operator.svc.cluster.local:8080/";
     private const string Commit = "0123456789abcdef0123456789abcdef01234567";
     private static readonly Guid s_runId = Guid.Parse("0b6f6c4e-2b8f-5d4a-9a51-6f3c2f7e8d10");
 

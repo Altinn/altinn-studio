@@ -31,8 +31,8 @@ public sealed class OperatorServiceCollectionExtensionsTests : IDisposable
 
     [Theory]
     [InlineData(
-        "http://core-operator.core-operator.svc.cluster.local:8080",
-        "http://core-operator.core-operator.svc.cluster.local:8080/api/v1/kinds"
+        "http://operator.core-operator.svc.cluster.local:8080",
+        "http://operator.core-operator.svc.cluster.local:8080/api/v1/kinds"
     )]
     [InlineData("http://gateway.example/operator", "http://gateway.example/operator/api/v1/kinds")]
     [InlineData("http://gateway.example/operator/", "http://gateway.example/operator/api/v1/kinds")]

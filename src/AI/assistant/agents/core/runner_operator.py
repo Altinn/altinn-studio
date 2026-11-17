@@ -9,7 +9,7 @@ The operator answers a create with the run that is in progress for the same kind
 create that this service sends again, such as after a timeout, does not start a second run.
 
 This service holds no Kubernetes permission.  It sends a projected ServiceAccount token with the audience
-`core-operator`, and reads it from its file for each request, because the kubelet renews the file.
+`operator`, and reads it from its file for each request, because the kubelet renews the file.
 """
 
 from __future__ import annotations
