@@ -43,7 +43,8 @@ The core operator is the only client, and the network policy lets only its pods 
 [`examples/protocol.json`](examples/protocol.json) has an example of each answer that the operator reads, where
 `{runId}` is the run that claims the operator runner. The route tests check that the operator runner gives these
 answers, and the operator's tests check that its client reads its fake operator runner's answers as it reads these, so
-change the examples together with both sides.
+change the examples together with both sides. The two deploy separately, so a change must also work with the other
+side's previous version.
 
 A client names a command. It cannot send a command line. Each command is a `Spec` in [`src/run.rs`](src/run.rs):
 
@@ -65,7 +66,8 @@ The operator must not fetch the result itself, because the first fetch starts th
 ### Start a run
 
 `PUT /runs/{runId}?command={command}&timeout={seconds}` with the app as the body. `runId` is a UUID that the client
-chooses, and the command stops `timeout` seconds after the run starts. The body is an `application/gzip` tar of the app,
+chooses. The run has its result at most `timeout` seconds after it starts: the command stops a minute before, to leave
+time for the report and the patch. The body is an `application/gzip` tar of the app,
 without `.git`, at most 50 MiB, and it must arrive within 2 minutes.
 
 The operator runner reads the whole body before the run claims the operator runner. If an upload stops before the end,
@@ -155,21 +157,20 @@ A client applies the patch with `git apply`, which also refuses paths outside th
 
 After the run, the operator runner keeps the result for the caller of the operator:
 
-- After the first fetch, the operator runner keeps the result for 30 seconds, so that a caller whose answer did not
+- After the first fetch, the operator runner keeps the result for `RESULT_GRACE_SECONDS`, so that a caller whose answer did not
   arrive can fetch it again.
 - If no caller fetches the result within `RESULT_RETENTION_SECONDS` after the run ended, the operator runner stops
   waiting. A status read does not count as a fetch.
 
 | Exit code | When                                                                                                                                                |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0         | A caller fetched the result, and 30 seconds passed. This is also true when the result is `failed`, or when the command failed.                      |
+| 0         | A caller fetched the result, and `RESULT_GRACE_SECONDS` passed. This is also true when the result is `failed`, or when the command failed.          |
 | 0         | No caller fetched the result within `RESULT_RETENTION_SECONDS` after the run ended, for example because the caller went away.                       |
 | 0         | No run claimed the operator runner within `REQUEST_TIMEOUT_SECONDS` after it was ready. An archive that arrives at that time can still claim it.    |
 | 143       | It got SIGTERM or SIGINT, for example because the operator deleted the Job. It stops a running command and deletes the VM first.                    |
 | 1         | An error, or the VM could not be deleted. A Job pod is never restarted, so the operator runner clears the Provider home of the pod before it exits. |
 
-The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets both times and the size of the VM. Its comments say how
-the times follow those that the core operator gives its caller.
+The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets these times and the size of the VM.
 
 ## Guest image
 
@@ -247,8 +248,8 @@ runs in it:
 - `admission-policy.yaml`: a Job from the operator must have the pod of the PodTemplate, `backoffLimit: 0`, an
   `activeDeadlineSeconds` of at most 1800 seconds, and a TTL. The deadline must cover the upload of the caller, the
   run and the time that the operator runner keeps the result.
-- `resourcequota.yaml`: the cap on runs at the same time, 2 in dev and 4 in prod. The operator queues runs below this
-  cap. The quota is the backstop.
+- `resourcequota.yaml`: the cap on runs at the same time, 2 in dev and 4 in prod. The operator admits runs up to its
+  KVM slots and queues the rest.
 - `networkpolicy.yaml`: only the operator pods can reach a run pod, and a run pod can reach only DNS and the internet
   on port 443.
 

@@ -107,13 +107,14 @@ template:
             value: 4Gi
           - name: SANDBOX_ROOT_FILESYSTEM
             value: 20Gi
-          # The operator gives its caller 5 minutes to upload the archive, from when the operator sees that the pod is
-          # ready. The extra minute covers the time that the operator takes to see that.
+          # The core operator's upload timeout, and a minute for it to see that the pod is ready. The core operator's
+          # tests check these times against its own.
           - name: REQUEST_TIMEOUT_SECONDS
             value: "360"
-          # The operator gives its caller as much time to fetch the result after the run.
           - name: RESULT_RETENTION_SECONDS
             value: "300"
+          - name: RESULT_GRACE_SECONDS
+            value: "30"
         # When the pod is Ready, the operator lets its caller upload the archive. The pod has no liveness probe,
         # because it is for one run only.
         readinessProbe:

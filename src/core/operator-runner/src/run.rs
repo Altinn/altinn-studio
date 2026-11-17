@@ -21,8 +21,7 @@ const PATCH_PATH: &str = "/job/changes.patch";
 const MAX_PATCH_BYTES: u64 = 20 * 1024 * 1024;
 const MAX_REPORT_BYTES: u64 = 8 * 1024 * 1024;
 const PREPARE_TIMEOUT: Duration = Duration::from_mins(2);
-/// The time after the command to read the report and to make and read the patch. The core operator's budget for the
-/// result has room for it.
+/// The part of the run's timeout that the command leaves to read the report and to make and read the patch.
 const FINISH_TIMEOUT: Duration = Duration::from_mins(1);
 /// The output of a step only goes into the error of a failed run, which its status carries. The core operator reads a
 /// status of at most 64 KiB, and JSON can escape a byte in six.
@@ -184,7 +183,7 @@ impl Runner for Vms {
 async fn run_in_vm(vm: &Vm, run: Run) -> Result<Outcome, RunError> {
     let spec = run.command.spec();
     prepare_app(vm, run.archive, run.deadline).await?;
-    let command = vm.run_script(spec.script, run.deadline, spec.output_limits).await?;
+    let command = vm.run_script(spec.script, run.deadline - FINISH_TIMEOUT, spec.output_limits).await?;
     let finish = Instant::now() + FINISH_TIMEOUT;
     let report = match spec.report_file {
         Some(path) => read_report(vm, path, finish).await,

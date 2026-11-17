@@ -75,6 +75,7 @@ jobs:
       SANDBOX_ROOT_FILESYSTEM: 20Gi
       REQUEST_TIMEOUT_SECONDS: "120"
       RESULT_RETENTION_SECONDS: "300"
+      RESULT_GRACE_SECONDS: "30"
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -141,7 +142,7 @@ jobs:
             --volume "${RUNNER_TEMP}/home:/var/lib/altinn/sandbox-provider" \
             --volume "${RUNNER_TEMP}/cache:/var/cache/altinn/sandbox" \
             --env SANDBOX_IMAGE --env SANDBOX_CPUS --env SANDBOX_MEMORY --env SANDBOX_ROOT_FILESYSTEM \
-            --env REQUEST_TIMEOUT_SECONDS --env RESULT_RETENTION_SECONDS "${OPERATOR_RUNNER_IMAGE}"
+            --env REQUEST_TIMEOUT_SECONDS --env RESULT_RETENTION_SECONDS --env RESULT_GRACE_SECONDS "${OPERATOR_RUNNER_IMAGE}"
           for _ in $(seq 1 60); do
             curl -fsS "${OPERATOR_RUNNER_URL}/health" && exit 0
             sleep 1

@@ -8,10 +8,6 @@ use tokio_util::sync::CancellationToken;
 
 use crate::run::{Command, Outcome, Run, RunError, Runner};
 
-/// The time after the first fetch of the result that the operator runner keeps it, so that a client that restarted can
-/// fetch it again.
-const RESULT_GRACE: Duration = Duration::from_secs(30);
-
 /// The id that the client gives a run: a UUID in the form with hyphens. The operator runner compares run ids in lower
 /// case.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -134,6 +130,9 @@ pub struct Timeouts {
     pub request: Duration,
     /// The time from the end of the run that the operator runner keeps a result that no client fetched.
     pub retention: Duration,
+    /// The time after the first fetch that the operator runner keeps the result, so that a client that restarted can
+    /// fetch it again.
+    pub grace: Duration,
 }
 
 /// The one run that the operator runner serves, from its claim until the operator runner exits.
@@ -313,7 +312,7 @@ impl Host {
         signal: impl Future<Output = ()>,
     ) -> Result<Stop, AnyError> {
         let stop = tokio::select! {
-            stop = self.served(timeouts.retention) => stop,
+            stop = self.served(timeouts) => stop,
             () = self.unclaimed_after(timeouts.request) => Stop::Unclaimed,
             () = signal => {
                 self.stop();
@@ -333,14 +332,14 @@ impl Host {
     }
 
     /// Completes when a client fetched the result and the grace passed, or when the retention of the result passed.
-    async fn served(&self, retention: Duration) -> Stop {
+    async fn served(&self, timeouts: Timeouts) -> Stop {
         let ended_at = self.ended().await;
         tokio::select! {
             () = self.fetched() => {
-                tokio::time::sleep(RESULT_GRACE).await;
+                tokio::time::sleep(timeouts.grace).await;
                 Stop::Fetched
             }
-            () = tokio::time::sleep_until(ended_at + retention) => Stop::Expired,
+            () = tokio::time::sleep_until(ended_at + timeouts.retention) => Stop::Expired,
         }
     }
 
@@ -500,7 +499,7 @@ mod tests {
     use serde_json::{Value, json};
     use tokio::time::Instant;
 
-    use super::{Answer, Host, RESULT_GRACE, Reply, RunId, Start, Status, Stop, Summary, Timeouts};
+    use super::{Answer, Host, Reply, RunId, Start, Status, Stop, Summary, Timeouts};
     use crate::{
         fake::{FakeRunner, RUN_ID},
         run::{Command, Outcome, RunError},
@@ -521,6 +520,7 @@ mod tests {
     const TIMEOUTS: Timeouts = Timeouts {
         request: Duration::from_mins(6),
         retention: Duration::from_mins(5),
+        grace: Duration::from_secs(30),
     };
 
     fn waiting_for_stop(
@@ -747,7 +747,7 @@ mod tests {
         assert!(matches!(first, Some(Answer::Ended(_))), "{first:?}");
         assert_eq!(first, again);
         assert_eq!(waiting.await?, Some(Stop::Fetched));
-        assert_eq!(fetched_at.elapsed(), RESULT_GRACE);
+        assert_eq!(fetched_at.elapsed(), TIMEOUTS.grace);
         Ok(())
     }
 

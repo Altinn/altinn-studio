@@ -31,6 +31,9 @@ struct Arguments {
     /// The time in seconds that the operator runner keeps a result that no client fetched. Then it exits with 0.
     #[arg(long, env = "RESULT_RETENTION_SECONDS")]
     result_retention_seconds: NonZeroU64,
+    /// The time in seconds that the operator runner keeps the result after the first fetch.
+    #[arg(long, env = "RESULT_GRACE_SECONDS")]
+    result_grace_seconds: NonZeroU64,
 }
 
 #[tokio::main(flavor = "local")]
@@ -46,6 +49,7 @@ async fn main() -> Result<ExitCode, AnyError> {
         listen_address,
         request_timeout_seconds,
         result_retention_seconds,
+        result_grace_seconds,
     } = Arguments::parse();
     require_kvm()?;
     // If a container stopped during a run, the state of its VM stays in the Provider home of the pod.
@@ -53,6 +57,7 @@ async fn main() -> Result<ExitCode, AnyError> {
     let timeouts = Timeouts {
         request: Duration::from_secs(request_timeout_seconds.get()),
         retention: Duration::from_secs(result_retention_seconds.get()),
+        grace: Duration::from_secs(result_grace_seconds.get()),
     };
     provider
         .run_with_service(async |service| serve_one_run(service, vm, listen_address, timeouts).await)
