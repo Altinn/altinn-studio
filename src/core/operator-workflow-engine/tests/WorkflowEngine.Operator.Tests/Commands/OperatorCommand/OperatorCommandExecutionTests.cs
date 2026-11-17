@@ -158,8 +158,8 @@ public class OperatorCommandExecutionTests
     [InlineData(HttpStatusCode.Unauthorized)]
     [InlineData(HttpStatusCode.Forbidden)]
     [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.MethodNotAllowed)]
     [InlineData(HttpStatusCode.Conflict)]
-    [InlineData((HttpStatusCode)422)]
     public async Task Execute_NonRetryable4xx_ReturnsCriticalError(HttpStatusCode statusCode)
     {
         // Arrange

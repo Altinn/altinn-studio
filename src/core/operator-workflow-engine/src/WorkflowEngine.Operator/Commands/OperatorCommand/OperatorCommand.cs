@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -198,8 +199,14 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         var statusCode = (int)response.StatusCode;
         var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
 
-        // 4xx client errors (except 408/418/429) are not worth retrying
-        if (statusCode is >= 400 and < 500 and not 408 and not 418 and not 429)
+        // The operator ends a step with a 422 problem, which the step keeps as its error as it is, for the operator to
+        // read back. src/core/operator/api/callbacks/response-end.json is an example.
+        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
+            return ExecutionResult.CriticalError(errorBody, httpStatusCode: statusCode);
+
+        IReadOnlyList<int> nonRetryable =
+            context.Step.RetryStrategy?.NonRetryableHttpStatusCodes ?? RetryStrategy.DefaultNonRetryableHttpStatusCodes;
+        if (nonRetryable.Contains(statusCode))
         {
             return ExecutionResult.CriticalError(
                 $"OperatorCommand failed with client error {response.StatusCode}: {errorBody}",

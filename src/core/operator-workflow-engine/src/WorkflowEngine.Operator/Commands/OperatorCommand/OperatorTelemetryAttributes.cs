@@ -6,10 +6,9 @@ namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 /// and the command key on <see cref="OperatorCommand"/>'s own callback span.
 /// </summary>
 /// <remarks>
-/// The workflow keys live under <c>altinn.core_operator.</c>, so the operator can set the same keys on its spans
-/// and one search finds a run in both. The command key names this host's command, and lives under
-/// <c>altinn.workflow_engine.</c> like the app host's. The keys are a contract with dashboards and trace searches, so
-/// renaming one is a breaking change.
+/// This host is a process of the core operator, so its keys live under <c>altinn.core_operator.</c>, and the operator
+/// sets the same keys on its spans: one search finds a run in both. The keys are a contract with dashboards and trace
+/// searches, so renaming one is a breaking change.
 /// </remarks>
 internal static class OperatorTelemetryAttributes
 {
@@ -31,5 +30,5 @@ internal static class OperatorTelemetryAttributes
     /// <summary>
     /// The command key an operator command calls back with: which of the operator's handlers the step runs.
     /// </summary>
-    public const string OperatorCommandKey = "altinn.workflow_engine.operator_command.key";
+    public const string OperatorCommandKey = "altinn.core_operator.command_key";
 }

@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: operator-workflow-engine
+namespace: core-operator-workflow-engine
 
 resources:
   - namespace.yaml
@@ -16,11 +16,11 @@ resources:
 replacements:
   - source:
       kind: Deployment
-      name: operator-workflow-engine
+      name: core-operator-workflow-engine
       fieldPath: metadata.annotations.[altinn.studio/image]
     targets:
       - select:
           kind: Deployment
-          name: operator-workflow-engine
+          name: core-operator-workflow-engine
         fieldPaths:
-          - spec.template.spec.containers.[name=operator-workflow-engine].image
+          - spec.template.spec.containers.[name=core-operator-workflow-engine].image
