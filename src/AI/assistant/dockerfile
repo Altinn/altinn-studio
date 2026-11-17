@@ -33,5 +33,8 @@ COPY src/common/ts/layout-contract/schemas/json/ /common/ts/layout-contract/sche
 EXPOSE 8071
 
 ENV PYTHONUNBUFFERED=1
+# The commit the image is built from, reported as service.version.
+ARG SERVICE_VERSION=dev
+ENV SERVICE_VERSION=${SERVICE_VERSION}
 
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8071"]
