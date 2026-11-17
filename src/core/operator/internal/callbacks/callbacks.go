@@ -166,11 +166,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(telemetry.AttrCommandKey.String(key))
 	if payload.ExecutionDeadline != nil {
-		if remaining := payload.ExecutionDeadline.Sub(r.clock.Now()) - deadlineMargin; remaining > 0 {
-			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(ctx, remaining)
-			defer cancel()
-		}
+		// A step with less time left than the margin stops at once, since its answer would come too late.
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, payload.ExecutionDeadline.Sub(r.clock.Now())-deadlineMargin)
+		defer cancel()
 	}
 	logger := logging.FromContext(ctx).WithValues("commandKey", key, "subjectId", payload.Context.SubjectID,
 		"workflowId", payload.WorkflowID)

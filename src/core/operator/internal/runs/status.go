@@ -126,7 +126,7 @@ func readRun(workflow *engine.Workflow) *record {
 		rec.StartedAt = steps[command-1].UpdatedAt
 	}
 	rec.describe(workflow, steps, command)
-	if rec.Status == StatusCompleted && rec.FinishedAt != nil {
+	if rec.keepsResult() && rec.FinishedAt != nil {
 		expiresAt := rec.FinishedAt.Add(scaled(config.ResultTimeout, rec.state.Spec.TimeScale))
 		rec.ResultExpiresAt = &expiresAt
 	}

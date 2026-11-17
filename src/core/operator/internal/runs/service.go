@@ -359,11 +359,11 @@ func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadClos
 	switch {
 	case err == nil:
 		return body, size, nil
-	case errors.Is(err, runner.ErrUnreachable):
-		return nil, 0, fmt.Errorf("%w: %w", ErrRunner, err)
-	default:
+	case errors.Is(err, runner.ErrGone), errors.Is(err, runner.ErrNotClaimed):
 		// The operator runner exits once it has served the result and its grace has passed, or once the result timeout has.
 		return nil, 0, fmt.Errorf("%w: %w", ErrExpired, err)
+	default:
+		return nil, 0, fmt.Errorf("%w: %w", ErrRunner, err)
 	}
 }
 

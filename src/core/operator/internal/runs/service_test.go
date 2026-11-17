@@ -315,7 +315,8 @@ func TestGetStopsWaitingAtTheDeadline(t *testing.T) {
 	Expect(same.Status).To(Equal(StatusQueued))
 }
 
-// An operator runner that does not answer while its pod still runs may answer later, so the caller retries.
+// An operator runner that does not answer while its pod still runs may answer later, so the caller retries. Once the pod
+// is gone, so is the result.
 func TestResultIsUnavailableWhileTheRunnerDoesNotAnswer(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -334,6 +335,10 @@ func TestResultIsUnavailableWhileTheRunnerDoesNotAnswer(t *testing.T) {
 	h.host.Close()
 	_, _, err := h.service.Result(t.Context(), "assistant", run.ID)
 	Expect(err).To(MatchError(ErrRunner))
+
+	Expect(h.sandbox.DeleteJob(t.Context(), testNamespace, run.ID)).To(Succeed())
+	_, _, err = h.service.Result(t.Context(), "assistant", run.ID)
+	Expect(err).To(MatchError(ErrExpired))
 }
 
 func TestResultAsksTheEngineFirst(t *testing.T) {

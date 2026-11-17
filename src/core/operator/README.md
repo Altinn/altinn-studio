@@ -176,8 +176,8 @@ sees only its own runs.
   `PUT /api/v1/runs/{id}/archive`. Start within `uploadTimeoutSeconds`, and send the whole archive within 2 minutes.
   You can build the archive then, from the commit, so you need not keep it from the create. An upload that broke off
   can be sent again.
-- **Fetch the result** as soon as the status is `completed`, by `resultExpiresAt`. Keep what you show later, such as
-  the report, in your own store, or in the commit that applies the patch.
+- **Fetch the result** as soon as the status is `completed`, by `resultExpiresAt`, which is `null` once the result is
+  gone. Keep what you show later, such as the report, in your own store, or in the commit that applies the patch.
 - **Give up.** The operator gives each run a final status within the `maxDurationSeconds` of its kind in
   `GET /api/v1/kinds`, which counts every retry the engine allows. A caller that has seen no final status by then can
   give up on the run, rather than keep its own copy of the operator's budgets.
