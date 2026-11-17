@@ -30,9 +30,11 @@ func TestRouteLeavesOutIDs(t *testing.T) {
 	cases := map[string]string{
 		"/api/v1/kinds": "/api/v1/kinds",
 		"/api/v1/runs":  "/api/v1/runs",
-		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b":        "/api/v1/runs/{runId}",
-		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b/cancel": "/api/v1/runs/{runId}/cancel",
-		"/workflow-engine-callbacks/run.admit":                     "/workflow-engine-callbacks/{commandKey}",
+		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b":          "/api/v1/runs/{runId}",
+		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b/cancel":   "/api/v1/runs/{runId}/cancel",
+		"/workflow-engine-callbacks/run.admit":                       "/workflow-engine-callbacks/{commandKey}",
+		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b/result/x": "",
+		"/private/value": "",
 	}
 	for path, want := range cases {
 		if got := route(path); got != want {

@@ -224,8 +224,8 @@ func (c *Config) callerProblems() []string {
 	var problems []string
 	serviceAccounts := map[string]string{c.EngineServiceAccount: "the engine"}
 	for id, caller := range c.Callers {
-		if !namePattern.MatchString(id) {
-			problems = append(problems, fmt.Sprintf("caller id %q must be lowercase letters, digits and dashes", id))
+		if !ValidName(id) {
+			problems = append(problems, fmt.Sprintf("caller id %q must be a lowercase DNS label", id))
 		}
 		if caller.ServiceAccount == "" {
 			problems = append(problems, fmt.Sprintf("caller %s has no serviceAccount", id))

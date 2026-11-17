@@ -1,5 +1,7 @@
 # The image that docker-build tags.
 IMG ?= core-operator:latest
+# Docker reads Dockerfile.dockerignore by itself. Podman reads src/.dockerignore instead, unless it is told.
+IGNOREFILE = $(if $(shell docker --version 2>/dev/null | grep -i podman),--ignorefile Dockerfile.dockerignore)
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -57,7 +59,7 @@ build: fmt vet ## Build manager binary.
 
 .PHONY: docker-build
 docker-build: ## Build the image. The build context is src/, for the shared Go module.
-	docker build -t "$(IMG)" -f Dockerfile --ignorefile Dockerfile.dockerignore ../..
+	docker build -t "$(IMG)" -f Dockerfile $(IGNOREFILE) ../..
 
 .PHONY: run
 run: fmt vet ## Run the operator against the cluster in your kubeconfig.
