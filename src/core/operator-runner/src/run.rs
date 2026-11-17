@@ -290,20 +290,167 @@ fn to_text(captured: &Captured) -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
+    use std::{rc::Rc, time::Duration};
 
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
     use bytes::Bytes;
+    use clap::{Args as _, FromArgMatches as _};
     use futures_util::{StreamExt as _, stream};
-    use sandbox::execution::{ExecutionEvent, ExecutionEventStream, ExitStatus};
+    use sandbox::{
+        SandboxService,
+        execution::{ExecutionEvent, ExecutionEventStream, ExecutionSpec, ExitStatus, Program},
+        memory,
+    };
     use sandbox_hosting::AnyError;
     use serde_json::{Value, json};
     use tokio::time::Instant;
 
-    use super::{Command, parse_report, to_outcome};
-    use crate::output::{Collected, Limits, collect};
+    use super::{
+        Command, Outcome, PATCH_PATH, PATCH_SCRIPT, PREPARE_SCRIPT, Run, RunError, Runner as _, parse_report,
+        to_outcome,
+    };
+    use crate::{
+        output::{Collected, Limits, collect},
+        patch::Refusal,
+        policy::AllowedHosts,
+        vm::{VmArguments, Vms},
+    };
 
-    fn upgrade_output_limits() -> Limits {
-        Command::UpgradeV9.spec().output_limits
+    const PATCH: &str = "diff --git a/App/App.csproj b/App/App.csproj\nindex 1111111..2222222 100644\n--- a/App/App.csproj\n+++ b/App/App.csproj\n@@ -1 +1 @@\n-v8\n+v9\n";
+
+    /// The real VMs over the in-memory Provider of the Sandbox SDK, which runs no script. A script exits with 0 and no
+    /// output unless the test answers for it, and the VM has only the files that someone writes in it.
+    struct Guest {
+        provider: Rc<memory::Provider>,
+        vms: Vms,
+    }
+
+    impl Guest {
+        fn new() -> Result<Self, AnyError> {
+            let provider = Rc::new(memory::Provider::new());
+            let image = format!("registry.example/guest@sha256:{}", "0".repeat(64));
+            let line = format!("test --image {image} --cpus 1 --memory 1Gi --root-filesystem 1Gi");
+            let matches =
+                VmArguments::augment_args(clap::Command::new("test")).try_get_matches_from(line.split(' '))?;
+            let arguments = VmArguments::from_arg_matches(&matches)?;
+            let service = SandboxService::new(provider.clone());
+            let vms = Vms::new(service, arguments, AllowedHosts::default())?;
+            Ok(Self { provider, vms })
+        }
+
+        fn answer(&self, script: &'static str, events: Vec<ExecutionEvent>) {
+            self.provider
+                .queue_execution_events_matching(move |spec| script_of(spec) == Some(script), events);
+        }
+
+        /// Runs the upgrade in a VM that has the report and the patch that studioctl and git would write. The run finds
+        /// the VM by its name, so the test starts it first.
+        async fn upgrade(&self, patch: &'static str) -> Result<Outcome, RunError> {
+            let vm = self.vms.start(&[]).await?;
+            let report = Bytes::from_static(br#"{"exitCode": 0}"#);
+            vm.write_file("/job/report.json", report).await?;
+            vm.write_file(PATCH_PATH, Bytes::from_static(patch.as_bytes())).await?;
+            let run = Run {
+                command: Command::UpgradeV9,
+                archive: Bytes::from_static(b"app"),
+                deadline: Instant::now() + Duration::from_mins(1),
+            };
+            self.vms.run(run).await
+        }
+
+        /// The scripts that ran, in order.
+        fn scripts(&self) -> Vec<String> {
+            let specs = self.provider.execution_specs();
+            specs.iter().filter_map(script_of).map(str::to_owned).collect()
+        }
+    }
+
+    fn script_of(spec: &ExecutionSpec) -> Option<&str> {
+        match spec.program() {
+            Program::Command { args, .. } => args.last().map(String::as_str),
+            Program::ImageEntrypoint => None,
+        }
+    }
+
+    #[tokio::test]
+    async fn runs_the_command_in_the_vm_and_answers_with_its_output_report_and_patch() -> Result<(), AnyError> {
+        let guest = Guest::new()?;
+        let upgrade = Command::UpgradeV9.spec().script;
+        guest.answer(
+            upgrade,
+            vec![
+                ExecutionEvent::Stdout(Bytes::from_static(b"{}")),
+                ExecutionEvent::Stderr(Bytes::from_static(b"warn \xff")),
+                ExecutionEvent::Exited(ExitStatus { code: 3 }),
+            ],
+        );
+
+        let outcome = guest.upgrade(PATCH).await.expect("the upgrade runs");
+
+        let expected = Outcome {
+            exit_code: Some(3),
+            timed_out: false,
+            stdout: "{}".to_string(),
+            stderr: "warn \u{fffd}".to_string(),
+            report: json!({ "exitCode": 0 }).as_object().cloned(),
+            patch: Some(STANDARD.encode(PATCH)),
+        };
+        assert_eq!(outcome, expected);
+        assert_eq!(guest.scripts(), [PREPARE_SCRIPT, upgrade, PATCH_SCRIPT]);
+        Ok(())
+    }
+
+    /// App code made the patch, so the operator runner checks it before it returns it.
+    #[tokio::test]
+    async fn refuses_a_patch_that_changes_a_ci_workflow() -> Result<(), AnyError> {
+        let workflow = "diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml\nnew file mode 100644\nindex 0000000..e69de29\n";
+
+        let result = Guest::new()?.upgrade(workflow).await;
+
+        assert!(
+            matches!(&result, Err(RunError::RefusedPatch(Refusal::Changes(changes)))
+                if changes == &[".github/workflows/build.yml (a CI workflow folder)"]),
+            "{result:?}"
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn fails_without_running_the_command_when_the_archive_does_not_extract() -> Result<(), AnyError> {
+        let guest = Guest::new()?;
+        guest.answer(
+            PREPARE_SCRIPT,
+            vec![
+                ExecutionEvent::Stderr(Bytes::from_static(b"gzip: invalid header")),
+                ExecutionEvent::Exited(ExitStatus { code: 2 }),
+            ],
+        );
+
+        let result = guest.upgrade(PATCH).await;
+
+        assert!(
+            matches!(&result, Err(RunError::InvalidArchive(stderr)) if stderr == "gzip: invalid header"),
+            "{result:?}"
+        );
+        assert_eq!(guest.scripts(), [PREPARE_SCRIPT]);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn fails_when_the_command_does_not_start_or_its_output_ends_before_it_exits() -> Result<(), AnyError> {
+        let not_started = ExecutionEvent::Failed {
+            message: "no such file".to_string(),
+        };
+        let ended_early = ExecutionEvent::Stdout(Bytes::from_static(b"x"));
+        for events in [vec![not_started], vec![ended_early]] {
+            let guest = Guest::new()?;
+            guest.answer(Command::UpgradeV9.spec().script, events);
+
+            let result = guest.upgrade(PATCH).await;
+
+            assert!(matches!(&result, Err(RunError::Failed(_))), "{result:?}");
+        }
+        Ok(())
     }
 
     async fn collected(events: Vec<ExecutionEvent>, limits: Limits) -> Result<Collected, AnyError> {
@@ -335,35 +482,11 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn answers_with_the_exit_code_the_output_and_the_patch_as_base64() -> Result<(), AnyError> {
-        let command = collected(
-            vec![
-                ExecutionEvent::Stdout(Bytes::from_static(b"{}")),
-                ExecutionEvent::Stderr(Bytes::from_static(b"warn \xff")),
-                ExecutionEvent::Exited(ExitStatus { code: 3 }),
-            ],
-            upgrade_output_limits(),
-        )
-        .await?;
-
-        let report = parse_report(br#"{"exitCode": 3}"#);
-        let outcome = to_outcome(&command, report, Some(b"diff\n"));
-
-        assert_eq!(outcome.exit_code, Some(3));
-        assert!(!outcome.timed_out);
-        assert_eq!(outcome.stdout, "{}");
-        assert_eq!(outcome.stderr, "warn \u{fffd}");
-        assert_eq!(serde_json::to_value(&outcome)?["report"], json!({ "exitCode": 3 }));
-        assert_eq!(outcome.patch.as_deref(), Some("ZGlmZgo="));
-        Ok(())
-    }
-
     #[tokio::test(start_paused = true)]
     async fn answers_without_an_exit_code_when_the_command_timed_out() -> Result<(), AnyError> {
         let command = collected(
             vec![ExecutionEvent::Stdout(Bytes::from_static(b"so far"))],
-            upgrade_output_limits(),
+            Command::UpgradeV9.spec().output_limits,
         )
         .await?;
 
@@ -377,19 +500,21 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn marks_where_it_cut_the_output() -> Result<(), AnyError> {
+    async fn marks_where_it_cut_the_output_and_reads_on_until_the_exit() -> Result<(), AnyError> {
         let command = collected(
             vec![
-                ExecutionEvent::Stdout(Bytes::from_static(b"abcdef")),
+                ExecutionEvent::Stdout(Bytes::from_static(b"abc")),
+                ExecutionEvent::Stdout(Bytes::from_static(b"def")),
                 ExecutionEvent::Exited(ExitStatus { code: 0 }),
             ],
-            Limits { stdout: 3, stderr: 3 },
+            Limits { stdout: 4, stderr: 4 },
         )
         .await?;
 
         let outcome = to_outcome(&command, None, None);
 
-        assert_eq!(outcome.stdout, "abc\n[The operator runner cut the output here.]");
+        assert_eq!(outcome.stdout, "abcd\n[The operator runner cut the output here.]");
+        assert_eq!(outcome.exit_code, Some(0));
         Ok(())
     }
 }
