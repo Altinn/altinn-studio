@@ -19,3 +19,7 @@ rules:
   - apiGroups: [""]
     resources: [pods]
     verbs: [get, list, watch]
+  # Log the operator runner's warnings and errors before the Job and its log are deleted.
+  - apiGroups: [""]
+    resources: [pods/log]
+    verbs: [get]

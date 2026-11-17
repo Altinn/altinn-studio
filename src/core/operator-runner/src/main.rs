@@ -35,7 +35,9 @@ struct Arguments {
 
 #[tokio::main(flavor = "local")]
 async fn main() -> Result<ExitCode, AnyError> {
+    // The core operator reads the warnings and errors from the pod's log before it deletes the Job.
     tracing_subscriber::fmt()
+        .json()
         .with_env_filter(EnvFilter::new(format!("info,{LOG_DIRECTIVES}")))
         .init();
     let Arguments {
