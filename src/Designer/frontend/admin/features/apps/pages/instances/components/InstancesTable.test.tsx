@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { get, HttpError } from 'app-shared/utils/networking';
+import { get } from 'app-shared/utils/networking';
 import type * as Networking from 'app-shared/utils/networking';
 import type { CollectionWorkflowCounts } from 'admin/features/apps/types/workflows/WorkflowCollection';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,6 +13,7 @@ import { app, org } from '@designer/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { InstancesTable } from './InstancesTable';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
 vi.mock('app-shared/utils/networking', async (importOriginal) => ({
   ...(await importOriginal<typeof Networking>()),
@@ -60,12 +61,9 @@ const healthResponse = {
 };
 
 const engineUnavailableError = () =>
-  new HttpError({
-    status: 502,
-    data: {
-      type: 'urn:altinn:studio:gateway:workflow-engine-unavailable',
-      title: 'Workflow engine unavailable',
-    },
+  createHttpErrorMock(502, {
+    type: 'urn:altinn:studio:gateway:workflow-engine-unavailable',
+    title: 'Workflow engine unavailable',
   });
 
 const keysFrom = (url: string) => [

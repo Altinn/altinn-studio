@@ -16,6 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 - A gateway after a PDF service task that routes on `gatewayAction`, such as after the PDF tasks `studioctl app upgrade v9` inserts, now gets the action the user took on the task before, instead of matching no flow. On `reject`, the PDF task creates no PDF. ([#21180](https://github.com/Altinn/altinn-studio/pull/21180))
 
 ## [9.0.0-preview.12] - 2026-11-17
