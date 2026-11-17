@@ -34,7 +34,7 @@ struct Arguments {
     #[arg(long, env = "REQUEST_TIMEOUT_SECONDS")]
     request_timeout_seconds: NonZeroU64,
     /// The time in seconds that the operator runner keeps a result that no client fetched. Then it exits with 0.
-    #[arg(long, env = "RESULT_RETENTION_SECONDS", default_value = "300")]
+    #[arg(long, env = "RESULT_RETENTION_SECONDS")]
     result_retention_seconds: NonZeroU64,
 }
 

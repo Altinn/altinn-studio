@@ -217,7 +217,7 @@ impl Host {
 
     /// Claims the operator runner for the run and starts the run in its own task. The run does not depend on the
     /// request that started it.
-    pub fn start(self: &Rc<Self>, run_id: &RunId, command: Command, archive: Bytes) -> Start {
+    pub fn start(self: &Rc<Self>, run_id: &RunId, command: Command, timeout: Duration, archive: Bytes) -> Start {
         if self.is_stopping() {
             return Start::Stopping;
         }
@@ -238,7 +238,7 @@ impl Host {
             let run = Run {
                 command,
                 archive,
-                deadline: Instant::now() + command.timeout(),
+                deadline: Instant::now() + timeout,
             };
             tokio::task::spawn_local(self.clone().run_to_end(run_id.clone(), run));
         }
@@ -427,6 +427,10 @@ mod tests {
         RunId::parse(RUN_ID).expect("RUN_ID is a UUID")
     }
 
+    fn start(host: &Rc<Host>, run_id: &RunId) -> Start {
+        host.start(run_id, Command::UpgradeV9, Duration::from_mins(11), Bytes::new())
+    }
+
     fn host(runner: &Rc<FakeRunner>) -> Rc<Host> {
         Host::new(runner.clone())
     }
@@ -483,7 +487,7 @@ mod tests {
             let runner = Rc::new(FakeRunner::default());
             *runner.error.borrow_mut() = Some(error);
             let host = host(&runner);
-            assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+            assert_eq!(start(&host, &run_id()), Start::Started);
 
             assert_eq!(summary(&host).await?, json!({ "status": "failed", "error": expected }));
             assert_eq!(result(&host).await?, json!({ "status": "failed", "error": expected }));
@@ -520,13 +524,13 @@ mod tests {
         let host = host(&runner);
         let other = RunId::parse("11111111-2222-3333-4444-555555555555").expect("a UUID");
 
-        let first = host.start(&run_id(), Command::UpgradeV9, Bytes::new());
+        let first = start(&host, &run_id());
         runner.started.notified().await;
-        let again = host.start(&run_id(), Command::UpgradeV9, Bytes::new());
-        let by_other = host.start(&other, Command::UpgradeV9, Bytes::new());
+        let again = start(&host, &run_id());
+        let by_other = start(&host, &other);
         runner.release.notify_one();
         host.ended().await;
-        let after = host.start(&run_id(), Command::UpgradeV9, Bytes::new());
+        let after = start(&host, &run_id());
 
         assert_eq!(first, Start::Started);
         assert_eq!(again, Start::AlreadyClaimed(Status::Running));
@@ -542,7 +546,7 @@ mod tests {
         let runner = Rc::new(FakeRunner::default());
         runner.hold.set(true);
         let host = host(&runner);
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+        assert_eq!(start(&host, &run_id()), Start::Started);
         runner.started.notified().await;
 
         host.stop();
@@ -553,7 +557,7 @@ mod tests {
         );
         // The operator runner deletes the VM before it exits.
         assert_eq!(runner.deletes.get(), 0);
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Stopping);
+        assert_eq!(start(&host, &run_id()), Start::Stopping);
         Ok(())
     }
 
@@ -562,7 +566,7 @@ mod tests {
         let runner = Rc::new(FakeRunner::default());
         runner.hold.set(true);
         let host = host(&runner);
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+        assert_eq!(start(&host, &run_id()), Start::Started);
         runner.started.notified().await;
 
         let started = tokio::time::Instant::now();

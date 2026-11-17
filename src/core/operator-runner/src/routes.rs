@@ -72,9 +72,9 @@ impl Routes {
         }
     }
 
-    /// `PUT /runs/{runId}?command={command}`. The operator runner reads the whole archive before the run claims it, so
-    /// a client can send an archive again after an upload that did not complete. A repeat for the claimed run answers
-    /// with the status of the run, and the operator runner discards the archive.
+    /// `PUT /runs/{runId}?command={command}&timeout={seconds}`. The operator runner reads the whole archive before the
+    /// run claims it, so a client can send an archive again after an upload that did not complete. A repeat for the
+    /// claimed run answers with the status of the run, and the operator runner discards the archive.
     async fn start(&self, request: Request<Incoming>, run_id: &str) -> Response<Body> {
         if self.host.is_stopping() {
             return stopping();
@@ -90,6 +90,9 @@ impl Routes {
                 StatusCode::NOT_FOUND,
                 &format!("The operator runner has no command {name}."),
             );
+        };
+        let Some(timeout) = query_value(request.uri(), "timeout").and_then(|seconds| seconds.parse().ok()) else {
+            return problem(StatusCode::BAD_REQUEST, "The query must give the timeout in seconds.");
         };
         if self.host.is_claimed() {
             self.discard(request.into_body()).await;
@@ -112,7 +115,7 @@ impl Routes {
         if !archive.starts_with(GZIP_MAGIC) {
             return problem(StatusCode::BAD_REQUEST, "The body is not a gzip archive.");
         }
-        let started = self.host.start(&run_id, command, archive);
+        let started = self.host.start(&run_id, command, Duration::from_secs(timeout), archive);
         drop(upload);
         match started {
             Start::Started => accepted(&run_id, Status::Running),
@@ -276,7 +279,7 @@ mod tests {
     const OTHER_RUN_ID: &str = "11111111-2222-3333-4444-555555555555";
     /// The operator runner checks only that the archive starts as a gzip file. The fake runner does not extract it.
     const ARCHIVE: &[u8] = b"\x1f\x8bapp";
-    const UPGRADE: &str = "?command=upgrade-v9";
+    const UPGRADE: &str = "?command=upgrade-v9&timeout=660";
 
     struct OperatorRunner {
         address: SocketAddr,
@@ -614,6 +617,7 @@ mod tests {
         let requests = [
             ("an unknown command", put(RUN_ID, "?command=sh", gzip, ARCHIVE), 404),
             ("no command", put(RUN_ID, "", gzip, ARCHIVE), 400),
+            ("no timeout", put(RUN_ID, "?command=upgrade-v9", gzip, ARCHIVE), 400),
             ("a start with a run id that is not a UUID", put_archive("run-1"), 400),
             ("a read with a run id that is not a UUID", get("/runs/run-1"), 404),
             ("a JSON body", put(RUN_ID, UPGRADE, "application/json", b"{}"), 415),

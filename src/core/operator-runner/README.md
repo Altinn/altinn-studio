@@ -47,9 +47,9 @@ change the examples together with both sides.
 
 A client names a command. It cannot send a command line. Each command is a `Spec` in [`src/run.rs`](src/run.rs):
 
-| Command      | What runs in the VM                                               | Hosts | Report             | Patch | Timeout    |
-| ------------ | ----------------------------------------------------------------- | ----- | ------------------ | ----- | ---------- |
-| `upgrade-v9` | `studioctl app upgrade v9 -p . --json`, with stdout to the report | NuGet | `/job/report.json` | yes   | 11 minutes |
+| Command      | What runs in the VM                                               | Hosts | Report             | Patch |
+| ------------ | ----------------------------------------------------------------- | ----- | ------------------ | ----- |
+| `upgrade-v9` | `studioctl app upgrade v9 -p . --json`, with stdout to the report | NuGet | `/job/report.json` | yes   |
 
 The run is asynchronous, so that it survives a restart of the operator. The operator keeps neither the archive nor the
 result. It relays them between its caller and the operator runner:
@@ -64,8 +64,9 @@ The operator must not fetch the result itself, because the first fetch starts th
 
 ### Start a run
 
-`PUT /runs/{runId}?command={command}` with the app as the body. `runId` is a UUID that the client chooses. The body is
-an `application/gzip` tar of the app, without `.git`, at most 50 MiB, and it must arrive within 2 minutes.
+`PUT /runs/{runId}?command={command}&timeout={seconds}` with the app as the body. `runId` is a UUID that the client
+chooses, and the command stops `timeout` seconds after the run starts. The body is an `application/gzip` tar of the app,
+without `.git`, at most 50 MiB, and it must arrive within 2 minutes.
 
 The operator runner reads the whole body before the run claims the operator runner. If an upload stops before the end,
 the client can send the archive again. The operator runner answers as soon as it has the archive. The VM starts, and the
@@ -75,7 +76,7 @@ command runs, after the answer.
 | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | 202    | The run started: `{"runId": "…", "status": "running"}`.                                                                       |
 | 202    | This run id claimed the operator runner before. The answer has the current status, and the operator runner discards the body. |
-| 400    | The run id is not a UUID, the query has no command, or the body is not gzip.                                                  |
+| 400    | The run id is not a UUID, the query has no command or timeout, or the body is not gzip.                                       |
 | 404    | The operator runner has no such command.                                                                                      |
 | 408    | The body did not arrive in time.                                                                                              |
 | 409    | Another run id claimed the operator runner. Each run needs a new Job.                                                         |
@@ -167,10 +168,8 @@ After the run, the operator runner keeps the result for the caller of the operat
 | 143       | It got SIGTERM or SIGINT, for example because the operator deleted the Job. It stops a running command and deletes the VM first.                    |
 | 1         | An error, or the VM could not be deleted. A Job pod is never restarted, so the operator runner clears the Provider home of the pod before it exits. |
 
-The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets both times, and the size of the VM. The operator gives its
-caller 5 minutes to upload the archive, from when the operator sees that the pod is ready. `REQUEST_TIMEOUT_SECONDS` is
-a minute longer, because the operator can take up to a minute to see that the pod is ready. The operator gives its
-caller `RESULT_RETENTION_SECONDS` to fetch the result.
+The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets both times and the size of the VM. Its comments say how
+the times follow those that the core operator gives its caller.
 
 ## Guest image
 
@@ -197,14 +196,15 @@ caller `RESULT_RETENTION_SECONDS` to fetch the result.
 
 ## Add a command
 
-1. Add a `Spec` and a variant of `Command` in [`src/run.rs`](src/run.rs). The spec has the script, the timeout, the
-   output limits, the hosts, whether the command changes the app, and the report file.
+1. Add a `Spec` and a variant of `Command` in [`src/run.rs`](src/run.rs). The spec has the script, the output limits,
+   the hosts, whether the command changes the app, and the report file.
 2. If the command needs other tools, make a guest image and a `PodTemplate` for it. The kind in the core operator
    names the `PodTemplate` and the command together. Add the `PodTemplate` to `resourceNames` in
    [`role.yaml`](infra/kustomize/base/role.yaml), and give it its own binding in
    [`admission-policy.yaml`](infra/kustomize/base/admission-policy.yaml). The one binding there compares every Job of
    the operator with `operator-runner`, so each binding must then match only the Jobs of its own `PodTemplate`.
-3. Add a kind in the [operator's configuration](../operator/README.md#develop) for each environment.
+3. Add a kind with the command's `runTimeout` in the [operator's configuration](../operator/README.md#develop) for each
+   environment.
 
 The operator runner does not interpret the report: the shape of each report belongs to its command and the callers of
 the kind.

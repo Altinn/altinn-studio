@@ -56,8 +56,6 @@ pub struct Spec {
     pub name: &'static str,
     /// The shell script of the command. It starts in `/job`, with the app in `/job/app`.
     script: &'static str,
-    /// The time from the start of the run until the operator runner stops the command.
-    pub timeout: Duration,
     output_limits: Limits,
     /// The hosts that the VM can reach with HTTPS.
     pub allowed_hosts: &'static [&'static str],
@@ -71,8 +69,6 @@ pub struct Spec {
 static UPGRADE_V9: Spec = Spec {
     name: "upgrade-v9",
     script: "cd app && exec studioctl app upgrade v9 -p . --json > /job/report.json",
-    // studioctl stops an upgrade after 10 minutes. This limit stops only a studioctl process that hangs.
-    timeout: Duration::from_mins(11),
     output_limits: Limits {
         stdout: MIB,
         stderr: MIB,
@@ -108,12 +104,6 @@ impl Command {
     #[must_use]
     pub fn name(self) -> &'static str {
         self.spec().name
-    }
-
-    /// The time from the start of the run until the operator runner stops the command.
-    #[must_use]
-    pub fn timeout(self) -> Duration {
-        self.spec().timeout
     }
 }
 

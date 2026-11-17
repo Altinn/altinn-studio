@@ -90,6 +90,10 @@ mod tests {
         RunId::parse(RUN_ID).expect("RUN_ID is a UUID")
     }
 
+    fn start(host: &Rc<Host>) -> Start {
+        host.start(&run_id(), Command::UpgradeV9, Duration::from_mins(11), Bytes::new())
+    }
+
     fn waiting_for_stop(host: &Rc<Host>, signal: impl Future<Output = ()> + 'static) -> tokio::task::JoinHandle<Stop> {
         let host = host.clone();
         tokio::task::spawn_local(async move { wait_for_stop(&host, TIMEOUTS, signal).await })
@@ -105,7 +109,7 @@ mod tests {
         assert_eq!(stop, Stop::Unclaimed);
         assert_eq!(started.elapsed(), TIMEOUTS.request);
         assert!(host.is_stopping());
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Stopping);
+        assert_eq!(start(&host), Start::Stopping);
     }
 
     #[tokio::test(flavor = "local", start_paused = true)]
@@ -129,7 +133,7 @@ mod tests {
         let host = Host::new(runner.clone());
         let waiting = waiting_for_stop(&host, future::pending());
         let upload = host.upload();
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+        assert_eq!(start(&host), Start::Started);
         drop(upload);
 
         tokio::time::sleep(TIMEOUTS.request + TIMEOUTS.retention).await;
@@ -149,7 +153,7 @@ mod tests {
     async fn serves_the_result_for_the_grace_after_the_first_fetch() -> Result<(), tokio::task::JoinError> {
         let host = Host::new(Rc::new(FakeRunner::default()));
         let waiting = waiting_for_stop(&host, future::pending());
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+        assert_eq!(start(&host), Start::Started);
         host.ended().await;
         tokio::time::sleep(Duration::from_mins(1)).await;
 
@@ -172,7 +176,7 @@ mod tests {
         runner.hold.set(true);
         let host = Host::new(runner.clone());
         let waiting = waiting_for_stop(&host, future::pending());
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+        assert_eq!(start(&host), Start::Started);
         runner.started.notified().await;
 
         let running = host.summary(&run_id(), Duration::from_secs(30)).await;
@@ -209,7 +213,7 @@ mod tests {
         let runner = Rc::new(FakeRunner::default());
         runner.hold.set(true);
         let host = Host::new(runner.clone());
-        assert_eq!(host.start(&run_id(), Command::UpgradeV9, Bytes::new()), Start::Started);
+        assert_eq!(start(&host), Start::Started);
         runner.started.notified().await;
 
         let stop = waiting_for_stop(&host, future::ready(())).await?;
