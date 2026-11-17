@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/sandbox"
@@ -240,6 +241,28 @@ func TestFindListsTheCallersRunsNewestFirst(t *testing.T) {
 	Expect(err).To(MatchError(HavePrefix("The label repo must be")))
 	_, err = h.service.Find(ctx, "assistant", Filter{Labels: map[string]string{"kind": testKind}})
 	Expect(err).To(MatchError(HavePrefix("A label key must be")), "kind is a filter of its own")
+}
+
+// An archive that arrived after run.await-archive gave up would start the command of a run that has failed.
+func TestUploadEndsWithTheUploadTimeout(t *testing.T) {
+	RegisterTestingT(t)
+	h := newHarness(t)
+	run := h.create(t, "assistant", "app")
+	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
+	h.readyPod(run.ID)
+	Expect(h.call(t, run.ID, StepAwaitPod).done()).To(BeTrue())
+	readyAt := h.clock.Now()
+	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) {
+		for i := range 3 {
+			w.Steps[i].Status, w.Steps[i].UpdatedAt = engine.StatusCompleted, &readyAt
+		}
+	})
+	h.clock.Advance(config.UploadTimeout)
+
+	_, err := h.service.Upload(t.Context(), "assistant", run.ID, bytes.NewReader(gzipArchive(t, "app")), -1)
+	Expect(err).To(MatchError(ErrNotAwaiting))
+	Expect(h.call(t, run.ID, StepAwaitArchive).deferred()).To(BeTrue(), "the operator runner has no archive")
 }
 
 func TestGetShowsOnlyTheCallersRuns(t *testing.T) {

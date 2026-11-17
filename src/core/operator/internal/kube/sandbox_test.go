@@ -11,6 +11,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -320,4 +321,17 @@ func TestJobsListsTheRunJobsAndActiveJobsTheUnfinished(t *testing.T) {
 	all, err = box.Jobs(ctx, testNamespace)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(all).To(HaveLen(2))
+}
+
+func TestSlotsAreTheKVMDevicesOfTheQuota(t *testing.T) {
+	RegisterTestingT(t)
+	box, k8s := newSandbox(nil)
+	_, err := box.Slots(t.Context(), testNamespace)
+	Expect(err).To(HaveOccurred(), "no quota")
+
+	Expect(k8s.Create(t.Context(), &corev1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{Name: "sandbox-runs", Namespace: testNamespace},
+		Spec:       corev1.ResourceQuotaSpec{Hard: corev1.ResourceList{kvmQuota: resource.MustParse("4")}},
+	})).To(Succeed())
+	Expect(box.Slots(t.Context(), testNamespace)).To(Equal(4))
 }

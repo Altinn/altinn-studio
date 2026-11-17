@@ -153,10 +153,10 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 	}
 	cfg.Kinds = map[string]config.Kind{"x": {
 		Namespace: "sandbox-runs", PodTemplate: "operator-runner", Command: "x", RequiresArchive: true,
-		MaxActive: 1, MaxActivePerCaller: 1, MaxQueuedPerCaller: 1, QueueTimeout: time.Minute, RunTimeout: time.Minute,
+		MaxActivePerCaller: 1, MaxQueuedPerCaller: 1, QueueTimeout: time.Minute, RunTimeout: time.Minute,
 	}}
 
-	cluster, err := newCluster(cfg, false, kube.Options{RESTConfig: restConfig})
+	cluster, err := newCluster(cfg, kube.Options{RESTConfig: restConfig})
 	Expect(err).NotTo(HaveOccurred())
 	host := runner.NewClient(http.DefaultClient, runner.Port, cluster.Sandbox())
 	Expect(setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host)).To(Succeed())
@@ -171,7 +171,8 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 	})
 
 	assistant := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "core-operator")
-	engineToken := tokenFor(t, clientset, "operator-workflow-engine", "operator-workflow-engine", "core-operator")
+	engine := "core-operator-workflow-engine"
+	engineToken := tokenFor(t, clientset, engine, engine, "core-operator")
 	stranger := tokenFor(t, clientset, "default", "someone-else", "core-operator")
 	apiServerToken := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "https://kubernetes.default.svc")
 

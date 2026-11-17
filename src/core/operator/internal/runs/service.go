@@ -319,10 +319,18 @@ func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.R
 		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, rec.Status)
 	}
 
+	if rec.uploadBy != nil {
+		// An archive that arrived after run.await-archive gave up would start the command of a run that has failed.
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, rec.uploadBy.Sub(s.clock.Now()))
+		defer cancel()
+	}
 	err = s.host.Start(ctx, rec.state.pod(runID), rec.state.Spec.Command, rec.state.Spec.RunTimeout, archive, size)
 	switch {
 	case err == nil:
 		return &rec.Run, nil
+	case errors.Is(err, context.DeadlineExceeded):
+		return nil, fmt.Errorf("%w: the upload timeout ran out", ErrNotAwaiting)
 	case errors.Is(err, runner.ErrRejected):
 		return nil, fmt.Errorf("upload the archive: %w", err) // an *UploadError
 	case errors.Is(err, runner.ErrGone):

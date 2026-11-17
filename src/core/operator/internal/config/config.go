@@ -24,8 +24,8 @@ const DirEnv = "CORE_OPERATOR_CONFIG_DIR"
 
 const (
 	defaultDir                  = "/etc/core-operator"
-	defaultEngineURL            = "http://operator-workflow-engine.operator-workflow-engine.svc.cluster.local:9090"
-	defaultEngineServiceAccount = "system:serviceaccount:operator-workflow-engine:operator-workflow-engine"
+	defaultEngineURL            = "http://core-operator-workflow-engine.core-operator-workflow-engine.svc:9090"
+	defaultEngineServiceAccount = "system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine"
 	defaultAudience             = "core-operator"
 	defaultAPIAddress           = ":8080"
 	defaultCallbackAddress      = ":8090"
@@ -40,13 +40,12 @@ const (
 	// It is the wait budget of run.await-pod.
 	PodBudget = 5 * time.Minute
 	// UploadTimeout is how long a run of a kind that takes an archive waits for it once its pod is ready. It is the
-	// wait budget of run.await-archive. The operator runner's REQUEST_TIMEOUT_SECONDS in src/core/operator-runner/infra
-	// is a minute longer.
+	// wait budget of run.await-archive.
 	UploadTimeout = 5 * time.Minute
-	// ResultTimeout is how long the caller can fetch the result after the run ended. The operator runner keeps a result
-	// that no one fetched as long, with RESULT_RETENTION_SECONDS in src/core/operator-runner/infra, and then exits.
+	// ResultTimeout is how long the caller can fetch the result after the run ended, and the operator runner keeps it.
 	ResultTimeout = 5 * time.Minute
 	// ResultGrace is how long the operator runner keeps the result after the first fetch, for a fetch that broke off.
+	// The kube tests check these three times against the operator runner's PodTemplate.
 	ResultGrace = 30 * time.Second
 	// MaxLabels is the most labels a kind may have, and so the most a caller may send.
 	MaxLabels = 16
@@ -89,8 +88,9 @@ type Config struct {
 	ProbeAddress         string            `koanf:"probeAddress"`
 	HandlerGroups        []string          `koanf:"handlerGroups"`
 	// TimeScale shortens the operator's own waits and budgets, such as its rechecks and the upload timeout, by this
-	// factor. Only the integration test in cmd/ sets it, so a run takes seconds. Zero leaves them as they are.
-	TimeScale float64 `koanf:"timeScale"`
+	// factor. Only the integration test in cmd/ sets it, so a run takes seconds, and no configuration file can. Zero
+	// leaves them as they are.
+	TimeScale float64 `koanf:"-"`
 }
 
 // Caller is a service that may use the run API. Its id is its key in Config.Callers.
@@ -110,8 +110,8 @@ type Kind struct {
 	Command string `koanf:"command"`
 	// Labels are the keys of the labels of each run of this kind, such as the app and the commit. The caller sends a
 	// value for each and no other key. A caller finds its runs again by them, and the command never sees them.
-	Labels             []string      `koanf:"labels"`
-	MaxActive          int           `koanf:"maxActive"`
+	Labels []string `koanf:"labels"`
+	// MaxActivePerCaller caps the sandbox's slots that one caller's runs may take. Zero sets no cap.
 	MaxActivePerCaller int           `koanf:"maxActivePerCaller"`
 	MaxQueuedPerCaller int           `koanf:"maxQueuedPerCaller"`
 	QueueTimeout       time.Duration `koanf:"queueTimeout"`
@@ -179,9 +179,6 @@ func (c *Config) applyDefaults() {
 		c.HandlerGroups = []string{GroupRuns}
 	}
 	for name, kind := range c.Kinds {
-		if kind.MaxActivePerCaller == 0 {
-			kind.MaxActivePerCaller = kind.MaxActive
-		}
 		if kind.MaxQueuedPerCaller == 0 {
 			kind.MaxQueuedPerCaller = defaultMaxQueuedPerCaller
 		}
@@ -211,9 +208,6 @@ func (c *Config) Validate() error {
 		if !slices.Contains(knownGroups, group) {
 			problems = append(problems, fmt.Sprintf("handlerGroups has the unknown group %q", group))
 		}
-	}
-	if c.TimeScale < 0 || c.TimeScale > 1 {
-		problems = append(problems, fmt.Sprintf("timeScale %v is not between 0 and 1", c.TimeScale))
 	}
 	problems = append(problems, c.callerProblems()...)
 	for name, kind := range c.Kinds {
@@ -253,9 +247,8 @@ func kindProblems(name string, kind Kind) []string {
 	if kind.Namespace == "" || kind.PodTemplate == "" || kind.Command == "" {
 		problems = append(problems, fmt.Sprintf("kind %s needs namespace, podTemplate and command", name))
 	}
-	if kind.MaxActive < 1 || kind.MaxActivePerCaller < 1 || kind.MaxQueuedPerCaller < 1 {
-		problems = append(problems,
-			fmt.Sprintf("kind %s needs maxActive, maxActivePerCaller and maxQueuedPerCaller of at least 1", name))
+	if kind.MaxActivePerCaller < 0 || kind.MaxQueuedPerCaller < 1 {
+		problems = append(problems, fmt.Sprintf("kind %s needs a maxQueuedPerCaller of at least 1", name))
 	}
 	if kind.RunTimeout <= 0 || JobDeadline(kind.RunTimeout) > MaxJobDeadline {
 		longest := MaxJobDeadline - JobDeadline(0)

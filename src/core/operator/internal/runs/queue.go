@@ -33,10 +33,11 @@ const (
 )
 
 // Queue decides which runs may start, and keeps a run's place from its create until its Job holds it. It reads the
-// kind's current limits and active Jobs itself, since they describe the sandbox as it is now. It lives in memory, and
-// the engine rebuilds it after a restart: each queued run calls run.admit again, a run at run.create-job or waiting for
-// its Job renews its reservation, and later runs have Jobs. The ResourceQuota cannot stand in for the queue: its KVM,
-// CPU and memory limits apply to pods, not Jobs, so it lets the operator create a Job too many, whose pod then waits.
+// sandbox's slots, the kind's limit for each caller and the active Jobs itself, since they describe the sandbox as it is
+// now. It lives in memory, and the engine rebuilds it after a restart: each queued run calls run.admit again, a run at
+// run.create-job or waiting for its Job renews its reservation, and later runs have Jobs. The ResourceQuota that gives
+// the slots cannot stand in for the queue: its limits apply to pods, not Jobs, so it lets the operator create a Job too
+// many, whose pod then waits.
 type Queue struct {
 	started time.Time
 	clock   clock.Clock
@@ -99,6 +100,10 @@ func (q *Queue) Admit(ctx context.Context, run *stepRun, ref time.Time) (Admissi
 	if err != nil {
 		return Admission{}, fmt.Errorf("list the active Jobs: %w", err)
 	}
+	slots, err := q.sandbox.Slots(ctx, run.state.Spec.Namespace)
+	if err != nil {
+		return Admission{}, fmt.Errorf("read the sandbox's slots: %w", err)
+	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	now := q.clock.Now()
@@ -120,10 +125,10 @@ func (q *Queue) Admit(ctx context.Context, run *stepRun, ref time.Time) (Admissi
 	}
 	active, perCaller := q.activeLocked(run.state.Kind, jobs)
 	for _, candidate := range candidates {
-		if active >= limits.MaxActive {
+		if active >= slots {
 			break
 		}
-		if perCaller[candidate.caller] >= limits.MaxActivePerCaller {
+		if limits.MaxActivePerCaller > 0 && perCaller[candidate.caller] >= limits.MaxActivePerCaller {
 			continue
 		}
 		if candidate == entry {

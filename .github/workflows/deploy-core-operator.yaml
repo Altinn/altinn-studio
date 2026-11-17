@@ -19,10 +19,13 @@ permissions:
   contents: read
 
 jobs:
+  # Staging has no sandbox node, so it runs no core operator yet.
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
+      use-preapproved: true
       inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-studio-environments: dev,preapproved-prod
 
   push-artifact:
     name: Push core-operator as OCI artifact
@@ -121,4 +124,4 @@ jobs:
       - name: tag artifact
         run: |
           flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
-            --tag ${{ matrix.environment }}
+            --tag ${{ matrix.environment == 'preapproved-prod' && 'prod' || matrix.environment }}
