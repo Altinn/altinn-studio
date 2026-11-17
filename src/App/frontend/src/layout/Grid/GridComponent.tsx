@@ -167,7 +167,7 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
         });
 
         if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-          // eslint-disable-next-line react-compiler/react-compiler
+          // eslint-disable-next-line react-hooks/immutability
           mutableColumnSettings[cellIdx] = cell.columnOptions;
         }
 
