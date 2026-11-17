@@ -35,7 +35,7 @@ flowchart LR
 
 - The run API in [`internal/runapi`](internal/runapi/runapi.go) serves the callers, as [For callers](#for-callers)
   describes.
-- The [operator-workflow-engine](../operator-workflow-engine/README.md) is a host of the workflow engine. It stores
+- The operator-workflow-engine is a host of the workflow engine. It stores
   each run as a workflow in Postgres and runs each step by calling the operator. Retries, waiting, wait budgets and
   cancellation come from the engine, and the workflow's labels and states hold all that the operator knows of a run.
 - The [operator runner](../operator-runner/README.md) runs one command in a new microVM in the Job's pod. It keeps the

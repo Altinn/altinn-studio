@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
 	"altinn.studio/core-operator/internal/clock"
 	"altinn.studio/core-operator/internal/config"
@@ -48,19 +50,23 @@ func (c *Collector) Start(ctx context.Context) error {
 // alone whatever it cannot decide, such as when the engine does not answer. The cache holds Jobs in the namespaces of
 // the configured kinds only.
 func (c *Collector) Collect(ctx context.Context) {
-	ctx, span := telemetry.Tracer().Start(ctx, "gc.Collect")
+	ctx, span := telemetry.Tracer().Start(ctx, "gc.collect")
 	defer span.End()
 	logger := logging.FromContext(ctx).WithName("gc")
 	for _, namespace := range c.cfg.KindNamespaces() {
-		c.collectJobs(ctx, logger, namespace)
+		if failed := c.collectJobs(ctx, logger, namespace); failed != "" {
+			span.SetStatus(codes.Error, failed+" failed")
+			span.SetAttributes(semconv.ErrorTypeKey.String(failed))
+		}
 	}
 }
 
-func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespace string) {
+// collectJobs returns the step that failed, or "" when none did.
+func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespace string) (failed string) {
 	jobs, err := c.sandbox.Jobs(ctx, namespace)
 	if err != nil {
 		logger.Error(err, "List run Jobs failed", "namespace", namespace)
-		return
+		return "list_jobs"
 	}
 	for _, job := range jobs {
 		workflow, err := locate(ctx, c.engine, job.Caller, job.RunID)
@@ -75,8 +81,10 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		}
 		if err := deleteJob(ctx, c.sandbox, namespace, job.RunID); err != nil {
 			logger.Error(err, "Delete run Job failed", "runId", job.RunID)
+			failed = "delete_job"
 			continue
 		}
 		logger.Info("Deleted the Job of a finished run", "runId", job.RunID)
 	}
+	return failed
 }

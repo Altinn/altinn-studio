@@ -15,9 +15,9 @@ import (
 const maxRelayed = 20
 
 // deleteJob deletes a run's Job, which takes the operator runner's log with its pod. The pipeline collects no container
-// logs, so the operator first logs the operator runner's warnings and errors, in the trace of ctx.
+// logs, so the operator first logs the operator runner's warnings and errors.
 func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string) error {
-	logger := logging.FromContext(ctx).WithName("operator-runner").WithValues("ctx", ctx, "runId", runID)
+	logger := logging.FromContext(ctx).WithName("operator-runner").WithValues("runId", runID)
 	log, err := box.Log(ctx, namespace, runID)
 	if err != nil {
 		logger.Info("Could not read the operator runner's log", "error", err.Error())

@@ -144,7 +144,8 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 	if err := s.check(caller, &request); err != nil {
 		return nil, false, err
 	}
-	unlock := s.locks.lock(caller + ":" + createKey(request.Kind, request.Labels, ""))
+	// The lock covers the kind, so that creates at the same time count each other's runs against MaxQueuedPerCaller.
+	unlock := s.locks.lock(caller + ":" + request.Kind)
 	defer unlock()
 
 	namespace := EngineNamespace(caller)

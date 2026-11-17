@@ -180,7 +180,7 @@ type server struct {
 
 func newServer(name, address string, handler http.Handler) *server {
 	traced := otelhttp.NewHandler(handler, name, otelhttp.WithSpanNameFormatter(
-		func(_ string, r *http.Request) string { return r.Method + " " + route(r.URL.Path) },
+		func(_ string, r *http.Request) string { return strings.TrimSpace(r.Method + " " + route(r.URL.Path)) },
 	))
 	return &server{name: name, address: address, handler: traced}
 }
@@ -223,16 +223,23 @@ func (s *server) Start(ctx context.Context) error {
 	}
 }
 
-// route names the route of a path for span names, with run ids and command keys left out.
+// route names the route of a path for span names, with run ids and command keys left out. A path that no route serves
+// gets no name, so that none of it reaches a span name.
 func route(path string) string {
+	if path == "/api/v1/kinds" || path == "/api/v1/runs" {
+		return path
+	}
 	if run, ok := strings.CutPrefix(path, "/api/v1/runs/"); ok {
-		if _, tail, found := strings.Cut(run, "/"); found {
+		switch _, tail, _ := strings.Cut(run, "/"); tail {
+		case "":
+			return "/api/v1/runs/{runId}"
+		case "archive", "result", "cancel":
 			return "/api/v1/runs/{runId}/" + tail
 		}
-		return "/api/v1/runs/{runId}"
+		return ""
 	}
 	if strings.HasPrefix(path, callbacks.PathPrefix) {
 		return callbacks.PathPrefix + "{commandKey}"
 	}
-	return path
+	return ""
 }

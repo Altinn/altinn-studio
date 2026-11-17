@@ -134,6 +134,9 @@ callers:
   Assistant:
     serviceAccount: system:serviceaccount:default:a
 `,
+		"caller id longer than a label value": "callers:\n  " + strings.Repeat("a", MaxNameLength+1) + `:
+    serviceAccount: system:serviceaccount:default:a
+`,
 		"unknown key": `
 engineAddress: http://typo
 `,

@@ -43,12 +43,14 @@ func Default() logr.Logger {
 	return base
 }
 
-// FromContext returns the logger in ctx, or the process's logger.
+// FromContext returns the logger in ctx, or the process's logger, with ctx as a value, so that its records carry the
+// trace context of ctx.
 func FromContext(ctx context.Context) logr.Logger {
-	if logger, err := logr.FromContext(ctx); err == nil {
-		return logger
+	logger, err := logr.FromContext(ctx)
+	if err != nil {
+		logger = Default()
 	}
-	return Default()
+	return logger.WithValues("ctx", ctx)
 }
 
 // IntoContext returns a context with logger, which FromContext then returns.
