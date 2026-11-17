@@ -1,18 +1,18 @@
 {
   "axes": {
     "actor_prompt": "55a1d094fc83",
-    "code": "e1fdd6f dirty",
-    "dataset": "81 items 610c4b668490",
+    "code": "d35c5c3 clean",
+    "dataset": "83 items f419890050ee",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
-    "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
+    "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261117T093220Z-own-benchmark-pdf-with-write-in-options-20668-on-e1fdd6f-6190",
-  "label": "own benchmark PDF with write-in options, #20668 on e1fdd6f",
-  "recorded_at": "2026-11-17T09:40:46+00:00",
-  "why": "#20668 replaces the two Planner/spec PDFs that we do not own with soknad-digitaliseringstilskudd.pdf, which we made from the HTML file beside it in benchmarks/assets. Planner/spec has one item, spec-digitaliseringstilskudd, in place of spec-ki-sandkasse and spec-helseattest. In Benchmarks/forms, digitaliseringstilskudd-flere-sider replaces helseattest-barnehage. It sends the same PDF with the goal \"Lag det vedlagte skjemaet\", without the component types that the old goal listed. The labels and the rubric come from a build that was checked against the PDF. After review, spec_field_count counts only input fields, not headings and paragraphs, and the form's three write-in options say \"Annet \u2013 fyll inn:\" or \"Andre \u2013 fyll inn:\", so the item expects 43 fields with no exception. Full check with e2e on the uncommitted branch on top of e1fdd6f, with PREVIEW_CHECK_ENABLED off as in production. The assistant container ran the #21964 code, as in the last baseline. All four builds finished with success, and the new e2e item scored 1.0 on every structural score. The spec item scored 1.0 on spec_parses, spec_label_coverage and spec_field_count. No behavior fails. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
+  "check_id": "20261117T135823Z-decision-model-request-gate-21981-on-d35c5c3-28f2",
+  "label": "decision-model request gate, #21981 on d35c5c3",
+  "recorded_at": "2026-11-17T14:00:29+00:00",
+  "why": "#21981 replaces the scope and security gates with one call to the decisions API on gpt-6-luna, and changes the gate datasets. Gates/scope uses the key relevance, drops decline_language and has 37 items in place of 31. Gates/security keeps 30 items, with the CI item marked unsafe. Both datasets run through judge_request, three runs per item, and an item passes only when every run does. Full check without e2e on d35c5c3, with a clean tree. Every eval that ran scores as in the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, and on Loop/traces 0.889 for gen_required_tools, 1.000 for gen_stopped_cleanly and 0.000 for gen_content_pairings. The e2e builds did not run, because no local Studio stack was running. The four Benchmarks/forms goals pass the new gate in three runs each, with relevance at least 0.98 and every concern at 0.00, so the gate does not stop those builds. The build behaviors have no score, so the run is adopted with --force. The next baseline with e2e gives them a reference again. The judge is gpt-6.1-sol."
 }
