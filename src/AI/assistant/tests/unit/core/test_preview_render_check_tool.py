@@ -99,6 +99,7 @@ class TestResults:
         result = await PreviewRenderCheckTool().run(_args(), _ctx(tmp_path))
         assert result.is_error
         assert "do NOT retry" in result.content
+        assert result.content.endswith("Continue to your final message.")
         assert result.metadata["unavailable"] is True
 
     async def test_engine_receives_branch_repo_owner_and_pages(self, tmp_path, monkeypatch):

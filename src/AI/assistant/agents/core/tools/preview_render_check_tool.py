@@ -22,13 +22,11 @@ from agents.services.preview.render_check import (
 )
 from shared.config.base_config import get_config
 
+from .utils.unavailable import report_unavailable
+
 _STORAGE_STATE_PATH = Path(tempfile.gettempdir()) / "altinity_preview_auth.json"
 
-_UNAVAILABLE_GUIDANCE = (
-    "This is an infrastructure limitation, not a problem with the app — "
-    "do NOT retry, and do NOT try to fix anything based on this. "
-    "Continue to your final message."
-)
+_CONTINUE = "Continue to your final message."
 
 
 class PreviewRenderCheckArgs(BaseModel):
@@ -107,11 +105,7 @@ def _check_preconditions(ctx: LoopContext) -> ToolResult | None:
 
 
 def _report_unavailable(reason: str) -> ToolResult:
-    return ToolResult(
-        content=f"{reason} {_UNAVAILABLE_GUIDANCE}",
-        is_error=True,
-        metadata={"unavailable": True},
-    )
+    return report_unavailable(reason, next_step=_CONTINUE)
 
 
 def _report_results(results: list[PageRenderResult]) -> ToolResult:

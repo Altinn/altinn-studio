@@ -14,6 +14,8 @@ spec:
       labels:
         run: db-migrations-job
     spec:
+      # The migrations do not call the Kubernetes API.
+      automountServiceAccountToken: false
       containers:
         - name: db-migrations-job
           image: "{{ .Values.dbMigrationsJob.image.repository }}:{{ required "dbMigrationsJob.image.tag not set" .Values.dbMigrationsJob.image.tag }}"

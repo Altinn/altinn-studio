@@ -51,6 +51,12 @@
 !common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
 !common/dotnet/Altinn.Studio.Common/src/**
 !common/go/**
+!core/operator-workflow-engine/**
+!core/operator-workflow-engine/Directory.Packages.props
+!core/operator/cmd/**
+!core/operator/go.mod
+!core/operator/go.sum
+!core/operator/internal/**
 **/.DS_Store
 **/.cache
 **/.git

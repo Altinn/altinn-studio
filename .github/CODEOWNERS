@@ -94,6 +94,12 @@ src/common/dotnet/**/*.csproj                                             @altin
 src/common/dotnet/**/global.json                                          @altinn/team-altinn-studio-kjoring
 src/common/go/**/go.mod                                                   @altinn/team-altinn-studio-kjoring
 src/common/go/**/go.sum                                                   @altinn/team-altinn-studio-kjoring
+src/core/**/*.csproj                                                      @altinn/team-altinn-studio-kjoring
+src/core/**/Directory.Packages.props                                      @altinn/team-altinn-studio-kjoring
+src/core/**/Dockerfile*                                                   @altinn/team-altinn-studio-kjoring
+src/core/**/global.json                                                   @altinn/team-altinn-studio-kjoring
+src/core/**/go.mod                                                        @altinn/team-altinn-studio-kjoring
+src/core/**/go.sum                                                        @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/Dockerfile*                 @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/go.mod                      @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/docker-compose.*.yml                                   @altinn/team-altinn-studio-kjoring

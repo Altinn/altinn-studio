@@ -92,6 +92,7 @@ jobs:
           - { module: src/Runtime/gateway, runner: ubuntu-latest }
           - { module: src/Runtime/operator, runner: ubuntu-latest }
           - { module: src/Runtime/pdf3, runner: ubuntu-latest }
+          - { module: src/core/operator, runner: ubuntu-latest }
           - { module: src/common/go, runner: ubuntu-latest }
           - { module: src/ci/sandbox-node, runner: ubuntu-latest }
     steps:
@@ -136,6 +137,7 @@ jobs:
         run: |
           make -C src/ci/github-runner/coordinator build
           make -C src/ci/sandbox-hosting build
+          make -C src/core/operator-runner build
 
   localtest-image-registry-cache:
     name: Warm LocalTest image registry cache

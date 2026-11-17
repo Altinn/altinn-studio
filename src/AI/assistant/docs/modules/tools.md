@@ -18,12 +18,17 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | `altinn_layout_props`   | Get the allowed properties of a component type   | Yes      | No               |
 | `altinn_datamodel_sync` | Make XSD and C# from a JSON Schema model         | No       | Yes              |
 | `web_fetch`             | Get a page from the Altinn docs hosts only       | Yes      | No               |
+| `upgrade_app_to_v9`     | Upgrade the app from v8 to v9 in a sandbox       | No       | Yes              |
 
 The loop cuts every tool result at a fixed size, and the model cannot get the cut text back. So `read_file`, `web_fetch` and `skill` return long text in parts. Each part ends with a note that tells the model which lines it has not read, and how to read them. `write_file` refuses to replace a file that the model has read only part of. [`text_parts.py`](../../agents/core/tools/utils/text_parts.py) explains why.
 
 There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` gets the files from the Designer API at `DESIGNER_BASE_URL`. The model must read a file that this tool wrote again before it changes the file.
 
 `preview_render_check` works only with the local Designer stack, so it is off by default (`PREVIEW_CHECK_ENABLED=false`). When it is off, the loop node does not register it, and the system prompt does not mention it. A model that is told to run a check that cannot run tells the user about it, and the user cannot act on that.
+
+`upgrade_app_to_v9` asks the core operator to run the upgrade in a sandbox Job, and applies the patch that the run returns. It reads the result of the upgrade from the report of the run, and the operator runner has refused symbolic links, submodules, CI workflow folders and git attribute files in the patch. The tool tells the model that it cannot upgrade when the service has no `CORE_OPERATOR_URL`, for example in local development, or when the operator has no sandbox, for example in staging. When the user cancels the session, the tool cancels the run.
+
+The run is for the commit at HEAD, so the tool refuses a working tree with changes. When a run is in progress for the same commit, the operator answers the request with that run. So a request that the service sends again after a timeout starts no second run, and sessions on the same commit of the same repository share a run. A cancel in one of those sessions also stops the upgrade in the other.
 
 ```mermaid
 flowchart LR

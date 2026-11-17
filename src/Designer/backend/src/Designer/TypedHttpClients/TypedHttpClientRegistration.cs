@@ -21,6 +21,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
+using Altinn.Studio.Designer.TypedHttpClients.Operator;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
@@ -89,6 +90,7 @@ public static class TypedHttpClientRegistration
         services.AddMaskinportenHttpClient();
         services.AddHttpClient<ISlackClient, SlackClient>();
         services.AddRuntimeGatewayHttpClient(config, env);
+        services.AddOperatorHttpClient(config);
 
         return services;
     }

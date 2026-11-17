@@ -6,4 +6,5 @@
 !rust-toolchain.toml
 !src/ci/github-runner/coordinator/**
 !src/ci/sandbox-hosting/**
+!src/core/operator-runner/**
 **/target/

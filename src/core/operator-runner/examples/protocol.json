@@ -1,0 +1,14 @@
+[
+  { "state": "unclaimed", "request": "GET /runs/{runId}?wait=0", "status": 404, "body": { "title": "Not Found", "status": 404, "detail": "This run has not claimed the operator runner." } },
+  { "state": "unclaimed", "request": "PUT /runs/{runId}?command=upgrade-v9&timeout=660", "archive": "H4thcHA=", "status": 202, "body": { "runId": "{runId}", "status": "running" } },
+  { "state": "unclaimed", "request": "PUT /runs/{runId}?command=upgrade-v9&timeout=660", "archive": "YXBw", "status": 400, "body": { "title": "Bad Request", "status": 400, "detail": "The body is not a gzip archive." } },
+  { "state": "running", "request": "GET /runs/{runId}?wait=0", "status": 200, "body": { "status": "running" } },
+  { "state": "running", "request": "PUT /runs/{runId}?command=upgrade-v9&timeout=660", "archive": "H4thcHA=", "status": 202, "body": { "runId": "{runId}", "status": "running" } },
+  { "state": "running", "request": "PUT /runs/{otherRunId}?command=upgrade-v9&timeout=660", "archive": "H4thcHA=", "status": 409, "body": { "title": "Conflict", "status": 409, "detail": "Another run has claimed this operator runner. Each run needs a new operator runner." } },
+  { "state": "running", "request": "GET /runs/{otherRunId}/result", "status": 404, "body": { "title": "Not Found", "status": 404, "detail": "This run has not claimed the operator runner." } },
+  { "state": "completed", "request": "GET /runs/{runId}?wait=0", "status": 200, "body": { "status": "completed", "exitCode": 0, "timedOut": false } },
+  { "state": "completed", "request": "GET /runs/{runId}/result", "status": 200, "body": { "status": "completed", "exitCode": 0, "timedOut": false, "stdout": "", "stderr": "", "report": { "exitCode": 0 }, "patch": "ZGlmZgo=" } },
+  { "state": "completed", "request": "PUT /runs/{runId}?command=upgrade-v9&timeout=660", "archive": "H4thcHA=", "status": 202, "body": { "runId": "{runId}", "status": "completed" } },
+  { "state": "failed", "request": "GET /runs/{runId}?wait=0", "status": 200, "body": { "status": "failed", "error": "The archive does not extract: gzip: invalid header" } },
+  { "state": "failed", "request": "GET /runs/{runId}/result", "status": 200, "body": { "status": "failed", "error": "The archive does not extract: gzip: invalid header" } }
+]

@@ -287,13 +287,13 @@ class TestTermination:
 
     async def test_cancelled_before_first_turn(self, ctx):
         adapter = FakeAdapter([AssistantMessage(content=[TextBlock(text="x")])])
+        ctx.is_cancelled = lambda: True
         result = await run_loop(
             user_message="hi",
             system_prompt="sys",
             registry=ToolRegistry(),
             adapter=adapter,
             ctx=ctx,
-            is_cancelled=lambda: True,
         )
         assert result.reason is TerminationReason.CANCELLED
         assert adapter.calls == []  # never reached the LLM
@@ -310,13 +310,13 @@ class TestTermination:
             # Turn-start check passes; the post-response check sees the cancel.
             return checks["count"] > 1
 
+        ctx.is_cancelled = is_cancelled
         result = await run_loop(
             user_message="hi",
             system_prompt="sys",
             registry=ToolRegistry(),
             adapter=adapter,
             ctx=ctx,
-            is_cancelled=is_cancelled,
         )
 
         assert result.reason is TerminationReason.CANCELLED
@@ -411,13 +411,13 @@ class TestTruncation:
             # Cancel after the first turn-start check passes.
             return seen["turns"] > 1
 
+        ctx.is_cancelled = is_cancelled
         result = await run_loop(
             user_message="hi",
             system_prompt="sys",
             registry=registry,
             adapter=adapter,
             ctx=ctx,
-            is_cancelled=is_cancelled,
         )
         assert result.reason is TerminationReason.CANCELLED
 
@@ -440,13 +440,13 @@ class TestTruncation:
             # the model response, before tool dispatch): cancelled.
             return checks["count"] > 1
 
+        ctx.is_cancelled = is_cancelled
         result = await run_loop(
             user_message="hi",
             system_prompt="sys",
             registry=registry,
             adapter=adapter,
             ctx=ctx,
-            is_cancelled=is_cancelled,
         )
 
         assert result.reason is TerminationReason.CANCELLED

@@ -12,6 +12,7 @@ import posixpath
 import re
 import subprocess
 import time
+from dataclasses import replace
 from typing import Any
 
 from agents.altinn.app_version import detect_app_version_profile
@@ -35,6 +36,7 @@ from agents.core import (
     TextBlock,
     Tool,
     ToolRegistry,
+    UpgradeAppToV9Tool,
     UserMessage,
     VerifyChangesTool,
     WebFetchTool,
@@ -66,6 +68,7 @@ _TOOL_STATUS_MESSAGES = {
     "commit_session_branch": "Lagrer endringer",
     "skill": "Henter kunnskap om",
     "web_fetch": "Leser dokumentasjon",
+    "upgrade_app_to_v9": "Oppgraderer appen til v9",
 }
 
 _ALTINN_TOOL_LABELS = {
@@ -105,6 +108,7 @@ _TOOL_PENDING_MESSAGES = {
     "commit_session_branch": "Lagrer endringer",
     "skill": "Henter kunnskap",
     "web_fetch": "Leser dokumentasjon",
+    "upgrade_app_to_v9": "Oppgraderer appen til v9",
 }
 
 
@@ -136,6 +140,7 @@ _TOOL_PHASES: dict[str, str] = {
     "write_file": _PHASE_WRITING,
     "discard_file_changes": _PHASE_WRITING,
     "altinn_datamodel_sync": _PHASE_WRITING,
+    "upgrade_app_to_v9": _PHASE_WRITING,
     "verify_changes": _PHASE_VERIFYING,
     "commit_session_branch": _PHASE_COMMITTING,
 }
@@ -212,7 +217,8 @@ async def handle(state: AgentState) -> AgentState:
         app_version_profile=app_version_profile,
     )
     skills = discover_skills()
-    system_prompt = build_system_prompt(session, skill_listing=format_skill_listing(skills))
+    skill_listing = format_skill_listing(skills)
+    system_prompt = build_system_prompt(session, skill_listing=skill_listing)
 
     registry = _build_registry(skills)
     log.info(
@@ -231,6 +237,10 @@ async def handle(state: AgentState) -> AgentState:
         permission_requester=(
             None if state.allow_app_changes else lambda action: permission_broker.request(state.session_id, action)
         ),
+        report_status=lambda message: sink.send(
+            AgentEvent(type="status", session_id=state.session_id, data={"message": message})
+        ),
+        is_cancelled=lambda: sink.is_cancelled(state.session_id),
         app_version_profile=app_version_profile,
         start_commit=state.start_commit,
     )
@@ -248,7 +258,6 @@ async def handle(state: AgentState) -> AgentState:
         adapter=adapter,
         ctx=ctx,
         max_turns=_DEFAULT_MAX_TURNS,
-        is_cancelled=lambda: sink.is_cancelled(state.session_id),
         on_event=on_event,
         history=history,
     )
@@ -261,7 +270,8 @@ async def handle(state: AgentState) -> AgentState:
             ctx,
             registry=registry,
             adapter=adapter,
-            system_prompt=system_prompt,
+            session=session,
+            skill_listing=skill_listing,
             on_event=on_event,
         )
     _record_response(state, result, ctx)
@@ -327,7 +337,8 @@ async def _repair_render_failures(
     *,
     registry,
     adapter,
-    system_prompt: str,
+    session: SessionContext,
+    skill_listing: str,
     on_event,
 ) -> LoopResult:
     """Do a render check of the pushed app, and send failures to the model.
@@ -370,6 +381,9 @@ async def _repair_render_failures(
 
         log.info("Render check failed for session %s; asking the model to fix", state.session_id)
         repair_message, history = _framed_turn(state, outcome.content)
+        # The upgrade tool can change the app version after the turn's prompt was built.
+        current_session = replace(session, app_version_profile=ctx.app_version_profile)
+        system_prompt = build_system_prompt(current_session, skill_listing=skill_listing)
         result = await run_loop(
             user_message=repair_message,
             system_prompt=system_prompt,
@@ -377,7 +391,6 @@ async def _repair_render_failures(
             adapter=adapter,
             ctx=ctx,
             max_turns=_DEFAULT_MAX_TURNS,
-            is_cancelled=lambda: sink.is_cancelled(state.session_id),
             on_event=on_event,
             history=history,
         )
@@ -438,6 +451,7 @@ def _internal_tools(skills: list[Skill]) -> list[Tool]:
         LayoutPropsTool(),
         DatamodelSyncTool(),
         WebFetchTool(),
+        UpgradeAppToV9Tool(),
     ]
 
 

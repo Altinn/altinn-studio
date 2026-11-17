@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Each namespaced object sets its own namespace, because the Flux Kustomization sets none.
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - rbac.yaml
+  - deployment.yaml
+  - service.yaml
+  - networkpolicy.yaml
+# The overlays merge in kinds.yaml. The hash in the name rolls out the Deployment when the configuration changes.
+configMapGenerator:
+  - name: operator-config
+    namespace: core-operator
+    files:
+      - config.yaml
+replacements:
+  - source:
+      kind: Deployment
+      name: operator
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: Deployment
+          name: operator
+        fieldPaths:
+          - spec.template.spec.containers.[name=operator].image
