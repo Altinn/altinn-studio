@@ -900,6 +900,18 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetDistinctLabelValues_LeavesRepositoryUsable()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var repo = fixture.CreateRepository();
+
+        await repo.GetDistinctLabelValues("org", ns: null, ct);
+        var result = await repo.QueryWorkflows(10, [PersistentItemStatus.Completed], cancellationToken: ct);
+
+        Assert.Empty(result.Workflows);
+    }
+
+    [Fact]
     public async Task QueryWorkflows_ReturnsWorkflowsAndTotalCount()
     {
         await using var context = fixture.CreateDbContext();
