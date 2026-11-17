@@ -1,7 +1,8 @@
 name: Release - app experimental packages
 
-# Publishes the app libraries packages that app-experimental-packages.yaml built for a pull request, when a maintainer or
-# admin comments `/publish` on it. nuget.org's trusted publishing policy for this file allows only Altinn.App.*.Experimental.
+# Publishes a pull request's experimental app libraries packages, which app-experimental-packages.yaml built, when a
+# maintainer or admin comments `/publish app`. nuget.org's trusted publishing policy for this file allows only
+# Altinn.App.*.Experimental.
 
 on:
   issue_comment:
@@ -35,7 +36,7 @@ jobs:
         id: find
         uses: ./.github/actions/find-experimental-build
         with:
-          artifact: app-experimental-packages
+          component: app
 
   publish:
     name: Publish
@@ -58,6 +59,6 @@ jobs:
         uses: ./.github/actions/publish-experimental-packages
         with:
           run-id: ${{ needs.find-build.outputs.run-id }}
-          artifact: app-experimental-packages
+          component: app
           package-id: Altinn.App.*.Experimental
           nuget-user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}

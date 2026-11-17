@@ -1,7 +1,8 @@
 name: Release - fileanalyzers experimental packages
 
-# Publishes the fileanalyzers packages that app-experimental-packages.yaml built for a pull request, when a maintainer or
-# admin comments `/publish` on it. nuget.org's trusted publishing policy for this file allows only Altinn.FileAnalyzers.Experimental.
+# Publishes a pull request's experimental fileanalyzers packages, which app-experimental-packages.yaml built, when a
+# maintainer or admin comments `/publish fileanalyzers`. nuget.org's trusted publishing policy for this file allows only
+# Altinn.FileAnalyzers.Experimental.
 
 on:
   issue_comment:
@@ -35,7 +36,7 @@ jobs:
         id: find
         uses: ./.github/actions/find-experimental-build
         with:
-          artifact: fileanalyzers-experimental-packages
+          component: fileanalyzers
 
   publish:
     name: Publish
@@ -58,6 +59,6 @@ jobs:
         uses: ./.github/actions/publish-experimental-packages
         with:
           run-id: ${{ needs.find-build.outputs.run-id }}
-          artifact: fileanalyzers-experimental-packages
+          component: fileanalyzers
           package-id: Altinn.FileAnalyzers.Experimental
           nuget-user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}

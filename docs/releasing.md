@@ -60,8 +60,9 @@ it for the first release only, such as `-version 9.0.0-preview.1`.
 ## Experimental packages
 
 To try a pull request's version of the app libraries, codelists or fileanalyzers in an app, a maintainer or admin
-comments `/publish` on the pull request. That publishes the components the pull request changes as `*.Experimental`
-packages, versioned `<version>.pr.<number>.<build>`, and comments the versions on the pull request.
+comments `/publish` and the components on the pull request, such as `/publish app codelists`. The components are `app`,
+`codelists` and `fileanalyzers`. That publishes them as `*.Experimental` packages, versioned
+`<version>.pr.<number>.<build>`, and comments the versions on the pull request.
 
 - The pull request's own build packs the packages, so its code never runs where nuget.org's login is available. The
   `release-<component>-experimental.yaml` workflows only publish them.

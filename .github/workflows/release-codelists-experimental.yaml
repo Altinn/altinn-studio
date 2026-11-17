@@ -1,7 +1,8 @@
 name: Release - codelists experimental packages
 
-# Publishes the codelists packages that app-experimental-packages.yaml built for a pull request, when a maintainer or
-# admin comments `/publish` on it. nuget.org's trusted publishing policy for this file allows only Altinn.Codelists.Experimental.
+# Publishes a pull request's experimental codelists packages, which app-experimental-packages.yaml built, when a
+# maintainer or admin comments `/publish codelists`. nuget.org's trusted publishing policy for this file allows only
+# Altinn.Codelists.Experimental.
 
 on:
   issue_comment:
@@ -35,7 +36,7 @@ jobs:
         id: find
         uses: ./.github/actions/find-experimental-build
         with:
-          artifact: codelists-experimental-packages
+          component: codelists
 
   publish:
     name: Publish
@@ -58,6 +59,6 @@ jobs:
         uses: ./.github/actions/publish-experimental-packages
         with:
           run-id: ${{ needs.find-build.outputs.run-id }}
-          artifact: codelists-experimental-packages
+          component: codelists
           package-id: Altinn.Codelists.Experimental
           nuget-user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}

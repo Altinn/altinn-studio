@@ -1,12 +1,12 @@
 name: "Find experimental build"
 description: "Find a pull request's experimental package build to publish for a /publish comment"
 inputs:
-  artifact:
-    description: "Name of the build's packages artifact, such as app-experimental-packages"
+  component:
+    description: "The component to publish when the comment names it: app, codelists or fileanalyzers"
     required: true
 outputs:
   run-id:
-    description: "The build run to publish from, or empty when it built no packages for this artifact"
+    description: "The build run to publish from, or empty when the comment doesn't name the component"
     value: ${{ steps.find.outputs.run-id }}
 runs:
   using: "composite"
@@ -20,8 +20,20 @@ runs:
         PR_NUMBER: ${{ github.event.issue.number }}
         SENDER: ${{ github.event.sender.login }}
         COMMENTED_AT: ${{ github.event.comment.created_at }}
-        ARTIFACT: ${{ inputs.artifact }}
+        COMMENT: ${{ github.event.comment.body }}
+        COMPONENT: ${{ inputs.component }}
       run: |
+        # The comment's first line names the components to publish, such as `/publish app codelists`
+        read -ra words <<<"$(head -n1 <<<"${COMMENT//$'\r'/}")"
+        requested=false
+        for word in "${words[@]:1}"; do
+          [[ "$word" == "$COMPONENT" ]] && requested=true
+        done
+        if [[ "${words[0]:-}" != "/publish" || "$requested" != true ]]; then
+          echo "The comment does not ask to publish ${COMPONENT}."
+          exit 0
+        fi
+
         # role_name, because the legacy permission field reports maintain as write
         role="$(gh api "repos/${REPOSITORY}/collaborators/${SENDER}/permission" --jq '.role_name')"
         if [[ "$role" != "admin" && "$role" != "maintain" ]]; then
@@ -46,10 +58,10 @@ runs:
 
         # The build only packs the components the pull request changes
         artifacts="$(gh api "repos/${REPOSITORY}/actions/runs/${run_id}/artifacts" --jq '.artifacts[].name')"
-        if ! grep -Fxq "$ARTIFACT" <<<"$artifacts"; then
-          echo "The build of ${head_sha} has no ${ARTIFACT}; nothing to publish."
-          exit 0
+        if ! grep -Fxq "${COMPONENT}-experimental-packages" <<<"$artifacts"; then
+          echo "::error::The pull request does not change ${COMPONENT}, so its build has no ${COMPONENT} packages."
+          exit 1
         fi
 
-        echo "Publishing ${ARTIFACT} from run ${run_id}, the build of ${head_sha}"
+        echo "Publishing ${COMPONENT} from run ${run_id}, the build of ${head_sha}"
         echo "run-id=${run_id}" >> "$GITHUB_OUTPUT"
