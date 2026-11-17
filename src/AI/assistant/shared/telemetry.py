@@ -24,6 +24,8 @@ from opentelemetry import metrics, trace
 from opentelemetry.context import Context
 from opentelemetry.trace import Link, SpanContext, SpanKind, StatusCode
 
+from shared.modes import run_mode
+
 if TYPE_CHECKING:
     from fastapi import FastAPI
     from langfuse.types import TraceContext
@@ -215,7 +217,7 @@ _current_run: ContextVar[Run | None] = ContextVar("assistant_run", default=None)
 @contextlib.contextmanager
 def agent_run(state: AgentState, request: SpanContext) -> Iterator[Run]:
     """The span of one run, in a trace of its own that links to the request that started it."""
-    mode = "workflow" if state.allow_app_changes else "chat"
+    mode = run_mode(state.allow_app_changes)
     attributes: dict[str, Any] = {
         "gen_ai.operation.name": "invoke_agent",
         "gen_ai.agent.name": "assistant",

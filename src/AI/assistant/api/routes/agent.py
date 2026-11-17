@@ -18,6 +18,7 @@ from shared.config import get_config
 from shared.models import AgentAttachment, AttachmentUpload
 from shared.models.attachments import cleanup_session_attachments, get_session_dir
 from shared.models.experiment import ExperimentContext
+from shared.modes import run_mode
 from shared.utils.logging_utils import get_logger
 from shared.utils.path_utils import repo_owner_and_app_name
 
@@ -145,7 +146,7 @@ async def start_agent(
         sink.mark_session_started(req.session_id)
         run_in_background(state, sink)
 
-        mode = "chat" if not req.allow_app_changes else "workflow"
+        mode = run_mode(req.allow_app_changes)
 
         return {
             "accepted": True,
