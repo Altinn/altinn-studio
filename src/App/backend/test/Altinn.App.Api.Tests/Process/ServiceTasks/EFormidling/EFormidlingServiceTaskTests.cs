@@ -118,6 +118,46 @@ public class EFormidlingServiceTaskTests : ApiTestBase
         processState.Ended.Should().NotBeNull();
     }
 
+    // process/next answers with the process the task moved on to. Its workflow annotation must describe that
+    // process too, not the service task the request read the instance in.
+    [Fact]
+    public async Task ProcessNext_OnAServiceTaskV8Left_AnswersWithAWorkflowAnnotationForTheProcessItMovedTo()
+    {
+        SendAsync = message =>
+        {
+            if (message.RequestUri!.PathAndQuery.Contains("pdf"))
+            {
+                return Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("this is the binary pdf content"),
+                    }
+                );
+            }
+
+            throw new Exception($"Not mocked http request: {message.RequestUri!.PathAndQuery}");
+        };
+
+        using HttpClient client = GetRootedUserClient(Org, App);
+
+        using HttpResponseMessage processNextResponse = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next?language={Language}",
+            null
+        );
+
+        string nextResponseContent = await processNextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        processNextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        using var document = System.Text.Json.JsonDocument.Parse(nextResponseContent);
+        document.RootElement.GetProperty("ended").ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+        document
+            .RootElement.GetProperty("workflow")
+            .GetProperty("status")
+            .ToString()
+            .Should()
+            .NotBeEquivalentTo("failed", "the process ended, and nothing failed");
+    }
+
     [Fact]
     public async Task Does_Not_Change_Task_When_EFormidling_Fails()
     {
