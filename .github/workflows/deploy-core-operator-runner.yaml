@@ -60,11 +60,11 @@ jobs:
           REGISTRY="altinntjenestercontainerregistry.azurecr.io/altinn-studio"
           {
             echo "short-sha=${SHA}"
-            echo "operator-runner-repository=${REGISTRY}/studio-operator-runner"
-            echo "guest-repository=${REGISTRY}/studio-operator-runner-guest"
-            echo "prepared-image-repository=${REGISTRY}/studio-operator-runner-prepared"
-            echo "prepared-image=${REGISTRY}/studio-operator-runner-prepared:${SHA}"
-            echo "config-repo=${REGISTRY}/configs/studio-operator-runner-repo:${SHA}"
+            echo "operator-runner-repository=${REGISTRY}/core-operator-runner"
+            echo "guest-repository=${REGISTRY}/core-operator-runner-guest"
+            echo "prepared-image-repository=${REGISTRY}/core-operator-runner-prepared"
+            echo "prepared-image=${REGISTRY}/core-operator-runner-prepared:${SHA}"
+            echo "config-repo=${REGISTRY}/configs/core-operator-runner-repo:${SHA}"
           } >> "$GITHUB_OUTPUT"
 
       - name: az login

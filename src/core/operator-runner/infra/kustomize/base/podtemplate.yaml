@@ -7,11 +7,11 @@ metadata:
   name: operator-runner
   namespace: sandbox-runs
   annotations:
-    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner:latest
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner:latest
     altinn.studio/image-tag: latest
-    altinn.studio/guest-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-guest:latest
+    altinn.studio/guest-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-guest:latest
     altinn.studio/guest-image-tag: latest
-    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-prepared:latest
+    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-prepared:latest
     altinn.studio/prepared-image-tag: latest
 template:
   metadata:
@@ -45,7 +45,7 @@ template:
       # This init container imports the guest image into the image cache, so that registry credentials are not necessary
       # for the pod.
       - name: prepare-image
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-prepared:latest
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-prepared:latest
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
@@ -62,7 +62,7 @@ template:
           - name: PREPARED_IMAGE_DIRECTORY
             value: /opt/altinn/prepared-image
           - name: SANDBOX_IMAGE
-            value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-guest:latest
+            value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-guest:latest
         resources:
           requests:
             cpu: "1"
@@ -77,7 +77,7 @@ template:
             mountPath: /tmp
     containers:
       - name: operator-runner
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner:latest
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner:latest
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
@@ -100,7 +100,7 @@ template:
           - name: SANDBOX_CACHE_HOME
             value: /var/cache/altinn/sandbox
           - name: SANDBOX_IMAGE
-            value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/studio-operator-runner-guest:latest
+            value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-guest:latest
           - name: SANDBOX_CPUS
             value: "2"
           - name: SANDBOX_MEMORY

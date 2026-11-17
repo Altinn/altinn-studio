@@ -256,7 +256,7 @@ runs in it:
 [`deploy-core-operator-runner.yaml`](../../../.github/workflows/deploy-core-operator-runner.yaml) builds the guest
 image, the operator runner image and the prepared guest image, pins them by digest in the PodTemplate, and pushes
 `infra/kustomize` as an OCI artifact. Flux applies it in dev and prod, from
-`infra/studio/syncroot/base/studio-operator-runner.yaml`. Staging has no sandbox node, so it has no operator runner.
+`infra/studio/syncroot/base/core-operator-runner.yaml`. Staging has no sandbox node, so it has no operator runner.
 
 The pod runs on a node with the label `purpose=sandbox`, and gets `/dev/kvm` from
 [`sandbox-node`](../../ci/sandbox-node/README.md).

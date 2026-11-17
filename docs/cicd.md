@@ -38,9 +38,10 @@ An image's build context holds only what the image needs.
 ## Workflow names
 
 - `deploy-<target>-<name>.yaml` deploys a service or resource when a change to it reaches `main`. The target is the
-  kind of cluster it belongs to: `runtime`, `studio`, `admin` (adminservices) or `dis-core`. A service built once for
-  several kinds of cluster, such as pdf3, deploys from one workflow named after where it started. Older Studio
-  deployments, such as `deploy-designer.yaml`, have no target in the name.
+  kind of cluster it belongs to: `core` (the Studio cluster, which older workflows name `studio`), `runtime`, `admin`
+  (adminservices) or `dis-core`. A service built once for several kinds of cluster, such as pdf3, deploys from one
+  workflow named after where it started. Older Studio deployments, such as `deploy-designer.yaml`, have no target in
+  the name.
 - `release-<product>.yaml` publishes a release of a product.
 - `template-*.yaml` are reusable workflows that other workflows call.
 - Other workflows are named after the area and component they check, such as `runtime-pdf3-build.yml`.

@@ -4,12 +4,12 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: studio-operator-runner
+  name: core-operator-runner
   namespace: default
 spec:
   interval: 5m
   # The deploy-core-operator-runner workflow pushes one artifact per build SHA and tags it with the environment name.
-  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/studio-operator-runner-repo
+  url: oci://altinntjenestercontainerregistry.azurecr.io/altinn-studio/configs/core-operator-runner-repo
   ref:
     tag: ${ENVIRONMENT}
   provider: azure
@@ -17,7 +17,7 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: studio-operator-runner
+  name: core-operator-runner
   namespace: default
 spec:
   # No targetNamespace: each namespaced object in the artifact sets its namespace, and the admission policy in the
@@ -25,7 +25,7 @@ spec:
   interval: 5m
   sourceRef:
     kind: OCIRepository
-    name: studio-operator-runner
+    name: core-operator-runner
     namespace: default
   path: ./${ENVIRONMENT}
   prune: true
