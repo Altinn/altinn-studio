@@ -43,7 +43,7 @@ class TestTheQuestions:
         assert [q["name"] for q in QUESTIONS] == [RELEVANCE, *CONCERNS]
         assert all(q["type"] == "predicate" and q["instructions"] for q in QUESTIONS)
 
-    def test_the_safety_file_holds_the_concerns(self):
+    def test_each_concern_has_its_own_question(self):
         assert set(CONCERNS) == {"injection", "secrets", "outside_repository", "run_code", "ci", "other_service_owner"}
 
 

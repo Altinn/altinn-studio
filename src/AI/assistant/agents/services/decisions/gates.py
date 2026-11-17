@@ -1,37 +1,24 @@
 """Judges whether a request is safe and relevant, with one decisions call before the agent starts."""
 
-import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from shared.utils.logging_utils import get_logger
 from shared.utils.recent_turns import prepend_recent_turns
 
 from .client import decide, predicate
+from .questions import CONCERNS, CONTEXT, RELEVANCE_QUESTION
 
 log = get_logger(__name__)
-
-QUESTIONS_DIR = Path(__file__).parent / "questions"
 
 # The answers are not deterministic, so each threshold keeps a margin from the gate datasets' borderline items.
 RELEVANCE_THRESHOLD = 0.5
 CONCERN_THRESHOLD = 0.2
 
 RELEVANCE = "relevance"
-
-
-def _sections(text: str) -> dict[str, str]:
-    """A `## name` heading starts each question."""
-    parts = re.split(r"^## (\S+)\n", text, flags=re.MULTILINE)
-    return {name: body.strip() for name, body in zip(parts[1::2], parts[2::2], strict=True)}
-
-
-CONTEXT = (QUESTIONS_DIR / "context.md").read_text(encoding="utf-8").strip()
-CONCERNS = _sections((QUESTIONS_DIR / "safety.md").read_text(encoding="utf-8"))
 QUESTIONS = [
-    predicate(RELEVANCE, (QUESTIONS_DIR / "relevance.md").read_text(encoding="utf-8").strip()),
+    predicate(RELEVANCE, RELEVANCE_QUESTION),
     *(predicate(name, text) for name, text in CONCERNS.items()),
 ]
 
