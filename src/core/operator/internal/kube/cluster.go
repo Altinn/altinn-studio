@@ -1,5 +1,5 @@
 // Package kube is the operator's one connection to Kubernetes, and the one package that uses controller-runtime and
-// client-go. It runs the process's work under a controller-runtime manager, with leader election and health probes,
+// client-go. It runs the process's work under a controller-runtime manager, with health probes,
 // runs the Jobs of runs as a sandbox.Sandbox, and reviews tokens for internal/auth. The rest of the operator knows
 // nothing of Kubernetes.
 package kube
@@ -28,12 +28,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 )
 
-const (
-	gracefulShutdownTimeout = 30 * time.Second
-	leaseDuration           = 30 * time.Second
-	renewDeadline           = 20 * time.Second
-	retryPeriod             = 5 * time.Second
-)
+const gracefulShutdownTimeout = 30 * time.Second
 
 // Options configure the cluster.
 type Options struct {
@@ -42,11 +37,9 @@ type Options struct {
 	RESTConfig *rest.Config
 	// ProbeAddress serves the health and readiness probes.
 	ProbeAddress string
-	// Namespaces are the namespaces whose run Jobs and pods the cache holds. Without any, as in staging, the cache
-	// starts no informer for them.
+	// Namespaces are the namespaces whose run Jobs, pods and quotas the cache holds. Without any, the cache starts no
+	// informer for them.
 	Namespaces []string
-	// LeaderElect elects a leader, which runs the work that needs one, such as the garbage collector.
-	LeaderElect bool
 }
 
 // Cluster runs the process's work in a Kubernetes cluster.
@@ -67,7 +60,7 @@ func SetLogger(logger logr.Logger) {
 	ctrl.SetLogger(logger)
 }
 
-// New sets up a cluster whose cache holds only the operator's own Jobs and pods, in the namespaces of the configured
+// New sets up a cluster whose cache holds only the operator's own Jobs and pods, and the quotas, in the namespaces of the configured
 // kinds. The operator's Role in those namespaces allows no more.
 func New(opts Options) (*Cluster, error) {
 	restConfig := opts.RESTConfig
@@ -91,20 +84,15 @@ func New(opts Options) (*Cluster, error) {
 		}
 		byObject[&batchv1.Job{}] = cache.ByObject{Label: managed, Namespaces: namespaces}
 		byObject[&corev1.Pod{}] = cache.ByObject{Label: managed, Namespaces: namespaces}
+		byObject[&corev1.ResourceQuota{}] = cache.ByObject{Namespaces: namespaces}
 	}
 
 	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
-		Scheme:                        scheme,
-		Metrics:                       metricsserver.Options{BindAddress: "0"},
-		HealthProbeBindAddress:        opts.ProbeAddress,
-		LeaderElection:                opts.LeaderElect,
-		LeaderElectionID:              "core-operator.altinn.studio",
-		LeaderElectionReleaseOnCancel: true,
-		LeaseDuration:                 new(leaseDuration),
-		RenewDeadline:                 new(renewDeadline),
-		RetryPeriod:                   new(retryPeriod),
-		GracefulShutdownTimeout:       new(gracefulShutdownTimeout),
-		Cache:                         cache.Options{ByObject: byObject},
+		Scheme:                  scheme,
+		Metrics:                 metricsserver.Options{BindAddress: "0"},
+		HealthProbeBindAddress:  opts.ProbeAddress,
+		GracefulShutdownTimeout: new(gracefulShutdownTimeout),
+		Cache:                   cache.Options{ByObject: byObject},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create the manager: %w", err)
@@ -128,11 +116,6 @@ func (c *Cluster) Add(r Runnable) error {
 		return fmt.Errorf("add to the manager: %w", err)
 	}
 	return nil
-}
-
-// Elected is closed once this replica leads, or at once without leader election.
-func (c *Cluster) Elected() <-chan struct{} {
-	return c.mgr.Elected()
 }
 
 // Start runs the cluster's work until ctx ends.

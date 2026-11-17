@@ -44,7 +44,6 @@ func testConfig() *config.Config {
 		Command:            "upgrade-v9",
 		RequiresArchive:    true,
 		Labels:             appLabels,
-		MaxActive:          2,
 		MaxActivePerCaller: 1,
 		MaxQueuedPerCaller: 2,
 		QueueTimeout:       15 * time.Minute,
@@ -88,6 +87,7 @@ func newHarness(t *testing.T) *harness {
 
 	cfg := testConfig()
 	box := sandboxtest.New()
+	box.SlotCount = 2
 	queue := NewQueue(cfg, box, clk)
 	queue.Open()
 	clk.Advance(warmup)

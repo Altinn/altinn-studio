@@ -20,9 +20,10 @@ func at(seconds int) time.Time {
 
 // newQueue returns a queue for testKind with these limits, over a sandbox without Jobs. The queue has not opened.
 func newQueue(maxActive, maxActivePerCaller int) (*Queue, *clock.FakeClock, *sandboxtest.Sandbox) {
-	kind := config.Kind{Namespace: testNamespace, MaxActive: maxActive, MaxActivePerCaller: maxActivePerCaller}
+	kind := config.Kind{Namespace: testNamespace, MaxActivePerCaller: maxActivePerCaller}
 	clk := clock.NewFakeClockAt(queueStart)
 	box := sandboxtest.New()
+	box.SlotCount = maxActive
 	return NewQueue(&config.Config{Kinds: map[string]config.Kind{testKind: kind}}, box, clk), clk, box
 }
 
@@ -95,8 +96,8 @@ func TestQueueCountsJobsAndReservations(t *testing.T) {
 	clk.Advance(admittedTTL + time.Second)
 	Expect(q.Admit(t.Context(), queued("c", "assistant"), at(3))).To(Equal(Admission{Admitted: true}))
 
-	// Other kinds have their own limits.
-	q.cfg.Kinds["other-kind"] = config.Kind{Namespace: testNamespace, MaxActive: 1, MaxActivePerCaller: 1}
+	// Other kinds count their own runs.
+	q.cfg.Kinds["other-kind"] = config.Kind{Namespace: testNamespace, MaxActivePerCaller: 1}
 	other := queued("d", "assistant")
 	other.state.Kind = "other-kind"
 	Expect(q.Admit(t.Context(), other, at(4))).To(Equal(Admission{Admitted: true}))

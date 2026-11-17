@@ -46,27 +46,27 @@ Runs in flight continue: the engine retries the step it was on, and the operator
 
 ### Packages
 
-| Package                                                                    | What it does                                                                                                                                                                                     |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`internal/kube`](internal/kube)                                           | The one connection to Kubernetes, and the one package that uses controller-runtime and client-go: the manager with leader election and health probes, the run Jobs as a sandbox, and TokenReview |
-| [`internal/sandbox`](internal/sandbox/sandbox.go)                          | The contract between the run steps and where a run's Job runs, with no Kubernetes types                                                                                                          |
-| [`internal/runs`](internal/runs)                                           | The runs domain: the queue, the workflow, its steps, the run service and the garbage collector                                                                                                   |
-| [`internal/runapi`](internal/runapi)                                       | The run API over HTTP                                                                                                                                                                            |
-| [`internal/callbacks`](internal/callbacks)                                 | The engine's callbacks, routed to the handlers of each domain                                                                                                                                    |
-| [`internal/engine`](internal/engine), [`internal/runner`](internal/runner) | Clients of the workflow engine and of the operator runner                                                                                                                                        |
-| [`internal/auth`](internal/auth)                                           | Who a request is from, with a token reviewer that `internal/kube` provides                                                                                                                       |
-| [`internal/logging`](internal/logging/logging.go)                          | A `logr` logger for each package, from the context or the process                                                                                                                                |
+| Package                                                                    | What it does                                                                                                                                                                 |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`internal/kube`](internal/kube)                                           | The one connection to Kubernetes, and the one package that uses controller-runtime and client-go: the manager with health probes, the run Jobs as a sandbox, and TokenReview |
+| [`internal/sandbox`](internal/sandbox/sandbox.go)                          | The contract between the run steps and where a run's Job runs, with no Kubernetes types                                                                                      |
+| [`internal/runs`](internal/runs)                                           | The runs domain: the queue, the workflow, its steps, the run service and the garbage collector                                                                               |
+| [`internal/runapi`](internal/runapi)                                       | The run API over HTTP                                                                                                                                                        |
+| [`internal/callbacks`](internal/callbacks)                                 | The engine's callbacks, routed to the handlers of each domain                                                                                                                |
+| [`internal/engine`](internal/engine), [`internal/runner`](internal/runner) | Clients of the workflow engine and of the operator runner                                                                                                                    |
+| [`internal/auth`](internal/auth)                                           | Who a request is from, with a token reviewer that `internal/kube` provides                                                                                                   |
+| [`internal/logging`](internal/logging/logging.go)                          | A `logr` logger for each package, from the context or the process                                                                                                            |
 
 A new domain gets its own package beside `internal/runs`, its own handler group and its own engine namespaces. If it
 needs cluster work, it states what it needs as a contract like `internal/sandbox`, and `internal/kube` implements it.
 
 ## Identities
 
-| Who        | ServiceAccount                                                            | May use               |
-| ---------- | ------------------------------------------------------------------------- | --------------------- |
-| Assistant  | `system:serviceaccount:default:altinn-altinity-agents-sa`                 | Run API, `upgrade-v9` |
-| Designer   | `system:serviceaccount:default:altinn-designer`                           | Run API, `upgrade-v9` |
-| The engine | `system:serviceaccount:operator-workflow-engine:operator-workflow-engine` | Callback API          |
+| Who        | ServiceAccount                                                                      | May use               |
+| ---------- | ----------------------------------------------------------------------------------- | --------------------- |
+| Assistant  | `system:serviceaccount:default:altinn-altinity-agents-sa`                           | Run API, `upgrade-v9` |
+| Designer   | `system:serviceaccount:default:altinn-designer`                                     | Run API, `upgrade-v9` |
+| The engine | `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine` | Callback API          |
 
 Each sends a projected ServiceAccount token with the audience `core-operator` as a bearer token. The operator checks
 it with a TokenReview and maps the user name to a caller in its configuration. No new secret exists, and the callers
@@ -114,8 +114,8 @@ out, the engine calls the step a last time, and the step fails the run itself, w
 `expired` or as `archive-timeout`.
 
 The operator runner's status read does not count as a fetch, so `run.await-result` learns the outcome and leaves the
-result to the caller. Once the caller has fetched it, the operator runner keeps it for 30 seconds more, for a fetch that
-broke off, and exits. `run.cleanup` sees the pod end and deletes the Job.
+result to the caller. Once the caller has fetched it, the operator runner keeps it for a fetch that broke off, and exits.
+`run.cleanup` sees the pod end and deletes the Job.
 
 ### Creating a run
 
@@ -133,9 +133,10 @@ for a second replica.
 
 The queue lives in the operator's memory. A run holds a place in the sandbox from its admission until its Job finishes,
 and the queue counts the run Jobs in the kind's namespace for this. Until the Job exists, the run holds its place with a
-reservation, which `run.create-job` and `run.await-pod` renew. The ResourceQuota in
-[src/core/operator-runner/infra](../operator-runner/infra/kustomize) does not replace the queue: its KVM, CPU and memory
-limits apply to pods, so it accepts a Job too many, whose pod then waits. CI runners use the same sandbox nodes.
+reservation, which `run.create-job` and `run.await-pod` renew. The queue admits as many runs as the ResourceQuota in
+[src/core/operator-runner/infra](../operator-runner/infra/kustomize) has KVM slots. The quota does not replace the
+queue: its limits apply to pods, so it accepts a Job too many, whose pod then waits. CI runners use the same sandbox
+nodes.
 
 A run holds its place while it waits for the caller's archive and while the operator runner keeps its result, so a slow
 caller holds back the runs behind it, up to the upload timeout and the result timeout.
@@ -152,10 +153,10 @@ The operator passes the archive on to the operator runner as it arrives, and pas
 operator runner sends it. It holds neither in memory nor on disk. The operator runner takes the first archive that
 arrives whole, and discards one that comes again for the same run.
 
-The result can be fetched for 5 minutes after the run ended, the operator runner's `RESULT_RETENTION_SECONDS`, and for
-30 seconds after the first fetch. Then the operator runner exits, `run.cleanup` deletes the Job, and the result request
-answers with 410. The engine keeps the workflow for 14 days, so a caller still gets the status. The garbage collector
-deletes the Jobs of runs that ended without `run.cleanup`, such as canceled runs.
+The result can be fetched until the operator runner [exits](../operator-runner/README.md#when-the-operator-runner-exits).
+Then `run.cleanup` deletes the Job, and the result request answers with 410. The engine keeps the workflow longer, so a
+caller still gets the status. The garbage collector deletes the Jobs of runs that ended without `run.cleanup`, such as
+canceled runs.
 
 The operator passes `report` on without reading it, so a new kind with its own report needs no change here.
 
@@ -173,8 +174,9 @@ sees only its own runs.
   seconds. A UI can long-poll through a stateless endpoint of its service, so a redeploy of the service does not stop
   it. `queuePosition`, `startedAt` and the timeouts of the kind from `GET /api/v1/kinds` are enough to show progress.
 - **Upload.** When the status is `awaiting-archive`, send a gzip tar of the app at the commit, without `.git`, with
-  `PUT /api/v1/runs/{id}/archive`. Start within `uploadTimeoutSeconds`, and send the whole archive within 2 minutes.
-  You can build the archive then, from the commit, so you need not keep it from the create. An upload that broke off
+  `PUT /api/v1/runs/{id}/archive`. Send the whole archive within `uploadTimeoutSeconds`, and each attempt within 2
+  minutes. The operator cuts off an upload that runs past that time, and the run fails with `archive-timeout`. You can
+  build the archive then, from the commit, so you need not keep it from the create. An upload that broke off
   can be sent again.
 - **Fetch the result** as soon as the status is `completed`, by `resultExpiresAt`, which is `null` once the result is
   gone. Keep what you show later, such as the report, in your own store, or in the commit that applies the patch.
@@ -211,10 +213,9 @@ The operator answers:
 - 2xx with an empty body, or `{"state": "…"}`, when the step is done. `state` reaches the next step as its `state`.
 - 2xx with `{"state": "…", "defer": {"delay": "00:00:05", "reason": "queued"}}` when the step waits. `delay` is a
   .NET `TimeSpan` in the constant format `[d.]hh:mm:ss[.fffffff]`.
-- 4xx, other than 408, 418 and 429, when the step must fail without a retry. The operator answers 422 with a problem
-  such as `{"status": 422, "reason": "queue-timeout", "detail": "…"}`. The engine keeps it in the step's error history,
-  where the run's status reads the reason back.
-- 5xx, 408 or 429 when the engine should retry the step.
+- 422 with a problem such as [response-end.json](api/callbacks/response-end.json) when the step must fail without a
+  retry. The engine keeps the problem as the step's error, where the run's status reads the reason back.
+- 503 when the engine should retry the step. For other answers, the engine's `NonRetryableHttpStatusCodes` decide.
 
 `stepId` is the same for every attempt of a step, so a handler can use it as the idempotency key for a call it must not
 repeat. The operator decodes only the fields that its handlers read, so the engine may send more.
@@ -245,12 +246,12 @@ The [Makefile](Makefile) has the checks that CI runs: `make fmt`, `make lint`, `
   side with a fake API server, and the envtest above. The contract tests read the callback examples in
   [api/callbacks](api/callbacks), and the runner client's tests the operator runner's
   [protocol examples](../operator-runner/examples/protocol.json).
-- `make run` runs the operator against the cluster in your kubeconfig, without leader election. Set
+- `make run` runs the operator against the cluster in your kubeconfig. Set
   `CORE_OPERATOR_CONFIG_DIR` to a folder with the configuration.
 
 The configuration is the YAML files of a ConfigMap, read in name order. [config/base](config/base/config.yaml) names the
-callers, and the overlays of the environments with sandbox nodes add the kinds in `kinds.yaml`. Staging has no sandbox
-nodes, so its catalog is empty. [internal/config](internal/config/config.go) has the defaults.
+callers, and the overlays of the environments with sandbox nodes add the kinds in `kinds.yaml`.
+[internal/config](internal/config/config.go) has the defaults.
 
 The image builds from `src/`, for the shared Go module in [src/common/go](../../common/go). The
 [deploy workflow](../../../.github/workflows/deploy-core-operator.yaml) pins the image in the Deployment and pushes
@@ -304,7 +305,7 @@ app to a client, and the operator only sees opaque keys, scopes and a place to p
   - `maskinporten.deliver-key` writes the private key to the delivery target, such as a secret in the Key Vault that
     the runtime operator syncs into the app.
   - `maskinporten.prune-keys` removes keys that are no longer in use.
-- A sweep on the leader enqueues a rotation workflow for each key that reaches its rotation age, because the engine
+- A sweep in the operator enqueues a rotation workflow for each key that reaches its rotation age, because the engine
   has no recurring workflows yet.
 - The crypto code, the self-service API client and the planner that decides the changes move from the runtime
   operator's `internal/` into `src/common/go`, so both operators can use them. Designer sends the names of the existing

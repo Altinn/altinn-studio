@@ -36,6 +36,11 @@ const (
 	jobTTLAfterFinished = int32(300)
 )
 
+// kvmQuota is the quota of the KVM devices that sandbox-node offers, one for each run's pod.
+const kvmQuota = "requests.devices.altinn.studio/kvm"
+
+var errNoSlots = errors.New("no quota limits " + kvmQuota)
+
 // JobName is the name of a run's Job.
 func JobName(runID string) string {
 	return "run-" + runID
@@ -169,6 +174,20 @@ func (s *Sandbox) PodGone(ctx context.Context, namespace, runID, ip string) (boo
 		}
 	}
 	return true, nil
+}
+
+// Slots returns the KVM slots of the namespace's ResourceQuota, since each run's pod takes one.
+func (s *Sandbox) Slots(ctx context.Context, namespace string) (int, error) {
+	var quotas corev1.ResourceQuotaList
+	if err := s.Client.List(ctx, &quotas, client.InNamespace(namespace)); err != nil {
+		return 0, fmt.Errorf("list the quotas in %s: %w", namespace, err)
+	}
+	for _, quota := range quotas.Items {
+		if slots, ok := quota.Spec.Hard[kvmQuota]; ok {
+			return int(slots.Value()), nil
+		}
+	}
+	return 0, fmt.Errorf("%w in %s", errNoSlots, namespace)
 }
 
 // ActiveJobs lists the unfinished Jobs of a kind in a namespace.

@@ -199,7 +199,8 @@ func failure(res *http.Response) error {
 	return fmt.Errorf("%w: %d %s", errStatus, res.StatusCode, readSnippet(res))
 }
 
-// isPermanent follows the engine's rule: a 4xx other than 408 and 429 does not change on a retry.
+// isPermanent reports whether the operator runner gives the same answer to a repeat: a 4xx other than 408, for a body
+// that came too slowly, and 429.
 func isPermanent(status int) bool {
 	return status >= 400 && status < 500 && status != http.StatusRequestTimeout && status != http.StatusTooManyRequests
 }

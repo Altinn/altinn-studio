@@ -74,6 +74,8 @@ type Sandbox interface {
 	Pod(ctx context.Context, namespace, runID string) (Pod, error)
 	// PodGone reports whether the pod at ip has stopped or disappeared, so its operator runner can never answer.
 	PodGone(ctx context.Context, namespace, runID, ip string) (bool, error)
+	// Slots returns how many runs the sandbox has room for at once in a namespace.
+	Slots(ctx context.Context, namespace string) (int, error)
 	// ActiveJobs lists the Jobs of a kind that have not finished. A finished Job holds no room, even before it is
 	// deleted.
 	ActiveJobs(ctx context.Context, namespace, kind string) ([]Ref, error)

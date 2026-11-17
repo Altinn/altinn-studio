@@ -1,6 +1,6 @@
-# maxActive matches the KVM slots of the ResourceQuota in src/core/operator-runner/infra/kustomize, so the queue rather
-# than the quota holds runs back. maxActivePerCaller keeps a slot for the other caller, so neither the assistant chat
-# nor the Designer UI can take every slot.
+# The queue admits as many runs as the ResourceQuota in src/core/operator-runner/infra/kustomize has KVM slots.
+# maxActivePerCaller keeps a slot for the other caller, so neither the assistant chat nor the Designer UI can take every
+# slot.
 callers:
   assistant:
     kinds:
@@ -17,7 +17,6 @@ kinds:
     requiresArchive: true
     # What a run is for. Callers find their runs again by these, and a dashboard can count runs by org.
     labels: [org, app, repoOwner, repo, commit]
-    maxActive: 4
     maxActivePerCaller: 3
-    # studioctl stops an upgrade after 10 minutes, so this stops only a studioctl process that hangs.
-    runTimeout: 660s
+    # studioctl stops an upgrade after 10 minutes. The run also starts the VM within this time, and makes the patch.
+    runTimeout: 780s

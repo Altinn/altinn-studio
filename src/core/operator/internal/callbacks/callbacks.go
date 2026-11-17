@@ -106,13 +106,12 @@ func (e *End) Error() string {
 	return e.Detail + " " + e.Err.Error()
 }
 
-// Ended reads the End that a step answered from the message of an error that the engine recorded for the step, where
-// the engine puts the answer after its own text. It returns nil for an error of the engine's own, such as a wait budget
-// that ran out.
+// Ended reads the End that a step answered from the message of an error that the engine recorded for the step, which
+// is the router's answer, as api/callbacks/response-end.json shows. It returns nil for an error of the engine's own,
+// such as a wait budget that ran out.
 func Ended(message string) *End {
 	var details problem.Details
-	if start := strings.IndexByte(message, '{'); start >= 0 &&
-		json.Unmarshal([]byte(message[start:]), &details) == nil &&
+	if json.Unmarshal([]byte(message), &details) == nil &&
 		details.Status == http.StatusUnprocessableEntity && details.Reason != "" {
 		return &End{Reason: details.Reason, Detail: details.Detail}
 	}
@@ -165,6 +164,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
+		telemetry.AttrDomain.String(payload.Context.Domain),
 		telemetry.AttrCommandKey.String(key),
 		telemetry.AttrSubjectID.String(payload.Context.SubjectID),
 	)
@@ -191,12 +191,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			commontelemetry.SetError(span, "permanent", err)
 			logger.Error(err, "Callback failed the workflow", "reason", end.Reason)
 		}
-		// 422 is a 4xx the engine does not retry; 408, 418 and 429 would make it retry.
+		// The engine does not retry a 422, and keeps the answer as the step's error, for Ended.
 		problem.WriteDetails(w, req, problem.Details{
 			Status: http.StatusUnprocessableEntity, Reason: end.Reason, Detail: end.Detail,
 		})
 	default:
-		// The engine retries, and fails the step itself when its retry strategy runs out.
+		// The engine retries a 503, and fails the step itself when its retry strategy runs out.
 		commontelemetry.SetError(span, "retryable", err)
 		logger.Info("Callback failed, the engine retries it", "error", err.Error())
 		problem.Write(w, req, http.StatusServiceUnavailable, err.Error())

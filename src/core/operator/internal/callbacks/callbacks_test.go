@@ -96,7 +96,7 @@ func newTestRouter(clk clock.Clock) *Router {
 			return Wait(p.State, 2*time.Second, "waiting"), nil
 		},
 		"run.permanent": func(context.Context, *Payload) (Response, error) {
-			return Response{}, &End{Err: errTest, Reason: "broken", Detail: "It broke."}
+			return Response{}, &End{Err: errTest, Reason: "queue-timeout", Detail: queueTimeout}
 		},
 		"run.retry": func(context.Context, *Payload) (Response, error) {
 			return Response{}, errTest
@@ -124,6 +124,8 @@ func post(t *testing.T, router http.Handler, key string, payload Payload) *httpt
 	return res
 }
 
+const queueTimeout = "The run waited in the queue longer than its kind allows."
+
 func TestRouterAnswersByTheContract(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -138,18 +140,16 @@ func TestRouterAnswersByTheContract(t *testing.T) {
 	Expect(res.Code).To(Equal(http.StatusOK))
 	Expect(res.Body.String()).To(MatchJSON(`{"state":"s","defer":{"delay":"00:00:02","reason":"waiting"}}`))
 
-	// 422 is a 4xx other than 408, 418 and 429, so the engine fails the step.
+	// The engine does not retry a 422, and records the answer as the step's error, where a status read finds it.
 	res = post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"})
 	Expect(res.Code).To(Equal(http.StatusUnprocessableEntity))
 	Expect(res.Header().Get("Content-Type")).To(Equal("application/problem+json"))
-	ended := `{"title":"Unprocessable Entity","status":422,"reason":"broken","detail":"It broke."}`
-	Expect(res.Body.String()).To(MatchJSON(ended))
-	// The engine records the answer after its own text, where a status read finds it.
-	Expect(Ended("OperatorCommand failed: " + ended)).To(Equal(&End{Reason: "broken", Detail: "It broke."}))
+	Expect(res.Body.String()).To(MatchJSON(readContract(t, "response-end.json")))
+	Expect(Ended(res.Body.String())).To(Equal(&End{Reason: "queue-timeout", Detail: queueTimeout}))
 
 	res = post(t, router, "run.retry", Payload{CommandKey: "run.retry"})
 	Expect(res.Code).To(Equal(http.StatusServiceUnavailable))
-	Expect(Ended("OperatorCommand failed: " + res.Body.String())).To(BeNil())
+	Expect(Ended(res.Body.String())).To(BeNil())
 	Expect(Ended("Wait budget of 00:15:00 exhausted after 300 deferral(s): queued")).To(BeNil())
 
 	res = post(t, router, "run.unknown", Payload{CommandKey: "run.unknown"})

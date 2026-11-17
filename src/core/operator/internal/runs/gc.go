@@ -18,7 +18,7 @@ import (
 const gcInterval = time.Minute
 
 // Collector deletes the Jobs of runs whose workflow does not reach run.cleanup, such as after a cancel or a failure.
-// It runs on the leader only. The Job's deadline and TTL are the last backstop.
+// The Job's deadline and TTL are the last backstop.
 type Collector struct {
 	cfg     *config.Config
 	engine  *engine.Client
@@ -28,11 +28,6 @@ type Collector struct {
 
 func NewCollector(cfg *config.Config, engineClient *engine.Client, box sandbox.Sandbox, clk clock.Clock) *Collector {
 	return &Collector{cfg: cfg, engine: engineClient, sandbox: box, clock: clk}
-}
-
-// NeedLeaderElection makes the manager run the collector on the leader only.
-func (c *Collector) NeedLeaderElection() bool {
-	return true
 }
 
 // Start runs Collect every minute until ctx ends.

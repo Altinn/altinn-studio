@@ -22,6 +22,8 @@ type Sandbox struct {
 	FailReads error
 	// RunnerLog is what the operator runner of each run has logged.
 	RunnerLog []byte
+	// SlotCount is how many runs the sandbox has room for at once.
+	SlotCount int
 	mu        sync.Mutex
 }
 
@@ -71,6 +73,12 @@ func (s *Sandbox) PodGone(_ context.Context, namespace, runID, ip string) (bool,
 		return true, nil
 	}
 	return found.pod.Status == sandbox.PodEnded, nil
+}
+
+func (s *Sandbox) Slots(context.Context, string) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.SlotCount, s.FailReads
 }
 
 func (s *Sandbox) ActiveJobs(_ context.Context, namespace, kind string) ([]sandbox.Ref, error) {

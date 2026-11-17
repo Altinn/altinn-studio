@@ -88,6 +88,8 @@ const maxDetail = 500
 type record struct {
 	Run
 
+	// uploadBy is when run.await-archive gives up on the caller's archive, once the run awaits it.
+	uploadBy *time.Time
 	// state is the newest step state, which has what every step before it learned.
 	state runState
 	// settled means the engine has ended the workflow and runs no step anymore, so the Job is gone or about to be.
@@ -124,6 +126,11 @@ func readRun(workflow *engine.Workflow) *record {
 	command := slices.IndexFunc(steps, func(step engine.Step) bool { return step.OperationID == StepAwaitResult })
 	if command > 0 && steps[command-1].Status == engine.StatusCompleted {
 		rec.StartedAt = steps[command-1].UpdatedAt
+	}
+	archive := slices.IndexFunc(steps, func(step engine.Step) bool { return step.OperationID == StepAwaitArchive })
+	if archive > 0 && steps[archive-1].Status == engine.StatusCompleted && steps[archive-1].UpdatedAt != nil {
+		uploadBy := steps[archive-1].UpdatedAt.Add(scaled(config.UploadTimeout, rec.state.Spec.TimeScale))
+		rec.uploadBy = &uploadBy
 	}
 	rec.describe(workflow, steps, command)
 	if rec.keepsResult() && rec.FinishedAt != nil {

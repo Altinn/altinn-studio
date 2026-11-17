@@ -39,8 +39,8 @@ func newAPI(t *testing.T) *apiHarness {
 	t.Cleanup(fakeEngine.Close)
 	kindConfig := config.Kind{
 		Namespace: "sandbox-runs", PodTemplate: "operator-runner", Command: kind, RequiresArchive: true,
-		Labels:    []string{"org", "app", "repoOwner", "repo", "commit"},
-		MaxActive: 1, MaxActivePerCaller: 1, MaxQueuedPerCaller: 2,
+		Labels:             []string{"org", "app", "repoOwner", "repo", "commit"},
+		MaxActivePerCaller: 1, MaxQueuedPerCaller: 2,
 		QueueTimeout: 15 * time.Minute, RunTimeout: 660 * time.Second,
 	}
 	cfg := &config.Config{
@@ -51,6 +51,7 @@ func newAPI(t *testing.T) *apiHarness {
 		Kinds: map[string]config.Kind{kind: kindConfig},
 	}
 	box := sandboxtest.New()
+	box.SlotCount = 1
 	queue := runs.NewQueue(cfg, box, clk)
 	service := runs.NewService(cfg, queue, engine.NewClient(fakeEngine.URL(), http.DefaultClient),
 		runner.NewClient(http.DefaultClient, runner.Port, box), box, clk)

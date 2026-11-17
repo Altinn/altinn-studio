@@ -22,6 +22,8 @@ const (
 	AttrKind = attribute.Key("altinn.core_operator.kind")
 	// AttrCaller is the id of the service that created a run.
 	AttrCaller = attribute.Key("altinn.core_operator.caller")
+	// AttrDomain is the group of handlers that a workflow belongs to, such as runs.
+	AttrDomain = attribute.Key("altinn.core_operator.domain")
 	// AttrCommandKey is the step of a workflow that a callback runs, such as run.await-archive.
 	AttrCommandKey = attribute.Key("altinn.core_operator.command_key")
 	// AttrRunStatus is the final status of a run, such as completed or expired.
@@ -31,7 +33,7 @@ const (
 )
 
 // AttrSubjectID is what a workflow works on, such as a run id, and goes on spans only. operator-workflow-engine puts
-// it on the engine's spans of the workflow, so a search by a run id finds the spans of both.
+// it, the domain, the caller and the command key on the engine's spans of the workflow, so a search finds both sides.
 const AttrSubjectID = attribute.Key("altinn.core_operator.subject_id")
 
 // serviceVersion is the build's version, the commit the deployment workflow builds from:

@@ -28,7 +28,6 @@ kinds:
     podTemplate: operator-runner
     command: upgrade-v9
     requiresArchive: true
-    maxActive: 2
     runTimeout: 660s
 `
 
@@ -57,7 +56,7 @@ func TestLoadMergesFilesInNameOrder(t *testing.T) {
 
 	kind := cfg.Kinds["upgrade-v9"]
 	Expect(kind.RunTimeout).To(Equal(660 * time.Second))
-	Expect(kind.MaxActivePerCaller).To(Equal(2), "defaults to maxActive")
+	Expect(kind.MaxActivePerCaller).To(BeZero(), "no cap of its own")
 	Expect(kind.MaxQueuedPerCaller).To(Equal(defaultMaxQueuedPerCaller))
 	Expect(kind.QueueTimeout).To(Equal(15 * time.Minute))
 	Expect(cfg.KindNamespaces()).To(Equal([]string{"sandbox-runs"}))
@@ -105,20 +104,21 @@ func TestLoadRefusesInvalidConfiguration(t *testing.T) {
 	cases := map[string]string{
 		"run timeout that does not fit in the Job deadline": `
 kinds:
-  upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, command: upgrade-v9, maxActive: 1, runTimeout: 811s}
+  upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, command: upgrade-v9, runTimeout: 811s}
 `,
 		"kind without command": `
 kinds:
-  upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, maxActive: 1, runTimeout: 60s}
+  upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, runTimeout: 60s}
 `,
-		"kind without capacity": `
+		"caller cap below zero": `
 kinds:
-  upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, command: x, runTimeout: 60s}
+  upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, command: x, maxActivePerCaller: -1,
+    runTimeout: 60s}
 `,
 		"requiresArchive that is no boolean": `
 kinds:
   upgrade-v9: {namespace: sandbox-runs, podTemplate: operator-runner, command: x, requiresArchive: maybe,
-    maxActive: 1, runTimeout: 60s}
+    runTimeout: 60s}
 `,
 		"label that is no camelCase name": kindsFile + "    labels: [repo-owner]\n",
 		"label that the operator sets":    kindsFile + "    labels: [org, caller]\n",
@@ -127,7 +127,7 @@ kinds:
 		"caller with the engine's ServiceAccount": `
 callers:
   assistant:
-    serviceAccount: system:serviceaccount:operator-workflow-engine:operator-workflow-engine
+    serviceAccount: system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine
 `,
 		"caller id that is no engine namespace": `
 callers:
@@ -146,7 +146,7 @@ handlerGroups: [runs, maskinporten]
 		"no handler group": `
 handlerGroups: []
 `,
-		"time scale that lengthens the waits": "timeScale: 2\n",
+		"time scale, which only the tests set": "timeScale: 0.01\n",
 	}
 	for name, content := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -181,29 +181,28 @@ func copyConfig(t *testing.T, sources ...string) string {
 	return dir
 }
 
-// The base config in config/base is what every environment starts from, and all staging has.
+// The base config in config/base is what every environment starts from.
 func TestBaseManifestConfigLoads(t *testing.T) {
 	RegisterTestingT(t)
 
 	cfg, err := LoadFrom(copyConfig(t, "base/config.yaml"))
 	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg.Kinds).To(BeEmpty(), "staging has no sandbox nodes, so the base has no kinds")
+	Expect(cfg.Kinds).To(BeEmpty(), "the overlays add the kinds")
 	Expect(cfg.Callers).To(HaveKey("assistant"))
 	Expect(cfg.Callers).To(HaveKey("designer"))
 }
 
 func TestOverlayConfigsLoad(t *testing.T) {
-	for overlay, maxActive := range map[string]int{"dev": 2, "prod": 4} {
+	for overlay, perCaller := range map[string]int{"dev": 1, "prod": 3} {
 		t.Run(overlay, func(t *testing.T) {
 			RegisterTestingT(t)
 			dir := copyConfig(t, "base/config.yaml", overlay+"/kinds.yaml")
 			cfg, err := LoadFrom(dir)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cfg.Kinds).To(HaveKey("upgrade-v9"))
-			Expect(cfg.Kinds["upgrade-v9"].MaxActive).To(Equal(maxActive))
-			// Each caller leaves a slot for the other.
-			Expect(cfg.Kinds["upgrade-v9"].MaxActivePerCaller).To(Equal(maxActive - 1))
-			Expect(cfg.Kinds["upgrade-v9"].RunTimeout).To(Equal(660 * time.Second))
+			// Each caller leaves a slot of the quota for the other.
+			Expect(cfg.Kinds["upgrade-v9"].MaxActivePerCaller).To(Equal(perCaller))
+			Expect(cfg.Kinds["upgrade-v9"].RunTimeout).To(Equal(780 * time.Second))
 			Expect(cfg.KindsFor("assistant")).To(Equal([]string{"upgrade-v9"}))
 			Expect(cfg.KindsFor("designer")).To(Equal([]string{"upgrade-v9"}))
 		})

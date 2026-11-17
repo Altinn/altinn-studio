@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net"
 	"net/http"
@@ -41,11 +40,6 @@ func main() {
 }
 
 func run() int {
-	var leaderElect bool
-	flag.BoolVar(&leaderElect, "leader-elect", true,
-		"Elect a leader, which runs the garbage collector. Turn it off only to run the operator outside a cluster.")
-	flag.Parse()
-
 	logger, err := logging.New(telemetry.WithOTelLogs)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -72,7 +66,7 @@ func run() int {
 	setupLog.Info("configuration loaded", "handlerGroups", cfg.HandlerGroups, "kinds", len(cfg.Kinds),
 		"callers", len(cfg.Callers))
 
-	cluster, err := newCluster(cfg, leaderElect, kube.Options{})
+	cluster, err := newCluster(cfg, kube.Options{})
 	if err != nil {
 		setupLog.Error(err, "unable to connect to the cluster")
 		return 1
@@ -87,9 +81,7 @@ func run() int {
 	}
 
 	setupLog.Info("starting")
-	err = cluster.Start(ctx)
-	telemetry.EndLeadership()
-	if err != nil {
+	if err = cluster.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running the operator")
 		return 1
 	}
@@ -105,10 +97,9 @@ func shutdownTelemetry(shutdown func(context.Context) error) {
 }
 
 // newCluster connects to the cluster, with a cache of the run Jobs and pods in the namespaces of the configured kinds.
-func newCluster(cfg *config.Config, leaderElect bool, opts kube.Options) (*kube.Cluster, error) {
+func newCluster(cfg *config.Config, opts kube.Options) (*kube.Cluster, error) {
 	opts.ProbeAddress = cfg.ProbeAddress
 	opts.Namespaces = cfg.KindNamespaces()
-	opts.LeaderElect = leaderElect
 	cluster, err := kube.New(opts)
 	if err != nil {
 		return nil, fmt.Errorf("set up the cluster: %w", err)
@@ -147,9 +138,6 @@ func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock, box sandb
 	if err := cluster.Add(callbackServer); err != nil {
 		return fmt.Errorf("add the callback server: %w", err)
 	}
-	if err := telemetry.RegisterLeader(cluster.Elected()); err != nil {
-		return fmt.Errorf("report leader election: %w", err)
-	}
 	return nil
 }
 
@@ -181,7 +169,7 @@ func setupRuns(
 	return runs.NewSteps(queue, box, hostClient).Group(), queue, nil
 }
 
-// server is an HTTP server that the cluster starts on every replica, also before leader election.
+// server is an HTTP server that the cluster starts once its cache has synced.
 type server struct {
 	handler http.Handler
 	name    string
@@ -195,10 +183,6 @@ func newServer(name, address string, handler http.Handler) *server {
 		func(_ string, r *http.Request) string { return r.Method + " " + route(r.URL.Path) },
 	))
 	return &server{name: name, address: address, handler: traced}
-}
-
-func (s *server) NeedLeaderElection() bool {
-	return false
 }
 
 func (s *server) Start(ctx context.Context) error {

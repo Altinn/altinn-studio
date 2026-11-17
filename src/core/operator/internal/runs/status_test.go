@@ -105,7 +105,7 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 			workflow: withError(
 				workflowAt(engine.StatusFailed, StepAdmit, engine.StatusFailed),
 				StepAdmit,
-				`OperatorCommand failed: {"status":422,"reason":"queue-timeout","detail":"The run waited."}`,
+				`{"status":422,"reason":"queue-timeout","detail":"The run waited."}`,
 			),
 			status: StatusExpired,
 			reason: ReasonQueueTimeout,
@@ -135,7 +135,7 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 			workflow: withError(
 				workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed),
 				StepAwaitArchive,
-				`OperatorCommand failed: {"status":422,"reason":"archive-timeout","detail":"No archive arrived."}`,
+				`{"status":422,"reason":"archive-timeout","detail":"No archive arrived."}`,
 			),
 			status: StatusFailed,
 			reason: ReasonArchiveTimeout,

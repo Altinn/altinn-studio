@@ -44,7 +44,7 @@ lint-config: golangci-lint ## Verify golangci-lint linter configuration
 
 .PHONY: manifests
 manifests: kustomize ## Build each overlay in config/ to check it.
-	@for overlay in dev staging prod; do \
+	@for overlay in dev prod; do \
 		echo "kustomize build config/$$overlay"; \
 		"$(KUSTOMIZE)" build "config/$$overlay" > /dev/null; \
 	done
@@ -60,8 +60,8 @@ docker-build: ## Build the image. The build context is src/, for the shared Go m
 	docker build -t "$(IMG)" -f Dockerfile --ignorefile Dockerfile.dockerignore ../..
 
 .PHONY: run
-run: fmt vet ## Run the operator against the cluster in your kubeconfig, without leader election.
-	go run ./cmd --leader-elect=false
+run: fmt vet ## Run the operator against the cluster in your kubeconfig.
+	go run ./cmd
 
 ##@ Dependencies
 

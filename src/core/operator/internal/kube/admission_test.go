@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	"altinn.studio/core-operator/internal/config"
+	"altinn.studio/core-operator/internal/runner"
 )
 
 // operatorUser is the user name of the operator's ServiceAccount, which the admission policy matches on.
@@ -28,6 +30,27 @@ const operatorUser = "system:serviceaccount:core-operator:core-operator"
 
 // runnerInfra is the operator runner's namespace, PodTemplate, Role and admission policy, as they are deployed.
 var runnerInfra = filepath.Join("..", "..", "..", "operator-runner", "infra", "kustomize", "base")
+
+// The PodTemplate gives the operator runner the times that the operator's budgets count on, and the port it calls.
+func TestPodTemplateHasTheOperatorsTimesAndPort(t *testing.T) {
+	RegisterTestingT(t)
+	data, err := os.ReadFile(filepath.Join(runnerInfra, "podtemplate.yaml"))
+	Expect(err).NotTo(HaveOccurred())
+	var template corev1.PodTemplate
+	Expect(utilyaml.NewYAMLOrJSONDecoder(bytes.NewReader(data), 4096).Decode(&template)).To(Succeed())
+
+	container := template.Template.Spec.Containers[0]
+	env := map[string]string{}
+	for _, variable := range container.Env {
+		env[variable.Name] = variable.Value
+	}
+	seconds := func(d time.Duration) string { return strconv.Itoa(int(d / time.Second)) }
+	// The runner waits a minute longer than the upload timeout, for the operator to see that the pod is ready.
+	Expect(env).To(HaveKeyWithValue("REQUEST_TIMEOUT_SECONDS", seconds(config.UploadTimeout+time.Minute)))
+	Expect(env).To(HaveKeyWithValue("RESULT_RETENTION_SECONDS", seconds(config.ResultTimeout)))
+	Expect(env).To(HaveKeyWithValue("RESULT_GRACE_SECONDS", seconds(config.ResultGrace)))
+	Expect(container.Ports).To(ContainElement(HaveField("ContainerPort", int32(runner.Port))))
+}
 
 // envtestAssets finds the binaries of envtest: KUBEBUILDER_ASSETS, as make test sets it, or what make setup-envtest
 // downloaded into bin/k8s, for a run from an IDE.

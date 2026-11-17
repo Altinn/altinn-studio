@@ -38,8 +38,6 @@ spec:
         - name: core-operator
           image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator:latest
           imagePullPolicy: IfNotPresent
-          args:
-            - --leader-elect
           ports:
             - name: api
               containerPort: 8080
