@@ -13,7 +13,7 @@ export function useDisplayData(baseComponentId: string): string {
     return '';
   }
 
-  // eslint-disable-next-line react-compiler/react-compiler
+  // eslint-disable-next-line react-hooks/hooks
   return def.useDisplayData(baseComponentId);
 }
 
@@ -34,7 +34,7 @@ export function useDisplayDataFor(componentIds: string[]): { [componentId: strin
     if (!implementsDisplayData(def)) {
       continue;
     }
-    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/hooks
     output[id] = def.useDisplayData(id);
   }
 

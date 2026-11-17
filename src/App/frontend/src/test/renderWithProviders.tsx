@@ -323,7 +323,6 @@ export function InstanceRouter({
   );
 
   if (routerRef) {
-    // eslint-disable-next-line react-compiler/react-compiler
     routerRef.current = router;
   }
 
@@ -356,7 +355,6 @@ export function StatelessRouter({
   );
 
   if (routerRef) {
-    // eslint-disable-next-line react-compiler/react-compiler
     routerRef.current = router;
   }
 
