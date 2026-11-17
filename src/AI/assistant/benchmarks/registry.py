@@ -126,7 +126,7 @@ EVALS = (
         prompt="spec_extraction",
         user_template="spec_extraction_user",
         summary=(
-            "Spec extraction from a real PDF. Items name a file in assets/ rather than "
+            "Spec extraction from a PDF form. Items name a file in assets/ rather than "
             "depending on a trace to have kept it, because traces record the extracted "
             "spec and never the upload. Scored on the field labels a verified run found, "
             "not on the page count, which has proved unstable across runs while the "
@@ -139,7 +139,7 @@ EVALS = (
         summary=(
             "Full agent runs against a structural rubric. The only eval that executes "
             "tools, pushes a session branch and renders pages, so it is the only one that "
-            "shows a generated app actually builds. One item sends a real PDF attachment. "
+            "shows a generated app actually builds. One item sends a PDF attachment. "
             "Items and rubrics live in Langfuse because a rubric is built from a golden "
             "app clone rather than written by hand."
         ),

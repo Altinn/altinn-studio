@@ -27,10 +27,6 @@ htmlcov/
 # Debug trace dumps
 trace-*.json
 
-# Benchmark fixtures, except the ones we made
-benchmarks/assets/*
-!benchmarks/assets/soknad-digitaliseringstilskudd.html
-!benchmarks/assets/soknad-digitaliseringstilskudd.pdf
 benchmarks/.env
 benchmarks/.playwright-auth.json
 

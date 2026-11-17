@@ -47,21 +47,14 @@ class TestValidationHoldsFromAClone:
 
         assert any("'not-in-the-repository.pdf'" in p and "not in assets/" in p for p in problems)
 
-    def test_git_tracks_each_attachment_and_its_html_source(self):
-        """Git ignores the rest of benchmarks/assets/, so a file without an exception here fails every clone."""
+    def test_each_attachment_is_made_from_the_html_file_beside_it(self):
         from benchmarks.planner import ASSETS_DIR
 
         spec = next(d for d in ALL_DATASETS if d.name == "Planner/spec")
         named = [n for i in spec.items for n in i["input"].get("attachments") or []]
-        rules = (ASSISTANT_ROOT / ".gitignore").read_text().splitlines()
 
         assert named, "the spec dataset is the one that names attachments"
-        assert "benchmarks/assets/*" in rules
-        for name in named:
-            source = Path(name).with_suffix(".html").name
-            assert (ASSETS_DIR / source).is_file(), source
-            assert f"!benchmarks/assets/{name}" in rules, name
-            assert f"!benchmarks/assets/{source}" in rules, source
+        assert all((ASSETS_DIR / name).with_suffix(".html").is_file() for name in named)
 
     def test_a_gate_attachment_needs_no_file(self):
         """The security gate is shown filenames and opens nothing, so an injection

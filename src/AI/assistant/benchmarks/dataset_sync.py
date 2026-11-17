@@ -113,7 +113,7 @@ def validate(dataset: Dataset) -> list[str]:
 
 
 def missing_assets(dataset: Dataset) -> list[str]:
-    """Attachments a planner item names that are not on this machine."""
+    """Attachments a planner item names that are not in assets/."""
     if dataset.kind != "planner":
         return []
     from .planner import ASSETS_DIR

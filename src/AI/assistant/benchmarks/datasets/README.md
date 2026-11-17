@@ -59,8 +59,8 @@ Get items from traces when possible. Do not write them by hand. Three defects in
 from items with an incorrect assumption about production.
 
 A Planner/spec item sends a PDF that we made from the HTML file beside it in `../assets/`. To change
-the PDF, edit the HTML, run `python -m benchmarks.render_assets` and take the labels from a new
-checked run.
+the PDF, edit the HTML, run `python -m benchmarks.render_assets`, and take the labels and the rubric
+of the end-to-end item that sends it from a new checked run.
 
 ## Sync
 

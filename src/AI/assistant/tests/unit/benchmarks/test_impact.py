@@ -22,19 +22,12 @@ def _digests_match_the_baseline(monkeypatch):
     monkeypatch.setattr(impact, "current_digests", lambda: {axis: recorded.get(axis) for axis, _ in impact.DIGESTS})
 
 
-def test_a_dataset_edit_invalidates_the_baseline():
-    found = impact.analyze(["benchmarks/datasets/gates_scope.jsonl"])
+@pytest.mark.parametrize("path", ["datasets/gates_scope.jsonl", "assets/form.pdf", "assets/form.html"])
+def test_a_dataset_or_attachment_edit_invalidates_the_baseline(path):
+    found = impact.analyze([f"benchmarks/{path}"])
     assert found.needs_rebaseline
     assert found.axes == ("dataset",)
     assert any("not comparable" in line for line in found.explain())
-
-
-def test_a_new_attachment_under_the_same_name_invalidates_the_baseline():
-    """The dataset axis hashes the item ids, so only this rule sees a changed PDF."""
-    for path in ("benchmarks/assets/form.pdf", "benchmarks/assets/form.html"):
-        found = impact.analyze([path])
-        assert found.needs_rebaseline, path
-        assert found.axes == ("dataset",), path
 
 
 def test_an_evaluator_change_invalidates_the_baseline():

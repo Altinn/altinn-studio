@@ -16,16 +16,13 @@ def main() -> int:
     except ImportError as error:
         raise SystemExit("playwright is not installed (uv sync && uv run playwright install chromium)") from error
 
+    # Leaving the block stops Playwright, which closes the browser.
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
-        try:
-            page = browser.new_page()
-            for source in sorted(ASSETS_DIR.glob("*.html")):
-                page.goto(source.resolve().as_uri())
-                page.pdf(path=source.with_suffix(".pdf"), prefer_css_page_size=True, print_background=True)
-                print(f"rendered {source.with_suffix('.pdf').name}")
-        finally:
-            browser.close()
+        page = playwright.chromium.launch().new_page()
+        for source in sorted(ASSETS_DIR.glob("*.html")):
+            page.goto(source.resolve().as_uri())
+            page.pdf(path=source.with_suffix(".pdf"), prefer_css_page_size=True, print_background=True)
+            print(f"rendered {source.with_suffix('.pdf').name}")
     return 0
 
 
