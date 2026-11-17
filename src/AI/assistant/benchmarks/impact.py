@@ -47,7 +47,12 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
     (
         "benchmarks/gates.py",
         "evaluators",
-        "how a gate verdict is scored",
+        "how an intake verdict is scored",
+    ),
+    (
+        "benchmarks/decisions.py",
+        "evaluators",
+        "how a request gate verdict is scored",
     ),
     (
         "benchmarks/planner.py",
@@ -108,7 +113,7 @@ BEHAVIOR: tuple[tuple[str, str, str], ...] = (
     (
         "agents/services/*",
         "code",
-        "a gate or the client that calls the model",
+        "the request gate or the client that calls a model",
     ),
     (
         "agents/workflows/*",

@@ -30,6 +30,11 @@ class TestModelsAxisProvenance:
 
         assert state.models["actor"] == "gpt-9-agent"
 
+    def test_the_decision_model_is_recorded(self):
+        from shared.config import get_config
+
+        assert provenance.collect().models["decision"] == get_config().DECISION_MODEL
+
     def test_agent_models_are_noted_as_coming_from_the_agent(self):
         state = provenance.collect(agent_models={"actor": "gpt-9-agent"})
 

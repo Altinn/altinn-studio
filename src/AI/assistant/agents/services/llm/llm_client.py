@@ -1,8 +1,5 @@
 """LLM client for Altinity agents"""
 
-import asyncio
-import functools
-import json
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -10,7 +7,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from langchain_openai.chat_models.base import BaseChatOpenAI
 from langfuse import get_client
-from pydantic import BaseModel, ConfigDict, Field
 
 from agents.prompts import get_prompt_with_langfuse
 from shared.config.base_config import get_config
@@ -18,14 +14,13 @@ from shared.models import AgentAttachment
 from shared.utils.langfuse_utils import trace_generation
 from shared.utils.logging_utils import get_logger
 from shared.utils.models import is_claude_model, is_reasoning_model
+from shared.utils.recent_turns import prepend_recent_turns
 from shared.utils.spotlight import (
     ATTACHMENT_TAG,
     close_delimiter,
     defang_delimiter,
     open_delimiter,
 )
-
-from .recent_turns import prepend_recent_turns
 
 if TYPE_CHECKING:
     from anthropic import Anthropic
@@ -72,14 +67,6 @@ def _build_anthropic_user_content(
     return blocks
 
 
-def _anthropic_tool_input_json(response: Any) -> str:
-    """The input of the tool call that a response schema forces, as JSON."""
-    for block in getattr(response, "content", None) or []:
-        if getattr(block, "type", None) == "tool_use":
-            return json.dumps(getattr(block, "input", {}), ensure_ascii=False)
-    raise ValueError("The model did not call the tool that the response schema requires")
-
-
 class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
@@ -101,8 +88,8 @@ class LLMClient:
                         config.LLM_TEMPERATURE_PLANNER,
                     )
         else:
-            # Default fallback — used by check_security_with_llm /
-            # suggest_goals_with_llm, which call get_llm_client() with no role.
+            # Default fallback. suggest_goals_with_llm uses it, because it calls
+            # get_llm_client() with no role.
             model = model or (config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL)
             if config.LLM_TEMPERATURE is not None:
                 try:
@@ -246,128 +233,6 @@ class LLMClient:
             content.append({"type": "text", "text": close_delimiter(ATTACHMENT_TAG)})
             return HumanMessage(content=content)
         return HumanMessage(content=user_prompt)
-
-    async def call_async(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        attachments: list[AgentAttachment] | None = None,
-        timeout: int = 300,
-        langfuse_prompt=None,
-        response_schema: type[BaseModel] | None = None,
-    ) -> str:
-        """Make async LLM call with timeout. With `response_schema`, the API holds the reply to it and returns its JSON."""
-        if self.llm is None and not self.use_anthropic:
-            raise ValueError("LLM not configured - please set OPENAI_API_KEY or configure Anthropic")
-
-        langfuse = get_client()
-        with langfuse.start_as_current_observation(
-            name=f"llm_call_{self.role}",
-            as_type="generation",
-            model=self.model,
-            input={
-                "system_message": system_prompt,
-                "user_message": user_prompt,
-                "role": self.role,
-                "model_metadata": self.get_model_metadata(),
-                "attachment_count": len(attachments) if attachments else 0,
-                "attachment_names": [att.name for att in attachments] if attachments else [],
-            },
-            metadata={"role": self.role},
-        ) as span:
-            if langfuse_prompt is not None:
-                try:
-                    langfuse.update_current_generation(prompt=langfuse_prompt)
-                except Exception as e:
-                    log.debug("Failed to link langfuse prompt to generation: %s", e)
-
-            try:
-                loop = asyncio.get_running_loop()
-                response_text = ""
-                usage_details = {}
-
-                if self.use_anthropic:
-                    user_content = _build_anthropic_user_content(user_prompt, attachments)
-                    anthropic_client = self._require_anthropic_client()
-
-                    schema_kwargs: dict[str, Any] = {}
-                    if response_schema is not None:
-                        name = response_schema.__name__
-                        schema_kwargs["tools"] = [{"name": name, "input_schema": response_schema.model_json_schema()}]
-                        schema_kwargs["tool_choice"] = {"type": "tool", "name": name}
-
-                    def _call_anthropic():
-                        return anthropic_client.messages.create(
-                            model=self.model,
-                            system=system_prompt.strip() if system_prompt else "",
-                            messages=[{"role": "user", "content": user_content}],
-                            max_tokens=self.max_tokens,
-                            **schema_kwargs,
-                        )
-
-                    response = await asyncio.wait_for(loop.run_in_executor(None, _call_anthropic), timeout=timeout)
-                    response_text = (
-                        _anthropic_tool_input_json(response)
-                        if response_schema
-                        else self._extract_anthropic_text(response)
-                    )
-                    usage = getattr(response, "usage", None)
-                    if usage:
-                        usage_details = {
-                            "input_tokens": getattr(usage, "input_tokens", 0),
-                            "output_tokens": getattr(usage, "output_tokens", 0),
-                            "total_tokens": getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0),
-                        }
-                elif self.llm is None:
-                    raise ValueError("LLM client not initialized")
-                else:
-                    messages = [
-                        SystemMessage(content=system_prompt),
-                        self._build_human_message(user_prompt, attachments),
-                    ]
-                    # langchain sends a Pydantic class as a strict JSON schema, and keeps the JSON as the text.
-                    invoke = self.llm.invoke
-                    if response_schema:
-                        invoke = functools.partial(self.llm.invoke, response_format=response_schema)
-                    response = await asyncio.wait_for(loop.run_in_executor(None, invoke, messages), timeout=timeout)
-                    response_text = response.text.strip()
-                    if hasattr(response, "response_metadata") and "token_usage" in response.response_metadata:
-                        usage = response.response_metadata["token_usage"]
-                        usage_details = {
-                            "input_tokens": usage.get("prompt_tokens", 0),
-                            "output_tokens": usage.get("completion_tokens", 0),
-                            "total_tokens": usage.get("total_tokens", 0),
-                        }
-
-                try:
-                    span.update(
-                        output={"response": response_text},
-                        usage_details=usage_details if usage_details else None,
-                        metadata={
-                            "request_length": len(system_prompt) + len(user_prompt),
-                            "response_length": len(response_text),
-                        },
-                    )
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with response: %s", span_e)
-                return response_text
-
-            except TimeoutError as e:
-                log.error(f"LLM call timed out after {timeout} seconds (role={self.role}, model={self.model})")
-                try:
-                    span.update(metadata={"error": "timeout"})
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with timeout error: %s", span_e)
-                raise TimeoutError(
-                    f"LLM call timed out after {timeout} seconds. This may be due to network issues, Azure API throttling, or an oversized request."
-                ) from e
-            except Exception as e:
-                log.error(f"LLM call failed: {e}")
-                try:
-                    span.update(metadata={"error": str(e)})
-                except Exception as span_e:
-                    log.debug("Failed to update Langfuse span with error: %s", span_e)
-                raise
 
     def get_model_metadata(self) -> dict:
         """Get model metadata for tracing"""
@@ -558,45 +423,6 @@ def get_llm_client(role: str = "default") -> LLMClient:
     _clients[role] = client
     _client_keys[role] = key
     return client
-
-
-def build_security_check_message(
-    goal: str,
-    attachment_names: list[str] | None = None,
-    conversation: Sequence[Any] | None = None,
-) -> str:
-    """The user message the safety gate sees, as a value so a dataset can send
-    exactly what production sends."""
-    message = f"Parse this goal: {goal}"
-    if attachment_names:
-        names = ", ".join(attachment_names)
-        message = f"{message}\n\nAttachment filenames (content not shown): {names}"
-    return prepend_recent_turns(message, conversation)
-
-
-class SecurityVerdict(BaseModel):
-    """The security gate's answer to whether a request is a legitimate use of the assistant."""
-
-    # A validation error is logged, and the reply it rejects can quote the user's request.
-    model_config = ConfigDict(hide_input_in_errors=True)
-
-    safe: bool
-    reason: str | None = Field(default=None, description="The security concern when unsafe. Null when safe.")
-
-
-async def check_security_with_llm(
-    goal: str,
-    attachments: list[AgentAttachment] | None = None,
-    conversation: Sequence[Any] | None = None,
-) -> SecurityVerdict:
-    """Ask the classifier whether a goal is a legitimate request. Raises when the reply is not a verdict."""
-    system_prompt, lf_prompt = get_prompt_with_langfuse("security_check")
-    attachment_names = [attachment.name for attachment in attachments or []]
-    user_prompt = build_security_check_message(goal, attachment_names, conversation=conversation)
-    response = await get_llm_client().call_async(
-        system_prompt, user_prompt, langfuse_prompt=lf_prompt, response_schema=SecurityVerdict
-    )
-    return SecurityVerdict.model_validate_json(response)
 
 
 def suggest_goals_with_llm(

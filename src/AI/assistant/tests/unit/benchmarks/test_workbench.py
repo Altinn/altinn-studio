@@ -217,23 +217,23 @@ class TestTheReportShowsWhatWasMeasured:
             provenance=_provenance(),
             behaviors=(
                 BehaviorResult(
-                    behavior="scope.declines-in-users-language",
-                    evaluator="gate_decline_language",
+                    behavior="scope.declines-out-of-scope",
+                    evaluator="gate_verdict",
                     score=0.5,
                     items=(
                         ItemResult(
                             item_id="declined-in-english",
-                            scores={"gate_decline_language": 1.0, "gate_verdict": 1.0},
+                            scores={"gate_verdict": 1.0, "gate_required_keys": 1.0},
                             comments={
-                                "gate_decline_language": "declined in en, expected en",
-                                "gate_verdict": "in_scope=False, expected False",
+                                "gate_verdict": "declined in en, expected en",
+                                "gate_required_keys": "in_scope=False, expected False",
                             },
                             expected='{"decline_language": "en"}',
                         ),
                         ItemResult(
                             item_id="declined-in-the-wrong-language",
-                            scores={"gate_decline_language": 0.0},
-                            comments={"gate_decline_language": "declined in nb, expected en"},
+                            scores={"gate_verdict": 0.0},
+                            comments={"gate_verdict": "declined in nb, expected en"},
                         ),
                         ItemResult(item_id="nothing-to-decline", scores={}),
                     ),
@@ -246,7 +246,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_the_denominator_is_the_items_that_were_scored(self, tmp_path):
         """Three items ran and two were applicable, so the score is out of two."""
         self._run_with_items(tmp_path)
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.item_count == 3
         assert view.scored_count == 2
@@ -254,9 +254,7 @@ class TestTheReportShowsWhatWasMeasured:
 
     def test_an_item_the_evaluator_skipped_is_not_a_failure(self, tmp_path):
         self._run_with_items(tmp_path)
-        rows = {
-            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
-        }
+        rows = {r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-out-of-scope").rows()}
 
         assert rows["nothing-to-decline"].state == "not-applicable"
         assert rows["declined-in-the-wrong-language"].state == "fail"
@@ -265,9 +263,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_every_row_carries_what_the_evaluator_computed(self, tmp_path):
         """The evaluators already write this; dropping it was the whole problem."""
         self._run_with_items(tmp_path)
-        rows = {
-            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
-        }
+        rows = {r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-out-of-scope").rows()}
 
         assert rows["declined-in-the-wrong-language"].said == "declined in nb, expected en"
         expected = rows["declined-in-english"].expected
@@ -357,17 +353,15 @@ class TestTheReportShowsWhatWasMeasured:
     def test_a_sibling_score_on_the_same_item_is_kept(self, tmp_path):
         """A sibling usually explains the claimed score, so it travels with it."""
         self._run_with_items(tmp_path)
-        rows = {
-            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
-        }
+        rows = {r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-out-of-scope").rows()}
 
-        assert rows["declined-in-english"].siblings == (("gate_verdict", 1.0, "in_scope=False, expected False"),)
+        assert rows["declined-in-english"].siblings == (("gate_required_keys", 1.0, "in_scope=False, expected False"),)
         assert rows["nothing-to-decline"].siblings == ()
 
     def test_the_page_states_the_resolution_of_the_score(self, tmp_path):
         """Two scored items means steps of half, so the noise floor suppresses nothing."""
         self._run_with_items(tmp_path)
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.item_weight == 0.5
         assert not view.floor_applies
@@ -382,7 +376,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_a_coarse_score_is_flagged_whatever_its_scale(self, tmp_path):
         """The warning follows the step size."""
         self._run_with_items(tmp_path)
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.coarse and view.scale == "rate"
 
@@ -395,12 +389,12 @@ class TestTheReportShowsWhatWasMeasured:
             provenance=_provenance(),
             behaviors=(
                 BehaviorResult(
-                    behavior="scope.declines-in-users-language",
-                    evaluator="gate_decline_language",
+                    behavior="scope.declines-out-of-scope",
+                    evaluator="gate_verdict",
                     score=0.5,
                     items=(
-                        ItemResult(item_id="a", scores={"gate_decline_language": 1.0}),
-                        ItemResult(item_id="b", scores={"gate_decline_language": 0.0}),
+                        ItemResult(item_id="a", scores={"gate_verdict": 1.0}),
+                        ItemResult(item_id="b", scores={"gate_verdict": 0.0}),
                     ),
                 ),
             ),
@@ -410,7 +404,7 @@ class TestTheReportShowsWhatWasMeasured:
         # A one-behavior run has holes, which the guard refuses; the denominator is the point.
         runstore.set_baseline(base.name, directory=tmp_path, why="because", force=True)
 
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.scored_in("baseline") == 2
         assert view.scored_in("current") == 2
@@ -467,13 +461,13 @@ class TestTheReportShowsWhatWasMeasured:
     def test_the_detail_survives_a_round_trip_to_disk(self, tmp_path):
         run = self._run_with_items(tmp_path)
         reloaded = runstore.load(run.name, directory=tmp_path)
-        behavior = reloaded.behavior("scope.declines-in-users-language")
+        behavior = reloaded.behavior("scope.declines-out-of-scope")
         assert behavior is not None
         item = behavior.item("declined-in-english")
 
         assert item is not None
-        assert item.comments["gate_decline_language"] == "declined in en, expected en"
-        assert item.value("gate_decline_language") == 1.0
+        assert item.comments["gate_verdict"] == "declined in en, expected en"
+        assert item.value("gate_verdict") == 1.0
         assert item.value("nothing_emitted_this") is None
 
 
