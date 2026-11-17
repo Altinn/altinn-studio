@@ -217,7 +217,11 @@ public class DataController_PutTests : ApiTestBase
             firstReadDataElementResponse,
             HttpStatusCode.OK
         );
-        firstReadDataElementResponseParsed.Melding.Should().BeNull();
+        // Task start calculated the element it created, and the custom data processors have not run yet
+        firstReadDataElementResponseParsed.Melding.Should().NotBeNull();
+        firstReadDataElementResponseParsed.Melding!.CalculatedFixedValue.Should().Be("Hello ");
+        firstReadDataElementResponseParsed.Melding.Name.Should().BeNull();
+        firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
 
         // Update data element
         using var updateDataElementContent = new StringContent(
