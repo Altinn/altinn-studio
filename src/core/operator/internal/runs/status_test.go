@@ -236,7 +236,6 @@ func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
 	Expect(readRun(withoutArchive).StartedAt).To(Equal(&started))
 }
 
-// Before the command runs, the cancel deletes the Job, so the run can only end canceled, and shows it at once.
 func TestDescribeShowsACancelBeforeTheCommandAtOnce(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -250,8 +249,6 @@ func TestDescribeShowsACancelBeforeTheCommandAtOnce(t *testing.T) {
 	}
 }
 
-// A cancel that races the result may lose: the step that has the result completes, and so does the run. Until the
-// engine settles it, the run shows what it does, so it never shows canceled and then completed.
 func TestDescribeLetsAResultWinOverACancel(t *testing.T) {
 	RegisterTestingT(t)
 

@@ -216,8 +216,6 @@ func TestStepsRefuseCallbacksThatAreNotForARun(t *testing.T) {
 	Expect(ended).To(HaveField("Reason", ReasonStartFailed), "no pod IP")
 }
 
-// A run keeps the kind it was created with, so a change to the catalog does not change a run in flight, and its
-// Job's deadline fits the budgets of its workflow.
 func TestARunKeepsItsKindWhenTheCatalogChanges(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -342,8 +340,6 @@ func TestAwaitPodKeepsTheReservationUntilTheJobShows(t *testing.T) {
 	Expect(h.call(t, next.ID, StepAdmit).deferred()).To(BeTrue(), "the caller's next run waits")
 }
 
-// While the template rolls out, the admission policy compares a new Job with the template it cached a moment before,
-// and refuses it. A later attempt succeeds, so the step retries.
 func TestCreateJobRetriesWhenTheAdmissionPolicyRefuses(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)

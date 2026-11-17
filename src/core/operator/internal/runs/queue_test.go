@@ -122,9 +122,7 @@ func TestQueueForgetsRunsThatStopAsking(t *testing.T) {
 	Expect(q.WaitingByKind()).To(Equal(map[string]int{testKind: 1}))
 }
 
-// After a restart the queue is empty, over the same sandbox. The engine calls run.admit for each waiting run again. The
-// new queue admits no one until they all have asked, so the runs take their places by their reference times, whatever
-// order they ask in.
+// After a restart, the runs take their places by their reference times, whatever order they ask in.
 func TestQueueRebuildsAfterARestart(t *testing.T) {
 	RegisterTestingT(t)
 	after, clk, box := newQueue(2, 2)
@@ -174,8 +172,7 @@ func TestRegisterCountsTowardsTheQueueLimit(t *testing.T) {
 	Expect(q.Waiting(testKind, "assistant")).To(Equal(1), "an admitted run does not go back in line")
 }
 
-// After a restart, the engine calls back on its retry backoff, which can have grown while the operator was down. The
-// queue admits no one until it serves callbacks and every run has had the time to call again.
+// The warmup starts when the operator serves callbacks, and outlasts the engine's longest retry backoff.
 func TestQueueWaitsForTheEngineToCallAgain(t *testing.T) {
 	RegisterTestingT(t)
 	q, clk, _ := newQueue(1, 1)

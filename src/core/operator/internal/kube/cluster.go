@@ -1,7 +1,6 @@
 // Package kube is the operator's one connection to Kubernetes, and the one package that uses controller-runtime and
-// client-go. It runs the process's work under a controller-runtime manager, with health probes,
-// runs the Jobs of runs as a sandbox.Sandbox, and reviews tokens for internal/auth. The rest of the operator knows
-// nothing of Kubernetes.
+// client-go. It runs the process under a controller-runtime manager, runs the Jobs of runs as a sandbox.Sandbox, and
+// reviews tokens for internal/auth.
 package kube
 
 import (
@@ -17,8 +16,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.), so a local run can use the
-	// kubeconfig's.
+	// The client auth plugins, so a local run can use the kubeconfig's.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -60,8 +58,8 @@ func SetLogger(logger logr.Logger) {
 	ctrl.SetLogger(logger)
 }
 
-// New sets up a cluster whose cache holds only the operator's own Jobs and pods, and the quotas, in the namespaces of the configured
-// kinds. The operator's Role in those namespaces allows no more.
+// New sets up a cluster whose cache holds only the operator's own Jobs, pods and quotas in the namespaces of the
+// configured kinds. The operator's Role in those namespaces allows no more.
 func New(opts Options) (*Cluster, error) {
 	restConfig := opts.RESTConfig
 	if restConfig == nil {

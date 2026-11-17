@@ -1,5 +1,4 @@
-// Package runnertest is an operator runner for tests: one run per server, as in a pod. The client's tests check that
-// the client reads its answers as it reads the operator runner's in src/core/operator-runner/examples/protocol.json.
+// Package runnertest is an operator runner for tests: one run per server, as in a pod.
 package runnertest
 
 import (

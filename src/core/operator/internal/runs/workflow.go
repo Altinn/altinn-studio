@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	// runResultSlack is how long await-result may wait beyond the kind's run timeout: the operator runner stops the
-	// command at the run timeout, and then it still has to return the result.
+	// runResultSlack is how long run.await-result may wait past the run timeout, for the operator runner to return the
+	// result.
 	runResultSlack = 2 * time.Minute
 	// cleanupSlack is how long run.cleanup may wait beyond the time that the operator runner keeps the result, for the
 	// operator runner to exit and the operator to see it.
@@ -63,9 +63,8 @@ func scaled(d time.Duration, timeScale float64) time.Duration {
 }
 
 // runState is the state that the steps hand on. The engine keeps it with each step, so a step that runs again after a
-// restart has what the earlier steps learned, and the operator keeps nothing of a run itself.
-//
-// The workflow starts with the run's kind and its spec. Each step passes them on and adds what it learned.
+// restart has what the earlier steps learned. The workflow starts with the kind and its spec, and each step adds what
+// it learned.
 type runState struct {
 	Kind string `json:"kind"`
 	// PodIP is the address of the run's operator runner, from run.await-pod on.
@@ -112,9 +111,7 @@ type stepDefinition struct {
 	waitBudget time.Duration
 }
 
-// runSteps lists the steps of a run of the kind. A kind that requires no archive has no run.await-archive:
-// run.await-pod starts its command once the pod is ready. The time scale shortens the budgets that the kind does not
-// set itself.
+// runSteps lists the steps of a run of the kind. The time scale shortens the budgets that the kind does not set.
 func runSteps(spec KindSpec) []stepDefinition {
 	scale := func(d time.Duration) time.Duration { return scaled(d, spec.TimeScale) }
 	steps := []stepDefinition{

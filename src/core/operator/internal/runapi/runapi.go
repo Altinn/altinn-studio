@@ -160,7 +160,7 @@ func (a *API) uploadArchive(w http.ResponseWriter, r *http.Request) {
 
 var tooLarge = fmt.Sprintf("The archive is larger than %d MiB.", runs.MaxArchiveBytes>>20)
 
-// getResult passes the result on from the run's operator runner, so a result of tens of MiB is not held in memory.
+// getResult passes the result on from the run's operator runner, so the operator holds no result in memory.
 func (a *API) getResult(w http.ResponseWriter, r *http.Request) {
 	result, size, err := a.service.Result(r.Context(), auth.CallerFrom(r.Context()), r.PathValue("runId"))
 	if err != nil {

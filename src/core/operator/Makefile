@@ -3,8 +3,6 @@ IMG ?= core-operator:latest
 # Docker reads Dockerfile.dockerignore by itself. Podman reads src/.dockerignore instead, unless it is told.
 IGNOREFILE = $(if $(shell docker --version 2>/dev/null | grep -i podman),--ignorefile Dockerfile.dockerignore)
 
-# Setting SHELL to bash allows bash commands to be executed by recipes.
-# Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 

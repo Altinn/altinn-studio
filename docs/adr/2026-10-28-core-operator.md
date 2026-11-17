@@ -165,9 +165,9 @@ this decision specifies.
   result until the caller has fetched the result.
 - **State.** The operator has no volume and no database. Each run is a workflow in the engine host. The engine
   supplies the retries, the waits, the wait budgets and the cancellation. The engine host needs a Postgres
-  database, which `altinn-studio-infra` supplies. The operator keeps one thing in memory: the order in which it admits
-  queued runs, which the engine's retries rebuild after a restart. So it runs as one replica, until the engine can
-  limit how many workflows run at once.
+  database, which `altinn-studio-infra` supplies. The operator keeps only its queue in memory, and the engine's
+  retries rebuild it after a restart. So the operator runs as one replica until the engine can limit how many
+  workflows run at once.
 - **Structure.** One package in the operator uses controller-runtime and the Kubernetes API, behind a contract
   with no Kubernetes types. The API, the catalog and the run steps do not depend on that package. A new domain
   adds a package and a group of steps.

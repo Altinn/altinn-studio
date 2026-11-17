@@ -58,8 +58,8 @@ func jobLabels(job sandbox.Job) map[string]string {
 }
 
 // BuildJob makes the Job of a run from the kind's PodTemplate. The admission policy in src/core/operator-runner/infra
-// accepts a Job from the operator only when its pod spec and pod annotations equal the template's, so both are copied
-// as they are, and only labels are added.
+// accepts a Job from the operator only when its pod spec and pod annotations equal the template's. So BuildJob copies
+// both as they are and adds only labels.
 func BuildJob(template *corev1.PodTemplate, job sandbox.Job) *batchv1.Job {
 	podLabels := maps.Clone(template.Template.Labels)
 	if podLabels == nil {

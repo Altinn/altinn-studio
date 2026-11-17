@@ -14,7 +14,7 @@ type timerEvent struct {
 
 // FakeClock is a deterministic clock advanced explicitly by tests.
 //
-//nolint:govet // Field order keeps the mutable clock state grouped; this helper is not size-sensitive.
+//nolint:govet // Field order groups the clock state. Size does not matter in a test helper.
 type FakeClock struct {
 	tickers map[*FakeTicker]struct{}
 	timers  []*timerEvent

@@ -10,8 +10,8 @@ metadata:
     altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator:latest
     altinn.studio/image-tag: latest
 spec:
-  # The queue lives in the operator's memory, so two pods must not admit runs at once: the old pod stops before the
-  # new one starts. The run API is down for a few seconds; callers and the engine retry.
+  # The queue lives in memory, so two pods must not admit runs at once. Recreate stops the old pod before the new one
+  # starts, and callers and the engine retry while the run API is down.
   replicas: 1
   strategy:
     type: Recreate

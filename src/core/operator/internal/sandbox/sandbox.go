@@ -1,6 +1,5 @@
 // Package sandbox is the contract between the run steps and the place where a run's command runs: a Job with an
-// operator runner in its pod. The steps know nothing of where that is. internal/kube runs it on Kubernetes, and
-// sandboxtest in memory, for the tests of the steps.
+// operator runner in its pod. internal/kube implements it on Kubernetes, and sandboxtest in memory.
 package sandbox
 
 import (

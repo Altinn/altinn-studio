@@ -34,7 +34,7 @@ var (
 	// errQueueTimeout fails run.admit on the engine's final check, so the run's status can say why it ended.
 	errQueueTimeout = &callbacks.End{Reason: ReasonQueueTimeout, Expected: true,
 		Detail: "The run waited in the queue longer than its kind allows."}
-	// errArchiveTimeout fails run.await-archive on the engine's final check, as errQueueTimeout does run.admit.
+	// errArchiveTimeout does the same for run.await-archive.
 	errArchiveTimeout = &callbacks.End{Reason: ReasonArchiveTimeout, Expected: true,
 		Detail: "No archive arrived within the upload timeout of the kind."}
 )
@@ -142,9 +142,8 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 	return run.wait(payload, AdmitRecheck, reason), nil
 }
 
-// createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full. The
-// quota's KVM, CPU and memory limits apply to pods, not Jobs, so they do not stop a Job the queue should not have
-// admitted; the run's reservation in the queue does, and the step renews it on every call.
+// createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full, and
+// renews the run's reservation in the queue on every call.
 func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
 	run, err := s.load(ctx, payload)
 	if err != nil {
@@ -159,8 +158,8 @@ func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (call
 	case errors.Is(err, sandbox.ErrQuotaFull):
 		return run.wait(payload, quotaRecheck, "The sandbox quota is full."), nil
 	case errors.Is(err, sandbox.ErrNotAdmitted):
-		// The policy compares the Job with the template it has cached, which lags a rollout of the template by a
-		// moment. The step's retry strategy bounds how long a Job that never fits is tried.
+		// A refusal during a rollout of the template can pass a moment later. The step's retry strategy bounds the
+		// retries.
 		return callbacks.Response{}, fmt.Errorf("the sandbox refused the Job: %w", err)
 	case errors.Is(err, sandbox.ErrRefused):
 		return callbacks.Response{}, ends(ReasonStartFailed, "The sandbox refused the Job.", err)
@@ -230,9 +229,8 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 	return run.wait(payload, podRecheck, waiting), nil
 }
 
-// awaitArchive waits until the caller's archive has reached the operator runner, which then starts the command. The
-// run's status reads awaiting-archive meanwhile, and the run API passes the caller's upload on to the operator runner.
-// The operator runner is the only one that knows when the archive has arrived, so the step asks it.
+// awaitArchive waits until the caller's archive has reached the operator runner, which then starts the command. Only
+// the operator runner knows when the archive has arrived, so the step asks it.
 func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
 	run, err := s.load(ctx, payload)
 	if err != nil {
@@ -325,9 +323,8 @@ func runnerError(reason string, err error) error {
 	return fmt.Errorf("ask the operator runner: %w", err)
 }
 
-// cleanup deletes the Job once the caller can have the result no more. The operator runner of a completed run keeps the
-// result until the caller has fetched it and a grace has passed, or until the result timeout, and then exits. The step
-// waits for that, so the result lives as long as the Job does.
+// cleanup deletes the Job once the operator runner of a completed run has exited, after the fetch and its grace or at
+// the result timeout. So the result lives as long as the Job does.
 func (s *Steps) cleanup(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
 	run, err := s.load(ctx, payload)
 	if err != nil {

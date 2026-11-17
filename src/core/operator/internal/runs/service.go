@@ -36,13 +36,13 @@ const (
 	MaxWait = 30 * time.Second
 	// statusPoll is how often a long poll reads the workflow from the engine.
 	statusPoll = time.Second
-	// MaxArchiveBytes is the largest archive a caller may send, as the operator runner accepts.
+	// MaxArchiveBytes is the largest archive that the operator runner accepts.
 	MaxArchiveBytes = 50 << 20
 	// maxFound is the most runs a find returns, and how many runs with the same labels a create reads.
 	maxFound = 20
 )
 
-// RequestError refuses a request that the caller must change, such as a label that is not valid. Its message tells the caller what to change.
+// RequestError refuses a request that the caller must change. Its message says what to change.
 type RequestError struct {
 	Message string
 }
@@ -52,8 +52,7 @@ func (e *RequestError) Error() string { return e.Message }
 // UploadError is the operator runner's refusal of an archive, such as one that is too large.
 type UploadError = runner.RejectedError
 
-// Service carries out the run API for a caller. It keeps nothing of a run: the engine keeps the run's workflow, and
-// the run's Job keeps the archive and the result.
+// Service carries out the run API.
 type Service struct {
 	cfg     *config.Config
 	queue   *Queue
@@ -115,7 +114,7 @@ func (s *Service) Kinds(caller string) []Kind {
 
 // CreateRequest is the body of POST /api/v1/runs.
 type CreateRequest struct {
-	// Labels say what the run is for, with a value for each label of the kind.
+	// Labels has a value for each label of the kind.
 	Labels map[string]string `json:"labels"`
 	Kind   string            `json:"kind"`
 }
@@ -132,13 +131,12 @@ func (s *Service) check(caller string, request *CreateRequest) error {
 	return checkLabels(request.Kind, kind, request.Labels)
 }
 
-// Create enqueues a run of the kind with the labels. When the caller has a run of the same kind with the same labels
-// that has not ended, it returns that run instead, with created false. A run has ended once its status is final, which
-// may be before the engine ends its workflow. A completed run whose Job still keeps the result has not ended, so a
-// create finds it and the caller can fetch the result.
+// Create enqueues a run of the kind with the labels. If the caller has such a run that has not ended, Create returns it
+// with created false. A run has ended once its status is final, which can be before the engine ends its workflow. A
+// completed run whose Job still keeps the result has not ended.
 //
-// The key of the workflow comes from the newest run of the kind and labels that has ended, so two creates at the same
-// time make one run, and a create after a run has ended makes a new one.
+// The workflow's key names the newest run of the kind and labels that has ended. So two creates at the same time make
+// one run, and a create after a run has ended makes a new one.
 func (s *Service) Create(ctx context.Context, caller string, request CreateRequest) (*Run, bool, error) {
 	request.Labels = normalizedLabels(request.Labels)
 	if err := s.check(caller, &request); err != nil {
@@ -184,8 +182,7 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 	result, err := s.engine.Enqueue(ctx, namespace, run.ID, enqueueRequest)
 	switch {
 	case errors.Is(err, engine.ErrConflict):
-		// Another create with the same key, at the same time, used another version of the kind: the catalog changed
-		// between the two.
+		// A create at the same time used another version of the kind, because the catalog changed between the two.
 		return nil, false, ErrConflict
 	case errors.Is(err, engine.ErrInvalid):
 		// The operator built a workflow the engine does not accept, so a retry does not help.
@@ -278,8 +275,7 @@ func (s *Service) Get(ctx context.Context, caller, runID string, wait time.Durat
 		}
 		run = next
 	}
-	// The run has not changed, or the operator cannot tell. The last status the caller got is still true as far as
-	// the operator knows, and the caller asks again.
+	// The run has not changed, or the operator cannot tell. The caller asks again.
 	return run, nil
 }
 
@@ -307,9 +303,8 @@ func equalPosition(a, b *int) bool {
 	return *a == *b
 }
 
-// Upload passes the caller's archive on to the run's operator runner, which starts the command. The run must await its
-// archive. size is -1 when the caller did not say. A repeat after the operator runner has the archive succeeds, and the
-// operator runner discards the archive that came again.
+// Upload passes the caller's archive on to the run's operator runner, which starts the command. size is -1 when the
+// caller did not say. A repeat succeeds, and the operator runner discards the second archive.
 func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.Reader, size int64) (*Run, error) {
 	workflow, err := locate(ctx, s.engine, caller, runID)
 	if err != nil {
@@ -341,9 +336,9 @@ func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.R
 	}
 }
 
-// Result opens the result of a completed run at its operator runner, to pass it on as it is. This is the fetch: the
-// operator runner keeps the result for a grace after it, and then exits, and run.cleanup deletes the Job. The caller
-// closes the body. size is -1 when the operator runner did not say.
+// Result opens the result of a completed run at its operator runner. This is the fetch, after which the operator
+// runner keeps the result only for a grace. The caller closes the body. size is -1 when the operator runner did not
+// say.
 func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadCloser, int64, error) {
 	workflow, err := locate(ctx, s.engine, caller, runID)
 	if err != nil {
@@ -369,7 +364,7 @@ func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadClos
 	case err == nil:
 		return body, size, nil
 	case errors.Is(err, runner.ErrGone), errors.Is(err, runner.ErrNotClaimed):
-		// The operator runner exits once it has served the result and its grace has passed, or once the result timeout has.
+		// The operator runner exits after the grace that follows a fetch, or at the result timeout.
 		return nil, 0, fmt.Errorf("%w: %w", ErrExpired, err)
 	default:
 		return nil, 0, fmt.Errorf("%w: %w", ErrRunner, err)
@@ -403,8 +398,8 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 		// A cancel that comes again while the engine has not ended the workflow does not count the run again.
 		recordEnd(ctx, rec.Kind, caller, StatusCanceled, "", s.clock.Now().Sub(rec.CreatedAt))
 	}
-	// The engine stops calling the run's steps, but the Job would run its command to the end. The garbage collector
-	// deletes it too, if this fails.
+	// The engine stops calling the run's steps, but the Job would run its command to the end. If this fails, the
+	// garbage collector deletes the Job.
 	if err := deleteJob(ctx, s.sandbox, rec.state.Spec.Namespace, runID); err != nil {
 		logging.FromContext(ctx).
 			Info("Could not delete the Job of a canceled run", "runId", runID, "error", err.Error())

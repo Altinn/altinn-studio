@@ -15,10 +15,9 @@ import (
 const (
 	// QueueWaiting is the gauge of queued runs for each kind.
 	QueueWaiting = "altinn.core_operator.queue.waiting"
-	// RunDuration is the histogram of runs that ended, from their create to their final status. Its count is the
-	// number of runs that ended, by kind, caller, status and reason.
+	// RunDuration is the histogram of runs that ended. Its count is the number of runs that ended.
 	RunDuration = "altinn.core_operator.run.duration"
-	// QueueWaitDuration is the histogram of the time from a run's create to its admission, by kind and caller.
+	// QueueWaitDuration is the histogram of the time from a run's create to its admission.
 	QueueWaitDuration = "altinn.core_operator.queue.wait.duration"
 )
 
