@@ -1,6 +1,5 @@
-# The Role allows the core operator to create Jobs. RBAC cannot limit what a Job contains. This policy makes sure that
-# the operator can start only operator runner pods. It accepts a Job from the operator only when the pod of the Job is
-# the pod of the PodTemplate operator-runner.
+# RBAC cannot limit what a Job contains. So this policy accepts a Job from the core operator only when the pod of the
+# Job is the pod of the PodTemplate operator-runner.
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:

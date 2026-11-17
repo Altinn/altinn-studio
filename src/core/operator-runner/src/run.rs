@@ -51,10 +51,8 @@ git diff --cached --binary --no-renames --no-color --no-ext-diff --no-textconv -
 /// What a command runs, what its VM can reach, and what the operator runner returns. Each command is one reviewed
 /// entry, so a client names a command and never sends a command line.
 ///
-/// A command runs in a VM from the guest image of its pod. The kind of the command in the core operator names the
-/// `PodTemplate`, so a command that needs other tools than [`Dockerfile.guest`](../Dockerfile.guest) has needs a
-/// `PodTemplate` with its own guest image. That `PodTemplate` also needs an entry in the Role of the operator and its
-/// own binding of the admission policy, as [Add a command](../README.md#add-a-command) says.
+/// A command that needs tools that [`Dockerfile.guest`](../Dockerfile.guest) does not have needs its own guest image
+/// and `PodTemplate`, as [Add a command](../README.md#add-a-command) says.
 pub struct Spec {
     pub name: &'static str,
     /// The shell script of the command. It starts in `/job`, with the app in `/job/app`.
@@ -114,7 +112,7 @@ impl Command {
 pub struct Run {
     pub command: Command,
     pub archive: Bytes,
-    /// The command stops at this time. The VM must also start, and the app be in it, before this time.
+    /// The run has its result by this time.
     pub deadline: Instant,
 }
 
@@ -130,8 +128,8 @@ pub struct Outcome {
     /// The JSON object in the report file of the command. `None` when the command has no report file, or wrote no JSON
     /// object to it.
     pub report: Option<Map<String, Value>>,
-    /// The changes of the command as base64. A patch can contain bytes that are not UTF-8. `None` when the command
-    /// does not change the app, or timed out.
+    /// The changes as base64, because a patch can contain bytes that are not UTF-8. `None` when the command does not
+    /// change the app, or timed out.
     pub patch: Option<String>,
 }
 
@@ -239,8 +237,7 @@ fn parse_report(contents: &[u8]) -> Option<Map<String, Value>> {
     }
 }
 
-/// A command that timed out has no patch, because its changes are not complete. App code made the patch, so the
-/// operator runner checks it before it returns it.
+/// A command that timed out has no patch, because its changes are not complete.
 async fn patch_of(vm: &Vm, ending: Ending, deadline: Instant) -> Result<Option<Vec<u8>>, RunError> {
     if ending == Ending::TimedOut {
         return Ok(None);

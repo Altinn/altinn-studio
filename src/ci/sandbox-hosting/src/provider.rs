@@ -80,7 +80,7 @@ impl ProviderArguments {
     ///
     /// # Errors
     ///
-    /// Returns an error when the directory cannot be read or one of its entries cannot be removed.
+    /// Returns an error when it cannot read the directory or remove an entry.
     pub async fn clear_home(&self) -> Result<(), io::Error> {
         let mut entries = match tokio::fs::read_dir(&self.provider_home).await {
             Ok(entries) => entries,

@@ -14,9 +14,7 @@
 
 use std::fmt;
 
-/// CI workflows run with the secrets of the repository.
 const REFUSED_FOLDERS: [&[u8]; 2] = [b".github/", b".gitea/"];
-/// These files change what git does with the other files.
 const REFUSED_FILE_NAMES: [&[u8]; 2] = [b".gitattributes", b".gitmodules"];
 const DEV_NULL: &[u8] = b"/dev/null";
 const BASE85: &[u8] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";

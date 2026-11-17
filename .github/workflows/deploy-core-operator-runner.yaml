@@ -124,7 +124,7 @@ jobs:
           esac
           echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
-  # The pod imports this image in its init container, so that registry credentials are not necessary for the pod.
+  # The init container of the run pod imports this image, so that the pod needs no registry credentials.
   build-prepared-image:
     name: Build the prepared guest image
     needs: build-images

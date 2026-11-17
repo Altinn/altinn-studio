@@ -9,7 +9,7 @@ use sandbox_authorization::{
 /// The hosts of `nuget.org`.
 ///
 /// `dotnet restore` downloads packages from `api.nuget.org`. studioctl finds package versions through the package
-/// search hosts. Change a list of hosts only through a reviewed pull request.
+/// search hosts.
 pub const NUGET_HOSTS: &[&str] = &[
     "api.nuget.org",
     "azuresearch-usnc.nuget.org",
@@ -31,9 +31,8 @@ impl AllowedHosts {
 
 /// Lets the VM of a run resolve and reach the hosts of its command with HTTPS. It blocks all other network access.
 ///
-/// This policy does not block address ranges. The Sandbox network layer verifies that the server has a valid
-/// certificate for the host name. The network policy of the namespace `sandbox-runs` blocks the private address
-/// ranges.
+/// This policy checks host names, not addresses. The Sandbox network layer verifies the certificate of the server for
+/// the host name, and the network policy of `sandbox-runs` blocks the private address ranges.
 pub struct AllowlistPolicy {
     hosts: AllowedHosts,
 }

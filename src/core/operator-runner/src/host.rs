@@ -67,8 +67,7 @@ impl Reply {
     }
 }
 
-/// The status of a run without its output. A client can follow the run with it, because it does not count as the
-/// fetch.
+/// The status of a run without its output.
 #[derive(Debug, Serialize)]
 #[serde(tag = "status", rename_all = "lowercase", rename_all_fields = "camelCase")]
 enum Summary<'a> {
@@ -135,11 +134,8 @@ pub struct Timeouts {
     pub grace: Duration,
 }
 
-/// The one run that the operator runner serves, from its claim until the operator runner exits.
-///
-/// The first request that delivers a complete archive claims the operator runner for its run id. The run continues when
-/// the client goes away. The operator runner keeps the result until a client fetches it, and then stops and deletes the
-/// VM.
+/// The one run that the operator runner serves, from its claim until the operator runner exits. The first request that
+/// delivers a complete archive claims the operator runner for its run id.
 pub struct Host {
     state: watch::Sender<State>,
     runner: Rc<dyn Runner>,
@@ -343,8 +339,7 @@ impl Host {
         }
     }
 
-    /// Completes after `timeout` if no run claimed the operator runner. If an archive arrives at that time, it waits for
-    /// the archive. If a run claimed the operator runner, the operator runner continues until the result is served.
+    /// Completes after `timeout` if no run claimed the operator runner. It waits for an archive that arrives then.
     async fn unclaimed_after(&self, timeout: Duration) {
         tokio::time::sleep(timeout).await;
         self.claimed_or_idle().await;
@@ -353,8 +348,7 @@ impl Host {
         }
     }
 
-    /// Completes when a run claimed the operator runner, or when no archive arrives. The time to wait for a run uses
-    /// this, so that it does not stop the operator runner while an archive arrives.
+    /// Completes when a run claimed the operator runner, or when no archive arrives.
     async fn claimed_or_idle(&self) {
         self.wait_until(|state| !matches!(state.phase, Phase::Unclaimed) || state.uploads == 0)
             .await;
@@ -418,8 +412,8 @@ impl Host {
         answer
     }
 
-    /// Runs the command and keeps its result. When the command ends, the operator runner deletes the VM at once. When
-    /// the operator runner stops during the run, [`Host::serve_until_stop`] deletes the VM.
+    /// Runs the command, deletes the VM and keeps the result. When the operator runner stops during the run,
+    /// [`Host::serve_until_stop`] deletes the VM.
     async fn run_to_end(self: Rc<Self>, run_id: RunId, run: Run) {
         let ran = tokio::select! {
             ran = self.runner.run(run) => Some(ran),

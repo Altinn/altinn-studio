@@ -1,6 +1,6 @@
-# This is the pod of each run Job. The core operator reads this template and creates a Job with exactly this pod spec.
-# The policy in admission-policy.yaml does not accept a different pod spec. The deploy workflow pins the images by
-# digest in the annotations. The replacements in kustomization.yaml copy the images into the pod spec.
+# The pod of each run Job. The core operator copies this pod spec into each Job, and admission-policy.yaml refuses any
+# other. The deploy workflow pins the images by digest in the annotations, and kustomization.yaml copies them into the
+# pod spec.
 apiVersion: v1
 kind: PodTemplate
 metadata:
@@ -32,7 +32,7 @@ template:
         operator: Equal
         value: sandbox
         effect: NoSchedule
-    # On SIGTERM, the operator runner stops a run and deletes its VM. The maximum time for this is one minute.
+    # On SIGTERM, the operator runner stops a run and deletes its VM, in at most a minute.
     terminationGracePeriodSeconds: 90
     # To start a VM, the operator runner must have root and /dev/kvm. The app code runs in the VM, not in this pod.
     securityContext:
@@ -42,8 +42,8 @@ template:
       seccompProfile:
         type: RuntimeDefault
     initContainers:
-      # This init container imports the guest image into the image cache, so that registry credentials are not necessary
-      # for the pod.
+      # This init container imports the guest image into the image cache, so that the pod needs no registry
+      # credentials.
       - name: prepare-image
         image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-prepared:latest
         imagePullPolicy: IfNotPresent

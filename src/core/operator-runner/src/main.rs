@@ -24,8 +24,7 @@ struct Arguments {
     /// The address of the HTTP API.
     #[arg(long, env = "LISTEN_ADDRESS", default_value = "0.0.0.0:8080")]
     listen_address: SocketAddr,
-    /// The time in seconds to wait for a run after the operator runner is ready. If no run claims the operator runner,
-    /// it exits with 0. This value has no default here, because the `PodTemplate` sets it.
+    /// The time in seconds that the operator runner waits for a run after it is ready, before it exits with 0.
     #[arg(long, env = "REQUEST_TIMEOUT_SECONDS")]
     request_timeout_seconds: NonZeroU64,
     /// The time in seconds that the operator runner keeps a result that no client fetched. Then it exits with 0.
@@ -76,7 +75,6 @@ async fn serve_one_run(
     let listener = TcpListener::bind(listen_address).await?;
     let mut signals = ShutdownSignals::new()?;
     tracing::info!(%listen_address, ?timeouts, "the operator runner is ready for one run");
-    // If the operator runner cannot delete the VM, it exits with an error.
     http::serve(listener, routes, host.serve_until_stop(timeouts, signals.receive())).await
 }
 

@@ -11,8 +11,11 @@ COPY --from=sdk10 /usr/share/dotnet/sdk /usr/share/dotnet/sdk
 COPY --from=sdk10 /usr/share/dotnet/sdk-manifests /usr/share/dotnet/sdk-manifests
 COPY --from=sdk10 /usr/share/dotnet/shared /usr/share/dotnet/shared
 
-# Only a reviewed change of these two values can put a new studioctl version into production.
-# "Update studioctl" in README.md gives the procedure to update them.
+# These two values pin studioctl, so only a reviewed change puts a new version into production. Renovate cannot change
+# them together. Set STUDIOCTL_VERSION to the release tag, and STUDIOCTL_INSTALL_SCRIPT_SHA256 to the SHA-256 of its
+# install.sh:
+#   gh release download studioctl/<tag> -R Altinn/altinn-studio -p install.sh -O - | sha256sum
+# CI then upgrades the v8 template with the new version in a microVM.
 ARG STUDIOCTL_VERSION=v0.1.0-preview.33
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=03c0c0d7ae5e74190c856ed05d3d326df54c3caae4ac8509daded26b63b97357
 

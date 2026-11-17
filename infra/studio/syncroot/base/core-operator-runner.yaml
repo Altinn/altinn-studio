@@ -1,5 +1,4 @@
-# The operator runner Jobs of the core operator: the sandbox-runs namespace, its PodTemplate, quota, network policy and
-# the admission policy that limits what the operator may create. See src/core/operator-runner/README.md. Only the
+# What the core operator needs to run operator runner Jobs. See src/core/operator-runner/README.md. Only the
 # environments with sandbox nodes include this file.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
@@ -20,8 +19,7 @@ metadata:
   name: core-operator-runner
   namespace: default
 spec:
-  # No targetNamespace: each namespaced object in the artifact sets its namespace, and the admission policy in the
-  # artifact is cluster-scoped.
+  # No targetNamespace, because the artifact has a cluster-scoped admission policy.
   interval: 5m
   sourceRef:
     kind: OCIRepository

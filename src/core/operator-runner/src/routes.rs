@@ -25,7 +25,7 @@ const BODY_TIMEOUT: Duration = Duration::from_mins(2);
 /// The longest time that a request for the status or the result waits for the end of the run.
 const MAX_WAIT_SECONDS: u64 = 30;
 
-/// The HTTP API of the operator runner. The first run that delivers a complete archive claims the operator runner.
+/// The HTTP API of the operator runner.
 pub struct Routes {
     host: Rc<Host>,
     max_archive_bytes: usize,

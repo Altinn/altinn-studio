@@ -24,8 +24,8 @@ use crate::{
 const JOB_FOLDER: &str = "/job";
 const VM_NAME: &str = "job";
 
-/// The guest image and the size of the VM. These values have no defaults here, because the `PodTemplate` sets them
-/// together with the resources of the pod that contains the VM.
+/// The guest image and the size of the VM. They have no defaults, because the `PodTemplate` sets them with the
+/// resources of the pod.
 #[derive(Args)]
 pub struct VmArguments {
     /// The guest image, pinned by digest, with git and the tools of the commands that the kinds of this `PodTemplate`
@@ -53,8 +53,7 @@ pub struct Vms {
     hosts: AllowedHosts,
 }
 
-/// A VM that runs. A drop does not delete the VM. The operator runner deletes it with [`Vms::delete`] when the command
-/// ends, and again when the operator runner stops.
+/// A VM that runs. A drop does not delete the VM.
 pub struct Vm {
     handle: SandboxHandle,
 }

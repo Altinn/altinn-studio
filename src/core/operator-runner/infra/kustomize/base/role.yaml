@@ -1,5 +1,3 @@
-# For each run, the core operator starts one Job and watches its pod until the pod is Ready. After the run, the
-# operator deletes the Job.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:

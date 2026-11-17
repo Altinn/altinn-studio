@@ -5,13 +5,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /source
-# rust-toolchain.toml selects the compiler, as it does in CI. Renovate moves this image with it, so
-# the image normally already has that release; otherwise rustup installs it here.
+# rust-toolchain.toml selects the compiler, as in CI. Renovate moves this image with it, and rustup installs the
+# release when the image does not have it.
 COPY rust-toolchain.toml ./
 RUN rustup toolchain install --no-self-update \
     && rustc --version
 COPY Cargo.toml Cargo.lock ./
-# The build context contains the Rust sources of all workspace members, because Cargo reads all of them.
 COPY src src
 RUN cargo build \
     --locked \

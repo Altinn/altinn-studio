@@ -1,7 +1,7 @@
 # AGENTS.md
 
-- If you change how a run runs, do not rely on `make check` alone, because the unit tests use a fake in place of the
-  VM. Say so when you report the change. Only the CI workflow runs a command in a microVM.
+- `make check` runs no command in a microVM. Only the CI workflow does. If you change how a run runs, say in your
+  report that only CI tests it in a microVM.
 - Do not give the operator runner, the guest image or a VM a secret or a token. The operator runner is safe because it
   has nothing to steal.
 - The operator runner serves one run and then exits. Do not add a queue or a second run. The core operator queues runs.

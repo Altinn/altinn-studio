@@ -61,7 +61,7 @@ jobs:
   microvm:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Test the guest image and the operator runner
-    # A KVM run is slow. It starts only after the build job passes.
+    # A KVM run is slow, so it waits for the build job.
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -69,7 +69,7 @@ jobs:
       REGISTRY: localhost:5000
       OPERATOR_RUNNER_IMAGE: operator-runner:ci
       OPERATOR_RUNNER_URL: http://127.0.0.1:8080
-      # In a cluster, the PodTemplate sets these values. This job runs the container without a PodTemplate.
+      # In a cluster, the PodTemplate sets these values.
       SANDBOX_CPUS: "2"
       SANDBOX_MEMORY: 4Gi
       SANDBOX_ROOT_FILESYSTEM: 20Gi
@@ -89,9 +89,8 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm
 
-      # The export of the prepared image reads from a registry. A registry on this runner uses no credentials and
-      # publishes nothing. Docker pushes to a registry on localhost with plain HTTP. The Microsandbox configuration of
-      # the export allows plain HTTP for this registry.
+      # The export of the prepared image reads from a registry. A registry on this runner needs no credentials and
+      # publishes nothing.
       - name: Start a registry on this runner
         run: |
           docker run --detach --name registry --publish 127.0.0.1:5000:5000 \
@@ -108,8 +107,8 @@ jobs:
       - name: Build the operator runner image
         run: docker build -t "${OPERATOR_RUNNER_IMAGE}" -f src/core/operator-runner/Dockerfile .
 
-      # On a sandbox node, root owns the hostPath folders. The root user of the pod has no capabilities. This step uses
-      # the same conditions. The Microsandbox configuration in the Provider home of the export allows the registry.
+      # This step runs as the pod does on a sandbox node: root owns the hostPath folders, and root has no capabilities.
+      # The Microsandbox configuration of the export allows plain HTTP to the registry on this runner.
       - name: Export and import the prepared guest image, as the deploy and the init container do
         run: |
           mkdir -p "${RUNNER_TEMP}"/{prepared,export-cache,export-home/runtime,cache,home}
@@ -129,9 +128,7 @@ jobs:
             "${OPERATOR_RUNNER_IMAGE}" import
 
       # start-operator-runner.sh starts the operator runner with the restrictions of the pod: root without capabilities,
-      # a read-only root file system and /dev/kvm. The operator runner reads its settings from the environment of the
-      # step. start-run.sh sends an archive, as the operator does, and fetch-result.sh asks for the result until the run
-      # ends.
+      # a read-only root file system and /dev/kvm. It takes the settings from the environment of the step.
       - name: Write the scripts
         run: |
           cat > "${RUNNER_TEMP}/start-operator-runner.sh" <<'SCRIPT'
@@ -194,7 +191,7 @@ jobs:
           jq -e '.status == "completed" and .exitCode == 0 and (.report | type) == "object" and .patch != null' "${RUNNER_TEMP}/result.json" > /dev/null \
             || { jq 'del(.patch)' "${RUNNER_TEMP}/result.json"; exit 1; }
           jq -r .patch "${RUNNER_TEMP}/result.json" | base64 -d > "${RUNNER_TEMP}/changes.patch"
-          # After the first fetch, the operator runner keeps the result for 30 seconds, and then exits with 0.
+          # The operator runner exits with 0 RESULT_GRACE_SECONDS after the first fetch.
           test "$(timeout 120 docker wait operator-runner)" = 0
           docker rm operator-runner
           cp -R src/App/template/v8/src "${RUNNER_TEMP}/app"
