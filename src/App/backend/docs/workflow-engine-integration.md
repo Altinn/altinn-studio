@@ -76,7 +76,8 @@ the step's execution reference time, which stays the same across retries.
 - Acquired: the callback enqueues the primary workflow.
 - Superseded: the instance changed, or another transition holds it. The step succeeds and enqueues nothing, because a
   failed acquire workflow would condemn the workflows queued behind it.
-- Rejected: an invalid payload, or a lost claim during instantiation, fails permanently.
+- Rejected: an invalid payload, or a lost claim by a workflow with no transition to enqueue, as at instantiation,
+  fails permanently.
 
 Every later save expects `processing`. `ReleaseProcessingStatus` moves the instance back to `idle` in the last save,
 unless a service task follows. Then the workflow that the service task enqueues when it concludes releases it. A
@@ -196,6 +197,19 @@ retention period, which bounds how long a resume is possible.
   its own state. `process/resume` never targets it. A failure in the process-end steps holds back that transition's
   auxiliary workflows until a resume.
 
+## Service tasks from v8
+
+v8 ran a service task in the request that entered it. When the task failed, it left the instance idle in the task and
+ran the task again on the next `process/next`. v9 keeps the instance processing through a service task, so an idle
+instance in a service task with no workflow running or failed comes from v8.
+
+- Reads report the task as failed, with the task as target and no failure, so the frontend offers its retry.
+- `process/next` and `process/resume` both run the task, in one workflow keyed like `process/next` on the instance
+  version. It acquires the instance, runs `CleanupGeneratedFromTask` so the task replaces what an earlier run
+  generated, and then the task's steps. The task-start hooks and stages do not run again, since v8 ran them. The
+  process then goes on as after any service task, and both requests wait for it as `process/next` waits.
+- If the task fails again, the workflow fails as any service task does, and `process/resume` resumes it.
+
 ## Mailboxes
 
 A mailbox lets a service task wait for a message instead of polling. The
@@ -263,3 +277,6 @@ app does not guard against it. Names would not help either, since a redeploy can
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
   and never succeed.
+- The workflow that runs a service task from v8 fails permanently if the instance changed after the request read it,
+  and so does a resume, since the acquire retries against the same versions. An operator abandons the workflow, and
+  the task is then offered again.

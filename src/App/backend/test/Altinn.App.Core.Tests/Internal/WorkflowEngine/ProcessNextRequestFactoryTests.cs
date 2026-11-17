@@ -2647,6 +2647,79 @@ public class ProcessNextRequestFactoryTests
         Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), exception.Message);
     }
 
+    [Fact]
+    public async Task CreateServiceTaskAdoption_RunsTheTaskWithoutItsStartHooksOrStages()
+    {
+        // v8 started the task, running its hooks and start work, before the task failed and left the instance in it.
+        var factory = CreateFactory(
+            configureServices: services => AddHookHandler(services, typeof(IOnTaskStartingHandler)),
+            serviceTasks: new StagedStartServiceTask()
+        );
+        var instance = new Instance
+        {
+            Id = TestInstance.Id,
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "Task_Service",
+                    AltinnTaskType = StagedStartServiceTask.TaskType,
+                    Flow = 4,
+                },
+            },
+        };
+
+        WorkflowEnqueueEnvelope adoption = await factory.CreateServiceTaskAdoption(
+            instance,
+            SignedTestState,
+            "adoption-key",
+            language: null
+        );
+
+        WorkflowRequest workflow = Assert.Single(adoption.Request.Workflows);
+        Assert.Equal("Process next: Run Task_Service", workflow.OperationId);
+        Assert.Equal(
+            [
+                (ProcessingStatusAcquirer.Key, null),
+                (CleanupGeneratedFromTask.Key, "Task_Service"),
+                (ExecuteServiceTask.Key, null),
+            ],
+            ExtractCommandElements(workflow)
+        );
+        Assert.Equal(SignedTestState, workflow.State);
+        Assert.Null(workflow.DependsOn);
+        Assert.Equal("adoption-key", adoption.IdempotencyKey);
+        Assert.Equal(new InstanceIdentifier(TestInstance).InstanceGuid.ToString(), adoption.CollectionKey);
+        // A transition into the task, as status reads and the admin panel see it.
+        Assert.Equal("Task_Service", adoption.Request.Labels![ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        Assert.False(adoption.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextSourceTaskLabel));
+
+        // A transition into the same task plans the hook and the start stages, so their absence above is the rule.
+        List<string> taskStart = ExtractCommandKeys(
+            await factory.CreateChainInitiating(
+                TestInstance,
+                CreateTaskToTaskTransition(toAltinnTaskType: StagedStartServiceTask.TaskType),
+                "transition-key",
+                SignedTestState
+            )
+        );
+        Assert.Contains(OnTaskStartingHook.Key, taskStart);
+        Assert.Contains(StartTask.Key, taskStart);
+    }
+
+    private sealed class StagedStartServiceTask : IServiceTask
+    {
+        public const string TaskType = "staged-service";
+
+        public string Type => TaskType;
+
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline.Stage(_ => Task.FromResult(StageResult.Completed())).Build();
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    }
+
     private sealed class StagedStartTask : IProcessTask
     {
         public string Type => "staged";

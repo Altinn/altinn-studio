@@ -111,7 +111,7 @@ internal sealed class ProcessingStatusAcquirer
         {
             return acquirePayload is null
                 ? new ProcessingStatusAcquisition.Rejected(
-                    "The instance changed before its initial process could claim it.",
+                    "The instance changed before the workflow could claim it.",
                     exception.GetType().Name
                 )
                 : new ProcessingStatusAcquisition.Superseded(exception);

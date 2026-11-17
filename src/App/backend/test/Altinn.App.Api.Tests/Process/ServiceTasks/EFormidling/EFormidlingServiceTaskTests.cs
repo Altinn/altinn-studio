@@ -5,12 +5,14 @@ using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Xunit.Abstractions;
 
@@ -30,10 +32,14 @@ public class EFormidlingServiceTaskTests : ApiTestBase
     public EFormidlingServiceTaskTests(ITestOutputHelper outputHelper)
         : base(outputHelper)
     {
+        // The instance waits in the PDF task before the eFormidling task, idle as v8 left it, so process/next runs the
+        // PDF task first, which authenticates with Maskinporten.
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_eFormidlingServiceMock.Object);
             services.AddTransient<IProcessClient, ProcessClientMock>();
+            services.RemoveAll<IMaskinportenClient>();
+            services.AddSingleton(Mock.Of<IMaskinportenClient>());
         };
 
         // The task concludes only once delivery is confirmed, so the default here is an

@@ -38,6 +38,18 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
+    /// Enqueues the workflow that runs the current service task of an instance left in it without a workflow, and
+    /// waits for it and the transition after the task to settle.
+    /// </summary>
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForServiceTaskAdoption(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        string? language,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Returns the current task's transition status, destination, and failure for reads and process/resume.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(

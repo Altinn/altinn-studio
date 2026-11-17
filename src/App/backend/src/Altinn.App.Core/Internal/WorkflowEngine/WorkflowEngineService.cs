@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -169,6 +170,25 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
     }
 
+    public Task<ProcessNextWorkflowResult> EnqueueAndWaitForServiceTaskAdoption(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        string? language,
+        CancellationToken cancellationToken = default
+    ) =>
+        EnqueueAndWaitForWorkflow(
+            instance,
+            () =>
+                _processNextRequestFactory.CreateServiceTaskAdoption(
+                    instance,
+                    state,
+                    CreateProcessNextIdempotencyKey(instance, instanceVersions),
+                    language
+                ),
+            cancellationToken
+        );
+
     public Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
@@ -197,7 +217,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
 
-        if (instance.Process?.CurrentTask?.ElementId is not { Length: > 0 })
+        if (instance.Process?.CurrentTask is not { ElementId: { Length: > 0 } currentTaskId } currentTask)
         {
             // Not started, or ended: there is no current task to annotate, so don't query the
             // engine. Known gap: the final (task -> end) transition's post-commit steps still run
@@ -207,6 +227,19 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             // workflows (see the live workflow-status ADR).
             return idle;
         }
+
+        // v9 keeps an instance processing through a service task, so an idle instance in one with no workflow
+        // running or failed was left there by v8, which ran the task again on the next process/next. Reporting it as
+        // failed shows the frontend's retry, and process/next and process/resume run the task.
+        WorkflowTaskStatus Settled() =>
+            ProcessStatusHelper.IsIdle(instance) && _processNextRequestFactory.IsServiceTask(currentTask.AltinnTaskType)
+                ? new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Failed,
+                    currentTaskId,
+                    Failure: null,
+                    ServiceTaskWithoutWorkflow: true
+                )
+                : idle;
 
         // The process-next collection key is deterministically the instance guid (see
         // ProcessNextRequestFactory), so the read path goes straight to the collection heads rather
@@ -220,7 +253,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         if (collection is null || collection.Heads.Count == 0)
         {
-            return idle;
+            return Settled();
         }
 
         // A head that is active means a transition is in flight (processing); a head that failed
@@ -263,7 +296,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         if (resumeRequiredHead is null)
         {
-            return idle;
+            return Settled();
         }
 
         // A failed transition additionally needs its failure detail, which lives in the workflow's
@@ -500,10 +533,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     bool anchoredChainParked =
                         activeWorkflows.Count > 0 && activeWorkflows.TrueForAll(IsParkedWorkflowStatus);
 
-                    // The committed-state guard is defensive: should a pre-commit step ever learn to
-                    // defer, fall through to the ordinary wait (and its timeout) rather than returning a
-                    // process state that does not exist yet.
-                    if (anchoredChainParked && HasCommittedProcessState(currentChain))
+                    // The commit guard is defensive: should a pre-commit step ever learn to defer, fall
+                    // through to the ordinary wait (and its timeout) rather than returning a process state
+                    // that does not exist yet. A chain with no commit step, such as one that runs the
+                    // current service task, has nothing left to commit.
+                    if (anchoredChainParked && !HasPendingProcessStateCommit(currentChain))
                     {
                         InstanceWithStorageMetadata freshInstance =
                             await _instanceClient.GetInstanceWithStorageMetadata(
@@ -675,6 +709,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         hierarchyWorkflows.Any(workflow =>
             workflow.Steps.Any(step =>
                 step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
+            )
+        );
+
+    private static bool HasPendingProcessStateCommit(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
+        hierarchyWorkflows.Any(workflow =>
+            workflow.Steps.Any(step =>
+                step.OperationId == CommitProcessState.Key && step.Status != PersistentItemStatus.Completed
             )
         );
 

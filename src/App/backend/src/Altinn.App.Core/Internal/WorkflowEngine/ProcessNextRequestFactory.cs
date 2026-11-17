@@ -173,19 +173,81 @@ internal sealed class ProcessNextRequestFactory
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
+        var workflow = new WorkflowRequest
+        {
+            OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
+            Steps = [CreateStep(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange))],
+            State = state,
+        };
+        return await CreateSingleWorkflowEnvelope(
+            instanceId,
+            workflow,
+            CreateProcessNextLabels(
+                instanceId,
+                instance.Process?.CurrentTask,
+                processStateChange.NewProcessState?.CurrentTask?.ElementId
+            ),
+            idempotencyKey,
+            language
+        );
+    }
+
+    /// <summary>
+    /// Creates the workflow that runs the current service task of an instance left in it without a workflow, as v8
+    /// left a failed one. It acquires the instance and runs <see cref="WorkflowStepSet.GetServiceTaskAdoptionSteps"/>.
+    /// When the task concludes, the process goes on as after any service task.
+    /// </summary>
+    public async Task<WorkflowEnqueueEnvelope> CreateServiceTaskAdoption(
+        Instance instance,
+        string state,
+        string idempotencyKey,
+        string? language
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        InstanceIdentifier instanceId = new(instance);
+        ProcessElementInfo currentTask = instance.Process?.CurrentTask is { ElementId.Length: > 0 } task
+            ? task
+            : throw new InvalidOperationException("The instance has no current task.");
+        ResolvedServiceTask serviceTask =
+            ResolveServiceTask(GetServiceTaskType(currentTask.AltinnTaskType))
+            ?? throw new InvalidOperationException(
+                $"The current task '{currentTask.ElementId}' is not a service task."
+            );
+
+        WorkflowStepSet adoption = WorkflowStepSet.GetServiceTaskAdoptionSteps(serviceTask);
+        var workflow = new WorkflowRequest
+        {
+            OperationId = $"{PrimaryOperationIdPrefix} Run {currentTask.ElementId}",
+            Steps =
+            [
+                CreateStep(ProcessingStatusAcquirer.Key),
+                .. adoption
+                    .LifecycleSteps.ToStepRequests(_stepOptionsResolver)
+                    .WithProcessElement(currentTask.ElementId),
+                .. adoption.PrimaryPostCommitSteps.ToStepRequests(_stepOptionsResolver),
+            ],
+            State = state,
+        };
+        return await CreateSingleWorkflowEnvelope(
+            instanceId,
+            workflow,
+            CreateProcessNextLabels(instanceId, sourceTask: null, currentTask.ElementId),
+            idempotencyKey,
+            language
+        );
+    }
+
+    private async Task<WorkflowEnqueueEnvelope> CreateSingleWorkflowEnvelope(
+        InstanceIdentifier instanceId,
+        WorkflowRequest workflow,
+        Dictionary<string, string> labels,
+        string idempotencyKey,
+        string? language
+    )
+    {
         Actor actor = await ExtractActor(language);
-        List<WorkflowRequest> workflows =
-        [
-            new WorkflowRequest
-            {
-                OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
-                Steps =
-                [
-                    CreateStep(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
-                ],
-                State = state,
-            },
-        ];
+        List<WorkflowRequest> workflows = [workflow];
         var context = new AppWorkflowContext
         {
             Actor = actor,
@@ -197,11 +259,7 @@ internal sealed class ProcessNextRequestFactory
         };
         var request = new WorkflowEnqueueRequest
         {
-            Labels = CreateProcessNextLabels(
-                instanceId,
-                instance.Process?.CurrentTask,
-                processStateChange.NewProcessState?.CurrentTask?.ElementId
-            ),
+            Labels = labels,
             Context = JsonSerializer.SerializeToElement(context),
             Workflows = workflows,
         };
@@ -561,6 +619,11 @@ internal sealed class ProcessNextRequestFactory
                 return null;
         }
     }
+
+    /// <summary>
+    /// Whether <paramref name="altinnTaskType"/> names a service task the app registers.
+    /// </summary>
+    internal bool IsServiceTask(string? altinnTaskType) => GetServiceTaskType(altinnTaskType) is not null;
 
     private string? GetServiceTaskType(string? altinnTaskType)
     {

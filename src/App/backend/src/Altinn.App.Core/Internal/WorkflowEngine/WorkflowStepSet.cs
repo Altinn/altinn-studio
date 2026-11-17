@@ -85,13 +85,7 @@ internal sealed class WorkflowStepSet
 
         if (context.ServiceTask is { } serviceTask)
         {
-            group.ServiceTaskFollowsCommit = true;
-
-            // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
-            // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
-            // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
-            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
-            group.AddPrimaryPostCommitSteps(segment.Steps);
+            group.AddServiceTask(serviceTask);
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -109,6 +103,14 @@ internal sealed class WorkflowStepSet
 
         return group;
     }
+
+    /// <summary>
+    /// The steps that run a service task an instance was left in without a workflow, as v8 left a failed one: the
+    /// cleanup a task start begins with, so the task replaces what an earlier run generated, and the task's own steps.
+    /// The task-start hooks and stages do not run again, since they ran when the task started.
+    /// </summary>
+    public static WorkflowStepSet GetServiceTaskAdoptionSteps(ResolvedServiceTask serviceTask) =>
+        new WorkflowStepSet().AddStep(CleanupGeneratedFromTask.Key).AddServiceTask(serviceTask);
 
     /// <summary>
     /// The steps for a task end event.
@@ -224,9 +226,15 @@ internal sealed class WorkflowStepSet
         return this;
     }
 
-    private WorkflowStepSet AddPrimaryPostCommitSteps(IEnumerable<PlannedStep> steps)
+    private WorkflowStepSet AddServiceTask(ResolvedServiceTask serviceTask)
     {
-        _primaryPostCommitSteps.AddRange(steps);
+        ServiceTaskFollowsCommit = true;
+
+        // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
+        // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
+        // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
+        ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+        _primaryPostCommitSteps.AddRange(segment.Steps);
         return this;
     }
 
