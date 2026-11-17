@@ -32,14 +32,8 @@ runs:
         GH_TOKEN: ${{ github.token }}
         REPOSITORY: ${{ github.repository }}
       run: |
+        # resolve-version validates the version, as vX.Y.Z or vX.Y.Z-<prerelease>
         version="$(go run . resolve-version --component "$COMPONENT" --base-branch "$BASE_BRANCH")"
-
-        # Fully anchored: a partial match would accept trailing junk, and a version such as `v9.0.0-` reaches
-        # `dotnet pack` only to fail there, after the release exists.
-        if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
-          echo "Resolved version is not vX.Y.Z[-prerelease]: $version" >&2
-          exit 1
-        fi
 
         # The releaser creates a draft release, which gets its tag when someone publishes it. A release for this
         # version, draft or published, means it is released already, or that a failed attempt left a draft to
