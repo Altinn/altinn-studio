@@ -1,6 +1,19 @@
 ﻿{
   Activities: [
     {
+      Name: DataModelFieldCalculator.Calculate,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          task.id: Task_1
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -21,7 +34,7 @@
           organization.number: 310702641
         },
         {
-          organization.systemuser.id: Guid_1
+          organization.systemuser.id: Guid_2
         },
         {
           server.address: localhost
@@ -30,7 +43,7 @@
           server.port: 80
         },
         {
-          TestId: Guid_2
+          TestId: Guid_3
         },
         {Scrubbed},
         {
@@ -43,7 +56,7 @@
           user.authentication.method: maskinporten
         },
         {
-          user.authentication.token.clientId: Guid_3
+          user.authentication.token.clientId: Guid_4
         },
         {
           user.authentication.token.isExchanged: true
@@ -81,7 +94,7 @@
           organization.number: 310702641
         },
         {
-          organization.systemuser.id: Guid_1
+          organization.systemuser.id: Guid_2
         },
         {
           server.address: localhost
@@ -90,7 +103,7 @@
           server.port: 80
         },
         {
-          TestId: Guid_2
+          TestId: Guid_3
         },
         {Scrubbed},
         {
@@ -103,7 +116,7 @@
           user.authentication.method: maskinporten
         },
         {
-          user.authentication.token.clientId: Guid_3
+          user.authentication.token.clientId: Guid_4
         },
         {
           user.authentication.token.isExchanged: true
@@ -133,7 +146,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_4
+          instance.guid: Guid_1
         },
         {
           process.callback.command: AcquireProcessingStatus
@@ -147,7 +160,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_4
+          instance.guid: Guid_1
         },
         {
           process.callback.command: CommitProcessState
@@ -161,7 +174,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_4
+          instance.guid: Guid_1
         },
         {
           process.callback.command: UnlockTaskData
@@ -175,7 +188,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_4
+          instance.guid: Guid_1
         },
         {
           process.callback.command: CleanupGeneratedFromTask
@@ -189,7 +202,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_4
+          instance.guid: Guid_1
         },
         {
           process.callback.command: CommonTaskInitialization
@@ -203,7 +216,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_4
+          instance.guid: Guid_1
         },
         {
           process.callback.command: ReleaseProcessingStatus
@@ -448,13 +461,13 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_2
+              TestId: Guid_3
             },
             {
               url.scheme: http
             },
             {
-              user.authentication.token.clientId: Guid_3
+              user.authentication.token.clientId: Guid_4
             },
             {
               user.authentication.token.isExchanged: true
@@ -482,13 +495,13 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_2
+              TestId: Guid_3
             },
             {
               url.scheme: http
             },
             {
-              user.authentication.token.clientId: Guid_3
+              user.authentication.token.clientId: Guid_4
             },
             {
               user.authentication.token.isExchanged: true
