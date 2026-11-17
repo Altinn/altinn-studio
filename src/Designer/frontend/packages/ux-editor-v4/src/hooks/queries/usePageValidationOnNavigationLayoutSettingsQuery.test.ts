@@ -4,7 +4,7 @@ import { waitFor } from '@testing-library/react';
 import type { IValidationOnNavigationPageSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useValidationOnNavigationPageSettingsQuery } from './usePageValidationOnNavigationLayoutSettingsQuery';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { QueryClient } from '@tanstack/react-query';

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"testing"
 	"time"
 
@@ -28,6 +29,8 @@ type VeraPDFResult struct {
 var (
 	veraPDFTimeAttr = regexp.MustCompile(`(start|finish)="\d+"`)
 	veraPDFDuration = regexp.MustCompile(`(<duration[^>]*>)[^<]*(</duration>)`)
+	veraPDFDetails  = regexp.MustCompile(`(?s)<details\b.*?</details>`)
+	veraPDFRule     = regexp.MustCompile(`(?s)<rule\b.*?</rule>`)
 )
 
 func withContainerClient(t *testing.T, run func(container.ContainerClient)) {
@@ -171,5 +174,20 @@ func readContainerOutput(
 func NormalizeVeraPDFXML(report string) string {
 	report = veraPDFTimeAttr.ReplaceAllString(report, `$1="0"`)
 	report = veraPDFDuration.ReplaceAllString(report, `${1}00:00:00.000${2}`)
+	report = veraPDFDetails.ReplaceAllStringFunc(report, sortVeraPDFRules)
 	return report
+}
+
+// sortVeraPDFRules sorts the <rule> elements of a <details> element, because veraPDF does not report rules in a
+// stable order. A rule element starts with its specification, clause and testNumber attributes, so sorting the
+// elements as text orders them by those.
+func sortVeraPDFRules(details string) string {
+	rules := veraPDFRule.FindAllString(details, -1)
+	slices.Sort(rules)
+	i := 0
+	return veraPDFRule.ReplaceAllStringFunc(details, func(string) string {
+		rule := rules[i]
+		i++
+		return rule
+	})
 }

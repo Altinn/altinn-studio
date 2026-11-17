@@ -1,11 +1,15 @@
 # Environments
 
-Altinn Studio hosts services and applications on Kubernetes clusters:
+Altinn Studio runs on these Kubernetes clusters:
 
-- Studio clusters, for control plane.
-- Runtime clusters, for service owner apps and our runtime-services.
-- DIS Core and platform clusters for shared platform-services.
-- Admin services clusters for non-dataplane shared services.
+- Studio clusters run Core: Designer, Gitea and the services around them.
+- Runtime clusters run each service owner's apps and our runtime services.
+- DIS Core runs Altinn's platform services, such as Altinn Studio's pdf3.
+- DIS Edge is the public ingress in front of DIS Core.
+- The platform cluster runs the older shared Altinn services, such as Storage and Receipt.
+- Adminservices hold shared resources, such as the workflow engine's database.
+
+The platform team runs the runtime clusters, DIS Core, DIS Edge, the platform cluster and adminservices.
 
 ## Studio clusters
 
@@ -43,13 +47,24 @@ Each service owner has one runtime cluster per environment it uses.
 
 ## DIS Core
 
-The platform team runs DIS Core clusters for services shared by Altinn's products.
+The platform team runs DIS Core clusters for Altinn's platform: services that Altinn's products share, and other
+products in the Altinn portfolio. Service owners' apps can use any of them. Some, such as
+[pdf3](../../src/Runtime/pdf3/README.md#dis-core), only Altinn Studio uses.
 
-- Services in DIS Core can serve multiple service owners.
-- Services include [pdf3](../../src/Runtime/pdf3/README.md#dis-core).
+- A service in DIS Core can serve multiple service owners.
 - Deployments use a separate artifact tag for each environment.
 - Publishing permissions are configured in
   [altinn-platform's syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots).
+
+## DIS Edge
+
+The platform team runs DIS Edge, the public ingress for services in DIS Core.
+
+- Products configure their own routes from Edge to DIS Core, such as
+  [pdf3's](../../src/Runtime/pdf3/README.md#dis-edge).
+- Edge environments match the DIS Core environments, and deployments use a separate artifact tag for each.
+- Publishing permissions are configured in the same
+  [syncroot configuration](https://github.com/Altinn/altinn-platform/tree/main/infrastructure/syncroots) as DIS Core.
 
 ## Platform cluster
 

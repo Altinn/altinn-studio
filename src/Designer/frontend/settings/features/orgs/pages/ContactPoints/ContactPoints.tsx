@@ -6,8 +6,8 @@ import {
   StudioList,
   StudioParagraph,
   StudioSpinner,
-} from '@studio/components';
-import { BellIcon } from '@studio/icons';
+} from '@designer/components';
+import { BellIcon } from '@designer/icons';
 import { useGetContactPointsQuery } from '../../hooks/useGetContactPointsQuery';
 import { PersonsList } from './components/PersonsList/PersonsList';
 import { SlackChannelsList } from './components/SlackChannelsList/SlackChannelsList';

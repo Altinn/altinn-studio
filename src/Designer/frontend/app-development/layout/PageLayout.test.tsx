@@ -3,7 +3,7 @@ import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { repoStatus } from 'app-shared/mocks/mocks';
@@ -13,7 +13,7 @@ import { syncEntityUpdateWebSocketHub, syncEventsWebSocketHub } from 'app-shared
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
 vi.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: vi.fn(),
@@ -53,6 +53,19 @@ describe('PageLayout', () => {
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading'), level: 1 }),
     ).toBeInTheDocument();
+  });
+
+  it('renders "UnsupportedRepositoryPage" instead of the app pages when the repository is not an app', () => {
+    const resourcesRepoName = 'my-org-resources';
+    render({}, resourcesRepoName);
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('unsupported_repository_page.heading', { repoName: resourcesRepoName }),
+        level: 1,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(textMock('repo_status.loading'))).not.toBeInTheDocument();
   });
 
   it('renders "MergeConflictWarning" when repoStatus has merge conflict', async () => {
@@ -196,13 +209,13 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
   await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 };
 
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
+const render = async (queries: Partial<ServicesContextProps> = {}, repoName: string = 'my-app') => {
   renderWithProviders(
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <PageLayout />
     </FeatureFlagsContextProvider>,
     {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/${repoName}/${RoutePaths.Overview}`,
       queries,
     },
   );

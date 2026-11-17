@@ -3,10 +3,10 @@ import { useUserQuery } from 'app-shared/hooks/queries';
 import { RoutePaths as UserRoutePaths } from '../../features/user/routes/RoutePaths';
 import { RoutePaths as OrgRoutePaths } from '../../features/orgs/routes/RoutePaths';
 import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@designer/components';
 import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 export const OwnerIndexRedirect = () => {
   const { t } = useTranslation();

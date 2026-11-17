@@ -8,14 +8,14 @@ import {
   TasksSelector,
   type TasksSelectorProps,
 } from './ValidateTargetSelectors';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 const layouts = {

@@ -3,12 +3,15 @@ package secretsync
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -62,14 +65,14 @@ func NewReconcilerForTesting(
 	}
 }
 
+const controllerName = "secretsync"
+
 // Reconcile handles secret changes and syncs them according to mappings.
 func (r *SecretSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	tracer := r.runtime.Tracer()
-	ctx, span := tracer.Start(ctx, "secretsync.Reconcile",
-		trace.WithAttributes(
-			attribute.String("name", req.Name),
-			attribute.String("namespace", req.Namespace),
-		),
+	ctx, span := telemetry.StartRun(ctx, controllerName, "secretsync.Reconcile",
+		telemetry.AttrObjectKind.String("Secret"),
+		telemetry.AttrObjectNamespace.String(req.Namespace),
+		telemetry.AttrObjectName.String(req.Name),
 	)
 	defer span.End()
 
@@ -104,7 +107,7 @@ func (r *SecretSyncReconciler) reconcileFromSource(
 		return r.deleteDestination(ctx, span, destKey)
 	}
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_source_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to get source secret: %w", err)
 	}
 
@@ -129,7 +132,7 @@ func (r *SecretSyncReconciler) reconcileFromDest(
 		return r.deleteDestination(ctx, span, destKey)
 	}
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_source_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to get source secret: %w", err)
 	}
 
@@ -145,7 +148,7 @@ func (r *SecretSyncReconciler) syncToDest(
 ) (ctrl.Result, error) {
 	destData, err := r.buildDestData(ctx, source.Data, mapping)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "build_destination_data", err)
 		return ctrl.Result{}, fmt.Errorf("failed to build destination data: %w", err)
 	}
 
@@ -166,7 +169,7 @@ func (r *SecretSyncReconciler) syncToDest(
 		dest.Labels["app.kubernetes.io/managed-by"] = "altinn-studio-operator"
 
 		if err := r.k8sClient.Create(ctx, dest); err != nil {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "create_destination_secret", err)
 			return ctrl.Result{}, fmt.Errorf("failed to create destination secret: %w", err)
 		}
 		r.logger.Info("created destination secret",
@@ -176,7 +179,7 @@ func (r *SecretSyncReconciler) syncToDest(
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_destination_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to get destination secret: %w", err)
 	}
 
@@ -187,7 +190,7 @@ func (r *SecretSyncReconciler) syncToDest(
 	dest.Data = destData
 
 	if err := r.k8sClient.Update(ctx, dest); err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "update_destination_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to update destination secret: %w", err)
 	}
 	r.logger.Info("synced destination secret",
@@ -227,13 +230,12 @@ func (r *SecretSyncReconciler) deleteDestination(
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_destination_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to get destination secret for deletion: %w", err)
 	}
 
 	if err := r.k8sClient.Delete(ctx, dest); err != nil && !apierrors.IsNotFound(err) {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to delete destination")
+		commontelemetry.SetError(span, "delete_destination_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to delete destination secret: %w", err)
 	}
 	r.logger.Info("deleted destination secret (source was deleted)",
@@ -255,7 +257,7 @@ func (r *SecretSyncReconciler) clearDestination(
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_destination_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to get destination secret for clearing: %w", err)
 	}
 
@@ -266,7 +268,7 @@ func (r *SecretSyncReconciler) clearDestination(
 	}
 
 	if err := r.k8sClient.Update(ctx, dest); err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "clear_destination_secret", err)
 		return ctrl.Result{}, fmt.Errorf("failed to clear destination secret: %w", err)
 	}
 	r.logger.Info("cleared destination secret (source was deleted)",
@@ -294,7 +296,7 @@ func (r *SecretSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
 		Named("secretsync").
 		For(&corev1.Secret{}, builder.WithPredicates(r.secretPredicate())).
-		Complete(r); err != nil {
+		Complete(telemetry.QuietOnCancel(r)); err != nil {
 		return fmt.Errorf("complete SecretSync controller builder: %w", err)
 	}
 	return nil
@@ -319,13 +321,12 @@ func (r *SecretSyncReconciler) secretPredicate() predicate.Predicate {
 
 // SyncAll synchronizes all mappings. Useful for testing and initial sync.
 func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
-	tracer := r.runtime.Tracer()
-	ctx, span := tracer.Start(ctx, "secretsync.SyncAll",
-		trace.WithAttributes(attribute.Int("mappings", len(r.mappings))),
+	ctx, span := telemetry.StartRun(ctx, controllerName, "secretsync.SyncAll",
+		attribute.Int("altinn.operator.secretsync.mappings", len(r.mappings)),
 	)
 	defer span.End()
 
-	var lastErr error
+	var syncErr error
 	for _, mapping := range r.mappings {
 		_, err := r.Reconcile(ctx, reconcile.Request{
 			NamespacedName: client.ObjectKey{
@@ -334,18 +335,24 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 			},
 		})
 		if err != nil {
-			r.logger.Error(err, "failed to sync mapping",
-				"sourceName", mapping.SourceName,
-				"sourceNamespace", mapping.SourceNamespace,
-			)
-			lastErr = err
+			syncErr = errors.Join(syncErr, err)
+			if !errors.Is(err, context.Canceled) {
+				r.logger.Error(err, "failed to sync mapping",
+					"sourceName", mapping.SourceName,
+					"sourceNamespace", mapping.SourceNamespace,
+				)
+			}
+			// The run was stopped, so the remaining mappings would fail the same way.
+			if ctx.Err() != nil {
+				break
+			}
 		}
 	}
 
-	if lastErr != nil {
-		span.SetStatus(codes.Error, "one or more mappings failed")
+	if syncErr != nil {
+		commontelemetry.SetError(span, "sync_mappings", syncErr)
 	}
-	return lastErr
+	return syncErr
 }
 
 func copyLabels(src map[string]string) map[string]string {

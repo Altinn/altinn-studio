@@ -2,29 +2,29 @@ package telemetry
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
-	"time"
+	"slices"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelmetric "go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	tracenoop "go.opentelemetry.io/otel/trace/noop"
 	"k8s.io/client-go/rest"
+
+	commontelemetry "altinn.studio/common/telemetry"
 )
 
 const (
 	scopeName = "operator"
 )
+
+// serviceVersion is the build's version, the commit the deployment workflow builds from:
+// go build -ldflags "-X altinn.studio/operator/internal/telemetry.serviceVersion=...".
+var serviceVersion = "dev"
 
 func Tracer() oteltrace.Tracer {
 	return otel.Tracer(scopeName)
@@ -40,58 +40,59 @@ func WithoutSpan(ctx context.Context) context.Context {
 	return oteltrace.ContextWithSpanContext(ctx, oteltrace.SpanContext{})
 }
 
+// ConfigureOTel exports traces, metrics and logs, as the standards for Studio services describe
+// (src/common/go/telemetry). The router in the cluster sets deployment.environment.name.
+// If it does not return an error, make sure to call shutdown for proper cleanup.
 func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
-	var shutdownFuncs []func(context.Context) error
-
-	shutdown = func(ctx context.Context) error {
-		var shutdownErr error
-		for _, fn := range shutdownFuncs {
-			shutdownErr = errors.Join(shutdownErr, fn(ctx))
-		}
-		shutdownFuncs = nil
-		return shutdownErr
-	}
-
-	handleErr := func(inErr error) {
-		err = errors.Join(inErr, shutdown(ctx))
-	}
-
-	res, err := resource.New(ctx,
-		// OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the service identity
-		resource.WithFromEnv(),
-	)
+	shutdown, err = commontelemetry.Setup(ctx, commontelemetry.Config{
+		ServiceVersion: serviceVersion,
+		Signals:        commontelemetry.AllSignals(),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create resource: %w", err)
+		return nil, fmt.Errorf("configure OpenTelemetry: %w", err)
 	}
-
-	prop := newPropagator()
-	otel.SetTextMapPropagator(prop)
-
-	tracerProvider, err := newTraceProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
-
-	meterProvider, err := newMeterProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
-
-	return shutdown, err
+	return shutdown, nil
 }
 
 func WrapTransport(config *rest.Config) {
-	config.Wrap(newKubernetesTransport)
+	config.Wrap(func(base http.RoundTripper) http.RoundTripper {
+		return newKubernetesTransport(base)
+	})
 }
 
-func newKubernetesTransport(base http.RoundTripper) http.RoundTripper {
-	return otelhttp.NewTransport(&kubernetesAPITransport{base: base})
+// newKubernetesTransport instruments the operator's calls to the Kubernetes API.
+//
+// A call made within a unit of work, such as a reconcile, is a span in its trace. A call outside
+// one gets no span, only the request metrics: leader election renews its lease and informers list
+// every few seconds, and each call would be a trace of its own. Watches get neither. They are
+// long-lived connections rather than units of work, and as spans they would last minutes and pass
+// the slow-trace sampling policy every time.
+func newKubernetesTransport(base http.RoundTripper, opts ...otelhttp.Option) http.RoundTripper {
+	inner := &kubernetesAPITransport{base: base}
+	traced := slices.Concat(opts, []otelhttp.Option{otelhttp.WithFilter(isNotWatch)})
+	untraced := slices.Concat(traced, []otelhttp.Option{otelhttp.WithTracerProvider(tracenoop.NewTracerProvider())})
+	return &kubernetesAPITracing{
+		traced:   otelhttp.NewTransport(inner, traced...),
+		untraced: otelhttp.NewTransport(inner, untraced...),
+	}
+}
+
+type kubernetesAPITracing struct {
+	traced   http.RoundTripper
+	untraced http.RoundTripper
+}
+
+//nolint:wrapcheck // Preserve the exact transport error so callers can keep type-based handling.
+func (t *kubernetesAPITracing) RoundTrip(req *http.Request) (*http.Response, error) {
+	if oteltrace.SpanContextFromContext(req.Context()).IsValid() {
+		return t.traced.RoundTrip(req)
+	}
+	return t.untraced.RoundTrip(req)
+}
+
+func isNotWatch(req *http.Request) bool {
+	watch := req.URL.Query().Get("watch")
+	return watch != "true" && watch != "1"
 }
 
 type kubernetesAPITransport struct {
@@ -126,39 +127,4 @@ func isExpectedNotFoundKubernetesRequest(req *http.Request) bool {
 	}
 
 	return req.Method == http.MethodGet && req.URL.Path == inactivityScalerOverrideConfigMapPath
-}
-
-func newPropagator() propagation.TextMapPropagator {
-	return propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	)
-}
-
-func newTraceProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
-	// cluster-internal endpoint, no TLS needed
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("create trace exporter: %w", err)
-	}
-
-	traceProvider := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter, trace.WithBatchTimeout(5*time.Second)),
-		trace.WithResource(res),
-	)
-	return traceProvider, nil
-}
-
-func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
-	// cluster-internal endpoint, no TLS needed
-	metricExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("create metric exporter: %w", err)
-	}
-
-	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(metricExporter, metric.WithInterval(30*time.Second))),
-		metric.WithResource(res),
-	)
-	return meterProvider, nil
 }

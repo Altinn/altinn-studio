@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -26,7 +27,9 @@ internal abstract record MailboxContinuation
             string serviceTaskType,
             int handlerItemIndex,
             long position,
-            string? action
+            string? action,
+            ProcessStepOptions? handlerStepOptions = null,
+            string? handlerStepName = null
         )
         {
             MailboxId = mailboxId;
@@ -34,6 +37,8 @@ internal abstract record MailboxContinuation
             HandlerItemIndex = handlerItemIndex;
             Position = position;
             Action = action;
+            HandlerStepOptions = handlerStepOptions;
+            HandlerStepName = handlerStepName;
         }
 
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
@@ -57,6 +62,18 @@ internal abstract record MailboxContinuation
         /// successor's step carries.
         /// </summary>
         public string? Action { get; }
+
+        /// <summary>
+        /// The handler's own options, which its successor's step carries just as the planner's steps carry
+        /// theirs; read off the pipeline by the hop that decided the continuation.
+        /// </summary>
+        public ProcessStepOptions? HandlerStepOptions { get; }
+
+        /// <summary>
+        /// The handler's step name, so the successor's step reads the same as this one. Worked out where the
+        /// pipeline was resolved, since nothing is resolved here.
+        /// </summary>
+        public string? HandlerStepName { get; }
     }
 
     /// <summary>
@@ -191,7 +208,7 @@ internal sealed record MailboxHandover
     /// <summary>
     /// The plan as the deciding hop made it, authoritative: the enqueue hop applies step options to these
     /// steps and enqueues them, and never plans again — so nothing rides on the two hops resolving
-    /// <c>Define</c> to the same shape.
+    /// <c>DefineExecute</c> to the same shape.
     /// </summary>
     public ServiceTaskSegmentPlan Plan { get; }
 

@@ -206,6 +206,7 @@ public class WorkflowEngineCallbackControllerTests
             OperationId = requests[0].Workflows[0].OperationId,
             CreatedAt = referenceTime,
             OverallStatus = PersistentItemStatus.Enqueued,
+            Role = WorkflowRole.Primary,
             Dependencies = new Dictionary<Guid, PersistentItemStatus>
             {
                 [setup.WorkflowId] = PersistentItemStatus.Processing,
@@ -274,11 +275,11 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(originalData.Payload, data.Payload);
         Assert.All(change.Events!, e => Assert.Equal(referenceTime.UtcDateTime, e.Created));
         Assert.Equal(referenceTime.UtcDateTime, change.NewProcessState?.CurrentTask?.Started);
-        var sideEffects = Assert.Single(workflow.Steps, step => step.OperationId == EnqueueSideEffectsWorkflow.Key);
-        var sideEffectsData = JsonSerializer.Deserialize<AppCommandData>(sideEffects.Command.Data!.Value)!;
+        var auxiliaryEnqueue = Assert.Single(workflow.Steps, step => step.OperationId == EnqueueAuxiliaryWorkflows.Key);
+        var auxiliaryEnqueueData = JsonSerializer.Deserialize<AppCommandData>(auxiliaryEnqueue.Command.Data!.Value)!;
         Assert.Null(
             CommandPayloadSerializer
-                .Deserialize<EnqueueSideEffectsWorkflowPayload>(sideEffectsData.Payload)!
+                .Deserialize<EnqueueAuxiliaryWorkflowsPayload>(auxiliaryEnqueueData.Payload)!
                 .EnqueueRequest.Context
         );
     }
@@ -453,8 +454,9 @@ public class WorkflowEngineCallbackControllerTests
                 )
             )
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
-            .ReturnsAsync(() => new MemoryStream("%PDF"u8.ToArray()));
+            .ReturnsAsync(() => "%PDF"u8.ToArray());
         var processReader = new Mock<IProcessReader>();
+        processReader.Setup(r => r.GetProcessTasks()).Returns([]);
         processReader
             .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
             .Returns(
@@ -888,60 +890,6 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenStorageReplaysPreCommitDataMutation_PreservesAdvancedProcessSnapshot()
-    {
-        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
-        await using ControllerSetup setup = CreateSetup(
-            new AddBinaryDataCommand(),
-            (_, instance) =>
-            {
-                instance.Process = new ProcessState
-                {
-                    Status = ProcessStatus.Processing,
-                    Ended = ended,
-                    EndEvent = "EndEvent_1",
-                    CurrentTask = null,
-                };
-            }
-        );
-        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
-        storedInstance.Process = new ProcessState
-        {
-            Status = ProcessStatus.Processing,
-            CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
-        };
-
-        Guid replayedStepId = Guid.NewGuid();
-        IActionResult firstResult = await setup.Execute(AddBinaryDataCommand.Key, stepId: replayedStepId);
-        IActionResult replayResult = await setup.Execute(AddBinaryDataCommand.Key, stepId: replayedStepId);
-
-        var firstResponse = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(firstResult).Value);
-        var replayOk = Assert.IsType<OkObjectResult>(replayResult);
-        var replayResponse = Assert.IsType<AppCallbackResponse>(replayOk.Value);
-        WorkflowCallbackState firstState = setup.DeserializeState(firstResponse.State!);
-        WorkflowCallbackState replayedState = setup.DeserializeState(replayResponse.State!);
-        Assert.Equal(ended, firstState.Instance.Process?.Ended);
-        Assert.Equal("EndEvent_1", firstState.Instance.Process?.EndEvent);
-        Assert.Null(firstState.Instance.Process?.CurrentTask);
-        Assert.Equal(ProcessStatus.Processing, firstState.Instance.Process?.Status);
-        Assert.Equal(ended, replayedState.Instance.Process?.Ended);
-        Assert.Equal("EndEvent_1", replayedState.Instance.Process?.EndEvent);
-        Assert.Null(replayedState.Instance.Process?.CurrentTask);
-        Assert.Equal(ProcessStatus.Processing, replayedState.Instance.Process?.Status);
-        Assert.Single(replayedState.Instance.Data);
-
-        var (storedAfterReplay, storedData) = setup.Services.Storage.GetInstanceAndData(
-            InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        Assert.Equal("Task_1", storedAfterReplay.Process?.CurrentTask?.ElementId);
-        Assert.Null(storedAfterReplay.Process?.Ended);
-        Assert.Null(storedAfterReplay.Process?.EndEvent);
-        Assert.Equal(ProcessStatus.Processing, storedAfterReplay.Process?.Status);
-        Assert.Single(storedData);
-    }
-
-    [Fact]
     public async Task ExecuteCommand_WhenCommandEndsProcess_ArchivesStoredAndCapturedState()
     {
         var ended = new DateTime(2026, 7, 10, 12, 34, 56, DateTimeKind.Utc);
@@ -1242,11 +1190,13 @@ public class WorkflowEngineCallbackControllerTests
             new DataType
             {
                 Id = DataTypeId,
-                TaskId = "Task_1",
+                TaskIds = ["Task_1"],
                 AllowedContentTypes = [ContentType],
                 MaxCount = 10,
             }
         );
+        // Callback state capture reads the process for the signee-state data types it carries.
+        services.Mock<IProcessReader>().Setup(reader => reader.GetProcessTasks()).Returns([]);
         configureServices(services);
         services.Mock<IWorkflowEngineService>();
         services.Services.AddSingleton<WorkflowCallbackStateService>();
@@ -1345,11 +1295,11 @@ public class WorkflowEngineCallbackControllerTests
 
         public string GetKey() => "NoOpForCallbackTest";
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             Executed = true;
             Language = context.InstanceDataMutator.Language;
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 
@@ -1359,7 +1309,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string GetKey() => Key;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
@@ -1367,7 +1317,7 @@ public class WorkflowEngineCallbackControllerTests
                 "created.json",
                 Encoding.UTF8.GetBytes("""{"status":"created"}""")
             );
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 
@@ -1377,7 +1327,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public async Task<ServiceTaskResult> Execute(StageContext context)
         {
             await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
             return ServiceTaskResult.Success();
@@ -1390,9 +1342,11 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskContext? ReceivedContext { get; private set; }
+        public StageContext? ReceivedContext { get; private set; }
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ReceivedContext = context;
             if (stageMutation)
@@ -1415,7 +1369,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
@@ -1433,7 +1389,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));
     }
 
@@ -1443,7 +1401,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string GetKey() => Key;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             var unitOfWork = Assert.IsType<InstanceDataUnitOfWork>(context.InstanceDataMutator);
             var endedProcessState = new ProcessState { Ended = ended, EndEvent = "EndEvent_1" };
@@ -1455,7 +1413,7 @@ public class WorkflowEngineCallbackControllerTests
             };
             unitOfWork.Instance.Process = endedProcessState;
             unitOfWork.UpdateProcessState(processStateChange);
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 

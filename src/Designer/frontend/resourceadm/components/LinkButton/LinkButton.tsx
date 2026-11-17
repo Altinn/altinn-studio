@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
-import { StudioLink } from '@studio/components';
+import { StudioLink } from '@designer/components';
 
 export type LinkButtonProps = {
   /**

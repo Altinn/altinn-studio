@@ -22,7 +22,8 @@ public class GetSingleIntegrationTests : ReleaseEntityIntegrationTestsBase
         var buildId = Guid.NewGuid();
         var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(
             releaseName,
-            buildId: buildId.ToString()
+            buildId: buildId.ToString(),
+            branch: "feature/new-layout"
         );
         await PrepareEntityInDatabase(releaseEntity);
 

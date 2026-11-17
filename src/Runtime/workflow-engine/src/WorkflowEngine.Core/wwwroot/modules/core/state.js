@@ -37,8 +37,8 @@
 
 /**
  * Relation arrays are tri-state: `undefined` = not loaded by the source query (fetch on demand
- * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks workflows
- * deliberately invisible to collection head tracking (side chains).
+ * via /dashboard/relations), `[]` = loaded and none exist. `isHead === false` marks an auxiliary
+ * workflow (one that runs beside the process); `true` or absent marks a primary one.
  * @typedef {{
  *   databaseId:     string,
  *   idempotencyKey: string,
@@ -137,6 +137,47 @@
  *   allNamespaces:        Set<string>,
  * }} DashboardState
  */
+
+/**
+ * The query tab's status-checkbox ids, in display order — one per PersistentItemStatus the query
+ * facet exposes. Shared by query.js (fetch param assembly) and url.js (URL restore) so the lists
+ * cannot drift; checkbox element ids are `${id}-check`.
+ * @type {readonly string[]}
+ */
+export const queryStatusIds = [
+    'enqueued',
+    'processing',
+    'requeued',
+    'waiting',
+    'held',
+    'completed',
+    'failed',
+    'canceled',
+    'dependencyfailed',
+    'abandoned',
+];
+
+/**
+ * Element ids of the query tab's role checkboxes. Both query.js (the `role` fetch parameter) and
+ * url.js (the `qrole` URL parameter) read them, and url.js cannot import query.js without a
+ * cycle — so the ids and the reader live here, for the same reason queryStatusIds does.
+ * @type {readonly string[]}
+ */
+export const roleCheckIds = ['primary-check', 'auxiliary-check'];
+
+/**
+ * The role facet as one value: `'Primary'` or `'Auxiliary'` when exactly one box is checked,
+ * `null` when both or neither is — no filter, the same "nothing selected means everything" idiom
+ * the status chips use.
+ * @returns {'Primary' | 'Auxiliary' | null}
+ */
+export const roleParam = () => {
+    const [primary, auxiliary] = roleCheckIds.map(
+        (id) => /** @type {HTMLInputElement | null} */ (document.getElementById(id))
+    );
+    if (!primary || !auxiliary || primary.checked === auxiliary.checked) return null;
+    return primary.checked ? 'Primary' : 'Auxiliary';
+};
 
 /* ── DOM references ──────────────────────────────────────── */
 

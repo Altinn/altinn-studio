@@ -3,4 +3,5 @@ export type CreateReleasePayload = {
   name: string;
   body: string;
   targetCommitish: string;
+  branch: string;
 };

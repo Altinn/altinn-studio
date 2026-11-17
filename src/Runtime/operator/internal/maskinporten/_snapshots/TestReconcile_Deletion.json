@@ -1,0 +1,5 @@
+[
+ {"type":"DeleteSecretContent"},
+ {"type":"DeleteClientInApi","clientId":"test-client-id-123"},
+ {"type":"RemoveFinalizer"}
+]

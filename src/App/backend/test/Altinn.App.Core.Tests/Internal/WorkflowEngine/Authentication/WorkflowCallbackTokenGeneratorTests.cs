@@ -132,7 +132,7 @@ public class WorkflowCallbackTokenGeneratorTests
         WorkflowRequest[] workflows =
         [
             new() { OperationId = "first", Steps = [AppStep("mutate"), AppStep("commit"), WebhookStep()] },
-            new() { OperationId = "second", Steps = [AppStep("mutate"), AppStep("side-effect")] },
+            new() { OperationId = "second", Steps = [AppStep("mutate"), AppStep("notify")] },
         ];
 
         var token = CreateSut().GenerateToken(Guid.NewGuid(), _actor, workflows);
@@ -140,7 +140,7 @@ public class WorkflowCallbackTokenGeneratorTests
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
         Assert.True(jwt.TryGetPayloadValue(JwtClaimTypes.WorkflowCallback.Commands, out string[]? commands));
         Assert.NotNull(commands);
-        Assert.Equal(["commit", "mutate", "side-effect"], commands);
+        Assert.Equal(["commit", "mutate", "notify"], commands);
     }
 
     // The operation id differs from the key on purpose: the claim must carry what the engine routes on.

@@ -21,7 +21,7 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
     /// </summary>
     public virtual ProcessStepOptions? DefaultStepOptions => null;
 
-    Task<ProcessEngineCommandResult> IWorkflowEngineCommand.Execute(ProcessEngineCommandContext context)
+    Task<WorkflowEngineCommandResult> IWorkflowEngineCommand.Execute(WorkflowEngineCommandContext context)
     {
         TRequestPayload? payload;
         try
@@ -40,8 +40,8 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
         if (payload is null)
         {
             string commandKey = GetKey();
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
+            return Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Permanent(
                     $"{commandKey} payload is missing or invalid",
                     "InvalidPayloadException"
                 )
@@ -51,13 +51,13 @@ internal abstract class WorkflowEngineCommandBase<TRequestPayload> : IWorkflowEn
         return Execute(context, payload);
     }
 
-    protected virtual TRequestPayload? ResolvePayload(ProcessEngineCommandContext context) =>
+    protected virtual TRequestPayload? ResolvePayload(WorkflowEngineCommandContext context) =>
         CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.Payload.Payload) is TRequestPayload payload
             ? payload
             : null;
 
-    public abstract Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public abstract Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         TRequestPayload payload
     );
 }

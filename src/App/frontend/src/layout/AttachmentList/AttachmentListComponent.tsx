@@ -38,7 +38,9 @@ export function AttachmentListComponent({ baseComponentId }: PropsFromGenericCom
   const dataElements = useInstanceDataElements(undefined);
   const currentTaskId = useProcessQuery().data?.currentTask?.elementId;
   const appMetadataDataTypes = getApplicationMetadata().dataTypes ?? emptyDataTypeArray;
-  const dataTypeIdsInCurrentTask = appMetadataDataTypes.filter((it) => it.taskId === currentTaskId).map((it) => it.id);
+  const dataTypeIdsInCurrentTask = appMetadataDataTypes
+    .filter((it) => !!currentTaskId && (it.taskIds ?? []).includes(currentTaskId))
+    .map((it) => it.id);
 
   const attachmentsWithDataType = getAttachmentsWithDataType({
     attachments: dataElements ?? [],

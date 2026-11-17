@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { formItemContextProviderMock } from '../../../testing/formItemContextMocks';
 import { ComponentConfigPanel } from './ComponentConfigPanel';
 import { FormItemContext } from '../../../containers/FormItemContext';
@@ -18,7 +18,7 @@ import {
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '@altinn/ux-editor-v4/testing/componentSchemaMocks';
-import { org, app } from '@studio/testing/testids';
+import { org, app } from '@designer/testing/testids';
 import { renderWithProviders } from '../../../testing/mocks';
 import type { AppContextProps } from '../../../AppContext';
 import { ItemType } from '../ItemType';

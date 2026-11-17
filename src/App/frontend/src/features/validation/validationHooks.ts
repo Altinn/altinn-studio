@@ -1,16 +1,16 @@
 import { useCallback, useRef } from 'react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useGetCachedInstanceData } from 'src/core/queries/instance';
+import { useGetCachedInstanceData, useInstanceDataQuery } from 'src/core/queries/instance';
 import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
 import { FormStore } from 'src/features/form/FormContext';
 import {
   processLayoutSettings,
+  usePdfExclusions,
   usePdfLayoutName,
   useRawPageOrder,
 } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiFolderSettings } from 'src/features/form/ui';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { ValidationMask } from 'src/features/validation';
 import { createValidationStateDeriver } from 'src/features/validation/createValidationStateDeriver';
@@ -22,6 +22,7 @@ import {
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
@@ -36,12 +37,22 @@ const emptyArray: never[] = [];
 function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   const pageOrder = useRawPageOrder();
   const pdfLayoutName = usePdfLayoutName();
+  const isPdf = useIsPdf();
+  const pdfExclusions = usePdfExclusions();
   const hiddenDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'hidden expressions' });
   const evalDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'validation expressions' });
   const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
   const taskId = useProcessTaskId();
 
-  return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
+  return {
+    pageOrder,
+    pdfLayoutName,
+    pdfExcludedComponents: isPdf ? pdfExclusions.components : emptyArray,
+    hiddenDataSources,
+    evalDataSources,
+    instanceData,
+    taskId,
+  };
 }
 
 function useValidationStateDeriver() {
@@ -95,6 +106,7 @@ function usePageScopedNodeValidationSelection<T>(
  */
 function useFreshDerivedStateBuilder() {
   const store = FormStore.raw.useStore();
+  const isPdf = useIsPdf();
   const getCachedInstanceData = useGetCachedInstanceData();
   const taskOverrides = useTaskOverrides();
   const { instanceOwnerPartyId, instanceGuid, taskId: urlTaskId } = useAllNavigationParams();
@@ -108,6 +120,7 @@ function useFreshDerivedStateBuilder() {
     return {
       pageOrder: layoutSettings.order,
       pdfLayoutName: layoutSettings.pdfLayoutName,
+      pdfExcludedComponents: isPdf ? layoutSettings.pdfExclusions.components : emptyArray,
       hiddenDataSources,
       evalDataSources,
       instanceData: instance?.data ?? emptyArray,
@@ -119,6 +132,7 @@ function useFreshDerivedStateBuilder() {
     hiddenDataSources,
     instanceGuid,
     instanceOwnerPartyId,
+    isPdf,
     store,
     taskOverrides,
     urlTaskId,

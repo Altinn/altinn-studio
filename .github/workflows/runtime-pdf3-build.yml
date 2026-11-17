@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/Runtime/pdf3/**'
       - 'src/Runtime/devenv/**'
+      - 'src/common/go/**'
       - '.github/workflows/runtime-pdf3-build.yml'
       - '!**/AGENTS.md'
       - '!**/README.md'
@@ -15,6 +16,7 @@ on:
       - '!**/CHANGELOG.md'
       - '!**/docs/**'
       - '!src/Runtime/pdf3/infra/core/**'
+      - '!src/Runtime/pdf3/infra/edge/**'
   workflow_dispatch:
 
 concurrency:

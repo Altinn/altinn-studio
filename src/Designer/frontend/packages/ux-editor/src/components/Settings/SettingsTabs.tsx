@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
-import { StudioHeading, StudioAlert, StudioTabs } from '@studio/components';
+import { StudioHeading, StudioAlert, StudioTabs } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './SettingsTabs.module.css';
-import { CompassIcon, DatabaseIcon } from '@studio/icons';
+import { CompassIcon, DatabaseIcon } from '@designer/icons';
 import { SettingsNavigation } from './SettingsNavigation/SettingsNavigation';
 
 enum Tabs {

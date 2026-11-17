@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"altinn.studio/devenv/pkg/container/dockerapi"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
@@ -338,6 +339,7 @@ func Main() int {
 		fmt.Fprintf(os.Stderr, "%v%s", err, osutil.LineBreak)
 		return 1
 	}
+	dockerapi.SetUserAgent(cfg.Version.UserAgent())
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

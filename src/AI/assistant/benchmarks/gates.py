@@ -9,13 +9,8 @@ from typing import Any
 from langfuse import Evaluation
 
 from agents.prompts.loader import compiled_system_message
-from agents.services.llm.intent_parser import MINIMUM_INTENT_CONFIDENCE
 
 from .experiment import ItemEvaluator
-
-CONFIDENCE_THRESHOLD = MINIMUM_INTENT_CONFIDENCE
-ABOVE = "at_or_above_threshold"
-BELOW = "below_threshold"
 
 
 def parse_verdict(text: str) -> dict[str, Any] | None:
@@ -33,12 +28,6 @@ def parse_verdict(text: str) -> dict[str, Any] | None:
     return parsed if isinstance(parsed, dict) else None
 
 
-def _band(confidence: Any) -> str | None:
-    if not isinstance(confidence, (int, float)):
-        return None
-    return ABOVE if confidence >= CONFIDENCE_THRESHOLD else BELOW
-
-
 def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
     """Did the gate reach the decision the item expects."""
     expected = expected_output or {}
@@ -50,18 +39,6 @@ def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -
                 value=0.0,
                 data_type="BOOLEAN",
                 comment="the answer was not JSON, so no verdict could be read",
-            )
-        ]
-
-    if "confidence_band" in expected:
-        actual = _band(verdict.get("confidence"))
-        wanted = expected["confidence_band"]
-        return [
-            Evaluation(
-                name="gate_verdict",
-                value=1.0 if actual == wanted else 0.0,
-                data_type="BOOLEAN",
-                comment=f"confidence {verdict.get('confidence')} is {actual}, expected {wanted}",
             )
         ]
 
@@ -190,6 +167,10 @@ class GateTask:
             version = prompt.version
             system = compiled_system_message(prompt.compile(user_message=message)) or ""
 
+        schema = _verdict_schema(self.prompt_name)
+        if schema is not None:
+            return await _schema_verdict(schema, system, message, self.model, version)
+
         adapter = adapter_for(self.model, self.max_tokens)
         reply = await adapter.chat(messages=[_user(message)], system_prompt=system, tool_schemas=[])
         text = "".join(block.text for block in reply.content if getattr(block, "text", None))
@@ -199,6 +180,26 @@ class GateTask:
             "model": adapter.model,
             "prompt_version": version,
         }
+
+
+def _verdict_schema(prompt_name: str) -> Any:
+    """The schema a gate's reply is held to in production, or None for a prompt that answers in free text."""
+    from agents.services.llm.llm_client import SecurityVerdict
+    from agents.services.llm.scope_checker import ScopeCheckResult
+
+    return {"security_check": SecurityVerdict, "scope_check": ScopeCheckResult}.get(prompt_name)
+
+
+async def _schema_verdict(schema: Any, system: str, message: str, model: str, version: int | None) -> dict[str, Any]:
+    """The gate through the call production makes."""
+    from agents.services.llm.llm_client import LLMClient
+
+    output: dict[str, Any] = {"model": model, "prompt_version": version}
+    try:
+        text = await LLMClient(model=model).call_async(system, message, response_schema=schema)
+        return {**output, "text": text, "verdict": schema.model_validate_json(text).model_dump()}
+    except Exception as error:  # a reply outside the schema scores as no verdict, not as a crashed item
+        return {**output, "text": str(error), "verdict": None}
 
 
 def _user(text: str):

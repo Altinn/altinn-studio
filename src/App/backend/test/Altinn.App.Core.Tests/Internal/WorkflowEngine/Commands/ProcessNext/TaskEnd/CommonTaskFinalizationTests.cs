@@ -20,14 +20,14 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 public class CommonTaskFinalizationTests
 {
     private static (
-        ProcessEngineCommandContext Context,
+        WorkflowEngineCommandContext Context,
         Mock<IInstanceDataMutator> MutatorMock
     ) CreateContextWithMutator(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var context = new ProcessEngineCommandContext
+        var context = new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -115,7 +115,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -129,7 +129,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Once);
     }
 
@@ -151,7 +151,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "verificationResult",
-                    TaskId = "Verify",
+                    TaskIds = ["Verify"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.VerificationResult" },
                 },
             ],
@@ -168,7 +168,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Once);
         appResourcesMock.Verify(x => x.GetLayoutModelForFolder(It.IsAny<string>()), Times.Never);
     }
@@ -187,7 +187,7 @@ public class CommonTaskFinalizationTests
         var dataType = new DataType
         {
             Id = "model",
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
         };
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };
@@ -206,7 +206,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         appResourcesMock.Verify(x => x.GetLayoutModelForFolder("Task_1"), Times.Once);
     }
 
@@ -228,7 +228,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "restricted",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Restricted" },
                 },
             ],
@@ -241,7 +241,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -258,7 +258,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_2", // Different task
+                    TaskIds = ["Task_2"], // Different task
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -271,7 +271,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -289,7 +289,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "attachment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = null, // No AppLogic/ClassRef
                 },
             ],
@@ -302,7 +302,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -321,7 +321,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -337,7 +337,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Contains("Form data not found", failed.ErrorMessage);
     }
 }

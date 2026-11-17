@@ -4,6 +4,7 @@ import {
   IDataModelReference,
   IQueryParameters,
   ISummaryOverridesCommon,
+  ITableColumnWidth,
   LabeledComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -21,6 +22,7 @@ export interface CompListExternal extends ComponentBase, FormComponentProps, Lab
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
   tableHeaders: { [key: string]: string };
+  tableColumns?: { [key: string]: ITableColumnWidth };
   sortableColumns?: string[];
   pagination?: IPagination;
   dataListId: string;
@@ -41,9 +43,13 @@ export interface IPagination {
   default: number;
 }
 
+export interface ListSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type ListSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'List' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & ListSummaryOverrides)
+  | ({ componentType: 'List' } & ListSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -69,8 +75,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompListExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: ListSummaryOverrides;
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: 8b2f8d49812711ce5a2540645fd91d965265991a3cd53a31c28158ca23f0bb88
+// Source hash: f5dd3863d4fefca4dae8d6525297caf6a5ad312d526eff95ff5c0b11f5b441ab

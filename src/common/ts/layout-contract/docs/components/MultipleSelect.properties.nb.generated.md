@@ -298,7 +298,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.</div></div>
 </details>
 
 <details class="component-property-group" id="textresourcebindings">
@@ -498,7 +498,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
             <span class="component-property-type" title="datamodellbinding">Type: <span class="component-property-value"><a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">datamodellbinding</a></span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen komponenten skal lagre ledetekstene. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.metadata">
@@ -510,7 +510,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
             <span class="component-property-type" title="datamodellbinding">Type: <span class="component-property-value"><a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">datamodellbinding</a></span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen komponenten skal lagre metadata. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng. <a href="/nb/altinn-studio/v9/develop-a-service/reference/data/data-model-bindings/">Slik bruker du datamodellbindinger.</a></div></div>
       </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="datamodelbindings.group">

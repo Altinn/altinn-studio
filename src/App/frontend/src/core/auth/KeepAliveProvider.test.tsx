@@ -2,7 +2,7 @@ import React from 'react';
 
 import { waitFor } from '@testing-library/react';
 
-import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
+import { KeepAliveProvider } from 'src/core/queries/auth';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
 describe('KeepAliveProvider', () => {
@@ -29,8 +29,8 @@ describe('KeepAliveProvider', () => {
   const renderWithExpiredToken = async () =>
     await renderWithMinimalProviders({
       renderer: () => <KeepAliveProvider>content</KeepAliveProvider>,
-      queries: { fetchRefreshJwtToken: () => Promise.reject(new Error('token expired')) },
       waitUntilLoaded: false,
+      queries: { fetchRefreshJwtToken: () => Promise.reject(new Error('token expired')) },
     });
 
   it('sends the user to the configured login url when the token can no longer be refreshed', async () => {

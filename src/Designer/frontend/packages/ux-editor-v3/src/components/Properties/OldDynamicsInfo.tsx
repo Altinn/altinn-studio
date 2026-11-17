@@ -1,10 +1,10 @@
 import classes from './OldDynamicsInfo.module.css';
-import { ExternalLinkIcon } from '@studio/icons';
+import { ExternalLinkIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
-import { StudioLink } from '@studio/components';
+import { StudioLink } from '@designer/components';
 
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();

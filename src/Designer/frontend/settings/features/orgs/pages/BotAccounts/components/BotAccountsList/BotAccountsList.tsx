@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DateUtils } from '@studio/pure-functions';
-import { StudioTable, StudioButton, StudioDeleteButton, StudioTag } from '@studio/components';
-import { ChevronDownIcon, ChevronRightIcon, StudioEditIcon } from '@studio/icons';
+import { DateUtils } from '@designer/pure-functions';
+import { StudioTable, StudioButton, StudioDeleteButton, StudioTag } from '@designer/components';
+import { ChevronDownIcon, ChevronRightIcon, StudioEditIcon } from '@designer/icons';
 import type { BotAccount } from 'app-shared/types/BotAccount';
 import { useDeactivateBotAccountMutation } from '../../hooks/useDeactivateBotAccountMutation';
 import { BotAccountApiKeys } from '../BotAccountApiKeys/BotAccountApiKeys';

@@ -25,6 +25,7 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.Rest.TransientFaultHandling;
 using Moq;
 using Newtonsoft.Json;
@@ -42,6 +43,7 @@ public class ReleaseServiceTest
     private readonly Mock<IApiKeyService> _apiKeyService;
     private readonly Mock<ILogger<ReleaseService>> _logger;
     private readonly GeneralSettings _generalSettings;
+    private readonly FakeTimeProvider _fakeTimeProvider = new();
     private readonly string _org = "udi";
     private readonly string _app = "kjaerestebesok";
     private const string ExpectedDefaultMaskinportenScopes =
@@ -273,7 +275,7 @@ public class ReleaseServiceTest
             GetAzureDevOpsSettings(),
             _generalSettings,
             _apiKeyService.Object,
-            TimeProvider.System,
+            _fakeTimeProvider,
             _logger.Object
         );
     }
@@ -909,4 +911,73 @@ public class ReleaseServiceTest
             Times.Once
         );
     }
+
+    [Fact]
+    public async Task CreateAsync_TwoReleasesAtTheSameTime_CreateApiKeysWithDifferentNames()
+    {
+        // Arrange
+        _releaseRepository
+            .Setup(r =>
+                r.Get(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<string>>(),
+                    It.IsAny<List<string>>()
+                )
+            )
+            .ReturnsAsync(new List<ReleaseEntity>());
+        _releaseRepository
+            .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+            .ReturnsAsync(GetReleases("createdRelease.json").First());
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+
+        List<string> apiKeyNames = [];
+        _apiKeyService
+            .Setup(s =>
+                s.CreateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    string _,
+                    string name,
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType _,
+                    DateTimeOffset _,
+                    string _,
+                    CancellationToken _
+                ) => apiKeyNames.Add(name)
+            )
+            .ReturnsAsync(("generated-api-key", new Altinn.Studio.Designer.Models.ApiKey.ApiKey()));
+
+        ReleaseService releaseService = CreateReleaseService();
+
+        // Act
+        await releaseService.CreateAsync(CreateReleaseEntity("1"));
+        await releaseService.CreateAsync(CreateReleaseEntity("2"));
+
+        // Assert
+        Assert.Equal(2, apiKeyNames.Count);
+        Assert.All(apiKeyNames, name => Assert.StartsWith("release-", name));
+        Assert.NotEqual(apiKeyNames[0], apiKeyNames[1]);
+    }
+
+    private ReleaseEntity CreateReleaseEntity(string tagName) =>
+        new()
+        {
+            TagName = tagName,
+            Name = tagName,
+            Body = "test-app",
+            TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+            Org = _org,
+            App = _app,
+        };
 }

@@ -10,19 +10,22 @@ using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.ContactPoint;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification.Models;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
+using Designer.Tests.Telemetry;
 using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
-public class NotificationServiceTests
+public class NotificationServiceTests : IDisposable
 {
     private readonly Mock<IContactPointsRepository> _contactPointsRepository = new();
     private readonly Mock<IAltinnNotificationClient> _notificationClient = new();
     private readonly Mock<ISlackClient> _slackClient = new();
+    private readonly NotificationMetricsRecorder _metrics = new();
 
     private static readonly Uri s_internalSlackWebhook = new("https://hooks.slack.com/services/internal");
     private static readonly Uri s_contactSlackWebhook = new("https://hooks.slack.com/services/contact");
@@ -34,7 +37,15 @@ public class NotificationServiceTests
     };
 
     private NotificationService CreateService() =>
-        new(_contactPointsRepository.Object, _notificationClient.Object, _slackClient.Object, _alertsSettings);
+        new(
+            _contactPointsRepository.Object,
+            _notificationClient.Object,
+            _slackClient.Object,
+            _alertsSettings,
+            _metrics.Metrics
+        );
+
+    public void Dispose() => _metrics.Dispose();
 
     // ── NotifyInternalAsync ──────────────────────────────────────────────────
 
@@ -46,6 +57,7 @@ public class NotificationServiceTests
         await service.NotifyInternalAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -64,6 +76,7 @@ public class NotificationServiceTests
         await service.NotifyInternalAsync(
             "ttd",
             AltinnEnvironment.FromName("prod"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -86,12 +99,62 @@ public class NotificationServiceTests
             service.NotifyInternalAsync(
                 "ttd",
                 AltinnEnvironment.FromName("tt02"),
+                NotificationKind.Alert,
                 BuildPayload(),
                 CancellationToken.None
             )
         );
 
         Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task NotifyInternalAsync_CountsTheDeliveryWithItsKindAndTarget()
+    {
+        await CreateService()
+            .NotifyInternalAsync(
+                "TTD",
+                AltinnEnvironment.FromName("production"),
+                NotificationKind.Deployment,
+                BuildPayload(),
+                CancellationToken.None
+            );
+
+        RecordedMeasurement delivery = Assert.Single(_metrics.Measurements(NotificationMetrics.DeliveriesMetricName));
+        Assert.Equal(1, delivery.Value);
+        Assert.Equivalent(
+            new Dictionary<string, object>
+            {
+                ["altinn.designer.notification.kind"] = "deployment",
+                ["altinn.designer.notification.audience"] = "internal",
+                ["altinn.designer.notification.contact_method.type"] = "slack",
+                ["altinn.service_owner"] = "ttd",
+                ["altinn.environment"] = "prod",
+            },
+            delivery.Tags,
+            strict: true
+        );
+    }
+
+    [Fact]
+    public async Task NotifyInternalAsync_WhenSlackThrows_CountsAFailedDelivery()
+    {
+        _slackClient
+            .Setup(c => c.SendMessageAsync(It.IsAny<Uri>(), It.IsAny<SlackMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("Slack unavailable"));
+
+        await CreateService()
+            .NotifyInternalAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                NotificationKind.Alert,
+                BuildPayload(),
+                CancellationToken.None
+            );
+
+        RecordedMeasurement delivery = Assert.Single(_metrics.Measurements(NotificationMetrics.DeliveriesMetricName));
+        Assert.Equal("alert", delivery.Tags["altinn.designer.notification.kind"]);
+        Assert.Equal("System.Net.Http.HttpRequestException", delivery.Tags["error.type"]);
     }
 
     // ── NotifyServiceOwnersAsync ─────────────────────────────────────────────
@@ -105,6 +168,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -135,6 +199,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -176,6 +241,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -214,6 +280,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -254,6 +321,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -327,6 +395,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -341,6 +410,64 @@ public class NotificationServiceTests
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task NotifyServiceOwnersAsync_CountsEachDeliveryWithItsContactMethodAndOutcome()
+    {
+        SetupContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint([
+                    new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner@example.com" },
+                    new ContactMethodEntity { MethodType = ContactMethodType.Sms, Value = "+4700000001" },
+                ]),
+            ]
+        );
+        _notificationClient
+            .Setup(c =>
+                c.SendSmsNotification(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<SendingTime>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("downstream error"));
+
+        await CreateService()
+            .NotifyServiceOwnersAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                NotificationKind.Alert,
+                BuildPayload(),
+                CancellationToken.None
+            );
+
+        IReadOnlyList<RecordedMeasurement> deliveries = _metrics.Measurements(NotificationMetrics.DeliveriesMetricName);
+        Assert.Equal(2, deliveries.Count);
+        Assert.Equivalent(
+            new Dictionary<string, object>
+            {
+                ["altinn.designer.notification.kind"] = "alert",
+                ["altinn.designer.notification.audience"] = "service_owner",
+                ["altinn.designer.notification.contact_method.type"] = "email",
+                ["altinn.service_owner"] = "ttd",
+                ["altinn.environment"] = "tt02",
+            },
+            Assert
+                .Single(deliveries, d => Equals(d.Tags["altinn.designer.notification.contact_method.type"], "email"))
+                .Tags,
+            strict: true
+        );
+        Assert.Equal(
+            "System.Net.Http.HttpRequestException",
+            Assert
+                .Single(deliveries, d => Equals(d.Tags["altinn.designer.notification.contact_method.type"], "sms"))
+                .Tags["error.type"]
         );
     }
 
@@ -361,6 +488,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             BuildPayload(),
             CancellationToken.None
         );
@@ -403,6 +531,7 @@ public class NotificationServiceTests
         await service.NotifyServiceOwnersAsync(
             "ttd",
             AltinnEnvironment.FromName("tt02"),
+            NotificationKind.Alert,
             payload,
             CancellationToken.None
         );
@@ -650,6 +779,35 @@ public class NotificationServiceTests
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task NotifyReportContactPointsAsync_CountsTheDeliveriesAsPeriodicReport()
+    {
+        SetupReportContactPoints(
+            "ttd",
+            "tt02",
+            [
+                BuildContactPoint(
+                    [new ContactMethodEntity { MethodType = ContactMethodType.Email, Value = "owner@example.com" }],
+                    ReportFrequency.Daily
+                ),
+            ]
+        );
+
+        await CreateService()
+            .NotifyReportContactPointsAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                ReportFrequency.Daily,
+                BuildReportPayload(),
+                CancellationToken.None
+            );
+
+        RecordedMeasurement delivery = Assert.Single(_metrics.Measurements(NotificationMetrics.DeliveriesMetricName));
+        Assert.Equal("periodic_report", delivery.Tags["altinn.designer.notification.kind"]);
+        Assert.Equal("service_owner", delivery.Tags["altinn.designer.notification.audience"]);
+        Assert.False(delivery.Tags.ContainsKey("error.type"));
     }
 
     [Fact]

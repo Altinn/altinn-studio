@@ -10,4 +10,5 @@ public static class DataModelingErrorCodes
     public const string InvalidXmlError = "DM_05";
     public const string InvalidJsonSchemaError = "DM_06";
     public const string ModelWithTheSameTypeNameExists = nameof(ModelWithTheSameTypeNameExists);
+    public const string DataTypeWithTheSameNameExists = nameof(DataTypeWithTheSameNameExists);
 }

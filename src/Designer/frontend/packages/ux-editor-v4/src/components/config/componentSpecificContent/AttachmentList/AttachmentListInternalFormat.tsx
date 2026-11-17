@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { AttachmentListContent } from './AttachmentListContent';
 import { useTranslation } from 'react-i18next';
 import { extractCurrentAvailableAttachments, isSelectionValid } from './attachmentListUtils';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import type { AvailableAttachmentLists, InternalDataTypesFormat } from './types';
-import { StudioFieldset, StudioSwitch, StudioValidationMessage } from '@studio/components';
+import { StudioFieldset, StudioSwitch, StudioValidationMessage } from '@designer/components';
 
 type AttachmentListInternalFormatProps = {
   onChange: (selectedDataTypes: InternalDataTypesFormat) => void;

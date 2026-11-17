@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioSearch } from '@studio/components';
+import { StudioSearch } from '@designer/components';
 
 import classes from './ArchiveReferenceSearch.module.css';
 import { useTranslation } from 'react-i18next';

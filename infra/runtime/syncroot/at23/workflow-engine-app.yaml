@@ -52,4 +52,4 @@ spec:
       ENVIRONMENT: ${ENVIRONMENT}
       WORKFLOW_ENGINE_ENTRA_CLIENT_ID: ${STUDIO_WORKFLOW_ENGINE_CLIENT_ID}
       WORKFLOW_ENGINE_DB_USERNAME: ${STUDIO_WORKFLOW_ENGINE_DB_USERNAME}
-      WORKFLOW_ENGINE_DB_HOST: workflow-engine-db-server-test.postgres.database.azure.com
+      WORKFLOW_ENGINE_DB_HOST: workflow-engine-db-server-test-admin-test.postgres.database.azure.com

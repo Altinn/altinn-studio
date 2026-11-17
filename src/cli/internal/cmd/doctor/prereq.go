@@ -235,6 +235,8 @@ func platformToolVersionName(platform container.ContainerPlatform) string {
 		return "podman"
 	case container.PlatformDocker:
 		return "docker"
+	case container.PlatformUnknown:
+		return ""
 	default:
 		return ""
 	}

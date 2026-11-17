@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { processEditorDataTypePath, repoDownloadPath } from './paths';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('paths', () => {
   test('Params works as intended', () => {

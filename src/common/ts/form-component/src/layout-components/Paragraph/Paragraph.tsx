@@ -15,7 +15,7 @@ export function Paragraph({ id, title, help }: ParagraphProps) {
 
   return (
     <div className={classes.paragraphWrapper}>
-      <div id={id} data-testid={`paragraph-component-${id}`}>
+      <div id={id} data-testid={`paragraph-component-${id}`} className={classes.paragraphText}>
         <ParagraphText>{lang(title)}</ParagraphText>
       </div>
       {help && <HelpTextContainer id={id} title={title} helpText={lang(help)} />}

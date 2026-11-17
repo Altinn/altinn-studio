@@ -5,6 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
+import { validateOptionsDataModelBindings } from 'src/features/options/validation';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { RadioButtonsDef } from 'src/layout/RadioButtons/config.def.generated';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
@@ -59,6 +60,9 @@ export class RadioButtons extends RadioButtonsDef {
     dmb: IDataModelBindings<'RadioButtons'>,
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
-    return validateDataModelBindingsSimple(baseComponentId, dmb, lookupBinding, layoutLookups);
+    return [
+      ...validateDataModelBindingsSimple(baseComponentId, dmb, lookupBinding, layoutLookups),
+      ...validateOptionsDataModelBindings(baseComponentId, dmb, lookupBinding, layoutLookups, 'single'),
+    ];
   }
 }

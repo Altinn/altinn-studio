@@ -419,7 +419,7 @@ public sealed partial class ProcessEngineTest
                         {
                             Id = "payment",
                             AllowedContentTypes = ["application/json"],
-                            TaskId = "Task_2",
+                            TaskIds = ["Task_2"],
                         },
                     ],
                 }
@@ -1273,8 +1273,10 @@ public sealed partial class ProcessEngineTest
         exception.Message.Should().Be("Notification failed");
     }
 
-    [Fact]
-    public async Task ResumeCurrentTask_resumes_failed_workflow_and_returns_updated_instance()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ResumeCurrentTask_resumes_failed_workflow_and_returns_updated_instance(bool parked)
     {
         Guid workflowId = Guid.NewGuid();
         Instance original = CreateTask1Instance();
@@ -1294,7 +1296,7 @@ public sealed partial class ProcessEngineTest
             );
         workflowService
             .Setup(service => service.ResumeAndWaitForWorkflow(original, workflowId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ProcessNextWorkflowResult(resumed, versions, null, true));
+            .ReturnsAsync(new ProcessNextWorkflowResult(resumed, versions, null, true, parked));
 
         ProcessChangeResult result = await fixture.ProcessEngine.ResumeCurrentTask(
             new ProcessNextRequest
@@ -1311,6 +1313,7 @@ public sealed partial class ProcessEngineTest
         Assert.Equal(versions, result.MutatedInstanceVersions);
         Assert.Same(original.Process, result.ProcessStateChange.OldProcessState);
         Assert.Same(resumed.Process, result.ProcessStateChange.NewProcessState);
+        Assert.Equal(parked, result.WorkflowParked);
         workflowService.Verify(
             service => service.ResumeAndWaitForWorkflow(original, workflowId, It.IsAny<CancellationToken>()),
             Times.Once
@@ -1355,6 +1358,31 @@ public sealed partial class ProcessEngineTest
                     ),
                 Times.Once
             );
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Next_ReportsWhetherTheWorkflowChainIsParked(bool parked)
+    {
+        await using var fixture = Fixture.Create();
+        Instance transitioned = CreateTask1Instance();
+        transitioned.Process!.CurrentTask = new ProcessElementInfo { ElementId = "Task_2", Flow = 3 };
+        SetupWorkflowResult(fixture, transitioned, parked: parked);
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = CreateTask1Instance(),
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        Assert.True(result.Success);
+        Assert.Equal(parked, result.WorkflowParked);
     }
 
     [Fact]
@@ -1473,7 +1501,8 @@ public sealed partial class ProcessEngineTest
         Instance instance,
         StorageVersionMetadata? versions = null,
         bool processStateCommitted = true,
-        WorkflowFailure? failure = null
+        WorkflowFailure? failure = null,
+        bool parked = false
     ) =>
         fixture
             .Mock<IWorkflowEngineService>()
@@ -1489,7 +1518,13 @@ public sealed partial class ProcessEngineTest
                 )
             )
             .ReturnsAsync(
-                new ProcessNextWorkflowResult(instance, versions ?? _storageVersions, failure, processStateCommitted)
+                new ProcessNextWorkflowResult(
+                    instance,
+                    versions ?? _storageVersions,
+                    failure,
+                    processStateCommitted,
+                    parked
+                )
             );
 
     [Fact]
@@ -1593,7 +1628,7 @@ public sealed partial class ProcessEngineTest
     {
         // The user was authorized and the task validated as them. Carrying out the transition is the app's, and the
         // gateways that decide where it goes are its first part.
-        var dataType = new DataType { Id = "model", TaskId = "Task_1" };
+        var dataType = new DataType { Id = "model", TaskIds = ["Task_1"] };
         var workflowService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         workflowService
             .Setup(s =>

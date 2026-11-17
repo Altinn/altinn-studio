@@ -13,6 +13,8 @@ public class AdminAuditLogDbModel
 
     public string InstanceId { get; set; }
 
+    public Guid? WorkflowId { get; set; }
+
     public string Action { get; set; }
 
     public string Status { get; set; }

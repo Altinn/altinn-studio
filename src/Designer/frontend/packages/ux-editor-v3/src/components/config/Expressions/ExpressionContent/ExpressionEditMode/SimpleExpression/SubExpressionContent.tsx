@@ -6,7 +6,7 @@ import {
   ExpressionFunction,
   expressionFunctionTexts,
 } from '../../../../../../types/Expressions';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon } from '@designer/icons';
 import classes from './SubExpressionContent.module.css';
 import { DataSourceValue } from './DataSourceValue';
 import {
@@ -15,7 +15,7 @@ import {
   addFunctionToSubExpression,
 } from '../../../../../../utils/expressionsUtils';
 import { useText } from '../../../../../../hooks';
-import { StudioButton, StudioSelect } from '@studio/components';
+import { StudioButton, StudioSelect } from '@designer/components';
 
 export interface SubExpressionContentProps {
   subExpression: SubExpression;

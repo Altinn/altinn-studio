@@ -2,7 +2,7 @@ import classes from './ComplexExpression.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Expression } from '../../../../../types/Expressions';
 import { stringifyData } from '../../../../../utils/jsonUtils';
-import { StudioTextarea, StudioAlert } from '@studio/components';
+import { StudioTextarea, StudioAlert } from '@designer/components';
 
 export type ComplexExpressionProps = {
   disabled?: boolean;

@@ -7,3 +7,7 @@
 .legend {
   display: inline-flex;
 }
+
+.description {
+  max-width: var(--running-text-max-width);
+}

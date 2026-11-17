@@ -6,14 +6,14 @@ import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';
 
 export async function clientLoader({ context, params, request }: LoaderFunctionArgs): Promise<Response | null> {
   const queryClient = context.get(queryClientContext);
-  const { instanceApi } = context.get(apiClientsContext);
+  const instanceApi = context.get(appQueriesContext);
   const { instanceOwnerPartyId, instanceGuid, taskId } = params;
   if (!instanceOwnerPartyId || !instanceGuid || !taskId) {
     throw new Error('task-index loader reached without instanceOwnerPartyId/instanceGuid/taskId route params');

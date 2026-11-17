@@ -39,7 +39,8 @@ public static partial class EntityGenerationUtils
             List<string> attachmentFileNames = null,
             List<string> filesChanged = null,
             List<ChatSourceEntity> sources = null,
-            DateTime? createdAt = null
+            DateTime? createdAt = null,
+            string eventId = null
         )
         {
             return new ChatMessageEntity
@@ -53,6 +54,7 @@ public static partial class EntityGenerationUtils
                 AttachmentFileNames = attachmentFileNames,
                 FilesChanged = filesChanged,
                 Sources = sources,
+                EventId = eventId,
             };
         }
     }

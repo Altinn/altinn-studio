@@ -1,13 +1,13 @@
 """`web_fetch` — fetch a documentation page from an allowlisted domain.
 
-Exists so the model can follow the `altinn-docs` skill's llms.txt index:
+Exists so the model can follow the `studio-docs` skill's llms.txt index:
 scan the index, pick the relevant page, fetch it.  Deliberately narrow:
 
   * Allowlisted hosts only (docs.altinn.studio, altinncdn.no) — this is
     a docs reader, not a general HTTP client.  Keeping the list tight
     also keeps prompt-injection surface small: pages fetched are
     first-party Altinn documentation.
-  * GET only, response capped, HTML reduced to readable text.
+  * GET only, HTML reduced to readable text, long pages read in parts.
   * Redirects are followed, because the docs site sends each URL without
     a final slash to the URL with the slash.  Each redirect must pass the
     same allowlist check as the first URL.
@@ -23,8 +23,9 @@ from pydantic import BaseModel, Field
 
 from agents.core.tool import LoopContext, Tool, ToolResult
 
+from .utils.text_parts import PartLimit, PartOffset, text_part
+
 ALLOWED_HOSTS = {"docs.altinn.studio", "altinncdn.no", "www.altinn.studio", "altinn.studio"}
-MAX_RESPONSE_CHARS = 60_000
 FETCH_TIMEOUT_SECONDS = 20.0
 MAX_REDIRECTS = 3
 
@@ -37,6 +38,8 @@ _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.DOTALL | re.IGNORECASE)
 
 class WebFetchArgs(BaseModel):
     url: str = Field(description="HTTPS URL to fetch. Allowed hosts: docs.altinn.studio, altinncdn.no, altinn.studio.")
+    offset: PartOffset = 1
+    limit: PartLimit = None
 
 
 class WebFetchTool(Tool[WebFetchArgs]):
@@ -46,10 +49,9 @@ class WebFetchTool(Tool[WebFetchArgs]):
     description = (
         "Fetch a page from the official Altinn documentation "
         "(docs.altinn.studio) or an official schema (altinncdn.no).  Use "
-        "together with the `altinn-docs` skill: load the skill, scan its "
+        "together with the `studio-docs` skill: load the skill, scan its "
         "llms.txt index for the right page, then fetch that page's URL.  "
-        "HTML is reduced to readable text; responses are capped at "
-        f"{MAX_RESPONSE_CHARS} characters."
+        "HTML is reduced to readable text."
     )
     input_schema = WebFetchArgs
     is_concurrency_safe = True
@@ -63,20 +65,27 @@ class WebFetchTool(Tool[WebFetchArgs]):
             return response
         text, title = _extract_page(response)
         url = str(response.url)
-        return ToolResult(
-            content=text,
-            metadata={
-                "url": url,
-                "chars": len(text),
-                # Consulted-source record, collected by the loop and shown
-                # in the chat UI.  Ground truth: this page WAS fetched.
-                "source": {
-                    "title": title or _title_from_url(url),
-                    "url": url,
-                    "kind": "docs",
-                },
-            },
+        result = text_part(
+            ctx,
+            text,
+            offset=args.offset,
+            limit=args.limit,
+            key=f"url:{url}",
+            source=url,
+            tool=self.name,
+            same_args="the same `url`",
         )
+        if result.is_error:
+            return result
+        result.metadata["url"] = url
+        # Consulted-source record, collected by the loop and shown in the
+        # chat UI.  Ground truth: this page WAS fetched.
+        result.metadata["source"] = {
+            "title": title or _title_from_url(url),
+            "url": url,
+            "kind": "docs",
+        }
+        return result
 
 
 def _check_url(url: str) -> ToolResult | None:
@@ -108,7 +117,7 @@ async def _fetch(url: str) -> httpx.Response | ToolResult:
         status = exc.response.status_code
         hint = ""
         if status == 404:
-            hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
+            hint = "  Do not guess URLs — load `skill(studio-docs)` and use a URL verbatim from its index."
         return ToolResult(
             content=f"HTTP {status} fetching {exc.response.url}.{hint}",
             is_error=True,
@@ -136,8 +145,6 @@ def _extract_page(response: httpx.Response) -> tuple[str, str | None]:
     if "html" in response.headers.get("content-type", ""):
         title = _page_title(text)
         text = _html_to_text(text)
-    if len(text) > MAX_RESPONSE_CHARS:
-        text = text[:MAX_RESPONSE_CHARS] + "\n…[truncated]"
     return text, title
 
 

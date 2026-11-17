@@ -6,6 +6,7 @@ import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import type { JSONSchema7 } from 'json-schema';
+import type { Mock } from 'vitest';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
@@ -17,7 +18,6 @@ import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExternalAppUiFolder } from 'src/test/allApps';
 
-vi.mock('src/queries/queries');
 vi.mock('src/features/options/useSourceOptions', () => ({
   useSourceOptions: () => [{ label: 'Test option', value: 'test' }],
 }));
@@ -170,7 +170,9 @@ describe('All known UI folders should render successfully', () => {
       initialPage,
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
+      alwaysRouteToChildren: true,
       queries: {
+        getInstance: async () => ({ ...uiFolder.simulateInstance(), process: mainFolder.simulateProcessData() }),
         fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
         fetchFormBootstrapForInstance: async (options) =>
           getFormBootstrapMock((obj) => {
@@ -191,12 +193,6 @@ describe('All known UI folders should render successfully', () => {
           }),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
       },
-      apis: {
-        instanceApi: {
-          getInstance: async () => ({ ...uiFolder.simulateInstance(), process: mainFolder.simulateProcessData() }),
-        },
-      },
-      alwaysRouteToChildren: true,
     });
 
     // If errors are not found in the DOM, but there are errors in the loggers, output those instead
@@ -272,4 +268,3 @@ function filterAndCleanMockCalls(mock: Mock): string[] {
     .filter((x) => x)
     .map((x) => (x ?? []).join('\n'));
 }
-import type { Mock } from 'vitest';

@@ -32,6 +32,13 @@ public sealed record Step : PersistentItem
     public int RequeueCount { get; set; }
 
     /// <summary>
+    /// When the current run of consecutive failures began: the failed attempt that took
+    /// <see cref="RequeueCount"/> from 0 to 1. Set exactly while <see cref="RequeueCount"/> is above 0, so it is
+    /// cleared with it when the step defers or is resumed, and kept after completion like the count.
+    /// </summary>
+    public DateTimeOffset? FirstFailedAt { get; set; }
+
+    /// <summary>
     /// Number of times this step has deferred (<see cref="ExecutionStatus.Deferred"/>).
     /// Available to commands via <see cref="CommandExecutionContext.Step"/> for adaptive poll cadence.
     /// </summary>

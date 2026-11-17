@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RepoOwnedByPersonInfo } from './RepoOwnedByPersonInfo';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('RepoOwnedByPersonInfo', () => {
   it('should show alert and info texts', () => {

@@ -3,17 +3,34 @@ import { Preview } from './Preview';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../testing/appContextMock';
 import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
-import { app, layoutSet, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+
+const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
+vi.mock('app-shared/utils/previewAvailability', () => ({
+  get isPreviewDisabled() {
+    return previewAvailability.isPreviewDisabled;
+  },
+}));
 
 describe('Preview', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    previewAvailability.isPreviewDisabled = false;
+  });
+
+  it('Informs that preview is temporarily disabled instead of loading it', () => {
+    previewAvailability.isPreviewDisabled = true;
+    const createPreviewInstance = vi.fn();
+    render({ queries: { createPreviewInstance } });
+    expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
+    expect(screen.queryByTitle(textMock('ux_editor.preview'))).not.toBeInTheDocument();
+    expect(createPreviewInstance).not.toHaveBeenCalled();
   });
 
   it('Renders an iframe with the ref from AppContext', async () => {

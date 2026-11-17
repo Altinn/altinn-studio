@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Exceptions.Options;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -457,11 +458,6 @@ public class OptionsService : IOptionsService
 
     private static string ImportSourceName(string org)
     {
-        return $"{org}/{StaticContentRepoName(org)}";
-    }
-
-    private static string StaticContentRepoName(string org)
-    {
-        return $"{org}-content";
+        return $"{org}/{RepositoryNames.Content(org)}";
     }
 }

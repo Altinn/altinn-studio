@@ -40,7 +40,22 @@ describe('Custom Button', () => {
     cy.findByText('Oppsummering').should('be.visible');
   });
 
-  it('It should execute frontend actions that are specified in the component', () => {
+  it('It should execute frontend actions using their validation instead of inherited validation', () => {
+    cy.interceptLayout(
+      'Task_2',
+      (component) => {
+        if (component.type === 'CustomButton' && component.id === 'testing-custom-button2') {
+          for (const action of component.actions) {
+            action.validation = { page: 'current', show: [] };
+          }
+        }
+        return component;
+      },
+      (layouts) => {
+        layouts.form.data.validationOnNavigation = { page: 'current', show: ['Required'] };
+        return layouts;
+      },
+    );
     cy.goto('changename');
 
     cy.findByRole('button', { name: 'Trigger frontend actions' }).click();

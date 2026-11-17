@@ -1,4 +1,4 @@
-import type { TextResourceWithLanguage } from '@studio/content-library';
+import type { TextResourceWithLanguage } from '@designer/content-library';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export function convertTextResourceToMutationArgs({

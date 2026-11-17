@@ -5,11 +5,11 @@ import { renderWithProviders } from '../../../test/mocks';
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { pageHeaderContextMock, previewContextMock } from '../../../test/headerMocks';
 import { PageHeaderContext } from '../../../contexts/PageHeaderContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { PageHeaderContextProps } from '../../../contexts/PageHeaderContext';
 import { RepositoryType } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
 const mockNavigate = vi.fn();
 

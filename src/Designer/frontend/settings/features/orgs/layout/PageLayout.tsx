@@ -1,6 +1,6 @@
 import classes from './PageLayout.module.css';
 import { Outlet } from 'react-router-dom';
-import { StudioAlert, StudioCenter, StudioHeading, StudioPageSpinner } from '@studio/components';
+import { StudioAlert, StudioCenter, StudioHeading, StudioPageSpinner } from '@designer/components';
 import { StudioPageError } from 'app-shared/components';
 import { NotFound } from '../../../components/NotFound/NotFound';
 import { useTranslation } from 'react-i18next';

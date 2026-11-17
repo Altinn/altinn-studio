@@ -1,0 +1,18 @@
+# The Key Vault with the observability ingest token. dis-vault-operator grants Key Vault Secrets
+# Officer to the identity and to the group in groupObjectId (set per environment), so its members
+# can write the token. With externalSecrets it creates the SecretStore observability-secret-store.
+apiVersion: vault.dis.altinn.cloud/v1alpha1
+kind: Vault
+metadata:
+  name: observability
+  annotations:
+    # Flux never deletes it, not even when it is removed from the manifests or the Kustomization
+    # observability is deleted. Deleting it deletes the Azure Key Vault and its secrets. The Key
+    # Vault's name is derived from the namespace, the name and the environment, and purge
+    # protection keeps the deleted vault for the 90 days of soft delete, so the Vault could not be
+    # recreated under the same name until then. Removing it is a manual step.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec:
+  identityRef:
+    name: observability
+  externalSecrets: true

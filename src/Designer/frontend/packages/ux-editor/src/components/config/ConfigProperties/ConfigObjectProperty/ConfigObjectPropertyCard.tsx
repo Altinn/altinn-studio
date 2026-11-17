@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StudioConfigCard, StudioParagraph } from '@studio/components';
+import { StudioConfigCard, StudioParagraph } from '@designer/components';
 import {
   useComponentPropertyLabel,
   useComponentPropertyDescription,
@@ -76,9 +76,9 @@ export const ConfigObjectPropertyCard = ({
               ? properties[objectPropertyKey].properties
               : {}
           }
-          component={component[objectPropertyKey] || {}}
+          component={(currentValues || {}) as FormComponent}
           handleComponentUpdate={(updatedComponent: FormComponent) =>
-            setCurrentValues({ ...currentValues, ...updatedComponent })
+            setCurrentValues(updatedComponent)
           }
           editFormId={editFormId}
           keepEditOpen={true}

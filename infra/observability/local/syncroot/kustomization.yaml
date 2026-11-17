@@ -22,10 +22,15 @@ patches:
   - path: ../environment.yaml
     target:
       kind: Kustomization
+  # The local runtime overlay, in a fixture that plays ttd's cluster, as the
+  # services' own local syncroots do.
   - patch: |-
       - op: replace
         path: /spec/path
         value: ./local/runtime
+      - op: replace
+        path: /spec/postBuild/substitute/SERVICEOWNER_ID
+        value: ttd
     target:
       kind: Kustomization
       namespace: runtime-obs

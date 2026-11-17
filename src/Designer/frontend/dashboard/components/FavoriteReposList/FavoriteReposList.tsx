@@ -1,7 +1,7 @@
 import { RepoList } from '../RepoList';
 import { useTranslation } from 'react-i18next';
 import { useStarredReposQuery } from '../../hooks/queries';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export const FavoriteReposList = () => {

@@ -1,14 +1,19 @@
+# Fully qualified, because Podman tags an unqualified name as localhost/…, which the kind node then
+# does not match against the manifest's image. Docker normalizes this to the same name it gives
+# altinn-kuberneteswrapper:local.
+IMAGE := docker.io/library/altinn-kuberneteswrapper:local
+
 .PHONY: setup-kind
 setup-kind:
 	kind create cluster
 
 .PHONY: build-docker-image
 build-docker-image:
-	docker build -f src/Dockerfile ../.. -t altinn-kuberneteswrapper:local
+	docker build -f src/Dockerfile ../.. -t $(IMAGE)
 
 .PHONY: load-image
 load-image: build-docker-image
-	kind load docker-image altinn-kuberneteswrapper:local
+	kind load docker-image $(IMAGE)
 
 .PHONY: deploy-components
 deploy-components: load-image

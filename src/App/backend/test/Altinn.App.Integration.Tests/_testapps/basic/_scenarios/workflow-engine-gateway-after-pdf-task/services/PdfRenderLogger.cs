@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,19 +20,19 @@ public sealed class PdfRenderLogger(IPdfGeneratorClient inner) : IPdfGeneratorCl
 {
     public const string RenderLogMessage = "PdfGeneratorClient.GeneratePdf";
 
-    public Task<Stream> GeneratePdf(Uri uri, CancellationToken cancellationToken)
+    public Task<byte[]> GeneratePdf(Uri uri, CancellationToken cancellationToken)
     {
         SnapshotLogger.LogInfo(RenderLogMessage);
         return inner.GeneratePdf(uri, cancellationToken);
     }
 
-    public Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken)
+    public Task<byte[]> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken)
     {
         SnapshotLogger.LogInfo(RenderLogMessage);
         return inner.GeneratePdf(uri, footerContent, cancellationToken);
     }
 
-    public Task<Stream> GeneratePdf(
+    public Task<byte[]> GeneratePdf(
         Uri uri,
         string? footerContent,
         StorageAuthenticationMethod? authenticationMethod,

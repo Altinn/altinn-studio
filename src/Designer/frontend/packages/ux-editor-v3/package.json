@@ -4,8 +4,8 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
+    "@designer/icons": "workspace:^",
     "@reduxjs/toolkit": "1.9.7",
-    "@studio/icons": "workspace:^",
     "classnames": "2.5.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -15,7 +15,7 @@
     "uuid": "13.0.2"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
+    "@designer/ui-test": "workspace:^",
     "@typescript/native": "npm:typescript@7.0.2",
     "redux-mock-store": "1.5.5"
   },

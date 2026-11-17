@@ -42,11 +42,6 @@ public static class ValidationIssueCodes
         public static string DataElementTooLarge => nameof(DataElementTooLarge);
 
         /// <summary>
-        /// Gets a value that represents a validation issue where a data element has been validated at a process task different from expected.
-        /// </summary>
-        public static string DataElementValidatedAtWrongTask => nameof(DataElementValidatedAtWrongTask);
-
-        /// <summary>
         /// Gets a value that represents a validation issue where the data element has a pending file virus scan.
         /// </summary>
         public static string DataElementFileScanPending => nameof(DataElementFileScanPending);

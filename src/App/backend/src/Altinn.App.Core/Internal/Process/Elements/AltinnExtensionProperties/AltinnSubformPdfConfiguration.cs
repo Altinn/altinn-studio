@@ -16,16 +16,11 @@ public class AltinnSubformPdfConfiguration
     public string? FilenameTextResourceKey { get; set; }
 
     /// <summary>
-    /// The ID of the subform component to render in the PDFs.
+    /// The UI folder of the subform to render in the PDFs. Its <c>defaultDataType</c> is the data type of the
+    /// subform entries, and the task generates a PDF for each of them.
     /// </summary>
-    [XmlElement("subformComponentId", Namespace = "http://altinn.no/process")]
-    public string? SubformComponentId { get; set; }
-
-    /// <summary>
-    /// The ID of the data type associated with the subform component.
-    /// </summary>
-    [XmlElement("subformDataTypeId", Namespace = "http://altinn.no/process")]
-    public string? SubformDataTypeId { get; set; }
+    [XmlElement("subformUiFolder", Namespace = "http://altinn.no/process")]
+    public string? SubformUiFolder { get; set; }
 
     internal ValidAltinnSubformPdfConfiguration Validate()
     {
@@ -35,13 +30,10 @@ public class AltinnSubformPdfConfiguration
             ? null
             : FilenameTextResourceKey.Trim();
 
-        if (SubformComponentId.IsNullOrWhitespace(ref errorMessages, $"{nameof(SubformComponentId)} is missing."))
+        if (SubformUiFolder.IsNullOrWhitespace(ref errorMessages, $"{nameof(SubformUiFolder)} is missing."))
             ThrowApplicationConfigException(errorMessages);
 
-        if (SubformDataTypeId.IsNullOrWhitespace(ref errorMessages, $"{nameof(SubformDataTypeId)} is missing."))
-            ThrowApplicationConfigException(errorMessages);
-
-        return new ValidAltinnSubformPdfConfiguration(normalizedFilename, SubformComponentId, SubformDataTypeId);
+        return new ValidAltinnSubformPdfConfiguration(normalizedFilename, SubformUiFolder);
     }
 
     [DoesNotReturn]
@@ -55,6 +47,5 @@ public class AltinnSubformPdfConfiguration
 
 internal readonly record struct ValidAltinnSubformPdfConfiguration(
     string? FilenameTextResourceKey,
-    string SubformComponentId,
-    string SubformDataTypeId
+    string SubformUiFolder
 );

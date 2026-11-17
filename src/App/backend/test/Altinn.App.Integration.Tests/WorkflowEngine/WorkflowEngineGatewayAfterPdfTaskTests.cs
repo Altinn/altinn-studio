@@ -1,11 +1,9 @@
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
-using Json.Patch;
-using Json.Pointer;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
@@ -24,6 +22,10 @@ public class WorkflowEngineGatewayAfterPdfTaskTests(ITestOutputHelper output, Ap
     private const string Scenario = "workflow-engine-gateway-after-pdf-task";
     private const string PdfTaskId = "PdfTask_Task_1";
     private const string PdfDataType = "ref-data-as-pdf";
+
+    // Ending a task runs this step and abandoning it does not. The PDF task composes no end or abandon stages, so
+    // neither transition has an EndTask or AbandonTask step to tell them apart.
+    private const string TaskEndStep = "CommonTaskFinalization";
 
     // Keep in sync with PdfRenderLogger.RenderLogMessage in the scenario's services.
     private const string RenderLogMessage = "PdfGeneratorClient.GeneratePdf";
@@ -55,8 +57,7 @@ public class WorkflowEngineGatewayAfterPdfTaskTests(ITestOutputHelper output, Ap
 
         // The transition out of the PDF task ends it, as the user's confirm ended the task before it.
         List<string> leavingSteps = await GetStepOperationIds(refreshed, $"{PdfTaskId} -> Task_2");
-        Assert.Contains("EndTask", leavingSteps);
-        Assert.DoesNotContain("AbandonTask", leavingSteps);
+        Assert.Contains(TaskEndStep, leavingSteps);
     }
 
     [Fact]
@@ -85,8 +86,7 @@ public class WorkflowEngineGatewayAfterPdfTaskTests(ITestOutputHelper output, Ap
 
         // The transition out of the PDF task abandons it, as the user's reject abandoned the task before it.
         List<string> leavingSteps = await GetStepOperationIds(refreshed, $"{PdfTaskId} -> EndEvent_Rejected");
-        Assert.Contains("AbandonTask", leavingSteps);
-        Assert.DoesNotContain("EndTask", leavingSteps);
+        Assert.DoesNotContain(TaskEndStep, leavingSteps);
     }
 
     private static T Model<T>(AppFixture.ReadApiResponse<T> response) =>
@@ -120,9 +120,13 @@ public class WorkflowEngineGatewayAfterPdfTaskTests(ITestOutputHelper output, Ap
                 [
                     new(
                         dataElementId,
-                        new JsonPatch(
-                            PatchOperation.Replace(JsonPointer.Create("property1"), JsonNode.Parse("\"2\"")),
-                            PatchOperation.Replace(JsonPointer.Create("property2"), JsonNode.Parse("\"2\""))
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],
@@ -150,7 +154,7 @@ public class WorkflowEngineGatewayAfterPdfTaskTests(ITestOutputHelper output, Ap
     /// <summary>
     /// The step operation ids of the instance's process-next workflow for <paramref name="transition"/>, read
     /// from the workflow engine. A task-end step is named after its command, so the steps say whether the
-    /// transition ended or abandoned the task it left.
+    /// transition ended or abandoned the task it left (see <see cref="TaskEndStep"/>).
     /// </summary>
     private static async Task<List<string>> GetStepOperationIds(Instance instance, string transition)
     {

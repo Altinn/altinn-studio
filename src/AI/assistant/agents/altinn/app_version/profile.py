@@ -13,6 +13,7 @@ class AppVersionProfile:
     version_rules_prompt: str
     layout_schema_location: str
     layout_schema_display_url: str
+    text_resources_schema_location: str
     binding_constraints: Mapping[str, Sequence[str]]
     forbidden_new_file_patterns: Mapping[str, str]
 

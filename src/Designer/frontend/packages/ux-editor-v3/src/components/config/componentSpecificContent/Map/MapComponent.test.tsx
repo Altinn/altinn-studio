@@ -5,7 +5,7 @@ import { MapComponent } from './MapComponent';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { appDataMock } from '../../../../testing/stateMocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { IGenericEditComponent } from '../../componentConfig';
 
 const handleComponentChangeMock = vi.fn();

@@ -9,20 +9,19 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_PutTests : ApiTestBase
 {
     private readonly Mock<IDataProcessor> _dataProcessor = new(MockBehavior.Strict);
     private readonly Mock<IDataWriteProcessor> _dataWriteProcessor = new(MockBehavior.Strict);
 
-    public DataController_PutTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public DataController_PutTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {

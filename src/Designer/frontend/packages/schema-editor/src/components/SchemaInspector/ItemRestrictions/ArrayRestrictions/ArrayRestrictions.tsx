@@ -2,7 +2,7 @@ import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
-import { StudioSwitch, StudioTextfield } from '@studio/components';
+import { StudioSwitch, StudioTextfield } from '@designer/components';
 import { ItemWrapper } from '../ItemWrapper';
 
 export function ArrayRestrictions({

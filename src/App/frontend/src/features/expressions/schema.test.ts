@@ -168,7 +168,7 @@ describe('expression schema tests', () => {
 });
 
 function testArgumentFromExprVal(val: ExprVal): string | string[] {
-  return val === ExprVal.List ? ['list'] : exprValToString(val);
+  return val === ExprVal.List ? ['list'] : val === ExprVal.Object ? ['object'] : exprValToString(val);
 }
 
 function exprValToString(val: ExprVal): string {

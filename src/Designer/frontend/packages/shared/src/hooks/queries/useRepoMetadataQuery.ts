@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Repository } from 'app-shared/types/Repository';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 /**
  * Query function to get the metadata of a repo
@@ -17,9 +17,9 @@ export const useRepoMetadataQuery = (
   owner: string,
   app: string,
   meta?: QueryMeta,
-): UseQueryResult<Repository, AxiosError> => {
+): UseQueryResult<Repository, HttpError> => {
   const { getRepoMetadata } = useServicesContext();
-  return useQuery<Repository, AxiosError>({
+  return useQuery<Repository, HttpError>({
     queryKey: [QueryKey.RepoMetadata, owner, app],
     queryFn: () => getRepoMetadata(owner, app),
     meta,

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTable, StudioButton, StudioDeleteButton } from '@studio/components';
-import { StudioEditIcon } from '@studio/icons';
+import { StudioTable, StudioButton, StudioDeleteButton } from '@designer/components';
+import { StudioEditIcon } from '@designer/icons';
 import classes from './ActionsCell.module.css';
 
 type ActionsCellProps = {

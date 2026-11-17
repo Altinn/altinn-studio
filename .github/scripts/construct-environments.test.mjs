@@ -438,3 +438,44 @@ test("rejects an empty inputsKey", () => {
     /inputs-key cannot be empty/
   );
 });
+
+test("dis-edge: uses every DIS Edge environment when inputs context is null", () => {
+  const result = constructResult({
+    mode: "dis-edge",
+    inputs: "null",
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { environment: "dis_edge_at22", tag: "at22" },
+    { environment: "dis_edge_at23", tag: "at23" },
+    { environment: "dis_edge_yt01", tag: "yt01" },
+    { environment: "dis_edge_tt02", tag: "tt02" },
+    { environment: "dis_edge_prod", tag: "prod" },
+  ]);
+});
+
+test("dis-edge: resolves environments from inputs.environments", () => {
+  const result = constructResult({
+    mode: "dis-edge",
+    inputs: '{"environments":"at22,prod"}',
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { environment: "dis_edge_at22", tag: "at22" },
+    { environment: "dis_edge_prod", tag: "prod" },
+  ]);
+});
+
+test("dis-edge: rejects at24, whose relay uses tt02's DIS Edge", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "dis-edge",
+        inputs: '{"environments":"at24"}',
+        allowEmpty: false,
+      }),
+    /invalid DIS Edge environment 'at24'/
+  );
+});

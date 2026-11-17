@@ -162,7 +162,7 @@ public class MailboxRelayTests
         ) => throw new NotSupportedException();
     }
 
-    private static MailboxRelay CreateRelay(RelayRecorder recorder, IPipelineServiceTask? serviceTask = null)
+    private static MailboxRelay CreateRelay(RelayRecorder recorder, IServiceTask? serviceTask = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -206,43 +206,36 @@ public class MailboxRelayTests
         return new MailboxRelay(
             new RecordingEngineClient(recorder),
             recorder.Tokens,
-            new ProcessStepOptionsResolver([], sp.GetRequiredService<AppImplementationFactory>()),
+            new ProcessStepOptionsResolver([]),
             processEngine.Object
         );
     }
 
     private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+    private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<StageExchangeResult>(StageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> OnSegmentClosed(
-        ServiceTaskContext context,
-        MailboxClosedReason reason
-    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult(StageResult.Completed());
 
     /// <summary>A task that concludes on replies, so the relay has a step shape to build.</summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
@@ -261,13 +254,11 @@ public class MailboxRelayTests
     /// send and the terminal that answers it. The segment after A therefore has both a stage and an ending
     /// receive enqueue, so the relay's ordering is visible.
     /// </summary>
-    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -282,11 +273,11 @@ public class MailboxRelayTests
     }
 
     /// <summary>The mid-pipeline reply followed by trailing stages and an ordinary <c>Finally</c>.</summary>
-    private sealed class ArchiveThenRecordTask : IPipelineServiceTask
+    private sealed class ArchiveThenRecordTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -295,14 +286,14 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Both sends up front, so exchange B's clock starts in Main and the segment after A holds no step of its
-    /// own — decision 3, seen from the planner's side.
+    /// Both sends up front, so exchange B's clock starts in the primary workflow and the segment after A holds no step
+    /// of its own — decision 3, seen from the planner's side.
     /// </summary>
-    private sealed class UpFrontSendsTask : IPipelineServiceTask
+    private sealed class UpFrontSendsTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
@@ -600,7 +591,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             awaitNext ? ServiceTaskExchangeResult.AwaitNextReply() : ServiceTaskResult.Success(),
             ServiceTaskType,
             Guid.Empty,
@@ -611,7 +602,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
         Assert.Null(failed.MailboxContinuation);
@@ -622,7 +613,7 @@ public class MailboxRelayTests
     public void AVerdictThatMakesNoKeyedCall_IsUnaffectedByAMissingStepId()
     {
         // Refusing this too would take the close with it.
-        FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
+        FailedWorkflowEngineCommandResult permanent = Assert.IsType<FailedWorkflowEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.FailedPermanent("the archive never confirmed"),
                 ServiceTaskType,
@@ -636,7 +627,7 @@ public class MailboxRelayTests
         );
         Assert.IsType<MailboxContinuation.Conclude>(permanent.MailboxContinuation);
 
-        FailedProcessEngineCommandResult retryable = Assert.IsType<FailedProcessEngineCommandResult>(
+        FailedWorkflowEngineCommandResult retryable = Assert.IsType<FailedWorkflowEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.FailedRetryable("the archive is down"),
                 ServiceTaskType,
@@ -650,7 +641,7 @@ public class MailboxRelayTests
         );
         Assert.False(retryable.NonRetryable);
 
-        Assert.IsType<DeferredProcessEngineCommandResult>(
+        Assert.IsType<DeferredWorkflowEngineCommandResult>(
             MailboxRelay.Decide(
                 ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)),
                 ServiceTaskType,
@@ -708,6 +699,29 @@ public class MailboxRelayTests
     }
 
     [Fact]
+    public async Task SuccessorReceiver_CarriesTheHandlersOwnOptions()
+    {
+        var recorder = new RelayRecorder();
+        var handlerOptions = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
+        await CreateRelay(recorder)
+            .Continue(
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 4,
+                    action: null,
+                    handlerOptions
+                ),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        Assert.Equal(TimeSpan.FromMinutes(5), step.Command.MaxExecutionTime);
+    }
+
+    [Fact]
     public async Task SuccessorReceiver_NamesTheHandlerTheContinuationCarried()
     {
         var recorder = new RelayRecorder();
@@ -732,7 +746,56 @@ public class MailboxRelayTests
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
         Assert.Equal(ServiceTaskType, payload.ServiceTaskType);
         Assert.Equal(ArchivingReplyIndex, payload.ItemIndex);
-        Assert.Equal(ArchivingReplyIndex, step.ServiceTaskItemIndex);
+    }
+
+    [Fact]
+    public async Task SuccessorReceiver_CarriesTheHandlersStepName()
+    {
+        var recorder = new RelayRecorder();
+
+        await CreateRelay(recorder)
+            .Continue(
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 4,
+                    action: null,
+                    handlerStepOptions: null,
+                    handlerStepName: "Read receipt"
+                ),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        Assert.Equal("Read receipt", Assert.Contains(WorkflowStepSet.StepNameLabel, step.Labels!));
+    }
+
+    [Fact]
+    public void AwaitNextReply_CarriesTheHandlersStepNameToTheNextReceiver()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
+            ServiceTaskExchangeResult.AwaitNextReply(),
+            ServiceTaskType,
+            _stepId,
+            Delivered(seq: 4),
+            carry,
+            ArchivingReplyIndex,
+            OpeningStageIndex,
+            action: null,
+            handlerStepOptions: null,
+            handlerStepName: "Read receipt"
+        );
+
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal("Read receipt", awaiting.HandlerStepName);
     }
 
     [Fact]
@@ -776,7 +839,7 @@ public class MailboxRelayTests
             ServiceTaskType,
             new MailboxHandover(
                 openingStageIndex,
-                WorkflowCommandSet.PlanSegment(
+                WorkflowStepSet.PlanSegment(
                     ServiceTaskType,
                     pipeline ?? _archivingPipeline,
                     action: null,
@@ -845,7 +908,6 @@ public class MailboxRelayTests
 
         StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
         Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
-        Assert.Equal(JournalTerminalIndex, step.ServiceTaskItemIndex);
     }
 
     [Fact]
@@ -907,7 +969,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             new RogueVerdict(ServiceTaskResult.Success()),
             ServiceTaskType,
             _stepId,
@@ -918,10 +980,34 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueVerdict), failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
+    }
+
+    [Fact]
+    public void NullVerdict_FailsPermanentlyWithoutThrowingAndLeavesTheExchangeOpen()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
+            null!,
+            ServiceTaskType,
+            _stepId,
+            Delivered(),
+            carry,
+            ArchivingReplyIndex,
+            OpeningStageIndex,
+            action: null
+        );
+
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("with null", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(failed.MailboxContinuation);
     }
 
@@ -931,7 +1017,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.Success("confirm"),
             ServiceTaskType,
             _stepId,
@@ -942,7 +1028,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal("confirm", success.ProcessNextContinuation?.Action);
         Assert.IsType<MailboxContinuation.Conclude>(success.MailboxContinuation);
@@ -955,7 +1041,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskExchangeResult.AwaitNextReply(),
             ServiceTaskType,
             _stepId,
@@ -966,7 +1052,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             success.MailboxContinuation
@@ -984,7 +1070,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.FailedPermanent("the archive never confirmed"),
             ServiceTaskType,
             _stepId,
@@ -995,7 +1081,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Contains("the archive never confirmed", failed.ErrorMessage, StringComparison.Ordinal);
         Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
@@ -1008,7 +1094,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.FailedRetryable("the archive is down"),
             ServiceTaskType,
             _stepId,
@@ -1019,7 +1105,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Null(failed.MailboxContinuation);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
@@ -1031,7 +1117,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.Decide(
+        WorkflowEngineCommandResult result = MailboxRelay.Decide(
             ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
             ServiceTaskType,
             _stepId,
@@ -1042,7 +1128,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        DeferredWorkflowEngineCommandResult deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
     }
@@ -1061,9 +1147,9 @@ public class MailboxRelayTests
     /// Self-cleaning, like its three siblings: closing the copy-constructor route properly stops
     /// <c>base(original)</c> compiling, and this test disappears with the arm it pins.
     /// </remarks>
-    private sealed record RogueStageVerdict : ServiceTaskStageExchangeResult
+    private sealed record RogueStageVerdict : StageExchangeResult
     {
-        public RogueStageVerdict(ServiceTaskStageExchangeResult original)
+        public RogueStageVerdict(StageExchangeResult original)
             : base(original) { }
     }
 
@@ -1073,8 +1159,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            new RogueStageVerdict(ServiceTaskStageResult.Completed()),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            new RogueStageVerdict(StageResult.Completed()),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1085,7 +1171,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueStageVerdict), failed.ErrorMessage, StringComparison.Ordinal);
@@ -1094,13 +1180,13 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public void SegmentCompleted_ConcludesTheExchangeAndAsksForThePipelinesNextSegment()
+    public void NullSegmentVerdict_FailsPermanentlyWithoutThrowingAndLeavesTheExchangeOpen()
     {
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            null!,
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1111,7 +1197,32 @@ public class MailboxRelayTests
             action: null
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("with null", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
+    }
+
+    [Fact]
+    public void SegmentCompleted_ConcludesTheExchangeAndAsksForThePipelinesNextSegment()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.Completed(),
+            ServiceTaskType,
+            _stepId,
+            Delivered(),
+            carry,
+            SegmentHandlerIndex,
+            OpeningStageIndex,
+            _archiveThenJournalPipeline,
+            action: null
+        );
+
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         Assert.Null(success.ProcessNextContinuation?.Action);
 
@@ -1142,8 +1253,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageExchangeResult.AwaitNextReply(),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageExchangeResult.AwaitNextReply(),
             ServiceTaskType,
             _stepId,
             Delivered(seq: 6),
@@ -1154,7 +1265,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             success.MailboxContinuation
         );
@@ -1176,8 +1287,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.FailedPermanent("the archive never confirmed"),
             ServiceTaskType,
             _stepId,
             Closed(),
@@ -1188,7 +1299,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Contains("the archive never confirmed", failed.ErrorMessage, StringComparison.Ordinal);
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(failed.MailboxContinuation);
@@ -1202,8 +1313,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.FailedRetryable("the archive is down"),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.FailedRetryable("the archive is down"),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1214,7 +1325,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Null(failed.MailboxContinuation);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
@@ -1226,8 +1337,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1238,7 +1349,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        DeferredWorkflowEngineCommandResult deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
         Assert.Equal("waiting for the archive to settle", deferred.Reason);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
@@ -1254,8 +1365,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            awaitNext ? ServiceTaskStageExchangeResult.AwaitNextReply() : ServiceTaskStageResult.Completed(),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            awaitNext ? StageExchangeResult.AwaitNextReply() : StageResult.Completed(),
             ServiceTaskType,
             Guid.Empty,
             Delivered(),
@@ -1266,7 +1377,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
         Assert.Null(failed.MailboxContinuation);
@@ -1277,9 +1388,9 @@ public class MailboxRelayTests
     [Fact]
     public void ASegmentVerdictThatMakesNoKeyedCall_IsUnaffectedByAMissingStepId()
     {
-        FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
+        FailedWorkflowEngineCommandResult permanent = Assert.IsType<FailedWorkflowEngineCommandResult>(
             MailboxRelay.DecideSegment(
-                ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
+                StageResult.FailedPermanent("the archive never confirmed"),
                 ServiceTaskType,
                 Guid.Empty,
                 Closed(),
@@ -1292,9 +1403,9 @@ public class MailboxRelayTests
         );
         Assert.IsType<MailboxContinuation.Conclude>(permanent.MailboxContinuation);
 
-        Assert.IsType<DeferredProcessEngineCommandResult>(
+        Assert.IsType<DeferredWorkflowEngineCommandResult>(
             MailboxRelay.DecideSegment(
-                ServiceTaskStageResult.Defer(TimeSpan.FromMinutes(1)),
+                StageResult.Defer(TimeSpan.FromMinutes(1)),
                 ServiceTaskType,
                 Guid.Empty,
                 Delivered(),
@@ -1325,7 +1436,7 @@ public class MailboxRelayTests
             ServiceTaskType,
             new MailboxHandover(
                 handlerItemIndex,
-                WorkflowCommandSet.PlanSegment(
+                WorkflowStepSet.PlanSegment(
                     ServiceTaskType,
                     pipeline ?? _archiveThenJournalPipeline,
                     afterItemIndex: handlerItemIndex,
@@ -1350,7 +1461,15 @@ public class MailboxRelayTests
             new MailboxHandover(
                 handlerItemIndex - 1,
                 new ServiceTaskSegmentPlan(
-                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex, action: null)],
+                    [
+                        WorkflowStepSet.CreateItemStep(
+                            ServiceTaskType,
+                            handlerItemIndex,
+                            action: null,
+                            declaredOptions: null,
+                            stepName: null
+                        ),
+                    ],
                     ReceiveOpeningIndex: openingStageIndex
                 ),
                 new MailboxTarget(mailboxId, openingStageIndex)
@@ -1366,12 +1485,7 @@ public class MailboxRelayTests
             ServiceTaskType,
             new MailboxHandover(
                 openingStageIndex,
-                WorkflowCommandSet.PlanSegment(
-                    ServiceTaskType,
-                    pipeline,
-                    afterItemIndex: openingStageIndex,
-                    action: null
-                ),
+                WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex: openingStageIndex, action: null),
                 target: null
             )
         );
@@ -1399,7 +1513,15 @@ public class MailboxRelayTests
     public void MailboxHandover_WhosePlanAndTargetDisagree_IsRefusedAtConstruction(bool planReceives)
     {
         var plan = new ServiceTaskSegmentPlan(
-            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, action: null)],
+            [
+                WorkflowStepSet.CreateItemStep(
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    action: null,
+                    declaredOptions: null,
+                    stepName: null
+                ),
+            ],
             planReceives ? OpeningStageIndex : null
         );
         MailboxTarget? target = planReceives ? null : new MailboxTarget(_mailboxId, OpeningStageIndex);
@@ -1414,8 +1536,20 @@ public class MailboxRelayTests
     {
         var plan = new ServiceTaskSegmentPlan(
             [
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, action: null),
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1, action: null),
+                WorkflowStepSet.CreateItemStep(
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    action: null,
+                    declaredOptions: null,
+                    stepName: null
+                ),
+                WorkflowStepSet.CreateItemStep(
+                    ServiceTaskType,
+                    ArchivingReplyIndex + 1,
+                    action: null,
+                    declaredOptions: null,
+                    stepName: null
+                ),
             ],
             OpeningStageIndex
         );
@@ -1444,7 +1578,7 @@ public class MailboxRelayTests
     private static List<string?> HandoverActions(MailboxHandover handover) =>
         handover
             .Plan.Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step => StepPayload(step).Action)
+            .Select(step => Assert.IsType<ExecuteServiceTaskPayload>(step.Payload).Action)
             .ToList();
 
     /// <summary>
@@ -1462,7 +1596,7 @@ public class MailboxRelayTests
             Assert
                 .IsType<MailboxContinuation.ContinueAfterStage>(
                     Assert
-                        .IsType<SuccessfulProcessEngineCommandResult>(
+                        .IsType<SuccessfulWorkflowEngineCommandResult>(
                             MailboxRelay.DecideStageEnd(
                                 ServiceTaskType,
                                 _stepId,
@@ -1486,8 +1620,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.Completed(),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1499,7 +1633,7 @@ public class MailboxRelayTests
         );
 
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
-            Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+            Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result).MailboxContinuation
         );
         Assert.Equal(["reject", "reject"], HandoverActions(continuing.Handover));
     }
@@ -1516,7 +1650,7 @@ public class MailboxRelayTests
 
         MailboxContinuation.AwaitNextMessage terminal = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             Assert
-                .IsType<SuccessfulProcessEngineCommandResult>(
+                .IsType<SuccessfulWorkflowEngineCommandResult>(
                     MailboxRelay.Decide(
                         ServiceTaskExchangeResult.AwaitNextReply(),
                         ServiceTaskType,
@@ -1532,9 +1666,9 @@ public class MailboxRelayTests
         );
         MailboxContinuation.AwaitNextMessage segment = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
             Assert
-                .IsType<SuccessfulProcessEngineCommandResult>(
+                .IsType<SuccessfulWorkflowEngineCommandResult>(
                     MailboxRelay.DecideSegment(
-                        ServiceTaskStageExchangeResult.AwaitNextReply(),
+                        StageExchangeResult.AwaitNextReply(),
                         ServiceTaskType,
                         _stepId,
                         Delivered(seq: 4),
@@ -1609,9 +1743,9 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Frontier-never-empty on this hop: the continuation's last step is the segment's last stage, and
-    /// completing that step is what enqueues the receiver — worked out there, exactly as it is on Main — so
-    /// the continuation cannot settle before the receiver that follows it exists.
+    /// Frontier-never-empty on this hop: the continuation's last step is the segment's last stage, and completing that
+    /// step is what enqueues the receiver — worked out there, exactly as it is on the primary workflow — so the
+    /// continuation cannot settle before the receiver that follows it exists.
     /// </summary>
     [Fact]
     public async Task Continuation_RunsTheItemsAfterTheHandler_EndingOnTheNextSend()
@@ -1740,8 +1874,8 @@ public class MailboxRelayTests
         // UpFrontSendsTask composes the journal's send at item index 1, and its handler — the terminal — at 3.
         carry.RecordMailbox(1, journalMailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.Completed(),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1753,7 +1887,7 @@ public class MailboxRelayTests
         );
 
         MailboxContinuation.ConcludeAndContinue continuing = Assert.IsType<MailboxContinuation.ConcludeAndContinue>(
-            Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+            Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result).MailboxContinuation
         );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], StepOperationIds(continuing.Handover));
         MailboxTarget next = Assert.IsType<MailboxTarget>(continuing.Handover.Target);
@@ -1775,8 +1909,8 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+        WorkflowEngineCommandResult result = MailboxRelay.DecideSegment(
+            StageResult.Completed(),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1787,7 +1921,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
         Assert.Contains("index 1", failed.ErrorMessage, StringComparison.Ordinal);
@@ -1818,8 +1952,8 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// The continuation's steps resolve their options the way the factory resolves Main's: each step's own,
-    /// found by the identity it carries, over the task's.
+    /// The continuation's steps resolve their options the way the factory resolves the primary workflow's: each step's
+    /// own, found by the identity it carries.
     /// </summary>
     [Fact]
     public async Task Continuation_ResolvesEachStepsOwnOptions()
@@ -1834,10 +1968,11 @@ public class MailboxRelayTests
         StepRequest record = continuation.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: 2");
         Assert.Equal(TimeSpan.FromMinutes(7), record.Command.MaxExecutionTime);
 
+        // A stage that declares nothing takes the command's and the engine's defaults, never another stage's.
         StepRequest send = continuation.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: {JournalIndex}");
-        Assert.Equal(TimeSpan.FromMinutes(30), send.Command.MaxExecutionTime);
+        Assert.Null(send.Command.MaxExecutionTime);
 
-        // One HTTP call: the mint takes the engine's defaults, never the declaring stage's or the task's.
+        // One HTTP call: the mint takes the engine's defaults, never the declaring stage's.
         StepRequest mint = continuation.Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: {JournalIndex}");
         Assert.Null(mint.Command.MaxExecutionTime);
     }
@@ -1905,7 +2040,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             _stepId,
             carry,
@@ -1914,7 +2049,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
@@ -1944,7 +2079,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
         carry.RecordMailbox(1, journalMailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             _stepId,
             carry,
@@ -1954,7 +2089,7 @@ public class MailboxRelayTests
         );
 
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
-            Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+            Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result).MailboxContinuation
         );
         // The archive's handler at item index 2, parked on the archive's mailbox — not the journal's, whose
         // send is the very stage that completed here.
@@ -1981,7 +2116,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
         carry.RecordMailbox(1, Guid.NewGuid(), _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             _stepId,
             carry,
@@ -1991,7 +2126,7 @@ public class MailboxRelayTests
         );
 
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
-            Assert.IsType<SuccessfulProcessEngineCommandResult>(result).MailboxContinuation
+            Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result).MailboxContinuation
         );
         Assert.Equal(_mailboxId, Assert.IsType<MailboxTarget>(continuing.Handover.Target).MailboxId);
     }
@@ -2004,7 +2139,7 @@ public class MailboxRelayTests
     public void StageEnd_WithoutTheCarriedMailbox_FailsPermanentlyNamingTheIndex()
     {
         // The journal's send at item index 3, whose terminal answers it at 4.
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             _stepId,
             new WorkflowCallbackStateCarry(),
@@ -2013,7 +2148,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
         Assert.Contains($"index {JournalIndex}", failed.ErrorMessage, StringComparison.Ordinal);
@@ -2026,7 +2161,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             Guid.Empty,
             carry,
@@ -2035,7 +2170,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
         Assert.Null(failed.MailboxContinuation);
@@ -2052,7 +2187,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             _stepId,
             carry,
@@ -2061,7 +2196,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
@@ -2088,7 +2223,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
         int lastIndex = _archivingPipeline.Items.Count - 1;
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideStageEnd(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
             ServiceTaskType,
             _stepId,
             carry,
@@ -2097,7 +2232,7 @@ public class MailboxRelayTests
             action: null
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("PipelineSegmentNotFound", failed.ExceptionType);
         Assert.Contains($"nothing after the item at index {lastIndex}", failed.ErrorMessage, StringComparison.Ordinal);
@@ -2118,14 +2253,14 @@ public class MailboxRelayTests
         carry.RecordMailbox(2, laterMailboxId, _mailboxDeadline);
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             ServiceTaskResult.Success("reject"),
             ServiceTaskType,
             _stepId,
             carry
         );
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal("reject", success.ProcessNextContinuation?.Action);
 
@@ -2147,14 +2282,14 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
         carry.RecordMailbox(1, secondMailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             ServiceTaskResult.FailedPermanent("the recipient account does not exist"),
             ServiceTaskType,
             _stepId,
             carry
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
         Assert.Contains("the recipient account does not exist", failed.ErrorMessage, StringComparison.Ordinal);
@@ -2171,7 +2306,7 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        FailedProcessEngineCommandResult retryable = Assert.IsType<FailedProcessEngineCommandResult>(
+        FailedWorkflowEngineCommandResult retryable = Assert.IsType<FailedWorkflowEngineCommandResult>(
             MailboxRelay.DecideOpeningStageConclusion(
                 ServiceTaskResult.FailedRetryable("the archive is down"),
                 ServiceTaskType,
@@ -2183,7 +2318,7 @@ public class MailboxRelayTests
         Assert.Null(retryable.MailboxContinuation);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
 
-        DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(
+        DeferredWorkflowEngineCommandResult deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(
             MailboxRelay.DecideOpeningStageConclusion(
                 ServiceTaskResult.Defer(TimeSpan.FromMinutes(5), "waiting"),
                 ServiceTaskType,
@@ -2201,14 +2336,14 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             ServiceTaskResult.Success(),
             ServiceTaskType,
             Guid.Empty,
             carry
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
         // Refused before anything is recorded: the exchange is untouched, so a fixed engine replays it.
@@ -2232,18 +2367,38 @@ public class MailboxRelayTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
-        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
+        WorkflowEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
             new RogueConclusion(ServiceTaskResult.Success()),
             ServiceTaskType,
             _stepId,
             carry
         );
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueConclusion), failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(failed.MailboxContinuation);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
+    }
+
+    [Fact]
+    public void NullWrappedConclusion_FailsPermanentlyWithoutThrowingAndLeavesTheExchangeOpen()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        WorkflowEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
+            null!,
+            ServiceTaskType,
+            _stepId,
+            carry
+        );
+
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("with null", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
     }
 }

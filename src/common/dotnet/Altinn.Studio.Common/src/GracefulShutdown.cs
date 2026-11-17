@@ -56,7 +56,10 @@ internal static class GracefulShutdown
 
         public Task WaitForStartAsync(CancellationToken cancellationToken)
         {
-            Debug.Assert(!environment.IsDevelopment(), "Graceful shutdown is not registered in development environments");
+            Debug.Assert(
+                !environment.IsDevelopment(),
+                "Graceful shutdown is not registered in development environments"
+            );
             PosixSignalRegistration? sigint = null;
             PosixSignalRegistration? sigquit = null;
             PosixSignalRegistration? sigterm = null;

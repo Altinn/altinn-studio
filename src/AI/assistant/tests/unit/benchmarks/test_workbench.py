@@ -1140,14 +1140,14 @@ def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
 
     behaviors = []
     for behavior in manifest.BEHAVIORS:
-        if behavior.id == "confidence.band-matches-outcome":
+        if behavior.id == "safety.flags-injection-in-message":
             assert behavior.evaluator
             behaviors.append(
                 BehaviorResult(
                     behavior.id,
                     behavior.evaluator,
                     0.714,
-                    (ItemResult("conf-1", {behavior.evaluator: 1.0}),),
+                    (ItemResult("safety-1", {behavior.evaluator: 1.0}),),
                 )
             )
         elif behavior.is_pinned:
@@ -1174,7 +1174,7 @@ def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
 def test_a_first_run_is_recorded_rather_than_holding(tmp_path):
     """Counting a first run as holding read every score as all-clear, whatever it
     was: a behavior at 0.53 with no baseline reported as green."""
-    run = _run("20260909T100000Z-first", "first", {**HOLDING, "confidence.band-matches-outcome": 0.53})
+    run = _run("20260909T100000Z-first", "first", {**HOLDING, "safety.flags-injection-in-message": 0.53})
     runstore.save(run, directory=tmp_path)
 
     built = report.build(directory=tmp_path)
@@ -1182,7 +1182,7 @@ def test_a_first_run_is_recorded_rather_than_holding(tmp_path):
     assert built.counts()["holding"] == 0
     assert built.counts()["recorded"] == len(list(manifest.pinned()))
     weakest = built.short_of_full_marks()
-    assert weakest and weakest[0].behavior.id == "confidence.band-matches-outcome"
+    assert weakest and weakest[0].behavior.id == "safety.flags-injection-in-message"
 
 
 def test_a_behavior_that_never_moves_is_still_reported_as_weak(tmp_path):

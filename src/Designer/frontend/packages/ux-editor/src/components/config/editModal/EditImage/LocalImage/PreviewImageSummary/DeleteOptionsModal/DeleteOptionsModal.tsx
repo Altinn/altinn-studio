@@ -1,7 +1,7 @@
 import { forwardRef, type JSX } from 'react';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { useForwardedRef } from '@studio/hooks';
+import { useForwardedRef } from '@designer/hooks';
 import { DeleteOptions } from './DeleteOptions';
 
 export interface DeleteOptionsModalProps {

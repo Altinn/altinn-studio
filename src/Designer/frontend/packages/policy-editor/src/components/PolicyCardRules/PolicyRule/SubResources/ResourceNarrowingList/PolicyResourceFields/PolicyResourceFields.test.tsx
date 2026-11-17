@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { PolicyResourceFieldsProps } from './PolicyResourceFields';
 import { PolicyResourceFields } from './PolicyResourceFields';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { PolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
 import {

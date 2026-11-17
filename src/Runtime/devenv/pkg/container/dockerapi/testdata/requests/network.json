@@ -1,0 +1,7 @@
+[
+{"header":{"Content-Type":"application/json"},"body":{"Driver":"bridge","Labels":{"a":"b"},"Name":"net"},"method":"POST","path":"/networks/create"},
+{"method":"GET","path":"/networks/net"},
+{"query":{"filters":{"label":{"a=b":true,"c":true}}},"method":"GET","path":"/networks"},
+{"header":{"Content-Type":"application/json"},"body":{"Container":"ctr"},"method":"POST","path":"/networks/net/connect"},
+{"method":"DELETE","path":"/networks/net"}
+]

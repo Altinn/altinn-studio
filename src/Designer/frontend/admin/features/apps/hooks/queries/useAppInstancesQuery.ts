@@ -1,12 +1,14 @@
 import type { UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import axios, { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
 import type {
   InstancesResponse,
   SimpleInstance,
 } from 'admin/features/apps/types/InstancesResponse';
 import { instancesListPath } from 'admin/features/apps/utils/apiPaths';
+import { INSTANCE_LIST_REFETCH_INTERVAL_MS } from 'admin/features/apps/utils/workflowRefetch';
 
 export const useAppInstancesQuery = (
   org: string,
@@ -19,7 +21,7 @@ export const useAppInstancesQuery = (
   isSoftDeleted?: boolean,
   isHardDeleted?: boolean,
   createdBefore?: string,
-): UseInfiniteQueryResult<SimpleInstance[]> => {
+): UseInfiniteQueryResult<SimpleInstance[][]> => {
   return useInfiniteQuery({
     initialPageParam: undefined,
     queryKey: [
@@ -36,29 +38,34 @@ export const useAppInstancesQuery = (
       createdBefore,
     ],
     queryFn: async ({ signal, pageParam = undefined }) =>
-      (
-        await axios.get<InstancesResponse>(
-          instancesListPath(
-            org,
-            env,
-            app,
-            pageParam,
-            currentTask,
-            isArchived,
-            archiveReference,
-            confirmed,
-            isSoftDeleted,
-            isHardDeleted,
-            createdBefore,
-          ),
-          { signal },
-        )
-      ).data,
+      await getAdminResource<InstancesResponse>(
+        instancesListPath(
+          org,
+          env,
+          app,
+          pageParam,
+          currentTask,
+          isArchived,
+          archiveReference,
+          confirmed,
+          isSoftDeleted,
+          isHardDeleted,
+          createdBefore,
+        ),
+        { signal },
+      ),
     getNextPageParam: (lastPage) => lastPage.continuationToken,
-    select: (data) => data.pages.flatMap((page) => page.instances),
+    // New instances come from the app, not from this page, so the list reads again every so
+    // often and when the operator comes back to the tab. Every loaded page is read again.
+    refetchInterval: INSTANCE_LIST_REFETCH_INTERVAL_MS,
+    refetchOnWindowFocus: true,
+    staleTime: INSTANCE_LIST_REFETCH_INTERVAL_MS,
+    // The page boundaries are kept rather than flattened away: the workflow-health enrichment is
+    // requested per loaded page, so its requests stay identified by the page they belong to.
+    select: (data) => data.pages.map((page) => page.instances),
     meta: {
       hideDefaultError: (error: any) =>
-        isAxiosError(error) &&
+        isHttpError(error) &&
         ([403, 404] as (number | undefined)[]).includes(error.response?.status),
     },
   });
