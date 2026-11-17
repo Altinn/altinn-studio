@@ -1,11 +1,9 @@
 name: Release - codelists
 
-# Releases the latest version in the codelists changelog when it has no GitHub release yet, which is when a release
-# pull request from the releaser's `prepare` command has merged.
+# Releases the latest version in the codelists changelog when it has no GitHub release yet.
 #
-# Runs on push rather than on the merged pull request, because nuget.org's trusted publishing requires the
-# `libraries` environment, which only accepts branches, and GitHub checks environment branch rules for pull
-# request events against refs/pull/<n>/merge.
+# Runs on push because the `libraries` environment, which nuget.org's trusted publishing requires, rejects pull
+# request runs. GitHub checks those against refs/pull/<n>/merge.
 
 on:
   push:
@@ -19,9 +17,7 @@ on:
 permissions:
   contents: read
 
-# One run at a time per branch, so that a later push sees the draft release that an earlier run created,
-# rather than releasing the same version again from a newer commit. Branches release different versions, so
-# they don't wait for each other, and a waiting run on one is never replaced by a push to another.
+# A later push on the same branch waits, then finds the draft that the earlier run created.
 concurrency:
   group: release-codelists-${{ github.ref }}
   cancel-in-progress: false

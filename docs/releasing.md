@@ -15,18 +15,17 @@ Run the commands below from `src/tools/releaser`.
 
 Tags are named `<component>/vX.Y.Z`.
 
-The studioctl release workflow runs only for a merged pull request with the `release/studioctl` label. A pull request
-from a fork cannot publish a release, so after it merges, run the release workflow by hand on the branch it merged
-into.
+The studioctl release workflow runs for a merged pull request with the `release/studioctl` label. A pull request from
+a fork cannot publish a release, so after it merges, run the release workflow by hand on the branch it merged into.
 
-The app libraries, codelists and fileanalyzers workflows publish to nuget.org through trusted publishing, which only
-works from the `libraries` environment. That environment accepts `main`, and each `release/<component>/vX.Y` branch has
-to be added to it before the first stable release from that branch. Pull request runs are not accepted, so these
-workflows run on every push that changes the component's changelog. They release the latest version in it when that
-version has no GitHub release yet, draft or published. If a release fails after the releaser has created the draft,
-delete the draft and rerun the failed workflow run. A rerun builds the commit the original run built, where a new run
-would build the branch as it is now. Finish a failed prerelease before you create its `release/<component>/vX.Y`
-branch: once that branch exists, the releaser no longer publishes prereleases of that line.
+The app libraries, codelists and fileanalyzers publish to nuget.org through trusted publishing, which only works from
+the `libraries` environment. Pull request runs cannot use that environment, so their release workflows run on push:
+
+- A push that changes the changelog releases its latest version, unless that version has a GitHub release, draft or
+  published.
+- If a release fails, delete its draft and rerun the failed run. A new run would build the branch as it is now.
+- Finish a failed prerelease before you create its release branch. The releaser stops publishing a line's prereleases
+  once the branch exists.
 
 ## Prereleases
 
@@ -44,8 +43,8 @@ branch: once that branch exists, the releaser no longer publishes prereleases of
    prerelease line on `main`, combines the changelog sections of the line's prereleases, and opens the pull request
    against `release/<component>/vX.Y`. It creates that branch from `main` when it is missing, which requires write
    access. A contributor without it asks a maintainer to create the branch, then runs the command again.
-2. For the app libraries, codelists and fileanalyzers, add `release/<component>/vX.Y` to the deployment branch rules
-   of the `libraries` environment, if it is not there yet. Until then, the release fails at `NuGet login`.
+2. For the app libraries, codelists and fileanalyzers, add the branch to the deployment branches of the `libraries`
+   environment. The environment rejects the release otherwise.
 3. Merge the pull request.
 
 ### Patches

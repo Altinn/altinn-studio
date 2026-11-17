@@ -32,13 +32,10 @@ runs:
         GH_TOKEN: ${{ github.token }}
         REPOSITORY: ${{ github.repository }}
       run: |
-        # resolve-version validates the version, as vX.Y.Z or vX.Y.Z-<prerelease>
         version="$(go run . resolve-version --component "$COMPONENT" --base-branch "$BASE_BRANCH")"
 
-        # The releaser creates a draft release, which gets its tag when someone publishes it. A release for this
-        # version, draft or published, means it is released already, or that a failed attempt left a draft to
-        # delete before trying again. GraphQL finds drafts by tag name, which REST's releases/tags endpoint does
-        # not, but only with write access to the repository.
+        # The releaser creates draft releases, and a draft has no tag until someone publishes it. GraphQL finds
+        # drafts by tag name when the token can write to the repository.
         tag="${COMPONENT}/${version}"
         # shellcheck disable=SC2016 # the $ names are GraphQL variables
         existing="$(gh api graphql \
