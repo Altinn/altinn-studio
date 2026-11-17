@@ -18,5 +18,5 @@ roleRef:
   name: core-operator-tokenreviews
 subjects:
   - kind: ServiceAccount
-    name: core-operator
+    name: operator
     namespace: core-operator

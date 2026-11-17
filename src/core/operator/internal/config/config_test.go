@@ -127,7 +127,7 @@ kinds:
 		"caller with the engine's ServiceAccount": `
 callers:
   assistant:
-    serviceAccount: system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine
+    serviceAccount: system:serviceaccount:operator-workflow-engine:operator-workflow-engine
 `,
 		"caller id that is no engine namespace": `
 callers:

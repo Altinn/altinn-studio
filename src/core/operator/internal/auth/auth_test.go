@@ -19,8 +19,8 @@ import (
 const (
 	assistantSA = "system:serviceaccount:default:altinn-altinity-agents-sa"
 	designerSA  = "system:serviceaccount:default:altinn-designer"
-	engineSA    = "system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine"
-	audience    = "core-operator"
+	engineSA    = "system:serviceaccount:operator-workflow-engine:operator-workflow-engine"
+	audience    = "operator"
 )
 
 var errAPIDown = errors.New("API server down")

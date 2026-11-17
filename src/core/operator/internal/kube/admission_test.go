@@ -26,7 +26,7 @@ import (
 )
 
 // operatorUser is the user name of the operator's ServiceAccount, which the admission policy matches on.
-const operatorUser = "system:serviceaccount:core-operator:core-operator"
+const operatorUser = "system:serviceaccount:core-operator:operator"
 
 // runnerInfra is the operator runner's namespace, PodTemplate, Role and admission policy, as they are deployed.
 var runnerInfra = filepath.Join("..", "..", "..", "operator-runner", "infra", "kustomize", "base")

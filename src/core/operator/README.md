@@ -47,13 +47,13 @@ states it as a contract with no Kubernetes types, such as [`internal/sandbox`](i
 
 ## Identities
 
-| Who        | ServiceAccount                                                                      | May use               |
-| ---------- | ----------------------------------------------------------------------------------- | --------------------- |
-| Assistant  | `system:serviceaccount:default:altinn-altinity-agents-sa`                           | Run API, `upgrade-v9` |
-| Designer   | `system:serviceaccount:default:altinn-designer`                                     | Run API, `upgrade-v9` |
-| The engine | `system:serviceaccount:core-operator-workflow-engine:core-operator-workflow-engine` | Callback API          |
+| Who        | ServiceAccount                                                            | May use               |
+| ---------- | ------------------------------------------------------------------------- | --------------------- |
+| Assistant  | `system:serviceaccount:default:altinn-altinity-agents-sa`                 | Run API, `upgrade-v9` |
+| Designer   | `system:serviceaccount:default:altinn-designer`                           | Run API, `upgrade-v9` |
+| The engine | `system:serviceaccount:operator-workflow-engine:operator-workflow-engine` | Callback API          |
 
-Each sends a projected ServiceAccount token with the audience `core-operator` as a bearer token. The operator checks
+Each sends a projected ServiceAccount token with the audience `operator` as a bearer token. The operator checks
 it with a TokenReview and maps the user name to a caller in its configuration. So no new secret exists, and the callers
 mount no token for the Kubernetes API.
 

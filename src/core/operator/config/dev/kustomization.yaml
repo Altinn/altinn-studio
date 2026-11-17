@@ -4,7 +4,7 @@ resources:
   - ../base
 # The kinds this environment runs, beside the base configuration.
 configMapGenerator:
-  - name: core-operator-config
+  - name: operator-config
     namespace: core-operator
     behavior: merge
     files:
