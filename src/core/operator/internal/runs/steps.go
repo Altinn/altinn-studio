@@ -12,8 +12,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/core-operator/internal/callbacks"
-	"altinn.studio/core-operator/internal/clock"
-	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/logging"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/sandbox"
@@ -48,21 +46,13 @@ func ends(reason, detail string, err error) error {
 // Steps are the callback handlers of the run workflow. Each step works out what it needs from the run id in the
 // workflow context and the step state, and is safe to run again.
 type Steps struct {
-	clock   clock.Clock
 	sandbox sandbox.Sandbox
-	cfg     *config.Config
 	queue   *Queue
 	host    *runner.Client
 }
 
-func NewSteps(
-	cfg *config.Config,
-	queue *Queue,
-	box sandbox.Sandbox,
-	host *runner.Client,
-	clk clock.Clock,
-) *Steps {
-	return &Steps{cfg: cfg, queue: queue, sandbox: box, host: host, clock: clk}
+func NewSteps(queue *Queue, box sandbox.Sandbox, host *runner.Client) *Steps {
+	return &Steps{queue: queue, sandbox: box, host: host}
 }
 
 // Group is the handler group for runs.
@@ -112,22 +102,11 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 	if err != nil {
 		return callbacks.Response{}, err
 	}
-	// The limits are the kind's current ones, since they describe the sandbox as it is now.
-	limits, ok := s.cfg.Kinds[run.state.Kind]
-	if !ok {
-		return callbacks.Response{}, ends(ReasonStartFailed, "The run's kind is not configured anymore.", nil)
-	}
-	jobs, err := s.sandbox.ActiveJobs(ctx, run.state.Spec.Namespace, run.state.Kind)
+	// The engine sends the time it created the step, which stays the same across restarts.
+	admission, err := s.queue.Admit(ctx, run, payload.ExecutionReferenceTime)
 	if err != nil {
-		return callbacks.Response{}, fmt.Errorf("list the active Jobs: %w", err)
+		return callbacks.Response{}, err
 	}
-	// The engine sends the time it created the step, which stays the same across restarts. A missing one queues the
-	// run as if it arrived now.
-	ref := payload.ExecutionReferenceTime
-	if ref.IsZero() {
-		ref = s.clock.Now()
-	}
-	admission := s.queue.Admit(run.id, run.state.Kind, run.caller, ref, limits, jobs)
 	if admission.Admitted {
 		return callbacks.Done(payload.State), nil
 	}
@@ -148,7 +127,7 @@ func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (call
 	if err != nil {
 		return callbacks.Response{}, err
 	}
-	s.queue.KeepAdmitted(run.id, run.state.Kind, run.caller)
+	s.queue.KeepAdmitted(run)
 
 	err = s.sandbox.CreateJob(ctx, jobOf(run))
 	switch {
@@ -196,7 +175,7 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 	case sandbox.JobUnseen:
 		// The sandbox has not seen the new Job yet. Until it does, the run holds its place through its reservation,
 		// which a queue that restarted meanwhile does not know.
-		s.queue.KeepAdmitted(run.id, run.state.Kind, run.caller)
+		s.queue.KeepAdmitted(run)
 		waiting = "Waiting for the Job to create its pod."
 	case sandbox.JobFailed:
 		return callbacks.Response{}, ends(ReasonStartFailed, "The Job failed: "+pod.Detail, nil)

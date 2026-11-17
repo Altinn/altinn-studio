@@ -165,7 +165,7 @@ func setupRuns(
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
 		Timeout:   engineRequestTimeout,
 	})
-	queue := runs.NewQueue(clk, cfg.TimeScale)
+	queue := runs.NewQueue(cfg, box, clk)
 	if err := runs.RegisterMetrics(queue); err != nil {
 		return callbacks.Group{}, nil, fmt.Errorf("register run metrics: %w", err)
 	}
@@ -178,7 +178,7 @@ func setupRuns(
 	if err := cluster.Add(runs.NewCollector(cfg, engineClient, box, clk)); err != nil {
 		return callbacks.Group{}, nil, fmt.Errorf("add the garbage collector: %w", err)
 	}
-	return runs.NewSteps(cfg, queue, box, hostClient, clk).Group(), queue, nil
+	return runs.NewSteps(queue, box, hostClient).Group(), queue, nil
 }
 
 // server is an HTTP server that the cluster starts on every replica, also before leader election.
