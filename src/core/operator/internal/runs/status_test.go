@@ -184,7 +184,8 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 				Expect(described.Error.Reason).To(Equal(tc.reason))
 			}
 			Expect(described.FinishedAt != nil).To(Equal(tc.status.Final()))
-			Expect(described.ResultExpiresAt != nil).To(Equal(tc.status == StatusCompleted))
+			keepsResult := tc.status == StatusCompleted && !tc.workflow.OverallStatus.Terminal()
+			Expect(described.ResultExpiresAt != nil).To(Equal(keepsResult), "only while the Job keeps the result")
 		})
 	}
 }

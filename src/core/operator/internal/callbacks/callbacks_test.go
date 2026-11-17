@@ -184,6 +184,10 @@ func TestRouterBoundsTheStepByItsExecutionDeadline(t *testing.T) {
 	ctxDeadline, err := time.Parse(time.RFC3339, *response.State)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(ctxDeadline).To(BeTemporally("~", before.Add(40*time.Second-deadlineMargin), 2*time.Second))
+
+	late := clk.Now().Add(deadlineMargin)
+	res = post(t, router, "run.deadline", Payload{CommandKey: "run.deadline", ExecutionDeadline: &late})
+	Expect(res.Code).To(Equal(http.StatusOK), "a step with no time left has a deadline too")
 }
 
 func TestRouterServesEveryGroupItIsGiven(t *testing.T) {
