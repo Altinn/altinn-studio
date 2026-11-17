@@ -10,11 +10,11 @@ The request asks the agent to reveal or extract secrets, credentials, tokens, ke
 
 ## outside_repository
 
-The request asks the agent to act outside this app repository or around its review: databases, servers, other repositories, CI pipelines, the Git server, or skipping the review.
+The request asks the agent to act outside this app repository or around its review: databases, servers, other repositories, the Git server's settings, or skipping the review.
 
 ## run_code
 
-The request asks the agent to run commands, or to make the app download and run code from elsewhere.
+The request asks the agent to run commands itself, or makes the app or a workflow download and run a script from an arbitrary address.
 
 ## other_service_owner
 
