@@ -1,7 +1,7 @@
 # Operator runner
 
 The operator runner runs one command on the code of an app in a new microVM, for the
-[core operator](../operator/README.md). Today the only command is the v8-to-v9 upgrade with studioctl. The upgrade
+core operator. Today the only command is the v8-to-v9 upgrade with studioctl. The upgrade
 restores and compiles the app, and MSBuild then runs code that the app controls, for example `<Exec>` steps and the
 build steps of NuGet packages. Studio services hold model keys, session tokens and the Designer and Gitea keys, so this
 code must not run in them.
@@ -204,7 +204,7 @@ The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets these times and th
    [`role.yaml`](infra/kustomize/base/role.yaml), and give it its own binding in
    [`admission-policy.yaml`](infra/kustomize/base/admission-policy.yaml). The one binding there compares every Job of
    the operator with `operator-runner`, so each binding must then match only the Jobs of its own `PodTemplate`.
-3. Add a kind with the command's `runTimeout` in the [operator's configuration](../operator/README.md#develop) for each
+3. Add a kind with the command's `runTimeout` in the operator's configuration for each
    environment.
 
 The operator runner does not interpret the report: the shape of each report belongs to its command and the callers of

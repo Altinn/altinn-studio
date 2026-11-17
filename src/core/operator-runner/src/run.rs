@@ -183,7 +183,9 @@ impl Runner for Vms {
 async fn run_in_vm(vm: &Vm, run: Run) -> Result<Outcome, RunError> {
     let spec = run.command.spec();
     prepare_app(vm, run.archive, run.deadline).await?;
-    let command = vm.run_script(spec.script, run.deadline - FINISH_TIMEOUT, spec.output_limits).await?;
+    let command = vm
+        .run_script(spec.script, run.deadline - FINISH_TIMEOUT, spec.output_limits)
+        .await?;
     let finish = Instant::now() + FINISH_TIMEOUT;
     let report = match spec.report_file {
         Some(path) => read_report(vm, path, finish).await,
@@ -202,10 +204,12 @@ async fn prepare_app(vm: &Vm, archive: Bytes, deadline: Instant) -> Result<(), R
     let deadline = deadline.min(Instant::now() + PREPARE_TIMEOUT);
     vm.write_file(ARCHIVE_PATH, archive, deadline).await?;
     let prepared = vm.run_script(PREPARE_SCRIPT, deadline, STEP_OUTPUT_LIMITS).await?;
-    if prepared.ending == Ending::Exited(0) {
-        Ok(())
-    } else {
-        Err(RunError::InvalidArchive(to_text(&prepared.stderr)))
+    match prepared.ending {
+        Ending::Exited(0) => Ok(()),
+        Ending::Exited(_) => Err(RunError::InvalidArchive(to_text(&prepared.stderr))),
+        Ending::TimedOut => Err(RunError::Failed(
+            io::Error::new(io::ErrorKind::TimedOut, "the app did not extract in time").into(),
+        )),
     }
 }
 
