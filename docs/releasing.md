@@ -59,14 +59,15 @@ it for the first release only, such as `-version 9.0.0-preview.1`.
 
 ## Experimental packages
 
-To try a pull request's version of the app libraries in an app, a maintainer or admin comments `/publish` on the pull
-request. That publishes `Altinn.App.*.Experimental` packages, versioned `<version>.pr.<number>.<build>`, and comments
-the versions on the pull request.
+To try a pull request's version of the app libraries, codelists or fileanalyzers in an app, a maintainer or admin
+comments `/publish` on the pull request. That publishes the components the pull request changes as `*.Experimental`
+packages, versioned `<version>.pr.<number>.<build>`, and comments the versions on the pull request.
 
-- The pull request's own build packs the packages, so its code never runs where nuget.org's login is available.
-  [release-app-experimental.yaml](../.github/workflows/release-app-experimental.yaml) only publishes them.
+- The pull request's own build packs the packages, so its code never runs where nuget.org's login is available. The
+  `release-<component>-experimental.yaml` workflows only publish them.
 - It publishes the build of the commit that was the pull request's head when you commented. Comment again after the
   pull request changes, once its build has passed.
+- Experimental codelists and fileanalyzers build against the published `Altinn.App.Core`, as their releases do.
 
 ## Running it locally
 

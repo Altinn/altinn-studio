@@ -1,0 +1,55 @@
+name: "Find experimental build"
+description: "Find a pull request's experimental package build to publish for a /publish comment"
+inputs:
+  artifact:
+    description: "Name of the build's packages artifact, such as app-experimental-packages"
+    required: true
+outputs:
+  run-id:
+    description: "The build run to publish from, or empty when it built no packages for this artifact"
+    value: ${{ steps.find.outputs.run-id }}
+runs:
+  using: "composite"
+  steps:
+    - name: Find the build of the commented commit
+      id: find
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.issue.number }}
+        SENDER: ${{ github.event.sender.login }}
+        COMMENTED_AT: ${{ github.event.comment.created_at }}
+        ARTIFACT: ${{ inputs.artifact }}
+      run: |
+        # role_name, because the legacy permission field reports maintain as write
+        role="$(gh api "repos/${REPOSITORY}/collaborators/${SENDER}/permission" --jq '.role_name')"
+        if [[ "$role" != "admin" && "$role" != "maintain" ]]; then
+          echo "::error::Only maintainers and admins can publish experimental packages. ${SENDER} has ${role}."
+          exit 1
+        fi
+
+        head_sha="$(gh api "repos/${REPOSITORY}/pulls/${PR_NUMBER}" --jq '.head.sha')"
+        run="$(gh api "repos/${REPOSITORY}/actions/workflows/app-experimental-packages.yaml/runs?event=pull_request&head_sha=${head_sha}&status=success&per_page=1" \
+          --jq '.workflow_runs[0] // empty | "\(.id) \(.created_at)"')"
+        if [[ -z "$run" ]]; then
+          echo "::error::No finished build of ${head_sha}. Comment /publish again when it has passed."
+          exit 1
+        fi
+
+        read -r run_id run_created_at <<<"$run"
+        # A later build means the pull request changed after the comment
+        if [[ "$run_created_at" > "$COMMENTED_AT" ]]; then
+          echo "::error::The pull request changed after the /publish comment. Comment again to publish ${head_sha}."
+          exit 1
+        fi
+
+        # The build only packs the components the pull request changes
+        artifacts="$(gh api "repos/${REPOSITORY}/actions/runs/${run_id}/artifacts" --jq '.artifacts[].name')"
+        if ! grep -Fxq "$ARTIFACT" <<<"$artifacts"; then
+          echo "The build of ${head_sha} has no ${ARTIFACT}; nothing to publish."
+          exit 0
+        fi
+
+        echo "Publishing ${ARTIFACT} from run ${run_id}, the build of ${head_sha}"
+        echo "run-id=${run_id}" >> "$GITHUB_OUTPUT"
