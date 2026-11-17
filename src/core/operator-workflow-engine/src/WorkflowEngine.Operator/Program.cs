@@ -32,8 +32,3 @@ builder.Services.AddCommand<OperatorCommand>();
 var app = builder.Build();
 await app.UseWorkflowEngine();
 await app.RunAsync();
-
-// Exposed for WebApplicationFactory<Program> in integration tests
-#pragma warning disable S1118,CS1591,ASP0027
-public partial class Program;
-#pragma warning restore S1118,CS1591,ASP0027
