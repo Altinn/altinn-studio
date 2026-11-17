@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from opentelemetry import trace
 from pydantic import BaseModel, Field, field_validator
 
 from agents.graph.runner import run_in_background
@@ -12,10 +13,12 @@ from agents.services.events import permission_broker, sink
 from agents.services.git.repo_manager import get_repo_manager
 from api.dependencies import get_designer_api_key
 from api.rate_limiting import RateLimiter
+from shared import telemetry
 from shared.config import get_config
 from shared.models import AgentAttachment, AttachmentUpload
 from shared.models.attachments import cleanup_session_attachments, get_session_dir
 from shared.models.experiment import ExperimentContext
+from shared.modes import run_mode
 from shared.utils.logging_utils import get_logger
 from shared.utils.path_utils import repo_owner_and_app_name
 
@@ -83,16 +86,12 @@ async def start_agent(
         developer = _require_developer(request)
 
         sink.register_developer_session(developer, req.session_id)
-        log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
 
         repo_owner, app_name = repo_owner_and_app_name(req.repo_url)
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
         repo_path = repo_manager.clone_repo_for_session(req.repo_url, session_id, req.branch, api_key=designer_api_key)
-
-        branch_info = f" on branch {req.branch}" if req.branch else ""
-        log.info(f"Cloned repository {req.repo_url} to {repo_path} for session {req.session_id}{branch_info}")
 
         # Validate repo path exists and is an Altinn app
         repo = Path(repo_path)
@@ -102,10 +101,6 @@ async def start_agent(
         if not repo.is_dir():
             raise HTTPException(status_code=400, detail=f"Repository path is not a directory: {repo_path}")
 
-        # Check if it looks like an Altinn app
-        if not (repo / "App").exists():
-            log.warning(f"Repository {repo_path} does not appear to be an Altinn app (missing App/ directory)")
-
         saved_attachments: list[AgentAttachment] = []
         if req.attachments:
             try:
@@ -113,16 +108,13 @@ async def start_agent(
                 attachment_dir = get_session_dir(config.ATTACHMENTS_ROOT, req.session_id)
                 for upload in req.attachments:
                     saved_attachments.append(upload.to_agent_attachment(attachment_dir))
-                log.info(f"Stored {len(saved_attachments)} attachments for session {req.session_id}")
             except Exception as e:
-                log.error(f"Failed to process attachments for session {req.session_id}: {e}")
                 raise HTTPException(status_code=400, detail=f"Invalid attachment payload: {e}") from e
 
         # Unified path: chat vs workflow is a permission on the same agentic
         # loop, not a separate pipeline.  allow_app_changes=False runs the
         # loop read-only (write tools denied) — the model can still scan and
         # read the repo, load skills, and fetch docs to answer questions.
-        log.info(f"{'🔧 Write' if req.allow_app_changes else '💬 Read-only'} mode enabled for session {req.session_id}")
 
         from agents.graph.state import ConversationMessage
 
@@ -150,12 +142,11 @@ async def start_agent(
 
         sink.add_to_conversation_history(req.session_id, "user", req.goal)
 
+        trace.get_current_span().set_attributes(telemetry.correlation_attributes(state))
         sink.mark_session_started(req.session_id)
         run_in_background(state, sink)
 
-        log.info(f"Started agent session {req.session_id}, goal: {req.goal}")
-
-        mode = "chat" if not req.allow_app_changes else "workflow"
+        mode = run_mode(req.allow_app_changes)
 
         return {
             "accepted": True,
@@ -178,8 +169,8 @@ async def start_agent(
     except HTTPException:
         raise
     except Exception as e:
-        log.error(f"Failed to start agent workflow: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        log.exception("Could not start the run")
+        raise HTTPException(status_code=500, detail="Could not start the run") from e
 
 
 class PermissionResponseReq(BaseModel):
@@ -227,7 +218,6 @@ async def cancel_session(session_id: str, request: Request):
     # Wake a run blocked on a permission prompt — it must observe the
     # cancellation now, not after the prompt timeout.
     permission_broker.cancel_pending(session_id)
-    log.info(f"🛑 Session {session_id} cancelled via API")
     return {"session_id": session_id, "status": "cancelled", "message": "Session cancelled"}
 
 

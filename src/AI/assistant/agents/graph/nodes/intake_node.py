@@ -33,12 +33,10 @@ def _intake_failure_hint(exc: BaseException) -> str:
 async def handle(state: AgentState) -> AgentState:
     """Generate an initial plan and repository context."""
 
-    import time
-
+    from shared import telemetry
     from shared.utils.logging_utils import get_logger
 
     log = get_logger(__name__)
-    log.info(f"⏱️ [INTAKE NODE] Starting at {time.time()}")
 
     # The intake pipeline runs an LLM call to generate the initial plan.
     # That's the first multi-second blocking step the user waits on, so
@@ -84,7 +82,8 @@ async def handle(state: AgentState) -> AgentState:
 
     except Exception as exc:
         error_type = type(exc).__name__
-        log.error(f"Intake failed ({error_type}): {exc}", exc_info=True)
+        log.exception("The intake failed")
+        telemetry.record_run_error(error_type)
         hint = _intake_failure_hint(exc)
         sink.send(
             AgentEvent(

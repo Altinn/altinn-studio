@@ -1,7 +1,6 @@
 """LangGraph runner for agent workflow"""
 
 import asyncio
-import logging as _logging
 
 from langfuse import get_client, propagate_attributes
 from langgraph.graph import END, StateGraph
@@ -13,6 +12,7 @@ from agents.services.llm import (
     check_security_async,
     suggest_goal_correction,
 )
+from shared import telemetry
 from shared.utils.langfuse_utils import (
     flush_langfuse,
     get_current_trace_id,
@@ -122,8 +122,6 @@ def build_graph():
 
 graph = build_graph()
 
-_log = _logging.getLogger(__name__)
-
 WORKFLOW_TRACE_NAME = "Altinity Agent Workflow"
 
 _FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
@@ -141,10 +139,11 @@ _GATE_UNAVAILABLE_MESSAGE = (
 class GoalRejected(Exception):
     """Raised when a gate rejects the user's goal."""
 
-    def __init__(self, message: str, suggestions: list[str] | None = None):
+    def __init__(self, message: str, suggestions: list[str] | None = None, *, reason: str):
         super().__init__(message)
         self.message = message
         self.suggestions = suggestions or []
+        self.reason = reason
 
 
 async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
@@ -166,13 +165,8 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     _raise_if_cancelled(state, event_sink)
     if not scope_result.in_scope:
         decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
-        _log.info(
-            "Out-of-scope goal for session %s (%s)",
-            state.session_id,
-            scope_result.reason,
-        )
         if state.allow_app_changes:
-            raise GoalRejected(decline_text)
+            raise GoalRejected(decline_text, reason=telemetry.OUT_OF_SCOPE)
         if not _emit_chat_decline(state, event_sink, decline_text):
             raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
         return decline_text
@@ -239,17 +233,13 @@ async def _check_security(state: AgentState):
     )
 
     if parsed.failed:
-        _log.error("Security gate could not run for session %s: %s", state.session_id, parsed.reason)
-        raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
+        raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE, reason=telemetry.GATE_UNAVAILABLE)
 
     if not parsed.safe:
-        _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
         suggestions = await suggest_goal_correction(
             state.user_goal, parsed.reason, conversation=state.conversation_history
         )
-        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
-
-    _log.info("Goal passed the security gate for session %s", state.session_id)
+        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions, reason=telemetry.UNSAFE)
 
 
 def _mark_as_experiment_item(state: AgentState, root_span) -> dict[str, str]:
@@ -280,6 +270,7 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
     if langfuse:
         history_for_trace = [{"role": m.role, "content": m.content[:300]} for m in state.conversation_history]
         with langfuse.start_as_current_observation(
+            trace_context=telemetry.run_trace_context(),
             as_type="span",
             name=WORKFLOW_TRACE_NAME,
             input={
@@ -386,19 +377,17 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
 
 def run_in_background(state: AgentState, event_sink: EventSink | None = None):
     """Start workflow in background task"""
-    import logging
-
-    log = logging.getLogger(__name__)
-
     if event_sink is None:
         event_sink = sink
+    request = otel_trace.get_current_span().get_span_context()
 
-    async def _run():
+    async def _run_and_report(run: telemetry.Run):
         try:
-            await run_once(state, event_sink)
+            run.finish(await run_once(state, event_sink))
         except WorkflowCancelled:
-            log.info(f"🛑 Workflow cancelled for session {state.session_id}")
+            run.outcome = telemetry.CANCELLED
         except GoalRejected as e:
+            run.reject(e.reason)
             event_sink.send(
                 AgentEvent(
                     type="error",
@@ -414,9 +403,10 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
             )
         except Exception as e:
             if event_sink.is_cancelled(state.session_id):
-                log.info(f"🛑 Workflow error after cancellation for session {state.session_id}: {e}")
+                run.outcome = telemetry.CANCELLED
                 return
-            log.error(f"Workflow failed with exception: {e}", exc_info=True)
+            run.fail(telemetry.error_type(e))
+            log.exception("The run failed")
             event_sink.send(
                 AgentEvent(
                     type="error",
@@ -434,6 +424,10 @@ def run_in_background(state: AgentState, event_sink: EventSink | None = None):
             # the BatchSpanProcessor's periodic flush. Without this the trace can
             # sit invisible in the UI until the next batch tick (or process exit).
             flush_langfuse()
+
+    async def _run():
+        with telemetry.agent_run(state, request) as run:
+            await _run_and_report(run)
 
     # Create background task
     task = asyncio.create_task(_run())

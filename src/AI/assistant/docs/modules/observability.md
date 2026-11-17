@@ -21,3 +21,13 @@ A thumbs up or down from the user becomes the score `user_feedback` on the trace
 The trace gets `cost_org` from the start request as `user_id`, so the model usage of each run is recorded on an organization. [System context](../2-system-context.md) says how Designer selects it.
 
 Langfuse filters and sums each observation on its own. So every observation of a run carries `user_id`, the session id and the trace name, not only the root span. In a benchmark run, every observation also carries the experiment item.
+
+## Telemetry for operations
+
+Code: `src/AI/assistant/shared/telemetry.py`
+
+When `OTEL_EXPORTER_OTLP_ENDPOINT` is set, the service also sends telemetry over OTLP, as the [observability guide](../../../../../docs/observability.md) tells. Grafana shows it. This telemetry has no user text, model output, file content, usernames or exception messages. Langfuse keeps them.
+
+- Each run has one span, `invoke_agent assistant`, in a new trace with a link to `POST /api/agent/start`. The span has the outcome, the tokens, the number of model calls, tool calls and turns, and the time in model calls and tools. The Langfuse trace of the run has the same trace ID.
+- The metrics are `altinn.assistant.run.duration`, `altinn.assistant.run.active`, `altinn.assistant.tool.calls`, `gen_ai.client.operation.duration`, `gen_ai.client.token.usage` and the HTTP metrics of FastAPI.
+- Only WARN and ERROR records go out. Write a constant message, and put values in `extra=`. The export removes `%s` values and the message of an exception.

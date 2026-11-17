@@ -6,7 +6,6 @@ Follows Designer's `AppVersionService.IsV9App`: the major version of the
 
 from __future__ import annotations
 
-import logging
 import re
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
@@ -14,8 +13,6 @@ from pathlib import Path
 from .profile import AppVersionProfile
 from .v8 import V8_PROFILE
 from .v9 import V9_PROFILE
-
-log = logging.getLogger(__name__)
 
 APP_LIBRARY_PACKAGE_NAMES = ("Altinn.App.Api", "Altinn.App.Api.Experimental")
 DEFAULT_MAJOR_VERSION = 8
@@ -53,7 +50,6 @@ def _find_app_library_references(project_file: Path) -> list[ElementTree.Element
     try:
         root = ElementTree.parse(project_file).getroot()
     except ElementTree.ParseError:
-        log.warning("Skipping unreadable project file %s", project_file)
         return []
     return [
         package_reference

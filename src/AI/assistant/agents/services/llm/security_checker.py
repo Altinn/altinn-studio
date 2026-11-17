@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from shared.models import AgentAttachment
+from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.logging_utils import get_logger
 
 from .llm_client import SecurityVerdict, check_security_with_llm, suggest_goals_with_llm
@@ -34,11 +35,9 @@ async def check_security_async(
     try:
         verdict = await check_security_with_llm(goal, attachments=attachments, conversation=conversation)
     except Exception as e:
-        log.error(f"Security check failed: {e}")
+        log.warning("The security gate could not run", extra={ERROR_TYPE: error_type(e)})
         return SecurityCheckResult(safe=False, reason=f"Security check failed: {e!s}", failed=True)
 
-    if not verdict.safe:
-        log.warning(f"Security gate flagged goal as unsafe: {verdict.reason}")
     return SecurityCheckResult(safe=verdict.safe, reason=verdict.reason)
 
 
@@ -82,8 +81,7 @@ async def suggest_goal_correction(
     """
     try:
         candidates = await asyncio.to_thread(suggest_goals_with_llm, goal, rejection_reason, conversation)
-    except Exception as e:
-        log.warning(f"Could not generate goal suggestions: {e}")
+    except Exception:
         return []
     return await _drop_suggestions_the_gate_would_reject(candidates, conversation)
 
@@ -96,8 +94,6 @@ async def _drop_suggestions_the_gate_would_reject(
         return []
     verdicts = await asyncio.gather(*(_would_be_accepted(candidate, conversation) for candidate in candidates))
     kept = [candidate for candidate, ok in zip(candidates, verdicts, strict=False) if ok]
-    if len(kept) != len(candidates):
-        log.info(f"Dropped {len(candidates) - len(kept)} suggestion(s) the gate would reject")
     return kept
 
 

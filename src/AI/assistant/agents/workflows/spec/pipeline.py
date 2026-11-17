@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 from typing import Any
 
@@ -24,7 +25,6 @@ def run_spec_pipeline(
     Returns None if extraction fails or no usable spec can be produced.
     """
     if not attachments:
-        log.info("No attachments provided — skipping spec extraction")
         return None
 
     system_prompt, lf_prompt = get_prompt_with_langfuse("spec_extraction")
@@ -49,12 +49,11 @@ def run_spec_pipeline(
             )
         except Exception as e:
             error_str = str(e)
-            log.error(f"Spec extraction LLM call failed: {error_str}")
             span.update(output={"error": error_str})
 
             # If max_tokens was hit, retry with a shorter prompt asking for compact output
             if "max_tokens" in error_str or "output limit" in error_str:
-                log.info("Retrying spec extraction with compact prompt...")
+                log.warning("The spec extraction hit the output limit, so it retries with a compact prompt")
                 compact_prompt = (
                     "Extract fields from the attached form. Return ONLY compact JSON: "
                     '{"title":"...","language":"nb","total_pages":N,'
@@ -64,9 +63,7 @@ def run_spec_pipeline(
                 )
                 try:
                     raw_response = client.call_sync("", compact_prompt, attachments=attachments)
-                    log.info(f"Retry succeeded, response length: {len(raw_response)}")
                 except Exception as retry_err:
-                    log.error(f"Spec extraction retry also failed: {retry_err}")
                     span.update(output={"error": str(retry_err), "retry_failed": True})
                     return None
             else:
@@ -76,10 +73,6 @@ def run_spec_pipeline(
         form_spec = _parse_spec_response(raw_response)
 
         if form_spec:
-            log.info(
-                f'✅ Spec extracted: "{form_spec.title}" — '
-                f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
-            )
             span.update(
                 output={
                     "response_length": len(raw_response),
@@ -90,11 +83,6 @@ def run_spec_pipeline(
                 }
             )
         else:
-            log.warning(
-                f"⚠️ Could not parse spec from LLM response "
-                f"(response length: {len(raw_response)}, "
-                f"first 500 chars: {raw_response[:500]!r})"
-            )
             span.update(
                 output={
                     "response_length": len(raw_response),
@@ -109,19 +97,15 @@ def run_spec_pipeline(
 def _try_parse_json(text: str) -> dict | None:
     """Try to parse JSON, with repair strategies for truncated output."""
     # 1. Direct parse
-    try:
+    with contextlib.suppress(json.JSONDecodeError):
         return json.loads(text)
-    except json.JSONDecodeError as e:
-        log.debug(f"Direct JSON parse failed: {e}")
 
     # 2. Extract between first { and last }
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end > start:
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             return json.loads(text[start : end + 1])
-        except json.JSONDecodeError as e:
-            log.debug(f"Bracket-extraction parse failed: {e}")
 
     # 3. Truncated JSON — try closing open brackets/braces
     if start != -1:
@@ -143,35 +127,23 @@ def _try_parse_json(text: str) -> dict | None:
         repaired = fragment.rstrip(", \n\t")
         repaired += "]" * max(open_sq, 0)
         repaired += "}" * max(opens, 0)
-        try:
-            data = json.loads(repaired)
-            log.info(f"Repaired truncated JSON (closed {max(opens, 0)} braces, {max(open_sq, 0)} brackets)")
-            return data
-        except json.JSONDecodeError as e:
-            log.debug(f"Truncation repair parse failed: {e}")
+        with contextlib.suppress(json.JSONDecodeError):
+            return json.loads(repaired)
 
     # 4. Last resort: a permissive JSON repairer handles the model quirks
     #    the strict strategies miss — trailing commas, unescaped newlines
     #    in strings, single quotes, missing commas between objects, etc.
     #    Haiku-class models emit these more often than Sonnet, so without
     #    this fallback spec extraction silently fails on the Haiku path.
-    try:
+    with contextlib.suppress(Exception):
         from json_repair import repair_json
 
         repaired_text = repair_json(text, return_objects=False)
         if repaired_text and repaired_text != "{}":
             data = json.loads(repaired_text)
             if isinstance(data, dict):
-                log.info(
-                    "Recovered spec JSON via json_repair (input %d chars → %d chars)",
-                    len(text),
-                    len(repaired_text),
-                )
                 return data
-    except Exception as e:
-        log.debug(f"json_repair fallback failed: {e}")
 
-    log.error(f"All JSON parse strategies failed for text of length {len(text)} (starts with: {text[:200]!r})")
     return None
 
 
@@ -256,6 +228,5 @@ def _parse_spec_response(raw: str) -> FormSpec | None:
         )
         return spec
 
-    except Exception as e:
-        log.error(f"Failed to construct FormSpec from parsed data: {e}")
+    except Exception:
         return None

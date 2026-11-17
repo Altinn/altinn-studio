@@ -13,6 +13,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from agents.prompts import get_prompt_with_langfuse
+from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.logging_utils import get_logger
 
 from .llm_client import get_llm_client
@@ -52,5 +53,5 @@ async def check_scope_async(query: str, conversation_history: Sequence[Any] | No
         )
         return ScopeCheckResult.model_validate_json(response)
     except Exception as e:
-        log.warning(f"Scope check failed, defaulting to in-scope: {e}")
+        log.warning("The scope check failed, so the request counts as in scope", extra={ERROR_TYPE: error_type(e)})
         return ScopeCheckResult(in_scope=True, reason=f"Scope check failed open: {e}")

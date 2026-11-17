@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import contextvars
-import time
 
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from agents.workflows.spec.pipeline import run_spec_pipeline
+from shared.telemetry import ERROR_TYPE, error_type
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -20,10 +20,7 @@ def _spec_status(form_spec) -> str:
 
 async def handle(state: AgentState) -> AgentState:
     """Extract a FormSpec from attachments if present."""
-    log.info(f"⏱️ [SPEC NODE] Starting at {time.time()}")
-
     if not state.attachments:
-        log.info("⏭️ No attachments — skipping spec extraction")
         state.next_action = "scan"
         return state
 
@@ -60,10 +57,6 @@ async def handle(state: AgentState) -> AgentState:
 
         if form_spec:
             state.form_spec = form_spec
-            log.info(
-                f'✅ FormSpec stored: "{form_spec.title}" — '
-                f"{form_spec.total_pages} pages, {form_spec.field_count()} fields"
-            )
             sink.send(
                 AgentEvent(
                     type="status",
@@ -77,12 +70,14 @@ async def handle(state: AgentState) -> AgentState:
                 )
             )
         else:
-            log.warning("⚠️ Spec extraction returned None — continuing without spec")
+            log.warning("The spec extraction returned nothing, so the run continues without a spec")
 
         state.next_action = "scan"
 
     except Exception as exc:
-        log.error(f"Spec extraction failed: {exc}", exc_info=True)
+        log.warning(
+            "The spec extraction failed, so the run continues without a spec", extra={ERROR_TYPE: error_type(exc)}
+        )
         sink.send(
             AgentEvent(
                 type="error",

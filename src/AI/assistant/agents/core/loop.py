@@ -31,12 +31,15 @@ import contextlib
 import hashlib
 import json
 import os
+import time
 from collections import deque
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from shared import telemetry
+from shared.telemetry import GEN_AI_TOOL_NAME
 from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
 
@@ -55,6 +58,8 @@ from .registry import ToolArgsInvalidError, ToolNotFoundError, ToolRegistry
 from .tool import LoopContext, ToolResult
 
 log = get_logger(__name__)
+
+_LISTENER_RAISED = "A loop event listener raised an exception"
 
 
 # ---------------------------------------------------------------------------
@@ -132,19 +137,8 @@ def _max_tool_use_concurrency() -> int:
     try:
         value = int(raw)
     except ValueError:
-        log.warning(
-            "ALTINITY_MAX_TOOL_USE_CONCURRENCY=%r is not an integer — falling back to %d",
-            raw,
-            _DEFAULT_MAX_TOOL_USE_CONCURRENCY,
-        )
         return _DEFAULT_MAX_TOOL_USE_CONCURRENCY
-    if value < 1:
-        log.warning(
-            "ALTINITY_MAX_TOOL_USE_CONCURRENCY=%d is below 1 — clamping to 1",
-            value,
-        )
-        return 1
-    return value
+    return max(value, 1)
 
 
 @dataclass
@@ -162,7 +156,6 @@ class LoopResult:
     final_text: str | None = None
     error: str | None = None
     turns: int = 0
-    usage: dict[str, int] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +167,7 @@ EventCallback = Callable[[str, dict[str, Any]], Awaitable[None] | None]
 """Signature `(event_type, payload) -> None|Awaitable[None]`.
 
 Event types: `turn_start`, `assistant_message`, `tool_call`, `tool_result`,
-`compacted`, `terminated`.  The node bridges these to the WebSocket event
+`terminated`.  The node bridges these to the WebSocket event
 sink without coupling the core to it.
 """
 
@@ -188,7 +181,7 @@ async def _emit(callback: EventCallback | None, event: str, payload: dict[str, A
             await result
     except Exception:
         # Never let a misbehaving listener break the loop.
-        log.exception("event callback raised for %s", event)
+        log.warning(_LISTENER_RAISED, exc_info=True)
 
 
 # ---------------------------------------------------------------------------
@@ -222,7 +215,6 @@ async def run_loop(
     compaction = compaction or CompactionConfig()
     ctx.max_result_chars = compaction.max_result_chars
     messages: list[Message] = [*(history or []), UserMessage(content=user_message)]
-    total_usage = {"input_tokens": 0, "output_tokens": 0}
     # Sliding window of per-turn tool signatures, used to detect when
     # the model is calling the same tool with the same input over and
     # over without making progress (the thrash pattern we hit on
@@ -240,18 +232,11 @@ async def run_loop(
                 reason=TerminationReason.CANCELLED,
                 messages=messages,
                 turns=turn - 1,
-                usage=total_usage,
             )
 
         await _emit(on_event, "turn_start", {"turn": turn, "messages": len(messages)})
 
         messages_for_call = compact_if_needed(messages, compaction)
-        if messages_for_call is not messages:
-            await _emit(
-                on_event,
-                "compacted",
-                {"turn": turn, "from": len(messages), "to": len(messages_for_call)},
-            )
 
         # Bridge streaming text deltas + tool_use block starts into the
         # loop's event sink so the UI can render the model's response as
@@ -261,24 +246,20 @@ async def run_loop(
         def _on_text_delta(delta: str, accumulated: str) -> None:
             if on_event is None or not delta:
                 return
-            try:
+            with contextlib.suppress(Exception):
                 on_event(
                     "text_delta",
                     {"turn": turn, "delta": delta, "accumulated": accumulated},  # noqa: B023 - called only in this turn
                 )
-            except Exception:
-                log.debug("text_delta sink raised", exc_info=True)
 
         def _on_tool_use_start(name: str, tool_use_id: str) -> None:
             if on_event is None or not name:
                 return
-            try:
+            with contextlib.suppress(Exception):
                 on_event(
                     "tool_use_pending",
                     {"turn": turn, "name": name, "tool_use_id": tool_use_id},  # noqa: B023 - called only in this turn
                 )
-            except Exception:
-                log.debug("tool_use_pending sink raised", exc_info=True)
 
         try:
             response = await adapter.chat(
@@ -289,18 +270,17 @@ async def run_loop(
                 on_tool_use_start=_on_tool_use_start,
             )
         except Exception as exc:  # adapter failure — propagate as ERROR
-            log.exception("LLM adapter call failed on turn %d", turn)
+            log.exception("The model call failed, so the loop stops")
+            telemetry.record_run_error(telemetry.error_type(exc))
             await _emit(on_event, "terminated", {"reason": "error", "turn": turn, "error": str(exc)})
             return LoopResult(
                 reason=TerminationReason.ERROR,
                 messages=messages,
                 error=str(exc),
                 turns=turn,
-                usage=total_usage,
             )
 
         messages.append(response)
-        _accumulate_usage(total_usage, response.usage)
         await _emit(
             on_event,
             "assistant_message",
@@ -313,7 +293,6 @@ async def run_loop(
                 reason=TerminationReason.CANCELLED,
                 messages=messages,
                 turns=turn,
-                usage=total_usage,
             )
 
         # A turn cut off at the max_tokens budget must NEVER read as a
@@ -325,6 +304,7 @@ async def run_loop(
         if truncated:
             consecutive_truncations += 1
             if consecutive_truncations > _MAX_CONSECUTIVE_TRUNCATIONS:
+                telemetry.record_run_error(telemetry.OUTPUT_TRUNCATED)
                 await _emit(
                     on_event,
                     "terminated",
@@ -334,7 +314,6 @@ async def run_loop(
                     reason=TerminationReason.ERROR,
                     messages=messages,
                     turns=turn,
-                    usage=total_usage,
                     error=(
                         f"Model output hit the max_tokens budget {consecutive_truncations} "
                         "turns in a row — the task's per-turn output doesn't fit. "
@@ -349,10 +328,6 @@ async def run_loop(
             if truncated:
                 # No usable tool calls survived the cut.  Tell the model
                 # what happened and let it retry in smaller pieces.
-                log.warning(
-                    "Turn %d truncated at max_tokens with no usable tool calls — prompting recovery",
-                    turn,
-                )
                 messages.append(UserMessage(content=_TRUNCATION_RECOVERY_PROMPT))
                 continue
             final = extract_text(response)
@@ -362,7 +337,6 @@ async def run_loop(
                 messages=messages,
                 final_text=final,
                 turns=turn,
-                usage=total_usage,
             )
 
         # Anti-thrash: if the model has fired the same (name, input)
@@ -372,11 +346,6 @@ async def run_loop(
         recent_tool_signatures.append([_tool_signature(tu) for tu in tool_uses])
         stuck_sig = _detect_stuck(recent_tool_signatures)
         if stuck_sig is not None:
-            log.warning(
-                "Loop stuck on signature %s — terminating early (turn %d)",
-                stuck_sig,
-                turn,
-            )
             await _emit(
                 on_event,
                 "terminated",
@@ -386,7 +355,6 @@ async def run_loop(
                 reason=TerminationReason.STUCK,
                 messages=messages,
                 turns=turn,
-                usage=total_usage,
                 error=f"Repeated {_STUCK_REPEAT_LIMIT}× call to {stuck_sig} without progress.",
             )
 
@@ -414,13 +382,7 @@ async def run_loop(
         reason=TerminationReason.MAX_TURNS,
         messages=messages,
         turns=max_turns,
-        usage=total_usage,
     )
-
-
-def _accumulate_usage(acc: dict[str, int], delta: dict[str, int]) -> None:
-    for key, value in delta.items():
-        acc[key] = acc.get(key, 0) + int(value)
 
 
 def _tool_signature(tool_use: ToolUseBlock) -> str:
@@ -561,6 +523,7 @@ async def _run_one(
         with contextlib.suppress(Exception):
             span.update(input={"args": tool_use.input})
 
+        started = time.perf_counter()
         block = await _execute_tool(
             tool_use=tool_use,
             registry=registry,
@@ -568,6 +531,8 @@ async def _run_one(
             max_result_chars=max_result_chars,
             on_event=on_event,
         )
+        name = tool_use.name if tool_use.name in registry else telemetry.UNKNOWN_TOOL
+        telemetry.record_tool_call(name, block.is_error, time.perf_counter() - started)
 
         with contextlib.suppress(Exception):
             span.update(
@@ -606,7 +571,9 @@ async def _execute_tool(
     try:
         permission = await prepared.tool.check_permission(prepared.args, ctx)
     except Exception as exc:
-        log.exception("permission check raised for %s", tool_use.name)
+        log.warning(
+            "A tool's permission check raised an exception", exc_info=True, extra={GEN_AI_TOOL_NAME: tool_use.name}
+        )
         return _error_block(tool_use.id, f"Permission check failed: {exc}", on_event)
 
     if not permission.allowed and permission.escalatable and ctx.permission_requester:
@@ -625,7 +592,7 @@ async def _execute_tool(
         try:
             granted = await ctx.permission_requester(f"{tool_use.name}: {_describe_tool_use(tool_use)}")
         except Exception:
-            log.exception("permission escalation failed for %s", tool_use.name)
+            log.warning("Asking the user for permission failed", exc_info=True, extra={GEN_AI_TOOL_NAME: tool_use.name})
             granted = False
         if granted:
             ctx.allow_app_changes = True
@@ -650,7 +617,7 @@ async def _execute_tool(
     try:
         result: ToolResult = await prepared.tool.run(prepared.args, ctx)
     except Exception as exc:
-        log.exception("tool %s raised", tool_use.name)
+        log.warning("A tool raised an exception", exc_info=True, extra={GEN_AI_TOOL_NAME: tool_use.name})
         return _error_block(tool_use.id, f"Tool execution error: {exc}", on_event)
 
     if not result.is_error:
@@ -715,5 +682,5 @@ def _error_block(tool_use_id: str, message: str, on_event: EventCallback | None)
                 _background_tasks.add(task)
                 task.add_done_callback(_background_tasks.discard)
         except Exception:
-            log.exception("event callback raised in _error_block")
+            log.warning(_LISTENER_RAISED, exc_info=True)
     return block

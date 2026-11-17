@@ -183,7 +183,7 @@ class TestEventBridge:
         bridge("assistant_message", {"turn": 1, "text": "   ", "stop_reason": "tool_use"})
         assert seen == []
 
-    def test_other_events_log_only(self, monkeypatch):
+    def test_other_events_send_nothing(self, monkeypatch):
         seen: list = []
         monkeypatch.setattr(
             "agents.graph.nodes.agentic_loop_node.sink.send",
@@ -192,7 +192,6 @@ class TestEventBridge:
         bridge = _make_event_bridge("sess-1")
         bridge("turn_start", {"turn": 1, "messages": 2})
         bridge("tool_result", {"id": "1", "is_error": False, "chars": 100})
-        bridge("compacted", {"turn": 5, "from": 30, "to": 10})
         bridge("terminated", {"reason": "completed", "turn": 3})
         assert seen == []
 

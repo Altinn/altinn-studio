@@ -7,9 +7,6 @@ import re
 from pathlib import Path
 
 from agents.schemas.plan_schema import PlanContext
-from shared.utils.logging_utils import get_logger
-
-log = get_logger(__name__)
 
 LAYOUT_FILE_GLOB_PATTERN = "*/layouts/*.json"
 
@@ -36,11 +33,6 @@ class RepositoryDiscovery:
         # Find resource files
         context.resource_files = self._discover_resource_files()
 
-        log.info(
-            f"Repository discovery complete: {len(context.available_locales)} locales, "
-            f"{len(context.layout_pages)} layouts"
-        )
-
         return context
 
     def _discover_locales(self) -> list[str]:
@@ -49,7 +41,6 @@ class RepositoryDiscovery:
         resource_dir = self.repo_path / "App" / "config" / "texts"
 
         if not resource_dir.exists():
-            log.warning(f"Resource directory not found: {resource_dir}")
             return []
 
         # Find all resource.<locale>.json files
@@ -60,7 +51,6 @@ class RepositoryDiscovery:
             if match:
                 locale = match.group(1)
                 locales.add(locale)
-                log.debug(f"Found locale: {locale}")
 
         return sorted(locales)
 
@@ -72,10 +62,6 @@ class RepositoryDiscovery:
         for layout_file in ui_dir.glob(LAYOUT_FILE_GLOB_PATTERN):
             relative_path = layout_file.relative_to(self.repo_path).as_posix()
             layout_files.append(relative_path)
-            log.debug(f"Found layout: {relative_path}")
-
-        if not layout_files:
-            log.warning(f"No layout files found under: {ui_dir}")
 
         return sorted(layout_files)
 

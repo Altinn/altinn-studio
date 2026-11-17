@@ -6,10 +6,13 @@ from typing import Any
 
 import yaml
 
+from shared.telemetry import ERROR_TYPE, PROMPT_NAME, error_type
 from shared.utils.langfuse_utils import get_raw_langfuse_prompt
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
+
+_LANGFUSE_FALLBACK = "The Langfuse prompt could not be used, so the local file is used"
 
 PROMPTS_DIR = Path(__file__).parent
 
@@ -40,8 +43,7 @@ def load_prompt(prompt_name: str) -> dict[str, Any]:
 
             try:
                 metadata = yaml.safe_load(frontmatter_text) or {}
-            except yaml.YAMLError as e:
-                log.warning(f"Failed to parse YAML frontmatter in {prompt_name}.md: {e}")
+            except yaml.YAMLError:
                 metadata = {}
         else:
             # No proper frontmatter, treat entire content as prompt
@@ -81,10 +83,9 @@ def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
             content = compiled_system_message(lf_prompt.compile())
             if content:
                 return content, lf_prompt
-            log.warning(f"Langfuse prompt '{prompt_name}' has no system message; using local file")
+            log.warning(_LANGFUSE_FALLBACK, extra={PROMPT_NAME: prompt_name})
         except Exception as e:
-            log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
-            # Fall through to local prompt
+            log.warning(_LANGFUSE_FALLBACK, extra={PROMPT_NAME: prompt_name, ERROR_TYPE: error_type(e)})
     return load_prompt(prompt_name)["content"], None
 
 
@@ -115,17 +116,11 @@ def render_template(template_name: str, **variables) -> str:
             raw_text = lf_prompt.prompt if hasattr(lf_prompt, "prompt") else ""
             lf_placeholders = set(re.findall(r"\{\{(.+?)\}\}", raw_text))
             dropped = set(variables.keys()) - lf_placeholders
-            if dropped:
-                log.info(
-                    f"Langfuse template '{template_name}' missing placeholders "
-                    f"{dropped} — falling back to local template"
-                )
-            else:
-                compiled = lf_prompt.compile(**variables)
-                log.info(f"Loaded prompt '{template_name}' from Langfuse")
-                return compiled
+            if not dropped:
+                return lf_prompt.compile(**variables)
+            log.warning(_LANGFUSE_FALLBACK, extra={PROMPT_NAME: template_name})
         except Exception as e:
-            log.info(f"Langfuse prompt '{template_name}' compile failed, using local file: {e}")
+            log.warning(_LANGFUSE_FALLBACK, extra={PROMPT_NAME: template_name, ERROR_TYPE: error_type(e)})
 
     template_file = PROMPTS_DIR / "templates" / f"{template_name}.md"
 

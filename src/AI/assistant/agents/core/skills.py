@@ -21,10 +21,6 @@ from pathlib import Path, PurePosixPath
 
 import yaml
 
-from shared.utils.logging_utils import get_logger
-
-log = get_logger(__name__)
-
 SKILL_FILENAME = "SKILL.md"
 REFERENCES_DIRNAME = "references"
 # Keep listing lines short — the full body loads on invocation, so a
@@ -86,8 +82,7 @@ def _parse_frontmatter(raw: str) -> dict[str, object]:
     try:
         fields = yaml.safe_load(match.group(1))
     # PyYAML raises ValueError, not YAMLError, for an unquoted date that does not exist, such as 2026-13-01.
-    except (yaml.YAMLError, ValueError) as exc:
-        log.warning("Invalid skill frontmatter: %s", exc)
+    except yaml.YAMLError, ValueError:
         return {}
     return fields if isinstance(fields, dict) else {}
 
@@ -97,7 +92,7 @@ def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
 
     A valid skill is a subdirectory containing SKILL.md whose frontmatter
     has a `name` equal to the directory name and a non-empty
-    `description`.  Invalid entries are logged and skipped — a broken
+    `description`.  Invalid entries are skipped — a broken
     skill must not take down the loop.
     """
     root = skills_dir or _DEFAULT_SKILLS_DIR
@@ -113,16 +108,13 @@ def discover_skills(skills_dir: Path | None = None) -> list[Skill]:
             continue
         try:
             fields = _parse_frontmatter(skill_file.read_text(encoding="utf-8"))
-        except OSError as exc:
-            log.warning("Skipping unreadable skill %s: %s", entry.name, exc)
+        except OSError:
             continue
         name = fields.get("name")
         if name != entry.name:
-            log.warning("Skipping skill %s: frontmatter name %r is not the directory name", entry.name, name)
             continue
         description = fields.get("description")
         if not isinstance(description, str) or not description.strip():
-            log.warning("Skipping skill %s: no description in frontmatter", entry.name)
             continue
         skills.append(Skill(name=entry.name, description=description.strip(), path=skill_file))
     return skills
