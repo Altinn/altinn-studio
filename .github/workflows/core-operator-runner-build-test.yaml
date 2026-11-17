@@ -76,6 +76,8 @@ jobs:
       REQUEST_TIMEOUT_SECONDS: "120"
       RESULT_RETENTION_SECONDS: "300"
       RESULT_GRACE_SECONDS: "30"
+      # The core operator sends each run the runTimeout of its kind.
+      RUN_TIMEOUT_SECONDS: "780"
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -154,7 +156,7 @@ jobs:
           answer="$(mktemp)"
           status="$(curl -sS --max-time 180 -o "${answer}" -w '%{http_code}' -X PUT \
             -H 'Content-Type: application/gzip' --data-binary "@$2" \
-            "${OPERATOR_RUNNER_URL}/runs/$1?command=upgrade-v9")"
+            "${OPERATOR_RUNNER_URL}/runs/$1?command=upgrade-v9&timeout=${RUN_TIMEOUT_SECONDS}")"
           if [ "${status}" != 202 ] || ! jq -e --arg run_id "$1" '.runId == $run_id' "${answer}" > /dev/null; then
             echo "The operator runner answered ${status}: $(cat "${answer}")" >&2
             exit 1
@@ -166,7 +168,8 @@ jobs:
           cat > "${RUNNER_TEMP}/fetch-result.sh" <<'SCRIPT'
           #!/usr/bin/env bash
           set -euo pipefail
-          deadline=$((SECONDS + 900))
+          # The run has its result at most RUN_TIMEOUT_SECONDS after it starts, and a read waits up to 30 seconds.
+          deadline=$((SECONDS + RUN_TIMEOUT_SECONDS + 30))
           while [ "${SECONDS}" -lt "${deadline}" ]; do
             curl -sS --fail-with-body --max-time 60 "${OPERATOR_RUNNER_URL}/runs/$1/result?wait=30" > "$2"
             if [ "$(jq -r .status "$2")" != running ]; then
