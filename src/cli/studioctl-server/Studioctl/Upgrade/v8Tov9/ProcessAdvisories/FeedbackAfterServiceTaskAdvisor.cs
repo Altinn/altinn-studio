@@ -25,16 +25,6 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
     private readonly string _projectFolder;
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
-    // The built-in service task types. v9 requires a <bpmn:serviceTask> for them, but a v8 process may
-    // still declare one on a <bpmn:task>, and the upgrade does not rewrite the element.
-    private static readonly HashSet<string> _builtInServiceTaskTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "pdf",
-        "subformPdf",
-        "eFormidling",
-        "fiksArkiv",
-    };
-
     public FeedbackAfterServiceTaskAdvisor(string projectFolder)
     {
         _projectFolder = projectFolder;
@@ -151,9 +141,8 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
 
     /// <summary>
     /// Walks incoming sequence flows from the given node, looking through gateways, and returns the
-    /// ids of any service tasks found as the effective predecessor: a <c>serviceTask</c> element, or
-    /// a <c>task</c> element with a built-in service task type. Other element kinds (tasks, events)
-    /// end their path: a feedback task behind a data task is the normal v8/v9 pattern.
+    /// ids of any service tasks found as the effective predecessor. Other element kinds (tasks,
+    /// events) end their path: a feedback task behind a data task is the normal v8/v9 pattern.
     /// </summary>
     private static List<string> FindUpstreamServiceTasks(
         string startId,
@@ -174,7 +163,7 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
                 if (!visited.Add(source) || !elementsById.TryGetValue(source, out var sourceElement))
                     continue;
 
-                if (IsServiceTask(sourceElement))
+                if (sourceElement.Name.LocalName == "serviceTask")
                 {
                     hits.Add(source);
                 }
@@ -187,14 +176,6 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
 
         return hits;
     }
-
-    private static bool IsServiceTask(XElement element) =>
-        element.Name.LocalName == "serviceTask"
-        || (
-            element.Name.LocalName == "task"
-            && GetAltinnTaskType(element) is { } taskType
-            && _builtInServiceTaskTypes.Contains(taskType)
-        );
 
     private static string? GetAltinnTaskType(XElement task) =>
         task.Element(XName.Get("extensionElements", task.Name.NamespaceName))
