@@ -39,7 +39,7 @@ def _select_recent_turns(conversation: Sequence[Any] | None) -> list[dict[str, s
 def _read_turn(entry: Any) -> dict[str, str]:
     """Each turn has the same length limit as in the agent loop. This makes sure
     that the gate reads all of the text that the agent loop can act on."""
-    content = truncate_to_history_limit(_read_field(entry, "content"))
+    content = truncate_to_history_limit(_read_field(entry, "content").strip())
     return {"role": _read_field(entry, "role"), "content": content}
 
 

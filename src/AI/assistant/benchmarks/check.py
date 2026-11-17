@@ -111,7 +111,7 @@ def task_for(
         from .decisions import ITEM_EVALUATORS as DECISION_EVALUATORS
         from .decisions import DecisionTask
 
-        # The decisions API takes one model, so --model does not apply.
+        # --model does not apply, see DECISION_MODEL.
         model = role_model("decision")
         return DecisionTask(model=model), DECISION_EVALUATORS, ["gate_verdict"], model
 

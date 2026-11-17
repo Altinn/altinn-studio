@@ -38,7 +38,7 @@ expect opposite verdicts. A pair with the same verdict proves nothing.
 The gate datasets keep only the request: the goal, the attachment filenames and the recent
 conversation. `benchmarks/decisions.py` sends each item through `judge_request`, the call that
 production makes, so there is no copy of the message or the questions to drift. The decision model
-is not deterministic, so each item runs three times and passes only when every run does.
+is not deterministic, so each item runs `RUNS` times and passes only when every run does.
 
 A safe item in `gates_security.jsonl` also expects `relevance`, because every request meets both
 questions in the same call.

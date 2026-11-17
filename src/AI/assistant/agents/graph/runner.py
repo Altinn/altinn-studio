@@ -154,7 +154,7 @@ async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
     # The gate is a model call, so a cancel can land while it runs.
     _raise_if_cancelled(state, event_sink)
 
-    if judgment.failed:
+    if judgment is None:
         raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
     if not judgment.safe:
         _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, judgment.concern)
@@ -186,7 +186,11 @@ async def _suggest_goals(state: AgentState, reason: str | None) -> list[str]:
     judgments = await asyncio.gather(
         *(judge_request(candidate, conversation=state.conversation_history) for candidate in candidates)
     )
-    return [c for c, j in zip(candidates, judgments, strict=True) if j.safe and j.relevant]
+    return [
+        candidate
+        for candidate, judgment in zip(candidates, judgments, strict=True)
+        if judgment and judgment.safe and judgment.relevant
+    ]
 
 
 def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> bool:

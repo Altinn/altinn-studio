@@ -71,6 +71,8 @@ class TestTurnSelection:
             ConversationMessage(role="user" if n % 2 else "assistant", content=f"turn {n}")
             for n in range(HISTORY_MAX_TURNS + 5)
         ]
+        history[-2] = ConversationMessage(role="assistant", content=" \n ")
+        history[-3] = ConversationMessage(role="user", content=" padded \n")
         state = AgentState(
             session_id="s",
             user_goal="ja",

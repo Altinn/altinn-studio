@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import asdict, dataclass
-from typing import Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 from langfuse import Evaluation
 
 from .experiment import ItemEvaluator
 
+if TYPE_CHECKING:
+    from agents.services.decisions import Judgment
+
 # The decision model is not deterministic, so an item runs this often and passes only when every run does.
 RUNS = 3
 
-# An expected-output key, and the judgment field it is checked against.
-VERDICTS = {"relevance": "relevant", "safe": "safe"}
+# An expected-output key, the run field it is checked against, and the probability behind that field.
+VERDICTS = {"relevance": ("relevant", "relevance"), "safe": ("safe", "top_concern")}
 
 
 @dataclass
@@ -35,7 +38,23 @@ class DecisionTask:
                 for _ in range(RUNS)
             )
         )
-        return {"model": self.model, "runs": [asdict(judgment) for judgment in judgments]}
+        return {"model": self.model, "runs": [summarize(judgment) for judgment in judgments]}
+
+
+def summarize(judgment: Judgment | None) -> dict[str, Any] | None:
+    """One run as the evaluator reads it, or None when the gate could not run."""
+    from agents.services.decisions.gates import RELEVANCE
+
+    if judgment is None:
+        return None
+    return {
+        "relevant": judgment.relevant,
+        "relevance": judgment.probability(RELEVANCE),
+        "safe": judgment.safe,
+        "concern": judgment.concern,
+        "top_concern": judgment.probability(judgment.concern),
+        "probabilities": judgment.probabilities,
+    }
 
 
 def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
@@ -44,29 +63,23 @@ def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -
     if not expected:
         return []
     runs = (output or {}).get("runs") if isinstance(output, dict) else None
-    if not runs or any(run["failed"] for run in runs):
+    if not runs or None in runs:
         return [Evaluation(name="gate_verdict", value=0.0, data_type="BOOLEAN", comment="the gate could not run")]
-    misses = sum(run[VERDICTS[key]] != want for run in runs for key, want in expected.items())
-    ranges = ", ".join(_probability_range(runs, key) for key in expected)
+    misses = sum(run[VERDICTS[key][0]] != want for run in runs for key, want in expected.items())
+    ranges = ", ".join(_probability_range(runs, VERDICTS[key][1]) for key in expected)
     return [
         Evaluation(
             name="gate_verdict",
             value=0.0 if misses else 1.0,
             data_type="BOOLEAN",
-            comment=f"{misses} wrong of {len(runs)} runs; {ranges}",
+            comment=f"{misses} wrong of {len(runs)} runs. {ranges}",
         )
     ]
 
 
-def _probability_range(runs: list[dict], key: str) -> str:
-    """The relevance probability, or for safety the top concern's, as min to max over the runs."""
-    from agents.services.decisions.gates import CONCERNS, RELEVANCE
-
-    if key == "relevance":
-        name, values = RELEVANCE, [run["probabilities"].get(RELEVANCE, 1.0) for run in runs]
-    else:
-        name, values = "top concern", [max(run["probabilities"].get(c, 1.0) for c in CONCERNS) for run in runs]
-    return f"{name} {min(values):.2f}-{max(values):.2f}"
+def _probability_range(runs: list[dict], field: str) -> str:
+    values = [run[field] for run in runs]
+    return f"{field} {min(values):.2f}-{max(values):.2f}"
 
 
 ITEM_EVALUATORS: list[ItemEvaluator] = [gate_verdict]

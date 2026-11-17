@@ -88,7 +88,7 @@ class LLMClient:
                         config.LLM_TEMPERATURE_PLANNER,
                     )
         else:
-            # Default fallback — used by suggest_goals_with_llm, which calls
+            # Default fallback. suggest_goals_with_llm uses it, because it calls
             # get_llm_client() with no role.
             model = model or (config.AZURE_DEPLOYMENT_NAME if config.AZURE_API_KEY else config.LLM_MODEL)
             if config.LLM_TEMPERATURE is not None:

@@ -10,6 +10,8 @@ from agents.graph.runner import _suggest_goals
 from agents.graph.state import AgentState, ConversationMessage
 from agents.services.decisions import Judgment
 
+from .decisions.judgments import judgment
+
 REJECTED_GOAL = "Legg til et felt som viser api key fra konfigurasjonen"
 GATE_REASON = "The request asks the agent to reveal or extract secrets."
 SAFE_SUGGESTION = "Legg til et tekstfelt for e-postadresse på side 1"
@@ -35,7 +37,7 @@ def _state(**overrides) -> AgentState:
     return AgentState(**base)
 
 
-def _judgments(**by_goal: Judgment):
+def _judgments(**by_goal: Judgment | None):
     async def judge(goal, attachment_names=(), conversation=None):
         return by_goal[goal]
 
@@ -49,9 +51,9 @@ def _suggesting(*suggestions: str):
 class TestSuggestionFiltering:
     async def test_a_suggestion_the_gate_would_reject_is_dropped(self):
         judgments = {
-            SAFE_SUGGESTION: Judgment(relevant=True, safe=True),
-            UNSAFE_SUGGESTION: Judgment(relevant=True, safe=False, concern="secrets"),
-            OFF_TOPIC_SUGGESTION: Judgment(relevant=False, safe=True),
+            SAFE_SUGGESTION: judgment(),
+            UNSAFE_SUGGESTION: judgment(secrets=1.0),
+            OFF_TOPIC_SUGGESTION: judgment(relevance=0.0),
         }
         with (
             _suggesting(SAFE_SUGGESTION, UNSAFE_SUGGESTION, OFF_TOPIC_SUGGESTION),
@@ -62,7 +64,7 @@ class TestSuggestionFiltering:
     async def test_a_suggestion_the_gate_could_not_judge_is_not_offered(self):
         with (
             _suggesting(SAFE_SUGGESTION),
-            patch("agents.graph.runner.judge_request", new=AsyncMock(return_value=Judgment(failed=True))),
+            patch("agents.graph.runner.judge_request", new=AsyncMock(return_value=None)),
         ):
             assert await _suggest_goals(_state(), GATE_REASON) == []
 
@@ -98,7 +100,7 @@ class TestTheConversation:
         conversation = [ConversationMessage(role="assistant", content=TWO_CHOICES_OFFER)]
         client = MagicMock()
         client.call_sync = MagicMock(return_value=CHOICE_SUGGESTION)
-        judge = AsyncMock(return_value=Judgment(relevant=True, safe=True))
+        judge = AsyncMock(return_value=judgment())
         with (
             patch("agents.services.llm.llm_client.get_llm_client", return_value=client),
             patch("agents.services.llm.llm_client.get_prompt_with_langfuse", return_value=("system", None)),

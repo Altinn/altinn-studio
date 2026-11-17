@@ -18,7 +18,7 @@ Code: `src/AI/assistant/benchmarks/manifest.py`, `src/AI/assistant/benchmarks/re
 
 Code: `src/AI/assistant/benchmarks/decisions.py`, `src/AI/assistant/benchmarks/gates.py`, `src/AI/assistant/benchmarks/planner.py`, `src/AI/assistant/benchmarks/generation.py`, `src/AI/assistant/benchmarks/agent_task.py`
 
-The kinds differ in how much of the agent they run. A decision eval sends a request to the request gate of production three times, because the decision model does not always give the same probability. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
+The kinds differ in how much of the agent they run. A decision eval sends a request to the request gate of production `RUNS` times, because the decision model does not always give the same probability. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
 
 ```mermaid
 flowchart LR

@@ -99,6 +99,6 @@ def resolved_role_models() -> dict[str, str]:
     config = get_config()
     models = {role: getattr(config, key) for role, key in ROLE_MODEL_CONFIG_KEYS.items()}
     models[DEFAULT_ROLE] = default_role_model()
-    # Not an LLM role, but a benchmark run has to say which decision model judged the requests.
+    # The decision model is not an LLM, but it is here so a benchmark run records which model judged the requests.
     models["decision"] = config.DECISION_MODEL
     return models

@@ -51,8 +51,8 @@ class TestJudge:
     def test_a_clear_request_passes(self):
         judgment = judge(_answers())
 
-        assert judgment.relevant and judgment.safe and not judgment.failed
-        assert judgment.concern is None
+        assert judgment.relevant and judgment.safe
+        assert judgment.reason is None
 
     def test_relevance_below_the_threshold_is_not_relevant(self):
         assert not judge(_answers(relevance=RELEVANCE_THRESHOLD - 0.01)).relevant
@@ -110,7 +110,7 @@ class TestJudgeRequest:
         with _decisions_api(handler):
             judgment = await judge_request("legg til et felt", ["skjema.pdf"])
 
-        assert judgment.relevant and judgment.safe
+        assert judgment and judgment.relevant and judgment.safe
         assert len(requests) == 1
         assert requests[0].url.path == "/openai/v1/decisions"
         body = json.loads(requests[0].content)
@@ -126,8 +126,7 @@ class TestJudgeRequest:
         with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep"):
             judgment = await judge_request("legg til et felt")
 
-        assert judgment.failed
-        assert not judgment.safe
+        assert judgment is None
 
     async def test_a_rate_limit_is_retried_after_the_delay_azure_asks_for(self):
         statuses = iter([429, 200])
@@ -140,7 +139,7 @@ class TestJudgeRequest:
         with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep") as sleep:
             judgment = await judge_request("legg til et felt")
 
-        assert judgment.safe and not judgment.failed
+        assert judgment and judgment.safe
         sleep.assert_awaited_once_with(2.0)
 
     async def test_a_rate_limit_that_lasts_fails_the_gate(self):
@@ -153,7 +152,7 @@ class TestJudgeRequest:
         with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep") as sleep:
             judgment = await judge_request("legg til et felt")
 
-        assert judgment.failed
+        assert judgment is None
         assert len(calls) == RETRIES + 1
         assert all(call.args == (MAX_RETRY_SECONDS,) for call in sleep.await_args_list)
 
@@ -165,7 +164,7 @@ class TestJudgeRequest:
             return httpx.Response(400, json={"error": {"code": "unknown_parameter"}})
 
         with _decisions_api(handler):
-            assert (await judge_request("legg til et felt")).failed
+            assert await judge_request("legg til et felt") is None
 
         assert len(calls) == 1
 
@@ -180,7 +179,7 @@ class TestJudgeRequest:
         with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep"):
             judgment = await judge_request("legg til et felt")
 
-        assert judgment.safe and not judgment.failed
+        assert judgment and judgment.safe
 
     async def test_a_timeout_that_lasts_fails_the_gate(self):
         calls: list[httpx.Request] = []
@@ -192,6 +191,5 @@ class TestJudgeRequest:
         with _decisions_api(handler), patch("agents.services.decisions.client.asyncio.sleep"):
             judgment = await judge_request("legg til et felt")
 
-        assert judgment.failed
-        assert not judgment.safe
+        assert judgment is None
         assert len(calls) == RETRIES + 1

@@ -4,7 +4,7 @@ Code: `src/AI/assistant/agents/graph/`, `src/AI/assistant/agents/workflows/`, `s
 
 ## Runner and request gate
 
-`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then one request gate runs before the graph, in chat mode and in workflow mode. A chat request also reaches the loop, which has the system prompt and can read the repository and the web. The gate is one call to the Azure OpenAI decisions API. A decision model is not a language model: it gives a probability for each question and writes no text. The gate asks if the request is relevant, and asks one question for each safety concern in `questions.py`. The gate reads the same earlier turns that the loop replays: the last 12, each cut to 6,000 characters. If the call fails, the request stops.
+`run_once` in `src/AI/assistant/agents/graph/runner.py` opens one Langfuse root span for the run. Then one request gate runs before the graph, in chat mode and in workflow mode. A chat request also reaches the loop, which has the system prompt and can read the repository and the web. The gate is one call to the Azure OpenAI decisions API. A decision model is not a language model: it gives a probability for each question and writes no text. The gate asks if the request is relevant, and asks one question for each safety concern in `questions.py`. The gate reads the same earlier turns that the loop replays, with the same limits. If the call fails, the request stops.
 
 ```mermaid
 flowchart TD
@@ -17,7 +17,7 @@ flowchart TD
   Q -- Yes --> G["Run the graph"]
 ```
 
-_The request gate. A request is unsafe when the probability of one concern is 0.2 or more, and relevant when the probability is 0.5 or more. A suggestion is shown only if the gate accepts it. An unclear goal goes to the loop. If the loop cannot tell what to change, its reply says what it needs._
+_The request gate. The thresholds for safe and relevant are in `gates.py`. A suggestion is shown only if the gate accepts it. An unclear goal goes to the loop. If the loop cannot tell what to change, its reply says what it needs._
 
 ```mermaid
 flowchart LR

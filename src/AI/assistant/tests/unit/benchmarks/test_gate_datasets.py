@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -10,11 +9,13 @@ import pytest
 
 from agents.services.decisions import Judgment
 from benchmarks.dataset_sync import load_datasets, missing_assets, validate
-from benchmarks.decisions import RUNS, DecisionTask, gate_verdict
+from benchmarks.decisions import RUNS, DecisionTask, gate_verdict, summarize
+
+from ..decisions.judgments import judgment
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
 
-# Gate datasets only; a generation dataset is covered in test_generation.
+# Gate datasets only. test_generation covers a generation dataset.
 DATASETS = [d for d in load_datasets() if d.name.startswith("Gates/")]
 ALL_DATASETS = list(load_datasets())
 ALL_ITEMS = [(dataset, item) for dataset in DATASETS for item in dataset.items]
@@ -99,7 +100,7 @@ class TestTheItemsRunThroughProduction:
     async def test_the_task_judges_the_request_each_run(self):
         security = next(d for d in DATASETS if d.name == "Gates/security")
         item = next(i for i in security.items if i["id"] == "security-followup-long-reply-unsafe-middle")
-        judge = AsyncMock(return_value=Judgment(relevant=True, safe=False, concern="secrets"))
+        judge = AsyncMock(return_value=judgment(secrets=1.0))
 
         with patch("agents.services.decisions.gates.judge_request", new=judge):
             output = await DecisionTask(model="gpt-6-luna")(item=item)
@@ -112,7 +113,7 @@ class TestTheItemsRunThroughProduction:
     async def test_the_task_sends_the_attachment_names(self):
         security = next(d for d in DATASETS if d.name == "Gates/security")
         item = next(i for i in security.items if i["id"] == "security-injection-via-attachment-name")
-        judge = AsyncMock(return_value=Judgment(relevant=True, safe=False, concern="injection"))
+        judge = AsyncMock(return_value=judgment(injection=1.0))
 
         with patch("agents.services.decisions.gates.judge_request", new=judge):
             await DecisionTask(model="gpt-6-luna")(item=item)
@@ -121,14 +122,14 @@ class TestTheItemsRunThroughProduction:
         assert judge.await_args.args[1] == item["input"]["attachments"]
 
 
-def _runs(*judgments: Judgment) -> dict:
-    return {"runs": [asdict(j) for j in judgments]}
+def _runs(*judgments: Judgment | None) -> dict:
+    return {"runs": [summarize(run) for run in judgments]}
 
 
 class TestTheVerdict:
     def test_every_run_must_agree_with_the_item(self):
-        good = Judgment(relevant=True, safe=True, probabilities={"relevance": 0.9})
-        bad = Judgment(relevant=False, safe=True, probabilities={"relevance": 0.4})
+        good = judgment(relevance=0.9)
+        bad = judgment(relevance=0.4)
 
         [passed] = gate_verdict(output=_runs(good, good, good), expected_output={"relevance": True})
         [failed] = gate_verdict(output=_runs(good, bad, good), expected_output={"relevance": True})
@@ -139,20 +140,20 @@ class TestTheVerdict:
         assert "relevance 0.40-0.90" in str(failed.comment)
 
     def test_a_safe_item_is_checked_on_both_questions(self):
-        not_relevant = Judgment(relevant=False, safe=True)
+        not_relevant = judgment(relevance=0.0)
 
         [result] = gate_verdict(output=_runs(not_relevant), expected_output={"safe": True, "relevance": True})
 
         assert result.value == 0.0
 
     def test_a_gate_that_could_not_run_fails_the_item(self):
-        [result] = gate_verdict(output=_runs(Judgment(failed=True)), expected_output={"safe": False})
+        [result] = gate_verdict(output=_runs(None), expected_output={"safe": False})
 
         assert result.value == 0.0
         assert result.comment == "the gate could not run"
 
     def test_an_item_that_expects_nothing_is_not_scored(self):
-        assert gate_verdict(output=_runs(Judgment()), expected_output={}) == []
+        assert gate_verdict(output=_runs(judgment()), expected_output={}) == []
 
 
 class TestTheDatasetTabStaysLegible:
