@@ -8,14 +8,18 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
+using Altinn.Studio.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -242,6 +246,41 @@ public class ApplicationsController : ControllerBase
         {
             return StatusCode(499);
         }
+    }
+
+    /// <summary>
+    /// Gets the deploys and undeploys of the app in the environment that finished at or after
+    /// <paramref name="since"/>, oldest first, so the admin page can mark them in its charts.
+    /// </summary>
+    [HttpGet("{env}/{app}/deployments")]
+    [Authorize(Policy = AltinnPolicy.MustHaveAdminPermission)]
+    public async Task<ActionResult<IEnumerable<AppDeploymentEvent>>> GetDeployments(
+        string org,
+        string env,
+        string app,
+        [FromQuery] DateTimeOffset since
+    )
+    {
+        var deployments = await _deploymentRepository.GetSucceeded(
+            org,
+            app,
+            env,
+            new DocumentQueryModel { SortDirection = SortDirection.Descending }
+        );
+        var events = deployments
+            .Select(deployment => new AppDeploymentEvent
+            {
+                TagName = deployment.TagName,
+                DeploymentType = deployment.DeploymentType == DeploymentType.Decommission ? "decommission" : "deploy",
+                FinishedAt = new DateTimeOffset(
+                    DateTime.SpecifyKind(deployment.Build?.Finished ?? deployment.Created, DateTimeKind.Utc)
+                ),
+                CreatedBy = deployment.CreatedBy,
+            })
+            .Where(deployment => deployment.FinishedAt >= since)
+            .OrderBy(deployment => deployment.FinishedAt)
+            .ToList();
+        return Ok(events);
     }
 
     [HttpGet("{env}/{app}/application-metadata")]
