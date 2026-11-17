@@ -28,8 +28,8 @@ type Job struct {
 	Namespace string
 	// Template names the template of the Job's pod.
 	Template string
-	// RunTimeout is how long the command may run. The Job's own deadline must not come before it.
-	RunTimeout time.Duration
+	// Deadline is how long the Job may run before Kubernetes stops it.
+	Deadline time.Duration
 }
 
 // Ref names a run whose Job exists.

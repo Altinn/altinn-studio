@@ -100,11 +100,13 @@ func (c *Client) runURL(pod Pod) string {
 	return "http://" + net.JoinHostPort(pod.IP, strconv.Itoa(c.port)) + "/runs/" + url.PathEscape(pod.RunID)
 }
 
-// Start sends the archive and starts the command. The operator runner answers 202 for the run it has, also when the
-// archive comes again, which it then discards. size is -1 when it is not known.
-func (c *Client) Start(ctx context.Context, pod Pod, command string, archive io.Reader, size int64) (err error) {
-	endpoint := c.runURL(pod) + "?" + url.Values{"command": {command}}.Encode()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, archive)
+// Start sends the archive and starts the command for at most timeout. The operator runner answers 202 for the run it
+// has, also when the archive comes again, which it then discards. size is -1 when it is not known.
+func (c *Client) Start(
+	ctx context.Context, pod Pod, command string, timeout time.Duration, archive io.Reader, size int64,
+) (err error) {
+	query := url.Values{"command": {command}, "timeout": {strconv.Itoa(int(timeout.Seconds()))}}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, c.runURL(pod)+"?"+query.Encode(), archive)
 	if err != nil {
 		return fmt.Errorf("build start request: %w", err)
 	}

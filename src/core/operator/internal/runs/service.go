@@ -319,7 +319,7 @@ func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.R
 		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, rec.Status)
 	}
 
-	err = s.host.Start(ctx, rec.state.pod(runID), rec.state.Spec.Command, archive, size)
+	err = s.host.Start(ctx, rec.state.pod(runID), rec.state.Spec.Command, rec.state.Spec.RunTimeout, archive, size)
 	switch {
 	case err == nil:
 		return &rec.Run, nil

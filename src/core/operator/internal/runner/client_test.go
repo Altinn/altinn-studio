@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 
@@ -51,7 +52,7 @@ func TestTheFakeAnswersAsTheExamplesOfTheProtocol(t *testing.T) {
 	for _, e := range examples {
 		host := runnertest.New()
 		if e.State != "unclaimed" {
-			Expect(ask(host.Server, "PUT /runs/"+runID+"?command=upgrade-v9", []byte{0x1f, 0x8b})).To(Equal([]any{nil}))
+			Expect(ask(host.Server, "PUT /runs/"+runID, []byte{0x1f, 0x8b})).To(Equal([]any{nil}))
 		}
 		if e.State == runner.StatusCompleted || e.State == runner.StatusFailed {
 			// The run ended with the status in the example's answer, and that answer is its result.
@@ -59,7 +60,9 @@ func TestTheFakeAnswersAsTheExamplesOfTheProtocol(t *testing.T) {
 			Expect(json.Unmarshal(e.Body, &status)).To(Succeed())
 			host.Finish(status, string(e.Body))
 		}
-		replay := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		requests := make(chan string, 1)
+		replay := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests <- r.Method + " " + r.URL.RequestURI()
 			w.WriteHeader(e.Status)
 			if _, err := w.Write(e.Body); err != nil {
 				t.Error(err)
@@ -67,6 +70,7 @@ func TestTheFakeAnswersAsTheExamplesOfTheProtocol(t *testing.T) {
 		}))
 		fromFake, fromExample := ask(host.Server, e.Request, e.Archive), ask(replay, e.Request, e.Archive)
 		Expect(fromFake).To(Equal(fromExample), e.State+" "+e.Request)
+		Expect(<-requests).To(Equal(e.Request), "the client sends the example's request")
 		replay.Close()
 		host.Close()
 	}
@@ -84,8 +88,8 @@ func ask(server *httptest.Server, request string, archive []byte) []any {
 	pod := runner.Pod{RunID: runID, IP: address.IP.String()}
 	switch {
 	case method == http.MethodPut:
-		command := endpoint.Query().Get("command")
-		return []any{client.Start(context.Background(), pod, command, bytes.NewReader(archive), int64(len(archive)))}
+		body := bytes.NewReader(archive)
+		return []any{client.Start(context.Background(), pod, "upgrade-v9", 660*time.Second, body, body.Size())}
 	case read == "result":
 		body, size, err := client.OpenResult(context.Background(), pod)
 		if err != nil {
@@ -110,7 +114,7 @@ func TestUnreachableRunner(t *testing.T) {
 
 	_, err := client.Status(t.Context(), pod, 0)
 	Expect(err).To(MatchError(runner.ErrUnreachable))
-	err = client.Start(t.Context(), pod, "upgrade-v9", bytes.NewReader(nil), 0)
+	err = client.Start(t.Context(), pod, "upgrade-v9", time.Minute, bytes.NewReader(nil), 0)
 	Expect(err).To(MatchError(runner.ErrUnreachable))
 
 	_, err = runner.NewClient(http.DefaultClient, port, pods(true)).Status(t.Context(), pod, 0)

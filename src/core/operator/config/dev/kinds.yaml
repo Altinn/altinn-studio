@@ -19,4 +19,5 @@ kinds:
     labels: [org, app, repoOwner, repo, commit]
     maxActive: 2
     maxActivePerCaller: 1
+    # studioctl stops an upgrade after 10 minutes, so this stops only a studioctl process that hangs.
     runTimeout: 660s
