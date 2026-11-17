@@ -67,7 +67,8 @@ comments `/publish` and the components on the pull request, such as `/publish ap
 - The pull request's own build packs the packages, so its code never runs where nuget.org's login is available. The
   `release-<component>-experimental.yaml` workflows only publish them.
 - It publishes the build of the commit that was the pull request's head when you commented. Comment again after the
-  pull request changes, once its build has passed.
+  pull request changes, once its build has passed. Draft pull requests are not built, so mark the pull request ready
+  for review first.
 - Experimental codelists and fileanalyzers build against the published `Altinn.App.Core`, as their releases do.
 
 ## Running it locally

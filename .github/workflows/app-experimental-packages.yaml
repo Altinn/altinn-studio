@@ -29,6 +29,7 @@ concurrency:
 jobs:
   changes:
     name: Find changed components
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
