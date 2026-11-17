@@ -43,6 +43,14 @@ func TestRouteLeavesOutIDs(t *testing.T) {
 	}
 }
 
+func TestSpanNameLeavesOutUnknownMethods(t *testing.T) {
+	for method, want := range map[string]string{"GET": "GET /api/v1/kinds", "X-RUN-ID": "HTTP /api/v1/kinds"} {
+		if got := spanName(method, "/api/v1/kinds"); got != want {
+			t.Errorf("spanName(%q) = %q, want %q", method, got, want)
+		}
+	}
+}
+
 func envtestAssets() string {
 	if dir := os.Getenv("KUBEBUILDER_ASSETS"); dir != "" {
 		return dir
