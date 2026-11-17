@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -41,10 +42,15 @@ internal sealed class DataModelFieldCalculator
         _telemetry = telemetry;
     }
 
-    public async Task Calculate(IInstanceDataAccessor dataAccessor, string taskId)
+    /// <summary>
+    /// Runs the calculations of every form data element in the task, including the elements that
+    /// <paramref name="changes"/> creates, so a new instance stores the same values the frontend calculates when it
+    /// loads the form.
+    /// </summary>
+    public async Task Calculate(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges? changes = null)
     {
         using var activity = _telemetry?.StartCalculateActivity(dataAccessor.Instance.Id, taskId);
-        foreach (var (dataType, dataElement) in dataAccessor.GetDataElementsWithFormDataForTask(taskId))
+        foreach (var (dataType, dataElement) in GetFormDataElementsForTask(dataAccessor, taskId, changes))
         {
             if (await _dataElementAccessChecker.CanRead(dataAccessor.Instance, dataType) is false)
             {
@@ -55,6 +61,41 @@ internal sealed class DataModelFieldCalculator
             if (calculationConfig is not null)
             {
                 await CalculateFormData(dataAccessor, dataElement, calculationConfig);
+            }
+        }
+    }
+
+    private static IEnumerable<(DataType dataType, DataElement dataElement)> GetFormDataElementsForTask(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        DataElementChanges? changes
+    )
+    {
+        var seen = new HashSet<DataElementIdentifier>();
+        foreach (var (dataType, dataElement) in dataAccessor.GetDataElementsWithFormDataForTask(taskId))
+        {
+            if (seen.Add(dataElement))
+            {
+                yield return (dataType, dataElement);
+            }
+        }
+
+        if (changes is null)
+        {
+            yield break;
+        }
+
+        // Elements being created are not on the instance yet
+        foreach (var change in changes.FormDataChanges)
+        {
+            if (
+                change.Type == ChangeType.Created
+                && change.DataElement is { } dataElement
+                && change.DataType.IsBoundToTask(taskId)
+                && seen.Add(dataElement)
+            )
+            {
+                yield return (change.DataType, dataElement);
             }
         }
     }
