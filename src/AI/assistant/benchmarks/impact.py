@@ -40,6 +40,11 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "the items every score is computed over",
     ),
     (
+        "benchmarks/assets/*",
+        "dataset",
+        "a file that a spec or end-to-end item sends to the model, or its source",
+    ),
+    (
         "benchmarks/gates.py",
         "evaluators",
         "how a gate verdict is scored",
