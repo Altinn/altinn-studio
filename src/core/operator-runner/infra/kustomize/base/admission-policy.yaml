@@ -17,7 +17,7 @@ spec:
         resources: [jobs]
   matchConditions:
     - name: from-the-core-operator
-      expression: request.userInfo.username == "system:serviceaccount:core-operator:core-operator"
+      expression: request.userInfo.username == "system:serviceaccount:core-operator:operator"
   validations:
     - expression: object.spec.template.spec == params.template.spec
       message: The pod spec of the Job must be the pod spec of the PodTemplate operator-runner.

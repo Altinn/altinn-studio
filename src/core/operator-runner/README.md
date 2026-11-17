@@ -173,5 +173,5 @@ it. Each file says why it is there.
 [`deploy-core-operator-runner.yaml`](../../../.github/workflows/deploy-core-operator-runner.yaml) builds the guest
 image, the operator runner image and the prepared guest image. It pins them by digest in the PodTemplate, and pushes
 `infra/kustomize` as an OCI artifact. Flux applies it in each environment with sandbox nodes, from
-[`core-operator-runner.yaml`](../../../infra/studio/syncroot/base/core-operator-runner.yaml). There, the pod gets
+[`operator-runner.yaml`](../../../infra/studio/syncroot/base/operator-runner.yaml). There, the pod gets
 `/dev/kvm` from [`sandbox-node`](../../ci/sandbox-node/README.md).

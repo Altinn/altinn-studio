@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - ../base
   - ../base/sandbox-node.yaml
-  - ../base/core-operator-runner.yaml
+  - ../base/operator-runner.yaml
