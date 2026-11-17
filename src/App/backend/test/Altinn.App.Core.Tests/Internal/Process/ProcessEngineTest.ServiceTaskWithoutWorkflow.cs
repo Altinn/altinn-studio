@@ -1,7 +1,6 @@
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
@@ -27,29 +26,14 @@ public sealed partial class ProcessEngineTest
     [InlineData(null, true)]
     [InlineData("write", false)]
     [InlineData(ServiceTaskWithoutWorkflowType, false)]
-    public async Task Next_OnAServiceTaskV8LeftWithoutWorkflow_RunsTheTaskAndGoesOnAfterIt(string? action, bool parked)
+    public async Task Next_OnAServiceTaskV8LeftWithoutWorkflow_StartsTheTaskAgain(string? action, bool parked)
     {
         Instance instance = CreateServiceTaskInstance();
-        Instance afterTask = parked ? CreateServiceTaskInstance() : CreateEndedInstance();
-        var versions = new StorageVersionMetadata(InstanceVersion: 31, ProcessStateVersion: 17);
-        string? capturedState = null;
+        Instance afterTask = parked ? CreateServiceTaskInstance(flow: 4) : CreateEndedInstance();
         await using var fixture = CreateServiceTaskFixture();
         Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
         SetupServiceTaskWithoutWorkflow(workflowService);
-        workflowService
-            .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
-                    instance,
-                    _storageVersions,
-                    It.IsAny<string>(),
-                    "en",
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Callback<Instance, StorageVersionMetadata, string, string?, CancellationToken>(
-                (_, _, state, _, _) => capturedState = state
-            )
-            .ReturnsAsync(new ProcessNextWorkflowResult(afterTask, versions, null, true, parked));
+        List<ProcessStateChange> enqueued = CaptureEnqueuedTransitions(workflowService, afterTask, parked);
 
         ProcessChangeResult result = await fixture.ProcessEngine.Next(
             new ProcessNextRequest
@@ -58,36 +42,73 @@ public sealed partial class ProcessEngineTest
                 InstanceVersions = _storageVersions,
                 User = CreateUserClaimsPrincipal(),
                 Action = action,
-                Language = "en",
+                Language = null,
             }
         );
 
         Assert.True(result.Success);
-        Assert.Same(afterTask, result.MutatedInstance);
-        Assert.Equal(versions, result.MutatedInstanceVersions);
-        Assert.Same(instance.Process, result.ProcessStateChange.OldProcessState);
         Assert.Same(afterTask.Process, result.ProcessStateChange.NewProcessState);
         Assert.Equal(parked, result.WorkflowParked);
+        AssertRestartOfTheServiceTask(Assert.Single(enqueued));
+        // A restart decides no route and validates nothing, as for any service task.
+        fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
+        fixture.Mock<IValidationService>().VerifyNoOtherCalls();
+    }
 
-        // The workflow runs the task from the snapshot this request read.
-        WorkflowCallbackState callbackState = ReadCallbackState(fixture, capturedState);
-        Assert.Equal("Task_Service", callbackState.Instance.Process.CurrentTask.ElementId);
-        Assert.Equal(_storageVersions.InstanceVersion, callbackState.InstanceVersion);
+    [Fact]
+    public async Task ResumeCurrentTask_OnAServiceTaskV8LeftWithoutWorkflow_StartsTheTaskAgain()
+    {
+        Instance instance = CreateServiceTaskInstance();
+        await using var fixture = CreateServiceTaskFixture();
+        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
+        SetupServiceTaskWithoutWorkflow(workflowService);
+        List<ProcessStateChange> enqueued = CaptureEnqueuedTransitions(workflowService, CreateEndedInstance(), false);
 
-        // The task concludes the transition itself, so the request neither decides one nor enqueues one.
+        ProcessChangeResult result = await fixture.ProcessEngine.ResumeCurrentTask(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.ProcessStateChange.NewProcessState?.Ended);
+        AssertRestartOfTheServiceTask(Assert.Single(enqueued));
         workflowService.Verify(
-            s =>
-                s.EnqueueAndWaitForProcessNext(
-                    It.IsAny<Instance>(),
-                    It.IsAny<StorageVersionMetadata>(),
-                    It.IsAny<string>(),
-                    It.IsAny<ProcessStateChange>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<CancellationToken>()
-                ),
+            s => s.ResumeAndWaitForWorkflow(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
-        fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Next_WhenTheInstanceChangedBeforeTheRestartClaimedIt_ReportsThatTheInstanceChanged()
+    {
+        // The acquire lost to a change made after this request read the instance, so it completed without the
+        // restart and the instance is still on the visit the request read.
+        Instance instance = CreateServiceTaskInstance();
+        await using var fixture = CreateServiceTaskFixture();
+        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
+        SetupServiceTaskWithoutWorkflow(workflowService);
+        CaptureEnqueuedTransitions(workflowService, CreateServiceTaskInstance(), false);
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        Assert.False(result.Success);
+        Assert.Equal(ProcessErrorType.Conflict, result.ErrorType);
+        Assert.Equal(ProcessNextState.InstanceChanged, result.ProcessNextState);
     }
 
     // v8 skipped the service task on a reject and took the reject flow, and the v8 frontend's failed service task
@@ -97,7 +118,6 @@ public sealed partial class ProcessEngineTest
     public async Task Next_WithAnAllowedReject_OnAServiceTaskV8LeftWithoutWorkflow_DoesNotRunTheTaskAndMoveForward()
     {
         Instance instance = CreateServiceTaskInstance();
-        Instance afterTask = CreateEndedInstance();
         await using var fixture = CreateServiceTaskFixture();
         fixture
             .Mock<IProcessReader>()
@@ -119,18 +139,7 @@ public sealed partial class ProcessEngineTest
             );
         Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
         SetupServiceTaskWithoutWorkflow(workflowService);
-        workflowService
-            .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
-                    It.IsAny<Instance>(),
-                    It.IsAny<StorageVersionMetadata>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new ProcessNextWorkflowResult(afterTask, _storageVersions, null, true));
-        SetupWorkflowResult(fixture, CreateTask1Instance());
+        List<ProcessStateChange> enqueued = CaptureEnqueuedTransitions(workflowService, CreateTask1Instance(), false);
 
         ProcessChangeResult result = await fixture.ProcessEngine.Next(
             new ProcessNextRequest
@@ -143,23 +152,12 @@ public sealed partial class ProcessEngineTest
             }
         );
 
-        workflowService.Verify(
-            s =>
-                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
-                    It.IsAny<Instance>(),
-                    It.IsAny<StorageVersionMetadata>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
         Assert.True(result.Success);
         Assert.Equal("Task_1", result.ProcessStateChange.NewProcessState?.CurrentTask?.ElementId);
         // The reject flow, as from any task: abandoned, without validation.
-        fixture
-            .Mock<IProcessNavigator>()
-            .Verify(n => n.GetNextTask(It.IsAny<IInstanceDataAccessor>(), "Task_Service", "reject"), Times.Once);
+        ProcessStateChange rejected = Assert.Single(enqueued);
+        Assert.Equal("Task_1", rejected.NewProcessState?.CurrentTask?.ElementId);
+        Assert.Contains(rejected.Events ?? [], e => e.EventType == nameof(InstanceEventType.process_AbandonTask));
         fixture.Mock<IValidationService>().VerifyNoOtherCalls();
     }
 
@@ -199,7 +197,8 @@ public sealed partial class ProcessEngineTest
         ProcessNextState expected
     )
     {
-        // As after a workflow that runs the task was enqueued and has not yet claimed the instance, or failed to.
+        // As after a workflow that starts the task again was enqueued and has not yet claimed the instance, or failed
+        // to.
         Instance instance = CreateServiceTaskInstance();
         await using var fixture = CreateServiceTaskFixture();
         Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
@@ -234,92 +233,44 @@ public sealed partial class ProcessEngineTest
         fixture.Mock<IProcessNavigator>().VerifyNoOtherCalls();
     }
 
-    [Fact]
-    public async Task Next_WhenTheServiceTaskV8LeftFailsAgain_ReportsTheFailureWithoutAProcessChange()
+    private static void AssertRestartOfTheServiceTask(ProcessStateChange transition)
     {
-        Instance instance = CreateServiceTaskInstance();
-        Instance afterFailure = CreateServiceTaskInstance();
-        afterFailure.Process.Status = ProcessStatus.Processing;
-        var failure = new WorkflowFailure
-        {
-            Kind = WorkflowFailureKind.StepFailed,
-            WorkflowId = Guid.NewGuid(),
-            LastError = new WorkflowFailureError { Message = "The task failed." },
-        };
-        await using var fixture = CreateServiceTaskFixture();
-        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
-        SetupServiceTaskWithoutWorkflow(workflowService);
+        Assert.Equal("Task_Service", transition.OldProcessState?.CurrentTask?.ElementId);
+        Assert.Equal(3, transition.OldProcessState?.CurrentTask?.Flow);
+        // A new visit of the same task, as a gateway back to it makes.
+        ProcessElementInfo? restarted = transition.NewProcessState?.CurrentTask;
+        Assert.Equal("Task_Service", restarted?.ElementId);
+        Assert.Equal(4, restarted?.Flow);
+        Assert.Equal(ServiceTaskWithoutWorkflowType, restarted?.AltinnTaskType);
+        // Started only: the task never ended.
+        InstanceEvent started = Assert.Single(transition.Events ?? []);
+        Assert.Equal(nameof(InstanceEventType.process_StartTask), started.EventType);
+        Assert.Equal("Task_Service", started.ProcessInfo?.CurrentTask?.ElementId);
+    }
+
+    private static List<ProcessStateChange> CaptureEnqueuedTransitions(
+        Mock<IWorkflowEngineService> workflowService,
+        Instance afterTransition,
+        bool parked
+    )
+    {
+        List<ProcessStateChange> captured = [];
         workflowService
             .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
-                    instance,
+                s.EnqueueAndWaitForProcessNext(
+                    It.IsAny<Instance>(),
                     _storageVersions,
                     It.IsAny<string>(),
+                    It.IsAny<ProcessStateChange>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                new ProcessNextWorkflowResult(afterFailure, _storageVersions, failure, ProcessStateCommitted: false)
-            );
-
-        ProcessChangeResult result = await fixture.ProcessEngine.Next(
-            new ProcessNextRequest
-            {
-                Instance = instance,
-                InstanceVersions = _storageVersions,
-                User = CreateUserClaimsPrincipal(),
-                Action = null,
-                Language = null,
-            }
-        );
-
-        Assert.False(result.Success);
-        Assert.Equal(ProcessErrorType.Internal, result.ErrorType);
-        Assert.Same(failure, result.WorkflowFailure);
-        Assert.Null(result.ProcessStateOnFailure);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task ResumeCurrentTask_OnAServiceTaskV8LeftWithoutWorkflow_RunsTheTask(bool parked)
-    {
-        Instance instance = CreateServiceTaskInstance();
-        Instance afterTask = parked ? CreateServiceTaskInstance() : CreateEndedInstance();
-        await using var fixture = CreateServiceTaskFixture();
-        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
-        SetupServiceTaskWithoutWorkflow(workflowService);
-        workflowService
-            .Setup(s =>
-                s.EnqueueAndWaitForServiceTaskWithoutWorkflow(
-                    instance,
-                    _storageVersions,
-                    It.IsAny<string>(),
-                    null,
-                    It.IsAny<CancellationToken>()
-                )
+            .Callback<Instance, StorageVersionMetadata, string, ProcessStateChange, string?, CancellationToken>(
+                (_, _, _, transition, _, _) => captured.Add(transition)
             )
-            .ReturnsAsync(new ProcessNextWorkflowResult(afterTask, _storageVersions, null, true, parked));
-
-        ProcessChangeResult result = await fixture.ProcessEngine.ResumeCurrentTask(
-            new ProcessNextRequest
-            {
-                Instance = instance,
-                InstanceVersions = _storageVersions,
-                User = CreateUserClaimsPrincipal(),
-                Action = null,
-                Language = null,
-            }
-        );
-
-        Assert.True(result.Success);
-        Assert.Same(afterTask.Process, result.ProcessStateChange.NewProcessState);
-        Assert.Equal(parked, result.WorkflowParked);
-        workflowService.Verify(
-            s => s.ResumeAndWaitForWorkflow(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
-            Times.Never
-        );
+            .ReturnsAsync(new ProcessNextWorkflowResult(afterTransition, _storageVersions, null, true, parked));
+        return captured;
     }
 
     private static void SetupServiceTaskWithoutWorkflow(Mock<IWorkflowEngineService> workflowService) =>
@@ -341,18 +292,8 @@ public sealed partial class ProcessEngineTest
         return Fixture.Create(services);
     }
 
-    private static WorkflowCallbackState ReadCallbackState(Fixture fixture, string? state)
-    {
-        string payload = fixture
-            .ServiceProvider.GetRequiredService<WorkflowStateSigner>()
-            .Verify(Assert.IsType<string>(state), SigningDomain.CallbackState);
-        return Assert.IsType<WorkflowCallbackState>(
-            System.Text.Json.JsonSerializer.Deserialize<WorkflowCallbackState>(payload)
-        );
-    }
-
     // Idle, as v8 left it: v8 knew no process status.
-    private static Instance CreateServiceTaskInstance() =>
+    private static Instance CreateServiceTaskInstance(int flow = 3) =>
         new()
         {
             Id = _instanceId,
@@ -366,7 +307,7 @@ public sealed partial class ProcessEngineTest
                 {
                     ElementId = "Task_Service",
                     AltinnTaskType = ServiceTaskWithoutWorkflowType,
-                    Flow = 3,
+                    Flow = flow,
                 },
             },
         };

@@ -173,78 +173,19 @@ internal sealed class ProcessNextRequestFactory
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
-        var workflow = new WorkflowRequest
-        {
-            OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
-            Steps = [CreateStep(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange))],
-            State = state,
-        };
-        return await CreateSingleWorkflowEnvelope(
-            instanceId,
-            workflow,
-            CreateProcessNextLabels(
-                instanceId,
-                instance.Process?.CurrentTask,
-                processStateChange.NewProcessState?.CurrentTask?.ElementId
-            ),
-            idempotencyKey,
-            language
-        );
-    }
-
-    /// <summary>
-    /// Creates the workflow that runs a service task without workflow: it acquires the instance and runs
-    /// <see cref="WorkflowStepSet.GetServiceTaskWithoutWorkflowSteps"/>.
-    /// </summary>
-    public async Task<WorkflowEnqueueEnvelope> CreateServiceTaskWithoutWorkflowRun(
-        Instance instance,
-        string state,
-        string idempotencyKey,
-        string? language
-    )
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
-        InstanceIdentifier instanceId = new(instance);
-        ProcessElementInfo currentTask = instance.Process?.CurrentTask is { ElementId.Length: > 0 } task
-            ? task
-            : throw new InvalidOperationException("The instance has no current task.");
-        ResolvedServiceTask serviceTask =
-            ResolveServiceTask(GetServiceTaskType(currentTask.AltinnTaskType))
-            ?? throw new InvalidOperationException(
-                $"The current task '{currentTask.ElementId}' is not a service task."
-            );
-
-        WorkflowStepSet steps = WorkflowStepSet.GetServiceTaskWithoutWorkflowSteps(serviceTask);
-        var workflow = new WorkflowRequest
-        {
-            OperationId = $"{PrimaryOperationIdPrefix} Run {currentTask.ElementId}",
-            Steps =
-            [
-                CreateStep(ProcessingStatusAcquirer.Key),
-                .. steps.LifecycleSteps.ToStepRequests(_stepOptionsResolver).WithProcessElement(currentTask.ElementId),
-                .. steps.PrimaryPostCommitSteps.ToStepRequests(_stepOptionsResolver),
-            ],
-            State = state,
-        };
-        return await CreateSingleWorkflowEnvelope(
-            instanceId,
-            workflow,
-            CreateProcessNextLabels(instanceId, sourceTask: null, currentTask.ElementId),
-            idempotencyKey,
-            language
-        );
-    }
-
-    private async Task<WorkflowEnqueueEnvelope> CreateSingleWorkflowEnvelope(
-        InstanceIdentifier instanceId,
-        WorkflowRequest workflow,
-        Dictionary<string, string> labels,
-        string idempotencyKey,
-        string? language
-    )
-    {
         Actor actor = await ExtractActor(language);
-        List<WorkflowRequest> workflows = [workflow];
+        List<WorkflowRequest> workflows =
+        [
+            new WorkflowRequest
+            {
+                OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
+                Steps =
+                [
+                    CreateStep(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
+                ],
+                State = state,
+            },
+        ];
         var context = new AppWorkflowContext
         {
             Actor = actor,
@@ -256,7 +197,11 @@ internal sealed class ProcessNextRequestFactory
         };
         var request = new WorkflowEnqueueRequest
         {
-            Labels = labels,
+            Labels = CreateProcessNextLabels(
+                instanceId,
+                instance.Process?.CurrentTask,
+                processStateChange.NewProcessState?.CurrentTask?.ElementId
+            ),
             Context = JsonSerializer.SerializeToElement(context),
             Workflows = workflows,
         };

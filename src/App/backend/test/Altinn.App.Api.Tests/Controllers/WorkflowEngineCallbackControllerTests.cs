@@ -773,7 +773,7 @@ public class WorkflowEngineCallbackControllerTests
         var objectResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("The instance changed before the workflow could claim it.", problem.Detail);
+        Assert.Equal("The instance changed before its initial process could claim it.", problem.Detail);
         Assert.True((bool)problem.Extensions["nonRetryable"]!);
         var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(ProcessStatusHelper.IsIdle(storedInstance));

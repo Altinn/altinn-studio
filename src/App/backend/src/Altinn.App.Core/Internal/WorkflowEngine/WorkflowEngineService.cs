@@ -170,25 +170,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
     }
 
-    public Task<ProcessNextWorkflowResult> EnqueueAndWaitForServiceTaskWithoutWorkflow(
-        Instance instance,
-        StorageVersionMetadata instanceVersions,
-        string state,
-        string? language,
-        CancellationToken cancellationToken = default
-    ) =>
-        EnqueueAndWaitForWorkflow(
-            instance,
-            () =>
-                _processNextRequestFactory.CreateServiceTaskWithoutWorkflowRun(
-                    instance,
-                    state,
-                    CreateProcessNextIdempotencyKey(instance, instanceVersions),
-                    language
-                ),
-            cancellationToken
-        );
-
     public Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
@@ -510,7 +491,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             freshInstance.Instance,
                             freshInstance.Metadata,
                             BuildWorkflowFailure(currentChain),
-                            GetChainCommit(currentChain) == ChainCommit.Committed
+                            HasCommittedProcessState(currentChain)
                         );
                     }
                 }
@@ -535,7 +516,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     // The committed-state guard is defensive: should a pre-commit step ever learn to
                     // defer, fall through to the ordinary wait (and its timeout) rather than returning a
                     // process state that does not exist yet.
-                    if (anchoredChainParked && GetChainCommit(currentChain) != ChainCommit.Pending)
+                    if (anchoredChainParked && HasCommittedProcessState(currentChain))
                     {
                         InstanceWithStorageMetadata freshInstance =
                             await _instanceClient.GetInstanceWithStorageMetadata(
@@ -587,7 +568,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             freshInstance.Instance,
             freshInstance.Metadata,
             new WorkflowFailure { Kind = WorkflowFailureKind.Timeout },
-            GetChainCommit(currentChain) == ChainCommit.Committed
+            HasCommittedProcessState(currentChain)
         );
     }
 
@@ -703,32 +684,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return ExtractTargetTask(workflow?.Labels);
     }
 
-    /// <summary>
-    /// Where the chain's process state commit stands. A chain that runs a service task without workflow has no commit
-    /// step: it neither changes the process state nor leaves a change pending.
-    /// </summary>
-    private enum ChainCommit
-    {
-        NoCommitStep,
-        Pending,
-        Committed,
-    }
-
-    private static ChainCommit GetChainCommit(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
-    {
-        List<StepStatusResponse> commitSteps = hierarchyWorkflows
-            .SelectMany(workflow => workflow.Steps)
-            .Where(step => step.OperationId == CommitProcessState.Key)
-            .ToList();
-        if (commitSteps.Count == 0)
-        {
-            return ChainCommit.NoCommitStep;
-        }
-
-        return commitSteps.Exists(step => step.Status == PersistentItemStatus.Completed)
-            ? ChainCommit.Committed
-            : ChainCommit.Pending;
-    }
+    private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
+        hierarchyWorkflows.Any(workflow =>
+            workflow.Steps.Any(step =>
+                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
+            )
+        );
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {

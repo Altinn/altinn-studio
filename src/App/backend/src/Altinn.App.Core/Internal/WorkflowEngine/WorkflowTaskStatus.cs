@@ -18,7 +18,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// when the transition was enqueued, and <see cref="ResumedAt"/> when it was last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
 /// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
 /// client and server clocks. <see cref="ServiceTaskWithoutWorkflow"/> marks the failed status of an idle instance in a
-/// service task that no workflow runs, which process/next and process/resume run.
+/// service task that no workflow runs, whose task process/next and process/resume start again.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,

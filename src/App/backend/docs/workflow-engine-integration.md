@@ -76,8 +76,7 @@ the step's execution reference time, which stays the same across retries.
 - Acquired: the callback enqueues the primary workflow.
 - Superseded: the instance changed, or another transition holds it. The step succeeds and enqueues nothing, because a
   failed acquire workflow would condemn the workflows queued behind it.
-- Rejected: an invalid payload, or a lost claim by a workflow with no transition to enqueue, as at instantiation,
-  fails permanently.
+- Rejected: an invalid payload, or a lost claim during instantiation, fails permanently.
 
 Every later save expects `processing`. `ReleaseProcessingStatus` moves the instance back to `idle` in the last save,
 unless a service task follows. Then the workflow that the service task enqueues when it concludes releases it. A
@@ -204,13 +203,12 @@ ran the task again on the next `process/next`. v9 keeps the instance processing 
 instance in a service task, with no workflow running or failed, comes from v8: a service task without workflow.
 
 - Reads report the task as failed, with the task as target and no failure, so the frontend offers its retry.
-- `process/next` and `process/resume` run the task, in one workflow keyed like `process/next` on the instance version.
-  It acquires the instance, runs `CleanupGeneratedFromTask` so the task replaces what an earlier run generated, and then
-  the task's steps. The task-start hooks and stages do not run again, since v8 ran them. The process then goes on as
-  after any service task, and both requests wait for it as `process/next` waits.
+- `process/next` and `process/resume` start the task again, as a transition from the task to a new visit of it that
+  starts the task without ending it. It runs as any transition into a service task: the task-start hooks and stages
+  run a second time, `CleanupGeneratedFromTask` replaces what an earlier run generated, and the process goes on after
+  the task.
 - As in v8, `process/next` with a reject the BPMN allows from the task abandons it without running it, and any other
   action than `write` or the task type is refused with a 409.
-- If the task fails again, the workflow fails as any service task does, and `process/resume` resumes it.
 
 ## Mailboxes
 
@@ -279,6 +277,3 @@ app does not guard against it. Names would not help either, since a redeploy can
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
   and never succeed.
-- The workflow that runs a service task without workflow fails permanently if the instance changed after the
-  request read it, and so does a resume, since the acquire retries against the same versions. An operator abandons
-  the workflow, and the task is then offered again.

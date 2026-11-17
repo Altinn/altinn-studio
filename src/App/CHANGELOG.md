@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task's start hooks do not run again. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
+- An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 
 ## [9.0.0-preview.12] - 2026-11-17
 

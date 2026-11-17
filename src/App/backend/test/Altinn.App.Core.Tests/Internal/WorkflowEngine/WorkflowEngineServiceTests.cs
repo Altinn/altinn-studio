@@ -10,7 +10,6 @@ using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
-using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -903,78 +902,6 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public async Task ResumeAndWaitForWorkflow_ParkedChainWithAnEarlierCommit_ReleasesEarly()
-    {
-        // The resumed transition committed, and the transition its service task started waits in a task-end stage
-        // before its own commit. The process state the instance holds is committed, so the wait releases.
-        Guid workflowId = Guid.NewGuid();
-        Guid dependentId = Guid.NewGuid();
-        var instance = CreateInstance(Guid.NewGuid());
-        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
-
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, dependentId, PersistentItemStatus.Waiting));
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([
-                CreateWorkflowStatus(
-                    createdAt,
-                    databaseId: workflowId,
-                    steps:
-                    [
-                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
-                        CreateStep("ExecuteServiceTask: 0", PersistentItemStatus.Completed),
-                    ]
-                ),
-                CreateWorkflowStatus(
-                    createdAt.AddMilliseconds(1),
-                    status: PersistentItemStatus.Waiting,
-                    databaseId: dependentId,
-                    steps:
-                    [
-                        CreateStep("EndTask: 0", PersistentItemStatus.Waiting),
-                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Enqueued),
-                    ]
-                ),
-            ]);
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
-        WorkflowEngineService service = CreateService(client, instanceClient.Object);
-        service.WorkflowPollingTimeoutMs = 500;
-
-        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
-            instance,
-            workflowId,
-            CancellationToken.None
-        );
-
-        Assert.Null(result.WorkflowFailure);
-        Assert.True(result.Parked);
-    }
-
-    [Fact]
     public async Task ResumeAndWaitForWorkflow_ParkedUncommittedChain_FallsThroughToTimeout()
     {
         // Defensive guard on the parked release: deferral is post-commit by construction today, but if
@@ -1006,11 +933,7 @@ public class WorkflowEngineServiceTests
                     DateTimeOffset.UtcNow,
                     status: PersistentItemStatus.Waiting,
                     databaseId: workflowId,
-                    steps:
-                    [
-                        CreateStep("SomePreCommitStep", PersistentItemStatus.Waiting),
-                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Enqueued),
-                    ]
+                    steps: [CreateStep("SomePreCommitStep", PersistentItemStatus.Waiting)]
                 ),
             ]);
 
@@ -1956,102 +1879,6 @@ public class WorkflowEngineServiceTests
         Assert.Equal(failedId, result.Failure?.WorkflowId);
     }
 
-    [Fact]
-    public async Task EnqueueAndWaitForServiceTaskWithoutWorkflow_WhenTheTaskDefers_ReleasesTheWaitAtOnce()
-    {
-        // The workflow runs a task the instance is already in, so it has no commit step, and nothing is left to
-        // commit when the task waits.
-        Instance instance = CreateServiceTaskInstance(Guid.NewGuid());
-        var versions = new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 4);
-        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
-        Guid workflowId = Guid.NewGuid();
-        WorkflowEnqueueRequest? enqueued = null;
-        string? idempotencyKey = null;
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c =>
-                c.EnqueueWorkflows(
-                    Namespace,
-                    It.IsAny<string>(),
-                    collectionKey,
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
-                (_, key, _, request, _) =>
-                {
-                    idempotencyKey = key;
-                    enqueued = request;
-                }
-            )
-            .ReturnsAsync(
-                new WorkflowEnqueueResponse.Accepted
-                {
-                    Workflows = [new WorkflowResult { DatabaseId = workflowId, Namespace = Namespace }],
-                }
-            );
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting));
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([
-                CreateWorkflowStatus(
-                    DateTimeOffset.UtcNow,
-                    status: PersistentItemStatus.Waiting,
-                    databaseId: workflowId,
-                    steps:
-                    [
-                        CreateStep(ProcessingStatusAcquirer.Key, PersistentItemStatus.Completed),
-                        CreateStep(CleanupGeneratedFromTask.Key, PersistentItemStatus.Completed),
-                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Waiting),
-                    ]
-                ),
-            ]);
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        WorkflowEngineService service = CreateService(
-            client,
-            instanceClient.Object,
-            timeProvider: new TimeSkippingTimeProvider(),
-            serviceTask: new ServiceTaskRunWithoutWorkflow()
-        );
-
-        ProcessNextWorkflowResult result = await service.EnqueueAndWaitForServiceTaskWithoutWorkflow(
-            instance,
-            versions,
-            "signed-state",
-            language: null
-        );
-
-        Assert.Null(result.WorkflowFailure);
-        Assert.True(result.Parked);
-        // Joined by every request from the same instance version, as process/next is.
-        Assert.Equal(WorkflowEngineService.CreateProcessNextIdempotencyKey(instance, versions), idempotencyKey);
-        WorkflowRequest workflow = Assert.Single(Assert.IsType<WorkflowEnqueueRequest>(enqueued).Workflows);
-        Assert.Equal(
-            [ProcessingStatusAcquirer.Key, CleanupGeneratedFromTask.Key, $"{ExecuteServiceTask.Key}: 0"],
-            workflow.Steps.Select(step => step.OperationId)
-        );
-    }
-
     private const string ServiceTaskWithoutWorkflowType = "service-without-workflow";
 
     // Idle in its service task, as v8 left it.
@@ -2072,7 +1899,7 @@ public class WorkflowEngineServiceTests
         public string Type => ServiceTaskWithoutWorkflowType;
 
         public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromMinutes(1))));
+            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 
     private static Instance CreateInstanceOnTask(string elementId, Guid? instanceGuid = null) =>

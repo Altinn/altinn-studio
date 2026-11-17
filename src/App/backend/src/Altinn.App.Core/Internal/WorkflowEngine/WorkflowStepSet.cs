@@ -85,7 +85,13 @@ internal sealed class WorkflowStepSet
 
         if (context.ServiceTask is { } serviceTask)
         {
-            group.AddServiceTask(serviceTask);
+            group.ServiceTaskFollowsCommit = true;
+
+            // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
+            // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
+            // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
+            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+            group.AddPrimaryPostCommitSteps(segment.Steps);
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -103,14 +109,6 @@ internal sealed class WorkflowStepSet
 
         return group;
     }
-
-    /// <summary>
-    /// The steps that run a service task without workflow: the task-start cleanup, so the task replaces what an earlier
-    /// run generated, and the task's own steps. Not the start hooks and stages, which ran when the task started; see
-    /// docs/workflow-engine-integration.md#service-tasks-without-workflow.
-    /// </summary>
-    public static WorkflowStepSet GetServiceTaskWithoutWorkflowSteps(ResolvedServiceTask serviceTask) =>
-        new WorkflowStepSet().AddStep(CleanupGeneratedFromTask.Key).AddServiceTask(serviceTask);
 
     /// <summary>
     /// The steps for a task end event.
@@ -226,15 +224,9 @@ internal sealed class WorkflowStepSet
         return this;
     }
 
-    private WorkflowStepSet AddServiceTask(ResolvedServiceTask serviceTask)
+    private WorkflowStepSet AddPrimaryPostCommitSteps(IEnumerable<PlannedStep> steps)
     {
-        ServiceTaskFollowsCommit = true;
-
-        // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
-        // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
-        // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
-        ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
-        _primaryPostCommitSteps.AddRange(segment.Steps);
+        _primaryPostCommitSteps.AddRange(steps);
         return this;
     }
 
