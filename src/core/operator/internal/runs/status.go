@@ -157,10 +157,8 @@ func (r *record) describe(workflow *engine.Workflow, steps []engine.Step, comman
 		// A step that failed because the cancel deleted the Job fails the workflow before the engine cancels it.
 		r.Status = StatusCanceled
 	case r.settled:
-		r.Status, r.Error = StatusFailed, failure(steps, command)
-		if r.Error.Reason == ReasonQueueTimeout {
-			r.Status = StatusExpired
-		}
+		r.Error = failure(steps, command)
+		r.Status = endStatus(r.Error.Reason)
 	case current < 0 || current >= command:
 		// The engine marks a canceled workflow Canceled at its next fetch. From run.await-result on, the step may get the
 		// result first, and the run completes, so the run follows the engine and does not show canceled and later
@@ -176,6 +174,14 @@ func (r *record) describe(workflow *engine.Workflow, steps []engine.Step, comman
 	default:
 		r.Status, r.FinishedAt = StatusStarting, nil
 	}
+}
+
+// endStatus is the status of a run that ended for reason without a result.
+func endStatus(reason string) Status {
+	if reason == ReasonQueueTimeout {
+		return StatusExpired
+	}
+	return StatusFailed
 }
 
 // failure says why a settled workflow failed the run. A step that ended the run says why. The engine fails a step of

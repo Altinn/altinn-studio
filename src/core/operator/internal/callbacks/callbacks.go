@@ -164,7 +164,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
 	span := trace.SpanFromContext(ctx)
-	span.SetAttributes(telemetry.AttrCommandKey.String(key))
+	span.SetAttributes(
+		telemetry.AttrCommandKey.String(key),
+		telemetry.AttrSubjectID.String(payload.Context.SubjectID),
+	)
 	if payload.ExecutionDeadline != nil {
 		// A step with less time left than the margin stops at once, since its answer would come too late.
 		var cancel context.CancelFunc

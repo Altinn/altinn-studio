@@ -78,7 +78,7 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		case !workflow.OverallStatus.Terminal():
 			continue
 		}
-		if err := c.sandbox.DeleteJob(ctx, namespace, job.RunID); err != nil {
+		if err := deleteJob(ctx, c.sandbox, namespace, job.RunID); err != nil {
 			logger.Error(err, "Delete run Job failed", "runId", job.RunID)
 			continue
 		}

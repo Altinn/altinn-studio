@@ -81,4 +81,7 @@ type Sandbox interface {
 	Jobs(ctx context.Context, namespace string) ([]Ref, error)
 	// DeleteJob deletes a run's Job and its pod. A missing Job is fine.
 	DeleteJob(ctx context.Context, namespace, runID string) error
+	// Log returns the end of the operator runner's log in the newest pod of the run's Job, or nothing when the Job
+	// has no pod whose operator runner has started. The log goes with the pod, so read it before DeleteJob.
+	Log(ctx context.Context, namespace, runID string) ([]byte, error)
 }

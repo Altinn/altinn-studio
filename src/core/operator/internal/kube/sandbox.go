@@ -13,6 +13,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"altinn.studio/core-operator/internal/sandbox"
@@ -89,6 +90,8 @@ type Sandbox struct {
 	Client client.Client
 	// Reader reads the PodTemplate from the API server, because the Role may only get it by name.
 	Reader client.Reader
+	// Pods reads the logs of pods, which controller-runtime's client cannot.
+	Pods corev1client.PodsGetter
 }
 
 var _ sandbox.Sandbox = (*Sandbox)(nil)
@@ -204,6 +207,26 @@ func (s *Sandbox) DeleteJob(ctx context.Context, namespace, runID string) error 
 		return fmt.Errorf("delete Job %s/%s: %w", namespace, job.Name, err)
 	}
 	return nil
+}
+
+// Log returns the last thousand lines of the operator runner's log in the newest pod of the run's Job. The operator
+// runner logs a few for each run. A pod whose container has not started has no log yet, and the API server answers 400.
+func (s *Sandbox) Log(ctx context.Context, namespace, runID string) ([]byte, error) {
+	pods, err := s.jobPods(ctx, namespace, runID)
+	if err != nil || len(pods) == 0 {
+		return nil, err
+	}
+	// The PodTemplate names the operator runner's container as the app.
+	options := &corev1.PodLogOptions{Container: runnerName, TailLines: new(int64(1000))}
+	log, err := s.Pods.Pods(namespace).GetLogs(pods[0].Name, options).DoRaw(ctx)
+	switch {
+	case err == nil:
+		return log, nil
+	case apierrors.IsNotFound(err) || apierrors.IsBadRequest(err):
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("read the log of pod %s/%s: %w", namespace, pods[0].Name, err)
+	}
 }
 
 func (s *Sandbox) list(ctx context.Context, namespace string, labels client.MatchingLabels) ([]batchv1.Job, error) {

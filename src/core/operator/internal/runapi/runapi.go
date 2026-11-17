@@ -12,12 +12,15 @@ import (
 	"strconv"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/core-operator/internal/logging"
 
 	"altinn.studio/core-operator/internal/auth"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/problem"
 	"altinn.studio/core-operator/internal/runs"
+	"altinn.studio/core-operator/internal/telemetry"
 )
 
 const (
@@ -42,11 +45,21 @@ func (a *API) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/kinds", a.listKinds)
 	mux.HandleFunc("GET /api/v1/runs", a.findRuns)
 	mux.HandleFunc("POST /api/v1/runs", a.createRun)
-	mux.HandleFunc("GET /api/v1/runs/{runId}", a.getRun)
-	mux.HandleFunc("PUT /api/v1/runs/{runId}/archive", a.uploadArchive)
-	mux.HandleFunc("GET /api/v1/runs/{runId}/result", a.getResult)
-	mux.HandleFunc("POST /api/v1/runs/{runId}/cancel", a.cancelRun)
+	mux.Handle("GET /api/v1/runs/{runId}", forRun(a.getRun))
+	mux.Handle("PUT /api/v1/runs/{runId}/archive", forRun(a.uploadArchive))
+	mux.Handle("GET /api/v1/runs/{runId}/result", forRun(a.getResult))
+	mux.Handle("POST /api/v1/runs/{runId}/cancel", forRun(a.cancelRun))
 	return mux
+}
+
+// forRun puts the run id of the path on the request's span, so a search by a run id finds the caller's requests.
+func forRun(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if id := r.PathValue("runId"); runs.ValidRunID(id) {
+			trace.SpanFromContext(r.Context()).SetAttributes(telemetry.AttrSubjectID.String(id))
+		}
+		handler(w, r)
+	}
 }
 
 func (a *API) listKinds(w http.ResponseWriter, r *http.Request) {
