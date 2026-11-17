@@ -11,22 +11,6 @@ import { CompExternal } from 'src/layout/layout';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => {
-  const actual = await vi.importActual<TextResourcesProviderImport>(
-    'src/features/language/textResources/TextResourcesProvider',
-  );
-  return {
-    ...actual,
-    useTextResources: vi.fn(() => ({
-      a: { value: 'the a' },
-      b: { value: 'the b' },
-      c: { value: 'the c' },
-      'ba option value': { value: 'the result' },
-    })),
-  };
-});
-
 const availableOptions = {
   'https://local.altinn.cloud/ttd/test/api/options/a?language=nb': {
     data: [
@@ -102,6 +86,13 @@ interface RenderProps {
 }
 
 const render = async ({ component, addAttachment = true }: RenderProps) => {
+  window.altinnAppGlobalData.textResources!.resources = [
+    { id: 'a', value: 'the a' },
+    { id: 'b', value: 'the b' },
+    { id: 'c', value: 'the c' },
+    { id: 'ba option value', value: 'the result' },
+  ];
+
   const attachment: IData = {
     id: '123ab-456cd-789ef-012gh',
     dataType: 'myComponent',
@@ -139,6 +130,12 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
       />
     ),
     queries: {
+      getInstance: async () => ({
+        ...getInstanceDataMock((i) => {
+          addAttachment && i.data.push(attachment);
+        }),
+        process: getProcessDataMock(),
+      }),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = {
@@ -153,16 +150,6 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
         availableOptions[url]
           ? Promise.resolve(availableOptions[url])
           : Promise.reject(new Error(`No options available for ${url}`)),
-    },
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({
-          ...getInstanceDataMock((i) => {
-            addAttachment && i.data.push(attachment);
-          }),
-          process: getProcessDataMock(),
-        }),
-      },
     },
   });
 };

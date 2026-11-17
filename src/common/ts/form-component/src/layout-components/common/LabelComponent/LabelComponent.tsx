@@ -55,7 +55,7 @@ export function LabelComponent({
       label={title ? lang(title) : undefined}
       grid={grid}
       required={required}
-      requiredIndicator={<RequiredIndicator required={required} />}
+      requiredIndicator={<RequiredIndicator required={required} readOnly={readOnly} />}
       optionalIndicator={
         <OptionalIndicator
           readOnly={readOnly}

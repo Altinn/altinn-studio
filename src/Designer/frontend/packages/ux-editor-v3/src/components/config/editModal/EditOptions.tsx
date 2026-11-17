@@ -3,7 +3,7 @@ import type { IOption } from '../../../types/global';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
-import { PlusIcon, XMarkIcon } from '@studio/icons';
+import { PlusIcon, XMarkIcon } from '@designer/icons';
 import { TextResource } from '../../TextResource';
 import { useText, useComponentErrorMessage } from '../../../hooks';
 import { addOptionToComponent, generateRandomOption } from '../../../utils/component';
@@ -19,7 +19,7 @@ import {
   StudioRadioGroup,
   StudioTextfield,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent<
   FormCheckboxesComponent | FormRadioButtonsComponent

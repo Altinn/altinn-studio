@@ -271,11 +271,17 @@ public class ObjectUtilsTests
         childArray.ContainSingle(d => d == null);
     }
 
-    public class ReplaceTestClass
+    private sealed class ReplaceTestClass
     {
         public string? Value { get; set; }
 
+        public string ReadOnlyValue => "old";
+
+        public string this[int index] => "old";
+
         public List<string>? Values { get; set; }
+
+        public List<List<string>>? NestedValues { get; set; }
 
         public List<ReplaceTestClass>? Children { get; set; }
     }
@@ -286,12 +292,18 @@ public class ObjectUtilsTests
         var test = new ReplaceTestClass
         {
             Values = ["old", "other"],
+            NestedValues =
+            [
+                ["old", "other"],
+            ],
             Children = [new ReplaceTestClass { Value = "old" }],
         };
 
         ObjectUtils.ReplaceStringValues(test, new Dictionary<string, string> { ["old"] = "new" });
 
         Assert.Equal(["new", "other"], test.Values);
+        Assert.Equal(["new", "other"], test.NestedValues[0]);
         Assert.Equal("new", test.Children[0].Value);
+        Assert.Equal("old", test.ReadOnlyValue);
     }
 }

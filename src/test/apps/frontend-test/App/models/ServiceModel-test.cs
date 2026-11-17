@@ -142,6 +142,11 @@ namespace Altinn.App.Models
         [JsonPropertyName("ChooseExtraPages")]
         public string? ChooseExtraPages { get; set; }
 
+        [XmlElement("FailReferenceOptions")]
+        [JsonProperty("FailReferenceOptions")]
+        [JsonPropertyName("FailReferenceOptions")]
+        public bool? FailReferenceOptions { get; set; }
+
         [XmlElement("Numeric")]
         [JsonProperty("Numeric")]
         [JsonPropertyName("Numeric")]

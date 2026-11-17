@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -33,7 +34,7 @@ public class OrgTextsService : IOrgTextsService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetContentRepoName(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -55,7 +56,7 @@ public class OrgTextsService : IOrgTextsService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetContentRepoName(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -88,7 +89,7 @@ public class OrgTextsService : IOrgTextsService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string repo = GetContentRepoName(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -174,7 +175,7 @@ public class OrgTextsService : IOrgTextsService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string repo = GetContentRepoName(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -182,10 +183,5 @@ public class OrgTextsService : IOrgTextsService
         );
 
         return altinnOrgGitRepository.GetLanguages();
-    }
-
-    private static string GetContentRepoName(string org)
-    {
-        return $"{org}-content";
     }
 }

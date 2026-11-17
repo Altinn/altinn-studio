@@ -14,12 +14,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class OnTaskAbandonHookTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -31,7 +31,7 @@ public class OnTaskAbandonHookTests
                 CommandKey = OnTaskAbandonHook.Key,
                 Actor = new Actor { UserId = 1337 },
                 State = "{}",
-                WorkflowId = Guid.Empty,
+                WorkflowId = Guid.NewGuid(),
                 StepId = Guid.NewGuid(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
             },
@@ -48,7 +48,7 @@ public class OnTaskAbandonHookTests
         };
     }
 
-    private static OnTaskAbandonHook CreateCommand(params IOnTaskAbandonHandler[] handlers)
+    private static OnTaskAbandonHook CreateCommand(params IOnTaskAbandoningHandler[] handlers)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -71,16 +71,16 @@ public class OnTaskAbandonHookTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
     }
 
     [Fact]
     public async Task Execute_WithMatchingHandler_ReturnsSuccess()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        handler.Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>())).ReturnsAsync(HookResult.Success());
+        handler.Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>())).ReturnsAsync(HandlerResult.Success());
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -88,13 +88,15 @@ public class OnTaskAbandonHookTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         handler.Verify(
             x =>
                 x.Execute(
-                    It.Is<OnTaskAbandonContext>(c =>
+                    It.Is<OnTaskAbandoningContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
+                        && c.WorkflowId == context.Payload.WorkflowId
+                        && c.StepId == context.Payload.StepId
                     )
                 ),
             Times.Once
@@ -105,9 +107,9 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WithMultipleMatchingHandlers_ReturnsNonRetryableFailedResult()
     {
         // Arrange
-        var handler1 = new Mock<IOnTaskAbandonHandler>();
+        var handler1 = new Mock<IOnTaskAbandoningHandler>();
         handler1.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        var handler2 = new Mock<IOnTaskAbandonHandler>();
+        var handler2 = new Mock<IOnTaskAbandoningHandler>();
         handler2.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         var command = CreateCommand(handler1.Object, handler2.Object);
         var context = CreateContext(CreateInstance());
@@ -116,11 +118,11 @@ public class OnTaskAbandonHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
         Assert.Contains("Multiple", failed.ErrorMessage);
-        Assert.Contains("IOnTaskAbandonHandler", failed.ErrorMessage);
+        Assert.Contains("IOnTaskAbandoningHandler", failed.ErrorMessage);
         Assert.Contains("Task_1", failed.ErrorMessage);
     }
 
@@ -128,11 +130,11 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WhenHandlerReturnsPermanentFailure_ReturnsNonRetryableFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>()))
-            .ReturnsAsync(HookResult.FailedPermanent("Hook failed"));
+            .Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>()))
+            .ReturnsAsync(HandlerResult.FailedPermanent("Hook failed"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -140,7 +142,7 @@ public class OnTaskAbandonHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Hook failed", failed.ErrorMessage);
         Assert.True(failed.NonRetryable);
     }
@@ -149,11 +151,11 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WhenHandlerReturnsRetryableFailure_ReturnsRetryableFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>()))
-            .ReturnsAsync(HookResult.FailedRetryable("Transient error"));
+            .Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>()))
+            .ReturnsAsync(HandlerResult.FailedRetryable("Transient error"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -161,7 +163,7 @@ public class OnTaskAbandonHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Transient error", failed.ErrorMessage);
         Assert.False(failed.NonRetryable);
     }
@@ -170,10 +172,10 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WhenHandlerThrows_ReturnsFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>()))
             .ThrowsAsync(new InvalidOperationException("Handler exploded"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
@@ -182,7 +184,7 @@ public class OnTaskAbandonHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Handler exploded", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }

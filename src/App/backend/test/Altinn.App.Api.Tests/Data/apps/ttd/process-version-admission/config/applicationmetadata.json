@@ -13,7 +13,7 @@
       "appLogic": {
         "classRef": "Altinn.App.Models.model.Model"
       },
-      "taskId": "Task_2",
+      "taskIds": ["Task_2"],
       "maxCount": 1,
       "minCount": 1
     }

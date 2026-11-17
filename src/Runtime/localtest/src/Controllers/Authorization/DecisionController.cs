@@ -262,14 +262,15 @@ namespace Altinn.Platform.Authorization.Controllers
             var systemUserUUidUrn = new Uri(AltinnXacmlUrns.SystemUserUuid);
             var systemUserAttrValue = systemUserAttr.AttributeValues.Single();
             var testData = await _testDataService.GetTestData();
-            // Generate XACML policy in memory where the system user has access to the party associated 
-            // with the organization number of the systemuser
+            // Generate an XACML policy in memory that permits the system user's actions on the requested resource,
+            // whatever its party
             if (!testData.Authorization.SystemUsers.TryGetValue(systemUserAttrValue.Value, out var systemUser))
                 return appPolicyResponse;
 
-            var orgNo = systemUser.OrgNumber;
-            var org = testData.Register.Party.Single(p => p.Value.OrgNumber == orgNo).Value;
-            var partyId = org.PartyId;
+            // A rule without actions in its target would permit every action
+            if (systemUser.Actions?.Any() != true)
+                return appPolicyResponse;
+
             var suPolicy = new XacmlPolicy(
                 new Uri("urn:altinn:policyid:systemuser"), 
                 new Uri("urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides"), 

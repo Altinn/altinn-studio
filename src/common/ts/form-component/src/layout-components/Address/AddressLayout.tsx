@@ -95,7 +95,7 @@ export function AddressLayout({
           readOnly={readOnly}
           showOptionalMarking={showOptionalMarking}
         >
-          <Flex item id={`form-content-${id}-address`} size={{ xs: 12 }}>
+          <Flex item size={{ xs: 12 }}>
             <Input
               id={`address_address_${id}`}
               data-bindingkey='address'
@@ -123,7 +123,7 @@ export function AddressLayout({
             readOnly={readOnly}
             showOptionalMarking={showOptionalMarking}
           >
-            <Flex item id={`form-content-${id}-care-of`} size={{ xs: 12 }}>
+            <Flex item size={{ xs: 12 }}>
               <Input
                 id={`address_care_of_${id}`}
                 data-bindingkey='careOf'
@@ -141,11 +141,8 @@ export function AddressLayout({
         </div>
       )}
 
-      <Flex container spacing={6}>
-        <Flex
-          item
-          className={`${classes.addressComponentZipCode} ${classes.addressComponentSmallInputs}`}
-        >
+      <div className={classes.addressComponentZipCodeAndPostPlace}>
+        <div className={classes.addressComponentZipCodeLabel}>
           <LabelComponent
             id={zipCodeLabelId}
             htmlFor={`address_zip_code_${id}`}
@@ -153,48 +150,45 @@ export function AddressLayout({
             required={required}
             readOnly={readOnly}
             showOptionalMarking={showOptionalMarking}
-          >
-            <Flex item id={`form-content-${id}-zip-code`} size={{ xs: 12 }}>
-              <Input
-                id={`address_zip_code_${id}`}
-                data-bindingkey='zipCode'
-                aria-labelledby={zipCodeLabelId}
-                error={errors?.zipCode}
-                value={zipCode}
-                onChange={(ev) => onChange?.('zipCode', ev.target.value)}
-                onBlur={onBlur}
-                readOnly={readOnly}
-                required={required}
-                inputMode='numeric'
-                autoComplete='postal-code'
-              />
-              {zipCodeValidation}
-            </Flex>
-          </LabelComponent>
-        </Flex>
-        <Flex item className={classes.addressComponentPostplace}>
+          />
+        </div>
+        <div
+          className={`${classes.addressComponentZipCode} ${classes.addressComponentSmallInputs}`}
+        >
+          <Input
+            id={`address_zip_code_${id}`}
+            data-bindingkey='zipCode'
+            aria-labelledby={zipCodeLabelId}
+            error={errors?.zipCode}
+            value={zipCode}
+            onChange={(ev) => onChange?.('zipCode', ev.target.value)}
+            onBlur={onBlur}
+            readOnly={readOnly}
+            required={required}
+            inputMode='numeric'
+            autoComplete='postal-code'
+          />
+        </div>
+        <div className={classes.addressComponentZipCodeValidation}>{zipCodeValidation}</div>
+        <div className={classes.addressComponentPostPlaceLabel}>
+          {/* No required/optional tag: the post place is looked up from the zip code, never typed */}
           <LabelComponent
             id={postPlaceLabelId}
             htmlFor={`address_post_place_${id}`}
             title={postPlaceTitle ?? 'address_component.post_place'}
-            required={required}
-            readOnly
-            showOptionalMarking={showOptionalMarking}
-          >
-            <Flex item id={`form-content-${id}-post-place`} size={{ xs: 12 }}>
-              <Input
-                id={`address_post_place_${id}`}
-                data-bindingkey='postPlace'
-                aria-labelledby={postPlaceLabelId}
-                value={postPlace}
-                readOnly={true}
-                required={required}
-                autoComplete='address-level1'
-              />
-            </Flex>
-          </LabelComponent>
-        </Flex>
-      </Flex>
+          />
+        </div>
+        <div className={classes.addressComponentPostPlace}>
+          <Input
+            id={`address_post_place_${id}`}
+            data-bindingkey='postPlace'
+            aria-labelledby={postPlaceLabelId}
+            value={postPlace}
+            readOnly={true}
+            autoComplete='address-level1'
+          />
+        </div>
+      </div>
 
       {!simplified && (
         <div>
@@ -207,7 +201,7 @@ export function AddressLayout({
             readOnly={readOnly}
             showOptionalMarking={showOptionalMarking}
           >
-            <Flex item id={`form-content-${id}-house-number`} size={{ xs: 12 }}>
+            <Flex item size={{ xs: 12 }}>
               <div className={classes.addressComponentSmallInputs}>
                 <Input
                   id={`address_house_number_${id}`}

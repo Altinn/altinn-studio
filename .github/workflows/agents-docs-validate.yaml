@@ -6,6 +6,9 @@ on:
     paths:
       - "**/AGENTS.md"
       - "**/CLAUDE.md"
+      - "**/README.md"
+      - "**/SKILL.md"
+      - "docs/**"
       - ".github/scripts/agents-docs-validate.mjs"
       - ".github/workflows/agents-docs-validate.yaml"
   workflow_dispatch:

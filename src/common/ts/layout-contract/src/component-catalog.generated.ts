@@ -228,8 +228,8 @@ const ILabelSettings = {
       type: 'boolean',
       title: { en: 'Optional indicator', nb: 'Markering av valgfritt felt' },
       description: {
-        en: 'Show the optional indicator on the label of non-required fields. Enabled by default.',
-        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+        en: 'Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.',
+        nb: 'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.',
       },
       default: true,
       required: false,
@@ -470,6 +470,43 @@ const IAudio = {
   description: { en: 'Configures the audio sources.', nb: 'Konfigurerer lydkildene.' },
 } as const;
 
+const TRBLabel = {
+  type: 'object',
+  properties: {
+    title: {
+      type: 'string',
+      expression: true,
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: {
+        en: 'Label text/title shown above the component',
+        nb: 'Ledeteksten eller tittelen som vises over komponenten.',
+      },
+      required: false,
+    },
+    description: {
+      type: 'string',
+      expression: true,
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: {
+        en: 'Label description shown above the component, below the title',
+        nb: 'Beskrivelsen som vises mellom ledeteksten og komponenten.',
+      },
+      required: false,
+    },
+    help: {
+      type: 'string',
+      expression: true,
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'Help text shown in a tooltip when clicking the help button',
+        nb: 'Hjelpeteksten som vises når brukeren åpner hjelpeknappen.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ButtonSize = {
   type: 'string',
   allowedValues: ['sm', 'md', 'lg'],
@@ -535,43 +572,6 @@ const IButtonProps = {
       allowedValues: ButtonPosition['allowedValues'],
       title: ButtonPosition['title'],
       description: ButtonPosition['description'],
-      required: false,
-    },
-  },
-  additionalProperties: false,
-} as const;
-
-const TRBLabel = {
-  type: 'object',
-  properties: {
-    title: {
-      type: 'string',
-      expression: true,
-      title: { en: 'Title', nb: 'Ledetekst' },
-      description: {
-        en: 'Label text/title shown above the component',
-        nb: 'Ledeteksten eller tittelen som vises over komponenten.',
-      },
-      required: false,
-    },
-    description: {
-      type: 'string',
-      expression: true,
-      title: { en: 'Description', nb: 'Beskrivelse' },
-      description: {
-        en: 'Label description shown above the component, below the title',
-        nb: 'Beskrivelsen som vises mellom ledeteksten og komponenten.',
-      },
-      required: false,
-    },
-    help: {
-      type: 'string',
-      expression: true,
-      title: { en: 'Help text', nb: 'Hjelpetekst' },
-      description: {
-        en: 'Help text shown in a tooltip when clicking the help button',
-        nb: 'Hjelpeteksten som vises når brukeren åpner hjelpeknappen.',
-      },
       required: false,
     },
   },
@@ -913,8 +913,8 @@ const IDataModelBindingsOptionsSimple = {
       additionalProperties: false,
       title: { en: 'Data model binding for label', nb: 'Datamodellbinding for ledetekst' },
       description: {
-        en: 'Describes the location in the data model where the component should store its labels',
-        nb: 'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+        en: 'Location in the data model for the translated labels. Must point to a string for single-select components or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+        nb: 'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
       },
       semanticType: 'dataModelBinding',
       required: false,
@@ -925,8 +925,8 @@ const IDataModelBindingsOptionsSimple = {
       additionalProperties: false,
       title: { en: 'Data model binding for metadata', nb: 'Datamodellbinding for metadata' },
       description: {
-        en: 'Describes the location in the data model where the component should store its metadata',
-        nb: 'Angir hvor i datamodellen komponenten skal lagre metadata.',
+        en: 'Location in the data model for options metadata. Must point to a string.',
+        nb: 'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
       },
       semanticType: 'dataModelBinding',
       required: false,
@@ -2123,6 +2123,21 @@ const IDataModelBindingsForList = {
   },
 } as const;
 
+const ITableColumnWidth = {
+  type: 'object',
+  properties: {
+    width: {
+      type: 'string',
+      pattern: '^([0-9]{1,2}%|100%|auto)$',
+      title: ITableColumnProperties['properties']['width']['title'],
+      description: ITableColumnProperties['properties']['width']['description'],
+      default: 'auto',
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const IPagination = {
   type: 'object',
   properties: {
@@ -3078,6 +3093,24 @@ const ISummaryOverridesCommon = {
   additionalProperties: false,
 } as const;
 
+const AddressSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const AddressSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3086,6 +3119,7 @@ const AddressSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: AddressSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3103,6 +3137,7 @@ const AddressSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: AddressSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Address', required: true },
       },
       additionalProperties: false,
@@ -3232,11 +3267,80 @@ const AudioSummaryOverridesWithRef = {
   ],
 } as const;
 
+const BrokerFileTransferSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const BrokerFileTransferSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: BrokerFileTransferSummaryOverrides['properties']['showNextButton'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for BrokerFileTransfer',
+        nb: 'Overstyringer av oppsummering for BrokerFileTransfer',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this BrokerFileTransfer component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne BrokerFileTransfer-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: BrokerFileTransferSummaryOverrides['properties']['showNextButton'],
+        componentType: { type: 'constant', value: 'BrokerFileTransfer', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all BrokerFileTransfer',
+        nb: 'Overstyringer av oppsummering for alle BrokerFileTransfer-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all BrokerFileTransfer components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle BrokerFileTransfer-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
 const CheckboxesSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3259,6 +3363,7 @@ const CheckboxesSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: CheckboxesSummaryOverrides['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3277,6 +3382,7 @@ const CheckboxesSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: CheckboxesSummaryOverrides['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'Checkboxes', required: true },
       },
@@ -3330,6 +3436,24 @@ const DateSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DatepickerSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const DatepickerSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3338,6 +3462,7 @@ const DatepickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DatepickerSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3355,6 +3480,7 @@ const DatepickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DatepickerSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Datepicker', required: true },
       },
       additionalProperties: false,
@@ -3410,6 +3536,24 @@ const DividerSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DropdownSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const DropdownSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3418,6 +3562,7 @@ const DropdownSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DropdownSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3435,6 +3580,7 @@ const DropdownSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: DropdownSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Dropdown', required: true },
       },
       additionalProperties: false,
@@ -3445,6 +3591,66 @@ const DropdownSummaryOverridesWithRef = {
       description: {
         en: 'Properties for how to display the summary of all Dropdown components',
         nb: 'Egenskaper som styrer hvordan oppsummeringen av alle Dropdown-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
+const FileUploadSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const FileUploadSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: FileUploadSummaryOverrides['properties']['showNextButton'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for FileUpload',
+        nb: 'Overstyringer av oppsummering for FileUpload',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this FileUpload component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne FileUpload-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: FileUploadSummaryOverrides['properties']['showNextButton'],
+        componentType: { type: 'constant', value: 'FileUpload', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all FileUpload',
+        nb: 'Overstyringer av oppsummering for alle FileUpload-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all FileUpload components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle FileUpload-komponenter vises.',
       },
     },
   ],
@@ -3658,6 +3864,24 @@ const ImageSummaryOverridesWithRef = {
   ],
 } as const;
 
+const ImageUploadSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ImageUploadSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3666,6 +3890,7 @@ const ImageUploadSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ImageUploadSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3683,6 +3908,7 @@ const ImageUploadSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ImageUploadSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'ImageUpload', required: true },
       },
       additionalProperties: false,
@@ -3698,6 +3924,24 @@ const ImageUploadSummaryOverridesWithRef = {
   ],
 } as const;
 
+const InputSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const InputSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3706,6 +3950,7 @@ const InputSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: InputSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3720,6 +3965,7 @@ const InputSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: InputSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Input', required: true },
       },
       additionalProperties: false,
@@ -3775,6 +4021,24 @@ const InstanceInformationSummaryOverridesWithRef = {
   ],
 } as const;
 
+const LikertSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const LikertSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3783,6 +4047,7 @@ const LikertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3797,6 +4062,7 @@ const LikertSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Likert', required: true },
       },
       additionalProperties: false,
@@ -3812,6 +4078,24 @@ const LikertSummaryOverridesWithRef = {
   ],
 } as const;
 
+const LikertItemSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const LikertItemSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3820,6 +4104,7 @@ const LikertItemSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertItemSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3837,6 +4122,7 @@ const LikertItemSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: LikertItemSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'LikertItem', required: true },
       },
       additionalProperties: false,
@@ -3852,6 +4138,24 @@ const LikertItemSummaryOverridesWithRef = {
   ],
 } as const;
 
+const ListSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ListSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3860,6 +4164,7 @@ const ListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ListSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3874,6 +4179,7 @@ const ListSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: ListSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'List', required: true },
       },
       additionalProperties: false,
@@ -3889,6 +4195,24 @@ const ListSummaryOverridesWithRef = {
   ],
 } as const;
 
+const MapSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const MapSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3897,6 +4221,7 @@ const MapSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MapSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3911,6 +4236,7 @@ const MapSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MapSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Map', required: true },
       },
       additionalProperties: false,
@@ -3931,6 +4257,15 @@ const MultipleSelectSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3953,6 +4288,7 @@ const MultipleSelectSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MultipleSelectSummaryOverrides['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3971,6 +4307,7 @@ const MultipleSelectSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: MultipleSelectSummaryOverrides['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'MultipleSelect', required: true },
       },
@@ -4061,6 +4398,24 @@ const OptionSummaryOverridesWithRef = {
   ],
 } as const;
 
+const OrganizationLookupSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const OrganizationLookupSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4069,6 +4424,7 @@ const OrganizationLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: OrganizationLookupSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4086,6 +4442,7 @@ const OrganizationLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: OrganizationLookupSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'OrganizationLookup', required: true },
       },
       additionalProperties: false,
@@ -4258,6 +4615,24 @@ const PaymentDetailsSummaryOverridesWithRef = {
   ],
 } as const;
 
+const PersonLookupSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const PersonLookupSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4266,6 +4641,7 @@ const PersonLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: PersonLookupSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4283,6 +4659,7 @@ const PersonLookupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: PersonLookupSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'PersonLookup', required: true },
       },
       additionalProperties: false,
@@ -4298,6 +4675,24 @@ const PersonLookupSummaryOverridesWithRef = {
   ],
 } as const;
 
+const RadioButtonsSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const RadioButtonsSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4306,6 +4701,7 @@ const RadioButtonsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RadioButtonsSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4323,6 +4719,7 @@ const RadioButtonsSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RadioButtonsSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'RadioButtons', required: true },
       },
       additionalProperties: false,
@@ -4343,6 +4740,15 @@ const RepeatingGroupSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4366,6 +4772,7 @@ const RepeatingGroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RepeatingGroupSummaryOverrides['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4384,6 +4791,7 @@ const RepeatingGroupSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: RepeatingGroupSummaryOverrides['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'RepeatingGroup', required: true },
       },
@@ -4405,6 +4813,15 @@ const SubformSummaryOverrides = {
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4428,6 +4845,7 @@ const SubformSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: SubformSummaryOverrides['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4446,6 +4864,7 @@ const SubformSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: SubformSummaryOverrides['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'Subform', required: true },
       },
@@ -4536,6 +4955,24 @@ const TextSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TextAreaSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const TextAreaSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4544,6 +4981,7 @@ const TextAreaSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TextAreaSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4561,6 +4999,7 @@ const TextAreaSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TextAreaSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TextArea', required: true },
       },
       additionalProperties: false,
@@ -4576,6 +5015,24 @@ const TextAreaSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TimePickerSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const TimePickerSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4584,6 +5041,7 @@ const TimePickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TimePickerSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4601,6 +5059,7 @@ const TimePickerSummaryOverridesWithRef = {
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
         emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: TimePickerSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TimePicker', required: true },
       },
       additionalProperties: false,
@@ -4660,11 +5119,13 @@ const AnySummaryOverride = {
     AlertSummaryOverridesWithRef,
     AttachmentListSummaryOverridesWithRef,
     AudioSummaryOverridesWithRef,
+    BrokerFileTransferSummaryOverridesWithRef,
     CheckboxesSummaryOverridesWithRef,
     DateSummaryOverridesWithRef,
     DatepickerSummaryOverridesWithRef,
     DividerSummaryOverridesWithRef,
     DropdownSummaryOverridesWithRef,
+    FileUploadSummaryOverridesWithRef,
     GridSummaryOverridesWithRef,
     GroupSummaryOverridesWithRef,
     HeadingSummaryOverridesWithRef,
@@ -5644,6 +6105,302 @@ const generatedContract = {
           additionalProperties: false,
           title: IAudio['title'],
           description: IAudio['description'],
+          required: false,
+        },
+      },
+    },
+    BrokerFileTransfer: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: {
+        name: { nb: 'Formidling', en: 'Broker file transfer' },
+        description: {
+          en: 'Sends a file to other organizations with Altinn Broker, straight from the form.',
+          nb: 'Sender en fil til andre virksomheter med Altinn Formidling, rett fra skjemaet.',
+        },
+        lifecycle: { status: 'beta' },
+      },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
+        type: {
+          type: 'constant',
+          value: 'BrokerFileTransfer',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+            checksumTitle: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Checksum title', nb: 'Ledetekst for sjekksum' },
+              description: {
+                en: 'Title of the checksum field, instead of "Checksum".',
+                nb: 'Ledeteksten til feltet for sjekksum, i stedet for «Sjekksum».',
+              },
+              required: false,
+            },
+            checksumHelp: {
+              type: 'string',
+              expression: true,
+              title: { en: 'Checksum help text', nb: 'Hjelpetekst for sjekksum' },
+              description: {
+                en: 'Help text for the checksum field, instead of the built-in one.',
+                nb: 'Hjelpeteksten til feltet for sjekksum, i stedet for den innebygde.',
+              },
+              required: false,
+            },
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
+          required: false,
+        },
+        removeWhenHidden: {
+          type: 'boolean',
+          expression: true,
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
+          default: true,
+          required: false,
+        },
+        dataModelBindings: {
+          type: 'object',
+          properties: {
+            fileTransferId: {
+              type: 'object',
+              properties: IDataModelReference['properties'],
+              additionalProperties: false,
+              title: {
+                en: 'Data model binding for the file transfer ID',
+                nb: 'Datamodellbinding for formidlings-ID',
+              },
+              description: {
+                en: 'Where in the data model the component stores the ID Altinn Broker gave the file transfer, as soon as the transfer is created.',
+                nb: 'Angir hvor i datamodellen komponenten lagrer ID-en Altinn Formidling ga formidlingen, så snart formidlingen er opprettet.',
+              },
+              semanticType: 'dataModelBinding',
+              required: true,
+            },
+            fileTransferStatus: {
+              type: 'object',
+              properties: IDataModelReference['properties'],
+              additionalProperties: false,
+              title: {
+                en: 'Data model binding for the file transfer status',
+                nb: 'Datamodellbinding for formidlingsstatus',
+              },
+              description: {
+                en: "Where in the data model the component stores the file transfer's status in Altinn Broker: Initialized while the file uploads, UploadProcessing while Broker checks the file, Published, AllConfirmedDownloaded or Purged once the file is sent, and Failed if Broker rejects it. The field is empty until the user sends a file. The form cannot be submitted before the file is sent.",
+                nb: 'Angir hvor i datamodellen komponenten lagrer statusen til formidlingen i Altinn Formidling: Initialized mens filen lastes opp, UploadProcessing mens Formidling kontrollerer filen, Published, AllConfirmedDownloaded eller Purged når filen er sendt, og Failed hvis Formidling avviser den. Feltet er tomt til brukeren sender en fil. Skjemaet kan ikke sendes inn før filen er sendt.',
+              },
+              semanticType: 'dataModelBinding',
+              required: true,
+            },
+            fileName: {
+              type: 'object',
+              properties: IDataModelReference['properties'],
+              additionalProperties: false,
+              title: {
+                en: 'Data model binding for the file name',
+                nb: 'Datamodellbinding for filnavn',
+              },
+              description: {
+                en: 'Where in the data model the component stores the name of the file it sends.',
+                nb: 'Angir hvor i datamodellen komponenten lagrer navnet på filen den sender.',
+              },
+              semanticType: 'dataModelBinding',
+              required: false,
+            },
+          },
+          additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
+          required: true,
+        },
+        resourceId: {
+          type: 'string',
+          title: { en: 'Resource ID', nb: 'Ressurs-ID' },
+          description: {
+            en: 'The Altinn Broker service the file is sent on: the ID of its resource in the Altinn Resource Registry.',
+            nb: 'Formidlingstjenesten filen sendes på: ID-en til ressursen i Altinn ressursregister.',
+          },
+          required: true,
+        },
+        hasCustomRecipients: {
+          type: 'boolean',
+          title: { en: 'Specify recipients', nb: 'Spesifiser mottakere' },
+          description: {
+            en: 'Whether the file is sent to the organizations in recipients. When false, it is sent to the party the Broker resource requires (requiredParty).',
+            nb: 'Angir om filen sendes til virksomhetene i recipients. Ellers sendes den til parten ressursen i Altinn Formidling krever (requiredParty).',
+          },
+          default: false,
+          required: false,
+        },
+        recipients: {
+          type: 'string',
+          expression: true,
+          title: { en: 'Recipients', nb: 'Mottakere' },
+          description: {
+            en: 'Comma-separated organization numbers of the organizations that receive the file. Only used when hasCustomRecipients is set.',
+            nb: 'Kommaseparerte organisasjonsnumre til virksomhetene som mottar filen. Brukes bare når hasCustomRecipients er satt.',
+          },
+          default: '',
+          examples: ['991825827, 912345678'],
+          required: false,
+        },
+        metadata: {
+          type: 'object',
+          properties: {},
+          additionalProperties: { type: 'string', expression: true },
+          title: { en: 'Metadata', nb: 'Metadata' },
+          description: {
+            en: 'Metadata sent with the file transfer, as Altinn Broker\'s property list: at most 10 entries, each key at most 50 characters. A value is fixed text or an expression, such as ["dataModel", "path.to.field"] for something the user filled in. Entries without a value when the file is sent are left out.',
+            nb: 'Metadata som sendes med formidlingen, som egenskapslisten i Altinn Formidling: høyst 10 oppføringer, og hver nøkkel høyst 50 tegn. En verdi er fast tekst eller et uttrykk, for eksempel ["dataModel", "sti.til.felt"] for noe brukeren har fylt ut. Oppføringer uten verdi når filen sendes, utelates.',
+          },
+          examples: [{ caseNumber: ['dataModel', 'case.number'], category: 'invoice' }],
+          required: false,
+        },
+        checksumField: {
+          type: 'string',
+          allowedValues: ['optional', 'required'],
+          title: { en: 'Checksum field', nb: 'Felt for sjekksum' },
+          description: {
+            en: "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
+            nb: 'Viser et felt der brukeren oppgir sjekksummen til filen, MD5 eller SHA256, som Altinn Formidling kontrollerer filen mot. Filen kan ikke sendes uten den når den er påkrevd. Uten feltet regner Formidling ut sjekksummen selv.',
+          },
+          required: false,
+        },
+        disableVirusScan: {
+          type: 'boolean',
+          title: { en: 'Disable virus scan', nb: 'Slå av virusskanning' },
+          description: {
+            en: 'Sends the file without scanning it for viruses, so the size limit that scanning sets does not apply. Only allowed when the Broker resource is approved for it; otherwise the component shows a configuration error.',
+            nb: 'Sender filen uten å skanne den for virus, slik at grensen for filstørrelse som skanningen setter, ikke gjelder. Bare tillatt når ressursen i Altinn Formidling er godkjent for det. Ellers viser komponenten en konfigurasjonsfeil.',
+          },
+          default: false,
+          required: false,
+        },
+        maxFileTransferSizeInMB: {
+          type: 'integer',
+          minimum: 1,
+          title: { en: 'Max file size (MB)', nb: 'Maksimal filstørrelse (MB)' },
+          description: {
+            en: "Limits the file size further than the Broker resource does; the resource's limit still applies if it is lower. A file transfer with virus scan enabled does not support files larger than 50 GB.",
+            nb: 'Begrenser filstørrelsen mer enn ressursen i Altinn Formidling gjør. Grensen på ressursen gjelder fortsatt hvis den er lavere. En formidling med virusskanning støtter ikke filer større enn 50 GB.',
+          },
+          required: false,
+        },
+        hasCustomFileEndings: {
+          type: 'boolean',
+          title: { en: 'Has custom file endings', nb: 'Har egendefinerte filendelser' },
+          description: {
+            en: 'Boolean value indicating if the component has valid file endings',
+            nb: 'Angir om komponenten har gyldige filendelser.',
+          },
+          default: false,
+          required: false,
+        },
+        validFileEndings: {
+          type: 'union',
+          variants: [
+            { type: 'string' },
+            { type: 'array', items: { type: 'string' }, minItems: undefined, maxItems: undefined },
+          ],
+          title: { en: 'Valid file endings', nb: 'Tillatte filendelser' },
+          description: {
+            en: 'A separated string of valid file endings to upload. If not set all endings are accepted.',
+            nb: 'En kommaseparert liste over tillatte filendelser. Alle filendelser godtas hvis egenskapen ikke er satt.',
+          },
+          examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
           required: false,
         },
       },
@@ -8336,6 +9093,21 @@ const generatedContract = {
           },
           examples: [{ productId: 'product.id', description: 'Beskrivelse av produkt' }],
           required: true,
+        },
+        tableColumns: {
+          type: 'object',
+          properties: {},
+          additionalProperties: {
+            type: 'object',
+            properties: ITableColumnWidth['properties'],
+            additionalProperties: false,
+          },
+          title: { en: 'Table columns', nb: 'Tabellkolonner' },
+          description: {
+            en: 'Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.',
+            nb: 'Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde.',
+          },
+          required: false,
         },
         sortableColumns: {
           type: 'array',

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
 using Altinn.App.Core.Internal.AppModel;
@@ -84,6 +85,9 @@ public sealed record FiksArkivReceiptSettings
         ConfirmationRecord.Validate($"{propertyName}.{nameof(ConfirmationRecord)}", dataTypes, requireFilename: true);
         ArchiveRecord.Validate($"{propertyName}.{nameof(ArchiveRecord)}", dataTypes, requireFilename: true);
 
+        ValidateAcceptsRecordContentType($"{propertyName}.{nameof(ConfirmationRecord)}", ConfirmationRecord, dataTypes);
+        ValidateAcceptsRecordContentType($"{propertyName}.{nameof(ArchiveRecord)}", ArchiveRecord, dataTypes);
+
         // If both records use the same data type, ensure we are allowed to create at least two elements of this type.
         if (
             ConfirmationRecord.DataType == ArchiveRecord.DataType
@@ -91,6 +95,26 @@ public sealed record FiksArkivReceiptSettings
         )
             throw new FiksArkivConfigurationException(
                 $"{propertyName}.{nameof(ConfirmationRecord)} and {propertyName}.{nameof(ArchiveRecord)} are configured with the same data type ({ConfirmationRecord.DataType}), but this type has a MaxCount less than 2."
+            );
+    }
+
+    /// <summary>
+    /// A data type that lists content types refuses a record stored as another one. The confirmation record is only
+    /// stored after the archive has received the message, so a data type that would refuse it stops the app at startup.
+    /// </summary>
+    private static void ValidateAcceptsRecordContentType(
+        string propertyName,
+        FiksArkivDataTypeSettings settings,
+        IReadOnlyList<DataType> dataTypes
+    )
+    {
+        List<string>? allowedContentTypes = dataTypes.First(x => x.Id == settings.DataType).AllowedContentTypes;
+        if (
+            allowedContentTypes is { Count: > 0 }
+            && !allowedContentTypes.Contains(FiksArkivConstants.RecordContentType)
+        )
+            throw new FiksArkivConfigurationException(
+                $"{propertyName}.{nameof(FiksArkivDataTypeSettings.DataType)} refers to the data type {settings.DataType}, whose allowedContentTypes in applicationmetadata.json leaves out {FiksArkivConstants.RecordContentType}. Add {FiksArkivConstants.RecordContentType} to the list, or remove the list to allow any content type."
             );
     }
 }

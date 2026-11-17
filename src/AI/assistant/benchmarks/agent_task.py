@@ -16,6 +16,8 @@ from urllib.parse import urlparse
 
 import httpx
 
+from shared.utils.path_utils import repo_owner_and_app_name
+
 from . import evaluators, preview_check
 from .app_model import load_app
 from .evaluators import Score, evaluate
@@ -63,11 +65,12 @@ def bench_repo_url() -> str:
     return url
 
 
-def repo_org(repo_url: str) -> str:
-    segments = [segment for segment in urlparse(repo_url).path.split("/") if segment]
-    if len(segments) < 2:
+def repo_owner(repo_url: str) -> str:
+    try:
+        owner, _ = repo_owner_and_app_name(repo_url)
+    except ValueError:
         sys.exit(f"BENCH_REPO_URL must look like …/<org>/<app>.git — got {repo_url!r}")
-    return segments[0]
+    return owner
 
 
 def session_branch(session_id: str) -> str:
@@ -135,7 +138,8 @@ def start_agent(
         "session_id": session_id,
         "goal": goal,
         "repo_url": repo_url,
-        "org": repo_org(repo_url),
+        # Benchmark runs record the model usage on the owner of the benchmark repository.
+        "cost_org": repo_owner(repo_url),
         "allow_app_changes": True,
         "attachments": attachments,
     }

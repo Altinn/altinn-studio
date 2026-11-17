@@ -638,6 +638,51 @@ public class EngineSettingsConfigurationTests
         return Assert.Throws<OptionsValidationException>(() => sp.GetRequiredService<IOptions<EngineSettings>>().Value);
     }
 
+    private const string TraceUrlTemplateKey = "EngineSettings:Dashboard:TraceUrlTemplate";
+
+    [Fact]
+    public void DashboardTraceUrlTemplate_UnsetByDefault()
+    {
+        var settings = Resolve("""{ "EngineSettings": {} }""");
+
+        Assert.Null(settings.Dashboard.TraceUrlTemplate);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void DashboardTraceUrlTemplate_EmptyOrWhitespace_BindsAsUnset(string value)
+    {
+        var settings = Resolve(envOverrides: new() { [TraceUrlTemplateKey] = value });
+
+        Assert.Null(settings.Dashboard.TraceUrlTemplate);
+    }
+
+    [Fact]
+    public void DashboardTraceUrlTemplate_Valid_IsKeptTrimmed()
+    {
+        var settings = Resolve(
+            envOverrides: new() { [TraceUrlTemplateKey] = " http://localhost:18888/traces/detail/{traceId} " }
+        );
+
+        Assert.Equal("http://localhost:18888/traces/detail/{traceId}", settings.Dashboard.TraceUrlTemplate);
+    }
+
+    [Theory]
+    [InlineData("http://localhost:18888/traces/detail/")]
+    [InlineData("http://localhost:18888/traces/detail/{TraceId}")]
+    [InlineData("/traces/detail/{traceId}")]
+    [InlineData("ftp://traces.example.com/{traceId}")]
+    public void Validation_RejectsInvalidDashboardTraceUrlTemplate(string value)
+    {
+        var ex = Assert.Throws<OptionsValidationException>(() =>
+            Resolve(envOverrides: new() { [TraceUrlTemplateKey] = value })
+        );
+
+        Assert.Contains("TraceUrlTemplate", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("{traceId}", ex.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void RetentionEnvironmentOverride_TakesPrecedence()
     {

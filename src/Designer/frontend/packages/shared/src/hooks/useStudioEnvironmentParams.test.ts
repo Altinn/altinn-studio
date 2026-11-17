@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { renderHook } from '@testing-library/react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 

@@ -11,6 +11,146 @@ const appFrontend = new AppFrontend();
 const common = new Common();
 
 describe('Summary', () => {
+  it('keeps the help marker square when a legacy Summary heading wraps', () => {
+    const title = 'En lang overskrift som skal brytes over flere linjer i oppsummeringen av skjemaet';
+    const help = 'Her finner du mer informasjon om oppsummeringen.';
+    cy.interceptLayout('Task_2', undefined, (layouts) => {
+      layouts.form!.data.layout.push({
+        id: 'heading-with-help',
+        type: 'Heading',
+        size: 'M',
+        textResourceBindings: { title, help },
+      });
+      layouts.summary!.data.layout = [
+        { id: 'nav-summary', type: 'NavigationBar' },
+        { id: 'summary-heading', type: 'Summary', componentRef: 'heading-with-help' },
+      ];
+    });
+    cy.goto('changename');
+    cy.gotoNavPage('summary');
+    cy.viewport(600, 700);
+    cy.findByRole('heading', { name: title }).should(($heading) => {
+      const lineHeight = parseFloat(getComputedStyle($heading[0]).lineHeight);
+      expect($heading[0].getBoundingClientRect().height, 'the heading wraps').to.be.greaterThan(lineHeight * 1.5);
+    });
+    cy.findByRole('button', { name: `Hjelpetekst for ${title}` }).focus();
+    cy.findByRole('button', { name: `Hjelpetekst for ${title}` }).should(($button) => {
+      const bounds = $button[0].getBoundingClientRect();
+      expect(bounds.width, 'the focused help marker remains square').to.be.closeTo(bounds.height, 1);
+      expect(bounds.height, 'the marker keeps its intended size').to.be.lessThan(40);
+    });
+    cy.findByRole('button', { name: `Hjelpetekst for ${title}` }).click();
+    cy.findByTestId('helptext').should('contain.text', help).and('be.visible');
+  });
+
+  it('uses overrides to show Next after editing and validates forward navigation', () => {
+    cy.interceptLayout('Task_2', undefined, (layouts) => {
+      layouts.summary!.data.layout = [
+        {
+          id: 'summary2-name',
+          type: 'Summary2',
+          target: { type: 'page', id: 'form' },
+          overrides: [
+            { componentType: 'Input', showNextButton: true },
+            { componentId: 'newFirstName', showNextButton: false },
+          ],
+        },
+        ...layouts.summary!.data.layout.filter(
+          (component) => component.type === 'NavigationButtons' || component.type === 'NavigationBar',
+        ),
+      ];
+    });
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
+    cy.findByRole('tab', { name: /nytt etternavn/i }).click();
+    cy.get(appFrontend.changeOfName.newLastName).type('Ola');
+    cy.get(appFrontend.changeOfName.dateOfEffect).type('01/01/2026');
+    cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
+    cy.findByRole('radio', { name: /adoptivforelders/i }).check();
+    cy.gotoNavPage('summary');
+
+    cy.get('[data-summary-target="newMiddleName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newMiddleName).should('be.focused');
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+
+    cy.get('[data-summary-target="newFirstName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.focused');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
+    cy.findByRole('button', { name: 'Neste', timeout: 0 }).should('not.exist');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+
+    cy.get('[data-summary-target="newMiddleName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.get(appFrontend.errorReport).should('be.visible');
+    cy.navPage('form').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+
+    cy.get('[data-summary-target="newMiddleName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering', timeout: 0 }).should('not.exist');
+  });
+
+  it('hides Next when an override targets a field on the last page', () => {
+    cy.interceptLayout('Task_2', undefined, (layouts) => {
+      layouts.summary!.data.layout = [
+        {
+          id: 'summary2-last-page',
+          type: 'Summary2',
+          target: { type: 'component', id: 'gjeld' },
+          overrides: [{ componentId: 'gjeld', showNextButton: true }],
+        },
+        ...layouts.summary!.data.layout.filter(
+          (component) => component.type === 'NavigationButtons' || component.type === 'NavigationBar',
+        ),
+      ];
+    });
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
+    cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
+    cy.findByRole('radio', { name: /adoptivforelders/i }).check();
+    cy.gotoNavPage('summary');
+
+    cy.get('[data-summary-target="gjeld"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get('#gjeld').should('be.focused');
+    cy.navPage('grid').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
+    cy.findByRole('button', { name: 'Neste', timeout: 0 }).should('not.exist');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+  });
+
+  it('returns to Summary2 after editing and restores normal navigation when that page becomes hidden', () => {
+    cy.interceptLayout('Task_2', undefined, (layouts) => {
+      layouts.summary!.data.hidden = ['equals', ['component', 'newFirstName'], 'Hide'];
+      layouts.summary!.data.layout = [
+        { id: 'summary2-name', type: 'Summary2', target: { type: 'component', id: 'newFirstName' } },
+        ...layouts.summary!.data.layout.filter(
+          (component) => component.type === 'NavigationButtons' || component.type === 'NavigationBar',
+        ),
+      ];
+    });
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Anne');
+    cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
+    cy.findByRole('radio', { name: /adoptivforelders/i }).check();
+    cy.gotoNavPage('summary');
+    cy.get('[data-summary-target="newFirstName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.focused');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+    cy.navPage('summary').should('have.attr', 'aria-current', 'page');
+    cy.get('[data-summary-target="newFirstName"]').findByRole('button', { name: 'Endre' }).click();
+    cy.get(appFrontend.changeOfName.newFirstName).clear();
+    cy.get(appFrontend.changeOfName.newFirstName).type('Hide');
+    cy.waitUntilSaved();
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering', timeout: 0 }).should('not.exist');
+  });
+
   it('Summary of change name form', () => {
     cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'changeNameFrom') {
@@ -306,18 +446,14 @@ describe('Summary', () => {
       .children()
       .last()
       .should('contain.text', texts.emptySummary);
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .eq(5)
+    cy.get('#summary-mainGroup-4 [data-testid=summary-repeating-row]')
       .first()
       .should('contain.text', `Kommentarer : ${texts.emptySummary}`)
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('contain.text', `Skjul kommentar felt : ${texts.emptySummary}`);
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .eq(5)
+    cy.get('#summary-mainGroup-4 [data-testid=summary-repeating-row]')
       .first()
       .should(
         'contain.text',
@@ -370,30 +506,21 @@ describe('Summary', () => {
 
     cy.gotoNavPage('summary');
     //Skjul kommentar felt
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .last()
-      .children()
+    cy.get('#summary-mainGroup-0 [data-testid=summary-repeating-row]')
       .eq(0)
       .should('contain.text', 'Kommentarer : first comment')
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .last()
-      .children()
+    cy.get('#summary-mainGroup-0 [data-testid=summary-repeating-row]')
       .eq(1)
       .should('not.contain.text', 'Kommentarer')
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)
       .and('contain.text', `Vis tillegg : ${texts.emptySummary}`)
       .and('contain.text', `Referanse : ${texts.emptySummary}`)
       .and('not.contain.text', 'Skjul kommentar felt');
-    cy.get('[data-testid=summary-group-component]')
-      .children()
-      .last()
-      .children()
+    cy.get('#summary-mainGroup-0 [data-testid=summary-repeating-row]')
       .eq(2)
       .should('contain.text', 'Kommentarer : third comment')
       .and('contain.text', `Nested uploader with tags : ${texts.emptySummary}`)

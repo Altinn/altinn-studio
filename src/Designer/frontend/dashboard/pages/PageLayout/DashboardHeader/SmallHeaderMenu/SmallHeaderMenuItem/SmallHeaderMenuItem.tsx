@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import type { NavigationMenuItem } from '../../../../../types/NavigationMenuItem';
 
 export type SmallHeaderMenuItemProps = {

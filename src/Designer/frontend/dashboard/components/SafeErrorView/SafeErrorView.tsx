@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton, StudioError, StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioButton, StudioError, StudioParagraph, StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export type SafeErrorViewProps = {

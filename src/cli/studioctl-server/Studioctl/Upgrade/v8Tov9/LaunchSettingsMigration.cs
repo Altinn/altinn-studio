@@ -7,9 +7,6 @@ internal static class LaunchSettingsMigration
 {
     private const string AspNetCoreEnvironment = "ASPNETCORE_ENVIRONMENT";
     private const string DevelopmentEnvironment = "Development";
-    private const string LocalAltinnHost = "local.altinn.cloud";
-    private const int LocalAltinnPort = 8000;
-    private static readonly string _applicationUrl = $"http://{LocalAltinnHost}:{LocalAltinnPort}";
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
 
     /// <summary>Brings <c>Properties/launchSettings.json</c> in line with what a v9 app needs.</summary>
@@ -74,7 +71,8 @@ internal static class LaunchSettingsMigration
         RemoveIisProfiles(profiles);
         var appProfile = ResolveAppProfile(profiles);
 
-        appProfile["applicationUrl"] = _applicationUrl;
+        // studioctl gives every local run its address, which overrides the launch profile's.
+        appProfile.Remove("applicationUrl");
         if (!appProfile.ContainsKey("dotnetRunMessages"))
             appProfile["dotnetRunMessages"] = true;
     }

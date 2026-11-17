@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
@@ -71,16 +72,7 @@ public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPerm
                 try
                 {
                     string body = await reader.ReadToEndAsync();
-                    JsonNode bodyJson = JsonNode.Parse(body);
-
-                    if (bodyJson["envName"] is not null)
-                    {
-                        environment = bodyJson["envName"].ToString();
-                    }
-                    if (bodyJson["environment"] is not null)
-                    {
-                        environment = bodyJson["environment"].ToString();
-                    }
+                    environment = EnvironmentInBody(body);
                 }
                 catch
                 {
@@ -109,5 +101,26 @@ public class GiteaDeployPermissionHandler : AuthorizationHandler<GiteaDeployPerm
         {
             _httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
         }
+    }
+
+    /// <summary>
+    /// Reads the environment the request acts on the way model binding does, which matches property names without
+    /// regard to case. A body that names it more than once, in any case or under both names, is rejected, since the
+    /// permission checked here and the environment the endpoint acts on could then differ.
+    /// </summary>
+    private static string EnvironmentInBody(string body)
+    {
+        // Throws on property names that differ only in case, which model binding would both accept.
+        JsonNode bodyJson = JsonNode.Parse(body, new JsonNodeOptions { PropertyNameCaseInsensitive = true });
+        string[] environments = new[] { bodyJson?["envName"], bodyJson?["environment"] }
+            .Where(node => node is not null)
+            .Select(node => node.ToString())
+            .ToArray();
+        if (environments.Length > 1)
+        {
+            throw new JsonException("The body names the environment more than once.");
+        }
+
+        return environments.SingleOrDefault();
     }
 }

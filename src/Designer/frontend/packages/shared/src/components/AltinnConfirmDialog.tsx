@@ -6,8 +6,8 @@ import type {
   StudioPopoverProps,
   StudioPopoverTriggerProps,
   StudioButtonProps,
-} from '@studio/components';
-import { StudioButton, StudioPopover } from '@studio/components';
+} from '@designer/components';
+import { StudioButton, StudioPopover } from '@designer/components';
 import type { WithDataAttributes } from 'app-shared/types/WithDataAttributes';
 
 export type AltinnConfirmDialogProps = {

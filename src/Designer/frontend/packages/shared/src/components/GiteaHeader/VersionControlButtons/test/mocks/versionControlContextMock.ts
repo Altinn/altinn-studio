@@ -18,5 +18,6 @@ export const mockVersionControlButtonsContextValue: VersionControlButtonsContext
   setHasMergeConflict: vi.fn(),
   repoStatus: mockRepoStatus,
   commitAndPushChanges: vi.fn(),
+  fetchChanges: vi.fn(),
   onPullSuccess: vi.fn(),
 };

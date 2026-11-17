@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText, useComponentPropertyLabel, useComponentPropertyHelpText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;

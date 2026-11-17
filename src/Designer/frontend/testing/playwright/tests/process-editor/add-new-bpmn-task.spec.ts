@@ -10,6 +10,7 @@ import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import { AppTemplate } from '../../enum/AppTemplate';
 
 // Variables used in the tests
 let randomGeneratedId: string = null;
@@ -112,6 +113,7 @@ test('that the user can add a sequence arrow between two tasks', async ({ page, 
 test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   page,
   testAppName,
+  testAppTemplate,
   request,
 }) => {
   await setupAndVerifyProcessEditorPage(page, testAppName);
@@ -123,7 +125,13 @@ test('that the changes made to the bpmn process are uploaded to Gitea', async ({
   await giteaPage.verifyThatTheNewTaskIsVisible(randomGeneratedId, dataTask);
 
   await giteaPage.verifySequenceFlowDirection(randomGeneratedId, initialId);
-  await verifyTaskIdInDataModel(request, testAppName, newDataModel, randomGeneratedId);
+  await verifyTaskBindingInDataModel(
+    request,
+    testAppName,
+    testAppTemplate,
+    newDataModel,
+    randomGeneratedId,
+  );
 });
 
 // --------------------- Helper Functions ---------------------
@@ -169,17 +177,21 @@ const navigateToDataModelAndCreateNewDataModel = async (
   await processEditorPage.verifyProcessEditorPage();
 };
 
-async function verifyTaskIdInDataModel(
+async function verifyTaskBindingInDataModel(
   request: APIRequestContext,
   app: string,
+  appTemplate: AppTemplate,
   dataModelName: string,
   taskId: string,
 ): Promise<void> {
   const gitea = new Gitea({ app });
   const getAppMetadataResponse = await request.get(gitea.getAppFilePath(appMetadataFilePath));
   const appMetadata = await getAppMetadataResponse.json();
+  const taskBinding = appTemplate === AppTemplate.V9 ? { taskIds: [taskId] } : { taskId };
   expect(appMetadata).toMatchObject({
-    dataTypes: expect.arrayContaining([expect.objectContaining({ id: dataModelName, taskId })]),
+    dataTypes: expect.arrayContaining([
+      expect.objectContaining({ id: dataModelName, ...taskBinding }),
+    ]),
   });
 }
 

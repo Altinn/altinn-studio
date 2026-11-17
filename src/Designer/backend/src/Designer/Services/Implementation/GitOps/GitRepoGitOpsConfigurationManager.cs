@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -25,14 +26,20 @@ public class GitRepoGitOpsConfigurationManager(
     [FromKeyedServices("bot-auth")] IGiteaClient giteaClient,
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
-    IAltinnGitRepositoryFactory gitRepositoryFactory,
     TimeProvider timeProvider,
     GitOpsSettings gitOpsSettings,
-    ServiceRepositorySettings serviceRepositorySettings,
     ILogger<GitRepoGitOpsConfigurationManager> logger
 ) : IGitOpsConfigurationManager
 {
+    // Git's default gc.autoPackLimit.
+    private const int MaxPackFilesToReuse = 50;
+
+    private readonly AltinnGitRepositoryFactory _localRepositories = new(gitOpsSettings.LocalRepositoryLocation);
+
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
+
+    private string LocalRepositoryPath(AltinnOrgEditingContext context) =>
+        _localRepositories.GetRepositoryPath(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org), context.Developer);
 
     public async Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context)
     {
@@ -53,10 +60,12 @@ public class GitRepoGitOpsConfigurationManager(
                 gitOpsSettings.BotPersonalAccessToken,
                 mustUseTokenAuth: true
             );
-        DeleteLocalRepositoryIfExists(context);
-        await EnsureRemoteRepositoryExists(context);
-
-        sourceControl.CloneRemoteRepository(gitOpsAuthenticatedContext);
+        if (!TryResetLocalRepositoryToRemote(context, gitOpsAuthenticatedContext))
+        {
+            DeleteLocalRepositoryIfExists(context);
+            await EnsureRemoteRepositoryExists(context);
+            sourceControl.CloneRemoteRepository(gitOpsAuthenticatedContext, LocalRepositoryPath(context));
+        }
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -82,7 +91,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private async Task EnsureBaseManifests(AltinnOrgEditingContext context)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             GitOpsRepoName(context.Org),
             context.Developer
@@ -97,7 +106,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private async Task EnsureEnvironmentManifests(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             GitOpsRepoName(context.Org),
             context.Developer
@@ -117,15 +126,56 @@ public class GitRepoGitOpsConfigurationManager(
         }
     }
 
+    /// <summary>
+    /// Reuses the local clone from an earlier deploy, since cloning the repository, which grows with every deploy,
+    /// takes far longer than fetching it. Deploys to an org run one at a time, so no other request uses the clone.
+    /// </summary>
+    /// <returns>False when there is no local clone, or it cannot be brought up to date and must be cloned again.</returns>
+    private bool TryResetLocalRepositoryToRemote(
+        AltinnOrgEditingContext context,
+        AltinnAuthenticatedRepoEditingContext gitOpsAuthenticatedContext
+    )
+    {
+        string repoPath = LocalRepositoryPath(context);
+        if (!Directory.Exists(repoPath) || HasTooManyPackFiles(repoPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            sourceControl.ResetToRemoteBranch(gitOpsAuthenticatedContext, General.DefaultBranch, repoPath);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Whatever the clone's problem, such as a lock file, a deleted branch or a local configuration that
+            // fails a check, a fresh clone does not have it. A failure that is not the clone's fails the clone too.
+            logger.LogWarning(
+                ex,
+                "Could not update the local GitOps repository, so it is cloned again: {Path}",
+                repoPath
+            );
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// libgit2 never repacks, so every fetch into a reused clone adds a pack file, and looking up an object reads each
+    /// of them. Past git's own limit for repacking, cloning again is the cheaper way back to one pack.
+    /// </summary>
+    private static bool HasTooManyPackFiles(string repoPath)
+    {
+        string packDirectory = Path.Join(repoPath, ".git", "objects", "pack");
+        return Directory.Exists(packDirectory)
+            && Directory.EnumerateFiles(packDirectory, "*.pack").Count() > MaxPackFilesToReuse;
+    }
+
     private void DeleteLocalRepositoryIfExists(AltinnOrgEditingContext context)
     {
         // Fast rename instead of deletion
         // Should check if repo actually exists. GetAltinnGitRepository fails if do not exists
-        string repoPath = serviceRepositorySettings.GetServicePath(
-            gitOpsSettings.GitOpsOrg,
-            GitOpsRepoName(context.Org),
-            context.Developer
-        );
+        string repoPath = LocalRepositoryPath(context);
         if (!Directory.Exists(repoPath))
         {
             return;
@@ -155,7 +205,7 @@ public class GitRepoGitOpsConfigurationManager(
     )
     {
         string gitopsRepoName = GitOpsRepoName(context.Org);
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             gitopsRepoName,
             context.Developer
@@ -187,7 +237,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     public async Task AddAppToGitOpsConfigurationAsync(AltinnRepoEditingContext context, AltinnEnvironment environment)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             GitOpsRepoName(context.Org),
             context.Developer
@@ -232,7 +282,7 @@ public class GitRepoGitOpsConfigurationManager(
         AltinnEnvironment environment
     )
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             GitOpsRepoName(context.Org),
             context.Developer
@@ -252,7 +302,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     public void PersistGitOpsConfiguration(AltinnOrgEditingContext context, AltinnEnvironment environment)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             GitOpsRepoName(context.Org),
             context.Developer
@@ -275,7 +325,7 @@ public class GitRepoGitOpsConfigurationManager(
 
     private async Task WriteManifestsToFiles(AltinnOrgEditingContext context, Dictionary<string, string> manifests)
     {
-        var repository = gitRepositoryFactory.GetAltinnGitRepository(
+        var repository = _localRepositories.GetAltinnGitRepository(
             gitOpsSettings.GitOpsOrg,
             GitOpsRepoName(context.Org),
             context.Developer

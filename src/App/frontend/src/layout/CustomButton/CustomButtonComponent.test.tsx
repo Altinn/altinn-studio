@@ -144,10 +144,6 @@ async function render({ actions, actionAuthorization }: RenderProps = { actionAu
       },
       actions,
     },
-    apis: {
-      instanceApi: {
-        getInstance: async () => instanceData,
-      },
-    },
+    queries: { getInstance: async () => instanceData },
   });
 }

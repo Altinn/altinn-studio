@@ -163,7 +163,6 @@ public sealed class ProjectChecksTests : IDisposable
         var checks = new ProjectChecks(CreateTempProject(declaredVersion, coreVersion: declaredVersion));
 
         Assert.Equal(schemaVersion, checks.AppPackageVersion());
-        Assert.True(checks.HasPackageVersionsAtLeast("9.0.0-preview.8"));
         Assert.False(checks.HasAmbiguousPackageVersions());
     }
 
@@ -176,26 +175,14 @@ public sealed class ProjectChecksTests : IDisposable
 
         Assert.True(checks.IsTargetVersion());
         Assert.True(checks.HasAmbiguousPackageVersions());
-        Assert.False(checks.HasPackageVersionsAtLeast("9.0.0-preview.8"));
         Assert.Null(checks.AppPackageVersion());
     }
 
-    [Theory]
-    [InlineData("9.0.0-preview.7", "9.0.0-preview.9")]
-    [InlineData("[9.0.0-preview.9]", "9.0.0-preview.7")]
-    public void HasPackageVersionsAtLeast_RequiresEveryExplicitPinToMeetTheFloor(string apiVersion, string coreVersion)
-    {
-        var checks = new ProjectChecks(CreateTempProject(apiVersion, coreVersion));
-
-        Assert.False(checks.HasPackageVersionsAtLeast("9.0.0-preview.8"));
-    }
-
     [Fact]
-    public void HasPackageVersionsAtLeast_AcceptsCompatibleApiWithoutExplicitCore()
+    public void AppPackageVersion_UsesApiWithoutExplicitCore()
     {
         var checks = new ProjectChecks(CreateTempProject("9.0.0-preview.8"));
 
-        Assert.True(checks.HasPackageVersionsAtLeast("9.0.0-preview.8"));
         Assert.Equal("9.0.0-preview.8", checks.AppPackageVersion());
     }
 

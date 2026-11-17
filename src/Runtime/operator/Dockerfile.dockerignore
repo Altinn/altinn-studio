@@ -1,0 +1,10 @@
+# Build context: src/
+# Send only the shared Go module and the operator's.
+**
+!common/go/**
+common/go/bin
+!Runtime/operator/go.mod
+!Runtime/operator/go.sum
+!Runtime/operator/api/**
+!Runtime/operator/cmd/**
+!Runtime/operator/internal/**

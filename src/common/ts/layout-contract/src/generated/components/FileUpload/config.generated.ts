@@ -5,6 +5,7 @@ import {
   IDataModelBindingsList,
   IDataModelBindingsSimple,
   ISelectionComponent,
+  ISummaryOverridesCommon,
   LabeledComponentProps,
   TRBFormComp,
   TRBLabel,
@@ -31,6 +32,14 @@ export interface CompFileUploadExternal
   forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
 }
 
+export interface FileUploadSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
+export type FileUploadSummaryOverridesWithRef =
+  | ({ componentId: string } & FileUploadSummaryOverrides)
+  | ({ componentType: 'FileUpload' } & FileUploadSummaryOverrides);
+
 export const componentConfig = {
   category: CompCategory.Form,
   availability: 'configurable',
@@ -55,8 +64,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompFileUploadExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: FileUploadSummaryOverrides;
+  summaryOverridesWithRef: FileUploadSummaryOverridesWithRef;
 };
 
-// Source hash: 9dca67bb16755b4045c691bfa3983630884700370df5020662a66686e5986a7f
+// Source hash: f8087e46be3b83dc9c0fe67242d42ffa41c6d72c72369a58b8748eb9b3179b2b

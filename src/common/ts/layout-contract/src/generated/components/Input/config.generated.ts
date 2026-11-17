@@ -87,9 +87,13 @@ export interface CompInputExternal
   maxLength?: number;
 }
 
+export interface InputSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type InputSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Input' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & InputSummaryOverrides)
+  | ({ componentType: 'Input' } & InputSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -115,8 +119,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompInputExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: InputSummaryOverrides;
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: ad688706ae4eefb87bf31002ea23e67191c4d3514cb9d5cd5a9a2864dd9c0e98
+// Source hash: ae19a22d6a2161be7826776c77f877da21d34b913fbe59607dfd7955d7f45a10

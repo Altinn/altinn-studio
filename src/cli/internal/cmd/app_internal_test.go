@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -110,10 +112,12 @@ func TestRunEnvNamesAndCreatesTheSecretsDirectory(t *testing.T) {
 
 	appRoot := writeEnvCommandApp(t)
 	home := t.TempDir()
+	cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data"), Version: config.NewVersion("test-version")}
 	var out bytes.Buffer
 	command := &AppCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),
-		service: appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")}),
+		cfg:     cfg,
+		service: appsvc.NewService(cfg),
 	}
 
 	if err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"}); err != nil {
@@ -154,6 +158,63 @@ func TestRunEnvFailsWhenTheSecretsDirectoryCannotBePlaced(t *testing.T) {
 	if !strings.Contains(err.Error(), "build app environment") {
 		t.Fatalf("runEnv() error = %v, want it to say the environment could not be built", err)
 	}
+}
+
+// The app libraries apply whatever `app env --json` prints when an app starts from an IDE. With app-localtest
+// running, studioctl's ports are wrong for the app, so the command prints nothing and leaves no secrets behind.
+func TestRunEnvFailsWhileLegacyLocaltestIsRunning(t *testing.T) {
+	t.Parallel()
+
+	appRoot := writeEnvCommandApp(t)
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data"), Version: config.NewVersion("test-version")}
+	var out bytes.Buffer
+	command := &AppCommand{
+		out:     ui.NewOutput(&out, io.Discard, false),
+		cfg:     cfg,
+		service: appsvc.NewService(cfg),
+		checkLegacyLocaltest: func(context.Context) error {
+			return envlocaltest.ErrLegacyLocaltestRunning
+		},
+	}
+
+	err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"})
+	if !errors.Is(err, envlocaltest.ErrLegacyLocaltestRunning) {
+		t.Fatalf("runEnv() error = %v, want ErrLegacyLocaltestRunning", err)
+	}
+	if out.Len() != 0 {
+		t.Fatalf("output = %q, want none", out.String())
+	}
+	if _, err := os.Stat(filepath.Join(home, "apps")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("app secrets were provisioned under %s: %v", home, err)
+	}
+}
+
+// An app started from an IDE takes its platform URLs from `app env`, so they follow the port env up last started
+// localtest on.
+func TestRunEnvUsesTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	appRoot := writeEnvCommandApp(t)
+	command, out := newEnvCommand(t)
+	if err := envlocaltest.WriteState(command.cfg, envlocaltest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	if err := command.runEnv(t.Context(), []string{"-p", appRoot, "--json"}); err != nil {
+		t.Fatalf("runEnv() error = %v", err)
+	}
+
+	var got map[string]string
+	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+	assertEnvCommandValue(
+		t,
+		got,
+		"PlatformSettings__ApiStorageEndpoint",
+		"http://local.altinn.cloud:8100/storage/api/v1/",
+	)
 }
 
 func TestRunEnvCanUseStableHostPort(t *testing.T) {
@@ -398,18 +459,23 @@ func TestResolveCloneEnvironment(t *testing.T) {
 func newEnvCommand(t *testing.T) (*AppCommand, *bytes.Buffer) {
 	t.Helper()
 
+	home := t.TempDir()
+	cfg := &config.Config{Home: home, DataDir: filepath.Join(home, "data"), Version: config.NewVersion("test-version")}
 	var out bytes.Buffer
 	return &AppCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),
-		service: appsvc.NewService(&config.Config{Home: t.TempDir(), Version: config.NewVersion("test-version")}),
+		cfg:     cfg,
+		service: appsvc.NewService(cfg),
 	}, &out
 }
 
 func newEnvCommandWithoutHome() (*AppCommand, *bytes.Buffer) {
+	cfg := &config.Config{Version: config.NewVersion("test-version")}
 	var out bytes.Buffer
 	return &AppCommand{
 		out:     ui.NewOutput(&out, io.Discard, false),
-		service: appsvc.NewService(&config.Config{Version: config.NewVersion("test-version")}),
+		cfg:     cfg,
+		service: appsvc.NewService(cfg),
 	}, &out
 }
 

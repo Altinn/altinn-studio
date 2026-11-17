@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
@@ -12,7 +12,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },

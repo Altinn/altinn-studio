@@ -89,7 +89,7 @@ internal sealed record TestFixture(
         App.Services.GetRequiredService<IFiksArkivConfigResolver>();
     public IFiksArkivInstanceClient FiksArkivInstanceClient =>
         App.Services.GetRequiredService<IFiksArkivInstanceClient>();
-    public IPipelineServiceTask FiksArkivServiceTask =>
+    public IServiceTask FiksArkivServiceTask =>
         AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
 
     /// <summary>

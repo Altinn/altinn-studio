@@ -20,7 +20,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnNotification;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -80,7 +79,6 @@ public static class TypedHttpClientRegistration
             AltinnStorageInstancesClient
         >();
         services.AddAltinnNotificationsClient(config, env);
-        services.AddKubernetesWrapperTypedHttpClient();
         services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
         services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
         services.AddTransient<GiteaWebAuthDelegatingHandler>();
@@ -101,10 +99,15 @@ public static class TypedHttpClientRegistration
         IHostEnvironment env
     )
     {
-        var clientBuilder = services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-            IAltinnNotificationClient,
-            AltinnNotificationClient
-        >();
+        // Without EnsureSuccessHandler, so that the client can report why Notifications rejected an order
+        var clientBuilder = services
+            .AddHttpClient<IAltinnNotificationClient, AltinnNotificationClient>(httpClient =>
+                httpClient.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json)
+                )
+            )
+            .AddHttpMessageHandler<PlatformBearerTokenHandler>()
+            .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>();
         if (env.IsStaging() || env.IsProduction())
         {
             var settings = GetMaskinportenClientForNotifications(config, env);
@@ -175,14 +178,6 @@ public static class TypedHttpClientRegistration
             })
             .AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>()
             .AddHttpMessageHandler<EnsureSuccessHandler>();
-    }
-
-    private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
-    {
-        return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
-        // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
-        // .AddHttpMessageHandler<EnsureSuccessHandler>()
-        // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
     }
 
     private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)

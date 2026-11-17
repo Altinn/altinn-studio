@@ -3,7 +3,7 @@ import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditCorrespondenceResource } from './EditCorrespondenceResource';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
 import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
 

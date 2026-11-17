@@ -18,7 +18,7 @@ import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import classes from 'src/layout/Input/InputComponent.module.css';
-import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
+import { isNumberFormat, isPatternFormat, parsePastedNumber } from 'src/layout/Input/number-format-helpers';
 import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -253,11 +253,7 @@ const InputVariant = ({
               return;
             }
             const pastedText = event.clipboardData.getData('Text');
-            if (pastedText.indexOf(',') !== -1) {
-              setValue('simpleBinding', pastedText.replace(',', '.'));
-            } else {
-              setValue('simpleBinding', pastedText);
-            }
+            setValue('simpleBinding', parsePastedNumber(pastedText, variant.format));
           }}
           characterLimit={characterLimit}
         />

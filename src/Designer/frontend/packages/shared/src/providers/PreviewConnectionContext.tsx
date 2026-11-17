@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { previewWebSocketHub } from 'app-shared/api/paths';
 import type { HubConnection } from '@microsoft/signalr';
 import { HttpTransportType, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 
 const PreviewConnectionContext = createContext<HubConnection>(null);
 
@@ -16,6 +17,7 @@ export const PreviewConnectionContextProvider = ({
   const [connection, setConnection] = useState<HubConnection>(null);
 
   useEffect(() => {
+    if (isPreviewDisabled) return;
     const newConnection = new HubConnectionBuilder()
       .withUrl(previewWebSocketHub(), {
         skipNegotiation: true,

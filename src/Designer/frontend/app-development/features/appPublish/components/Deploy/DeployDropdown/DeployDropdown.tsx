@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
-import type { StudioSuggestionItem } from '@studio/components';
-import { StudioSuggestion, StudioSpinner, StudioError } from '@studio/components';
+import type { StudioSuggestionItem } from '@designer/components';
+import { StudioSuggestion, StudioSpinner, StudioError } from '@designer/components';
 import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';

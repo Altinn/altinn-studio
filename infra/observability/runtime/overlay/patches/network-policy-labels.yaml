@@ -8,6 +8,11 @@ spec:
         - namespaceSelector:
             matchLabels:
               altinn.studio/runtime: "true"
+        # The platform's collector, which forwards Traefik's spans so app traces keep their
+        # ingress span.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
       ports:
         # Linkerd rewrites meshed ingress to the proxy's inbound port.
         - protocol: TCP

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 /// <summary>
-/// Defines a retry strategy for process engine tasks.
+/// Defines a retry strategy for workflow engine steps.
 /// </summary>
 internal sealed record RetryStrategy
 {

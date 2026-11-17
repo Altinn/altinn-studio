@@ -279,10 +279,15 @@ public static partial class ObjectUtils
 
         foreach (var prop in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
+            if (prop.GetIndexParameters().Length > 0)
+            {
+                continue; // Indexers can't be read without an index
+            }
+
             var value = prop.GetValue(model);
             if (value is string s)
             {
-                if (replacements.TryGetValue(s, out var replacement))
+                if (prop.SetMethod is not null && replacements.TryGetValue(s, out var replacement))
                 {
                     prop.SetValue(model, replacement);
                 }
@@ -305,6 +310,10 @@ public static partial class ObjectUtils
             if (list[i] is string item && replacements.TryGetValue(item, out var replacement))
             {
                 list[i] = replacement;
+            }
+            else if (list[i] is IList childList)
+            {
+                ReplaceStringValuesInList(childList, replacements);
             }
             else if (list[i] is { } child)
             {

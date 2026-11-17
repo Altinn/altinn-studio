@@ -21,6 +21,7 @@ public static class RequestExtensionMethods
             Name = viewmodel.Name,
             TagName = viewmodel.TagName,
             TargetCommitish = viewmodel.TargetCommitish,
+            Branch = viewmodel.Branch,
         };
 
     /// <summary>

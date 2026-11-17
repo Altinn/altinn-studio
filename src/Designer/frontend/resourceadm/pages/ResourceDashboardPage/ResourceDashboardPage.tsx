@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
-import { PadlockLockedIcon, PlusCircleIcon, TasklistIcon } from '@studio/icons';
+import { PadlockLockedIcon, PlusCircleIcon, TasklistIcon } from '@designer/icons';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSearchBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
@@ -12,12 +12,12 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner } from '@designer/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
-import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink/ButtonRouterLink';
 
 /**

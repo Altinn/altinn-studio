@@ -23,19 +23,21 @@ Tri-state control over head membership and head consumption:
 
 - **`true`** — Force-include: always a head, even if other batch workflows depend on it. Dependency edges consume heads normally.
 - **`null`** (default) — Neutral: natural leaf detection — becomes a head if nothing in the batch depends on it. Dependency edges consume heads normally.
-- **`false`** — Force-exclude: never a head. **Invisible** — dependency edges do NOT consume existing heads.
+- **`false`** — Force-exclude: never a head, and dependency edges do NOT consume existing heads.
 
-`IsHead = false` makes a workflow **invisible to collection head tracking**. It can still depend on heads for execution ordering (via `DependsOnHeads`), but from the collection's perspective the heads set is unchanged — as if this workflow was never part of the collection.
+A workflow with `IsHead` `true` or unset is a **primary workflow**; one with `IsHead = false` is an **auxiliary workflow** (see [primary and auxiliary workflows](technical-guide.md#primary-and-auxiliary-workflows) for the vocabulary). An auxiliary workflow can still depend on heads for execution ordering (via `DependsOnHeads`), but the collection's heads are unchanged by it, so no later enqueue waits on it through the heads.
 
-The directive is persisted verbatim (`is_head`) and exposed on `WorkflowStatusResponse.isHead`, so
-status consumers can identify invisible workflows without relying on naming conventions, and the
-`engine.workflows.execution.failed` metric is tagged `is_head` on all of its `reason` paths
-(`execution`, `poisoned`, `dependency_failed`). Alert on `reason` in (`execution`, `poisoned`)
-regardless of `is_head`, and use `is_head` as a routing/severity dimension: `false` marks
-deliberately invisible workflows, whose terminal failures gate nothing and are otherwise silent.
-Exclude `reason="dependency_failed"` — such an increment for an invisible workflow just mirrors
-the failure of a visible dependency, which fires the alert in its own right, and a cascade resume
-of that dependency revives the invisible dependent.
+The directive is persisted verbatim (the `is_head` column) and exposed on `WorkflowStatusResponse.isHead`,
+so status consumers can identify auxiliary workflows without relying on naming conventions, and the
+`altinn.workflow_engine.workflow.execution.failed` metric carries it as
+`altinn.workflow_engine.workflow.is_head` (`true`/`false`/`unset`) whatever its
+`altinn.workflow_engine.reason` (`execution`, `poisoned`, `dependency_failed`, `wait_expired`, `manual`).
+Alert on the reasons `execution` and `poisoned` regardless of `is_head`, and use `is_head` as a
+routing/severity dimension: `false` marks auxiliary workflows, whose terminal failures gate
+nothing and are otherwise silent. Exclude `dependency_failed` — such an increment for an auxiliary
+workflow just mirrors the failure of a dependency, which fires the alert in its own right, and a
+cascade resume of that dependency revives the auxiliary dependent. `wait_expired` and `manual` stay out of
+the alert as well; the [technical guide](technical-guide.md#alerting-on-terminal-failures) has the query.
 
 ---
 
@@ -154,24 +156,24 @@ But if R had `DependsOnHeads = false` and only explicitly depended on P:
               ●  ← head
 ```
 
-### Example 4: Fire-and-Forget Side Effects with `IsHead`
+### Example 4: Auxiliary Workflows After a Checkpoint with `IsHead`
 
-Use `IsHead = true` on a non-leaf combined with `IsHead = false` on its dependents to keep the collection frontier at a checkpoint while spawning auxiliary work.
+Use `IsHead = true` on a non-leaf combined with `IsHead = false` on its dependents to keep the collection frontier at a checkpoint while enqueuing auxiliary workflows after it.
 
 ```text
 Batch:    POST /api/v1/{namespace}/workflows?collectionKey=build
           Workflows: [M, N]  where N depends on M
           M: IsHead=true
-          N: IsHead=false (invisible)
+          N: IsHead=false (auxiliary)
 
           M is forced into heads despite N depending on it.
-          N is invisible — excluded from heads, edges don't consume heads.
+          N is auxiliary — excluded from heads, edges don't consume heads.
 
           Heads = [M]
 
               M  ← head (forced)
               |
-              N  (invisible — fire-and-forget side effect)
+              N  (auxiliary — nothing later waits on it)
 ```
 
 The next batch depends on M. N runs after M but doesn't block the pipeline:
@@ -189,11 +191,11 @@ Next batch:  Workflows: [P]
             (N and P both run after M, independently)
 ```
 
-This is useful when N is auxiliary work (e.g., notifications, cleanup) that should execute after M but shouldn't be part of the collection's frontier.
+This is useful when N is an auxiliary workflow (e.g., notifications, cleanup) that should execute after M but shouldn't be part of the collection's frontier.
 
-### Example 5: Invisible Side Chain with `IsHead = false`
+### Example 5: Auxiliary Workflow on the Current Heads with `IsHead = false`
 
-You want to spawn work that depends on the current heads for execution ordering, but without disturbing the collection's frontier.
+You want to enqueue an auxiliary workflow that depends on the current heads for execution ordering, but without disturbing the collection's frontier.
 
 ```text
 Starting state: Collection "pipeline" has Heads = [X]
@@ -201,7 +203,7 @@ Starting state: Collection "pipeline" has Heads = [X]
 Batch:    Workflows: [S]  (DependsOnHeads=true, IsHead=false)
 
           S is a root → engine injects: S depends on [X]
-          S is invisible (IsHead=false):
+          S is auxiliary (IsHead=false):
             - S is excluded from the heads set
             - S's dependency edges do NOT consume X
 
@@ -212,7 +214,7 @@ Batch:    Workflows: [S]  (DependsOnHeads=true, IsHead=false)
               ●  ← head (preserved)
               |
               S
-              (invisible — runs after X, but collection doesn't track it)
+              (auxiliary — runs after X, but collection doesn't track it)
 ```
 
 The next batch still depends on X, not S:
@@ -229,10 +231,10 @@ Next batch:  Workflows: [Y]  (default: DependsOnHeads=true, IsHead=null)
              / \
             S   Y
                 ●  ← head
-            (S and Y both depend on X, but S is invisible to the collection)
+            (S and Y both depend on X, but only Y joins the heads)
 ```
 
-### Example 6: Mixed Visible and Invisible in One Batch
+### Example 6: Mixed Primary and Auxiliary in One Batch
 
 ```text
 Starting state: Collection "mixed" has Heads = [H]
@@ -241,18 +243,18 @@ Batch:    Workflows: [V (IsHead=null), I (IsHead=false)]
           Both have DependsOnHeads=true (default).
 
           Both are roots → both get dependency edges to H.
-          V is visible: its edge on H consumes H.
-          I is invisible: its edge on H does NOT consume H.
+          V is primary: its edge on H consumes H.
+          I is auxiliary: its edge on H does NOT consume H.
 
           H is consumed (by V's edge).
-          V is a new leaf (visible). I is excluded (invisible).
+          V is a new leaf (primary). I is excluded (auxiliary).
 
           Heads = [V]
 
               H
              / \
             V   I
-            ●   (invisible)
+            ●   (auxiliary)
             ↑ head
 ```
 
@@ -304,14 +306,76 @@ Next batch:  Workflows: [C]  (default: DependsOnHeads=true, IsHead=null)
                           ●  ← head
 ```
 
-Note: If B joining the heads is not desired, it can be marked `IsHead = false` to keep the batch entirely invisible to the collection.
+Note: If B joining the heads is not desired, it can be marked `IsHead = false`, making the whole batch auxiliary and leaving the collection's heads unchanged.
+
+---
+
+## Primary and Auxiliary Workflows
+
+A workflow enqueued with `isHead = false` is an auxiliary workflow; every other workflow is primary.
+The vocabulary and its mapping onto the `isHead` directive are defined in
+[technical-guide.md](technical-guide.md#primary-and-auxiliary-workflows). The collections API applies
+it in three places: the `role` field on workflow status reads, the `?role=Primary|Auxiliary` filter
+on `GET /workflows`, and the per-role `workflowCounts` rollup and `failures=Primary|Auxiliary`
+discovery filter on `GET /collections`. A collection with `auxiliary.failed > 0` has lost work that
+nothing else reports: an auxiliary workflow's failure gates nothing, so no head status or frontier
+read will show it.
 
 ---
 
 ## Query Endpoints
 
-**`GET /api/v1/{namespace}/collections/{key}`**
-Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns 404 if not found.
+**`GET /api/v1/{namespace}/collections`** — the _health_ view.
+Cursor-paginated list — a stable, collation-defined key order; treat the cursor as opaque — where
+every entry carries a `workflowCounts` rollup across
+**all** of the collection's workflows, split by role:
+
+```json
+"workflowCounts": {
+    "total": 12,
+    "primary": { "active": 2, "failed": 0, "requeued": 1, "waiting": 0, "held": 0 },
+    "auxiliary": { "active": 1, "failed": 1, "requeued": 0, "waiting": 0, "held": 0 }
+}
+```
+
+`primary` and `auxiliary` carry the same counts, each over the workflows of that role:
+
+- `active` = the engine's non-terminal (`Incomplete`) status set: `Enqueued | Processing | Requeued | Waiting | Held`.
+  A `Held` mailbox receiver is active — parked, but consuming admission budget and gating its dependents
+- `failed` = `Failed | Canceled | DependencyFailed`. `Abandoned` is excluded — it is the engine's
+  adjudication marker for a written-off failure
+- `requeued`, `waiting`, `held` = the workflows in `Requeued`, `Waiting` and `Held`. Subsets of `active`,
+  not buckets of their own: they let a reader say why an instance is not moving — retrying, waiting on
+  an outcome, or waiting on a message — instead of only that work is in flight
+
+`total` counts every workflow in the collection. There is deliberately no named "settled" bucket —
+successful, abandoned, and any future status appear as the remainder of `total` after both roles'
+`active` and `failed`, so a new status can never be silently misfiled.
+
+Three mutually exclusive modes:
+
+| Mode     | Parameters                                   | Use                                               |
+| -------- | -------------------------------------------- | ------------------------------------------------- |
+| list     | `cursor`, `pageSize`                         | enumerate the namespace's collections             |
+| annotate | `key` (repeatable)                           | health for a set of keys the caller already holds |
+| discover | `failures=Any\|Primary\|Auxiliary`, `cursor` | the errors view                                   |
+
+`key` × `cursor` → 400. `key` × `failures` → 400. More distinct keys than `pagination.maxAnnotateKeys` → 400 — the
+request is **rejected, never truncated**, because silently dropping keys from a health read is the
+exact failure class this endpoint exists to fix. Annotate mode additionally returns
+`unmatchedKeys: [...]` for requested keys with no collection row; absence must not collapse into
+"healthy" — it can equally mean the collection was purged by retention. List and discover mode
+return 204 No Content when nothing matches; annotate mode always returns 200 so `unmatchedKeys`
+stays explicit.
+
+**`GET /api/v1/{namespace}/collections/{key}`** — the _frontier_ view.
+Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns
+404 if not found. This endpoint is a frontier view **by contract**: it reports only the current head
+workflows, so auxiliary workflows never appear in it, and it carries no
+`workflowCounts` rollup — it sits on the app's page-view-scale hot path and stays cheap. For health,
+use the list endpoint's rollup; to enumerate a collection's failures, use
+`GET /workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
+(drop the `role` filter for all of them).
 
 ---
 
@@ -321,6 +385,6 @@ Detail for one collection: key, heads (with workflow ID + current status), and t
 2. **Root detection**: A workflow is a "root" if it has no `DependsOn` refs to other workflows _within the same batch_.
 3. **Head dep injection**: Roots with `DependsOnHeads = true` (the default) get dependency edges to all current heads.
 4. **Leaf detection**: A workflow becomes a head if `IsHead = true`, or if `IsHead` is `null` and no other workflow in the batch depends on it. `IsHead = false` unconditionally excludes.
-5. **Head consumption**: A head is removed from the heads set only if a **visible** workflow (`IsHead != false`) depends on it (via injected or explicit edge). Invisible workflows' edges are ignored for consumption.
-6. **Invisibility**: `IsHead = false` means the workflow is invisible to collection head tracking — it participates in execution ordering but the collection state is unchanged by its presence.
+5. **Head consumption**: A head is removed from the heads set only if a **primary** workflow (`IsHead != false`) depends on it (via injected or explicit edge). Auxiliary workflows' edges are ignored for consumption.
+6. **Auxiliary workflows**: `IsHead = false` makes the workflow auxiliary — it participates in execution ordering but the collection state is unchanged by its presence. See [primary and auxiliary workflows](technical-guide.md#primary-and-auxiliary-workflows).
 7. **Same-batch merge**: If two requests in one write-buffer flush target the same collection, they're folded sequentially in arrival order.

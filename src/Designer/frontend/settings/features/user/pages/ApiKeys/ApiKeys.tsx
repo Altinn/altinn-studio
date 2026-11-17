@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph } from '@designer/components';
 import { useUserApiKeysQuery } from '../../hooks/queries/useUserApiKeysQuery';
 import { useDeleteUserApiKeyMutation } from '../../hooks/mutations/useDeleteUserApiKeyMutation';
 import { useAddUserApiKeyMutation } from '../../hooks/mutations/useAddUserApiKeyMutation';

@@ -3,9 +3,9 @@ import { useCallback, useMemo } from 'react';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 
 export const formBootstrapHooks = {
   useLayouts: () => FormStore.raw.useSelector((s) => s.bootstrap.processedLayouts),

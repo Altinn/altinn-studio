@@ -1,47 +1,91 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../../test/testUtils';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { app, org } from '@designer/testing/testids';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+
+const environment = 'tt02';
+const linkToEnv = 'https://unit-test';
+const restartableApp: RunningApp = {
+  environment,
+  version: '1',
+  buildId: null,
+  status: 'ready',
+  restartedAt: null,
+  canRestart: true,
+};
 
 describe('DeployMoreOptionsMenu', () => {
-  const linkToEnv = 'https://unit-test';
-
   it('should display two options, undeploy app and link to app', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const listItems = screen.getAllByRole('listitem');
     expect(listItems).toHaveLength(2);
 
-    expect(
-      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
-    ).toBeInTheDocument();
+    expect(getMenuUndeployButton()).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.more_options_menu'))).toBeInTheDocument();
   });
 
   it('should open list of list-items when menu trigger is clicked', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const listItems = screen.getAllByRole('listitem');
     expect(listItems).toHaveLength(2);
   });
 
-  it('should open dialog if undeploy is clicked', async () => {
-    renderMenu(linkToEnv);
+  it('opens the unpublish dialog when the user chooses to unpublish', async () => {
+    const user = userEvent.setup();
+    renderMenu();
     await openMenu();
 
-    const undeployButton = screen.getByRole('button', {
-      name: textMock('app_deployment.undeploy_button'),
-    });
-    expect(undeployButton).toBeInTheDocument();
+    await user.click(getMenuUndeployButton());
+
+    expect(getUndeployDialog()).toBeInTheDocument();
+  });
+
+  it('closes the unpublish dialog when the user closes it', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await openMenu();
+    await user.click(getMenuUndeployButton());
+
+    await user.click(within(getUndeployDialog()).getByRole('button', { name: /lukk/i }));
+
+    expect(queryUndeployDialog()).not.toBeInTheDocument();
+    // The menu item that opened it went with the menu, so focus goes back to the menu.
+    expect(getMenuTrigger()).toHaveFocus();
+  });
+
+  it('closes the unpublish dialog once the app is unpublished', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await openMenu();
+    await user.click(getMenuUndeployButton());
+    await user.type(
+      screen.getByLabelText(textMock('app_deployment.undeploy_confirmation_input_label')),
+      app,
+    );
+
+    await user.click(
+      within(getUndeployDialog()).getByRole('button', {
+        name: textMock('app_deployment.undeploy_button'),
+      }),
+    );
+
+    expect(queryUndeployDialog()).not.toBeInTheDocument();
+    expect(getMenuTrigger()).toHaveFocus();
   });
 
   it('should have a link to app within the env', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const linkButton = screen.getByRole('link', {
@@ -50,21 +94,125 @@ describe('DeployMoreOptionsMenu', () => {
     expect(linkButton).toHaveAttribute('href', linkToEnv);
     expect(linkButton).toHaveAttribute('rel', 'noopener noreferrer');
   });
+
+  it('offers a restart when the app can be restarted and the user may deploy to the environment', async () => {
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+
+    expect(getRestartButton()).toBeInTheDocument();
+  });
+
+  it('closes the menu and asks for confirmation when the user chooses to restart', async () => {
+    const user = userEvent.setup();
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+
+    await user.click(getRestartButton());
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('app_deployment.restart_confirmation_dialog_title', { envTitle: 'TT02' }),
+      }),
+    ).toBeInTheDocument();
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
+
+  it('closes the menu when the user presses Escape', async () => {
+    const user = userEvent.setup();
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+
+    await user.keyboard('{Escape}');
+
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
+
+  it('closes the restart confirmation when the user cancels', async () => {
+    const user = userEvent.setup();
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+    await user.click(getRestartButton());
+
+    await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('app_deployment.restart_confirmation_dialog_title', { envTitle: 'TT02' }),
+      }),
+    ).not.toBeInTheDocument();
+    expect(getMenuTrigger()).toHaveFocus();
+  });
+
+  it('does not let the user restart the app while it is updating', async () => {
+    renderMenu({
+      runningApp: { ...restartableApp, status: 'updating' },
+      permissions: [environment],
+    });
+    await openMenu();
+
+    expect(getRestartButton()).toBeDisabled();
+  });
+
+  it('does not offer a restart when another Studio environment deployed the app', async () => {
+    renderMenu({
+      runningApp: { ...restartableApp, canRestart: false },
+      permissions: [environment],
+    });
+    await openMenu();
+
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
+
+  it('does not offer a restart when the user may not deploy to the environment', async () => {
+    renderMenu({ runningApp: restartableApp, permissions: ['production'] });
+    await openMenu();
+
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
 });
 
-function renderMenu(linkToEnv: string): void {
-  render(
-    <ServicesContextProvider {...queriesMock} client={undefined}>
-      <DeployMoreOptionsMenu linkToEnv={linkToEnv} environment='unit-test-env' />
-    </ServicesContextProvider>,
+type RenderMenuOptions = {
+  runningApp?: RunningApp;
+  permissions?: string[];
+};
+
+function renderMenu({
+  runningApp = { ...restartableApp, canRestart: false },
+  permissions = [],
+}: RenderMenuOptions = {}): void {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.DeployPermissions, org, app], permissions);
+  renderWithProviders(
+    <DeployMoreOptionsMenu
+      linkToEnv={linkToEnv}
+      environment={environment}
+      envTitle='TT02'
+      runningApp={runningApp}
+    />,
+    { queryClient, startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy` },
   );
 }
 
 async function openMenu(): Promise<void> {
   const user = userEvent.setup();
-  return user.click(
-    screen.getByRole('button', {
-      name: textMock('app_deployment.deploy_more_options_menu_label'),
-    }),
-  );
+  return user.click(getMenuTrigger());
+}
+
+const getRestartButton = () =>
+  screen.getByRole('button', { name: textMock('app_deployment.restart_button') });
+
+const queryRestartButton = () =>
+  screen.queryByRole('button', { name: textMock('app_deployment.restart_button') });
+
+const getMenuUndeployButton = () =>
+  screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') });
+
+const undeployDialogName = textMock('app_deployment.undeploy_dialog_title', { envTitle: 'TT02' });
+const getUndeployDialog = () => screen.getByRole('dialog', { name: undeployDialogName });
+const queryUndeployDialog = () => screen.queryByRole('dialog', { name: undeployDialogName });
+
+function getMenuTrigger(): HTMLElement {
+  return screen.getByRole('button', {
+    name: textMock('app_deployment.deploy_more_options_menu_label'),
+  });
 }

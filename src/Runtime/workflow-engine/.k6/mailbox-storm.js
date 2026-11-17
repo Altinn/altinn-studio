@@ -34,7 +34,7 @@ const MESSAGES_PER_EXCHANGE = parseInt(__ENV.MESSAGES_PER_EXCHANGE || '2', 10);
 // mailbox. Rate-limited so it cannot swamp the other arms.
 const BUFFER_RATE = parseInt(__ENV.BUFFER_RATE || '25', 10);
 
-// Message delivered before its receiver exists, so the receiver is born runnable — deterministic, not a race.
+// Message delivered before its receiver exists, so the receiver is created runnable — deterministic, not a race.
 const EARLY_RATE = parseInt(__ENV.EARLY_RATE || '5', 10);
 
 // Ordinary workflows standing in for the storm's receivers; storm summaries report the right value as
@@ -54,8 +54,8 @@ const MAILBOX_TIMEOUT = __ENV.MAILBOX_TIMEOUT || '01:00:00';
 // the original idx, no new row. 0 disables.
 const REPLAY_EVERY = parseInt(__ENV.REPLAY_EVERY || '10', 10);
 
-// Birth-state read-back sampling; a GET per receiver would be a third of the arm's request volume.
-const BIRTH_SAMPLE_EVERY = parseInt(__ENV.BIRTH_SAMPLE_EVERY || '10', 10);
+// Enqueue-outcome read-back sampling; a GET per receiver would be a third of the arm's request volume.
+const ENQUEUE_OUTCOME_SAMPLE_EVERY = parseInt(__ENV.ENQUEUE_OUTCOME_SAMPLE_EVERY || '10', 10);
 
 const DELIVERY_PAYLOAD_BYTES = parseInt(__ENV.DELIVERY_PAYLOAD_BYTES || '2048', 10);
 const MONITOR_INTERVAL = parseFloat(__ENV.MONITOR_INTERVAL || '2');
@@ -112,9 +112,9 @@ const deliveriesLate = new Counter('deliveries_late_409');
 const deliveriesUnroutable = new Counter('deliveries_unroutable_404');
 const deliveriesTooLarge = new Counter('deliveries_too_large_413');
 const deliveriesOther = new Counter('deliveries_other_status');
-const bornHeld = new Rate('receiver_born_held');
-const bornRunnable = new Rate('receiver_born_runnable');
-const birthSamples = new Counter('receiver_birth_samples');
+const createdHeld = new Rate('receiver_created_held');
+const createdRunnable = new Rate('receiver_created_runnable');
+const enqueueOutcomeSamples = new Counter('receiver_enqueue_outcome_samples');
 const bufferedLogDepth = new Trend('buffered_log_depth');
 const bufferedMailboxesSeeded = new Counter('buffered_mailboxes_seeded');
 const relayExchangesStarted = new Counter('relay_exchanges_started');
@@ -373,10 +373,10 @@ function trackDelivery(res) {
 }
 
 /**
- * Reads back a receiver's birth state (the enqueue response carries no status), sampled.
+ * Reads back a receiver's enqueue outcome (the enqueue response carries no status), sampled.
  */
-function sampleBirth(workflowId, expectHeld) {
-    const res = http.get(`${BASE_URL}/${workflowId}`, { tags: { name: 'sample_birth' } });
+function sampleEnqueueOutcome(workflowId, expectHeld) {
+    const res = http.get(`${BASE_URL}/${workflowId}`, { tags: { name: 'sample_enqueue_outcome' } });
     if (res.status !== 200) return;
 
     let status;
@@ -386,12 +386,12 @@ function sampleBirth(workflowId, expectHeld) {
         return;
     }
 
-    birthSamples.add(1);
+    enqueueOutcomeSamples.add(1);
     if (expectHeld) {
-        bornHeld.add(status === 'Held');
+        createdHeld.add(status === 'Held');
     } else {
         // It may already have run by the time this reads it, so the assertion is that it never parked.
-        bornRunnable.add(status !== 'Held');
+        createdRunnable.add(status !== 'Held');
     }
 }
 
@@ -447,7 +447,8 @@ export function relayExchange() {
     if (!mailboxId) return;
     relayExchangesStarted.add(1);
 
-    const sampling = BIRTH_SAMPLE_EVERY > 0 && __ITER % BIRTH_SAMPLE_EVERY === 0;
+    const sampling =
+        ENQUEUE_OUTCOME_SAMPLE_EVERY > 0 && __ITER % ENQUEUE_OUTCOME_SAMPLE_EVERY === 0;
 
     for (let sequence = 0; sequence < MESSAGES_PER_EXCHANGE; sequence++) {
         const receiverId = enqueueReceiver(
@@ -460,7 +461,7 @@ export function relayExchange() {
         if (!receiverId) return;
 
         // Read before the delivery can change it: nothing else can wake this receiver.
-        if (sampling && sequence === 0) sampleBirth(receiverId, true);
+        if (sampling && sequence === 0) sampleEnqueueOutcome(receiverId, true);
 
         const res = deliver(mailboxId, `${mailboxId}-${sequence}`, sequence, 'deliver_wake');
         deliveryWakeLatency.add(res.timings.duration);
@@ -518,7 +519,7 @@ export function bufferedDelivery() {
 }
 
 /**
- * The other interleaving: delivered before the receiver exists, so it is born runnable — no wake at all.
+ * The other interleaving: delivered before the receiver exists, so it is created runnable — no wake at all.
  */
 export function earlyDelivery() {
     const collectionKey = uuidv4();
@@ -539,8 +540,12 @@ export function earlyDelivery() {
         receiverRunnableLatency,
     );
 
-    if (receiverId && BIRTH_SAMPLE_EVERY > 0 && __ITER % BIRTH_SAMPLE_EVERY === 0) {
-        sampleBirth(receiverId, false);
+    if (
+        receiverId &&
+        ENQUEUE_OUTCOME_SAMPLE_EVERY > 0 &&
+        __ITER % ENQUEUE_OUTCOME_SAMPLE_EVERY === 0
+    ) {
+        sampleEnqueueOutcome(receiverId, false);
     }
 
     closeMailbox(mailboxId);
@@ -604,7 +609,7 @@ export function lowLoadExchange() {
             break;
         }
         case 5: {
-            // seq 1 finds the buffered message: born runnable, no wake.
+            // seq 1 finds the buffered message: created runnable, no wake.
             if (lowMailbox) {
                 enqueueReceiver(
                     lowMailbox,
@@ -792,9 +797,9 @@ export function handleSummary(data) {
             parkP95: metric('receiver_enqueue_park')['p(95)'],
             runnableMed: metric('receiver_enqueue_runnable').med,
             runnableP95: metric('receiver_enqueue_runnable')['p(95)'],
-            bornHeldRate: metric('receiver_born_held').rate,
-            bornRunnableRate: metric('receiver_born_runnable').rate,
-            birthSamples: metric('receiver_birth_samples').count ?? 0,
+            createdHeldRate: metric('receiver_created_held').rate,
+            createdRunnableRate: metric('receiver_created_runnable').rate,
+            enqueueOutcomeSamples: metric('receiver_enqueue_outcome_samples').count ?? 0,
         },
         deliveries: {
             accepted: metric('deliveries_accepted').count ?? 0,

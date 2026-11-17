@@ -7,9 +7,6 @@ import type { AxiosError, AxiosResponse } from 'axios';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
 import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 
-// Need to unmock axios to get actual implementation of isAxiosError
-vi.unmock('axios');
-
 const failedInstantiationBody = {
   title: 'Instance initialization failed.',
   status: 500,

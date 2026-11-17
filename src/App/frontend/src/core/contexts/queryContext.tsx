@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import type { UseQueryResult } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { createContext } from 'src/core/contexts/context';
@@ -10,7 +9,7 @@ import { Loader } from 'src/core/loading/Loader';
 import type { LaxContextProps, StrictContextProps } from 'src/core/contexts/context';
 
 type Err = Error | AxiosError;
-type QueryResult<T> = Pick<UseQueryResult<T, Err>, 'data' | 'isPending' | 'error'>;
+type QueryResult<T> = { data: T | undefined; isPending: boolean; error: Err | null };
 type QueryResultOptional<T> = QueryResult<T> & { enabled: boolean };
 type Query<Req extends boolean, QueryData> = () => Req extends true
   ? QueryResult<QueryData>

@@ -1,4 +1,5 @@
 {
+  // App files support comments and trailing commas together.
   "calculations": {
     "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.CalculatedChange": {
       "expression": [
@@ -36,8 +37,8 @@
             "dataModel",
             "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
           ]
-        ]
-      ]
+        ],
+      ],
     },
     "sumAll": {
       "expression": [
@@ -102,5 +103,5 @@
         ]
       ]
     }
-  }
+  },
 }

@@ -1,0 +1,58 @@
+[
+  {
+    "appCount": 2,
+    "environment": "at22",
+    "name": "ttd-weekday-workhours-with-apps",
+    "serviceOwner": "ttd",
+    "state": "normal",
+    "time": "2026-02-23T10:00:00+01:00"
+  },
+  {
+    "appCount": 2,
+    "environment": "at22",
+    "name": "ttd-weekday-offhours-with-apps",
+    "serviceOwner": "ttd",
+    "state": "ttd_offhours",
+    "time": "2026-02-23T03:00:00+01:00"
+  },
+  {
+    "appCount": 1,
+    "environment": "at22",
+    "name": "ttd-weekend-with-apps",
+    "serviceOwner": "ttd",
+    "state": "ttd_offhours",
+    "time": "2026-02-22T12:00:00+01:00"
+  },
+  {
+    "appCount": 0,
+    "environment": "at22",
+    "name": "ttd-no-apps",
+    "serviceOwner": "ttd",
+    "state": "no_apps",
+    "time": "2026-02-23T11:00:00+01:00"
+  },
+  {
+    "appCount": 0,
+    "environment": "at22",
+    "name": "ttd-offhours-no-apps",
+    "serviceOwner": "ttd",
+    "state": "ttd_offhours_no_apps",
+    "time": "2026-02-23T03:00:00+01:00"
+  },
+  {
+    "appCount": 3,
+    "environment": "tt02",
+    "name": "non-ttd-offhours-with-apps",
+    "serviceOwner": "nav",
+    "state": "normal",
+    "time": "2026-02-23T03:00:00+01:00"
+  },
+  {
+    "appCount": 0,
+    "environment": "tt02",
+    "name": "non-ttd-no-apps",
+    "serviceOwner": "nav",
+    "state": "no_apps",
+    "time": "2026-02-23T12:00:00+01:00"
+  }
+]

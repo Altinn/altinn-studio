@@ -8,6 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- The telemetry's service.version: dev locally, and the image build's BUILD_VERSION otherwise. -->
+    <InformationalVersion>dev</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\dotnet\Altinn.Studio.Common\Altinn.Studio.Common.csproj" />
+    <ProjectReference Include="..\..\..\..\common\dotnet\Altinn.Studio.Common.Telemetry\Altinn.Studio.Common.Telemetry.csproj" />
     <ProjectReference Include="..\Altinn.Studio.Gateway.Contracts\Altinn.Studio.Gateway.Contracts.csproj" />
   </ItemGroup>
 

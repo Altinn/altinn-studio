@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 
 export type ServiceOwnerSelectorProps = {
   selectedOrgOrUser: string;

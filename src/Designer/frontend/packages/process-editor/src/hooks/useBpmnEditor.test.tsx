@@ -10,7 +10,7 @@ import type { BpmnApiContextProps } from '../contexts/BpmnApiContext';
 import { BpmnApiContextProvider } from '../contexts/BpmnApiContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { mockBpmnDetails } from '../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import { StudioRecommendedNextActionContextProvider } from '@designer/components';
 import {
   BpmnConfigPanelFormContextProvider,
   useBpmnConfigPanelFormContext,
@@ -338,13 +338,7 @@ describe('useBpmnEditor', () => {
 
     act(() => eventListeners.triggerEvent('commandStack.changed'));
     expect(result.current.metadataFormRef.current).toBeUndefined();
-    const nextMetadata: MetadataForm = {
-      subformPdfComponentChange: {
-        taskId: 'PdfTask',
-        componentId: 'vehicles',
-        sourceLayoutSetId: 'Task_1',
-      },
-    };
+    const nextMetadata: MetadataForm = { taskIdChange: { oldId: 'Task_2', newId: 'Task_3' } };
     result.current.metadataFormRef.current = nextMetadata;
     await act(async () => finishSerialization({ xml }));
 

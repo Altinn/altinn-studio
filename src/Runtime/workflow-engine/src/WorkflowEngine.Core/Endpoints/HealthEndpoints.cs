@@ -9,7 +9,11 @@ internal static class HealthEndpoints
 {
     public static WebApplication MapHealthEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/health").WithTags("Health checks").ExcludeFromDescription();
+        // Probes are not traffic: kept out of the HTTP request metrics here, and out of traces by the tracing filter
+        var group = app.MapGroup("/api/v1/health")
+            .WithTags("Health checks")
+            .ExcludeFromDescription()
+            .DisableHttpMetrics();
 
         // Liveness probe - always returns 200 if the process is running
         group.MapGet("/live", () => Results.Ok(new { status = "alive" }));
@@ -35,9 +39,10 @@ internal static class HealthEndpoints
 
     private static void RedirectVersionlessEndpoints(WebApplication app)
     {
-        app.MapGet("/health", () => Results.Redirect("/api/v1/health", permanent: true)).ExcludeFromDescription();
-        app.MapGet("/health/live", () => Results.Redirect("/api/v1/health", permanent: true)).ExcludeFromDescription();
-        app.MapGet("/health/ready", () => Results.Redirect("/api/v1/health", permanent: true)).ExcludeFromDescription();
+        var group = app.MapGroup("/health").ExcludeFromDescription().DisableHttpMetrics();
+        group.MapGet("", () => Results.Redirect("/api/v1/health", permanent: true));
+        group.MapGet("/live", () => Results.Redirect("/api/v1/health", permanent: true));
+        group.MapGet("/ready", () => Results.Redirect("/api/v1/health", permanent: true));
     }
 
     private static async Task HealthResponseJsonWriter(HttpContext context, HealthReport report)

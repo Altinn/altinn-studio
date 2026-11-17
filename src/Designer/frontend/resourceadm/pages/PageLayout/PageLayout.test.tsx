@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { MemoryRouter, useParams } from 'react-router-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { render, screen, waitFor } from '@testing-library/react';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PageLayout } from './PageLayout';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
@@ -22,21 +22,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('PageLayout', () => {
-  it('should show merge conflict modal when merge conflict message is received', async () => {
-    (useParams as Mock).mockReturnValue({
-      org: 'ttd',
-    });
-    renderComponent();
-    fireEvent(
-      window,
-      new MessageEvent('message', { data: 'forceRepoStatusCheck', origin: window.location.origin }),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(textMock('resourceadm.merge_conflict_header'))).toBeInTheDocument();
-    });
-  });
-
   it('should show merge conflict modal on load when repostatus return merge conflict', async () => {
     (useParams as Mock).mockReturnValue({
       org: 'ttd',

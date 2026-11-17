@@ -244,7 +244,10 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
         return await SaveXsd(xsd, fileName);
     }
 
-    private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
+    /// <summary>
+    /// Serializes the XSD to the text of its file.
+    /// </summary>
+    public static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
     {
         string xsd;
         await using (var sw = new Utf8StringWriter())
@@ -264,6 +267,6 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     // include new files and/or settings added after the repository was crated.
     private bool IsDatamodelsRepo()
     {
-        return Repository.Contains("-datamodels");
+        return RepositoryNames.KindOf(Org, Repository) == RepositoryKind.DataModels;
     }
 }

@@ -9,7 +9,7 @@ internal sealed class UnlockTaskData : WorkflowEngineCommandBase<TaskDataLockPay
 
     public override string GetKey() => Key;
 
-    protected override TaskDataLockPayload? ResolvePayload(ProcessEngineCommandContext context)
+    protected override TaskDataLockPayload? ResolvePayload(WorkflowEngineCommandContext context)
     {
         TaskDataLockPayload? payload = base.ResolvePayload(context);
         return payload is not null && !string.IsNullOrWhiteSpace(payload.TaskId) ? payload : null;
@@ -22,8 +22,8 @@ internal sealed class UnlockTaskData : WorkflowEngineCommandBase<TaskDataLockPay
         _appMetadata = appMetadata;
     }
 
-    public override async Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext parameters,
+    public override async Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext parameters,
         TaskDataLockPayload payload
     )
     {
@@ -35,15 +35,15 @@ internal sealed class UnlockTaskData : WorkflowEngineCommandBase<TaskDataLockPay
                 payload.TaskId,
                 false
             );
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
         catch (UnreachableException ex)
         {
-            return FailedProcessEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
+            return FailedWorkflowEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

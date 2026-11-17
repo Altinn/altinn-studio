@@ -1,0 +1,38 @@
+name: Image build contexts - Check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - '.dockerignore'
+      - '.containerignore'
+      - 'src/.dockerignore'
+      - 'src/.containerignore'
+      - 'src/**/*Dockerfile*'
+      - 'src/**/*dockerfile*'
+      - '.github/scripts/check-image-contexts.sh'
+      - '.github/workflows/image-contexts-check.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Check that Docker and Podman send the allowlisted contexts
+    # The hosted runner has both Docker and Podman.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check image build contexts
+        run: .github/scripts/check-image-contexts.sh docker podman

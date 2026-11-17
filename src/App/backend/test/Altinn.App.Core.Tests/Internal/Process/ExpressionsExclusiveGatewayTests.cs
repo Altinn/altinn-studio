@@ -171,13 +171,13 @@ public class ExpressionsExclusiveGatewayTests
             new()
             {
                 Id = "not-found",
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.NotFound" },
             },
             new()
             {
                 Id = DefaultDataTypeName,
-                TaskId = TaskId,
+                TaskIds = [TaskId],
                 AppLogic = new() { ClassRef = _classRef },
             },
         };

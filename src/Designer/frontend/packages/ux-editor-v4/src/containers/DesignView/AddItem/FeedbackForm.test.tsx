@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FeedbackForm } from './FeedbackForm';
-import axios from 'axios';
+import { post } from 'app-shared/utils/networking';
 
-vi.mock('axios');
-var mockedAxios = axios as Mocked<typeof axios>;
+vi.mock('app-shared/utils/networking', async () => ({
+  ...(await vi.importActual('app-shared/utils/networking')),
+  post: vi.fn(),
+}));
+const mockedPost = vi.mocked(post);
 
 describe('FeedbackForm', () => {
   it('should render feedback form', () => {
@@ -24,7 +26,7 @@ describe('FeedbackForm', () => {
 
   it('should close the feedback form when clicking send', async () => {
     const user = userEvent.setup();
-    mockedAxios.post.mockResolvedValueOnce({});
+    mockedPost.mockResolvedValueOnce(null);
     renderFeedbackForm();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();

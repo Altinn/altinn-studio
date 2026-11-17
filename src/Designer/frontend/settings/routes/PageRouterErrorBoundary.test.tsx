@@ -6,7 +6,7 @@ import {
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
 } from './PageRouterErrorBoundary';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 function expectDefaultErrorUI(): void {
   expect(

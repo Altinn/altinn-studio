@@ -25,6 +25,15 @@ the proxy, relay and worker images.
 The workers' [network policy](infra/core/base/network-policies.yaml) allows DNS only through CoreDNS. It is not
 confirmed that DIS Core's pods use CoreDNS rather than AKS LocalDNS. If they do not, the workers cannot resolve names.
 
+## DIS Edge
+
+Relays call pdf3 at `https://studio.platform.<env>.altinn.cloud/pdf/v3/generate` on
+[DIS Edge](../../../docs/infrastructure/environments.md#dis-edge), which forwards paths starting with `/pdf` to
+the environment's DIS Core host, `pdf3.<env>.dis-core.altinn.cloud`. Edge's routes live in
+[`infra/edge`](infra/edge), and
+[`deploy-runtime-pdf3-edge.yaml`](../../../.github/workflows/deploy-runtime-pdf3-edge.yaml) publishes them as
+`studio-pdf3/edge-syncroot`, tagged per environment. Edge's Flux applies the environment's folder.
+
 ## Development
 
 The [Makefile](Makefile) defines the build and test commands. Tests require Docker or Podman.

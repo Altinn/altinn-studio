@@ -93,7 +93,9 @@
           DisallowUserCreate: false,
           DisallowUserDelete: false
         },
-        TaskId: Task_1,
+        TaskIds: [
+          Task_1
+        ],
         EnableFileScan: false,
         ValidationErrorOnPendingFileScan: false
       }

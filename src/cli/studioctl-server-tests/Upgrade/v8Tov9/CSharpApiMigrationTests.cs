@@ -141,7 +141,7 @@ public sealed class CSharpApiMigrationTests : IDisposable
             using Altinn.App.Core.Features.Process;
             public class MyProcessEnded : IOnProcessEndedHandler
             {
-                public Task<HookResult> Execute(OnProcessEndedContext context) => Task.FromResult<HookResult>(HookResult.Success());
+                public Task<HandlerResult> Execute(OnProcessEndedContext context) => Task.FromResult<HandlerResult>(HandlerResult.Success());
             }
             """
         );

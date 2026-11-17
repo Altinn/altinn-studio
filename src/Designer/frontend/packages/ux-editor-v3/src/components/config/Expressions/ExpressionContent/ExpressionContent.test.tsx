@@ -12,13 +12,13 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layout
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ExpressionPropertyBase } from '../../../../types/Expressions';
 import { FormItemContext } from '../../../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../../../testing/formItemContextMocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';

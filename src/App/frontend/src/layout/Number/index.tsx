@@ -4,12 +4,11 @@ import type { JSX } from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import { NumberDef } from 'src/layout/Number/config.def.generated';
 import { NumberComponent } from 'src/layout/Number/NumberComponent';
 import { NumberSummary } from 'src/layout/Number/NumberSummary';
-import { formatNumericText } from 'src/utils/formattingUtils';
+import { formatNumericText, getMapToReactNumberConfig } from 'src/utils/formattingUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { DisplayData } from 'src/features/displayData';

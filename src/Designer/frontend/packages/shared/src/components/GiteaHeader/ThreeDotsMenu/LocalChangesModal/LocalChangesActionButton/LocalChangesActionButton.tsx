@@ -5,7 +5,7 @@ import {
   StudioLabelAsParagraph,
   StudioLink,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 
 interface LinkAction {
   /**

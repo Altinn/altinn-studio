@@ -5,7 +5,7 @@ import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { RepositoryType } from 'app-shared/types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { getRepositoryType } from 'app-shared/utils/repository';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 /**
  * Query to get the metadata of an app.
@@ -20,11 +20,11 @@ export const useAppMetadataQuery = (
   org: string,
   app: string,
   meta?: QueryMeta,
-): UseQueryResult<ApplicationMetadata, AxiosError> => {
+): UseQueryResult<ApplicationMetadata, HttpError> => {
   const { getAppMetadata } = useServicesContext();
   const repoType = getRepositoryType(org, app);
 
-  return useQuery<ApplicationMetadata, AxiosError>({
+  return useQuery<ApplicationMetadata, HttpError>({
     queryKey: [QueryKey.AppMetadata, org, app],
     queryFn: () => getAppMetadata(org, app),
     enabled: repoType !== RepositoryType.DataModels,

@@ -6,7 +6,7 @@ import { useAddLayoutSetMutation } from './useAddLayoutSetMutation';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const taskType = 'data';

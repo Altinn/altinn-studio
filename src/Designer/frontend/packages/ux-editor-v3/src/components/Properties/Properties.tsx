@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Calculations } from './Calculations';
 import { Content } from './Content';
 import { useTranslation } from 'react-i18next';
-import { StudioDetails } from '@studio/components';
+import { StudioDetails } from '@designer/components';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import classes from './Properties.module.css';
 import { Dynamics } from './Dynamics';

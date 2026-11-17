@@ -41,7 +41,7 @@ does not test the text that production sends.
 
 For the gate datasets, the files have the fields that people read. `dataset_sync` renders
 `user_message` with the same functions that production calls: `build_scope_check_message` and
-`build_intent_parse_message`. There is no copy of the text, so the two cannot become different. A
+`build_security_check_message`. There is no copy of the text, so the two cannot become different. A
 test makes sure that the rendered message is the same as the result of the function.
 
 ## Items from production traces

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
@@ -18,7 +19,7 @@ func TestOperatorCABundleWorkloadsPatchPreKustomizeDeploymentName(t *testing.T) 
 		t.Fatalf("find project root: %v", err)
 	}
 
-	prepared, err := cabundle.PrepareKubernetesArtifact(
+	prepared, err := kubeartifact.PrepareKubernetesArtifact(
 		filepath.Join(projectRoot, "config"),
 		&cabundle.Bundle{
 			Data:   []byte("test-ca"),
@@ -64,6 +65,8 @@ func TestOperatorImageResourcesUsesExplicitDockerfilePaths(t *testing.T) {
 		}
 	}
 
+	// The operator's images build from src/, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(projectRoot, "../.."))
 	tests := []struct {
 		tag         string
 		contextPath string
@@ -71,12 +74,12 @@ func TestOperatorImageResourcesUsesExplicitDockerfilePaths(t *testing.T) {
 	}{
 		{
 			tag:         "operator-controller:latest",
-			contextPath: projectRoot,
+			contextPath: srcRoot,
 			dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		},
 		{
 			tag:         "operator-fakes:latest",
-			contextPath: projectRoot,
+			contextPath: srcRoot,
 			dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		},
 		{

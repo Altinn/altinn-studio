@@ -1,6 +1,7 @@
 /* Scheduled workflows — count badge + on-demand detail */
 
 import { dom, state, workflowData } from '../core/state.js';
+import { isAuxiliaryWorkflow } from '../core/helpers.js';
 import { buildScheduledCardHTML, buildCompactScheduledCardHTML } from '../shared/cards.js';
 
 /** Late-bound references */
@@ -39,7 +40,7 @@ export const loadScheduled = async () => {
         for (const wf of workflows) {
             const card = document.createElement('div');
             card.className = `workflow-card${state.compactSections.scheduled ? ' compact' : ''}`;
-            card.classList.toggle('side-chain', wf.isHead === false);
+            card.classList.toggle('auxiliary', isAuxiliaryWorkflow(wf));
             card.style.animation = 'none';
             card.dataset.wfkey = wf.databaseId;
             workflowData[wf.databaseId] = wf;

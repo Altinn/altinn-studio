@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';
@@ -17,14 +17,20 @@ import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSile
 export type AddItemProps = {
   containerId: string;
   layout: IInternalLayout;
+  saveAtIndexPosition?: number;
 };
-export const AddItem = ({ containerId, layout }: AddItemProps): ReactElement => {
+export const AddItem = ({
+  containerId,
+  layout,
+  saveAtIndexPosition,
+}: AddItemProps): ReactElement => {
   const [showDefault, setShowDefault] = useState(false);
   const { t } = useTranslation(['translation', 'addComponentModal']);
   const { addItem } = useAddComponentHandlerSilent(layout);
 
   const handleAdd = (item: AddedItem) => {
-    addItem(item.componentType, containerId, layout.order[containerId].length, item.componentId);
+    const index = saveAtIndexPosition ?? layout.order[containerId].length;
+    addItem(item.componentType, containerId, index, item.componentId);
   };
 
   return (

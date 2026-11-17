@@ -14,13 +14,26 @@
 }
 
 .container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'label edit'
+    'values values';
+  column-gap: var(--ds-size-2);
   width: 100%;
 }
 
+.values {
+  grid-area: values;
+  min-width: 0;
+}
+
+.editBtn {
+  grid-area: edit;
+}
+
 .label {
+  grid-area: label;
   font-weight: 500;
   font-size: 1.125rem;
 }

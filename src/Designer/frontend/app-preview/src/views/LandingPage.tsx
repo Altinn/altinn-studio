@@ -3,11 +3,13 @@ import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
 import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage, useMediaQuery } from '@studio/hooks';
+import { useLocalStorage, useMediaQuery } from '@designer/hooks';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
+import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -15,7 +17,7 @@ import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayou
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { StudioAlert, StudioPageHeader, StudioPageSpinner } from '@studio/components';
+import { StudioAlert, StudioPageHeader, StudioPageSpinner } from '@designer/components';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
@@ -46,7 +48,7 @@ export const LandingPage = () => {
   const isSubform = currentLayoutSet?.type === 'subform';
 
   useEffect(() => {
-    if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
+    if (!isPreviewDisabled && user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
   }, [createInstance, user, taskId]);
 
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
@@ -99,21 +101,29 @@ export const LandingPage = () => {
         </StudioPageHeader.Sub>
       </StudioPageHeader>
       <div className={classes.previewArea}>
-        <PreviewControlHeader
-          setViewSize={setPreviewViewSize}
-          viewSize={previewViewSize}
-          selectedLayoutSet={layoutSet}
-          handleChangeLayoutSet={handleChangeLayoutSet}
-        />
-        <PreviewLimitationsInfo />
-        <div className={classes.iframeContainer}>
-          <iframe
-            title={t('preview.title')}
-            id='app-frontend-react-iframe'
-            src={previewUrl}
-            className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
-          />
-        </div>
+        {isPreviewDisabled ? (
+          <PreviewDisabledInfo className={classes.disabledInfo} />
+        ) : (
+          <>
+            <PreviewControlHeader
+              setViewSize={setPreviewViewSize}
+              viewSize={previewViewSize}
+              selectedLayoutSet={layoutSet}
+              handleChangeLayoutSet={handleChangeLayoutSet}
+            />
+            <PreviewLimitationsInfo />
+            <div className={classes.iframeContainer}>
+              <iframe
+                title={t('preview.title')}
+                id='app-frontend-react-iframe'
+                src={previewUrl}
+                className={
+                  previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile
+                }
+              />
+            </div>
+          </>
+        )}
       </div>
     </>
   );

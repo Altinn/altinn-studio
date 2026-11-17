@@ -1,4 +1,4 @@
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import type { AltinnEnvironment } from './altinnEnvironments';
 import { altinnEnvironments, isGlobalEnv, normalizeAltinnEnvironment } from './altinnEnvironments';
 import type { EnvironmentEntry, EnvironmentScope } from './types';

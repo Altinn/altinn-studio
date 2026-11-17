@@ -5,27 +5,35 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /source
-COPY Cargo.toml Cargo.lock ./
-COPY src/ci/github-runner/coordinator src/ci/github-runner/coordinator
+# rust-toolchain.toml selects the compiler, as it does in CI. Renovate moves this image with it, so
+# the image normally already has that release; otherwise rustup installs it here.
+COPY rust-toolchain.toml ./
+RUN rustup toolchain install --no-self-update \
+    && rustc --version
+# The build context holds the Cargo workspace and nothing else.
+COPY . .
 RUN cargo build \
     --locked \
     --release \
-    --manifest-path src/ci/github-runner/coordinator/Cargo.toml \
+    --bins \
+    --package github-runner-coordinator \
+    --package sandbox-hosting \
     && strip --strip-unneeded \
       /source/target/release/coordinator \
       /source/target/release/sandbox-image
 
-FROM ubuntu:24.04@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254 AS runtime-bundle
-
-ARG MICROSANDBOX_RUNTIME_VERSION=0.7.4-digdir.3
+FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac AS runtime-bundle
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /runtime
-RUN runtime_tag="v${MICROSANDBOX_RUNTIME_VERSION}" \
-    && release_url="https://github.com/digdir/microsandbox/releases/download/${runtime_tag}" \
+# The microsandbox crate in Cargo.lock drives this runtime, so download the runtime release of the same version.
+COPY Cargo.lock ./
+RUN runtime_version="$(awk '$0 == "name = \"microsandbox\"" { found = 1; next } found && /^version = / { gsub(/"/, "", $3); print $3; exit }' Cargo.lock)" \
+    && test -n "${runtime_version}" \
+    && release_url="https://github.com/digdir/microsandbox/releases/download/v${runtime_version}" \
     && curl --fail --location --retry 5 --output microsandbox-linux-x86_64.tar.gz \
       "${release_url}/microsandbox-linux-x86_64.tar.gz" \
     && curl --fail --location --retry 5 --output checksums.sha256 \
@@ -34,7 +42,7 @@ RUN runtime_tag="v${MICROSANDBOX_RUNTIME_VERSION}" \
     && grep --fixed-strings --quiet '  microsandbox-linux-x86_64.tar.gz' checksums.sha256
 
 # The downloaded Microsandbox runtime requires glibc 2.28 or newer.
-FROM ubuntu:24.04@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254
+FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates libcap-ng0 \
