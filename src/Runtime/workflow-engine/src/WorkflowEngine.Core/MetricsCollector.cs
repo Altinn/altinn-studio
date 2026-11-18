@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -28,9 +29,28 @@ internal sealed class MetricsCollector(
     /// </summary>
     private const int _overdueMailboxCountCap = 10_000;
 
+    /// <summary>
+    /// The flags that make the engine degraded or unhealthy, each with the reason the health gauge reports it under.
+    /// </summary>
+    private static readonly (EngineHealthStatus Flag, string Reason)[] _healthReasonFlags =
+    [
+        .. Enum.GetValues<EngineHealthStatus>()
+            .Where(flag => (flag & (Engine.DegradedMask | Engine.UnhealthyMask)) != 0)
+            .Select(flag => (flag, JsonNamingPolicy.SnakeCaseLower.ConvertName(flag.ToString()))),
+    ];
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.StartingUp();
+
+        Metrics.ObserveHealth(
+            () => (long)engine.HealthLevel,
+            () =>
+            {
+                var status = engine.Status;
+                return _healthReasonFlags.Select(f => (f.Reason, (status & f.Flag) != 0));
+            }
+        );
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -59,8 +79,6 @@ internal sealed class MetricsCollector(
 
                 engine.UpdateWorkflowCounts(active, scheduled, failed);
 
-                Metrics.SetHealthStatus((long)engine.HealthLevel);
-
                 var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
                 var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;
                 var workerSlotStatus = concurrencyLimiter.WorkerSlotStatus;
@@ -77,8 +95,7 @@ internal sealed class MetricsCollector(
                     mailboxDeliveryBuffer.QueueDepth
                 );
 
-                // Deliberately last: one try/catch covers the whole pass, so a throw here costs this gauge alone
-                // rather than suppressing engine health below it.
+                // Deliberately last: one try/catch covers the whole pass, so a throw here costs this gauge alone.
 
                 // The grace is the sweep's own cadence — counting a mailbox the sweep has not had a tick to reach
                 // would leave the gauge permanently non-zero on a healthy engine.

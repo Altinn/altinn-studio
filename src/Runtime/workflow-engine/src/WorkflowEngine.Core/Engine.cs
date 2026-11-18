@@ -172,12 +172,12 @@ internal sealed class Engine(
     /// <summary>
     /// Unhealthy: the engine is stopped or explicitly unhealthy.
     /// </summary>
-    private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
+    internal const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
 
     /// <summary>
     /// Degraded: the engine is disabled, the queue is full, or the database is unavailable.
     /// </summary>
-    private const EngineHealthStatus DegradedMask =
+    internal const EngineHealthStatus DegradedMask =
         EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull | EngineHealthStatus.DatabaseUnavailable;
 
     private volatile int _activeWorkflowCount;
@@ -502,11 +502,12 @@ internal sealed class Engine(
 
         if (failed is not null)
         {
-            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "manual"));
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "manual"), (TelemetryAttributes.Namespace, ns));
             Metrics.WorkflowsFailed.Add(
                 1,
                 (TelemetryAttributes.Reason, "manual"),
-                (TelemetryAttributes.WorkflowIsHead, WorkflowExtensions.IsHeadTagValue(failed.IsHead))
+                (TelemetryAttributes.WorkflowIsHead, WorkflowExtensions.IsHeadTagValue(failed.IsHead)),
+                (TelemetryAttributes.Namespace, ns)
             );
 
             // The failure may unblock dependents (they settle as DependencyFailed on their next
