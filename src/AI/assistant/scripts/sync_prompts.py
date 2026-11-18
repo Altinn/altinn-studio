@@ -1,6 +1,8 @@
 """Diff and publish local prompt files against Langfuse, which serves them.
 
 CI publishes on merge to main, so `--push` is gated behind ALLOW_PROMPT_PUSH=1.
+The judges in llm-as-a-judge/ run as Langfuse evaluators, and diff and publish the
+same way.
 Roll back with `--promote <name> --version <n>`. Retire a prompt no repo file
 serves with `--retire`, which archives its text before deleting it.
 """
@@ -30,8 +32,11 @@ DELETE_OVERRIDE_VARIABLE = "ALLOW_PROMPT_DELETE"
 
 HTTP_NOT_FOUND = 404
 
-# Judges run as Langfuse evaluator templates, not prompts, so they cannot be diffed.
+# Judges run as Langfuse evaluators, not prompts. An evaluator has its judge's file name
+# with this prefix and hyphens: no_irrelevant_responses.md is workflow-no-irrelevant-responses.
 JUDGE_DIR = "llm-as-a-judge"
+EVALUATOR_PREFIX = "workflow-"
+EVALUATOR_PAGE_SIZE = 100
 
 # Deleting a prompt in Langfuse takes its text with it, so it is kept here first.
 RETIRED_FILE = PROMPTS_DIR / "retired.json"
@@ -45,16 +50,92 @@ def _judge_templates() -> list[str]:
     return sorted(path.stem for path in (PROMPTS_DIR / JUDGE_DIR).glob("*.md"))
 
 
-def _report_judges() -> None:
-    names = _judge_templates()
-    if not names:
-        return
-    print(
-        f"\n{len(names)} judge template(s) live in Langfuse as evaluators rather than "
-        "prompts, so this report cannot compare them: " + ", ".join(names) + ".\nThe files under "
-        f"agents/prompts/{JUDGE_DIR}/ are the reviewed source; the running text is "
-        "configured in the Langfuse UI."
+def _evaluator_name(judge: str) -> str:
+    return EVALUATOR_PREFIX + judge.replace("_", "-")
+
+
+def _evaluators(api: LangfuseApi) -> dict[str, dict]:
+    """Every Langfuse evaluator by name, each with its latest definition."""
+    evaluators: dict[str, dict] = {}
+    cursor = None
+    while True:
+        body = api._get(
+            "/api/public/v2/evaluators", limit=EVALUATOR_PAGE_SIZE, **({"cursor": cursor} if cursor else {})
+        )
+        batch = body.get("data") or []
+        evaluators.update((evaluator["name"], evaluator) for evaluator in batch)
+        cursor = (body.get("meta") or {}).get("cursor")
+        if not batch or not cursor:
+            return evaluators
+
+
+def _single_turn(prompt: object) -> str | None:
+    """An evaluator's text: a string, or the content of its only message."""
+    if isinstance(prompt, str):
+        return prompt
+    if isinstance(prompt, list) and len(prompt) == 1 and isinstance(prompt[0], dict):
+        text = prompt[0].get("content")
+        if isinstance(text, str):
+            return text
+    return None
+
+
+def _diff_judge(judge: str, evaluators: dict[str, dict]) -> dict | None:
+    """Print the drift for one judge. Returns its evaluator when the two differ."""
+    name = _evaluator_name(judge)
+    evaluator = evaluators.get(name)
+    if evaluator is None:
+        print(f"{judge}: no evaluator named {name} in Langfuse; create it in the UI")
+        return None
+
+    remote = _single_turn(evaluator.get("prompt"))
+    if remote is None:
+        print(f"{judge}: {name} has no single message to compare")
+        return None
+
+    local = load_prompt(judge)["content"]
+    version = evaluator.get("version")
+    if remote == local:
+        print(f"{judge}: in sync ({name} v{version})")
+        return None
+
+    print(f"{judge}: DRIFT ({name} v{version} vs local file)")
+    _print_diff(remote, local, f"langfuse v{version}")
+    return evaluator
+
+
+def _drifted_judges(judges: list[str], evaluators: dict[str, dict]) -> list[tuple[str, dict]]:
+    drifted = [(judge, _diff_judge(judge, evaluators)) for judge in judges]
+    return [(judge, evaluator) for judge, evaluator in drifted if evaluator is not None]
+
+
+def _report_unfiled_evaluators(evaluators: dict[str, dict]) -> None:
+    filed = {_evaluator_name(judge) for judge in _judge_templates()}
+    unfiled = sorted(set(evaluators) - filed)
+    if unfiled:
+        print(f"\n{len(unfiled)} Langfuse evaluator(s) have no judge file and are left alone: {', '.join(unfiled)}")
+
+
+def _push_judge(api: LangfuseApi, judge: str, evaluator: dict) -> None:
+    """Publish the file as a new version of the judge's evaluator.
+
+    A PATCH replaces the whole definition, so the model, the variable mapping and the
+    score definition go back unchanged. Without `modelConfig` the judge would run on
+    the project's default model.
+    """
+    text = load_prompt(judge)["content"]
+    prompt = evaluator.get("prompt")
+    updated = api._patch(
+        f"/api/public/v2/evaluators/{evaluator['id']}",
+        {
+            "type": "llm_as_judge",
+            "prompt": [{**prompt[0], "content": text}] if isinstance(prompt, list) else text,
+            "modelConfig": evaluator.get("modelConfig"),
+            "variableMapping": evaluator.get("variableMapping"),
+            "outputDefinition": evaluator.get("outputDefinition"),
+        },
     )
+    print(f"{judge}: published {evaluator['name']} v{updated.get('version')}")
 
 
 def _local_prompt_names() -> list[str]:
@@ -121,16 +202,15 @@ def _diff(api: LangfuseApi, name: str) -> bool:
         return False
 
     print(f"{name}: DRIFT (Langfuse v{remote.get('version')} vs local file)")
+    _print_diff(remote_content, local, f"langfuse v{remote.get('version')}")
+    return True
+
+
+def _print_diff(remote: str, local: str, remote_label: str) -> None:
     for line in difflib.unified_diff(
-        remote_content.splitlines(),
-        local.splitlines(),
-        fromfile=f"langfuse v{remote.get('version')}",
-        tofile="local",
-        lineterm="",
-        n=1,
+        remote.splitlines(), local.splitlines(), fromfile=remote_label, tofile="local", lineterm="", n=1
     ):
         print(f"  {line}")
-    return True
 
 
 def _drifted(api: LangfuseApi, names: list[str]) -> list[str]:
@@ -307,11 +387,19 @@ def main() -> int:
     api = LangfuseApi()
 
     if args.push is not None:
-        names = [args.push] if args.push else _drifted(api, _local_prompt_names())
+        if not args.push:
+            names, judges = _drifted(api, _local_prompt_names()), _judge_templates()
+        elif args.push in _judge_templates():
+            names, judges = [], [args.push]
+        else:
+            names, judges = [args.push], []
+        drifted_judges = _drifted_judges(judges, _evaluators(api)) if judges else []
         for name in names:
             _push(api, name, args.message)
-        if not names:
-            print("Every prompt is in sync; nothing published")
+        for judge, evaluator in drifted_judges:
+            _push_judge(api, judge, evaluator)
+        if not names and not drifted_judges:
+            print("Every prompt and judge is in sync; nothing published")
         return 0
 
     if args.retire is not None:
@@ -332,6 +420,10 @@ def main() -> int:
         _promote(api, args.promote, args.version)
         return 0
 
+    if args.diff in _judge_templates():
+        _diff_judge(args.diff, _evaluators(api))
+        return 0
+
     if args.diff:
         _diff(api, args.diff)
         return 0
@@ -340,7 +432,13 @@ def main() -> int:
     if drifted:
         print(f"\n{len(drifted)} prompt(s) differ from Langfuse")
     _report_orphans(api)
-    _report_judges()
+
+    print()
+    evaluators = _evaluators(api)
+    drifted_judges = _drifted_judges(_judge_templates(), evaluators)
+    if drifted_judges:
+        print(f"\n{len(drifted_judges)} judge(s) differ from their Langfuse evaluators")
+    _report_unfiled_evaluators(evaluators)
     return 0
 
 

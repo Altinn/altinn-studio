@@ -41,5 +41,9 @@ runs only with `ALLOW_PROMPT_DELETE=1`.
 ## LLM-as-a-judge prompts
 
 The application does not load the prompts in `llm-as-a-judge/`. Langfuse runs them as managed evaluators on trace
-observations, each named after its file. The files are the version-controlled source. After you change one, paste the
-text into its evaluator in the Langfuse UI.
+observations. An evaluator has its file name with a `workflow-` prefix and hyphens, such as
+`workflow-no-irrelevant-responses`. The files are the version-controlled source.
+
+`--diff` compares each file with its evaluator, and `--push` publishes a changed file as a new version of the evaluator.
+The push keeps the evaluator's model, variables and score definition. It does not create an evaluator, so create a new
+one in the UI first. Evaluators that have no file are left alone.
