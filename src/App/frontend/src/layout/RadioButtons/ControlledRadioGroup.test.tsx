@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 
@@ -253,6 +253,34 @@ describe('RadioButtonsContainerComponent', () => {
     expect(options[0].getAttribute('value')).toBe('sweden');
     expect(options[1].getAttribute('value')).toBe('norway');
     expect(options[2].getAttribute('value')).toBe('denmark');
+  });
+
+  it('should ask for confirmation in a warning popover before changing an existing selection', async () => {
+    const { formDataMethods } = await render({
+      component: { alertOnChange: true },
+      options: threeOptions,
+      formData: 'norway',
+    });
+
+    await userEvent.click(await findRadio({ name: 'Sweden' }));
+
+    // Each option has its own popover, all with the same message. The second one belongs to Sweden.
+    const message = screen
+      .getAllByText((_, element) => element?.textContent === 'Er du sikker på at du vil endre fra Norway?')
+      .filter((element) => element.tagName === 'DIV')[1];
+    const popover = message.closest('[popover]') as HTMLElement;
+    expect(popover).toHaveAttribute('data-color', 'warning');
+    expect(message.className).toBe('');
+    expect(message.nextElementSibling).toHaveClass('popoverButtonContainer');
+    expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
+
+    await userEvent.click(within(popover).getByRole('button', { name: 'Bekreft', hidden: true }));
+    await waitFor(() =>
+      expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
+        reference: { field: 'myRadio', dataType: defaultDataTypeMock },
+        newValue: 'sweden',
+      }),
+    );
   });
 
   it('required validation should only show for simpleBinding', async () => {

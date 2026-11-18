@@ -1,15 +1,12 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, Panel } from '@app/form-component';
+import { GroupLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading } from '@digdir/designsystemet-react';
-import cn from 'classnames';
 import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
 
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { FormStore } from 'src/features/form/FormContext';
-import { Lang } from 'src/features/language/Lang';
-import classes from 'src/layout/Group/GroupComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
@@ -23,14 +20,6 @@ export interface IGroupComponent {
   isSummary?: boolean;
   renderLayoutComponent: (baseComponentId: string) => JSX.Element | null;
 }
-
-const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['data-size'] } = {
-  [2]: 'sm',
-  [3]: 'xs',
-  [4]: '2xs',
-  [5]: '2xs',
-  [6]: '2xs',
-};
 
 export function GroupComponent({
   baseComponentId,
@@ -62,66 +51,26 @@ export function GroupComponent({
   }
 
   const parent = layoutLookups.componentToParent[baseComponentId];
-  const isNested = parent?.type === 'node';
-  const isPanel = config.groupingIndicator === 'panel';
-  const isIndented = config.groupingIndicator === 'indented';
   const headingLevel = config.headingLevel ?? (Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel);
-  const headingSize = headingSizes[headingLevel];
-  const legend = isSummary ? (summaryTitle ?? title) : title;
 
+  // Translated here, so that text in a group inside a repeating group row resolves for that row, also in a summary.
   return (
-    <div className={cn(classes.groupWrapper, { [classes.panelWrapper]: isPanel, [classes.summary]: isSummary })}>
-      <ConditionalWrapper
-        condition={isPanel && !isSummary}
-        wrapper={(child) => (
-          <FullWidthWrapper>
-            <Panel variant='info'>{child}</Panel>
-          </FullWidthWrapper>
-        )}
+    <AppLanguageTranslatorProvider>
+      <GroupLayout
+        componentId={indexedId}
+        baseComponentId={baseComponentId}
+        containerId={id}
+        containerRef={containerDivRef}
+        title={isSummary ? (summaryTitle ?? title) : title}
+        description={description}
+        help={help}
+        headingLevel={headingLevel}
+        groupingIndicator={config.groupingIndicator}
+        isNested={parent?.type === 'node'}
+        isSummary={isSummary}
       >
-        <Fieldset
-          legend={
-            legend ? (
-              <Heading
-                className={classes.legend}
-                level={headingLevel}
-                data-size={headingSize}
-              >
-                <Lang id={legend} />
-              </Heading>
-            ) : undefined
-          }
-          description={
-            description && !isSummary ? (
-              <span className={classes.description}>
-                <Lang id={description} />
-              </span>
-            ) : undefined
-          }
-          help={
-            help && !isSummary ? (
-              <HelpTextContainer
-                id={indexedId}
-                title={legend}
-                helpText={<Lang id={help} />}
-              />
-            ) : undefined
-          }
-        >
-          <div
-            data-componentid={indexedId}
-            data-componentbaseid={baseComponentId}
-            ref={containerDivRef}
-            id={id ?? indexedId}
-            data-testid='display-group-container'
-            className={cn(classes.groupContainer, {
-              [classes.indented]: isIndented && !isNested,
-            })}
-          >
-            {config.children.map((id) => renderLayoutComponent(id))}
-          </div>
-        </Fieldset>
-      </ConditionalWrapper>
-    </div>
+        {config.children.map((id) => renderLayoutComponent(id))}
+      </GroupLayout>
+    </AppLanguageTranslatorProvider>
   );
 }

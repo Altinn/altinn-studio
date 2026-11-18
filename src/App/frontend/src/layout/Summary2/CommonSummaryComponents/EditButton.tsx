@@ -1,13 +1,11 @@
 import React from 'react';
 
-import { Button, useIsMobile } from '@app/form-component';
+import { SummaryEditButton } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
-import { PencilIcon } from '@navikt/aksel-icons';
 
+import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormStore } from 'src/features/form/FormContext';
-import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
@@ -99,12 +97,10 @@ export function EditButton({
   skipLastIdMutator,
 }: EditButtonProps) {
   const navigateToComponent = useNavigateToComponent();
-  const { langAsString } = useLanguage();
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
   const currentPageId = useCurrentView();
   const pdfModeActive = usePdfModeActive();
-  const isMobile = useIsMobile();
 
   const config = useComponentConfig(targetBaseComponentId);
   const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
@@ -118,7 +114,6 @@ export function EditButton({
   // While the instance is locked, components without a readOnly setting are read-only too
   const instanceLocked = FormStore.useIsInstanceLocked();
   const isReadOnly = instanceLocked || ('readOnly' in config && readOnly === true);
-  const accessibleTitle = title ? langAsString(title) : '';
 
   const overrides = useTaskOverrides();
   const overriddenTaskId = overrides?.taskId;
@@ -161,20 +156,15 @@ export function EditButton({
     setReturnToView?.(currentPageId ? { pageId: currentPageId, showNextButton } : undefined);
     setNodeOfOrigin?.(summary2Id);
   };
+  // Resolves the title in the data model location of the target, such as a row in a repeating group
   return (
-    <Button
-      aria-label={isMobile ? langAsString('general.edit') : undefined}
-      onClick={onChangeClick}
-      variant='tertiary'
-      className={className}
-      data-target-id={indexedId}
-    >
-      {!isMobile && <Lang id='general.edit' />}
-      <PencilIcon
-        aria-hidden
-        fontSize='1rem'
-        title={`${isMobile ? langAsString('form_filler.summary_item_change') : ''} ${accessibleTitle}`}
+    <AppLanguageTranslatorProvider>
+      <SummaryEditButton
+        onClick={onChangeClick}
+        title={title}
+        targetId={indexedId}
+        className={className}
       />
-    </Button>
+    </AppLanguageTranslatorProvider>
   );
 }

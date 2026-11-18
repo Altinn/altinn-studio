@@ -4,6 +4,7 @@ export * from './ConfirmPopover';
 export * from './Button';
 export * from './Card';
 export * from './Datepicker';
+export * from './DeleteWarningPopover';
 export * from './DynamicForm';
 export * from './Dropzone';
 export * from './ErrorValidations';

@@ -164,6 +164,49 @@ describe('SummaryComponent', () => {
     });
   });
 
+  test('names the help text button after the label, colon included, in compact mode', async () => {
+    await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'Input',
+                type: 'Input',
+                dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
+                textResourceBindings: { title: 'Fornavn', help: 'Navnet ditt' },
+              },
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        isCompact: true,
+        hideEmptyFields: false,
+        target: { type: 'component', id: 'Input' },
+      },
+    });
+
+    expect(screen.getByRole('button', { name: /Fornavn:/ })).toBeInTheDocument();
+  });
+
+  test('gives the edit button the class that places it at the end of the row', async () => {
+    await render({
+      layout: layoutMock(['Input']),
+      summary2Config: {
+        type: 'Summary2',
+        id: 'Summary2',
+        hideEmptyFields: false,
+        target: { type: 'component', id: 'Input' },
+      },
+    });
+
+    const row = screen.getByTestId('summary-single-value-component');
+    expect(row.querySelector('button[data-target-id="Input"]')).toHaveClass('editButton');
+  });
+
   test('should render component if hideEmptyFields is set to false', async () => {
     await render({
       summary2Config: {

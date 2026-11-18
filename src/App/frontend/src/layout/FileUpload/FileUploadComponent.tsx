@@ -3,43 +3,31 @@ import { useNavigation } from 'react-router';
 import { toast } from 'react-toastify';
 import type { FileRejection } from 'react-dropzone';
 
-import {
-  Dropzone,
-  getDescriptionId,
-  getLabelId,
-  mapExtensionToAcceptMime,
-  useIsMobileOrTablet,
-} from '@app/form-component';
+import { FileUploadLayout, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Paragraph } from '@digdir/designsystemet-react';
-import { CloudUpIcon } from '@navikt/aksel-icons';
-import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUpload';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { FailedAttachments } from 'src/layout/FileUpload/Error/FailedAttachments';
-import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): React.JSX.Element {
   const config = useComponentConfig<'FileUpload'>(baseComponentId, 'FileUpload');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'FileUpload');
-  const componentId = useIndexedId(baseComponentId);
+  const { componentId, innerGrid, validationGrid } = useComponentStructureData(baseComponentId);
   const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
   const maxNumberOfAttachments = useEvalExpression(
     config.maxNumberOfAttachments,
@@ -62,36 +50,11 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
   const addRejectedAttachments = AttachmentUpload.useAddRejectedAttachments();
   const uploadAttachments = AttachmentUpload.useAttachmentsUploader();
   const navigation = useNavigation();
-  const { langAsString } = useLanguage();
 
   const validations = useUnifiedValidationsForNode(baseComponentId).filter(
     (v) => !('attachmentId' in v) || !v.attachmentId,
   );
-  const filesToAccept =
-    config.hasCustomFileEndings && config.validFileEndings !== undefined
-      ? mapExtensionToAcceptMime(config.validFileEndings)
-      : undefined;
   const { options, isFetching } = useGetOptions(baseComponentId, 'single');
-  const indexedId = useIndexedId(baseComponentId);
-
-  const canUploadMoreAttachments = attachments.length < maxNumberOfAttachments;
-  const isComplexMode = config.displayMode !== 'simple';
-  const isSimpleModeWithNoAttachments = config.displayMode === 'simple' && attachments.length === 0;
-
-  const shouldShowFileUpload =
-    !readOnly && canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
-
-  const shouldShowAddButton =
-    !readOnly &&
-    config.displayMode === 'simple' &&
-    !showFileUpload &&
-    attachments.length < maxNumberOfAttachments &&
-    attachments.length > 0;
-
-  const dragLabelId = `file-upload-drag-${componentId}`;
-  const formatLabelId = `file-upload-format-${componentId}`;
-  const descriptionId = description ? getDescriptionId(componentId) : undefined;
-  const ariaDescribedBy = [descriptionId, dragLabelId, formatLabelId].filter(Boolean).join(' ');
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     if (readOnly) {
@@ -112,7 +75,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
       return;
     }
     // we should upload all files, if any rejected files we should display an error
-    uploadAttachments({ files: acceptedFiles, nodeId: indexedId, dataModelBindings });
+    uploadAttachments({ files: acceptedFiles, nodeId: componentId, dataModelBindings });
 
     if (acceptedFiles.length > 0) {
       setShowFileUpload(config.displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
@@ -122,7 +85,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
       (fileRejection) => new RejectedFileError(fileRejection, config.maxFileSizeInMB),
     );
     if (rejections?.length) {
-      addRejectedAttachments(indexedId, rejections);
+      addRejectedAttachments(componentId, rejections);
     }
   };
 
@@ -136,78 +99,36 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
   }
 
   return (
-    <ComponentStructureWrapper baseComponentId={baseComponentId}>
-      <div
-        id={`altinn-fileuploader-${componentId}`}
-        style={{ padding: '0px', width: '100%' }}
-      >
+    <FileUploadLayout
+      componentId={componentId}
+      title={title}
+      description={description}
+      readOnly={readOnly}
+      label={
         <Label
           baseComponentId={baseComponentId}
           renderLabelAs='plainLabel'
         />
-        {readOnly && (
-          <Paragraph data-size='sm'>
-            <Lang id='form_filler.file_uploader_read_only' />
-          </Paragraph>
-        )}
-        {shouldShowFileUpload && (
-          <>
-            <Dropzone
-              id={componentId}
-              maxFileSize={{
-                sizeInMB: config.maxFileSizeInMB,
-                text: langAsString('form_filler.file_uploader_max_size_mb', [config.maxFileSizeInMB]),
-              }}
-              readOnly={!!readOnly}
-              onClick={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              hasValidationMessages={hasValidationErrors(validations)}
-              acceptedFiles={filesToAccept}
-              labelId={title ? getLabelId(componentId) : undefined}
-              describedBy={ariaDescribedBy}
-            >
-              <div className={classes.fileUploadWrapper}>
-                <CloudUpIcon
-                  className={classes.uploadIcon}
-                  aria-hidden
-                />
-
-                <b id={dragLabelId}>
-                  {mobileView ? (
-                    <span className={cn(classes.blueUnderLine)}>
-                      <Lang id='form_filler.file_uploader_upload' />
-                    </span>
-                  ) : (
-                    <>
-                      <Lang id='form_filler.file_uploader_drag' />
-                      <span className={cn(classes.blueUnderLine)}>
-                        {' '}
-                        <Lang id='form_filler.file_uploader_find' />
-                      </span>
-                    </>
-                  )}
-                </b>
-                <span id={formatLabelId}>
-                  <Lang id='form_filler.file_uploader_valid_file_format' />
-                  {config.hasCustomFileEndings
-                    ? ` ${config.validFileEndings}`
-                    : ` ${langAsString('form_filler.file_upload_valid_file_format_all')}`}
-                </span>
-              </div>
-            </Dropzone>
-
-            <AttachmentsCounter
-              numAttachments={attachments.length}
-              maxNumAttachments={readOnly ? undefined : maxNumberOfAttachments}
-            />
-            <ComponentValidations
-              validations={validations}
-              baseComponentId={baseComponentId}
-            />
-            {attachments && attachments.length > 0 && <div className={classes.betweenTableAndDropMargin} />}
-          </>
-        )}
-
+      }
+      displayMode={config.displayMode}
+      maxFileSizeInMB={config.maxFileSizeInMB}
+      maxNumberOfAttachments={maxNumberOfAttachments}
+      hasCustomFileEndings={config.hasCustomFileEndings}
+      validFileEndings={config.validFileEndings}
+      numberOfAttachments={attachments.length}
+      dropzoneOpen={showFileUpload}
+      onAddClick={() => setShowFileUpload(true)}
+      onDrop={handleDrop}
+      hasValidationErrors={hasValidationErrors(validations)}
+      innerGrid={innerGrid}
+      validationGrid={validationGrid}
+      validationMessages={
+        <ComponentValidations
+          validations={validations}
+          baseComponentId={baseComponentId}
+        />
+      }
+      fileList={
         <FileTable
           baseComponentId={baseComponentId}
           mobileView={mobileView}
@@ -215,47 +136,8 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
           options={options}
           isFetching={isFetching}
         />
-
-        {!shouldShowFileUpload && (
-          <>
-            <AttachmentsCounter
-              numAttachments={attachments.length}
-              maxNumAttachments={readOnly ? undefined : maxNumberOfAttachments}
-            />
-            <ComponentValidations
-              validations={validations}
-              baseComponentId={baseComponentId}
-            />
-            <br />
-          </>
-        )}
-        {shouldShowAddButton && (
-          <button
-            className={classes.fileUploadButton}
-            onClick={() => setShowFileUpload(true)}
-          >
-            <Lang id='form_filler.file_uploader_add_attachment' />
-          </button>
-        )}
-        <FailedAttachments baseComponentId={baseComponentId} />
-      </div>
-    </ComponentStructureWrapper>
-  );
-}
-
-function AttachmentsCounter({
-  numAttachments,
-  maxNumAttachments,
-}: {
-  numAttachments: number;
-  maxNumAttachments?: number;
-}) {
-  return (
-    <small style={{ fontWeight: 'normal' }}>
-      <Lang
-        id='form_filler.file_uploader_number_of_files'
-        params={[maxNumAttachments ? `${numAttachments}/${maxNumAttachments}` : numAttachments]}
-      />
-    </small>
+      }
+      failedAttachments={<FailedAttachments baseComponentId={baseComponentId} />}
+    />
   );
 }
