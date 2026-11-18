@@ -80,7 +80,7 @@
       "expectsWarnings": ["decimal"]
     },
     {
-      "name": "surrounding spaces keep the previous value",
+      "name": "surrounding spaces are ignored",
       "calculations": [
         {
           "field": "decimal",
@@ -88,9 +88,8 @@
         }
       ],
       "expects": {
-        "decimal": 1
-      },
-      "expectsWarnings": ["decimal"]
+        "decimal": 12
+      }
     },
     {
       "name": "exponent",

@@ -523,7 +523,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// </summary>
     /// <remarks>
     /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
-    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" to int, but not " 123 " or a
+    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" and " 123 " to int, but not a
     /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "1" and 1 to true, but not "TRUE" or 2), and a number
     /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
     /// list of scalars is converted item by item with the same rules.
@@ -549,7 +549,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// </summary>
     /// <remarks>
     /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
-    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" to int, but not " 123 " or a
+    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" and " 123 " to int, but not a
     /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "1" and 1 to true, but not "TRUE" or 2), and a number
     /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
     /// list of scalars is converted item by item with the same rules.

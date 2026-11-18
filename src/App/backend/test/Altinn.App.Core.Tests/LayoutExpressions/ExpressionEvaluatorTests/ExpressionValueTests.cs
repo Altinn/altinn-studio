@@ -735,9 +735,6 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     }
 
     [Theory]
-    [InlineData(" 12 ")]
-    [InlineData("12 ")]
-    [InlineData("\t-3.5\n")]
     [InlineData(" ")]
     [InlineData("")]
     [InlineData("1 2")]
@@ -760,6 +757,9 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     [InlineData("+2", 2)]
     [InlineData(".5", 0.5)]
     [InlineData("1e3", 1000)]
+    [InlineData(" 12 ", 12)]
+    [InlineData("12 ", 12)]
+    [InlineData("\t-3.5\n", -3.5)]
     public void TryDeserialize_ParsesAStringAsParseNumberDoes(string text, double expected)
     {
         ExpressionValue value = text;
@@ -897,8 +897,10 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     {
         Assert.False(ExpressionValue.FromJsonString("""["4", "x"]""").TryDeserialize<List<decimal>>(out var result));
         Assert.Null(result);
-        // The same scalar rules as for a single value: no whitespace, no boolean into a number, no 2 into a bool
-        Assert.False(ExpressionValue.FromJsonString("""["4", " 5 "]""").TryDeserialize<List<decimal>>(out _));
+        // The same scalar rules as for a single value: no space inside, no boolean into a number, no 2 into a bool
+        Assert.False(ExpressionValue.FromJsonString("""["4", "1 2"]""").TryDeserialize<List<decimal>>(out _));
+        Assert.True(ExpressionValue.FromJsonString("""["4", " 5 "]""").TryDeserialize<List<decimal>>(out var trimmed));
+        Assert.Equal([4m, 5m], trimmed);
         Assert.False(ExpressionValue.FromJsonString("[1, true]").TryDeserialize<List<decimal>>(out _));
         Assert.False(ExpressionValue.FromJsonString("[1, 2]").TryDeserialize<List<bool>>(out _));
         Assert.False(ExpressionValue.FromJsonString("[1, 1.5]").TryDeserialize<List<int>>(out _));

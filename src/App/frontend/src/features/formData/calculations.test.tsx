@@ -346,6 +346,7 @@ describe('calculations in the form store', () => {
       {
         calculations: [
           { field: 'total', expression: '1,500' },
+          // Surrounding whitespace is ignored, as expressions do
           { field: 'quantity', expression: ' 12 ' },
           { field: 'nullableNumber', expression: true },
           { field: 'enabled', expression: 2 },
@@ -358,13 +359,13 @@ describe('calculations in the form store', () => {
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
       total: 1,
-      quantity: 1,
+      quantity: 12,
       nullableNumber: 1,
       enabled: true,
       nullableBoolean: false,
       summary: { Rows: 7 },
     });
-    for (const field of ['total', 'quantity', 'nullableNumber', 'enabled', 'nullableBoolean', 'Rows', 'Total']) {
+    for (const field of ['total', 'nullableNumber', 'enabled', 'nullableBoolean', 'Rows', 'Total']) {
       expect(logWarn).toHaveBeenCalledWith(expect.stringContaining(`.${field}`));
     }
   });

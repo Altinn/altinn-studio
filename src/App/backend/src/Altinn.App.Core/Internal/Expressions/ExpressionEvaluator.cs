@@ -914,17 +914,30 @@ public static partial class ExpressionEvaluator
     /// </summary>
     internal static double? ParseNumber(string s, bool throwException = true)
     {
-        if (NumberRegex().IsMatch(s) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+        // Surrounding whitespace is ignored, as the frontend does. Anything else, such as a thousands separator,
+        // makes the string not a number.
+        var trimmed = s.Trim();
+        if (
+            NumberRegex().IsMatch(trimmed)
+            && double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var d)
+        )
         {
             return d;
         }
 
         if (throwException)
         {
-            throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value \"{s}\"");
+            throw new ExpressionEvaluatorTypeErrorException($"Expected number, got value \"{s}\"{NumberHint(s)}");
         }
         return null;
     }
+
+    /// <summary>
+    /// The most common reason a string is not a number is a comma as the decimal separator. Say so, with the same
+    /// words as the frontend.
+    /// </summary>
+    internal static string NumberHint(string s) =>
+        s.Contains(',') ? " (a comma is not a decimal separator, use a period)" : "";
 
     private static bool LessThan(ExpressionValue[] args)
     {
