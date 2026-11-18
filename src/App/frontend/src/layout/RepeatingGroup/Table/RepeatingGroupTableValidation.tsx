@@ -102,11 +102,38 @@ export function RepeatingGroupTableMessages({
   );
 }
 
+export function RepeatingGroupRowMessages({
+  validations,
+  columnSpan,
+  index,
+  className,
+}: {
+  validations: NodeRefValidation[];
+  columnSpan: number;
+  index: number;
+  className?: string;
+}) {
+  return validations.length > 0 ? (
+    <Table.Row
+      className={cn(classes.messageRow, className)}
+      data-for-row={index}
+      data-testid='repeating-group-row-object-messages'
+    >
+      <Table.Cell
+        colSpan={columnSpan}
+        className={classes.messageCell}
+      >
+        <FieldMessages validations={validations} />
+      </Table.Cell>
+    </Table.Row>
+  ) : null;
+}
+
 function FieldMessages({
   baseComponentId,
   validations,
 }: {
-  baseComponentId: string;
+  baseComponentId?: string;
   validations: NodeRefValidation[];
 }) {
   const getUniqueKey = useGetUniqueKeyFromObject();

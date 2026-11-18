@@ -33,6 +33,7 @@ import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepeatingGroupRowValidation } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import { useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import {
+  RepeatingGroupRowMessages,
   RepeatingGroupTableField,
   RepeatingGroupTableMessages,
 } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
@@ -83,6 +84,7 @@ export function RepeatingGroupTableRow({
   const baseComponentId = useRepeatingGroupComponentId();
   const toggleEditing = RepGroupContext.useToggleEditing();
   const indexedId = useIndexedId(baseComponentId);
+  const ownerIndexedId = useIndexedId(baseComponentId, true);
   const langTools = useLanguage();
   const { langAsString } = langTools;
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
@@ -280,6 +282,16 @@ export function RepeatingGroupTableRow({
           validations={rowValidations.filter((validation) => tableEditingIds.includes(validation.baseComponentId))}
           tableIds={tableIds}
           columnSpan={tableItems.length + columnCount}
+          index={index}
+          className={isEditingRow ? classes.editingRow : undefined}
+        />
+      )}
+      {(config.edit?.mode === 'onlyTable' || tableEditingIds.length > 0) && (
+        <RepeatingGroupRowMessages
+          validations={rowValidations.filter(
+            (validation) => validation.nodeId === ownerIndexedId && validation.repeatingGroupRow,
+          )}
+          columnSpan={mobileView ? 2 : tableItems.length + columnCount}
           index={index}
           className={isEditingRow ? classes.editingRow : undefined}
         />
