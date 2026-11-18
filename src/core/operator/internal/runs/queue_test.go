@@ -18,13 +18,14 @@ func at(seconds int) time.Time {
 	return queueStart.Add(time.Duration(seconds) * time.Second)
 }
 
-// newQueue returns a queue for testKind with these limits, over a sandbox without Jobs. The queue has not opened.
+// newQueue returns an unopened queue of testKind and other-kind, whose warmup ends at queueStart if it opens now.
 func newQueue(maxActive, maxActivePerCaller int) (*Queue, *clock.FakeClock, *sandboxtest.Sandbox) {
 	kind := config.Kind{Namespace: testNamespace, MaxActivePerCaller: maxActivePerCaller}
-	clk := clock.NewFakeClockAt(queueStart)
+	clk := clock.NewFakeClockAt(queueStart.Add(-warmup))
 	box := sandboxtest.New()
 	box.SlotCount = maxActive
-	return NewQueue(&config.Config{Kinds: map[string]config.Kind{testKind: kind}}, box, clk), clk, box
+	cfg := &config.Config{Kinds: map[string]config.Kind{testKind: kind, "other-kind": kind}}
+	return NewQueue(cfg, box, clk), clk, box
 }
 
 // openQueue returns a queue past its warmup, for at most two active runs.
@@ -36,8 +37,8 @@ func openQueue(maxActivePerCaller int) (*Queue, *clock.FakeClock, *sandboxtest.S
 }
 
 // queued is a run of testKind.
-func queued(id, caller string) *stepRun {
-	return &stepRun{id: id, caller: caller, state: &runState{Kind: testKind, Spec: KindSpec{Namespace: testNamespace}}}
+func queued(id, caller string) Work {
+	return Work{ID: id, Kind: testKind, Caller: caller}
 }
 
 func addJob(box *sandboxtest.Sandbox, id, caller string) {
@@ -49,7 +50,7 @@ func TestQueueAdmitsTheOldestRunsThatFit(t *testing.T) {
 	q, _, _ := openQueue(1)
 
 	// The assistant's younger run waits behind its older one, and the other caller's run passes both.
-	q.Register("a", testKind, "assistant", at(1))
+	Expect(q.Join(queued("a", "assistant"), 2)).To(Succeed())
 	Expect(q.Admit(t.Context(), queued("c", "assistant"), at(3))).To(Equal(Admission{Position: 2}))
 	Expect(q.Admit(t.Context(), queued("b", "other"), at(2))).To(Equal(Admission{Admitted: true}))
 	Expect(q.Admit(t.Context(), queued("a", "assistant"), at(1))).To(Equal(Admission{Admitted: true}))
@@ -97,9 +98,7 @@ func TestQueueCountsJobsAndReservations(t *testing.T) {
 	Expect(q.Admit(t.Context(), queued("c", "assistant"), at(3))).To(Equal(Admission{Admitted: true}))
 
 	// Other kinds count their own runs.
-	q.cfg.Kinds["other-kind"] = config.Kind{Namespace: testNamespace, MaxActivePerCaller: 1}
-	other := queued("d", "assistant")
-	other.state.Kind = "other-kind"
+	other := Work{ID: "d", Kind: "other-kind", Caller: "assistant"}
 	Expect(q.Admit(t.Context(), other, at(4))).To(Equal(Admission{Admitted: true}))
 }
 
@@ -111,14 +110,13 @@ func TestQueueForgetsRunsThatStopAsking(t *testing.T) {
 
 	Expect(q.Admit(t.Context(), queued("a", "assistant"), at(1))).To(Equal(Admission{Position: 1}))
 	Expect(q.Admit(t.Context(), queued("b", "assistant"), at(2))).To(Equal(Admission{Position: 2}))
-	Expect(q.Waiting(testKind, "assistant")).To(Equal(2))
+	Expect(q.WaitingByKind()).To(Equal(map[string]int{testKind: 2}))
 
 	// a's workflow was canceled, so the engine stops calling run.admit for it.
 	clk.Advance(AdmitRecheck)
 	Expect(q.Admit(t.Context(), queued("b", "assistant"), at(2))).To(Equal(Admission{Position: 2}))
 	clk.Advance(waitingTTL)
 	Expect(q.Admit(t.Context(), queued("b", "assistant"), at(2))).To(Equal(Admission{Position: 1}))
-	Expect(q.Waiting(testKind, "assistant")).To(Equal(1))
 	Expect(q.WaitingByKind()).To(Equal(map[string]int{testKind: 1}))
 }
 
@@ -155,21 +153,21 @@ func TestQueueRebuildsAfterARestart(t *testing.T) {
 	Expect(position).To(Equal(2))
 }
 
-func TestRegisterCountsTowardsTheQueueLimit(t *testing.T) {
+func TestJoinRefusesACallerAtItsQueueLimit(t *testing.T) {
 	RegisterTestingT(t)
 	q, _, _ := openQueue(1)
 
-	q.Register("a", testKind, "assistant", at(0))
-	q.Register("b", testKind, "assistant", at(1))
-	Expect(q.Waiting(testKind, "assistant")).To(Equal(2))
-	Expect(q.Waiting(testKind, "other")).To(Equal(0))
-	position, ok := q.Position("b")
-	Expect(ok).To(BeTrue())
-	Expect(position).To(Equal(2))
+	Expect(q.Join(queued("a", "assistant"), 2)).To(Succeed())
+	Expect(q.Join(queued("b", "assistant"), 2)).To(Succeed())
+	Expect(q.Join(queued("c", "assistant"), 2)).To(MatchError(ErrQueueFull))
+	Expect(q.Join(queued("a", "assistant"), 2)).To(Succeed(), "a run in line keeps its place")
+	Expect(q.Join(queued("d", "other"), 2)).To(Succeed())
 
-	q.KeepAdmitted(queued("a", "assistant"))
-	q.Register("a", testKind, "assistant", at(0))
-	Expect(q.Waiting(testKind, "assistant")).To(Equal(1), "an admitted run does not go back in line")
+	q.Hold(queued("a", "assistant"))
+	Expect(q.Join(queued("a", "assistant"), 2)).To(Succeed())
+	_, ok := q.Position("a")
+	Expect(ok).To(BeFalse(), "an admitted run does not go back in line")
+	Expect(q.Join(queued("c", "assistant"), 2)).To(Succeed())
 }
 
 // The warmup starts when the operator serves callbacks, and outlasts the engine's longest retry backoff.
@@ -184,7 +182,7 @@ func TestQueueWaitsForTheEngineToCallAgain(t *testing.T) {
 	q.Open()
 	// a was admitted before the restart, and its run.create-job retries on the engine's longest backoff.
 	clk.Advance(retryMaxDelay + quotaRecheck)
-	q.KeepAdmitted(queued("a", "assistant"))
+	q.Hold(queued("a", "assistant"))
 	Expect(q.Admit(t.Context(), queued("b", "other"), at(2))).To(Equal(Admission{Position: 1}))
 
 	clk.Advance(warmup)

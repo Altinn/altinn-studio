@@ -56,7 +56,8 @@ func NewSteps(queue *Queue, box sandbox.Sandbox, host *runner.Client) *Steps {
 	return &Steps{queue: queue, sandbox: box, host: host}
 }
 
-// Group is the handler group for runs. A handler that ends its run releases the run at once.
+// Group is the handler group for runs. A starting run's steps hold its place in the queue until its Job does, also in a
+// queue that has restarted since. A step that ends its run releases the run at once.
 func (s *Steps) Group() callbacks.Group {
 	group := callbacks.Group{
 		StepAdmit:        s.admit,
@@ -68,26 +69,23 @@ func (s *Steps) Group() callbacks.Group {
 	}
 	for key, handler := range group {
 		group[key] = func(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
+			run, err := s.load(ctx, payload)
+			if err != nil {
+				return callbacks.Response{}, err
+			}
+			if stepMeanings[key].status == StatusStarting {
+				s.queue.Hold(Work{ID: run.id, Kind: run.state.Kind, Caller: run.caller})
+			}
 			response, err := handler(ctx, payload)
 			if _, ok := errors.AsType[*callbacks.End](err); ok {
-				s.releaseEnded(ctx, payload)
+				if failed := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); failed != nil {
+					logging.FromContext(ctx).Info("Could not release a run that ended", "error", failed.Error())
+				}
 			}
 			return response, err
 		}
 	}
 	return group
-}
-
-// releaseEnded releases the run that a step ended. A callback that names no run, or that has no valid state, has
-// nothing to release. If the release fails, the garbage collector deletes the Job.
-func (s *Steps) releaseEnded(ctx context.Context, payload *callbacks.Payload) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return
-	}
-	if err := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); err != nil {
-		logging.FromContext(ctx).Info("Could not release a run that ended", "error", err.Error())
-	}
 }
 
 type stepRun struct {
@@ -135,7 +133,8 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 		return callbacks.Response{}, err
 	}
 	// The engine sends the time it created the step, which stays the same across restarts.
-	admission, err := s.queue.Admit(ctx, run, payload.ExecutionReferenceTime)
+	work := Work{ID: run.id, Kind: run.state.Kind, Caller: run.caller}
+	admission, err := s.queue.Admit(ctx, work, payload.ExecutionReferenceTime)
 	if err != nil {
 		return callbacks.Response{}, err
 	}
@@ -145,22 +144,18 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 	}
 	if payload.IsFinalWaitCheck {
 		// The engine would fail the step after this deferral. Failing it here gives an error that status reads know.
-		s.queue.Forget(run.id)
 		return callbacks.Response{}, errQueueTimeout
 	}
 	reason := fmt.Sprintf("The run is number %d in the queue for %s.", admission.Position, run.state.Kind)
 	return run.wait(payload, AdmitRecheck, reason), nil
 }
 
-// createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full, and
-// renews the run's reservation in the queue on every call.
+// createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full.
 func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
 	run, err := s.load(ctx, payload)
 	if err != nil {
 		return callbacks.Response{}, err
 	}
-	s.queue.KeepAdmitted(run)
-
 	err = s.sandbox.CreateJob(ctx, jobOf(run))
 	switch {
 	case err == nil:
@@ -204,15 +199,10 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 
 	waiting := "Waiting for the operator runner to start."
 	switch pod.Status {
-	case sandbox.JobUnseen:
-		// The sandbox has not seen the new Job yet. Until it does, the run holds its place through its reservation,
-		// which a queue that restarted meanwhile does not know.
-		s.queue.KeepAdmitted(run)
+	case sandbox.JobUnseen, sandbox.PodNone:
 		waiting = "Waiting for the Job to create its pod."
 	case sandbox.JobFailed:
 		return callbacks.Response{}, ends(ReasonStartFailed, "The Job failed: "+pod.Detail, nil)
-	case sandbox.PodNone:
-		waiting = "Waiting for the Job to create its pod."
 	case sandbox.PodEnded:
 		return callbacks.Response{}, ends(ReasonStartFailed, "The pod stopped before it was ready: "+pod.Detail, nil)
 	case sandbox.PodReady:

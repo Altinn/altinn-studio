@@ -108,7 +108,8 @@ the creates of the same labels. The engine's idempotency key is the backstop for
 
 ### The queue
 
-The queue lives in the operator's memory. A run holds a place in the sandbox from its admission until its Job finishes.
+The queue lives in the operator's memory. It knows no VMs: a domain gives its queue the room of each kind, so other
+cluster work can have a queue of its own. A run holds a place in the sandbox from its admission until its Job finishes.
 Until the Job exists, the run holds its place with a reservation, which `run.create-job` and `run.await-pod` renew. The
 queue admits as many runs as the ResourceQuota in [src/core/operator-runner/infra](../operator-runner/infra/kustomize)
 has KVM slots. The quota cannot replace the queue: its limits apply to pods, so it accepts one Job too many, whose pod

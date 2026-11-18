@@ -165,15 +165,15 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 	}
 
 	kind := s.cfg.Kinds[request.Kind]
-	if s.queue.Waiting(request.Kind, caller) >= kind.MaxQueuedPerCaller {
-		return nil, false, ErrQueueFull
-	}
 	run := newRun{
 		ID:     RunID(caller, createKey(request.Kind, request.Labels, after)),
 		Caller: caller,
 		Kind:   request.Kind,
 		Labels: request.Labels,
 		Spec:   specOf(kind, s.cfg.TimeScale),
+	}
+	if err = s.queue.Join(Work{ID: run.ID, Kind: run.Kind, Caller: caller}, kind.MaxQueuedPerCaller); err != nil {
+		return nil, false, err
 	}
 	enqueueRequest, err := BuildEnqueueRequest(run)
 	if err != nil {
@@ -189,9 +189,6 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 		return nil, false, fmt.Errorf("enqueue the run workflow: %w", err)
 	case err != nil:
 		return nil, false, fmt.Errorf("%w: %w", ErrUnavailable, err)
-	}
-	if result.Created {
-		s.queue.Register(run.ID, run.Kind, caller, s.clock.Now())
 	}
 
 	created, err := s.Get(ctx, caller, run.ID, 0)

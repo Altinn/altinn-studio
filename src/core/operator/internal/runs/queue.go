@@ -20,46 +20,73 @@ const (
 	// waitingTTL forgets a queued run that the engine stopped asking about, which happens when its workflow is
 	// canceled. A forgotten run that asks again gets its place back, because its place is its reference time.
 	waitingTTL = 4 * AdmitRecheck
-	// admittedTTL forgets an admitted run whose Job does not appear. run.create-job renews the reservation while it
-	// waits for quota, so this only frees the place of a run whose workflow stopped.
+	// admittedTTL forgets an admitted run that no step holds anymore, which happens when its workflow stopped.
 	admittedTTL = time.Minute
 	// engineLatency is how late the engine may run a step that is due, when it has many to run.
 	engineLatency = 10 * time.Second
 	// warmup is how long a queue admits no one after the operator starts to serve callbacks. While the operator was
 	// down, the engine's retry backoff grew up to retryMaxDelay, so a run may call again that much later, and then
 	// defer once more. By the end of the warmup every queued run has asked again, and every admitted run without a Job
-	// has renewed its reservation from run.create-job, so no run passes an older one and the kind's limit holds.
+	// has held its place again from run.create-job or run.await-pod, so no run passes an older one and the kind's limit
+	// holds.
 	warmup = retryMaxDelay + max(AdmitRecheck, quotaRecheck) + engineLatency
 )
 
-// Queue decides which runs may start, and keeps a run's place from its create until its Job holds it. It reads the
-// sandbox's slots, the kind's limits and the active Jobs on each admit, so it sees the sandbox as it is now. It lives
-// in memory, and the engine's retries rebuild it after a restart. The ResourceQuota cannot replace it, because the
-// quota's limits apply to pods and let one Job too many through.
+// Queue decides which work may start, and keeps the place of the work from its create until something outside the
+// queue holds it, such as a run's Job. It asks its room on each admit, so it sees the room as it is now. It lives in
+// memory, and the engine's retries rebuild it after a restart.
 type Queue struct {
-	started time.Time
-	clock   clock.Clock
-	sandbox sandbox.Sandbox
-	cfg     *config.Config
-	places  map[string]*place
-	mu      sync.Mutex
+	started   time.Time
+	clock     clock.Clock
+	room      func(ctx context.Context, kind string) (Room, error)
+	places    map[string]*place
+	timeScale float64
+	mu        sync.Mutex
 }
 
-// place is a run's place in its kind's queue: in line while the run asks again, and then reserved while the run renews
-// it, until the run's Job holds the place.
+// Work is what waits in a queue: a run, or other work that a caller asked for.
+type Work struct{ ID, Kind, Caller string }
+
+// Room is how much work of a kind may go on at once, and how much of it one caller may, or zero for no limit. Held is
+// the work that holds a place outside the queue.
+type Room struct {
+	Held               []Work
+	Size, MaxPerCaller int
+}
+
+// place is the place of work in its kind's queue: in line while the work asks again, and then reserved while a step
+// holds it, until something outside the queue holds the place.
 type place struct {
 	queuedAt time.Time
 	seen     time.Time
-	runID    string
-	kind     string
-	caller   string
+	work     Work
 	admitted bool
 }
 
-// NewQueue returns a queue that admits no run until Open. The configuration's TimeScale shortens the warmup and the
-// TTLs.
+// NewQueue returns the queue of the runs, which admits no run until Open. Its room is the sandbox's slots, which the
+// Jobs of the kind's runs hold. The ResourceQuota cannot replace it, because the quota's limits apply to pods and let
+// one Job too many through. The configuration's TimeScale shortens the warmup and the TTLs.
 func NewQueue(cfg *config.Config, box sandbox.Sandbox, clk clock.Clock) *Queue {
-	return &Queue{cfg: cfg, sandbox: box, clock: clk, places: make(map[string]*place)}
+	room := func(ctx context.Context, kind string) (Room, error) {
+		limits, ok := cfg.Kinds[kind]
+		if !ok {
+			return Room{}, ends(ReasonStartFailed, "The run's kind is not configured anymore.", nil)
+		}
+		jobs, err := box.ActiveJobs(ctx, limits.Namespace, kind)
+		if err != nil {
+			return Room{}, fmt.Errorf("list the active Jobs: %w", err)
+		}
+		slots, err := box.Slots(ctx, limits.Namespace)
+		if err != nil {
+			return Room{}, fmt.Errorf("read the sandbox's slots: %w", err)
+		}
+		held := make([]Work, 0, len(jobs))
+		for _, job := range jobs {
+			held = append(held, Work{ID: job.RunID, Kind: kind, Caller: job.Caller})
+		}
+		return Room{Held: held, Size: slots, MaxPerCaller: limits.MaxActivePerCaller}, nil
+	}
+	return &Queue{room: room, clock: clk, timeScale: cfg.TimeScale, places: make(map[string]*place)}
 }
 
 // Open starts the warmup. The operator calls it when it starts to serve callbacks, after its cache has synced, since
@@ -78,111 +105,97 @@ type Admission struct {
 	Admitted bool
 }
 
-// Register puts a new run in line before its first run.admit, so the queue limit and the position count it at once.
-func (q *Queue) Register(runID, kind, caller string, queuedAt time.Time) {
+// Join puts new work in line before it first asks, so the position counts it at once, unless its caller has maxWaiting
+// of the kind in line already. Work that has a place keeps it, and work that never asks leaves after the waitingTTL.
+func (q *Queue) Join(work Work, maxWaiting int) error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if found, ok := q.places[runID]; !ok || !found.admitted {
-		q.places[runID] = &place{runID: runID, kind: kind, caller: caller, queuedAt: queuedAt, seen: q.clock.Now()}
+	now := q.clock.Now()
+	q.forgetStaleLocked(now)
+	if _, ok := q.places[work.ID]; ok {
+		return nil
 	}
+	others := func(entry *place) bool { return entry.work.Caller != work.Caller }
+	if len(slices.DeleteFunc(q.waitingLocked(work.Kind), others)) >= maxWaiting {
+		return ErrQueueFull
+	}
+	q.places[work.ID] = &place{work: work, queuedAt: now, seen: now}
+	return nil
 }
 
-// Admit admits a run when it is among the oldest runs of its kind that fit under the kind's limits, and otherwise keeps
-// its place in line by queuedAt, or by now when queuedAt is zero. It ends the run when its kind has left the catalog.
-func (q *Queue) Admit(ctx context.Context, run *stepRun, queuedAt time.Time) (Admission, error) {
-	limits, ok := q.cfg.Kinds[run.state.Kind]
-	if !ok {
-		return Admission{}, ends(ReasonStartFailed, "The run's kind is not configured anymore.", nil)
-	}
-	jobs, err := q.sandbox.ActiveJobs(ctx, run.state.Spec.Namespace, run.state.Kind)
+// Admit admits work when it is among the oldest work of its kind that fits in the kind's room, and otherwise keeps its
+// place in line by queuedAt, or by now when queuedAt is zero.
+func (q *Queue) Admit(ctx context.Context, work Work, queuedAt time.Time) (Admission, error) {
+	room, err := q.room(ctx, work.Kind)
 	if err != nil {
-		return Admission{}, fmt.Errorf("list the active Jobs: %w", err)
-	}
-	slots, err := q.sandbox.Slots(ctx, run.state.Spec.Namespace)
-	if err != nil {
-		return Admission{}, fmt.Errorf("read the sandbox's slots: %w", err)
+		return Admission{}, err
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	now := q.clock.Now()
 	q.forgetStaleLocked(now)
 
-	entry, ok := q.places[run.id]
-	if ok && entry.admitted || slices.ContainsFunc(jobs, func(job sandbox.Ref) bool { return job.RunID == run.id }) {
+	entry, ok := q.places[work.ID]
+	if ok && entry.admitted || slices.ContainsFunc(room.Held, func(held Work) bool { return held.ID == work.ID }) {
 		return Admission{Admitted: true}, nil
 	}
 	if !ok {
-		entry = &place{runID: run.id, kind: run.state.Kind, caller: run.caller}
-		q.places[run.id] = entry
+		entry = &place{work: work}
+		q.places[work.ID] = entry
 	}
 	entry.queuedAt, entry.seen = cmp.Or(queuedAt, now), now
 
-	candidates := q.waitingLocked(run.state.Kind)
-	if q.started.IsZero() || now.Sub(q.started) < scaled(warmup, q.cfg.TimeScale) {
+	candidates := q.waitingLocked(work.Kind)
+	if q.started.IsZero() || now.Sub(q.started) < scaled(warmup, q.timeScale) {
 		return Admission{Position: slices.Index(candidates, entry) + 1}, nil
 	}
-	active, perCaller := q.activeLocked(run.state.Kind, jobs)
+	active, perCaller := q.activeLocked(work.Kind, room.Held)
 	for _, candidate := range candidates {
-		if active >= slots {
+		if active >= room.Size {
 			break
 		}
-		if limits.MaxActivePerCaller > 0 && perCaller[candidate.caller] >= limits.MaxActivePerCaller {
+		if room.MaxPerCaller > 0 && perCaller[candidate.work.Caller] >= room.MaxPerCaller {
 			continue
 		}
 		if candidate == entry {
 			entry.admitted = true
 			return Admission{Admitted: true}, nil
 		}
-		// An older run fits. Its place is kept for it until it asks.
+		// Older work fits. Its place is kept for it until it asks.
 		active++
-		perCaller[candidate.caller]++
+		perCaller[candidate.work.Caller]++
 	}
 
 	return Admission{Position: slices.Index(candidates, entry) + 1}, nil
 }
 
-// KeepAdmitted renews the reservation of an admitted run that has no Job yet, also in a queue that has restarted since
-// the run was admitted.
-func (q *Queue) KeepAdmitted(run *stepRun) {
+// Hold keeps the place of admitted work that nothing outside the queue holds yet, also in a queue that has restarted
+// since the work was admitted.
+func (q *Queue) Hold(work Work) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	now := q.clock.Now()
-	q.places[run.id] = &place{runID: run.id, kind: run.state.Kind, caller: run.caller, seen: now, admitted: true}
+	q.places[work.ID] = &place{work: work, seen: q.clock.Now(), admitted: true}
 }
 
-// Forget removes a run that finished, was canceled or gave up waiting.
-func (q *Queue) Forget(runID string) {
+// Forget removes work that finished, was canceled or gave up waiting.
+func (q *Queue) Forget(id string) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	delete(q.places, runID)
+	delete(q.places, id)
 }
 
-// Position returns the 1-based position of a queued run in its kind's queue.
-func (q *Queue) Position(runID string) (int, bool) {
+// Position returns the 1-based position of queued work in its kind's queue.
+func (q *Queue) Position(id string) (int, bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	entry, ok := q.places[runID]
+	entry, ok := q.places[id]
 	if !ok || entry.admitted {
 		return 0, false
 	}
-	return slices.Index(q.waitingLocked(entry.kind), entry) + 1, true
+	return slices.Index(q.waitingLocked(entry.work.Kind), entry) + 1, true
 }
 
-// Waiting counts the queued runs of a caller for a kind.
-func (q *Queue) Waiting(kind, caller string) int {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	q.forgetStaleLocked(q.clock.Now())
-	count := 0
-	for _, entry := range q.places {
-		if !entry.admitted && entry.kind == kind && entry.caller == caller {
-			count++
-		}
-	}
-	return count
-}
-
-// WaitingByKind counts the queued runs of each kind, for the queue metric.
+// WaitingByKind counts the queued work of each kind, for the queue metric.
 func (q *Queue) WaitingByKind() map[string]int {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -190,7 +203,7 @@ func (q *Queue) WaitingByKind() map[string]int {
 	counts := make(map[string]int)
 	for _, entry := range q.places {
 		if !entry.admitted {
-			counts[entry.kind]++
+			counts[entry.work.Kind]++
 		}
 	}
 	return counts
@@ -202,35 +215,36 @@ func (q *Queue) forgetStaleLocked(now time.Time) {
 		if entry.admitted {
 			ttl = admittedTTL
 		}
-		if now.Sub(entry.seen) > scaled(ttl, q.cfg.TimeScale) {
+		if now.Sub(entry.seen) > scaled(ttl, q.timeScale) {
 			delete(q.places, id)
 		}
 	}
 }
 
-// activeLocked counts the runs that hold a place in the sandbox: Jobs, and admitted runs without a Job yet.
-func (q *Queue) activeLocked(kind string, jobs []sandbox.Ref) (int, map[string]int) {
+// activeLocked counts the work that holds a place in the kind's room: work held outside the queue, and admitted work
+// that the queue holds.
+func (q *Queue) activeLocked(kind string, held []Work) (int, map[string]int) {
 	perCaller := make(map[string]int)
-	withJob := make(map[string]bool, len(jobs))
-	for _, job := range jobs {
-		withJob[job.RunID] = true
-		perCaller[job.Caller]++
+	outside := make(map[string]bool, len(held))
+	for _, work := range held {
+		outside[work.ID] = true
+		perCaller[work.Caller]++
 	}
-	active := len(jobs)
+	active := len(held)
 	for id, entry := range q.places {
-		if entry.admitted && entry.kind == kind && !withJob[id] {
+		if entry.admitted && entry.work.Kind == kind && !outside[id] {
 			active++
-			perCaller[entry.caller]++
+			perCaller[entry.work.Caller]++
 		}
 	}
 	return active, perCaller
 }
 
-// waitingLocked returns the kind's queued runs, oldest first. The run id breaks ties so the order is stable.
+// waitingLocked returns the kind's queued work, oldest first. The id breaks ties so the order is stable.
 func (q *Queue) waitingLocked(kind string) []*place {
 	var candidates []*place
 	for _, entry := range q.places {
-		if !entry.admitted && entry.kind == kind {
+		if !entry.admitted && entry.work.Kind == kind {
 			candidates = append(candidates, entry)
 		}
 	}
@@ -238,7 +252,7 @@ func (q *Queue) waitingLocked(kind string) []*place {
 		if c := a.queuedAt.Compare(b.queuedAt); c != 0 {
 			return c
 		}
-		return strings.Compare(a.runID, b.runID)
+		return strings.Compare(a.work.ID, b.work.ID)
 	})
 	return candidates
 }
