@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- The backend reads a text as a boolean in expressions only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - Calculated values are stored the same way in the form and on the server: ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
   - `true` becomes `"true"` in a text field

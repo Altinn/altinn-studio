@@ -479,8 +479,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Loose conversion rules:
     ///     * Undefined is null
     ///     * Null is false
-    ///     * "true" (case-insensitive) is true
-    ///     * "false" (case-insensitive) is false
+    ///     * "true" is true and "false" is false, in lowercase only, as in the frontend
     ///     * "1" is true
     ///     * "0" is false
     ///     * 1 is true
@@ -502,8 +501,6 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
                 "false" => false,
                 "1" => true,
                 "0" => false,
-                { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => true,
-                { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => false,
                 _ => ExpressionEvaluator.ParseNumber(String, throwException: false) switch
                 {
                     1 => true,
@@ -527,7 +524,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// <remarks>
     /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
     /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" to int, but not " 123 " or a
-    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "TRUE", "1" and 1 to true, but not 2), and a number
+    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "1" and 1 to true, but not "TRUE" or 2), and a number
     /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
     /// list of scalars is converted item by item with the same rules.
     /// </remarks>
@@ -553,7 +550,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// <remarks>
     /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
     /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" to int, but not " 123 " or a
-    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "TRUE", "1" and 1 to true, but not 2), and a number
+    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "1" and 1 to true, but not "TRUE" or 2), and a number
     /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
     /// list of scalars is converted item by item with the same rules.
     /// </remarks>

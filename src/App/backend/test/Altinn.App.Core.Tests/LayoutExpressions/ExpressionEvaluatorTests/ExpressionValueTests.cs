@@ -243,8 +243,9 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize("0.1", false, false);
         TestTryDeserialize("false", false, true);
         TestTryDeserialize("true", true, true);
-        TestTryDeserialize("trUe", true, true);
-        TestTryDeserialize("falSe", false, true);
+        // Only lowercase, as the frontend
+        TestTryDeserialize("trUe", false, false);
+        TestTryDeserialize("falSe", false, false);
 
         TestTryDeserialize<bool?>("0", false, true);
         TestTryDeserialize<bool?>("1", true, true);
@@ -253,8 +254,8 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize<bool?>("0.1", null, false);
         TestTryDeserialize<bool?>("false", false, true);
         TestTryDeserialize<bool?>("true", true, true);
-        TestTryDeserialize<bool?>("faLse", false, true);
-        TestTryDeserialize<bool?>("trUe", true, true);
+        TestTryDeserialize<bool?>("faLse", null, false);
+        TestTryDeserialize<bool?>("trUe", null, false);
         TestTryDeserialize(true, true, true);
         TestTryDeserialize(false, false, true);
         TestTryDeserialize(ExpressionValue.Null, (string?)null, true);
@@ -524,8 +525,9 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         Assert.False(((ExpressionValue)"false").ToBoolLoose());
         Assert.True(((ExpressionValue)"1").ToBoolLoose());
         Assert.False(((ExpressionValue)"0").ToBoolLoose());
-        Assert.True(((ExpressionValue)"TRUE").ToBoolLoose());
-        Assert.False(((ExpressionValue)"FALSE").ToBoolLoose());
+        // Only lowercase, as the frontend's boolean cast
+        Assert.Null(((ExpressionValue)"TRUE").ToBoolLoose());
+        Assert.Null(((ExpressionValue)"False").ToBoolLoose());
         Assert.Null(((ExpressionValue)"maybe").ToBoolLoose());
         // Strings that aren't literally "1"/"0" but parse numerically to 1/0 hit the ParseNumber fallback
         Assert.True(((ExpressionValue)"1.0").ToBoolLoose());
@@ -774,8 +776,8 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     [InlineData("1", true)]
     [InlineData("0", false)]
     [InlineData("true", true)]
-    [InlineData("TRUE", true)]
-    [InlineData("False", false)]
+    [InlineData("false", false)]
+    [InlineData("1.0", true)]
     public void TryDeserialize_ReadsABoolAsToBoolLooseDoes(object value, bool expected)
     {
         var expressionValue = ExpressionValue.FromObject(value);
@@ -794,6 +796,8 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     [InlineData("2")]
     [InlineData("yes")]
     [InlineData(" true ")]
+    [InlineData("TRUE")]
+    [InlineData("False")]
     [InlineData("")]
     public void TryDeserialize_RefusesABoolThatToBoolLooseRefuses(object value)
     {
