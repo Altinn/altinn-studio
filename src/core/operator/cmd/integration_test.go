@@ -275,8 +275,8 @@ func (it *integration) cancelDeletesTheJob(t *testing.T) {
 	assistant.cancel(run.ID)
 	_, ok := it.box.Job(namespace, run.ID)
 	Expect(ok).To(BeFalse())
-	Eventually(func() int { return assistant.call(http.MethodPost, "/api/v1/runs/"+run.ID+"/cancel", "", nil) }).
-		Should(Equal(http.StatusOK), "the engine has canceled the workflow")
+	Eventually(assistant.workflow, 10*time.Second).WithArguments(run.ID).
+		Should(ContainSubstring(`"overallStatus":"Canceled"`), "the engine has canceled the workflow")
 	Expect(assistant.call(http.MethodGet, "/api/v1/runs/"+run.ID+"/result", "", nil)).To(Equal(http.StatusConflict))
 }
 
