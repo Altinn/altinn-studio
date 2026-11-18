@@ -226,12 +226,39 @@ export default defineConfig([
     },
   },
   {
+    // The table restriction above, for the query directory that block ignores
+    files: ['src/core/queries/**/*.{js,cjs,mjs,jsx,ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table', 'TableHead', 'TableBody', 'TableFoot', 'TableRow', 'TableHeaderCell', 'TableCell'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.{js,cjs,mjs,jsx,ts,tsx}'],
     ignores: ['src/core/queries/**'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table', 'TableHead', 'TableBody', 'TableFoot', 'TableRow', 'TableHeaderCell', 'TableCell'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
+            },
+          ],
           patterns: [
             {
               regex: '^@tanstack/(react-query(?:-devtools)?|query-core)(/|$)',
