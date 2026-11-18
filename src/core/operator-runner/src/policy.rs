@@ -32,7 +32,7 @@ impl AllowedHosts {
 /// Lets the VM of a run resolve and reach the hosts of its command with HTTPS. It blocks all other network access.
 ///
 /// This policy checks host names, not addresses. The Sandbox network layer verifies the certificate of the server for
-/// the host name, and the network policy of `sandbox-runs` blocks the private address ranges.
+/// the host name, and the network policy of `core-operator-runners` blocks the private address ranges.
 pub struct AllowlistPolicy {
     hosts: AllowedHosts,
 }

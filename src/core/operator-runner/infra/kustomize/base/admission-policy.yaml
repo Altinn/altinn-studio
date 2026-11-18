@@ -42,5 +42,5 @@ spec:
   validationActions: [Deny]
   paramRef:
     name: operator-runner
-    namespace: sandbox-runs
+    namespace: core-operator-runners
     parameterNotFoundAction: Deny

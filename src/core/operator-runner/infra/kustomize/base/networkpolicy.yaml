@@ -11,8 +11,8 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: sandbox-runs
-  namespace: sandbox-runs
+  name: core-operator-runners
+  namespace: core-operator-runners
 spec:
   podSelector: {}
   policyTypes:

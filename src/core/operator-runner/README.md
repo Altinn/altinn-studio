@@ -10,10 +10,10 @@ the protocol. [Add a command](#add-a-command) says how.
 
 ## How a run is isolated
 
-The core operator creates one Kubernetes Job for each run, in the namespace `sandbox-runs`. The pod of that Job runs the
-operator runner, a Rust program that uses the [Sandbox SDK](https://github.com/digdir/digdir-agents). The operator
-runner takes one run. It runs the command in a new microVM, deletes the VM, keeps the result until the caller of the
-operator fetches it, and exits.
+The core operator creates one Kubernetes Job for each run, in the namespace `core-operator-runners`. The pod of that Job
+runs the operator runner, a Rust program that uses the [Sandbox SDK](https://github.com/digdir/digdir-agents). The
+operator runner takes one run. It runs the command in a new microVM, deletes the VM, keeps the result until the caller
+of the operator fetches it, and exits.
 
 App code in a run can get:
 
@@ -167,8 +167,8 @@ the operator runner in a container and call it with `curl`.
 
 ## Deploy
 
-[`infra/kustomize`](infra/kustomize) has the namespace `sandbox-runs`, and what the core operator needs to start runs in
-it. Each file says why it is there.
+[`infra/kustomize`](infra/kustomize) has the namespace `core-operator-runners`, and what the core operator needs to
+start runs in it. Each file says why it is there.
 
 [`deploy-core-operator-runner.yaml`](../../../.github/workflows/deploy-core-operator-runner.yaml) builds the guest
 image, the operator runner image and the prepared guest image. It pins them by digest in the PodTemplate, and pushes

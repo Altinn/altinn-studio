@@ -5,7 +5,7 @@ apiVersion: v1
 kind: PodTemplate
 metadata:
   name: operator-runner
-  namespace: sandbox-runs
+  namespace: core-operator-runners
   annotations:
     altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner:latest
     altinn.studio/image-tag: latest

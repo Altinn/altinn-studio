@@ -6,7 +6,7 @@ resources:
 patches:
   - target:
       kind: ResourceQuota
-      name: sandbox-runs
+      name: core-operator-runners
     patch: |-
       - op: replace
         path: /spec/hard
