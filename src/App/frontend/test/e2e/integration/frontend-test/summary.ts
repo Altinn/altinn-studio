@@ -47,8 +47,10 @@ describe('Summary', () => {
 
     const table = () => cy.findByRole('table', { name: 'Group summary title' });
     table().should('have.css', 'display', 'table');
+    table().findByRole('columnheader', { name: 'Endre fra' }).should('be.visible');
     cy.viewport(breakpoints.md - 5, 1024);
     table().should('have.css', 'display', 'block');
+    table().find('th').should('not.exist');
     table()
       .find('td[data-header-title]')
       .should(($cells) => {
@@ -64,13 +66,16 @@ describe('Summary', () => {
 
     cy.viewport('samsung-s10');
     table().should('have.css', 'display', 'block');
+    table().find('th').should('not.exist');
     cy.viewport(breakpoints.md, 768);
     table().should('have.css', 'display', 'table');
+    table().findByRole('columnheader', { name: 'Endre fra' }).should('be.visible');
     cy.visualTesting('summary:repeating-group-table');
 
     cy.testPdf({
       callback: () => {
         table().should('have.css', 'display', 'table').and('contain.text', '124');
+        table().findByRole('columnheader', { name: 'Endre fra' }).should('be.visible');
         table()
           .findByRole('button', { name: /^Endre/ })
           .should('not.exist');
