@@ -82,7 +82,8 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		case errors.Is(err, ErrNotFound):
 			// The engine has no workflow for the Job, so nothing else will delete it.
 		case err != nil:
-			logger.Info("Could not find the workflow of a run Job", "runId", job.RunID, "error", err.Error())
+			logging.Warn(logger, "Could not find the workflow of a run Job", "runId", job.RunID, "error", err.Error())
+			failed = "locate_workflow"
 			continue
 		case !callbacks.Read(workflow).Settled:
 			continue

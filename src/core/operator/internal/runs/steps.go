@@ -80,7 +80,8 @@ func (s *Steps) Group() callbacks.Group {
 			response, err := handler(ctx, payload)
 			if _, ok := errors.AsType[*callbacks.End](err); ok {
 				if failed := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); failed != nil {
-					logging.FromContext(ctx).Info("Could not release a run that ended", "error", failed.Error())
+					logger := logging.FromContext(ctx)
+					logging.Warn(logger, "Could not release a run that ended", "error", failed.Error())
 				}
 			}
 			return response, err

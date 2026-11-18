@@ -395,8 +395,7 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 	// The engine stops its calls to the steps of the run, but the Job continues its command to the end. If this release
 	// fails, the garbage collector deletes the Job.
 	if err := release(ctx, s.queue, s.sandbox, rec.state.Spec.Namespace, runID); err != nil {
-		logging.FromContext(ctx).
-			Info("Could not release a canceled run", "runId", runID, "error", err.Error())
+		logging.Warn(logging.FromContext(ctx), "Could not release a canceled run", "runId", runID, "error", err.Error())
 	}
 	// The engine stored the cancel, so the run reads as canceled, or as running until its command ends.
 	run, getErr := s.Get(ctx, caller, runID, 0)
