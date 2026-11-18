@@ -12,6 +12,16 @@ configuration must keep working.
 - [Correspondence](docs/correspondence.md) covers the emulated Correspondence API and the Messages page.
 - [Notifications](src/Notifications/README.md) covers how the Notifications emulation is copied from the real service.
 
+## Which apps Localtest sees
+
+Localtest lists and serves only the apps that studioctl has registered. It does not probe a fixed port. `studioctl run`
+registers the app with studioctl-server when it starts it, studioctl-server writes the app into the environment
+topology, and Localtest reads the app's application metadata from the address in the topology, in
+[`LocalAppHttp`](src/Services/LocalApp/Implementation/LocalAppHttp.cs). So an app started with `dotnet run` directly
+is not visible, and neither is a registered app that failed to start, which Localtest logs as "Failed to get metadata
+for discovered app". When the start page says "No apps are currently running", check `studioctl app ps` and
+`studioctl app logs` before anything else.
+
 ## Test data
 
 The built-in test users are in [`testdata/`](testdata), and the Localtest image includes them. App developers define
