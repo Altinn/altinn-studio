@@ -1,39 +1,48 @@
-import { replaceFrontendVersion } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
+import {
+  getFrontendVersionFromUrl,
+  getUrlWithFrontendVersion,
+  isValidFrontendVersion,
+} from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
 
-describe('versionSwitcherUtils', () => {
-  it('replaces the js and css asset urls with the selected version', () => {
-    const html = `
-<html lang="nb" dir="ltr" class="viewport-is-desktop"><head>
-  <meta charset="utf-8">
+describe('isValidFrontendVersion', () => {
+  it.each(['9.0.0', '9.0.0-preview.12', '4.37.0-pr.6091.receipt-no-data-elements.daa8e9dc'])('accepts %s', (v) => {
+    expect(isValidFrontendVersion(v)).toBe(true);
+  });
 
-  <!-- <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/4.31.3-preview.1/altinn-app-frontend.css"> -->
-  <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.css">
-  <base href="https://ttd.apps.tt02.altinn.no/ttd/signering-brukerstyrt/"></head>
+  it.each(['', '9', '9.0', 'v9.0.0', '9.0.0-', 'https://evil.example/x', '../9.0.0', '9.0.0?x=1', '٩.٠.٠'])(
+    'rejects %s',
+    (v) => {
+      expect(isValidFrontendVersion(v)).toBe(false);
+    },
+  );
 
-  <body style="background: rgb(255, 255, 255);">
-    <!-- <script src="https://altinncdn.no/toolkits/altinn-app-frontend/4.31.3-preview.1/altinn-app-frontend.js"></script> -->
-    <script src="https://altinncdn.no/toolkits/altinn-app-frontend/4/altinn-app-frontend.js"></script>
-  </body>
-  </html>
-      `;
+  it('rejects too long versions', () => {
+    expect(isValidFrontendVersion(`9.0.0-${'a'.repeat(100)}`)).toBe(false);
+  });
+});
 
-    const expected = `
-<html lang="nb" dir="ltr" class="viewport-is-desktop"><head>
-  <meta charset="utf-8">
+describe('getFrontendVersionFromUrl', () => {
+  it('reads the version from the address', () => {
+    expect(getFrontendVersionFromUrl('http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.0-preview.10')).toBe(
+      '9.0.0-preview.10',
+    );
+  });
 
-  <!-- <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/4.60/altinn-app-frontend.css"> -->
-  <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/4.60/altinn-app-frontend.css">
-  <base href="https://ttd.apps.tt02.altinn.no/ttd/signering-brukerstyrt/"></head>
+  it('returns an empty string without the parameter', () => {
+    expect(getFrontendVersionFromUrl('http://local.altinn.cloud/ttd/app/')).toBe('');
+  });
+});
 
-  <body style="background: rgb(255, 255, 255);">
-    <!-- <script src="https://altinncdn.no/toolkits/altinn-app-frontend/4.60/altinn-app-frontend.js"></script> -->
-    <script src="https://altinncdn.no/toolkits/altinn-app-frontend/4.60/altinn-app-frontend.js"></script>
-  </body>
-  </html>
-      `;
+describe('getUrlWithFrontendVersion', () => {
+  it('sets the version and keeps the path, other parameters and hash', () => {
+    expect(
+      getUrlWithFrontendVersion('http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1?lang=en#x', '9.0.0'),
+    ).toBe('http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1?lang=en&frontendVersion=9.0.0#x');
+  });
 
-    const selectedVersion = 'https://altinncdn.no/toolkits/altinn-app-frontend/4.60';
-    const result = replaceFrontendVersion(html, selectedVersion);
-    expect(result).toBe(expected);
+  it('replaces a version that is already in the address', () => {
+    expect(getUrlWithFrontendVersion('http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.0', '9.0.1')).toBe(
+      'http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.1',
+    );
   });
 });
