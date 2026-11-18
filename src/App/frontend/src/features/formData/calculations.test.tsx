@@ -371,12 +371,12 @@ describe('calculations in the form store', () => {
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ summary: { Rows: 3, Total: 3 } });
   });
 
-  it('preserves explicit nulls without creating absent objects for empty calculations', async () => {
+  it('preserves explicit nulls without creating absent objects for null results', async () => {
     const { store } = await renderCalculations(
       {
         calculations: [
-          { field: 'nullableNumber', expression: null },
-          { field: 'missingObject.label', expression: null },
+          { field: 'nullableNumber', expression: ['if', false, 1, 'else', null] },
+          { field: 'missingObject.label', expression: ['if', false, 'x', 'else', null] },
         ],
       },
       { nullableNumber: null },
@@ -625,14 +625,21 @@ describe('calculations in the form store', () => {
   });
 
   it('skips malformed definitions without losing valid calculations', () => {
-    vi.spyOn(window, 'logWarn').mockImplementation(() => undefined);
+    const logWarn = vi.spyOn(window, 'logWarn').mockImplementation(() => undefined);
     expect(
       resolveCalculationConfig({
-        calculations: [{ field: 'total' }, { expression: true }, null, { field: 'enabled', expression: false }],
+        calculations: [
+          { field: 'total' },
+          { expression: true },
+          null,
+          { field: 'label', expression: null },
+          { field: 'enabled', expression: false },
+        ],
       }),
     ).toEqual({
       calculations: [{ field: 'enabled', expression: false }],
     });
+    expect(logWarn).toHaveBeenCalledWith('Skipping invalid calculation for label');
     expect(resolveCalculationConfig(null)).toBeNull();
   });
 

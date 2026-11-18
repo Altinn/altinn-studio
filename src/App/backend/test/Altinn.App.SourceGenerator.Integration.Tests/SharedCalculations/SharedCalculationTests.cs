@@ -206,9 +206,9 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
                     (testCase.DataModel is null) != (testCase.DataModels is null),
                     $"{where} must have either dataModel or dataModels"
                 );
+                // expectsFailureBackend may stand next to expects: the backend fails, the frontend gets the result
                 Assert.True(
-                    testCase.Expects is null
-                        || (testCase.ExpectsFailure is null && testCase.ExpectsFailureBackend is null),
+                    testCase.Expects is null || testCase.ExpectsFailure is null,
                     $"{where} has both expects and expectsFailure"
                 );
                 Assert.True(

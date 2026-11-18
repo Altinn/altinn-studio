@@ -1,7 +1,6 @@
 {
   "name": "A calculation whose expression is null",
-  "comment": "The backend rejects the calculation file. The frontend accepts null as a literal expression, and clears the field.",
-  "disabledFrontend": true,
+  "comment": "The backend rejects the whole calculation file. The frontend skips the calculation with a warning, as it does with other invalid calculations.",
   "dataModel": {
     "text": "old"
   },
@@ -11,5 +10,9 @@
       "expression": null
     }
   ],
-  "expectsFailure": "\"expression\" must not be null"
+  "expects": {
+    "text": "old"
+  },
+  "expectsWarnings": ["Skipping invalid calculation for text"],
+  "expectsFailureBackend": "\"expression\" must not be null"
 }

@@ -226,6 +226,14 @@ describe('Shared calculation tests', () => {
     }
   });
 
+  // expectsFailureBackend may stand next to expects: the backend fails with it, and the frontend gets the result
+  it.each(files)('$file has one kind of expectation in each case', ({ test }) => {
+    for (const testCase of getCalculationTestCases(test)) {
+      expect(testCase.expects === undefined || testCase.expectsFailure === undefined, testCase.name).toBe(true);
+      expect(testCase.expects !== undefined || testCase.expectsFailure !== undefined, testCase.name).toBe(true);
+    }
+  });
+
   describe.each(files)('$file', ({ test }) => {
     const cases = getCalculationTestCases(test).filter(
       (testCase) => !testCase.disabledFrontend || process.env.RUN_DISABLED,

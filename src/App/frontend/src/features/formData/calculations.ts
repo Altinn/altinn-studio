@@ -36,6 +36,7 @@ export function resolveCalculationConfig(config: unknown): CalculationConfig | n
       typeof field === 'string' &&
       field.trim() !== '' &&
       expression !== undefined &&
+      expression !== null &&
       ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)
     ) {
       calculations.push({ field, expression });
