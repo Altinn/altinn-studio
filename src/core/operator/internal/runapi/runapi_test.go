@@ -2,22 +2,27 @@ package runapi
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	. "github.com/onsi/gomega"
 
 	"altinn.studio/core-operator/internal/auth"
+	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/clock"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
 	"altinn.studio/core-operator/internal/engine/enginetest"
 	"altinn.studio/core-operator/internal/runner"
+	"altinn.studio/core-operator/internal/runner/runnertest"
 	"altinn.studio/core-operator/internal/runs"
+	"altinn.studio/core-operator/internal/sandbox"
 	"altinn.studio/core-operator/internal/sandbox/sandboxtest"
 )
 
@@ -29,6 +34,9 @@ const (
 type apiHarness struct {
 	clock   *clock.FakeClock
 	engine  *enginetest.Engine
+	host    *runnertest.Runner
+	box     *sandboxtest.Sandbox
+	steps   http.Handler
 	handler http.Handler
 }
 
@@ -37,6 +45,9 @@ func newAPI(t *testing.T) *apiHarness {
 	clk := clock.NewFakeClockAt(time.Date(2026, 11, 3, 10, 0, 0, 0, time.UTC))
 	fakeEngine := enginetest.New(clk.Now)
 	t.Cleanup(fakeEngine.Close)
+	host := runnertest.New()
+	t.Cleanup(host.Close)
+	_, port := host.Address()
 	kindConfig := config.Kind{
 		Namespace: "sandbox-runs", PodTemplate: "operator-runner", Command: kind, RequiresArchive: true,
 		Labels:             []string{"org", "app", "repoOwner", "repo", "commit"},
@@ -53,9 +64,66 @@ func newAPI(t *testing.T) *apiHarness {
 	box := sandboxtest.New()
 	box.SlotCount = 1
 	queue := runs.NewQueue(cfg, box, clk)
-	service := runs.NewService(cfg, queue, engine.NewClient(fakeEngine.URL(), http.DefaultClient),
-		runner.NewClient(http.DefaultClient, runner.Port, box), box, clk)
-	return &apiHarness{clock: clk, engine: fakeEngine, handler: New(service).Handler()}
+	// A minute is longer than the queue's warmup, so run.admit admits a run at once.
+	queue.Open()
+	clk.Advance(time.Minute)
+	hostClient := runner.NewClient(http.DefaultClient, port, box)
+	service := runs.NewService(cfg, queue, engine.NewClient(fakeEngine.URL(), http.DefaultClient), hostClient, box, clk)
+	return &apiHarness{
+		clock:   clk,
+		engine:  fakeEngine,
+		host:    host,
+		box:     box,
+		steps:   callbacks.NewRouter(clk, runs.NewSteps(queue, box, hostClient).Group()),
+		handler: New(service).Handler(),
+	}
+}
+
+// awaitArchive takes the run through the steps before run.await-archive, as the engine would, with its pod ready at
+// the fake operator runner. The fake engine runs no step, so this stores each step as completed, with its answer's
+// state.
+func (h *apiHarness) awaitArchive(t *testing.T, runID string) {
+	t.Helper()
+	stored := h.workflow(t, runID)
+	var workflowContext callbacks.Context
+	Expect(json.Unmarshal(stored.Request.Context, &workflowContext)).To(Succeed())
+	state := stored.Request.Workflows[0].State
+	ip, _ := h.host.Address()
+	for i, key := range []string{runs.StepAdmit, runs.StepCreateJob, runs.StepAwaitPod} {
+		if key == runs.StepAwaitPod {
+			h.box.SetPod("sandbox-runs", runID, sandbox.Pod{Status: sandbox.PodReady, IP: ip})
+		}
+		deadline := h.clock.Now().Add(time.Minute)
+		body, err := json.Marshal(callbacks.Payload{
+			CommandKey: key, Context: workflowContext, WorkflowID: stored.State.DatabaseID,
+			ExecutionReferenceTime: stored.State.CreatedAt, ExecutionDeadline: &deadline, State: state,
+		})
+		Expect(err).NotTo(HaveOccurred())
+		res := httptest.NewRecorder()
+		h.steps.ServeHTTP(res, httptest.NewRequestWithContext(
+			t.Context(), http.MethodPost, callbacks.PathPrefix+key, bytes.NewReader(body)))
+		Expect(res.Code).To(Equal(http.StatusOK), res.Body.String())
+		var answer callbacks.Response
+		Expect(json.Unmarshal(res.Body.Bytes(), &answer)).To(Succeed())
+		Expect(answer.Defer).To(BeNil(), key)
+		state = answer.State
+		now := h.clock.Now()
+		h.engine.Update(stored.State.DatabaseID, func(w *engine.Workflow) {
+			w.Steps[i].Status, w.Steps[i].UpdatedAt, w.Steps[i].StateOut = engine.StatusCompleted, &now, state
+		})
+	}
+}
+
+// workflow finds a run's workflow in the fake engine.
+func (h *apiHarness) workflow(t *testing.T, runID string) enginetest.Workflow {
+	t.Helper()
+	for _, workflow := range h.engine.Workflows() {
+		if workflow.State.Labels["runId"] == runID {
+			return workflow
+		}
+	}
+	t.Fatalf("no workflow for run %s", runID)
+	return enginetest.Workflow{}
 }
 
 func (h *apiHarness) do(t *testing.T, caller string, req *http.Request) *httptest.ResponseRecorder {
@@ -92,6 +160,25 @@ func createBody(kindName, repo string) []byte {
 func (h *apiHarness) createRun(t *testing.T, caller string, body []byte) *httptest.ResponseRecorder {
 	t.Helper()
 	return h.request(t, caller, http.MethodPost, "/api/v1/runs", "application/json", body)
+}
+
+// upload puts the archive of a run as the caller, and returns the status code. A body that is not a bytes or a
+// strings reader has no length, as in a chunked upload.
+func (h *apiHarness) upload(t *testing.T, caller, runID, contentType string, body io.Reader) int {
+	t.Helper()
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPut, "/api/v1/runs/"+runID+"/archive", body)
+	req.Header.Set("Content-Type", contentType)
+	return h.do(t, caller, req).Code
+}
+
+func gzipped(t *testing.T, content string) []byte {
+	t.Helper()
+	var buffer bytes.Buffer
+	writer := gzip.NewWriter(&buffer)
+	_, err := writer.Write([]byte(content))
+	Expect(err).NotTo(HaveOccurred())
+	Expect(writer.Close()).To(Succeed())
+	return buffer.Bytes()
 }
 
 func decodeRun(t *testing.T, res *httptest.ResponseRecorder) runs.Run {
@@ -243,6 +330,36 @@ func TestGetAndCancelRun(t *testing.T) {
 	res = h.createRun(t, "assistant", createBody(kind, "app"))
 	Expect(res.Code).To(Equal(http.StatusAccepted))
 	Expect(decodeRun(t, res).ID).NotTo(Equal(created.ID))
+}
+
+func TestUploadArchive(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
+	archive := gzipped(t, "app")
+	Expect(h.upload(t, "assistant", created.ID, "application/gzip", bytes.NewReader(archive))).
+		To(Equal(http.StatusConflict), "the run is queued")
+
+	h.awaitArchive(t, created.ID)
+	Expect(h.upload(t, "assistant", created.ID, "application/json", bytes.NewReader(archive))).
+		To(Equal(http.StatusUnsupportedMediaType))
+	Expect(h.upload(t, "assistant", created.ID, "application/gzip", strings.NewReader("PK\x03\x04"))).
+		To(Equal(http.StatusBadRequest), "the operator runner refuses a body that is not gzip")
+	Expect(h.upload(t, "designer", created.ID, "application/gzip", bytes.NewReader(archive))).
+		To(Equal(http.StatusNotFound), "another caller's run")
+	large := make([]byte, runs.MaxArchiveBytes+1)
+	Expect(h.upload(t, "assistant", created.ID, "application/gzip", bytes.NewReader(large))).
+		To(Equal(http.StatusRequestEntityTooLarge), "from its length")
+	Expect(h.upload(t, "assistant", created.ID, "application/gzip", io.MultiReader(bytes.NewReader(large)))).
+		To(Equal(http.StatusRequestEntityTooLarge), "from its chunks")
+	Expect(h.host.Claimed()).To(BeEmpty())
+
+	Expect(h.upload(t, "assistant", created.ID, "Application/GZIP; x=y", bytes.NewReader(archive))).
+		To(Equal(http.StatusAccepted))
+	Expect(h.upload(t, "assistant", created.ID, "application/gzip", bytes.NewReader(gzipped(t, "again")))).
+		To(Equal(http.StatusAccepted), "an upload that comes again")
+	runID, command, received, starts := h.host.Snapshot()
+	Expect([]any{runID, command, received, starts}).To(Equal([]any{created.ID, kind, archive, 2}))
 }
 
 func TestListKinds(t *testing.T) {
