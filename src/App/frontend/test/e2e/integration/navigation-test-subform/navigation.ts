@@ -609,27 +609,38 @@ describe('navigation', () => {
     cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
     cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
     back().click();
-    cy.findByRole('textbox', { name: /Fornavn/ }).should('be.visible');
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/firstname$/);
+    cy.findByRole('textbox', { name: /Fornavn/ }).should('have.value', '');
     cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
     back().click();
+    cy.location('pathname').should('match', /\/summary$/);
+    cy.navGroup(/Innsending/, /Oppsummering/).should('have.attr', 'aria-current', 'page');
     summary();
     cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).clickAndGone();
     cy.findByRole('textbox', { name: /Fornavn/ }).clear();
     back().click();
-    cy.findByRole('textbox', { name: /Fornavn/ }).should('be.visible');
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/firstname$/);
+    cy.findByRole('textbox', { name: /Fornavn/ }).should('have.value', '');
     cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
     back().click();
 
     // Summary2 and linkToComponent use component Next before the page's disabled return setting.
     edit('age');
     back().click();
-    cy.findByRole('textbox', { name: /Alder/ }).should('be.visible');
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/age$/);
+    cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '');
     cy.findByRole('textbox', { name: /Alder/ }).type('42');
     back().click();
     cy.findByRole('link', { name: 'Rediger alder via lenke' }).clickAndGone();
     cy.findByRole('textbox', { name: /Alder/ }).should('be.focused');
     cy.findByRole('textbox', { name: /Alder/ }).clear();
     back().click();
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/age$/);
+    cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '');
     cy.findByRole('textbox', { name: /Alder/ }).type('42');
     back().click();
 
@@ -664,6 +675,9 @@ describe('navigation', () => {
     // Starting a new edit while the page is hidden also resets when that page reappears.
     summary();
     edit('extra');
+    cy.openNavGroup(/Innsending/);
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('not.exist');
+    back().should('be.visible');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
     back().should('not.exist');
     summary();
