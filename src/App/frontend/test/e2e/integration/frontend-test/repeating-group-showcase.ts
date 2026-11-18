@@ -341,7 +341,7 @@ describe('Repeating group validation showcase', () => {
     });
   }
 
-  it('targets a row container separately from the entire repeating group', () => {
+  it('targets a real row object separately from the entire repeating array', () => {
     setup();
     cy.findByRole('checkbox', { name: 'På feltene' }).uncheck();
     cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
@@ -357,9 +357,10 @@ describe('Repeating group validation showcase', () => {
       dialog().type('{esc}');
     }
     openRow('table', 0);
-    dialog().find('[role="link"][data-target-node="validation-table-row-0"]').focus().click();
+    dialog().find('[role="link"][data-target-node="validation-table"]').focus().click();
     dialog().should('not.exist');
-    cy.get(row('table', 0)).find(indicator).should('have.focus').and('have.attr', 'aria-expanded', 'false');
+    cy.get('#validation-table-name-0').should('have.focus');
+    cy.get(row('table', 0)).find(indicator).should('have.attr', 'aria-expanded', 'false');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();

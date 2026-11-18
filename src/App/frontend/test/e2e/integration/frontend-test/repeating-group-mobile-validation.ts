@@ -197,7 +197,7 @@ describe('Repeating-group validation on mobile', () => {
     cy.get('#validation-table-age-4').should('have.focus');
   });
 
-  it('retains row-container and whole-group validation messages at mobile widths', () => {
+  it('retains real row-object and whole-array validation messages at mobile widths', () => {
     setup(390);
     cy.findByRole('checkbox', { name: 'På feltene' }).uncheck();
     cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
@@ -207,9 +207,9 @@ describe('Repeating-group validation on mobile', () => {
     cy.get('[data-testid="NavigationButtons"]').find('button').should('not.be.disabled');
     openRow('table', 0);
     dialog().should('contain.text', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.');
-    dialog().find('[role="link"][data-target-node="validation-table-row-0"]').focus().click();
+    dialog().find('[role="link"][data-target-node="validation-table"]').focus().click();
     dialog().should('not.exist');
-    cy.get(row('table', 0)).find(indicator).should('have.focus');
+    cy.get('#validation-table-name-0').should('have.focus');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();
