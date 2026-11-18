@@ -20,7 +20,7 @@ const (
 	// waitingTTL is the time after which the queue forgets a queued run that the engine does not ask about anymore.
 	// This occurs if someone cancels its workflow. A forgotten run that asks again gets its place back, because its
 	// place is its reference time.
-	waitingTTL = 4 * AdmitRecheck
+	waitingTTL = 2*AdmitRecheck + engineLatency
 	// admittedTTL is the time after which the queue forgets an admitted run that no step holds anymore. This occurs if
 	// its workflow stopped.
 	admittedTTL = time.Minute
