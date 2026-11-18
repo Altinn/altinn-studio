@@ -21,7 +21,7 @@ var errTest = errors.New("test failure")
 
 func readContract(t *testing.T, name string) []byte {
 	t.Helper()
-	data, err := os.ReadFile(filepath.Join("..", "..", "api", "callbacks", name))
+	data, err := os.ReadFile(filepath.Join("..", "..", "testdata", "callbacks", name))
 	if err != nil {
 		t.Fatal(err)
 	}

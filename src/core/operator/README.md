@@ -177,14 +177,14 @@ The report of `upgrade-v9` is the output of `studioctl app upgrade v9 --json`, a
 ## Callback contract
 
 The engine sends `POST /workflow-engine-callbacks/{commandKey}` to the callback port for each step, with a payload such
-as [payload.json](api/callbacks/payload.json).
+as [payload.json](testdata/callbacks/payload.json).
 
 The operator answers:
 
 - 2xx with an empty body, or `{"state": "…"}`, when the step is done. `state` reaches the next step as its `state`.
 - 2xx with `{"state": "…", "defer": {"delay": "00:00:05", "reason": "queued"}}` when the step waits. `delay` is a
   .NET `TimeSpan` in the constant format `[d.]hh:mm:ss[.fffffff]`.
-- 422 with a problem such as [response-end.json](api/callbacks/response-end.json) when the step must fail without a
+- 422 with a problem such as [response-end.json](testdata/callbacks/response-end.json) when the step must fail without a
   retry. The engine keeps the problem as the step's error, and the run's status reads the reason from it.
 - 503 when the engine should retry the step. For other answers, the engine's `NonRetryableHttpStatusCodes` decide.
 
@@ -212,7 +212,7 @@ The [Makefile](Makefile) has the checks that CI runs. `make manifests` builds th
   API server accepts the Jobs that the operator builds. Change those files and the Job builder together.
 - The tests of the run steps call each step as the engine does, with an in-memory operator runner and sandbox. No test
   simulates the engine: the fake engine in `internal/engine/enginetest` only stores workflows. The contract tests read
-  the callback examples in [api/callbacks](api/callbacks) and the operator runner's
+  the callback examples in [testdata/callbacks](testdata/callbacks) and the operator runner's
   [protocol examples](../operator-runner/examples/protocol.json).
 - `make run` runs the operator against the cluster in your kubeconfig. Set `CORE_OPERATOR_CONFIG_DIR` to a folder with
   the configuration.

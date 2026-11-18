@@ -1,6 +1,6 @@
 // Package callbacks serves the callback API, which operator-workflow-engine calls for each step of an operator
 // workflow. The README's "Callback contract" describes it, and the tests of both sides read the examples in
-// api/callbacks.
+// testdata/callbacks.
 package callbacks
 
 import (
@@ -107,8 +107,8 @@ func (e *End) Error() string {
 }
 
 // Ended reads the End that a step answered from the message of an error that the engine recorded for the step, which
-// is the router's answer, as api/callbacks/response-end.json shows. It returns nil for an error of the engine's own,
-// such as a wait budget that ran out.
+// is the router's answer, as testdata/callbacks/response-end.json shows. It returns nil for an error of the engine's
+// own, such as a wait budget that ran out.
 func Ended(message string) *End {
 	var details problem.Details
 	if json.Unmarshal([]byte(message), &details) == nil &&
