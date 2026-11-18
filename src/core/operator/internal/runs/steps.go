@@ -56,15 +56,37 @@ func NewSteps(queue *Queue, box sandbox.Sandbox, host *runner.Client) *Steps {
 	return &Steps{queue: queue, sandbox: box, host: host}
 }
 
-// Group is the handler group for runs.
+// Group is the handler group for runs. A handler that ends its run releases the run at once.
 func (s *Steps) Group() callbacks.Group {
-	return callbacks.Group{
+	group := callbacks.Group{
 		StepAdmit:        s.admit,
 		StepCreateJob:    s.createJob,
 		StepAwaitPod:     s.awaitPod,
 		StepAwaitArchive: s.awaitArchive,
 		StepAwaitResult:  s.awaitResult,
 		StepCleanup:      s.cleanup,
+	}
+	for key, handler := range group {
+		group[key] = func(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
+			response, err := handler(ctx, payload)
+			if _, ok := errors.AsType[*callbacks.End](err); ok {
+				s.releaseEnded(ctx, payload)
+			}
+			return response, err
+		}
+	}
+	return group
+}
+
+// releaseEnded releases the run that a step ended. A callback that names no run, or that has no valid state, has
+// nothing to release. If the release fails, the garbage collector deletes the Job.
+func (s *Steps) releaseEnded(ctx context.Context, payload *callbacks.Payload) {
+	run, err := s.load(ctx, payload)
+	if err != nil {
+		return
+	}
+	if err := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); err != nil {
+		logging.FromContext(ctx).Info("Could not release a run that ended", "error", err.Error())
 	}
 }
 
@@ -313,9 +335,8 @@ func (s *Steps) cleanup(ctx context.Context, payload *callbacks.Payload) (callba
 			return run.wait(payload, cleanupRecheck, "Waiting for the caller to fetch the result."), nil
 		}
 	}
-	if deleteErr := deleteJob(ctx, s.sandbox, run.state.Spec.Namespace, run.id); deleteErr != nil {
-		return callbacks.Response{}, fmt.Errorf("delete the Job: %w", deleteErr)
+	if err := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); err != nil {
+		return callbacks.Response{}, fmt.Errorf("release the run: %w", err)
 	}
-	s.queue.Forget(run.id)
 	return callbacks.Done(payload.State), nil
 }

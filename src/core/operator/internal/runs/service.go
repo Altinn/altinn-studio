@@ -393,12 +393,11 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 		return nil, false, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 
-	s.queue.Forget(runID)
 	// The engine stops calling the run's steps, but the Job would run its command to the end. If this fails, the
 	// garbage collector deletes the Job.
-	if err := deleteJob(ctx, s.sandbox, rec.state.Spec.Namespace, runID); err != nil {
+	if err := release(ctx, s.queue, s.sandbox, rec.state.Spec.Namespace, runID); err != nil {
 		logging.FromContext(ctx).
-			Info("Could not delete the Job of a canceled run", "runId", runID, "error", err.Error())
+			Info("Could not release a canceled run", "runId", runID, "error", err.Error())
 	}
 	if workflow.CancellationRequestedAt == nil {
 		now := s.clock.Now()

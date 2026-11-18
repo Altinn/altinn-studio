@@ -110,6 +110,10 @@ func TestCreateJobFailsWhenTheSandboxRefusesTheJob(t *testing.T) {
 	run := h.create(t, "assistant", "key")
 	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
 	Expect(callbacks.Ended(h.call(t, run.ID, StepCreateJob).body)).To(HaveField("Reason", ReasonStartFailed))
+
+	// The run gives up its place at once, so the caller's next run starts.
+	h.sandbox.CreateErr = nil
+	Expect(h.call(t, h.create(t, "assistant", "next").ID, StepAdmit).done()).To(BeTrue())
 }
 
 func TestAwaitPodFailsForAPodThatStopped(t *testing.T) {
@@ -125,6 +129,7 @@ func TestAwaitPodFailsForAPodThatStopped(t *testing.T) {
 	h.setPod(run.ID, sandbox.PodEnded, "run-x is Failed")
 	Expect(callbacks.Ended(h.call(t, run.ID, StepAwaitPod).body)).To(Equal(&callbacks.End{Reason: ReasonStartFailed,
 		Detail: "The pod stopped before it was ready: run-x is Failed"}))
+	Expect(h.hasJob(run.ID)).To(BeFalse(), "the run's Job goes at once")
 }
 
 func TestAwaitPodWaitsForASandboxNode(t *testing.T) {

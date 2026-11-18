@@ -19,8 +19,15 @@ import (
 
 const gcInterval = time.Minute
 
-// Collector deletes the Jobs of runs whose workflow does not reach run.cleanup, such as after a cancel or a failure.
-// The Job's deadline and TTL are the last backstop.
+// release frees what a run that ended holds: its place in the queue, and its Job after the operator runner's warnings
+// and errors are relayed. A cancel, a step that ends the run and run.cleanup release it. It is safe to repeat.
+func release(ctx context.Context, queue *Queue, box sandbox.Sandbox, namespace, runID string) error {
+	queue.Forget(runID)
+	return deleteJob(ctx, box, namespace, runID)
+}
+
+// Collector deletes the Jobs of runs that ended without a release: when the engine failed a step on its own, or when
+// a release could not delete the Job. The Job's deadline and TTL are the last backstop.
 type Collector struct {
 	cfg     *config.Config
 	engine  *engine.Client
