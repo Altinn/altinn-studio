@@ -48,26 +48,66 @@ const (
 // The sandbox and the operator runner are in memory. It checks what only the real engine does, as the operator's
 // README lists under Develop.
 func TestRunsAgainstTheEngine(t *testing.T) {
+	it := newIntegration(t)
+	t.Run("only a caller's token opens the run API, and only the engine's token the callbacks", it.tokens)
+	t.Run("a run completes with its Job and its result", it.runCompletes)
+	t.Run("run.cleanup deletes the Job, and a create then makes a new run", it.cleanupDeletesTheJob)
+	t.Run("a queued run expires", it.queuedRunExpires)
+	t.Run("a run fails when no archive arrives", it.runFailsWithoutArchive)
+	t.Run("a run fails when a step fails", it.runFailsWhenAStepFails)
+	t.Run("a cancel deletes the Job", it.cancelDeletesTheJob)
+	t.Run("a run outlives a restart of the operator", it.runOutlivesARestart)
+}
+
+// integration is the operator under test, with envtest's API server, the engine host and an in-memory sandbox and
+// operator runners.
+type integration struct {
+	restConfig  *rest.Config
+	clientset   kubernetes.Interface
+	cfg         *config.Config
+	box         *sandboxtest.Sandbox
+	runners     *runners
+	hostClient  *runner.Client
+	stop        func()
+	engineToken string
+	// assistant calls the run API as the caller assistant.
+	assistant *client
+	archive   []byte
+}
+
+// newIntegration starts the API server, the engine host, the operator runners and the operator until the test ends.
+func newIntegration(t *testing.T) *integration {
+	t.Helper()
 	RegisterTestingT(t)
 	postgres := os.Getenv(postgresEnv)
 	assets := envtestAssets()
 	if postgres == "" || assets == "" {
 		t.Skipf("run make test-integration, which sets %s and installs envtest", postgresEnv)
 	}
-	environment := &envtest.Environment{BinaryAssetsDirectory: assets}
-	restConfig, err := environment.Start()
-	Expect(err).NotTo(HaveOccurred())
-	t.Cleanup(func() { Expect(environment.Stop()).To(Succeed()) })
-	clientset, err := kubernetes.NewForConfig(restConfig)
-	Expect(err).NotTo(HaveOccurred())
+	it := &integration{cfg: testConfig(t), box: sandboxtest.New(), archive: gzipped(t, "app")}
+	it.restConfig, it.clientset = startAPIServer(t, assets)
+	engine := "operator-workflow-engine"
+	it.engineToken = tokenFor(t, it.clientset, engine, engine, "operator")
+	it.cfg.EngineURL = "http://" + startEngine(t, postgres, it.cfg.CallbackAddress, it.engineToken)
+	it.box.SlotCount = 10
+	it.runners, it.hostClient = startRunners(t, it.box)
+	it.stop = startOperator(t, it.restConfig, it.cfg, it.box, it.hostClient)
+	t.Cleanup(func() { it.stop() })
+	it.assistant = &client{
+		api: "http://" + it.cfg.APIAddress, engine: it.cfg.EngineURL,
+		token: tokenFor(t, it.clientset, "default", "assistant", "operator"),
+	}
+	return it
+}
 
+// testConfig has the kind upgrade, the kind one-at-a-time with one active run and a short queue timeout, and the
+// caller assistant.
+func testConfig(t *testing.T) *config.Config {
+	t.Helper()
 	cfg, err := config.LoadFrom(t.TempDir())
 	Expect(err).NotTo(HaveOccurred())
 	cfg.TimeScale = timeScale
 	cfg.APIAddress, cfg.CallbackAddress, cfg.ProbeAddress = freeAddress(t), freeAddress(t), freeAddress(t)
-	engine := "operator-workflow-engine"
-	engineToken := tokenFor(t, clientset, engine, engine, "operator")
-	cfg.EngineURL = "http://" + startEngine(t, postgres, cfg.CallbackAddress, engineToken)
 	upgrade := config.Kind{
 		Namespace: namespace, PodTemplate: "operator-runner", Command: "upgrade-v9",
 		Labels: []string{"app"}, MaxQueuedPerCaller: 10,
@@ -81,174 +121,196 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 			ServiceAccount: "system:serviceaccount:default:assistant",
 			Kinds:          []string{"upgrade", "one-at-a-time"},
 		},
-		"designer": {ServiceAccount: "system:serviceaccount:default:designer", Kinds: []string{"upgrade"}},
 	}
+	return cfg
+}
 
-	box := sandboxtest.New()
-	box.SlotCount = 10
+// startAPIServer starts envtest's API server, which reviews the tokens, until the test ends.
+func startAPIServer(t *testing.T, assets string) (*rest.Config, kubernetes.Interface) {
+	t.Helper()
+	environment := &envtest.Environment{BinaryAssetsDirectory: assets}
+	restConfig, err := environment.Start()
+	Expect(err).NotTo(HaveOccurred())
+	t.Cleanup(func() { Expect(environment.Stop()).To(Succeed()) })
+	clientset, err := kubernetes.NewForConfig(restConfig)
+	Expect(err).NotTo(HaveOccurred())
+	return restConfig, clientset
+}
+
+// startRunners serves an in-memory operator runner for each run, behind the one address that the sandbox gives each
+// pod, until the test ends. It returns the client that reaches them.
+func startRunners(t *testing.T, box *sandboxtest.Sandbox) (*runners, *runner.Client) {
+	t.Helper()
 	hosts := &runners{byRun: map[string]*runnertest.Runner{}}
 	mux := http.NewServeMux()
 	mux.Handle("/runs/{id}/", hosts)
 	mux.Handle("/runs/{id}", hosts)
-	hostServer := httptest.NewServer(mux)
-	t.Cleanup(hostServer.Close)
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
 	t.Cleanup(hosts.close)
-	hostAddress, ok := hostServer.Listener.Addr().(*net.TCPAddr)
+	address, ok := server.Listener.Addr().(*net.TCPAddr)
 	Expect(ok).To(BeTrue())
-	hostClient := runner.NewClient(http.DefaultClient, hostAddress.Port, box)
-	stop := startOperator(t, restConfig, cfg, box, hostClient)
-	t.Cleanup(func() { stop() })
+	return hosts, runner.NewClient(http.DefaultClient, address.Port, box)
+}
 
-	c := &client{
-		api: "http://" + cfg.APIAddress, engine: cfg.EngineURL,
-		token: tokenFor(t, clientset, "default", "assistant", "operator"),
-	}
-	designer := &client{api: c.api, token: tokenFor(t, clientset, "default", "designer", "operator")}
-	// Only a caller's token for the operator opens the run API, and only the engine's token opens the callbacks.
+func (it *integration) tokens(t *testing.T) {
+	RegisterTestingT(t)
 	for token, want := range map[string]int{
-		"":          http.StatusUnauthorized,
-		engineToken: http.StatusForbidden,
-		tokenFor(t, clientset, "default", "someone-else", "operator"):                    http.StatusForbidden,
-		tokenFor(t, clientset, "default", "assistant", "https://kubernetes.default.svc"): http.StatusUnauthorized,
+		"":             http.StatusUnauthorized,
+		it.engineToken: http.StatusForbidden,
+		tokenFor(t, it.clientset, "default", "someone-else", "operator"):                    http.StatusForbidden,
+		tokenFor(t, it.clientset, "default", "assistant", "https://kubernetes.default.svc"): http.StatusUnauthorized,
 	} {
-		Expect((&client{api: c.api, token: token}).call(http.MethodGet, "/api/v1/kinds", "", nil)).To(Equal(want))
+		Expect((&client{api: it.assistant.api, token: token}).call(http.MethodGet, "/api/v1/kinds", "", nil)).
+			To(Equal(want))
 	}
-	callbacks := &client{api: "http://" + cfg.CallbackAddress, token: c.token}
+	callbacks := &client{api: "http://" + it.cfg.CallbackAddress, token: it.assistant.token}
 	Expect(callbacks.call(http.MethodPost, "/workflow-engine-callbacks/run.admit", "", []byte(`{}`))).
 		To(Equal(http.StatusForbidden), "a caller's token")
-	// The labels are new for each test, so a Postgres that a test used before has no runs of them.
-	app := func(name string) map[string]string {
-		return map[string]string{"app": fmt.Sprintf("%s-%x", name, time.Now().UnixNano())}
+}
+
+func (it *integration) runCompletes(t *testing.T) {
+	RegisterTestingT(t)
+	c := it.assistant
+	labels := it.app("app")
+	created := c.create("upgrade", labels, http.StatusAccepted)
+	Expect(created.Status).To(Equal(runs.StatusQueued))
+	again := c.create("upgrade", map[string]string{"app": strings.ToUpper(labels["app"])}, http.StatusOK)
+	Expect(again.ID).To(Equal(created.ID), "label values are compared without case")
+
+	it.ready(created.ID)
+	c.await(created.ID, runs.StatusAwaitingArchive)
+	job, _ := it.box.Job(namespace, created.ID)
+	Expect(job).To(Equal(sandbox.Job{
+		RunID: created.ID, Kind: "upgrade", Caller: "assistant", Namespace: namespace,
+		Template: "operator-runner", Deadline: config.JobDeadline(time.Minute),
+	}))
+	it.upload(created.ID)
+	runID, command, received, starts := it.runners.of(created.ID).Snapshot()
+	Expect([]any{runID, command, received, starts}).To(Equal([]any{created.ID, "upgrade-v9", it.archive, 1}))
+
+	path := "/api/v1/runs/" + created.ID + "/result"
+	Expect(c.call(http.MethodGet, path, "", nil)).To(Equal(http.StatusConflict), "the run runs")
+	result := `{"status":"completed","exitCode":0,"report":{"exitCode":0,"steps":[]},"patch":"cGF0Y2g="}`
+	it.finish(created.ID, result)
+	completed := c.await(created.ID, runs.StatusCompleted)
+	Expect(completed.ResultExpiresAt).NotTo(BeNil())
+	Expect(completed.Error).To(BeNil())
+	Expect(c.read(path)).To(MatchJSON(result))
+	Expect(it.runners.of(created.ID).FetchCount()).To(Equal(1), "the steps read the status, which is no fetch")
+}
+
+func (it *integration) cleanupDeletesTheJob(t *testing.T) {
+	RegisterTestingT(t)
+	c := it.assistant
+	labels := it.app("cleanup")
+	done := c.create("upgrade", labels, http.StatusAccepted)
+	it.ready(done.ID)
+	c.await(done.ID, runs.StatusAwaitingArchive)
+	it.upload(done.ID)
+	it.finish(done.ID, `{}`)
+	c.await(done.ID, runs.StatusCompleted)
+
+	// The operator runner exits after the grace, and run.cleanup deletes the Job with the result.
+	it.box.SetPod(namespace, done.ID, sandbox.Pod{Status: sandbox.PodEnded, IP: "127.0.0.1"})
+	Eventually(func() bool { _, ok := it.box.Job(namespace, done.ID); return ok }, 10*time.Second).Should(BeFalse())
+	Eventually(func() int { return c.call(http.MethodGet, "/api/v1/runs/"+done.ID+"/result", "", nil) }).
+		Should(Equal(http.StatusGone), "once the engine has ended the workflow")
+	Expect(c.await(done.ID, runs.StatusCompleted).ResultExpiresAt).To(BeNil(), "the result is gone")
+
+	next := c.create("upgrade", labels, http.StatusAccepted)
+	Expect(next.ID).NotTo(Equal(done.ID))
+	var found struct {
+		Runs []runs.Run `json:"runs"`
 	}
-	ready := func(runID string) {
-		Eventually(func() bool { _, ok := box.Job(namespace, runID); return ok }).Should(BeTrue())
-		box.SetPod(namespace, runID, sandbox.Pod{Status: sandbox.PodReady, IP: "127.0.0.1"})
-	}
-	archive := gzipped(t, "app")
+	Expect(json.Unmarshal([]byte(c.read("/api/v1/runs?labelSelector=app="+labels["app"])), &found)).To(Succeed())
+	Expect(found.Runs).To(HaveLen(2))
+	Expect([]string{found.Runs[0].ID, found.Runs[1].ID}).To(Equal([]string{next.ID, done.ID}), "the newest first")
+	c.cancel(next.ID)
+}
 
-	t.Run("a run completes, and a create after its end makes a new run", func(t *testing.T) {
-		RegisterTestingT(t)
-		labels := app("app")
-		created := c.create("upgrade", labels, http.StatusAccepted)
-		Expect(created.Status).To(Equal(runs.StatusQueued))
-		again := c.create("upgrade", map[string]string{"app": strings.ToUpper(labels["app"])}, http.StatusOK)
-		Expect(again.ID).To(Equal(created.ID), "label values are compared without case")
-		path := "/api/v1/runs/" + created.ID
-		Expect(c.call(http.MethodPut, path+"/archive", "application/gzip", archive)).To(Equal(http.StatusConflict))
+func (it *integration) queuedRunExpires(t *testing.T) {
+	RegisterTestingT(t)
+	c := it.assistant
+	// The pod of the first run never gets ready, so the run keeps the kind's one place.
+	first := c.create("one-at-a-time", it.app("first"), http.StatusAccepted)
+	c.await(first.ID, runs.StatusStarting)
+	queued := c.create("one-at-a-time", it.app("queued"), http.StatusAccepted)
+	Expect(*queued.QueuePosition).To(Equal(1))
+	expired := c.await(queued.ID, runs.StatusExpired)
+	Expect(expired.Error).To(Equal(&runs.RunError{
+		Reason: runs.ReasonQueueTimeout, Detail: "The run waited in the queue longer than its kind allows.",
+	}))
+	c.cancel(first.ID)
+}
 
-		ready(created.ID)
-		c.await(created.ID, runs.StatusAwaitingArchive)
-		job, _ := box.Job(namespace, created.ID)
-		Expect(job).To(Equal(sandbox.Job{
-			RunID: created.ID, Kind: "upgrade", Caller: "assistant", Namespace: namespace,
-			Template: "operator-runner", Deadline: config.JobDeadline(time.Minute),
-		}))
-		Expect(c.call(http.MethodPut, path+"/archive", "application/json", archive)).
-			To(Equal(http.StatusUnsupportedMediaType))
-		Expect(c.call(http.MethodPut, path+"/archive", "application/gzip", []byte("PK\x03\x04"))).
-			To(Equal(http.StatusBadRequest), "the operator runner refuses a body that is not gzip")
-		Expect(designer.call(http.MethodPut, path+"/archive", "application/gzip", archive)).
-			To(Equal(http.StatusNotFound), "another caller's run")
-		large := make([]byte, runs.MaxArchiveBytes+1)
-		Expect(c.call(http.MethodPut, path+"/archive", "application/gzip", large)).
-			To(Equal(http.StatusRequestEntityTooLarge), "from its length")
-		Expect(c.call(http.MethodPut, path+"/archive", "application/gzip", io.MultiReader(bytes.NewReader(large)))).
-			To(Equal(http.StatusRequestEntityTooLarge), "from its chunks")
-		Expect(hosts.of(created.ID).Claimed()).To(BeEmpty())
-		Expect(c.call(http.MethodPut, path+"/archive", "Application/GZIP; x=y", archive)).To(Equal(http.StatusAccepted))
-		Expect(c.call(http.MethodPut, path+"/archive", "application/gzip", gzipped(t, "again"))).
-			To(Equal(http.StatusAccepted), "an upload that comes again")
-		runID, command, received, starts := hosts.of(created.ID).Snapshot()
-		Expect([]any{runID, command, received, starts}).To(Equal([]any{created.ID, "upgrade-v9", archive, 2}))
+func (it *integration) runFailsWithoutArchive(t *testing.T) {
+	RegisterTestingT(t)
+	run := it.assistant.create("upgrade", it.app("silent"), http.StatusAccepted)
+	it.ready(run.ID)
+	failed := it.assistant.await(run.ID, runs.StatusFailed)
+	Expect(failed.Error).To(Equal(&runs.RunError{
+		Reason: runs.ReasonArchiveTimeout, Detail: "No archive arrived within the upload timeout of the kind.",
+	}))
+}
 
-		Expect(c.call(http.MethodGet, path+"/result", "", nil)).To(Equal(http.StatusConflict), "the run runs")
-		result := `{"status":"completed","exitCode":0,"report":{"exitCode":0,"steps":[]},"patch":"cGF0Y2g="}`
-		hosts.of(created.ID).Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, result)
-		completed := c.await(created.ID, runs.StatusCompleted)
-		Expect(completed.ResultExpiresAt).NotTo(BeNil())
-		Expect(completed.Error).To(BeNil())
-		Expect(c.read(path + "/result")).To(MatchJSON(result))
-		Expect(hosts.of(created.ID).FetchCount()).To(Equal(1), "the steps read the status, which is no fetch")
+func (it *integration) runFailsWhenAStepFails(t *testing.T) {
+	RegisterTestingT(t)
+	run := it.assistant.create("upgrade", it.app("broken"), http.StatusAccepted)
+	it.ready(run.ID)
+	it.box.SetPod(namespace, run.ID, sandbox.Pod{Status: sandbox.PodEnded, Detail: "run-x is Failed"})
+	failed := it.assistant.await(run.ID, runs.StatusFailed)
+	Expect(failed.Error).To(Equal(&runs.RunError{
+		Reason: runs.ReasonStartFailed, Detail: "The pod stopped before it was ready: run-x is Failed",
+	}))
+}
 
-		// The operator runner exits after the grace, and run.cleanup deletes the Job with the result.
-		box.SetPod(namespace, created.ID, sandbox.Pod{Status: sandbox.PodEnded, IP: "127.0.0.1"})
-		Eventually(func() bool { _, ok := box.Job(namespace, created.ID); return ok }, 10*time.Second).Should(BeFalse())
-		Eventually(func() int { return c.call(http.MethodGet, path+"/result", "", nil) }).
-			Should(Equal(http.StatusGone), "once the engine has ended the workflow")
-		Expect(c.await(created.ID, runs.StatusCompleted).ResultExpiresAt).To(BeNil(), "the result is gone")
+func (it *integration) cancelDeletesTheJob(t *testing.T) {
+	RegisterTestingT(t)
+	c := it.assistant
+	run := c.create("upgrade", it.app("canceled"), http.StatusAccepted)
+	it.ready(run.ID)
+	c.await(run.ID, runs.StatusAwaitingArchive)
+	c.cancel(run.ID)
+	_, ok := it.box.Job(namespace, run.ID)
+	Expect(ok).To(BeFalse())
+	Eventually(func() int { return c.call(http.MethodPost, "/api/v1/runs/"+run.ID+"/cancel", "", nil) }).
+		Should(Equal(http.StatusOK), "the engine has canceled the workflow")
+	Expect(c.call(http.MethodGet, "/api/v1/runs/"+run.ID+"/result", "", nil)).To(Equal(http.StatusConflict))
+}
 
-		next := c.create("upgrade", labels, http.StatusAccepted)
-		Expect(next.ID).NotTo(Equal(created.ID))
-		var found struct {
-			Runs []runs.Run `json:"runs"`
-		}
-		Expect(json.Unmarshal([]byte(c.read("/api/v1/runs?labelSelector=app="+labels["app"])), &found)).To(Succeed())
-		Expect(
-			[]string{found.Runs[0].ID, found.Runs[1].ID},
-		).To(Equal([]string{next.ID, created.ID}), "the newest first")
-		c.cancel(next.ID)
-	})
+func (it *integration) runOutlivesARestart(t *testing.T) {
+	RegisterTestingT(t)
+	run := it.assistant.create("upgrade", it.app("restart"), http.StatusAccepted)
+	it.ready(run.ID)
+	it.assistant.await(run.ID, runs.StatusAwaitingArchive)
+	it.stop()
+	it.stop = startOperator(t, it.restConfig, it.cfg, it.box, it.hostClient)
+	it.upload(run.ID)
+	it.finish(run.ID, `{}`)
+	it.assistant.await(run.ID, runs.StatusCompleted)
+}
 
-	t.Run("a queued run expires", func(t *testing.T) {
-		RegisterTestingT(t)
-		// The pod of the first run never gets ready, so the run keeps the kind's one place.
-		first := c.create("one-at-a-time", app("first"), http.StatusAccepted)
-		c.await(first.ID, runs.StatusStarting)
-		queued := c.create("one-at-a-time", app("queued"), http.StatusAccepted)
-		Expect(*queued.QueuePosition).To(Equal(1))
-		expired := c.await(queued.ID, runs.StatusExpired)
-		Expect(expired.Error).To(Equal(&runs.RunError{
-			Reason: runs.ReasonQueueTimeout, Detail: "The run waited in the queue longer than its kind allows.",
-		}))
-		c.cancel(first.ID)
-	})
+// app returns labels that are new for each test, so a Postgres that a test used before has no runs of them.
+func (it *integration) app(name string) map[string]string {
+	return map[string]string{"app": fmt.Sprintf("%s-%x", name, time.Now().UnixNano())}
+}
 
-	t.Run("a run fails when no archive arrives", func(t *testing.T) {
-		RegisterTestingT(t)
-		run := c.create("upgrade", app("silent"), http.StatusAccepted)
-		ready(run.ID)
-		failed := c.await(run.ID, runs.StatusFailed)
-		Expect(failed.Error).To(Equal(&runs.RunError{
-			Reason: runs.ReasonArchiveTimeout, Detail: "No archive arrived within the upload timeout of the kind.",
-		}))
-	})
+// ready makes the pod of the run's Job ready, once the operator has created the Job.
+func (it *integration) ready(runID string) {
+	Eventually(func() bool { _, ok := it.box.Job(namespace, runID); return ok }).Should(BeTrue())
+	it.box.SetPod(namespace, runID, sandbox.Pod{Status: sandbox.PodReady, IP: "127.0.0.1"})
+}
 
-	t.Run("a run fails when a step fails", func(t *testing.T) {
-		RegisterTestingT(t)
-		run := c.create("upgrade", app("broken"), http.StatusAccepted)
-		ready(run.ID)
-		box.SetPod(namespace, run.ID, sandbox.Pod{Status: sandbox.PodEnded, Detail: "run-x is Failed"})
-		failed := c.await(run.ID, runs.StatusFailed)
-		Expect(failed.Error).To(Equal(&runs.RunError{
-			Reason: runs.ReasonStartFailed, Detail: "The pod stopped before it was ready: run-x is Failed",
-		}))
-	})
+// upload puts the archive of the assistant's run.
+func (it *integration) upload(runID string) {
+	Expect(it.assistant.call(http.MethodPut, "/api/v1/runs/"+runID+"/archive", "application/gzip", it.archive)).
+		To(Equal(http.StatusAccepted))
+}
 
-	t.Run("a cancel deletes the Job", func(t *testing.T) {
-		RegisterTestingT(t)
-		run := c.create("upgrade", app("canceled"), http.StatusAccepted)
-		ready(run.ID)
-		c.await(run.ID, runs.StatusAwaitingArchive)
-		c.cancel(run.ID)
-		_, ok := box.Job(namespace, run.ID)
-		Expect(ok).To(BeFalse())
-		Eventually(func() int { return c.call(http.MethodPost, "/api/v1/runs/"+run.ID+"/cancel", "", nil) }).
-			Should(Equal(http.StatusOK), "the engine has canceled the workflow")
-		Expect(c.call(http.MethodGet, "/api/v1/runs/"+run.ID+"/result", "", nil)).To(Equal(http.StatusConflict))
-	})
-
-	t.Run("a run outlives a restart of the operator", func(t *testing.T) {
-		RegisterTestingT(t)
-		run := c.create("upgrade", app("restart"), http.StatusAccepted)
-		ready(run.ID)
-		c.await(run.ID, runs.StatusAwaitingArchive)
-		stop()
-		stop = startOperator(t, restConfig, cfg, box, hostClient)
-		Expect(c.call(http.MethodPut, "/api/v1/runs/"+run.ID+"/archive", "application/gzip", archive)).
-			To(Equal(http.StatusAccepted))
-		hosts.of(run.ID).Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, `{}`)
-		c.await(run.ID, runs.StatusCompleted)
-	})
+// finish completes the command of the run at its operator runner, with the result.
+func (it *integration) finish(runID, result string) {
+	it.runners.of(runID).Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, result)
 }
 
 // startEngine runs the engine host from its source until the test ends, and returns its address. It calls the
