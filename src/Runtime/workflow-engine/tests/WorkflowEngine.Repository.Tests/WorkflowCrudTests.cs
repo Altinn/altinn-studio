@@ -903,12 +903,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetDistinctLabelValues_LeavesRepositoryUsable()
     {
         var ct = TestContext.Current.CancellationToken;
+        await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
+        var workflow = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed);
 
         await repo.GetDistinctLabelValues("org", ns: null, ct);
         var result = await repo.QueryWorkflows(10, [PersistentItemStatus.Completed], cancellationToken: ct);
 
-        Assert.Empty(result.Workflows);
+        Assert.Equal(workflow.DatabaseId, Assert.Single(result.Workflows).DatabaseId);
     }
 
     [Fact]
