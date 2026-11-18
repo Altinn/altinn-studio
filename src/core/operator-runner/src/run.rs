@@ -23,8 +23,7 @@ const MAX_REPORT_BYTES: u64 = 8 * 1024 * 1024;
 const PREPARE_TIMEOUT: Duration = Duration::from_mins(2);
 /// The part of the run's timeout that the command leaves to read the report and to make and read the patch.
 const FINISH_TIMEOUT: Duration = Duration::from_mins(1);
-/// The output of a step only goes into the error of a failed run, which its status carries. The core operator reads a
-/// status of at most 64 KiB, and JSON can write one byte as six bytes.
+/// The output of a step only goes into the error of a failed run.
 const STEP_OUTPUT_LIMITS: Limits = Limits {
     stdout: 8 * 1024,
     stderr: 8 * 1024,

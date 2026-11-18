@@ -40,14 +40,15 @@ the report and the patch.
 The operator runner answers 202 as soon as it has the whole body, and then starts the VM. The first run id that sends a
 whole body claims the operator runner, so a client can send the archive again after an upload that broke off. A repeat
 of that run id answers 202 with the current status, and the operator runner discards the body. Another run id gets 409,
-because each run needs a new Job. [`src/routes.rs`](src/routes.rs) has the other errors and the limits of the upload.
+because each run needs a new Job. Errors have a `reason` for the client from [`src/protocol.rs`](src/protocol.rs), and
+[`src/routes.rs`](src/routes.rs) has the limits of the upload.
 
 ### Read the run
 
 `GET /runs/{runId}/result` answers with the result of the run, and `GET /runs/{runId}` with its status: the result
-without `stdout`, `stderr`, `report` and `patch`. While the command runs, both wait up to `wait` seconds, from 0 to 30,
-for the end of the run. Both answer 404 for a run id that has not claimed the operator runner. `status` is `running`,
-`failed` with an `error` that says why the operator runner could not run the command, or `completed`:
+without `stdout`, `stderr`, `report` and `patch`, and with at most 10 KiB of `error`. Both wait up to `wait` seconds,
+from 0 to 30, for the end of the run. Both answer 404 for a run id that has not claimed the operator runner. `status` is
+`running`, `failed` with an `error` that says why the operator runner could not run the command, or `completed`:
 
 - `exitCode` is the exit code of the command, also when it failed. It is `null` when the command timed out, and
   `timedOut` is then `true`.

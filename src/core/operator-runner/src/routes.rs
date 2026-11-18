@@ -7,11 +7,11 @@ use hyper::{
     body::{Body as _, Incoming},
     header::CONTENT_TYPE,
 };
-use serde::Serialize;
 
 use crate::{
-    host::{Answer, Host, Reply, RunId, Start, Status},
-    http::{Body, empty, json, json_bytes, problem},
+    host::{Host, RunId},
+    http::Body,
+    protocol::{self, Read, Reason, problem, stopping},
     run::Command,
 };
 
@@ -34,23 +34,6 @@ enum Route {
     Read(String, Read),
 }
 
-/// What a client reads about a run.
-#[derive(Clone, Copy)]
-enum Read {
-    /// `GET /runs/{runId}`: the status without the output. It does not count as the fetch, so the operator can follow
-    /// the run and leave the fetch to its caller.
-    Status,
-    /// `GET /runs/{runId}/result`: the result. The first answer with the end of the run counts as the fetch.
-    Result,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Accepted<'a> {
-    run_id: &'a str,
-    status: Status,
-}
-
 impl Routes {
     #[must_use]
     pub const fn new(host: Rc<Host>) -> Self {
@@ -62,10 +45,10 @@ impl Routes {
 
     pub async fn handle(&self, request: Request<Incoming>) -> Response<Body> {
         match route(request.method(), request.uri().path()) {
-            Some(Route::Health) => empty(StatusCode::OK),
+            Some(Route::Health) => Response::default(),
             Some(Route::Start(run_id)) => self.start(request, &run_id).await,
             Some(Route::Read(run_id, read)) => self.read(request.uri(), &run_id, read).await,
-            None => problem(StatusCode::NOT_FOUND, "No such route."),
+            None => invalid(StatusCode::NOT_FOUND, "No such route."),
         }
     }
 
@@ -74,26 +57,24 @@ impl Routes {
     /// claimed run answers with the status of the run, and the operator runner discards the archive.
     async fn start(&self, request: Request<Incoming>, run_id: &str) -> Response<Body> {
         let Some(run_id) = RunId::parse(run_id) else {
-            return problem(StatusCode::BAD_REQUEST, "The run id must be a UUID.");
+            return invalid(StatusCode::BAD_REQUEST, "The run id must be a UUID.");
         };
         let Some(name) = query_value(request.uri(), "command") else {
-            return problem(StatusCode::BAD_REQUEST, "The query must name a command.");
+            return invalid(StatusCode::BAD_REQUEST, "The query must name a command.");
         };
         let Some(command) = Command::from_name(name) else {
-            return problem(
-                StatusCode::NOT_FOUND,
-                &format!("The operator runner has no command {name}."),
-            );
+            let detail = format!("The operator runner has no command {name}.");
+            return invalid(StatusCode::NOT_FOUND, &detail);
         };
         let Some(timeout) = query_value(request.uri(), "timeout").and_then(|seconds| seconds.parse().ok()) else {
-            return problem(StatusCode::BAD_REQUEST, "The query must give the timeout in seconds.");
+            return invalid(StatusCode::BAD_REQUEST, "The query must give the timeout in seconds.");
         };
         if let Some(refused) = self.host.refusal(&run_id) {
             self.discard(request.into_body()).await;
-            return answer(&run_id, refused);
+            return protocol::started(&run_id, refused);
         }
         if !is_archive(request.headers()) {
-            return problem(
+            return invalid(
                 StatusCode::UNSUPPORTED_MEDIA_TYPE,
                 "The content type must be application/gzip.",
             );
@@ -104,31 +85,26 @@ impl Routes {
             Err(response) => return response,
         };
         if !archive.starts_with(GZIP_MAGIC) {
-            return problem(StatusCode::BAD_REQUEST, "The body is not a gzip archive.");
+            let detail = "The body is not a gzip archive.";
+            return problem(StatusCode::BAD_REQUEST, Reason::InvalidArchive, detail);
         }
         let started = self.host.start(&run_id, command, Duration::from_secs(timeout), archive);
         drop(upload);
-        answer(&run_id, started)
+        protocol::started(&run_id, started)
     }
 
     /// `GET /runs/{runId}?wait={seconds}` and `GET /runs/{runId}/result?wait={seconds}`.
     async fn read(&self, uri: &Uri, run_id: &str, read: Read) -> Response<Body> {
         let Some(wait) = wait_of(uri) else {
-            return problem(
-                StatusCode::BAD_REQUEST,
-                &format!("wait must be a whole number of seconds from 0 to {MAX_WAIT_SECONDS}."),
-            );
+            let detail = format!("wait must be a whole number of seconds from 0 to {MAX_WAIT_SECONDS}.");
+            return invalid(StatusCode::BAD_REQUEST, &detail);
         };
         let answer = match (RunId::parse(run_id), read) {
-            (Some(run_id), Read::Status) => self.host.summary(&run_id, wait).await,
+            (Some(run_id), Read::Status) => self.host.status(&run_id, wait).await,
             (Some(run_id), Read::Result) => self.host.result(&run_id, wait).await,
             (None, _) => None,
         };
-        match answer {
-            Some(Answer::Running) => json(StatusCode::OK, &Reply::Running),
-            Some(Answer::Ended(body)) => json_bytes(StatusCode::OK, body),
-            None => problem(StatusCode::NOT_FOUND, "This run has not claimed the operator runner."),
-        }
+        protocol::read(answer, read)
     }
 
     async fn read_archive(&self, request: Request<Incoming>) -> Result<Bytes, Response<Body>> {
@@ -145,11 +121,14 @@ impl Routes {
         match read {
             Ok(Ok(collected)) => Ok(collected.to_bytes()),
             Ok(Err(error)) if error.is::<LengthLimitError>() => Err(self.too_large()),
-            Ok(Err(error)) => Err(problem(
+            Ok(Err(error)) => Err(invalid(
                 StatusCode::BAD_REQUEST,
                 &format!("Could not read the body: {error}"),
             )),
-            Err(_) => Err(problem(StatusCode::REQUEST_TIMEOUT, "The body did not arrive in time.")),
+            Err(_) => {
+                let detail = "The body did not arrive in time.";
+                Err(problem(StatusCode::REQUEST_TIMEOUT, Reason::BodyTimeout, detail))
+            }
         }
     }
 
@@ -165,10 +144,8 @@ impl Routes {
     }
 
     fn too_large(&self) -> Response<Body> {
-        problem(
-            StatusCode::PAYLOAD_TOO_LARGE,
-            &format!("The archive is larger than {} bytes.", self.max_archive_bytes),
-        )
+        let detail = format!("The archive is larger than {} bytes.", self.max_archive_bytes);
+        problem(StatusCode::PAYLOAD_TOO_LARGE, Reason::InvalidArchive, &detail)
     }
 }
 
@@ -187,34 +164,8 @@ fn route(method: &Method, path: &str) -> Option<Route> {
     }
 }
 
-fn answer(run_id: &RunId, start: Start) -> Response<Body> {
-    match start {
-        Start::Started => accepted(run_id, Status::Running),
-        Start::AlreadyClaimed(status) => accepted(run_id, status),
-        Start::ClaimedByOther => claimed_by_other(),
-        Start::Stopping => stopping(),
-    }
-}
-
-fn accepted(run_id: &RunId, status: Status) -> Response<Body> {
-    json(
-        StatusCode::ACCEPTED,
-        &Accepted {
-            run_id: run_id.as_str(),
-            status,
-        },
-    )
-}
-
-fn claimed_by_other() -> Response<Body> {
-    problem(
-        StatusCode::CONFLICT,
-        "Another run has claimed this operator runner. Each run needs a new operator runner.",
-    )
-}
-
-fn stopping() -> Response<Body> {
-    problem(StatusCode::SERVICE_UNAVAILABLE, "The operator runner is stopping.")
+fn invalid(status: StatusCode, detail: &str) -> Response<Body> {
+    problem(status, Reason::InvalidRequest, detail)
 }
 
 /// Returns the wait of a request for the status or the result, or `None` if the value is not valid. No `wait` means

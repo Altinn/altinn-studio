@@ -2,11 +2,13 @@ use std::{fmt, future, mem, rc::Rc, time::Duration};
 
 use bytes::Bytes;
 use sandbox_hosting::AnyError;
-use serde::Serialize;
 use tokio::{sync::watch, time::Instant};
 use tokio_util::sync::CancellationToken;
 
-use crate::run::{Command, Outcome, Run, RunError, Runner};
+use crate::{
+    protocol::{Reply, Status},
+    run::{Command, Run, Runner},
+};
 
 /// The id that the client gives a run. It is a UUID with hyphens. The operator runner compares run ids in lower case.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -36,64 +38,11 @@ impl fmt::Display for RunId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Status {
-    /// The command runs, or the VM starts.
-    Running,
-    /// The command ran. The result has its exit code, also when the command failed or timed out.
-    Completed,
-    /// The operator runner could not run the command.
-    Failed,
-}
-
-/// The answer to a request for the result.
-#[derive(Debug, Serialize)]
-#[serde(tag = "status", rename_all = "lowercase")]
-pub enum Reply {
-    Running,
-    Completed(Outcome),
-    Failed { error: String },
-}
-
-impl Reply {
-    const fn status(&self) -> Status {
-        match self {
-            Self::Running => Status::Running,
-            Self::Completed(_) => Status::Completed,
-            Self::Failed { .. } => Status::Failed,
-        }
-    }
-}
-
-/// The status of a run without its output.
-#[derive(Debug, Serialize)]
-#[serde(tag = "status", rename_all = "lowercase", rename_all_fields = "camelCase")]
-enum Summary<'a> {
-    Running,
-    Completed { exit_code: Option<i32>, timed_out: bool },
-    Failed { error: &'a str },
-}
-
-impl<'a> From<&'a Reply> for Summary<'a> {
-    fn from(reply: &'a Reply) -> Self {
-        match reply {
-            Reply::Running => Self::Running,
-            Reply::Completed(outcome) => Self::Completed {
-                exit_code: outcome.exit_code,
-                timed_out: outcome.timed_out,
-            },
-            Reply::Failed { error } => Self::Failed { error },
-        }
-    }
-}
-
 /// What the operator runner answers about the run that claimed it.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Answer {
     Running,
-    /// The run ended. The body is JSON: the [`Reply`] for the result, or its summary for the status.
-    Ended(Bytes),
+    Ended(Rc<Reply>),
 }
 
 /// What [`Host::start`] did.
@@ -157,11 +106,7 @@ enum Phase {
 
 struct Ended {
     run_id: RunId,
-    status: Status,
-    /// The JSON of the [`Reply`].
-    body: Bytes,
-    /// The JSON of the [`Summary`].
-    summary: Bytes,
+    reply: Rc<Reply>,
     at: Instant,
     fetched: bool,
 }
@@ -170,15 +115,15 @@ impl Phase {
     fn status_of(&self, run_id: &RunId) -> Option<Status> {
         match self {
             Self::Running(claimed) if claimed == run_id => Some(Status::Running),
-            Self::Ended(ended) if &ended.run_id == run_id => Some(ended.status),
+            Self::Ended(ended) if &ended.run_id == run_id => Some(ended.reply.status()),
             _ => None,
         }
     }
 
-    fn summary_of(&self, run_id: &RunId) -> Option<Answer> {
+    fn answer_of(&self, run_id: &RunId) -> Option<Answer> {
         match self {
             Self::Running(claimed) if claimed == run_id => Some(Answer::Running),
-            Self::Ended(ended) if &ended.run_id == run_id => Some(Answer::Ended(ended.summary.clone())),
+            Self::Ended(ended) if &ended.run_id == run_id => Some(Answer::Ended(ended.reply.clone())),
             _ => None,
         }
     }
@@ -272,11 +217,10 @@ impl Host {
         self.fetch(run_id)
     }
 
-    /// Returns the status of the run without its output, or `None` if this run id did not claim the operator runner.
-    /// While the command runs, waits up to `wait` for the end of the run. The answer does not count as the fetch.
-    pub async fn summary(&self, run_id: &RunId, wait: Duration) -> Option<Answer> {
+    /// Returns the result of the run as [`Host::result`] does, but the answer does not count as the fetch.
+    pub async fn status(&self, run_id: &RunId, wait: Duration) -> Option<Answer> {
         self.wait_while_running(run_id, wait).await?;
-        self.state.borrow().phase.summary_of(run_id)
+        self.state.borrow().phase.answer_of(run_id)
     }
 
     /// Waits up to `wait` while the command of the run runs. Returns `None` if this run id did not claim the operator
@@ -397,7 +341,7 @@ impl Host {
                 false
             }
             Phase::Ended(ended) if &ended.run_id == run_id => {
-                answer = Some(Answer::Ended(ended.body.clone()));
+                answer = Some(Answer::Ended(ended.reply.clone()));
                 if !ended.fetched {
                     tracing::info!(%run_id, "a client fetched the result");
                 }
@@ -420,64 +364,35 @@ impl Host {
                 if let Err(error) = self.runner.delete_vm().await {
                     tracing::error!(%error, "could not delete the VM. The operator runner tries again before it exits");
                 }
-                reply_of(ran)
+                Reply::from(ran)
             }
             None => Reply::Failed {
                 error: "The operator runner stopped before the command ended.".to_string(),
             },
         };
-        self.end(&run_id, &reply);
+        self.end(&run_id, reply);
     }
 
-    fn end(&self, run_id: &RunId, reply: &Reply) {
-        match reply {
+    fn end(&self, run_id: &RunId, reply: Reply) {
+        match &reply {
             Reply::Completed(outcome) => {
                 tracing::info!(%run_id, exit_code = ?outcome.exit_code, timed_out = outcome.timed_out, "the run ended");
             }
             Reply::Failed { error } => tracing::error!(%run_id, %error, "the run failed"),
             Reply::Running => {}
         }
-        let failed;
-        let (reply, body) = match serde_json::to_vec(reply) {
-            Ok(body) => (reply, body),
-            Err(error) => {
-                failed = Reply::Failed {
-                    error: format!("The operator runner could not write the result: {error}"),
-                };
-                (&failed, serde_json::to_vec(&failed).unwrap_or_default())
-            }
-        };
-        let status = reply.status();
-        let body = Bytes::from(body);
-        let summary = Bytes::from(serde_json::to_vec(&Summary::from(reply)).unwrap_or_default());
+        let reply = Rc::new(reply);
         self.state.send_modify(|state| {
             state.phase = match mem::take(&mut state.phase) {
                 Phase::Running(run_id) => Phase::Ended(Ended {
                     run_id,
-                    status,
-                    body,
-                    summary,
+                    reply,
                     at: Instant::now(),
                     fetched: false,
                 }),
                 phase => phase,
             };
         });
-    }
-}
-
-fn reply_of(ran: Result<Outcome, RunError>) -> Reply {
-    match ran {
-        Ok(outcome) => Reply::Completed(outcome),
-        Err(RunError::InvalidArchive(detail)) => Reply::Failed {
-            error: format!("The archive does not extract: {detail}"),
-        },
-        Err(RunError::RefusedPatch(refusal)) => Reply::Failed {
-            error: format!("The operator runner refused the changes of the command: {refusal}"),
-        },
-        Err(RunError::Failed(error)) => Reply::Failed {
-            error: error.to_string(),
-        },
     }
 }
 
@@ -489,10 +404,11 @@ mod tests {
     use serde_json::{Value, json};
     use tokio::time::Instant;
 
-    use super::{Answer, Host, Reply, RunId, Start, Status, Stop, Summary, Timeouts};
+    use super::{Answer, Host, RunId, Start, Stop, Timeouts};
     use crate::{
         fake::{FakeRunner, RUN_ID},
-        run::{Command, Outcome, RunError},
+        protocol::Status,
+        run::{Command, RunError},
     };
 
     fn run_id() -> RunId {
@@ -525,13 +441,9 @@ mod tests {
         ended(host.result(&run_id(), Duration::from_secs(30)).await)
     }
 
-    async fn summary(host: &Host) -> Result<Value, Box<dyn std::error::Error>> {
-        ended(host.summary(&run_id(), Duration::from_secs(30)).await)
-    }
-
     fn ended(answer: Option<Answer>) -> Result<Value, Box<dyn std::error::Error>> {
         match answer {
-            Some(Answer::Ended(body)) => Ok(serde_json::from_slice(&body)?),
+            Some(Answer::Ended(reply)) => Ok(serde_json::to_value(&*reply)?),
             other => Err(format!("the run did not end: {other:?}").into()),
         }
     }
@@ -575,31 +487,10 @@ mod tests {
             let host = host(&runner);
             assert_eq!(start(&host, &run_id()), Start::Started);
 
-            assert_eq!(summary(&host).await?, json!({ "status": "failed", "error": expected }));
             assert_eq!(result(&host).await?, json!({ "status": "failed", "error": expected }));
             assert_eq!(host.status_of(&run_id()), Some(Status::Failed));
             assert_eq!(runner.deletes.get(), 1);
         }
-        Ok(())
-    }
-
-    #[test]
-    fn summarizes_a_command_that_timed_out_without_an_exit_code() -> serde_json::Result<()> {
-        let reply = Reply::Completed(Outcome {
-            exit_code: None,
-            timed_out: true,
-            stdout: "output".to_string(),
-            stderr: String::new(),
-            report: None,
-            patch: None,
-        });
-
-        let summary = serde_json::to_value(Summary::from(&reply))?;
-
-        assert_eq!(
-            summary,
-            json!({ "status": "completed", "exitCode": null, "timedOut": true })
-        );
         Ok(())
     }
 
@@ -624,7 +515,7 @@ mod tests {
         assert_eq!(after, Start::AlreadyClaimed(Status::Completed));
         assert_eq!(runner.archives.borrow().len(), 1);
         assert_eq!(host.result(&other, Duration::ZERO).await, None);
-        assert_eq!(host.summary(&other, Duration::ZERO).await, None);
+        assert_eq!(host.status(&other, Duration::ZERO).await, None);
     }
 
     #[tokio::test(flavor = "local")]
@@ -750,11 +641,11 @@ mod tests {
         assert_eq!(start(&host, &run_id()), Start::Started);
         runner.started.notified().await;
 
-        let running = host.summary(&run_id(), Duration::from_secs(30)).await;
+        let running = host.status(&run_id(), Duration::from_secs(30)).await;
         runner.release.notify_one();
         let mut ended = Vec::new();
         for _ in 0..4 {
-            ended.push(host.summary(&run_id(), Duration::from_secs(30)).await);
+            ended.push(host.status(&run_id(), Duration::from_secs(30)).await);
             tokio::time::sleep(Duration::from_mins(1)).await;
         }
         let ended_at = host.ended().await;
