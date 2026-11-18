@@ -1,0 +1,30 @@
+{
+  "name": "Numeric strings with surrounding whitespace are not numbers",
+  "testCases": [
+    {
+      "name": "Should fail with a leading space",
+      "expression": ["plus", " 12", 1],
+      "expectsFailure": "Expected number, got value \" 12\""
+    },
+    {
+      "name": "Should fail with a trailing space",
+      "expression": ["plus", "12 ", 1],
+      "expectsFailure": "Expected number, got value \"12 \""
+    },
+    {
+      "name": "Should fail with spaces on both sides",
+      "expression": ["plus", " 12 ", 1],
+      "expectsFailure": "Expected number, got value \" 12 \""
+    },
+    {
+      "name": "Should fail with a thousands separator",
+      "expression": ["plus", "1,5", 1],
+      "expectsFailure": "Expected number, got value \"1,5\""
+    },
+    {
+      "name": "Should still accept the trimmed string",
+      "expression": ["plus", "12", 1],
+      "expects": 13
+    }
+  ]
+}
