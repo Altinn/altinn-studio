@@ -258,8 +258,8 @@ internal sealed class PdfProcessRewriter
                     $"Did not add PDF service task '{pdfTaskId}' after task '{taskId}': gateway "
                         + $"'{unsupported.GatewayId}' after it routes on gatewayAction, and after a service task a "
                         + "gateway sees the service task's action instead of the user's, so no flow would match. "
-                        + $"Add a 'pdf' service task with autoPdfTaskIds '{taskId}' on the branch of "
-                        + $"'{unsupported.GatewayId}' that should produce the PDF."
+                        + $"Add a 'pdf' service task '{pdfTaskId}' with autoPdfTaskIds '{taskId}' on the branch of "
+                        + $"'{unsupported.GatewayId}' that should produce the PDF, and run the upgrade again."
                 );
                 _skippedTasks.Add(taskId);
                 return;
@@ -394,8 +394,8 @@ internal sealed class PdfProcessRewriter
             && gateway.Attribute("default") is null
             && FlowsWhere(process, "targetRef", gatewayId).Count == 1
             && FlowsWhere(process, "sourceRef", gatewayId) is { Count: 2 } flows
-            && flows.SingleOrDefault(flow => HasCondition(flow, "sign")) is { } signFlow
-            && flows.SingleOrDefault(flow => HasCondition(flow, "reject")) is not null
+            && flows.Find(flow => HasCondition(flow, "sign")) is { } signFlow
+            && flows.Exists(flow => flow != signFlow && HasCondition(flow, "reject"))
             && FindGatewayActionGateway(process, ElementById(process, signFlow.Attribute("targetRef")?.Value), [])
                 is null
         )

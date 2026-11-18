@@ -136,6 +136,11 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
         new()
         {
             { "data task", Elements(taskType: "data") },
+            { "two sign flows", Elements(rejectCondition: Sign) },
+            {
+                "conditions that are not JSON",
+                Elements(signCondition: "gatewayAction == 'sign'", rejectCondition: "gatewayAction == 'reject'")
+            },
             { "other actions", Elements(signCondition: """["equals",["gatewayAction"],"confirm"]""") },
             {
                 "condition beyond the action",
@@ -224,13 +229,45 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
             [
                 "Did not add PDF service task 'PdfTask_Task_2' after task 'Task_2': gateway 'Gateway_1' after it routes "
                     + "on gatewayAction, and after a service task a gateway sees the service task's action instead of "
-                    + "the user's, so no flow would match. Add a 'pdf' service task with autoPdfTaskIds 'Task_2' on the "
-                    + "branch of 'Gateway_1' that should produce the PDF.",
+                    + "the user's, so no flow would match. Add a 'pdf' service task 'PdfTask_Task_2' with autoPdfTaskIds "
+                    + "'Task_2' on the branch of 'Gateway_1' that should produce the PDF, and run the upgrade again.",
                 "Could not insert the PDF service task(s) for [Task_2] automatically, so these tasks generate no PDF in "
                     + "v9. Left applicationmetadata.json unchanged. Resolve the problems reported above (or add the "
                     + "service task(s) manually) and re-run the upgrade.",
             ],
             result.Todos
+        );
+    }
+
+    [Fact]
+    public async Task PdfTaskAddedAsTheTodoSays_IsMigratedOnTheNextRun()
+    {
+        WriteMetadata();
+        _app.Write("config/process/process.bpmn", Process(Elements(taskType: "data")));
+        await Migrate();
+        _app.Write(
+            "config/process/process.bpmn",
+            Process([
+                .. Elements(taskType: "data")
+                    .Select(e =>
+                        e.Replace(
+                            "targetRef=\"EndEvent_1\">",
+                            "targetRef=\"PdfTask_Task_2\">",
+                            StringComparison.Ordinal
+                        )
+                    ),
+                PdfServiceTask("PdfTask_Task_2"),
+                Flow("Flow_pdf", "PdfTask_Task_2", "EndEvent_1"),
+            ])
+        );
+
+        var result = await Migrate();
+
+        Assert.Empty(result.Todos);
+        Assert.DoesNotContain(
+            "enablePdfCreation",
+            _app.Read("config/applicationmetadata.json"),
+            StringComparison.Ordinal
         );
     }
 

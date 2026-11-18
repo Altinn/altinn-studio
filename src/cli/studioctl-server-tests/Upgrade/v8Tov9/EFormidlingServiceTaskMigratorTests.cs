@@ -230,6 +230,46 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task LegacyPdfTaskOnTheSignBranch_EFormidlingFollowsIt()
+    {
+        _app.Write("config/applicationmetadata.json", MetadataWithEFormidling(_fullConfig));
+        // Job 8 put the signing task's PDF task on the sign branch of the gateway after it. In v8 the shipment went
+        // out after the PDF, and only on sign, since reject abandons the task; and nothing but the gateway may follow
+        // the signing task, or the gateway loses the signer's action.
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "signing"),
+                Gateway("Gateway_1"),
+                PdfServiceTask("PdfTask_Task_1"),
+                EndEvent("EndEvent_1"),
+                StartEvent("StartEvent_1"),
+                Flow("Flow_start", "StartEvent_1", "Task_1"),
+                Flow("Flow_to_gw", "Task_1", "Gateway_1"),
+                ConditionalFlow("Flow_sign", "Gateway_1", "PdfTask_Task_1", """["equals",["gatewayAction"],"sign"]"""),
+                ConditionalFlow(
+                    "Flow_reject",
+                    "Gateway_1",
+                    "StartEvent_1",
+                    """["equals",["gatewayAction"],"reject"]"""
+                ),
+                Flow("Flow_end", "PdfTask_Task_1", "EndEvent_1")
+            )
+        );
+        WriteEnableEFormidling(enabled: true);
+
+        await Migrate();
+        var process = ProcessAfter();
+
+        Assert.Equal("Gateway_1", ElementById(process, "Flow_to_gw")?.Attribute("targetRef")?.Value);
+        Assert.Equal("EFormidlingTask_Task_1", ElementById(process, "Flow_end")?.Attribute("targetRef")?.Value);
+        Assert.Equal(
+            "EndEvent_1",
+            ElementById(process, "Flow_EFormidlingTask_Task_1_to_EndEvent_1")?.Attribute("targetRef")?.Value
+        );
+    }
+
+    [Fact]
     public async Task EmptyBlock_IsStripped_NoTask_NoManualAction()
     {
         _app.Write(
