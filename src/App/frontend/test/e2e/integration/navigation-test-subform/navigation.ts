@@ -730,5 +730,27 @@ describe('navigation', () => {
     cy.location('pathname').should('match', /\/summary$/);
     cy.navGroup(/Innsending/, /Oppsummering/).should('have.attr', 'aria-current', 'page');
     cy.waitUntilSaved();
+
+    // Browser history can move away while a Return is waiting for the real save response.
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Alder/);
+    summary();
+    cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).clickAndGone();
+    cy.waitUntilSaved();
+    let releaseSave = () => {};
+    const saveReleased = new Promise<void>((resolve) => (releaseSave = resolve));
+    cy.intercept({ method: 'PATCH', url: '**/instances/*/*/data*', times: 1 }, (req) =>
+      req.continue(() => saveReleased),
+    ).as('heldReturnSave');
+    cy.findByRole('textbox', { name: /Fornavn/ }).type(' Lovelace');
+    back().click();
+    cy.get('@heldReturnSave.all').should('have.length', 1);
+    cy.go(-2);
+    cy.location('pathname').should('match', /\/age$/);
+    cy.then(() => releaseSave());
+    cy.wait('@heldReturnSave');
+    cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '42');
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible').and('not.be.disabled');
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/age$/);
   });
 });
