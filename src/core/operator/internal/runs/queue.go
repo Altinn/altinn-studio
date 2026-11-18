@@ -48,7 +48,7 @@ type Queue struct {
 // place is a run's place in its kind's queue: in line while the run asks again, and then reserved while the run renews
 // it, until the run's Job holds the place.
 type place struct {
-	ref      time.Time
+	queuedAt time.Time
 	seen     time.Time
 	runID    string
 	kind     string
@@ -79,17 +79,17 @@ type Admission struct {
 }
 
 // Register puts a new run in line before its first run.admit, so the queue limit and the position count it at once.
-func (q *Queue) Register(runID, kind, caller string, ref time.Time) {
+func (q *Queue) Register(runID, kind, caller string, queuedAt time.Time) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	if found, ok := q.places[runID]; !ok || !found.admitted {
-		q.places[runID] = &place{runID: runID, kind: kind, caller: caller, ref: ref, seen: q.clock.Now()}
+		q.places[runID] = &place{runID: runID, kind: kind, caller: caller, queuedAt: queuedAt, seen: q.clock.Now()}
 	}
 }
 
 // Admit admits a run when it is among the oldest runs of its kind that fit under the kind's limits, and otherwise keeps
-// its place in line by ref, or by now when ref is zero. It ends the run when its kind has left the catalog.
-func (q *Queue) Admit(ctx context.Context, run *stepRun, ref time.Time) (Admission, error) {
+// its place in line by queuedAt, or by now when queuedAt is zero. It ends the run when its kind has left the catalog.
+func (q *Queue) Admit(ctx context.Context, run *stepRun, queuedAt time.Time) (Admission, error) {
 	limits, ok := q.cfg.Kinds[run.state.Kind]
 	if !ok {
 		return Admission{}, ends(ReasonStartFailed, "The run's kind is not configured anymore.", nil)
@@ -115,7 +115,7 @@ func (q *Queue) Admit(ctx context.Context, run *stepRun, ref time.Time) (Admissi
 		entry = &place{runID: run.id, kind: run.state.Kind, caller: run.caller}
 		q.places[run.id] = entry
 	}
-	entry.ref, entry.seen = cmp.Or(ref, now), now
+	entry.queuedAt, entry.seen = cmp.Or(queuedAt, now), now
 
 	candidates := q.waitingLocked(run.state.Kind)
 	if q.started.IsZero() || now.Sub(q.started) < scaled(warmup, q.cfg.TimeScale) {
@@ -235,7 +235,7 @@ func (q *Queue) waitingLocked(kind string) []*place {
 		}
 	}
 	slices.SortFunc(candidates, func(a, b *place) int {
-		if c := a.ref.Compare(b.ref); c != 0 {
+		if c := a.queuedAt.Compare(b.queuedAt); c != 0 {
 			return c
 		}
 		return strings.Compare(a.runID, b.runID)
