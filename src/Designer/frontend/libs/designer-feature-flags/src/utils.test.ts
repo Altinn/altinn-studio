@@ -123,6 +123,12 @@ describe('designer-feature-flags utils', () => {
       expect(retrieveFeatureFlags()).not.toContain(developerFlag);
     });
 
+    it('Stores no flags in the all mode, so that flags added to the list later are on as well', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [developerFlag]);
+      setExperimentalFeaturesModeInLocalStorage('all');
+      expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([developerFlag]);
+    });
+
     it('Turns a flag off by removing it from the storage in the custom mode', () => {
       typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [experimentalFlag]);
       turnOffFeatureFlag(experimentalFlag);

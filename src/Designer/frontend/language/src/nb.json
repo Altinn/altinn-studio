@@ -1914,6 +1914,8 @@
   "settings.user.coming_soon_use_org": "Velg en organisasjon i menyen øverst til høyre for å få tilgang til organisasjonsinnstillinger.",
   "settings.user.experimental_features.addComponentModal.description": "Legg til komponenter i Utforming med et nytt design. Du kan gi oss tilbakemelding direkte fra siden.",
   "settings.user.experimental_features.addComponentModal.label": "Ny måte å legge til komponenter på",
+  "settings.user.experimental_features.appTemplateV9.description": "Velg Altinn App versjon 9 når du oppretter en ny app. Versjon 9 er en forhåndsversjon og kan endre seg.",
+  "settings.user.experimental_features.appTemplateV9.label": "Opprett apper på versjon 9",
   "settings.user.experimental_features.choose_description": "Nedenfor kan du velge hvilke funksjoner du vil skru på.",
   "settings.user.experimental_features.description": "Prøv nye funksjoner i Studio før de er ferdige, og gi oss tilbakemelding.",
   "settings.user.experimental_features.enabled_count": "{{enabled}} av {{total}} på",
