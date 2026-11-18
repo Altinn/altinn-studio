@@ -80,27 +80,29 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
         />
         <BaseTable.Body>
           {renderExtraRows(rowsBefore, 'before', showEditColumn)}
-          <BaseTable.Row>
-            <DataModelLocationProvider
-              groupBinding={dataModelBindings.group}
-              rowIndex={0} // Force the header row to show texts as if it is in the first row
-            >
-              {columns.map((id) => (
-                <HeaderCell
-                  key={id}
-                  baseComponentId={id}
-                  columnSettings={columnSettings}
-                />
-              ))}
-            </DataModelLocationProvider>
-            {showEditColumn && (
-              <BaseTable.HeaderCell className={tableClasses.narrowLastColumn}>
-                <span className={utilClasses.visuallyHidden}>
-                  <Lang id='general.edit' />
-                </span>
-              </BaseTable.HeaderCell>
-            )}
-          </BaseTable.Row>
+          {!isSmall && (
+            <BaseTable.Row>
+              <DataModelLocationProvider
+                groupBinding={dataModelBindings.group}
+                rowIndex={0} // Force the header row to show texts as if it is in the first row
+              >
+                {columns.map((id) => (
+                  <HeaderCell
+                    key={id}
+                    baseComponentId={id}
+                    columnSettings={columnSettings}
+                  />
+                ))}
+              </DataModelLocationProvider>
+              {showEditColumn && (
+                <BaseTable.HeaderCell className={tableClasses.narrowLastColumn}>
+                  <span className={utilClasses.visuallyHidden}>
+                    <Lang id='general.edit' />
+                  </span>
+                </BaseTable.HeaderCell>
+              )}
+            </BaseTable.Row>
+          )}
           {rows.map((row, index) => (
             <DataModelLocationProvider
               groupBinding={dataModelBindings.group}
