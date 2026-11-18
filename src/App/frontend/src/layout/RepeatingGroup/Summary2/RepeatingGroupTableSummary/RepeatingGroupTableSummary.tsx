@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { BaseTable, useIsMobile } from '@app/form-component';
+import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -41,9 +41,9 @@ import type { GridRowLayout } from 'src/layout/Grid/useGridRows';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {
-  const isMobile = useIsMobile();
+  const isMobileOrTablet = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();
-  const isSmall = isMobile && !pdfModeActive;
+  const isSmall = isMobileOrTablet && !pdfModeActive;
   const rows = RepGroupHooks.useVisibleRows(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');

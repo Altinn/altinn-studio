@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- RepeatingGroup table summaries now display stacked rows on tablets as well as phones. ([#22000](https://github.com/Altinn/altinn-studio/pull/22000))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 
 ## [9.0.0-preview.12] - 2026-11-17
