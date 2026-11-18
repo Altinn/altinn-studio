@@ -56,9 +56,9 @@ func NewSteps(queue *Queue, box sandbox.Sandbox, host *runner.Client) *Steps {
 	return &Steps{queue: queue, sandbox: box, host: host}
 }
 
-// Group is the handler group for runs. Each handler records the run that it ends.
+// Group is the handler group for runs.
 func (s *Steps) Group() callbacks.Group {
-	group := callbacks.Group{
+	return callbacks.Group{
 		StepAdmit:        s.admit,
 		StepCreateJob:    s.createJob,
 		StepAwaitPod:     s.awaitPod,
@@ -66,27 +66,6 @@ func (s *Steps) Group() callbacks.Group {
 		StepAwaitResult:  s.awaitResult,
 		StepCleanup:      s.cleanup,
 	}
-	for key, handler := range group {
-		group[key] = func(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-			response, err := handler(ctx, payload)
-			if end, ok := errors.AsType[*callbacks.End](err); ok {
-				s.ended(ctx, payload, endStatus(end.Reason), end.Reason)
-			}
-			return response, err
-		}
-	}
-	return group
-}
-
-// ended records the end of a run. Every step of a run has the run's create as its reference time, and a state that
-// names the kind, unless the run ended because its state is not valid.
-func (s *Steps) ended(ctx context.Context, payload *callbacks.Payload, status Status, reason string) {
-	kind := ""
-	if state, err := parseState(payload.State); err == nil {
-		kind = state.Kind
-	}
-	took := s.queue.clock.Now().Sub(payload.ExecutionReferenceTime)
-	recordEnd(ctx, kind, payload.Context.Caller, status, reason, took)
 }
 
 type stepRun struct {
@@ -302,11 +281,6 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 	state, err := run.state.encode()
 	if err != nil {
 		return callbacks.Response{}, err
-	}
-	if status.Status == runner.StatusFailed {
-		s.ended(ctx, payload, StatusFailed, ReasonRunFailed)
-	} else {
-		s.ended(ctx, payload, StatusCompleted, "")
 	}
 	return callbacks.Done(state), nil
 }

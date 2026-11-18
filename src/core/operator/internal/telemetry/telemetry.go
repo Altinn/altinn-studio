@@ -26,10 +26,6 @@ const (
 	AttrDomain = attribute.Key("altinn.core_operator.domain")
 	// AttrCommandKey is the step of a workflow that a callback runs, such as run.await-archive.
 	AttrCommandKey = attribute.Key("altinn.core_operator.command_key")
-	// AttrRunStatus is the final status of a run, such as completed or expired.
-	AttrRunStatus = attribute.Key("altinn.core_operator.run.status")
-	// AttrRunReason is why a run did not complete, as its error in the run API says, such as queue-timeout.
-	AttrRunReason = attribute.Key("altinn.core_operator.run.reason")
 )
 
 // AttrSubjectID is what a workflow works on, such as a run id, and goes on spans only. operator-workflow-engine puts

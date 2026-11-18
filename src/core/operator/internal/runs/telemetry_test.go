@@ -15,21 +15,18 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/logging"
-	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/sandbox/sandboxtest"
-	"altinn.studio/core-operator/internal/telemetry"
 )
 
-// recordMetrics makes the run histograms record to the returned reader for the rest of the test.
+// recordMetrics makes the histogram of admissions record to the returned reader for the rest of the test.
 func recordMetrics(t *testing.T) *sdkmetric.ManualReader {
 	t.Helper()
 	reader := sdkmetric.NewManualReader()
-	if err := registerHistograms(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)).Meter("test")); err != nil {
+	if err := registerHistogram(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)).Meter("test")); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { runDuration, queueWaitDuration = noop.Float64Histogram{}, noop.Float64Histogram{} })
+	t.Cleanup(func() { queueWaitDuration = noop.Float64Histogram{} })
 	return reader
 }
 
@@ -50,56 +47,17 @@ func histogram(t *testing.T, reader *sdkmetric.ManualReader, name string) []metr
 	return nil
 }
 
-//nolint:paralleltest // recordMetrics sets the package's histograms.
-func TestRunDurationCountsEachRunThatEnds(t *testing.T) {
-	RegisterTestingT(t)
-	reader := recordMetrics(t)
-	h := newHarness(t)
-
-	// maxActivePerCaller is 1, so the assistant's second run waits in the queue until it expires.
-	failed := h.create(t, "assistant", "failed")
-	h.clock.Advance(time.Second)
-	expired := h.create(t, "assistant", "expired")
-	h.startCommand(t, failed.ID)
-	h.host.Finish(runner.Status{Status: runner.StatusFailed, Error: "the app does not build"}, "")
-	Expect(h.call(t, failed.ID, StepAwaitResult).done()).To(BeTrue())
-	Expect(h.call(t, expired.ID, StepAdmit, func(p *callbacks.Payload) { p.IsFinalWaitCheck = true }).status).
-		To(Equal(422))
-	canceled := h.create(t, "other", "canceled")
-	for range 2 {
-		if _, _, err := h.service.Cancel(t.Context(), "other", canceled.ID); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	ended := make(map[string]uint64)
-	for _, point := range histogram(t, reader, RunDuration) {
-		status, _ := point.Attributes.Value(telemetry.AttrRunStatus)
-		reason, _ := point.Attributes.Value(telemetry.AttrRunReason)
-		ended[status.AsString()+"/"+reason.AsString()] += point.Count
-	}
-	Expect(ended).To(Equal(map[string]uint64{
-		"failed/run-failed":     1,
-		"expired/queue-timeout": 1,
-		"canceled/":             1,
-	}))
-}
-
-//nolint:paralleltest // recordMetrics sets the package's histograms.
-func TestRunDurationAndQueueWaitDurationCountFromTheCreate(t *testing.T) {
+//nolint:paralleltest // recordMetrics sets the package's histogram.
+func TestQueueWaitDurationCountsFromTheCreate(t *testing.T) {
 	RegisterTestingT(t)
 	reader := recordMetrics(t)
 	h := newHarness(t)
 
 	run := h.create(t, "assistant", "app")
 	h.clock.Advance(30 * time.Second)
-	h.startCommand(t, run.ID)
-	h.clock.Advance(time.Minute)
-	h.host.Finish(runner.Status{Status: runner.StatusCompleted}, "")
-	Expect(h.call(t, run.ID, StepAwaitResult).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
 
 	Expect(histogram(t, reader, QueueWaitDuration)).To(ConsistOf(HaveField("Sum", 30.0)))
-	Expect(histogram(t, reader, RunDuration)).To(ConsistOf(HaveField("Sum", 90.0)))
 }
 
 //nolint:paralleltest // The test sets the process's logger.

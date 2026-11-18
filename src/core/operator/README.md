@@ -193,10 +193,6 @@ repeat. The operator decodes only the fields that its handlers read, so the engi
 
 ## Telemetry
 
-- `altinn.core_operator.run.duration` times each run from its create to its final status, by kind, caller, status and
-  reason. Its count is the number of runs that ended. It counts only the ends that the operator sees. A run that the
-  engine fails on its own, when the retries of a step run out, shows only in the engine's
-  `altinn.workflow_engine.workflow.execution.failed`.
 - `altinn.core_operator.queue.wait.duration` times each run from its create to its admission.
 - The operator's spans of a run carry its id as `altinn.core_operator.subject_id`, as the engine's spans of the run's
   workflow do.
