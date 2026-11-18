@@ -174,7 +174,7 @@ func (it *integration) runCompletes(t *testing.T) {
 	assistant := it.assistant
 	labels := it.app("app")
 	created := assistant.create("upgrade", labels, http.StatusAccepted)
-	Expect(created.Status).To(Equal(runs.StatusQueued))
+	Expect(created.Status).To(BeElementOf(runs.StatusQueued, runs.StatusStarting), "run.admit can be done already")
 	again := assistant.create("upgrade", map[string]string{"app": strings.ToUpper(labels["app"])}, http.StatusOK)
 	Expect(again.ID).To(Equal(created.ID), "label values are compared without case")
 
@@ -258,7 +258,7 @@ func (it *integration) runFailsWithoutArchive(t *testing.T) {
 func (it *integration) runFailsWhenAStepFails(t *testing.T) {
 	RegisterTestingT(t)
 	run := it.assistant.create("upgrade", it.app("broken"), http.StatusAccepted)
-	it.ready(run.ID)
+	Eventually(func() bool { _, ok := it.box.Job(namespace, run.ID); return ok }).Should(BeTrue())
 	it.box.SetPod(namespace, run.ID, sandbox.Pod{Status: sandbox.PodEnded, Detail: "run-x is Failed"})
 	failed := it.assistant.await(run.ID, runs.StatusFailed)
 	Expect(failed.Error).To(Equal(&runs.RunError{
