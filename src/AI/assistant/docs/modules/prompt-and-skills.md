@@ -46,7 +46,7 @@ Put the files that the body links to in `references/`. `references/v8.md` or `re
 
 The workflow `assistant-skill-links.yaml` checks the web links in the skills. The unit tests check that each relative link stays in its skill.
 
-## Prompts for the gates, intake and spec
+## Prompts for intake, spec and goal suggestions
 
 ```mermaid
 flowchart TD
