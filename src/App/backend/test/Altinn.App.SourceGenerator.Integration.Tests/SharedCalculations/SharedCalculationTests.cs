@@ -41,12 +41,6 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
 
     private const string AltinnRowId = "altinnRowId";
 
-    /// <summary>Reads the data in the fixture the way the app reads a data element stored as JSON</summary>
-    private static readonly JsonSerializerOptions _dataOptions = new(JsonSerializerDefaults.Web)
-    {
-        UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow,
-    };
-
     public static TheoryData<string, int, string, string> Cases()
     {
         var data = new TheoryData<string, int, string, string>();
@@ -118,12 +112,9 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         var inputRowIds = new Dictionary<string, List<string>>();
         foreach (var dataModel in dataModels)
         {
-            var model =
-                dataModel.Data.Deserialize<CalculationTestModel>(_dataOptions)
-                ?? throw new InvalidOperationException("The data model is null");
-            dataAccessor.Add(dataModel.DataElement.ToDataElement(), model);
-            models.Add(dataModel.DataElement.DataType, model);
-            inputRowIds.Add(dataModel.DataElement.DataType, CollectRowIds(JsonNode.Parse(dataModel.Data.GetRawText())));
+            dataAccessor.Add(dataModel.DataElement.ToDataElement(), dataModel.Data);
+            models.Add(dataModel.DataElement.DataType, dataModel.Data);
+            inputRowIds.Add(dataModel.DataElement.DataType, CollectRowIds(dataModel.Data));
         }
 
         Exception? exception = null;
@@ -417,6 +408,31 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         }
     }
 
+    /// <summary>The row ids in the data before the calculations, which a new row must not reuse</summary>
+    private static List<string> CollectRowIds(CalculationTestModel model)
+    {
+        var ids = new List<string>();
+        // A row can be null in the data, as targets/null-row.json checks
+        foreach (var row in (model.Rows ?? []).Concat(model.Copies ?? []).OfType<CalculationTestRow>())
+        {
+            AddRowId(row.AltinnRowId);
+            foreach (var child in (row.Children ?? []).OfType<CalculationTestChild>())
+            {
+                AddRowId(child.AltinnRowId);
+            }
+        }
+        return ids;
+
+        void AddRowId(Guid id)
+        {
+            if (id != Guid.Empty)
+            {
+                ids.Add(id.ToString());
+            }
+        }
+    }
+
+    /// <summary>The row ids in the data after the calculations, as serialized</summary>
     private static List<string> CollectRowIds(JsonNode? node)
     {
         var ids = new List<string>();

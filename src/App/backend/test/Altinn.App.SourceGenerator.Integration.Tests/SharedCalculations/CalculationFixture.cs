@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.SourceGenerator.Integration.Tests.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.SourceGenerator.Integration.Tests.SharedCalculations;
@@ -26,15 +27,24 @@ public sealed class CalculationFixture
     [JsonPropertyName("disabledBackend")]
     public bool DisabledBackend { get; set; }
 
+    /// <summary>The data of the data type <c>default</c>, read the way the app reads a stored data element</summary>
     [JsonPropertyName("dataModel")]
-    public JsonElement? DataModel { get; set; }
+    public CalculationTestModel? DataModel { get; set; }
 
     [JsonPropertyName("dataModels")]
     public List<CalculationDataModel>? DataModels { get; set; }
 
+    /// <summary>
+    /// The list from the calculation file, or one list per data type. It stays JSON so that the runner parses it
+    /// with <c>CalculationConfig.Parse</c>, as the app parses the file.
+    /// </summary>
     [JsonPropertyName("calculations")]
     public JsonElement? Calculations { get; set; }
 
+    /// <summary>
+    /// The expected data, or the expected data per data type. It stays JSON because it can leave properties out
+    /// and use the <c>"&lt;new&gt;"</c> row id placeholder, which a <see cref="CalculationTestModel"/> cannot.
+    /// </summary>
     [JsonPropertyName("expects")]
     public JsonElement? Expects { get; set; }
 
@@ -88,11 +98,15 @@ public sealed class CalculationFixture
         }
     }
 
+    /// <summary>
+    /// Unknown properties fail, both in the fixture and in its data, so a misspelled property cannot pass silently.
+    /// </summary>
     private static readonly JsonSerializerOptions _options = new()
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
     };
 
+    /// <summary>Loads a file. Every call gives new model objects, so a case cannot see the writes of another.</summary>
     public static CalculationFixture Load(string relativePath) =>
         JsonSerializer.Deserialize<CalculationFixture>(File.ReadAllText(Path.Join(Folder, relativePath)), _options)
         ?? throw new InvalidOperationException($"{relativePath} is null");
@@ -137,7 +151,7 @@ public sealed class CalculationDataModel
     public required CalculationDataElement DataElement { get; set; }
 
     [JsonPropertyName("data")]
-    public required JsonElement Data { get; set; }
+    public required CalculationTestModel Data { get; set; }
 }
 
 /// <summary>The part of a data element that the tests set</summary>
