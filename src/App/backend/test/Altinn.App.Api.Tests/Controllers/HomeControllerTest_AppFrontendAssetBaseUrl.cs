@@ -112,6 +112,20 @@ public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase
         Assert.DoesNotContain("<script>alert(1)", html);
     }
 
+    [Theory]
+    [InlineData("frontendVersion=9.0.0-preview.6&frontendVersion=")]
+    [InlineData("frontendVersion=9.0.0-preview.6&frontendVersion=9.0.0-preview.7")]
+    public async Task Index_IgnoresRepeatedFrontendVersionQueryParameter(string query)
+    {
+        using var client = GetRootedClient(Org, App, configureServices: ConfigureStatelessAnonymousApp);
+        using var response = await client.GetAsync($"{Org}/{App}/?{query}");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains($"src=\"/{Org}/{App}/altinn-app-frontend/altinn-app-frontend.js\"", html);
+        Assert.DoesNotContain("app-dist", html);
+    }
+
     private static void ConfigureStatelessAnonymousApp(IServiceCollection services) =>
         ConfigureStatelessAnonymousApp(services, Environments.Development);
 

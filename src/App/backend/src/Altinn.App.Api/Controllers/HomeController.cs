@@ -120,8 +120,11 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
+            // Only a single value counts. StringValues.ToString() skips empty values, so a repeated parameter could
+            // otherwise pass as one version.
+            var frontendVersionValues = Request.Query[FrontendVersionOverride.QueryParameterName];
             string? frontendVersionAssetBaseUrl = FrontendVersionOverride.GetAssetBaseUrl(
-                Request.Query[FrontendVersionOverride.QueryParameterName].ToString(),
+                frontendVersionValues.Count == 1 ? frontendVersionValues.ToString() : null,
                 AltinnEnvironments.GetHostingEnvironment(_env)
             );
             string? appFrontendAssetBaseUrlOverride =
