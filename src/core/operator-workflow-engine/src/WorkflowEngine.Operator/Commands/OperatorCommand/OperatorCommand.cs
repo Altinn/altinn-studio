@@ -100,7 +100,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         var workflowContext = context.GetWorkflowContext<OperatorWorkflowContext>();
 
         using var activity = Metrics.Source.StartActivity(
-            "OperatorCommand.Execute",
+            "core_operator.callback",
             parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
             kind: ActivityKind.Client,
             tags: [(OperatorTelemetryAttributes.OperatorCommandKey, commandData.CommandKey)]
