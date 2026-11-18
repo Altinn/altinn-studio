@@ -68,7 +68,6 @@ class BaseConfig:
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
-    # Every environment uses this Langfuse and tells its traces apart with LANGFUSE_ENVIRONMENT.
     LANGFUSE_HOST = "https://langfuse.digdir.cloud"
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
     LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "assistant-agents")
