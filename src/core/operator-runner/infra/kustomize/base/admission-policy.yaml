@@ -3,7 +3,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
-  name: sandbox-run-jobs
+  name: core-operator-runner-jobs
 spec:
   failurePolicy: Fail
   paramKind:
@@ -36,9 +36,9 @@ spec:
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: sandbox-run-jobs
+  name: core-operator-runner-jobs
 spec:
-  policyName: sandbox-run-jobs
+  policyName: core-operator-runner-jobs
   validationActions: [Deny]
   paramRef:
     name: operator-runner
