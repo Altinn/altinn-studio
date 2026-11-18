@@ -264,8 +264,10 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize("not a number", 0, false);
         TestTryDeserialize<int?>("not a number", null, false);
         TestTryDeserialize<int?>(ExpressionValue.Null, null, true);
-        TestTryDeserialize<int?>(ExpressionValue.False, 0, true);
-        TestTryDeserialize<int?>(ExpressionValue.True, 1, true);
+        // A boolean is not a number, as the expression functions refuse one as a numeric argument
+        TestTryDeserialize<int?>(ExpressionValue.False, null, false);
+        TestTryDeserialize<int?>(ExpressionValue.True, null, false);
+        TestTryDeserialize<decimal?>(ExpressionValue.True, null, false);
         // A bool is written as in JSON, as the frontend writes it
         TestTryDeserialize<string?>(ExpressionValue.False, "false", true);
         TestTryDeserialize<string?>(ExpressionValue.True, "true", true);
@@ -731,10 +733,32 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     }
 
     [Theory]
-    [InlineData(" 12 ", 12)]
-    [InlineData("12 ", 12)]
-    [InlineData("\t-3.5\n", -3.5)]
-    public void TryDeserialize_IgnoresWhitespaceAroundANumberInAString(string text, double expected)
+    [InlineData(" 12 ")]
+    [InlineData("12 ")]
+    [InlineData("\t-3.5\n")]
+    [InlineData(" ")]
+    [InlineData("")]
+    [InlineData("1 2")]
+    [InlineData("1,5")]
+    [InlineData("1.5e")]
+    public void TryDeserialize_RefusesAStringThatParseNumberRefuses(string text)
+    {
+        // The same strict rules as for a numeric argument of an expression function
+        ExpressionValue value = text;
+
+        Assert.Null(ExpressionEvaluator.ParseNumber(text, throwException: false));
+        Assert.False(value.TryDeserialize<decimal>(out _));
+        Assert.False(value.TryDeserialize<double?>(out _));
+        Assert.False(value.TryDeserialize<int?>(out _));
+    }
+
+    [Theory]
+    [InlineData("12", 12)]
+    [InlineData("-3.5", -3.5)]
+    [InlineData("+2", 2)]
+    [InlineData(".5", 0.5)]
+    [InlineData("1e3", 1000)]
+    public void TryDeserialize_ParsesAStringAsParseNumberDoes(string text, double expected)
     {
         ExpressionValue value = text;
 
@@ -745,15 +769,52 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     }
 
     [Theory]
-    [InlineData(" ")]
-    [InlineData("1 2")]
-    [InlineData(" 1,5 ")]
-    public void TryDeserialize_RefusesAStringThatIsNotANumberAfterTrimming(string text)
+    [InlineData(1, true)]
+    [InlineData(0, false)]
+    [InlineData("1", true)]
+    [InlineData("0", false)]
+    [InlineData("true", true)]
+    [InlineData("TRUE", true)]
+    [InlineData("False", false)]
+    public void TryDeserialize_ReadsABoolAsToBoolLooseDoes(object value, bool expected)
     {
-        ExpressionValue value = text;
+        var expressionValue = ExpressionValue.FromObject(value);
 
-        Assert.False(value.TryDeserialize<decimal>(out _));
-        Assert.False(value.TryDeserialize<int?>(out _));
+        Assert.Equal(expected, expressionValue.ToBoolLoose());
+        Assert.True(expressionValue.TryDeserialize<bool>(out var result));
+        Assert.Equal(expected, result);
+        Assert.True(expressionValue.TryDeserialize<bool?>(out var nullableResult));
+        Assert.Equal(expected, nullableResult);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(-1)]
+    [InlineData(0.5)]
+    [InlineData("2")]
+    [InlineData("yes")]
+    [InlineData(" true ")]
+    [InlineData("")]
+    public void TryDeserialize_RefusesABoolThatToBoolLooseRefuses(object value)
+    {
+        var expressionValue = ExpressionValue.FromObject(value);
+
+        Assert.Null(expressionValue.ToBoolLoose());
+        Assert.False(expressionValue.TryDeserialize<bool>(out _));
+        Assert.False(expressionValue.TryDeserialize<bool?>(out var nullableResult));
+        Assert.Null(nullableResult);
+    }
+
+    [Theory]
+    [InlineData(typeof(int))]
+    [InlineData(typeof(decimal?))]
+    [InlineData(typeof(double))]
+    public void TryDeserialize_RefusesABoolForANumericType(Type type)
+    {
+        Assert.False(ExpressionValue.True.TryDeserialize(type, out var fromTrue));
+        Assert.Null(fromTrue);
+        Assert.False(ExpressionValue.False.TryDeserialize(type, out var fromFalse));
+        Assert.Null(fromFalse);
     }
 
     [Fact]
@@ -785,7 +846,7 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
 
         Assert.True(ExpressionValue.FromObject(2.0).TryDeserialize(type, out var integral));
         Assert.Equal(2L, Convert.ToInt64(integral, CultureInfo.InvariantCulture));
-        Assert.True(((ExpressionValue)" 3 ").TryDeserialize(type, out var integralString));
+        Assert.True(((ExpressionValue)"3").TryDeserialize(type, out var integralString));
         Assert.Equal(3L, Convert.ToInt64(integralString, CultureInfo.InvariantCulture));
     }
 
@@ -811,7 +872,7 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     [Fact]
     public void TryDeserialize_ConvertsAListOfScalarsItemByItem()
     {
-        Assert.True(ExpressionValue.FromJsonString("""["4", " 5 "]""").TryDeserialize<List<decimal>>(out var numbers));
+        Assert.True(ExpressionValue.FromJsonString("""["4", "5"]""").TryDeserialize<List<decimal>>(out var numbers));
         Assert.Equal([4m, 5m], numbers!);
 
         Assert.True(ExpressionValue.FromJsonString("[4, 0.5, true]").TryDeserialize<List<string>>(out var texts));
@@ -832,6 +893,10 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     {
         Assert.False(ExpressionValue.FromJsonString("""["4", "x"]""").TryDeserialize<List<decimal>>(out var result));
         Assert.Null(result);
+        // The same scalar rules as for a single value: no whitespace, no boolean into a number, no 2 into a bool
+        Assert.False(ExpressionValue.FromJsonString("""["4", " 5 "]""").TryDeserialize<List<decimal>>(out _));
+        Assert.False(ExpressionValue.FromJsonString("[1, true]").TryDeserialize<List<decimal>>(out _));
+        Assert.False(ExpressionValue.FromJsonString("[1, 2]").TryDeserialize<List<bool>>(out _));
         Assert.False(ExpressionValue.FromJsonString("[1, 1.5]").TryDeserialize<List<int>>(out _));
         Assert.False(ExpressionValue.FromJsonString("""[{"v": 1}]""").TryDeserialize<List<decimal>>(out _));
         Assert.False(ExpressionValue.FromJsonString("[[1]]").TryDeserialize<List<string>>(out _));

@@ -2,16 +2,12 @@
     "name": "Should set boolean value to field with supported data type",
     "expects": [
         {
-            "field": "form.nameResultBoolean", "result": true
+            "field": "form.nameResultBoolean",
+            "result": true
         },
         {
-            "field": "form.emailResultBoolean", "result": false
-        },
-        {
-            "field": "form.nameResultNumber", "result": 1
-        },
-        {
-            "field": "form.emailResultNumber", "result": 0
+            "field": "form.emailResultBoolean",
+            "result": false
         }
     ],
     "calculationConfig": {
@@ -19,19 +15,25 @@
         "calculations": [
             {
                 "field": "form.nameResultBoolean",
-                "expression": ["equals", ["dataModel", "form.name"], "none"]
+                "expression": [
+                    "equals",
+                    [
+                        "dataModel",
+                        "form.name"
+                    ],
+                    "none"
+                ]
             },
             {
                 "field": "form.emailResultBoolean",
-                "expression": ["equals", ["dataModel", "form.email"], "none"]
-            },
-            {
-                "field": "form.nameResultNumber",
-                "expression": ["equals", ["dataModel", "form.name"], "none"]
-            },
-            {
-                "field": "form.emailResultNumber",
-                "expression": ["equals", ["dataModel", "form.email"], "none"]
+                "expression": [
+                    "equals",
+                    [
+                        "dataModel",
+                        "form.email"
+                    ],
+                    "none"
+                ]
             }
         ]
     },
@@ -40,9 +42,7 @@
             "name": "none",
             "email": "email@address.com",
             "nameResultBoolean": false,
-            "emailResultBoolean": true,
-            "nameResultNumber": 0,
-            "emailResultNumber": 1
+            "emailResultBoolean": true
         }
     },
     "layouts": {

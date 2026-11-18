@@ -525,11 +525,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Convert the ExpressionValue to the requested type T using normal JSON deserialization rules
     /// </summary>
     /// <remarks>
-    /// Different from some json implementations we accept deserializing "number in string" and bool to numeric types
-    /// (e.g., "123" to int, true to 1)
-    /// Accept loose conversion rules for bool (e.g., "true", "TRUE", "1" and 1.0 to true)
-    /// A number in a string may have surrounding whitespace, a number that is not an integer is refused for an integer
-    /// type, a bool is "true" or "false" as a string, and a list of scalars is converted item by item with these rules.
+    /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
+    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" to int, but not " 123 " or a
+    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "TRUE", "1" and 1 to true, but not 2), and a number
+    /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
+    /// list of scalars is converted item by item with the same rules.
     /// </remarks>
     /// <param name="result">The result (null or default if unsuccessful), but note that null might also be a valid result</param>
     /// <typeparam name="T">The type to convert to</typeparam>
@@ -551,11 +551,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Convert the ExpressionValue to the requested type T using normal JSON deserialization rules
     /// </summary>
     /// <remarks>
-    /// Different from some json implementations we accept deserializing "number in string" and bool to numeric types
-    /// (e.g., "123" to int, true to 1)
-    /// Accept loose conversion rules for bool (e.g., "true", "TRUE", "1" and 1.0 to true)
-    /// A number in a string may have surrounding whitespace, a number that is not an integer is refused for an integer
-    /// type, a bool is "true" or "false" as a string, and a list of scalars is converted item by item with these rules.
+    /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
+    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" to int, but not " 123 " or a
+    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "TRUE", "1" and 1 to true, but not 2), and a number
+    /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
+    /// list of scalars is converted item by item with the same rules.
     /// </remarks>
     /// <param name="result">The result (null or default if unsuccessful), but note that null might also be a valid result</param>
     /// <param name="type">The type to convert to</param>
@@ -613,11 +613,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             case JsonValueKind.False or JsonValueKind.True when underlyingType == typeof(bool):
                 result = Bool;
                 return true;
-            // Support converting bool to numeric types (e.g., true -> 1, false -> 0)
+            // A boolean is not a number, as PrepareNumericArg refuses one
             case JsonValueKind.False or JsonValueKind.True when IsSupportedNumericType(underlyingType):
-                result = Convert.ChangeType(Bool ? 1 : 0, underlyingType, CultureInfo.InvariantCulture);
-                return true;
-            // Booleans are written as in JSON, the way the frontend writes them
+                result = null;
+                return false;
+            // A boolean is "true" or "false" as text, as ToStringForEquals gives it
             case JsonValueKind.False or JsonValueKind.True when underlyingType == typeof(string):
                 result = Bool ? "true" : "false";
                 return true;
@@ -629,10 +629,10 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             case JsonValueKind.String when underlyingType == typeof(string):
                 result = String;
                 return true;
-            // Support parsing numbers from strings for numeric types, ignoring surrounding whitespace
+            // A number in a string is parsed as the expression functions parse a numeric argument
             case JsonValueKind.String when IsSupportedNumericType(underlyingType):
             {
-                var parsedNumber = ExpressionEvaluator.ParseNumber(String.Trim(), throwException: false);
+                var parsedNumber = ExpressionEvaluator.ParseNumber(String, throwException: false);
                 if (parsedNumber.HasValue)
                 {
                     return TryConvertNumber(parsedNumber.Value, underlyingType, out result);
@@ -668,8 +668,8 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
                 }
         }
 
-        // Add special handling for bool to support loose conversion rules
-        // e.g., "true", "false", "1", "0" as strings or numbers
+        // A number or a string is a bool as the expression functions read a boolean argument:
+        // 1, 0, "1", "0", and "true" or "false" in any casing
         if (underlyingType == typeof(bool))
         {
             bool? boolValue = ToBoolLoose();
