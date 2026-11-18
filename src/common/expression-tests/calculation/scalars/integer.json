@@ -29,9 +29,7 @@
       }
     },
     {
-      "name": "decimal",
-      "comment": "The backend rounds 1.5 to 2 when it converts to int. The frontend writes 1.5, because a schema type of integer without @xsdType is parsed as a decimal.",
-      "disabledFrontend": true,
+      "name": "decimal keeps the previous value",
       "calculations": [
         {
           "field": "integer",
@@ -39,8 +37,22 @@
         }
       ],
       "expects": {
-        "integer": 2
-      }
+        "integer": 1
+      },
+      "expectsWarnings": ["integer"]
+    },
+    {
+      "name": "decimal string keeps the previous value",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": "1.5"
+        }
+      ],
+      "expects": {
+        "integer": 1
+      },
+      "expectsWarnings": ["integer"]
     }
   ]
 }

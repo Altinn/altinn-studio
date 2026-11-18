@@ -102,27 +102,61 @@ function isListOfObjects(value: unknown): value is unknown[] {
   return Array.isArray(value) && value.some(isObject);
 }
 
+function schemaTypes(schema: JSONSchema7): string[] {
+  const types = Array.isArray(schema.type) ? [...schema.type] : schema.type ? [schema.type] : [];
+  for (const alternative of [...(schema.anyOf ?? []), ...(schema.oneOf ?? [])]) {
+    if (typeof alternative === 'object') {
+      types.push(...schemaTypes(alternative));
+    }
+  }
+  return types;
+}
+
+/**
+ * Converts a scalar the way the backend does: a boolean into a number is 1 or 0, a number into a boolean is false
+ * only for 0, a string is parsed strictly (no thousands separators), and a target with the schema type integer
+ * only accepts whole numbers.
+ */
+function convertScalar(
+  result: string | number | boolean,
+  schema: JSONSchema7,
+): { value: FDValue; error: false } | { error: true } {
+  const types = schemaTypes(schema);
+  const isNumeric = types.includes('number') || types.includes('integer');
+  let value = result;
+  if (!types.includes('string')) {
+    if (typeof value === 'boolean' && isNumeric) {
+      value = value ? 1 : 0;
+    } else if (typeof value === 'number' && types.includes('boolean')) {
+      value = value !== 0;
+    } else if (typeof value === 'string' && isNumeric && value.includes(',')) {
+      return { error: true };
+    }
+  }
+  const converted = convertData(value, schema);
+  if (converted.error) {
+    return { error: true };
+  }
+  // convertData reads an integer without @xsdType as a decimal
+  if (typeof converted.newValue === 'number' && types.includes('integer') && !Number.isInteger(converted.newValue)) {
+    return { error: true };
+  }
+  return { value: converted.newValue, error: false };
+}
+
 /** Converts the values that replace the target as a whole: scalars, null and lists of primitives. */
 function convertCalculationResult(
   result: unknown,
   target: string,
   lookupTool: SchemaLookupTool,
 ): { value: FDValue; error: false } | { error: true } {
-  const [schema] = lookupTool.getSchemaForPath(target, result === null);
+  const [schema] = lookupTool.getSchemaForPath(target);
   if (!schema) {
     return { error: true };
   }
   if (result === null) {
-    // Backend reference types accept null, but non-nullable numeric and boolean value types do not.
-    const allowsNull =
-      hasType(schema, 'null') ||
-      hasType(schema, 'string') ||
-      hasType(schema, 'array') ||
-      hasType(schema, 'object') ||
-      [...(schema.anyOf ?? []), ...(schema.oneOf ?? [])].some(
-        (alternative) => typeof alternative === 'object' && hasType(alternative, 'null'),
-      );
-    return allowsNull ? { value: null, error: false } : { error: true };
+    // Any field may be null until validation, also numbers and booleans that cannot be null when the data is submitted
+    return { value: null, error: false };
   }
   if (Array.isArray(result) && hasType(schema, 'array')) {
     const values: FDValue[] = [];
@@ -136,8 +170,7 @@ function convertCalculationResult(
     return { value: values, error: false };
   }
   if (typeof result === 'string' || typeof result === 'number' || typeof result === 'boolean') {
-    const converted = convertData(result, schema);
-    return converted.error ? { error: true } : { value: converted.newValue, error: false };
+    return convertScalar(result, schema);
   }
   return { error: true };
 }

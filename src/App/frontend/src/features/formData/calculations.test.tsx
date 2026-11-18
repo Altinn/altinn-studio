@@ -300,6 +300,77 @@ describe('calculations in the form store', () => {
     });
   });
 
+  it('clears numbers and booleans that the schema does not mark as nullable', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          { field: 'total', expression: ['if', ['dataModel', 'enabled'], 3, 'else', null] },
+          { field: 'enabled', expression: ['if', false, true, 'else', null] },
+        ],
+      },
+      { enabled: true, total: 1 },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ enabled: null, total: 3 });
+  });
+
+  it('converts booleans into numbers and numbers into booleans', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          { field: 'total', expression: true },
+          { field: 'quantity', expression: false },
+          { field: 'enabled', expression: 0 },
+          { field: 'nullableBoolean', expression: -0.5 },
+          { field: 'summary.Rows', expression: true },
+        ],
+      },
+      { enabled: true },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      total: 1,
+      quantity: 0,
+      enabled: false,
+      nullableBoolean: true,
+      summary: { Rows: 1 },
+    });
+  });
+
+  it('keeps the previous value for a numeric string with a comma and for a fraction into an integer', async () => {
+    const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          { field: 'total', expression: '1,500' },
+          { field: 'quantity', expression: '2.5' },
+          { field: 'summary.Rows', expression: 1.5 },
+          { field: 'summary.Total', expression: '1,5' },
+        ],
+      },
+      { total: 1, quantity: 1, summary: { Rows: 7 } },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      total: 1,
+      quantity: 2.5,
+      summary: { Rows: 7 },
+    });
+    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('.total'));
+    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('summary.Rows'));
+    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('summary.Total'));
+  });
+
+  it('accepts a whole number for an integer target', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          { field: 'summary.Rows', expression: 3 },
+          { field: 'summary.Total', expression: ['dataModel', 'summary.Rows'] },
+        ],
+      },
+      {},
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ summary: { Rows: 3, Total: 3 } });
+  });
+
   it('preserves explicit nulls without creating absent objects for empty calculations', async () => {
     const { store } = await renderCalculations(
       {
@@ -335,20 +406,19 @@ describe('calculations in the form store', () => {
     expect(logWarn).toHaveBeenCalled();
   });
 
-  it('converts list results and preserves existing non-nullable numbers when a calculation returns null', async () => {
-    vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
+  it('converts list results and clears a number when a calculation returns null', async () => {
     const { store } = await renderCalculations(
       {
         calculations: [
           { field: 'numbers', expression: ['dataModel', 'strings'] },
-          { field: 'total', expression: null },
+          { field: 'total', expression: ['if', false, 1, 'else', null] },
           { field: 'label', expression: ['sum', ['dataModel', 'numbers']] },
         ],
       },
       { strings: ['2', '3'], total: 42 },
     );
     const model = store.getState().data.models[defaultDataTypeMock];
-    expect(model.currentData).toEqual({ strings: ['2', '3'], numbers: [2, 3], total: 42, label: '5' });
+    expect(model.currentData).toEqual({ strings: ['2', '3'], numbers: [2, 3], total: null, label: '5' });
     const previous = model.currentData;
     act(() => store.getState().data.debounce('forced'));
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toBe(previous);
