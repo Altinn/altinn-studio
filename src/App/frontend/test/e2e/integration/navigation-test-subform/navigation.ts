@@ -746,6 +746,7 @@ describe('navigation', () => {
     cy.get('@heldReturnSave.all').should('have.length', 1);
     cy.go(-2);
     cy.location('pathname').should('match', /\/age$/);
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible').and('not.be.disabled');
     cy.then(() => releaseSave());
     cy.wait('@heldReturnSave');
     cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '42');
