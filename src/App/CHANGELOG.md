@@ -13,6 +13,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- Calculated values are stored the same way in the form and on the server: ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+  - `" 12 "` becomes 12 in a number field
+  - `true` becomes `"true"` in a text field
+  - a fraction is not rounded into a whole-number field, which keeps its value with a warning
+  - list items are converted, so `["4", "5"]` fills a list of numbers
+- A path that continues past an item in a list of numbers or text, such as `numbers[0].v`, no longer overwrites that item. A calculation that gives a list of objects for such a list now keeps the list and logs a warning. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. The frontend now keeps the cleared field as `null`, as the backend returns it. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 
