@@ -1,19 +1,22 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import type { ITextResources } from 'app-shared/types/global';
+import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { textMock } from '@designer/testing/mocks/i18nMock';
 import { getLanguageFromCode } from '@app/language';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { LayoutComponent, PageLayout, TextsById } from '../../types';
+import { AppBuilderProvider } from '../../contexts/AppBuilderContext';
 import type { DataModel } from '../../hooks/useDataModelQuery';
 import { usePageLayoutsQuery } from '../../hooks/usePageLayoutsQuery';
+import type { LayoutComponent, PageLayout, PageLayouts } from '../../types';
+import { getTextsById } from '../../utils/textUtils';
 import { PageCanvas } from './PageCanvas';
 import type { PageCanvasProps } from './PageCanvas';
 
@@ -28,17 +31,44 @@ const heading: LayoutComponent = {
   textResourceBindings: { title: 'heading.title' },
   size: 'L',
 };
-const textArea: LayoutComponent = {
+const choice: LayoutComponent = {
+  id: 'choice',
+  type: ComponentType.RadioButtons,
+  textResourceBindings: { title: 'choice.title' },
+  options: [
+    { value: 'early', label: 'choice.early' },
+    { value: 'late', label: 'choice.late' },
+  ],
+};
+const reason: LayoutComponent = {
   id: 'reason',
   type: ComponentType.TextArea,
   textResourceBindings: { title: 'reason.title' },
+  required: true,
+};
+const group: LayoutComponent = {
+  id: 'group',
+  type: ComponentType.Group,
+  textResourceBindings: { title: 'group.title' },
+  children: [],
 };
 const map: LayoutComponent = { id: 'map', type: ComponentType.Map };
 
-const layout: PageLayout = { $schema: 'schema', data: { layout: [heading, textArea, map] } };
-const texts: TextsById = {
-  'heading.title': 'Søknad om parkering',
+const createLayout = (components: LayoutComponent[]): PageLayout => ({
+  $schema: 'schema',
+  data: { layout: components },
+});
+
+const defaultLayouts: PageLayouts = { [pageName]: createLayout([heading, choice, reason, map]) };
+
+const nbTexts: Record<string, string> = {
+  [pageName]: 'Søknaden',
+  'heading.title': 'Søknad om skolestart',
+  'choice.title': 'Hva søker du om?',
+  'choice.early': 'Tidlig skolestart',
+  'choice.late': 'Utsatt skolestart',
   'reason.title': 'Begrunnelse',
+  'group.title': 'Den andre forelderen',
 };
 
 const schema: JsonSchema = { type: 'object', properties: { fornavn: { type: 'string' } } };
@@ -49,12 +79,16 @@ const dataModel: DataModel = {
 };
 
 describe('PageCanvas', () => {
-  it('renders the supported components with their texts', () => {
+  it('shows the components as the app shows them, and the page name', () => {
     renderPageCanvas();
-    expect(screen.getByRole('heading', { name: texts['heading.title'] })).toBeInTheDocument();
-    // The shared label also shows the optional marker, as in the app.
-    const textAreaName = new RegExp(`^${texts['reason.title']}`);
-    expect(screen.getByRole('textbox', { name: textAreaName })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: nbTexts['heading.title'] })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: nbTexts['choice.early'] })).toBeInTheDocument();
+    expect(screen.getByText(nbTexts[pageName])).toBeInTheDocument();
+  });
+
+  it('says that a page without components is empty', () => {
+    renderPageCanvas({ layouts: { [pageName]: createLayout([]) } });
+    expect(screen.getByText(textMock('app_builder.empty_page'))).toBeInTheDocument();
   });
 
   it('shows a placeholder for a component type that cannot be shown yet', () => {
@@ -63,52 +97,45 @@ describe('PageCanvas', () => {
     expect(screen.getByText(message)).toBeInTheDocument();
   });
 
-  it('tells the user when the page has no components', () => {
-    renderPageCanvas({ layouts: { [pageName]: { $schema: 'schema', data: { layout: [] } } } });
-    expect(screen.getByText(textMock('app_builder.empty_page'))).toBeInTheDocument();
-  });
-
-  it('selects a component when it is clicked', async () => {
+  it('shows the tools of a component when it is selected, and hides them on Escape', async () => {
     const user = userEvent.setup();
     renderPageCanvas();
-    await user.click(getSelectButton(textArea.id));
-    expect(getEditTextButton(textArea.id)).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('toolbar')).toBeInTheDocument();
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    expect(getToolbar()).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    expect(queryToolbar()).not.toBeInTheDocument();
   });
 
-  it('saves an edited text when Enter is pressed', async () => {
-    const user = userEvent.setup();
+  it('saves a text edited in place when the user leaves it', async () => {
     const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderPageCanvas({}, { upsertTextResources });
 
-    await user.click(getSelectButton(textArea.id));
-    getEditTextButton(textArea.id).focus();
-    await user.keyboard('{Enter}');
-    const textEditor = screen.getByRole('textbox', { name: textMock('app_builder.edit_text') });
-    await user.clear(textEditor);
-    await user.type(textEditor, 'Hvorfor søker du?{Enter}');
+    const headingText = getEditableText(nbTexts['heading.title']);
+    fireEvent.focusIn(headingText);
+    headingText.textContent = 'Søknad om tidlig skolestart';
+    fireEvent.focusOut(headingText);
 
-    expect(upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
-      'reason.title': 'Hvorfor søker du?',
-    });
+    await waitFor(() =>
+      expect(upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
+        'heading.title': 'Søknad om tidlig skolestart',
+      }),
+    );
   });
 
-  it('does not save a text when Escape is pressed', async () => {
-    const user = userEvent.setup();
+  it('does not save a text when the user presses Escape', async () => {
     const upsertTextResources = vi.fn();
     renderPageCanvas({}, { upsertTextResources });
 
-    await user.click(getSelectButton(textArea.id));
-    getEditTextButton(textArea.id).focus();
-    await user.keyboard('{Enter}');
-    await user.type(screen.getByRole('textbox', { name: textMock('app_builder.edit_text') }), 'x');
-    await user.keyboard('{Escape}');
+    const headingText = getEditableText(nbTexts['heading.title']);
+    fireEvent.focusIn(headingText);
+    headingText.textContent = 'Something else';
+    fireEvent.keyDown(headingText, { key: 'Escape' });
+    fireEvent.focusOut(headingText);
 
+    await new Promise((resolve) => setTimeout(resolve));
     expect(upsertTextResources).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole('textbox', { name: textMock('app_builder.edit_text') }),
-    ).not.toBeInTheDocument();
   });
 
   it('saves the page with the component moved down', async () => {
@@ -116,22 +143,94 @@ describe('PageCanvas', () => {
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
     renderPageCanvas({}, { saveFormLayout });
 
-    await user.click(getSelectButton(heading.id));
-    await user.click(screen.getByRole('button', { name: textMock('app_builder.move_down') }));
+    await user.click(getSelectButton(nbTexts['heading.title']));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.move_component_down') }),
+    );
 
-    expect(saveFormLayout).toHaveBeenCalledTimes(1);
-    const [, , savedPageName, savedLayoutSetName, { layout: savedLayout }] =
-      saveFormLayout.mock.calls[0];
-    expect(savedPageName).toBe(pageName);
-    expect(savedLayoutSetName).toBe(layoutSetName);
-    expect(savedLayout.data.layout.map(({ id }) => id)).toEqual([textArea.id, heading.id, map.id]);
+    expect(getSavedIds(saveFormLayout)).toEqual(['choice', 'heading', 'reason', 'map']);
   });
 
-  it('cannot move the first component up', async () => {
+  it('makes a field take half the width', async () => {
     const user = userEvent.setup();
-    renderPageCanvas();
-    await user.click(getSelectButton(heading.id));
-    expect(screen.getByRole('button', { name: textMock('app_builder.move_up') })).toBeDisabled();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { saveFormLayout });
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.click(screen.getByRole('radio', { name: textMock('app_builder.width.half') }));
+
+    expect(getSavedComponent(saveFormLayout, 'reason').grid).toEqual({ xs: 12, md: 6 });
+  });
+});
+
+describe('PageCanvas, required and rules', () => {
+  it('makes a required field optional from the menu on its tag', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { saveFormLayout });
+
+    await user.click(getRequiredTag());
+    await user.click(
+      screen.getByRole('menuitemradio', { name: textMock('app_builder.required_menu.optional') }),
+    );
+
+    expect(getSavedComponent(saveFormLayout, 'reason')).not.toHaveProperty('required');
+  });
+
+  it('makes a field required only when another field has a value', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { saveFormLayout });
+
+    await user.click(getRequiredTag());
+    await user.click(
+      screen.getByRole('menuitemradio', {
+        name: textMock('app_builder.required_menu.conditional'),
+      }),
+    );
+
+    expect(getSavedComponent(saveFormLayout, 'reason').required).toEqual([
+      'equals',
+      ['component', 'choice'],
+      'early',
+    ]);
+  });
+
+  it('adds a rule that shows the component only when another field has a value', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { saveFormLayout });
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.rule.add') }));
+
+    expect(getSavedComponent(saveFormLayout, 'reason').hidden).toEqual([
+      'notEquals',
+      ['component', 'choice'],
+      'early',
+    ]);
+  });
+
+  it('shows a rule as a sentence the user can change', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    const reasonWithRule = { ...reason, hidden: ['notEquals', ['component', 'choice'], 'early'] };
+    renderPageCanvas(
+      { layouts: { [pageName]: createLayout([heading, choice, reasonWithRule]) } },
+      { saveFormLayout },
+    );
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: textMock('app_builder.rule.value') }),
+      'late',
+    );
+
+    expect(getSavedComponent(saveFormLayout, 'reason').hidden).toEqual([
+      'notEquals',
+      ['component', 'choice'],
+      'late',
+    ]);
   });
 });
 
@@ -142,68 +241,63 @@ describe('PageCanvas, adding components', () => {
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
     renderPageCanvas({}, { upsertTextResources, saveFormLayout });
 
-    await user.click(getLastAddButton());
+    await user.click(getAddComponentButton());
+    expect(screen.getByText(textMock('app_builder.add_component.end'))).toBeInTheDocument();
     await user.click(getComponentTypeButton('Heading'));
 
     const [, , language, savedTexts] = upsertTextResources.mock.calls[0];
     expect(language).toBe('nb');
     expect(Object.values(savedTexts)).toEqual([textMock('app_builder.default_text.Heading')]);
-    const savedComponents = getSavedLayoutComponents(saveFormLayout);
-    expect(savedComponents).toHaveLength(4);
-    expect(savedComponents.at(-1)).toMatchObject({ type: 'Heading', size: 'L' });
-    expect(
-      await screen.findByRole('textbox', { name: textMock('app_builder.edit_text') }),
-    ).toBeInTheDocument();
+    expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({ type: 'Heading', size: 'L' });
   });
 
-  it('adds an input with a data model field named after its label', async () => {
+  it('adds a component after the selected one', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { saveFormLayout });
+
+    await user.click(getSelectButton(nbTexts['heading.title']));
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Paragraph'));
+
+    expect(getSavedComponents(saveFormLayout)[1]).toMatchObject({ type: 'Paragraph' });
+  });
+
+  it('adds a component into the selected group', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas(
+      { layouts: { [pageName]: createLayout([heading, group]) } },
+      { saveFormLayout },
+    );
+
+    await user.click(getSelectButton(nbTexts['group.title']));
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Alert'));
+
+    const [, savedGroup, alert] = getSavedComponents(saveFormLayout);
+    expect(alert).toMatchObject({ type: 'Alert' });
+    expect(savedGroup).toMatchObject({ children: [alert.id] });
+  });
+
+  it('asks for the label of a question, and saves its data model field before the layout', async () => {
     const user = userEvent.setup();
     const saveDataModel = vi.fn().mockImplementation(() => Promise.resolve());
-    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve({}));
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({}, { saveDataModel, upsertTextResources, saveFormLayout });
+    renderPageCanvas({}, { saveDataModel, saveFormLayout });
 
-    await user.click(getLastAddButton());
+    await user.click(getAddComponentButton());
     await user.click(getComponentTypeButton('Input'));
-    await user.type(getLabelField(), 'Første ønske');
-    expect(
-      screen.getByText(
-        textMock('app_builder.new_component.saved_as', { fieldName: 'forsteOnske' }),
-      ),
-    ).toBeInTheDocument();
-    await user.click(
-      screen.getByRole('checkbox', { name: textMock('app_builder.new_component.required') }),
-    );
-    await user.click(getAddButton());
+    await user.type(getLabelField(), 'Første ønske{Enter}');
 
-    const [, , modelPath, savedSchema] = saveDataModel.mock.calls[0];
-    expect(modelPath).toBe(dataModel.modelPath);
-    expect(savedSchema.properties).toEqual({
-      fornavn: { type: 'string' },
-      forsteOnske: { type: 'string' },
-    });
-    expect(Object.values(upsertTextResources.mock.calls[0][3])).toEqual(['Første ønske']);
-    expect(getSavedLayoutComponents(saveFormLayout).at(-1)).toMatchObject({
+    expect(saveDataModel.mock.calls[0][3].properties.forsteOnske).toEqual({ type: 'string' });
+    expect(saveDataModel.mock.invocationCallOrder[0]).toBeLessThan(
+      saveFormLayout.mock.invocationCallOrder[0],
+    );
+    expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({
       type: 'Input',
-      required: true,
       dataModelBindings: { simpleBinding: { field: 'forsteOnske', dataType: 'model' } },
     });
-  });
-
-  it('saves the data model and the texts before the layout', async () => {
-    const user = userEvent.setup();
-    const saveDataModel = vi.fn().mockImplementation(() => Promise.resolve());
-    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve({}));
-    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({}, { saveDataModel, upsertTextResources, saveFormLayout });
-
-    await user.click(getLastAddButton());
-    await user.click(getComponentTypeButton('TextArea'));
-    await user.type(getLabelField(), 'Begrunnelse{Enter}');
-
-    const layoutOrder = saveFormLayout.mock.invocationCallOrder[0];
-    expect(saveDataModel.mock.invocationCallOrder[0]).toBeLessThan(layoutOrder);
-    expect(upsertTextResources.mock.invocationCallOrder[0]).toBeLessThan(layoutOrder);
   });
 
   it('does not save the layout when the data model cannot be saved', async () => {
@@ -212,327 +306,354 @@ describe('PageCanvas, adding components', () => {
     const saveFormLayout = vi.fn();
     renderPageCanvas({}, { saveDataModel, saveFormLayout });
 
-    await user.click(getLastAddButton());
+    await user.click(getAddComponentButton());
     await user.click(getComponentTypeButton('Input'));
     await user.type(getLabelField(), 'Fornavn{Enter}');
 
-    expect(saveDataModel).toHaveBeenCalledTimes(1);
     expect(saveFormLayout).not.toHaveBeenCalled();
     expect(getLabelField()).toBeInTheDocument();
   });
 
-  it('suggests another field name when the name is taken', async () => {
+  it('creates the yes or no code list for new radio buttons when the app does not have it', async () => {
     const user = userEvent.setup();
-    renderPageCanvas();
-
-    await user.click(getLastAddButton());
-    await user.click(getComponentTypeButton('Input'));
-    await user.type(getLabelField(), 'Fornavn');
-
-    expect(
-      screen.getByText(textMock('app_builder.new_component.saved_as', { fieldName: 'fornavn2' })),
-    ).toBeInTheDocument();
-  });
-
-  it('does not add the component when the field name is not valid', async () => {
-    const user = userEvent.setup();
-    renderPageCanvas();
-
-    await user.click(getLastAddButton());
-    await user.click(getComponentTypeButton('Input'));
-    await user.type(getLabelField(), 'Fornavn');
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_builder.new_component.change_field_name') }),
-    );
-    const fieldNameField = screen.getByRole('textbox', {
-      name: textMock('app_builder.new_component.field_name'),
-    });
-    await user.clear(fieldNameField);
-    await user.type(fieldNameField, '2fornavn');
-
-    expect(fieldNameField).toHaveAccessibleDescription(
-      textMock('app_builder.new_component.field_name_invalid', { fieldName: '2fornavn' }),
-    );
-    expect(getAddButton()).toBeDisabled();
-  });
-
-  it('adds a data component without a field when there is no data model', async () => {
-    const user = userEvent.setup();
-    const saveDataModel = vi.fn();
+    const updateOptionList = vi.fn().mockImplementation(() => Promise.resolve([]));
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({ dataModel: undefined }, { saveDataModel, saveFormLayout });
+    renderPageCanvas({}, { updateOptionList, saveFormLayout });
 
-    await user.click(getLastAddButton());
-    await user.click(getComponentTypeButton('Input'));
-    expect(
-      screen.getByText(textMock('app_builder.new_component.no_data_model')),
-    ).toBeInTheDocument();
-    await user.type(getLabelField(), 'Fornavn{Enter}');
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('RadioButtons'));
+    await user.type(getLabelField(), 'Har du foreldreansvar alene?{Enter}');
 
-    expect(saveDataModel).not.toHaveBeenCalled();
-    expect(getSavedLayoutComponents(saveFormLayout).at(-1)).not.toHaveProperty('dataModelBindings');
+    expect(updateOptionList).toHaveBeenCalledWith(org, app, 'janei', expect.any(Array));
+    expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({ optionsId: 'janei' });
   });
 
-  it('closes the form without saving when Cancel is clicked', async () => {
+  it('creates the attachment data type of a new file upload', async () => {
     const user = userEvent.setup();
-    const saveFormLayout = vi.fn();
+    const addAppAttachmentMetadata = vi.fn().mockImplementation(() => Promise.resolve());
+    const saveDataModel = vi.fn();
+    renderPageCanvas({ taskId: 'Task_1' }, { addAppAttachmentMetadata, saveDataModel });
+
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('FileUpload'));
+    await user.type(getLabelField(), 'Sakkyndig vurdering{Enter}');
+
+    expect(addAppAttachmentMetadata).toHaveBeenCalledWith(
+      org,
+      app,
+      expect.objectContaining({ taskId: 'Task_1', maxCount: 1, fileType: '' }),
+    );
+    expect(saveDataModel).not.toHaveBeenCalled();
+  });
+});
+
+describe('PageCanvas, submit button', () => {
+  it('adds a submit button to a page', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
     renderPageCanvas({}, { saveFormLayout });
 
-    await user.click(getLastAddButton());
-    await user.click(getComponentTypeButton('Input'));
-    await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Button'));
 
-    expect(
-      screen.queryByRole('textbox', { name: textMock('app_builder.new_component.label') }),
-    ).not.toBeInTheDocument();
-    expect(saveFormLayout).not.toHaveBeenCalled();
+    expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({ type: ComponentType.Button });
   });
 });
 
 describe('PageCanvas, deleting components', () => {
-  const nameInput: LayoutComponent = {
-    id: 'name',
-    type: ComponentType.Input,
-    textResourceBindings: { title: 'name.title' },
-    dataModelBindings: { simpleBinding: { field: 'fornavn', dataType: 'model' } },
-  };
-  const layoutWithInput: PageLayout = {
-    $schema: 'schema',
-    data: { layout: [heading, nameInput] },
-  };
-  const textsWithInput: TextsById = { ...texts, 'name.title': 'Fornavn' };
-  const published: DeploymentsResponse = {
-    pipelineDeploymentList: [],
-    environmentList: [{ environment: 'tt02', state: 'running' }],
-  };
-  const notPublished: DeploymentsResponse = {
-    pipelineDeploymentList: [],
-    environmentList: [{ environment: 'tt02', state: 'notRunning' }],
-  };
-
-  const openDeleteDialog = async (
-    user: ReturnType<typeof userEvent.setup>,
-    componentId: string,
-  ) => {
-    await user.click(getSelectButton(componentId));
-    await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
-    return screen.findByRole('checkbox', {
-      name: textMock('app_builder.delete.texts', { count: 1 }),
-    });
-  };
-
-  it('deletes the component and the texts only it uses', async () => {
+  it('asks what to remove with the component before it is deleted', async () => {
     const user = userEvent.setup();
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    const updateTextId = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({}, { saveFormLayout, updateTextId });
-
-    const textsCheckbox = await openDeleteDialog(user, textArea.id);
-    expect(textsCheckbox).toBeChecked();
-    await user.click(getDialogDeleteButton());
-
-    const [, , , , request] = saveFormLayout.mock.calls[0];
-    expect(request.layout.data.layout.map(({ id }) => id)).toEqual([heading.id, map.id]);
-    expect(request.componentIdsChange).toEqual([
-      { oldComponentId: textArea.id, newComponentId: undefined },
-    ]);
-    expect(updateTextId).toHaveBeenCalledWith(org, app, [{ oldId: 'reason.title' }]);
-    expect(saveFormLayout.mock.invocationCallOrder[0]).toBeLessThan(
-      updateTextId.mock.invocationCallOrder[0],
-    );
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-  });
-
-  it('keeps the texts when the user unchecks them', async () => {
-    const user = userEvent.setup();
-    const updateTextId = vi.fn();
-    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({}, { saveFormLayout, updateTextId });
-
-    await user.click(await openDeleteDialog(user, textArea.id));
-    await user.click(getDialogDeleteButton());
-
-    expect(saveFormLayout).toHaveBeenCalledTimes(1);
-    expect(updateTextId).not.toHaveBeenCalled();
-  });
-
-  it('removes the data model field by default when the app has never been published', async () => {
-    const user = userEvent.setup();
-    const saveDataModel = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas(
-      { layouts: { [pageName]: layoutWithInput }, texts: textsWithInput },
-      { saveDataModel, getDeployments: vi.fn().mockResolvedValue(notPublished) },
-    );
-
-    await openDeleteDialog(user, nameInput.id);
-    expect(getFieldCheckbox('fornavn')).toBeChecked();
-    await user.click(getDialogDeleteButton());
-
-    await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
-    const [, , modelPath, savedSchema] = saveDataModel.mock.calls[0];
-    expect(modelPath).toBe(dataModel.modelPath);
-    expect(savedSchema.properties).toEqual({});
-  });
-
-  it('keeps the data model field by default when the app is published', async () => {
-    const user = userEvent.setup();
-    renderPageCanvas(
-      { layouts: { [pageName]: layoutWithInput }, texts: textsWithInput },
-      { getDeployments: vi.fn().mockResolvedValue(published) },
-    );
-
-    await openDeleteDialog(user, nameInput.id);
-
-    expect(getFieldCheckbox('fornavn')).not.toBeChecked();
-    expect(getFieldCheckbox('fornavn')).toHaveAccessibleDescription(
-      textMock('app_builder.delete.field_may_have_answers'),
-    );
-  });
-
-  it('does not delete anything when the dialog is cancelled', async () => {
-    const user = userEvent.setup();
-    const saveFormLayout = vi.fn();
     renderPageCanvas({}, { saveFormLayout });
 
-    await openDeleteDialog(user, textArea.id);
+    await user.click(getSelectButton(nbTexts['reason.title']));
     await user.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: textMock('general.cancel') }),
+      screen.getByRole('button', { name: textMock('app_builder.delete_component') }),
     );
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: textMock('general.delete') }));
 
-    expect(saveFormLayout).not.toHaveBeenCalled();
-    expect(getEditTextButton(textArea.id)).toBeInTheDocument();
+    expect(getSavedIds(saveFormLayout)).toEqual(['heading', 'choice', 'map']);
   });
 });
 
-const getDialogDeleteButton = (): HTMLElement =>
-  within(screen.getByRole('dialog')).getByRole('button', { name: textMock('general.delete') });
+describe('PageCanvas, navigation buttons', () => {
+  const twoPages: PageLayouts = { ...defaultLayouts, side2: createLayout([]) };
 
-const getFieldCheckbox = (fieldName: string): HTMLElement =>
-  screen.getByRole('checkbox', { name: textMock('app_builder.delete.field', { fieldName }) });
-
-describe('PageCanvas, required and optional', () => {
-  afterEach(() => {
-    delete (document as Partial<Document>).elementsFromPoint;
-  });
-
-  it('makes an optional field required with the toolbar button', async () => {
+  it('offers to add Previous and Next to a page that does not have them', async () => {
     const user = userEvent.setup();
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({}, { saveFormLayout });
+    renderPageCanvas({ layouts: twoPages }, { saveFormLayout });
 
-    await user.click(getSelectButton(textArea.id));
-    const requiredButton = screen.getByRole('button', { name: textMock('app_builder.required') });
-    expect(requiredButton).toHaveAttribute('aria-pressed', 'false');
-    await user.click(requiredButton);
+    expect(screen.getByText(textMock('app_builder.navigation.missing'))).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.navigation.add') }));
 
-    const savedTextArea = getSavedLayoutComponents(saveFormLayout).find(
-      ({ id }) => id === textArea.id,
-    );
-    expect(savedTextArea.required).toBe(true);
-    expect(screen.getByRole('button', { name: textMock('app_builder.required') })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(saveFormLayout).toHaveBeenCalledTimes(1);
+    expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({
+      type: ComponentType.NavigationButtons,
+    });
   });
 
-  it('makes a required field optional when its tag is clicked, also when it is not selected', async () => {
+  it('does not change the page when it is only opened', () => {
+    const saveFormLayout = vi.fn();
+    renderPageCanvas({ layouts: twoPages }, { saveFormLayout });
+    expect(saveFormLayout).not.toHaveBeenCalled();
+  });
+});
+
+describe('PageCanvas, review fixes', () => {
+  const navigation: LayoutComponent = { id: 'nav', type: ComponentType.NavigationButtons };
+
+  it('adds a component above Previous and Next', async () => {
     const user = userEvent.setup();
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    const requiredTextArea = { ...textArea, required: true };
+    renderPageCanvas(
+      { layouts: { [pageName]: createLayout([heading, navigation]), side2: createLayout([]) } },
+      { saveFormLayout },
+    );
+
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Paragraph'));
+
+    expect(getSavedComponents(saveFormLayout).map(({ type }) => type)).toEqual([
+      ComponentType.Heading,
+      ComponentType.Paragraph,
+      ComponentType.NavigationButtons,
+    ]);
+  });
+
+  it('treats a page with a summary as a content page unless it is the last page', () => {
+    const summaryInTheMiddle = createLayout([
+      heading,
+      { id: 'summary', type: ComponentType.Summary2 },
+      { id: 'submit', type: ComponentType.Button, textResourceBindings: { title: 'submit.title' } },
+    ]);
+    renderPageCanvas(
+      { layouts: { [pageName]: summaryInTheMiddle, side2: createLayout([]) } },
+      {},
+      { 'submit.title': 'Send inn' },
+    );
+    expect(screen.queryByText(textMock('app_builder.summary.kicker'))).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('app_builder.select_component', { componentName: 'Send inn' }),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not save a maximum number of files that is empty or 0', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    const fileUpload: LayoutComponent = {
+      id: 'upload',
+      type: ComponentType.FileUpload,
+      textResourceBindings: { title: 'upload.title' },
+      maxNumberOfAttachments: 3,
+      maxFileSizeInMB: 25,
+    };
+    renderPageCanvas(
+      { layouts: { [pageName]: createLayout([fileUpload]) } },
+      { saveFormLayout },
+      {
+        'upload.title': 'Vedlegg',
+      },
+    );
+
+    await user.click(getSelectButton('Vedlegg'));
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.more_settings') }));
+    const maxFiles = screen.getByRole('textbox', {
+      name: textMock('app_builder.settings.max_file_count'),
+    });
+    await user.clear(maxFiles);
+    await user.type(maxFiles, '0');
+    await user.tab();
+
+    expect(screen.getByText(textMock('app_builder.settings.number_invalid'))).toBeInTheDocument();
+    expect(saveFormLayout).not.toHaveBeenCalled();
+  });
+
+  it('keeps the delete dialog open when a later step fails', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    const updateTextId = vi.fn().mockImplementation(() => Promise.reject(new Error('failed')));
+    renderPageCanvas({}, { saveFormLayout, updateTextId });
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.delete_component') }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await user.click(
+      await within(dialog).findByRole('button', { name: textMock('general.delete') }),
+    );
+
+    await waitFor(() => expect(updateTextId).toHaveBeenCalled());
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});
+
+describe('PageCanvas, deleting a page', () => {
+  it('removes the attachment type of a file upload, and deletes the page last', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    const deleteAppAttachmentMetadata = vi.fn().mockImplementation(() => Promise.resolve());
+    const deletePage = vi.fn().mockImplementation(() => Promise.resolve());
+    const fileUpload: LayoutComponent = { id: 'upload', type: ComponentType.FileUpload };
     renderPageCanvas(
       {
         layouts: {
-          [pageName]: { $schema: 'schema', data: { layout: [heading, requiredTextArea] } },
+          [pageName]: createLayout([heading, fileUpload]),
+          side2: createLayout([]),
         },
       },
-      { saveFormLayout },
+      { saveFormLayout, deleteAppAttachmentMetadata, deletePage },
     );
-    pointAtElement(screen.getByText(nb['form_filler.required_label']));
 
-    await user.click(getSelectButton(textArea.id));
-
-    const savedTextArea = getSavedLayoutComponents(saveFormLayout).find(
-      ({ id }) => id === textArea.id,
-    );
-    expect(savedTextArea).not.toHaveProperty('required');
-    expect(screen.getByText(nb['general.optional'])).toBeInTheDocument();
-  });
-
-  it('does not offer the toggle when required is an expression', async () => {
-    const user = userEvent.setup();
-    const expressionTextArea = { ...textArea, required: ['equals', 1, 1] };
-    renderPageCanvas({
-      layouts: { [pageName]: { $schema: 'schema', data: { layout: [expressionTextArea] } } },
-    });
-
-    await user.click(getSelectButton(textArea.id));
-
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.page.settings') }));
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.page.delete') }));
+    const dialog = await screen.findByRole('dialog');
     expect(
-      screen.queryByRole('button', { name: textMock('app_builder.required') }),
-    ).not.toBeInTheDocument();
+      within(dialog).getByText(textMock('app_builder.delete.attachments')),
+    ).toBeInTheDocument();
+    await user.click(
+      await within(dialog).findByRole('button', { name: textMock('general.delete') }),
+    );
+
+    await waitFor(() => expect(deletePage).toHaveBeenCalledWith(org, app, layoutSetName, pageName));
+    expect(deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, 'upload');
+    expect(saveFormLayout.mock.invocationCallOrder[0]).toBeLessThan(
+      deletePage.mock.invocationCallOrder[0],
+    );
   });
 });
 
-const nb = getLanguageFromCode('nb');
+describe('PageCanvas, summary page', () => {
+  it('shows a section for each page, and the text on the submit button', () => {
+    const summaryLayout = createLayout([
+      { id: 'summary', type: ComponentType.Summary2, target: { type: 'layoutSet' } },
+      { id: 'submit', type: ComponentType.Button, textResourceBindings: { title: 'submit.title' } },
+    ]);
+    renderPageCanvas(
+      {
+        pageName: 'oppsummering',
+        layouts: { ...defaultLayouts, oppsummering: summaryLayout },
+        summaryPageName: 'oppsummering',
+      },
+      {},
+      { 'submit.title': 'Send inn søknaden' },
+    );
 
-// jsdom has no layout, so the element under the pointer is set by hand.
-function pointAtElement(element: HTMLElement): void {
-  document.elementsFromPoint = vi.fn().mockReturnValue([element]);
-}
+    expect(screen.getByRole('heading', { name: nbTexts[pageName] })).toBeInTheDocument();
+    expect(screen.getByText('Send inn søknaden')).toBeInTheDocument();
+  });
+
+  it('deletes the summary page when the user confirms', async () => {
+    const user = userEvent.setup();
+    const deletePage = vi.fn().mockImplementation(() => Promise.resolve());
+    const summaryLayout = createLayout([{ id: 'summary', type: ComponentType.Summary2 }]);
+    renderPageCanvas(
+      {
+        pageName: 'oppsummering',
+        layouts: { ...defaultLayouts, oppsummering: summaryLayout },
+        summaryPageName: 'oppsummering',
+      },
+      { deletePage },
+    );
+
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.page.settings') }));
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.page.delete') }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(
+      await within(dialog).findByRole('button', { name: textMock('general.delete') }),
+    );
+
+    expect(deletePage).toHaveBeenCalledWith(org, app, layoutSetName, 'oppsummering');
+  });
+});
+
+const getSelectButton = (componentName: string): HTMLElement =>
+  screen.getByRole('button', { name: textMock('app_builder.select_component', { componentName }) });
+
+const getToolbar = (): HTMLElement =>
+  screen.getByRole('toolbar', { name: textMock('app_builder.component_toolbar') });
+
+const queryToolbar = (): HTMLElement | null =>
+  screen.queryByRole('toolbar', { name: textMock('app_builder.component_toolbar') });
+
+const getEditableText = (text: string): HTMLElement =>
+  screen.getByText(text, { selector: '[role="textbox"]' });
+
+// The tag after the label of the only required field, drawn by the shared form component.
+const getRequiredTag = (): HTMLElement =>
+  screen.getByText(getLanguageFromCode('nb')['form_filler.required_label']);
+
+const getAddComponentButton = (): HTMLElement =>
+  screen.getByRole('button', { name: textMock('app_builder.add_component') });
+
+const getComponentTypeButton = (type: string): HTMLElement =>
+  screen.getByRole('button', { name: textMock(`app_builder.component_type.${type}`) });
 
 const getLabelField = (): HTMLElement =>
   screen.getByRole('textbox', { name: textMock('app_builder.new_component.label') });
 
-const getAddButton = (): HTMLElement =>
-  screen.getByRole('button', { name: textMock('app_builder.new_component.add') });
+const getSavedComponents = (saveFormLayout: ReturnType<typeof vi.fn>): LayoutComponent[] =>
+  saveFormLayout.mock.calls.at(-1)[4].layout.data.layout;
 
-const getSelectButton = (componentId: string): HTMLElement =>
-  screen.getByRole('button', { name: textMock('app_builder.select_component', { componentId }) });
+const getSavedIds = (saveFormLayout: ReturnType<typeof vi.fn>): string[] =>
+  getSavedComponents(saveFormLayout).map(({ id }) => id);
 
-const getEditTextButton = (componentId: string): HTMLElement =>
-  screen.getByRole('button', {
-    name: textMock('app_builder.edit_component_text', { componentId }),
-  });
+const getSavedComponent = (
+  saveFormLayout: ReturnType<typeof vi.fn>,
+  componentId: string,
+): LayoutComponent => getSavedComponents(saveFormLayout).find(({ id }) => id === componentId);
 
-const getLastAddButton = (): HTMLElement =>
-  screen.getAllByRole('button', { name: textMock('app_builder.add_component_here') }).at(-1);
-
-const getComponentTypeButton = (type: string): HTMLElement =>
-  screen.getByRole('button', { name: textMock(`ux_editor.component_title.${type}`) });
-
-const getSavedLayoutComponents = (saveFormLayout: ReturnType<typeof vi.fn>): LayoutComponent[] =>
-  saveFormLayout.mock.calls[0][4].layout.data.layout;
-
-const defaultProps: PageCanvasProps = {
-  org,
-  app,
-  layoutSetName,
-  layoutSetNames: [layoutSetName],
-  pageName,
-  layouts: { [pageName]: layout },
-  texts,
-  dataModel,
+type RenderOptions = Partial<PageCanvasProps> & {
+  layouts?: PageLayouts;
+  summaryPageName?: string;
+  taskId?: string;
 };
 
-// Reads the layouts from the query cache, like the app builder does, so saved changes show.
-function PageCanvasWithCachedLayouts(props: PageCanvasProps) {
+// Reads the layouts and texts from the query cache, like the app builder does, so saves show.
+function TestAppBuilder({ layouts: _layouts, summaryPageName, taskId, ...props }: RenderOptions) {
   const { data: layouts } = usePageLayoutsQuery(org, app, layoutSetName);
-  return <PageCanvas {...props} layouts={layouts} />;
+  const { data: textResources } = useTextResourcesQuery(org, app);
+  const pageNames = Object.keys(layouts).filter((name) => name !== summaryPageName);
+  return (
+    <AppBuilderProvider
+      org={org}
+      app={app}
+      layoutSetName={layoutSetName}
+      layoutSetNames={[layoutSetName]}
+      taskId={taskId}
+      layouts={layouts}
+      contentPageNames={pageNames}
+      summaryPageName={summaryPageName}
+      texts={getTextsById(textResources, 'nb')}
+      dataModel={dataModel}
+      codeLists={[]}
+    >
+      <PageCanvas pageName={pageName} onSelectPage={vi.fn()} onPageDeleted={vi.fn()} {...props} />
+    </AppBuilderProvider>
+  );
 }
 
 function renderPageCanvas(
-  props: Partial<PageCanvasProps> = {},
+  options: RenderOptions = {},
   services: Partial<ServicesContextProps> = {},
+  extraTexts: Record<string, string> = {},
 ) {
   const queryClient = createQueryClientMock();
-  const allProps = { ...defaultProps, ...props };
   queryClient.setQueryData(
     [QueryKey.AppBuilderFormLayouts, org, app, layoutSetName],
-    allProps.layouts,
+    options.layouts ?? defaultLayouts,
   );
+  const textResources: ITextResources = {
+    nb: Object.entries({ ...nbTexts, ...extraTexts }).map(([id, value]) => ({ id, value })),
+  };
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return render(
     <ServicesContextProvider {...queriesMock} {...services} client={queryClient}>
-      <PageCanvasWithCachedLayouts {...allProps} />
+      <TestAppBuilder {...options} />
     </ServicesContextProvider>,
   );
 }

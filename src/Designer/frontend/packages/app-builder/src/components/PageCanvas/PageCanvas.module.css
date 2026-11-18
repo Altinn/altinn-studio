@@ -1,17 +1,127 @@
-.pageCanvas {
-  position: relative;
+.canvas {
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: var(--ds-size-8) var(--ds-size-6) var(--ds-size-18);
+  background-color: var(--ds-color-neutral-background-tinted);
+}
+
+.card {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-4);
-  max-width: 768px;
+  gap: var(--ds-size-5);
+  max-width: 720px;
   margin: 0 auto;
-  padding: var(--ds-size-12) var(--ds-size-6);
+  padding: var(--ds-size-8) var(--ds-size-10) var(--ds-size-7);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-default);
+}
+
+.pageHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  padding-bottom: var(--ds-size-4);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.pageHeadingText {
+  flex: 1;
+  min-width: 0;
+}
+
+.pageNumber {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.pageName {
+  font-size: var(--ds-heading-2xs-font-size);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-size-3) var(--ds-size-4);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* The children of a group follow it, marked by a line on the left. */
+.groupChildren {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-size-3) var(--ds-size-4);
+  margin-bottom: var(--ds-size-9);
+  padding-left: var(--ds-size-5);
+  border-left: 3px solid var(--ds-color-neutral-border-subtle);
 }
 
 .emptyPage {
-  padding: var(--ds-size-8);
-  border: 1px dashed var(--ds-color-neutral-border-default);
-  border-radius: var(--ds-border-radius-md);
+  margin: 0;
   color: var(--ds-color-neutral-text-subtle);
-  text-align: center;
+}
+
+.navigationRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-2) var(--ds-size-4);
+  padding-top: var(--ds-size-6);
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+/* The buttons only show what the app shows. */
+.navigationButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  pointer-events: none;
+}
+
+.navigationButtons :global([data-text-key]) {
+  pointer-events: auto;
+}
+
+.missingNavigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.navigationCaption {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.addButton {
+  width: 100%;
+  border-style: dashed;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-6);
+}
+
+.summarySection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+}
+
+.summarySectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-size-2);
+}
+
+.summaryRows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-size-3) var(--ds-size-4);
 }

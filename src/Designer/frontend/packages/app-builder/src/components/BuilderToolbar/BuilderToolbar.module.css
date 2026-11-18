@@ -1,0 +1,28 @@
+.builderToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-4);
+  padding: var(--ds-size-2) var(--ds-size-5);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+  background-color: var(--ds-color-neutral-background-default);
+}
+
+.layoutSet {
+  flex-direction: row;
+  align-items: center;
+}
+
+.saveStatus {
+  margin-left: auto;
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-body-sm-font-size);
+}
+
+.modelStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-body-sm-font-size);
+}

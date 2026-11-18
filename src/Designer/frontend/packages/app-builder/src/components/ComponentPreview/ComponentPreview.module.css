@@ -12,3 +12,12 @@
   font-family: monospace;
   font-size: var(--ds-font-size-2);
 }
+
+/* The group's wrapper keeps space below its children, which the canvas shows after the group. */
+.groupPreview > div {
+  padding-bottom: 0;
+}
+
+.groupPreview :global([data-componentid]):empty {
+  display: none;
+}

@@ -1,16 +1,13 @@
 .newComponentForm {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-size-3);
-  padding: var(--ds-size-4);
-  border: 2px solid var(--ds-color-accent-border-strong);
+  gap: var(--ds-size-4);
+  padding: var(--ds-size-6);
+  border: 1px solid var(--ds-color-accent-border-default);
   border-radius: var(--ds-border-radius-md);
-  background-color: var(--ds-color-neutral-background-default);
-  box-shadow: var(--ds-shadow-md);
-}
-
-.title {
-  font-weight: var(--ds-font-weight-medium);
+  /* The builder's own colour, so the box does not look like part of the form. */
+  background-color: var(--ds-color-neutral-background-tinted);
+  box-shadow: var(--ds-shadow-xs);
 }
 
 .field {

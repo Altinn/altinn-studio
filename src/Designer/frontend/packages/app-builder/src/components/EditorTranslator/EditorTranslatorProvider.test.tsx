@@ -1,10 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { getLanguageFromCode } from '@app/language';
 import { TEXT_KEY_ATTRIBUTE } from '../../constants';
 import type { TextsById } from '../../types';
-import { CanvasStateProvider } from '../CanvasState/CanvasStateContext';
 import { EditorTranslatorProvider } from './EditorTranslatorProvider';
 
 const appTextKey = 'page.title';
@@ -61,10 +60,8 @@ function TranslatedTexts({ textKey }: { textKey: string }) {
 
 function renderEditorTranslatorProvider({ texts, textKey }: RenderProps) {
   return render(
-    <CanvasStateProvider>
-      <EditorTranslatorProvider texts={texts}>
-        <TranslatedTexts textKey={textKey} />
-      </EditorTranslatorProvider>
-    </CanvasStateProvider>,
+    <EditorTranslatorProvider texts={texts} onSaveText={vi.fn()}>
+      <TranslatedTexts textKey={textKey} />
+    </EditorTranslatorProvider>,
   );
 }

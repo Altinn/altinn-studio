@@ -5,12 +5,14 @@ import type { SimpleLangParam } from '@app/language';
 import { EDITOR_LANGUAGE } from '../../constants';
 import type { TextsById } from '../../types';
 import { EditableText } from './EditableText';
+import { TextEditingContext } from './TextEditingContext';
 
 const builtInTexts: TextsById = getLanguageFromCode(EDITOR_LANGUAGE);
 
 export type EditorTranslatorProviderProps = PropsWithChildren<{
   /** The app's own texts in the edited language. */
   texts: TextsById;
+  onSaveText: (textKey: string, value: string) => void;
 }>;
 
 /**
@@ -20,6 +22,7 @@ export type EditorTranslatorProviderProps = PropsWithChildren<{
  */
 export function EditorTranslatorProvider({
   texts,
+  onSaveText,
   children,
 }: EditorTranslatorProviderProps): ReactElement {
   const resolveText = (key: string, params?: SimpleLangParam[]): string => {
@@ -41,13 +44,15 @@ export function EditorTranslatorProvider({
     key === undefined ? '' : resolveText(key, params);
 
   return (
-    <LanguageTranslatorProvider
-      lang={lang}
-      langAsString={langAsString}
-      langAsNonProcessedString={langAsString}
-      currentLanguage={EDITOR_LANGUAGE}
-    >
-      {children}
-    </LanguageTranslatorProvider>
+    <TextEditingContext.Provider value={{ saveText: onSaveText }}>
+      <LanguageTranslatorProvider
+        lang={lang}
+        langAsString={langAsString}
+        langAsNonProcessedString={langAsString}
+        currentLanguage={EDITOR_LANGUAGE}
+      >
+        {children}
+      </LanguageTranslatorProvider>
+    </TextEditingContext.Provider>
   );
 }

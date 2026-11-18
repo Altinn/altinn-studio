@@ -17,8 +17,6 @@ export type RemovableItem = {
   /** Other components that use the item. When there are any, the item cannot be removed. */
   usedBy: ComponentReference[];
   isSelectedByDefault: boolean;
-  /** Set for a field when the app may be published, so answers may be stored in it. */
-  mayHaveStoredAnswers?: boolean;
 };
 
 export type DeletionCandidates = {
@@ -27,33 +25,36 @@ export type DeletionCandidates = {
 };
 
 export type DeletionContext = {
-  component: LayoutComponent;
+  /** The components that are deleted together, such as a group and its children, or a page's. */
+  components: LayoutComponent[];
+  /** Text keys that go with them besides the components' own, such as the name of a deleted page. */
+  extraTextKeys?: string[];
   layoutSetName: string;
   allLayouts: AllLayouts;
   /** The app's own texts in the edited language. */
   existingTextKeys: string[];
   dataModel?: { dataType: string; schema: JsonSchema };
-  /** Undefined when it is not known whether the app has been published. */
-  isPublished?: boolean;
 };
 
 /**
- * Works out what may be removed together with a component, and what should be selected by default:
- * whatever only this component uses. A field is only selected by default when the app has never
- * been published, since answers may be stored in it.
+ * Works out what may be removed together with the components, and what should be selected by
+ * default: the texts only these components use. Fields are never selected by default, since answers
+ * may be stored in them.
  */
 export function getDeletionCandidates({
-  component,
+  components,
+  extraTextKeys = [],
   layoutSetName,
   allLayouts,
   existingTextKeys,
   dataModel,
-  isPublished,
 }: DeletionContext): DeletionCandidates {
+  const deletedIds = new Set(components.map(({ id }) => id));
   const isOtherComponent = (reference: ComponentReference): boolean =>
-    !(reference.layoutSetName === layoutSetName && reference.component.id === component.id);
+    !(reference.layoutSetName === layoutSetName && deletedIds.has(reference.component.id));
 
-  const texts = getOwnTextKeys(component)
+  const ownTextKeys = unique([...components.flatMap(getOwnTextKeys), ...extraTextKeys]);
+  const texts = ownTextKeys
     .filter((textKey) => existingTextKeys.includes(textKey))
     .map((textKey) => {
       const usedBy = findReferences(allLayouts, (other) => usesText(other, textKey)).filter(
@@ -63,22 +64,58 @@ export function getDeletionCandidates({
     });
 
   const existingFields = getFieldNames(dataModel?.schema);
-  const mayHaveStoredAnswers = isPublished !== false;
-  const fields = getOwnFieldNames(component, dataModel?.dataType)
+  const ownFieldNames = unique(
+    components.flatMap((component) => getOwnFieldNames(component, dataModel?.dataType)),
+  );
+  const fields = ownFieldNames
     .filter((fieldName) => existingFields.includes(fieldName))
     .map((fieldName) => {
       const usedBy = findReferences(allLayouts, (other) => usesField(other, fieldName)).filter(
         isOtherComponent,
       );
-      return {
-        name: fieldName,
-        usedBy,
-        isSelectedByDefault: usedBy.length === 0 && !mayHaveStoredAnswers,
-        mayHaveStoredAnswers,
-      };
+      // Answers may be stored in the field wherever the app has run, which the builder cannot know,
+      // so the user chooses to remove it.
+      return { name: fieldName, usedBy, isSelectedByDefault: false };
     });
 
   return { texts, fields };
+}
+
+/** Something outside the deleted components whose rule checks the answer of one of them. */
+export type RuleReference = {
+  pageName: string;
+  /** Undefined when the rule is on the page itself. */
+  component?: LayoutComponent;
+};
+
+/**
+ * Finds the rules, on components and pages in the layout set, that check a component that is
+ * deleted. They are not changed, so the user is told about them.
+ */
+export function findRuleReferences(
+  layouts: PageLayouts,
+  deletedIds: Set<string>,
+  deletedPageName?: string,
+): RuleReference[] {
+  const checksDeleted = (value: unknown): boolean =>
+    containsValue(
+      value,
+      (item) => Array.isArray(item) && item[0] === 'component' && deletedIds.has(item[1]),
+    );
+  return Object.entries(layouts)
+    .filter(([pageName]) => pageName !== deletedPageName)
+    .flatMap(([pageName, layout]) => {
+      const pageRule: RuleReference[] = checksDeleted(layout.data.hidden) ? [{ pageName }] : [];
+      const componentRules = layout.data.layout
+        .filter((component) => !deletedIds.has(component.id))
+        .filter(({ id: _id, ...properties }) => checksDeleted(properties))
+        .map((component) => ({ pageName, component }));
+      return [...pageRule, ...componentRules];
+    });
+}
+
+function unique(values: string[]): string[] {
+  return Array.from(new Set(values));
 }
 
 /** The text resource keys the component's own texts and options point to. */

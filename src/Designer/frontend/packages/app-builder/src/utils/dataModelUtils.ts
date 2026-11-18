@@ -20,11 +20,17 @@ export function getFieldNames(schema: JsonSchema | undefined): string[] {
   return Object.keys(getRootProperties(schema));
 }
 
-export function addTextField(schema: JsonSchema, fieldName: string): JsonSchema {
-  return {
-    ...schema,
-    properties: { ...getRootProperties(schema), [fieldName]: { type: 'string' } },
-  };
+export function getField(
+  schema: JsonSchema | undefined,
+  fieldName: string,
+): JsonSchema | undefined {
+  const field = getRootProperties(schema)[fieldName];
+  return typeof field === 'object' && field !== null ? (field as JsonSchema) : undefined;
+}
+
+/** Adds the field, or replaces it if it exists. */
+export function setField(schema: JsonSchema, fieldName: string, field: JsonSchema): JsonSchema {
+  return { ...schema, properties: { ...getRootProperties(schema), [fieldName]: field } };
 }
 
 function getRootProperties(schema: JsonSchema | undefined): Record<string, unknown> {

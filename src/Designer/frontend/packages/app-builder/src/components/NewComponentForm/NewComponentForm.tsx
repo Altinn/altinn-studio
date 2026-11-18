@@ -1,9 +1,10 @@
 import { useId, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@designer/components';
+import { StudioButton, StudioHeading } from '@designer/components';
 import { isValidFieldName, suggestFieldName } from '../../utils/fieldNameUtils';
-import type { AddableComponentType } from '../../utils/newComponentUtils';
+import { savesToDataModel } from '../../utils/newComponentUtils';
+import type { QuestionComponentType } from '../../utils/newComponentUtils';
 import classes from './NewComponentForm.module.css';
 
 export type NewComponentValues = {
@@ -14,7 +15,7 @@ export type NewComponentValues = {
 };
 
 export type NewComponentFormProps = {
-  type: AddableComponentType;
+  type: QuestionComponentType;
   hasDataModel: boolean;
   takenFieldNames: string[];
   isSaving: boolean;
@@ -36,6 +37,8 @@ export function NewComponentForm({
 }: NewComponentFormProps): ReactElement {
   const { t } = useTranslation();
   const id = useId();
+  // A file upload saves attachments, so it needs no field.
+  const asksForField = savesToDataModel(type);
   const [label, setLabel] = useState<string>('');
   const [required, setRequired] = useState<boolean>(false);
   const [editedFieldName, setEditedFieldName] = useState<string>();
@@ -44,12 +47,13 @@ export function NewComponentForm({
   const suggestedFieldName = suggestFieldName(label, takenFieldNames, type.toLowerCase());
   const fieldName = editedFieldName ?? suggestedFieldName;
   const fieldNameError = getFieldNameError(fieldName, takenFieldNames);
-  const canAdd = label.trim() !== '' && (!hasDataModel || !fieldNameError) && !isSaving;
+  const needsFieldName = hasDataModel && asksForField;
+  const canAdd = label.trim() !== '' && (!needsFieldName || !fieldNameError) && !isSaving;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     if (!canAdd) return;
-    onAdd({ label: label.trim(), fieldName: hasDataModel ? fieldName : undefined, required });
+    onAdd({ label: label.trim(), fieldName: needsFieldName ? fieldName : undefined, required });
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>): void => {
@@ -59,8 +63,17 @@ export function NewComponentForm({
   const translatedError = fieldNameError && t(fieldNameError, { fieldName });
 
   return (
-    <form className={classes.newComponentForm} onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
-      <span className={classes.title}>{t(`ux_editor.component_title.${type}`)}</span>
+    <form
+      className={classes.newComponentForm}
+      data-size='sm'
+      onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
+    >
+      <StudioHeading level={2} data-size='xs'>
+        {t('app_builder.new_component.title', {
+          componentType: t(`app_builder.component_type.${type}`).toLowerCase(),
+        })}
+      </StudioHeading>
       <div className={classes.field}>
         <label className='ds-label' htmlFor={`${id}-label`}>
           {t('app_builder.new_component.label')}
@@ -74,7 +87,7 @@ export function NewComponentForm({
           onChange={(event) => setLabel(event.target.value)}
         />
       </div>
-      {hasDataModel && !isEditingFieldName && (
+      {needsFieldName && !isEditingFieldName && (
         <div className={classes.savedAs}>
           <span>{t('app_builder.new_component.saved_as', { fieldName })}</span>
           <StudioButton
@@ -86,7 +99,7 @@ export function NewComponentForm({
           </StudioButton>
         </div>
       )}
-      {hasDataModel && isEditingFieldName && (
+      {needsFieldName && isEditingFieldName && (
         <div className={classes.field}>
           <label className='ds-label' htmlFor={`${id}-field-name`}>
             {t('app_builder.new_component.field_name')}
@@ -106,7 +119,7 @@ export function NewComponentForm({
           )}
         </div>
       )}
-      {!hasDataModel && (
+      {!hasDataModel && asksForField && (
         <span className={classes.note}>{t('app_builder.new_component.no_data_model')}</span>
       )}
       <label className={classes.checkbox}>

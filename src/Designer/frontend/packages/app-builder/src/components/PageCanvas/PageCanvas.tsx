@@ -1,281 +1,377 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
+import type { MouseEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { EDITOR_LANGUAGE, TEXT_KEY_ATTRIBUTE } from '../../constants';
-import type { LayoutComponent, PageLayout, PageLayouts, TextsById } from '../../types';
-import { getFieldNames } from '../../utils/dataModelUtils';
-import { getTopLevelComponents, moveComponent, setRequired } from '../../utils/layoutUtils';
-import { canToggleRequired } from '../../utils/componentUtils';
-import {
-  createNewComponent,
-  generateComponentId,
-  isDataComponentType,
-} from '../../utils/newComponentUtils';
-import type { AddableComponentType } from '../../utils/newComponentUtils';
-import { useAddComponent } from '../../hooks/useAddComponent';
+import cn from 'classnames';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
+import { TEXT_KEY_ATTRIBUTE } from '../../constants';
+import { useAppBuilder } from '../../contexts/AppBuilderContext';
 import { useDeleteComponent } from '../../hooks/useDeleteComponent';
-import type { DataModel } from '../../hooks/useDataModelQuery';
-import { useSavePageLayoutMutation } from '../../hooks/useSavePageLayoutMutation';
+import type { LayoutComponent } from '../../types';
+import { getComponentText } from '../../utils/componentUtils';
+import { getFieldNames } from '../../utils/dataModelUtils';
+import {
+  findComponent,
+  getChildComponents,
+  getComponentAndDescendantIds,
+  getTopLevelComponents,
+  getWidth,
+  isGroup,
+} from '../../utils/layoutUtils';
+import type { Placement } from '../../utils/layoutUtils';
+import { AddComponentBox } from '../AddComponentBox/AddComponentBox';
 import { CanvasStateProvider, useCanvasState } from '../CanvasState/CanvasStateContext';
 import { ComponentPreview } from '../ComponentPreview/ComponentPreview';
-import { DeleteComponentDialog } from '../DeleteComponentDialog/DeleteComponentDialog';
-import type { DeleteSelection } from '../DeleteComponentDialog/DeleteComponentDialog';
+import { DeleteDialog } from '../DeleteDialog/DeleteDialog';
+import type { DeleteSelection } from '../DeleteDialog/DeleteDialog';
 import { EditableComponent } from '../EditableComponent/EditableComponent';
-import type { RequiredToggle } from '../EditableComponent/EditableComponent';
 import { EditorTranslatorProvider } from '../EditorTranslator/EditorTranslatorProvider';
-import { FloatingTextEditor } from '../FloatingTextEditor/FloatingTextEditor';
-import { InsertPoint } from '../InsertPoint/InsertPoint';
+import { InsertLine } from '../InsertLine/InsertLine';
 import { NewComponentForm } from '../NewComponentForm/NewComponentForm';
-import type { NewComponentValues } from '../NewComponentForm/NewComponentForm';
+import { PageEditingProvider, usePageEditing } from '../PageEditing/PageEditingContext';
+import { ComponentSettingsPanel } from '../SettingsPanel/ComponentSettingsPanel';
+import { PageSettingsPanel, SummarySettingsPanel } from '../SettingsPanel/PageSettingsPanel';
+import { NavigationRow } from './NavigationRow';
+import { PageHeading } from './PageHeading';
+import { SummaryPreview } from './SummaryPreview';
+import { useAddFlow } from './useAddFlow';
+import type { AddFlow } from './useAddFlow';
 import classes from './PageCanvas.module.css';
 
 export type PageCanvasProps = {
-  org: string;
-  app: string;
-  layoutSetName: string;
-  /** All layout sets in the app, so deleting can check what other pages use. */
-  layoutSetNames: string[];
   pageName: string;
-  /** All pages in the layout set, so new component IDs are unique across them. */
-  layouts: PageLayouts;
-  texts: TextsById;
-  /** The data model that new data components save to. Undefined when there is none. */
-  dataModel?: DataModel;
+  onSelectPage: (pageName: string) => void;
+  /** Called after the page is deleted, so another page can be shown. */
+  onPageDeleted: () => void;
 };
 
-export function PageCanvas(props: PageCanvasProps): ReactElement {
+export function PageCanvas(props: PageCanvasProps): ReactElement | null {
+  const { texts, layouts } = useAppBuilder();
+  // A deleted page is gone from the layouts before the builder has moved on to another page.
+  if (!layouts[props.pageName]) return null;
   return (
     <CanvasStateProvider>
-      <EditorTranslatorProvider texts={props.texts}>
-        <PageCanvasContent {...props} />
-      </EditorTranslatorProvider>
+      <PageEditingProvider pageName={props.pageName}>
+        <TextSaver>
+          {(saveText) => (
+            <EditorTranslatorProvider texts={texts} onSaveText={saveText}>
+              <PageCanvasContent {...props} />
+            </EditorTranslatorProvider>
+          )}
+        </TextSaver>
+      </PageEditingProvider>
     </CanvasStateProvider>
   );
 }
 
-type NewDataComponent = {
-  type: AddableComponentType;
-  position: number;
+type TextSaverProps = {
+  children: (saveText: (textKey: string, value: string) => void) => ReactElement;
 };
 
-type ComponentToFocus = {
-  componentId: string;
-  shouldEditText: boolean;
-};
+function TextSaver({ children }: TextSaverProps): ReactElement {
+  const { saveTexts } = usePageEditing();
+  return children((textKey, value) => saveTexts({ [textKey]: value }));
+}
 
-function PageCanvasContent({
-  org,
-  app,
-  layoutSetName,
-  layoutSetNames,
-  pageName,
-  layouts,
-  texts,
-  dataModel,
-}: PageCanvasProps): ReactElement {
+const backgroundAttribute = 'data-canvas-background';
+
+function PageCanvasContent({ onSelectPage, onPageDeleted }: PageCanvasProps): ReactElement {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { editingText, stopEditingText, selectComponent, startEditingText } = useCanvasState();
-  const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
-  const { mutate: savePageLayout } = useSavePageLayoutMutation(org, app, layoutSetName);
-  const layout: PageLayout = layouts[pageName];
-  const addComponent = useAddComponent(org, app, layoutSetName, pageName, layout);
-  const deleteComponent = useDeleteComponent(org, app, layoutSetName, pageName, layout, dataModel);
+  const { layout, fixedIds, isSummaryPage: isSummary } = usePageEditing();
+  const canvasState = useCanvasState();
+  const { selectedComponentId, selectComponent, openSettings, addPlacement, newQuestion } =
+    canvasState;
+  const addFlow = useAddFlow();
+  const components = getTopLevelComponents(layout).filter(({ id }) => !fixedIds.has(id));
 
-  const [openInsertPosition, setOpenInsertPosition] = useState<number>();
-  const [newDataComponent, setNewDataComponent] = useState<NewDataComponent>();
-  const [isAdding, setIsAdding] = useState<boolean>(false);
-  const [componentToFocus, setComponentToFocus] = useState<ComponentToFocus>();
-  const [componentToDelete, setComponentToDelete] = useState<LayoutComponent>();
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  useEscapeToDeselect(containerRef);
+  useFocusAddedText(containerRef, addFlow);
 
-  const components = getTopLevelComponents(layout);
+  const handleBackgroundClick = (event: MouseEvent<HTMLDivElement>): void => {
+    if ((event.target as HTMLElement).hasAttribute(backgroundAttribute)) selectComponent(undefined);
+  };
 
-  // A new component is selected once it shows on the canvas, which is after it has been saved.
-  useEffect(() => {
-    if (!componentToFocus) return;
-    const element = containerRef.current?.querySelector<HTMLElement>(
-      `[data-component-id="${componentToFocus.componentId}"]`,
+  const background = { [backgroundAttribute]: '' };
+  const selected = selectedComponentId ? findComponent(layout, selectedComponentId) : undefined;
+  const bottomPlacement = getBottomPlacement(selected);
+  const isAddingAtBottom =
+    (addPlacement && addPlacement.kind !== 'before') ||
+    (newQuestion && newQuestion.placement.kind !== 'before');
+
+  return (
+    <div
+      ref={containerRef}
+      className={classes.canvas}
+      onClick={handleBackgroundClick}
+      {...background}
+    >
+      <article className={classes.card} data-size='sm' {...background}>
+        <PageHeading />
+        {openSettings === 'page' &&
+          (isSummary ? (
+            <SummarySettingsPanel onPageDeleted={onPageDeleted} />
+          ) : (
+            <PageSettingsPanel onPageDeleted={onPageDeleted} />
+          ))}
+        {components.length > 0 ? (
+          <ComponentGrid components={components} addFlow={addFlow} />
+        ) : (
+          <p className={classes.emptyPage}>{t('app_builder.empty_page')}</p>
+        )}
+        {isSummary && <SummaryPreview onSelectPage={onSelectPage} />}
+        <NavigationRow />
+        {isAddingAtBottom ? (
+          <AddArea placement={addPlacement ?? newQuestion?.placement} addFlow={addFlow} />
+        ) : (
+          <StudioButton
+            variant='secondary'
+            data-size='sm'
+            icon={<PlusIcon />}
+            className={classes.addButton}
+            onClick={() => canvasState.openAddBox(bottomPlacement)}
+          >
+            {t('app_builder.add_component')}
+          </StudioButton>
+        )}
+      </article>
+      <DeleteComponentDialog />
+    </div>
+  );
+}
+
+// A new component goes into the selected group, after the selected component, or last on the page.
+function getBottomPlacement(selected: LayoutComponent | undefined): Placement {
+  if (!selected) return { kind: 'end' };
+  if (isGroup(selected)) return { kind: 'inGroup', groupId: selected.id };
+  return { kind: 'after', componentId: selected.id };
+}
+
+type ComponentGridProps = {
+  components: LayoutComponent[];
+  addFlow: AddFlow;
+};
+
+/** Components in two columns: a half-width field takes one, everything else both. */
+function ComponentGrid({ components, addFlow }: ComponentGridProps): ReactElement {
+  const { layout } = usePageEditing();
+  const {
+    selectedComponentId,
+    openSettings,
+    addPlacement,
+    newQuestion,
+    openAddBox,
+    requestDelete,
+  } = useCanvasState();
+
+  const isAddingBefore = (componentId: string): boolean =>
+    [addPlacement, newQuestion?.placement].some(
+      (placement) => placement?.kind === 'before' && placement.componentId === componentId,
     );
-    if (!element) return;
-    selectComponent(componentToFocus.componentId);
-    const textElement = element.querySelector<HTMLElement>(`[${TEXT_KEY_ATTRIBUTE}]`);
-    if (componentToFocus.shouldEditText && textElement) {
-      startEditingText({
-        textKey: textElement.getAttribute(TEXT_KEY_ATTRIBUTE),
-        anchor: textElement,
-      });
-    }
-    setComponentToFocus(undefined);
-  }, [componentToFocus, layout, selectComponent, startEditingText]);
 
-  const handleMove = (componentId: string, offset: number): void =>
-    savePageLayout({ pageName, layout: moveComponent(layout, componentId, offset) });
+  const renderComponent = (component: LayoutComponent): ReactElement => (
+    <Fragment key={component.id}>
+      {isAddingBefore(component.id) ? (
+        <AddArea
+          placement={{ kind: 'before', componentId: component.id }}
+          addFlow={addFlow}
+          className={classes.fullWidth}
+        />
+      ) : (
+        <InsertLine
+          className={classes.fullWidth}
+          onClick={() => openAddBox({ kind: 'before', componentId: component.id })}
+        />
+      )}
+      <EditableComponent
+        component={component}
+        preview={
+          <ComponentPreview
+            component={component}
+            isSelected={selectedComponentId === component.id}
+          />
+        }
+        className={getWidth(component) === 'half' ? undefined : classes.fullWidth}
+        onDelete={() => requestDelete(component.id)}
+      />
+      {selectedComponentId === component.id && openSettings === 'component' && (
+        <div className={classes.fullWidth}>
+          <ComponentSettingsPanel
+            component={component}
+            onDelete={() => requestDelete(component.id)}
+          />
+        </div>
+      )}
+      {isGroup(component) && (
+        <div className={cn(classes.fullWidth, classes.groupChildren)}>
+          {getChildComponents(layout, component).map(renderComponent)}
+        </div>
+      )}
+    </Fragment>
+  );
 
-  const handleDelete = async (
-    component: LayoutComponent,
-    { textKeys, fieldNames }: DeleteSelection,
-  ): Promise<void> => {
+  return (
+    <div className={classes.grid} data-canvas-background=''>
+      {components.map(renderComponent)}
+    </div>
+  );
+}
+
+type AddAreaProps = {
+  placement: Placement;
+  addFlow: AddFlow;
+  className?: string;
+};
+
+/** The add box, or the label form once the user has chosen a question. */
+function AddArea({ placement, addFlow, className }: AddAreaProps): ReactElement {
+  const { t } = useTranslation();
+  const { dataModel, texts } = useAppBuilder();
+  const { layout } = usePageEditing();
+  const { newQuestion, stopAdding } = useCanvasState();
+
+  if (newQuestion) {
+    return (
+      <div className={className}>
+        <NewComponentForm
+          type={newQuestion.type}
+          hasDataModel={Boolean(dataModel)}
+          takenFieldNames={getFieldNames(dataModel?.schema)}
+          isSaving={addFlow.isSaving}
+          onAdd={(values) => void addFlow.addQuestion(values)}
+          onCancel={stopAdding}
+        />
+      </div>
+    );
+  }
+
+  const nameOf = (componentId: string): string => {
+    const component = findComponent(layout, componentId);
+    const name = component ? (getComponentText(component, texts) ?? componentId) : componentId;
+    return truncate(name);
+  };
+
+  const placementTexts: Record<Placement['kind'], () => string> = {
+    before: () =>
+      t('app_builder.add_component.before', {
+        name: nameOf((placement as { componentId: string }).componentId),
+      }),
+    after: () =>
+      t('app_builder.add_component.after', {
+        name: nameOf((placement as { componentId: string }).componentId),
+      }),
+    inGroup: () =>
+      t('app_builder.add_component.in_group', {
+        name: nameOf((placement as { groupId: string }).groupId),
+      }),
+    end: () => t('app_builder.add_component.end'),
+  };
+
+  return (
+    <div className={className}>
+      <AddComponentBox
+        placementText={placementTexts[placement.kind]()}
+        onChooseType={(type) => addFlow.chooseType(type, placement)}
+        onCancel={stopAdding}
+      />
+    </div>
+  );
+}
+
+/** Asks what to remove with the component the user wants to delete, and deletes it. */
+function DeleteComponentDialog(): ReactElement | null {
+  const { componentIdToDelete } = useCanvasState();
+  if (!componentIdToDelete) return null;
+  return (
+    <DeleteComponentDialogContent key={componentIdToDelete} componentId={componentIdToDelete} />
+  );
+}
+
+type DeleteComponentDialogContentProps = {
+  componentId: string;
+};
+
+/**
+ * Asks what to remove with the component the user wants to delete, and deletes it. The canvas drops
+ * the component as soon as the page is saved, before its texts and fields are removed, so the dialog
+ * keeps what it deletes from when it opened. It then stays open if a later step fails.
+ */
+function DeleteComponentDialogContent({
+  componentId,
+}: DeleteComponentDialogContentProps): ReactElement | null {
+  const { t } = useTranslation();
+  const { org, app, layoutSetName, texts, dataModel } = useAppBuilder();
+  const { pageName, layout } = usePageEditing();
+  const { requestDelete, selectComponent } = useCanvasState();
+  const deleteComponent = useDeleteComponent(org, app, layoutSetName, pageName, layout, dataModel);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  // A group's children are deleted with it, so what they use is offered too.
+  const [deletedComponents] = useState(() =>
+    Array.from(getComponentAndDescendantIds(layout, componentId))
+      .map((id) => findComponent(layout, id))
+      .filter(Boolean),
+  );
+  const component = deletedComponents[0];
+  if (!component) return null;
+  const componentName = getComponentText(component, texts) ?? component.id;
+
+  const handleDelete = async ({ textKeys, fieldNames }: DeleteSelection): Promise<void> => {
     setIsDeleting(true);
     const isDeleted = await deleteComponent({
-      componentId: component.id,
+      componentId,
       textKeysToDelete: textKeys,
       fieldNamesToDelete: fieldNames,
     });
     setIsDeleting(false);
-    // The dialog stays open when a step fails, so the user sees that something went wrong.
     if (isDeleted) {
       selectComponent(undefined);
-      setComponentToDelete(undefined);
+      requestDelete(undefined);
     }
-  };
-
-  const getRequiredToggle = (component: LayoutComponent): RequiredToggle | undefined => {
-    if (!canToggleRequired(component)) return undefined;
-    const isRequired = component.required === true;
-    return {
-      isRequired,
-      onToggle: () =>
-        savePageLayout({ pageName, layout: setRequired(layout, component.id, !isRequired) }),
-    };
-  };
-
-  const handleSaveText = (textKey: string, value: string): void => {
-    stopEditingText();
-    if (value !== (texts[textKey] ?? '')) {
-      upsertTextResource({ textId: textKey, language: EDITOR_LANGUAGE, translation: value });
-    }
-  };
-
-  const handleChooseType = (type: AddableComponentType, position: number): void => {
-    setOpenInsertPosition(undefined);
-    if (isDataComponentType(type)) {
-      setNewDataComponent({ type, position });
-    } else {
-      void addDisplayComponent(type, position);
-    }
-  };
-
-  // Headings and paragraphs are added straight away with a text the user can change in place.
-  const addDisplayComponent = async (
-    type: AddableComponentType,
-    position: number,
-  ): Promise<void> => {
-    const componentId = generateComponentId(type, layouts);
-    const { component, texts: newTexts } = createNewComponent({
-      type,
-      componentId,
-      pageName,
-      text: t(`app_builder.default_text.${type}`),
-    });
-    const isAdded = await addComponent({ component, texts: newTexts, position });
-    if (isAdded) setComponentToFocus({ componentId, shouldEditText: true });
-  };
-
-  const addDataComponent = async (
-    { type, position }: NewDataComponent,
-    { label, fieldName, required }: NewComponentValues,
-  ): Promise<void> => {
-    const componentId = generateComponentId(type, layouts);
-    const binding =
-      dataModel && fieldName ? { field: fieldName, dataType: dataModel.dataType } : undefined;
-    const { component, texts: newTexts } = createNewComponent({
-      type,
-      componentId,
-      pageName,
-      text: label,
-      optionTexts: [
-        t('app_builder.default_text.option', { number: 1 }),
-        t('app_builder.default_text.option', { number: 2 }),
-      ],
-      required,
-      binding,
-    });
-    const newField = binding ? { name: fieldName, dataModel } : undefined;
-    setIsAdding(true);
-    const isAdded = await addComponent({ component, texts: newTexts, position, newField });
-    setIsAdding(false);
-    // The form stays open when a save fails, so the user can try again.
-    if (isAdded) {
-      setNewDataComponent(undefined);
-      setComponentToFocus({ componentId, shouldEditText: false });
-    }
-  };
-
-  const renderInsertPoint = (position: number, isAlwaysVisible: boolean): ReactElement => {
-    if (newDataComponent?.position === position) {
-      return (
-        <NewComponentForm
-          type={newDataComponent.type}
-          hasDataModel={Boolean(dataModel)}
-          takenFieldNames={getFieldNames(dataModel?.schema)}
-          isSaving={isAdding}
-          onAdd={(values) => void addDataComponent(newDataComponent, values)}
-          onCancel={() => setNewDataComponent(undefined)}
-        />
-      );
-    }
-    return (
-      <InsertPoint
-        isOpen={openInsertPosition === position}
-        isAlwaysVisible={isAlwaysVisible}
-        onOpen={() => {
-          setNewDataComponent(undefined);
-          setOpenInsertPosition(position);
-        }}
-        onClose={() => setOpenInsertPosition(undefined)}
-        onChooseType={(type) => handleChooseType(type, position)}
-      />
-    );
   };
 
   return (
-    <div ref={containerRef} className={classes.pageCanvas}>
-      {components.length === 0 && (
-        <p className={classes.emptyPage}>{t('app_builder.empty_page')}</p>
-      )}
-      {components.map((component, index) => (
-        <Fragment key={component.id}>
-          {renderInsertPoint(index, false)}
-          <EditableComponent
-            componentId={component.id}
-            canMoveUp={index > 0}
-            canMoveDown={index < components.length - 1}
-            onMove={(offset) => handleMove(component.id, offset)}
-            onDelete={() => setComponentToDelete(component)}
-            requiredToggle={getRequiredToggle(component)}
-          >
-            <ComponentPreview component={component} />
-          </EditableComponent>
-        </Fragment>
-      ))}
-      {renderInsertPoint(components.length, true)}
-      {componentToDelete && (
-        <DeleteComponentDialog
-          org={org}
-          app={app}
-          layoutSetName={layoutSetName}
-          layoutSetNames={layoutSetNames}
-          component={componentToDelete}
-          texts={texts}
-          dataModel={dataModel}
-          isDeleting={isDeleting}
-          onDelete={(selection) => void handleDelete(componentToDelete, selection)}
-          onClose={() => setComponentToDelete(undefined)}
-        />
-      )}
-      {editingText && containerRef.current && (
-        <FloatingTextEditor
-          key={editingText.textKey}
-          anchor={editingText.anchor}
-          container={containerRef.current}
-          value={texts[editingText.textKey] ?? ''}
-          label={t('app_builder.edit_text')}
-          onSave={(value) => handleSaveText(editingText.textKey, value)}
-          onCancel={stopEditingText}
-        />
-      )}
-    </div>
+    <DeleteDialog
+      title={t('app_builder.delete.title', { componentName })}
+      description={t('app_builder.delete.description')}
+      components={deletedComponents}
+      isDeleting={isDeleting}
+      onDelete={(selection) => void handleDelete(selection)}
+      onClose={() => requestDelete(undefined)}
+    />
   );
+}
+
+const maxNameLength = 40;
+
+function truncate(text: string): string {
+  return text.length > maxNameLength ? `${text.slice(0, maxNameLength)}…` : text;
+}
+
+function useEscapeToDeselect(containerRef: React.RefObject<HTMLDivElement>): void {
+  const { selectComponent } = useCanvasState();
+  const selectRef = useRef(selectComponent);
+  selectRef.current = selectComponent;
+  useEffect(() => {
+    const document = containerRef.current?.ownerDocument;
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') selectRef.current(undefined);
+    };
+    document?.addEventListener('keydown', handleKeyDown);
+    return () => document?.removeEventListener('keydown', handleKeyDown);
+  }, [containerRef]);
+}
+
+/** A text, heading or group added with a default text gets focus, so the user can type over it. */
+function useFocusAddedText(containerRef: React.RefObject<HTMLDivElement>, addFlow: AddFlow): void {
+  const { addedComponentId, clearAddedComponent } = addFlow;
+  useEffect(() => {
+    if (!addedComponentId) return;
+    const text = containerRef.current?.querySelector<HTMLElement>(
+      `[data-component-id="${addedComponentId}"] [${TEXT_KEY_ATTRIBUTE}]`,
+    );
+    if (!text) return;
+    text.focus();
+    text.ownerDocument.getSelection()?.selectAllChildren(text);
+    clearAddedComponent();
+  });
 }

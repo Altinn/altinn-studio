@@ -5,8 +5,19 @@
   min-height: 0;
 }
 
-.canvasArea {
+.main {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+}
+
+.pagesView {
+  display: flex;
+  height: 100%;
+}
+
+.canvasArea {
+  flex: 1;
+  min-width: 0;
   background-color: var(--ds-color-neutral-background-tinted);
 }

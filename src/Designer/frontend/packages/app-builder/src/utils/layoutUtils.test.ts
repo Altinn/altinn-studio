@@ -7,7 +7,9 @@ import {
   insertComponent,
   moveComponent,
   removeComponent,
-  setRequired,
+  setWidth,
+  getWidth,
+  canMoveComponent,
 } from './layoutUtils';
 
 const heading: LayoutComponent = { id: 'heading', type: ComponentType.Heading };
@@ -74,24 +76,53 @@ describe('moveComponent', () => {
 describe('insertComponent', () => {
   const newComponent: LayoutComponent = { id: 'new', type: ComponentType.Paragraph };
 
-  it('inserts the component before the top-level component at the position', () => {
+  it('inserts the component before another', () => {
     const layout = createLayout([heading, group, groupChild, input]);
-    expect(getIds(insertComponent(layout, newComponent, 2))).toEqual([
-      'heading',
-      'group',
-      'groupChild',
-      'new',
-      'input',
+    const updated = insertComponent(layout, newComponent, { kind: 'before', componentId: 'input' });
+    expect(getIds(updated)).toEqual(['heading', 'group', 'groupChild', 'new', 'input']);
+  });
+
+  it('inserts the component after another', () => {
+    const layout = createLayout([heading, input]);
+    const updated = insertComponent(layout, newComponent, {
+      kind: 'after',
+      componentId: 'heading',
+    });
+    expect(getIds(updated)).toEqual(['heading', 'new', 'input']);
+  });
+
+  it('adds the component last on the page', () => {
+    const updated = insertComponent(createLayout([heading]), newComponent, { kind: 'end' });
+    expect(getIds(updated)).toEqual(['heading', 'new']);
+  });
+
+  it('adds the component as the last child of a group', () => {
+    const layout = createLayout([group, groupChild, input]);
+    const updated = insertComponent(layout, newComponent, { kind: 'inGroup', groupId: 'group' });
+    expect(getIds(updated)).toEqual(['group', 'groupChild', 'new', 'input']);
+    expect(updated.data.layout[0].children).toEqual(['groupChild', 'new']);
+  });
+
+  it('adds the component to the group of the component it goes before', () => {
+    const layout = createLayout([group, groupChild]);
+    const placement = { kind: 'before', componentId: 'groupChild' } as const;
+    const updated = insertComponent(layout, newComponent, placement);
+    expect(updated.data.layout[0].children).toEqual(['new', 'groupChild']);
+  });
+});
+
+describe('moveComponent in a group', () => {
+  it('moves a child among the children of its group', () => {
+    const second: LayoutComponent = { id: 'second', type: ComponentType.Input };
+    const layout = createLayout([
+      { ...group, children: ['groupChild', 'second'] },
+      groupChild,
+      second,
     ]);
-  });
-
-  it('adds the component last when the position is past the end', () => {
-    const layout = createLayout([heading]);
-    expect(getIds(insertComponent(layout, newComponent, 5))).toEqual(['heading', 'new']);
-  });
-
-  it('adds the component to an empty page', () => {
-    expect(getIds(insertComponent(createLayout([]), newComponent, 0))).toEqual(['new']);
+    expect(moveComponent(layout, 'second', -1).data.layout[0].children).toEqual([
+      'second',
+      'groupChild',
+    ]);
   });
 });
 
@@ -117,14 +148,51 @@ describe('getComponentAndDescendantIds', () => {
   });
 });
 
-describe('setRequired', () => {
-  it('makes a component required', () => {
-    const updated = setRequired(createLayout([heading, input]), 'input', true);
-    expect(updated.data.layout[1]).toEqual({ ...input, required: true });
+describe('getWidth and setWidth', () => {
+  it('makes a component half as wide on wider screens, and back', () => {
+    const half = setWidth(input, 'half');
+    expect(half.grid).toEqual({ xs: 12, md: 6 });
+    expect(getWidth(half)).toBe('half');
+    expect(setWidth(half, 'full')).not.toHaveProperty('grid');
+  });
+});
+
+describe('removeComponent from a group', () => {
+  it('removes the child from the children of its group', () => {
+    const layout = createLayout([group, groupChild]);
+    expect(removeComponent(layout, 'groupChild').data.layout[0].children).toEqual([]);
+  });
+});
+
+describe('components the builder keeps in place', () => {
+  const navigation: LayoutComponent = { id: 'navigation', type: ComponentType.NavigationButtons };
+  const fixedIds = new Set(['navigation']);
+
+  it('adds a component at the end above them', () => {
+    const newComponent: LayoutComponent = { id: 'new', type: ComponentType.Paragraph };
+    const layout = createLayout([heading, navigation]);
+    expect(getIds(insertComponent(layout, newComponent, { kind: 'end' }, fixedIds))).toEqual([
+      'heading',
+      'new',
+      'navigation',
+    ]);
   });
 
-  it('leaves out the property when the component is made optional', () => {
-    const updated = setRequired(createLayout([{ ...input, required: true }]), 'input', false);
-    expect(updated.data.layout[0]).toEqual(input);
+  it('does not move a component past them', () => {
+    const layout = createLayout([heading, input, navigation]);
+    expect(canMoveComponent(layout, 'input', 1, fixedIds)).toBe(false);
+    expect(canMoveComponent(layout, 'input', -1, fixedIds)).toBe(true);
+  });
+
+  it('does not move a child past the ends of its group', () => {
+    const second: LayoutComponent = { id: 'second', type: ComponentType.Input };
+    const layout = createLayout([
+      { ...group, children: ['groupChild', 'second'] },
+      groupChild,
+      second,
+    ]);
+    expect(canMoveComponent(layout, 'groupChild', -1)).toBe(false);
+    expect(canMoveComponent(layout, 'second', 1)).toBe(false);
+    expect(moveComponent(layout, 'second', 1)).toBe(layout);
   });
 });

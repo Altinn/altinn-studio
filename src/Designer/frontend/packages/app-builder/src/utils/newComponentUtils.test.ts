@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { PageLayouts } from '../types';
-import { createNewComponent, generateComponentId, isDataComponentType } from './newComponentUtils';
+import {
+  createNewComponent,
+  generateComponentId,
+  isQuestionType,
+  savesToDataModel,
+} from './newComponentUtils';
 
 const pageName = 'Side1';
 
@@ -12,6 +17,7 @@ describe('createNewComponent', () => {
       componentId: 'Heading-abc123',
       pageName,
       text: 'Ny overskrift',
+      optionTexts: [],
     });
     expect(component).toEqual({
       id: 'Heading-abc123',
@@ -28,6 +34,7 @@ describe('createNewComponent', () => {
       componentId: 'Input-abc123',
       pageName,
       text: 'Fornavn',
+      optionTexts: [],
       required: true,
       binding: { field: 'fornavn', dataType: 'model' },
     });
@@ -43,6 +50,7 @@ describe('createNewComponent', () => {
       componentId: 'TextArea-abc123',
       pageName,
       text: 'Begrunnelse',
+      optionTexts: [],
     });
     expect(component).not.toHaveProperty('required');
     expect(component).not.toHaveProperty('dataModelBindings');
@@ -75,9 +83,51 @@ describe('generateComponentId', () => {
   });
 });
 
-describe('isDataComponentType', () => {
-  it('is true for components that store an answer', () => {
-    expect(isDataComponentType(ComponentType.Input)).toBe(true);
-    expect(isDataComponentType(ComponentType.Heading)).toBe(false);
+describe('isQuestionType', () => {
+  it('is true for components that ask the user something', () => {
+    expect(isQuestionType(ComponentType.Input)).toBe(true);
+    expect(isQuestionType(ComponentType.FileUpload)).toBe(true);
+    expect(isQuestionType(ComponentType.Heading)).toBe(false);
+  });
+});
+
+describe('savesToDataModel', () => {
+  it('is false for a file upload, which saves attachments', () => {
+    expect(savesToDataModel(ComponentType.FileUpload)).toBe(false);
+    expect(savesToDataModel(ComponentType.Datepicker)).toBe(true);
+  });
+});
+
+describe('createNewComponent, type defaults', () => {
+  const create = (type: Parameters<typeof createNewComponent>[0]['type']) =>
+    createNewComponent({
+      type,
+      componentId: 'id',
+      pageName,
+      text: 'Tekst',
+      optionTexts: ['A', 'B'],
+    });
+
+  it('puts the text of an alert in its body', () => {
+    expect(create(ComponentType.Alert).component).toMatchObject({
+      severity: 'info',
+      textResourceBindings: { body: 'Side1.id.body' },
+    });
+  });
+
+  it('gives radio buttons the yes or no code list', () => {
+    const { component } = create(ComponentType.RadioButtons);
+    expect(component.optionsId).toBe('janei');
+    expect(component).not.toHaveProperty('options');
+  });
+
+  it('lets a file upload take one file of any type', () => {
+    const { component } = create(ComponentType.FileUpload);
+    expect(component).toMatchObject({ maxNumberOfAttachments: 1 });
+    expect(component).not.toHaveProperty('validFileEndings');
+  });
+
+  it('creates a group without children', () => {
+    expect(create(ComponentType.Group).component.children).toEqual([]);
   });
 });

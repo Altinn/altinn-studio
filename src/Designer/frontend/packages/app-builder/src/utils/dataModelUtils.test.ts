@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { DataModelMetadataJson } from 'app-shared/types/DataModelMetadata';
-import { addTextField, findModelPath, getFieldNames, removeFields } from './dataModelUtils';
+import { findModelPath, getField, getFieldNames, removeFields, setField } from './dataModelUtils';
 
 const schema: JsonSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
@@ -25,17 +25,22 @@ describe('findModelPath', () => {
   });
 });
 
-describe('addTextField', () => {
-  it('adds a string field and keeps the rest of the schema', () => {
-    const updatedSchema = addTextField(schema, 'fornavn');
+describe('setField', () => {
+  it('adds a field and keeps the rest of the schema', () => {
+    const updatedSchema = setField(schema, 'fornavn', { type: 'string' });
     expect(getFieldNames(updatedSchema)).toEqual(['property1', 'fornavn']);
     expect(updatedSchema.properties.fornavn).toEqual({ type: 'string' });
     expect(updatedSchema.required).toEqual(['property1']);
     expect(updatedSchema.$schema).toBe(schema.$schema);
   });
 
+  it('replaces a field that exists', () => {
+    const updatedSchema = setField(schema, 'property1', { type: 'number' });
+    expect(getField(updatedSchema, 'property1')).toEqual({ type: 'number' });
+  });
+
   it('does not change the original schema', () => {
-    addTextField(schema, 'fornavn');
+    setField(schema, 'fornavn', { type: 'string' });
     expect(getFieldNames(schema)).toEqual(['property1']);
   });
 });
