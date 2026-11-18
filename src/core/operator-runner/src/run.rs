@@ -242,7 +242,7 @@ async fn patch_of(vm: &Vm, ending: Ending, deadline: Instant) -> Result<Option<V
     }
     let patch = read_patch(vm, deadline).await?;
     patch::check(&patch).map_err(RunError::RefusedPatch)?;
-    Ok(Some(patch))
+    Ok((!patch.is_empty()).then_some(patch))
 }
 
 async fn read_patch(vm: &Vm, deadline: Instant) -> Result<Vec<u8>, AnyError> {
@@ -406,6 +406,14 @@ mod tests {
                 if changes == &[".github/workflows/build.yml (a CI workflow folder)"]),
             "{result:?}"
         );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn answers_without_a_patch_when_the_command_changed_nothing() -> Result<(), AnyError> {
+        let outcome = Guest::new()?.upgrade("").await.expect("the upgrade runs");
+
+        assert_eq!(outcome.patch, None);
         Ok(())
     }
 
