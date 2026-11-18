@@ -49,7 +49,6 @@ internal sealed class DataModelFieldCalculator
     /// </summary>
     public async Task Calculate(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges? changes = null)
     {
-        using var activity = _telemetry?.StartCalculateActivity(dataAccessor.Instance.Id, taskId);
         foreach (var (dataType, dataElement) in GetFormDataElementsForTask(dataAccessor, taskId, changes))
         {
             if (await _dataElementAccessChecker.CanRead(dataAccessor.Instance, dataType) is false)
@@ -60,6 +59,12 @@ internal sealed class DataModelFieldCalculator
             var calculationConfig = _appResourceService.GetCalculationConfig(dataType.Id);
             if (calculationConfig is not null)
             {
+                using var activity = _telemetry?.StartCalculateActivity(
+                    dataAccessor.Instance.Id,
+                    taskId,
+                    dataType,
+                    dataElement
+                );
                 await CalculateFormData(dataAccessor, dataElement, calculationConfig);
             }
         }

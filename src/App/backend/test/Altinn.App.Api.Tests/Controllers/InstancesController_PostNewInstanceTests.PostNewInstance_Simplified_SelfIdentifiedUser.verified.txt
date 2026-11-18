@@ -1,19 +1,6 @@
 ﻿{
   Activities: [
     {
-      Name: DataModelFieldCalculator.Calculate,
-      IdFormat: W3C,
-      Tags: [
-        {
-          instance.guid: Guid_1
-        },
-        {
-          task.id: Task_1
-        }
-      ],
-      HasParent: true
-    },
-    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -37,7 +24,7 @@
           server.port: 80
         },
         {
-          TestId: Guid_2
+          TestId: Guid_1
         },
         {Scrubbed},
         {
@@ -97,7 +84,7 @@
           server.port: 80
         },
         {
-          TestId: Guid_2
+          TestId: Guid_1
         },
         {Scrubbed},
         {
@@ -146,7 +133,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_2
         },
         {
           process.callback.command: AcquireProcessingStatus
@@ -160,7 +147,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_2
         },
         {
           process.callback.command: CommitProcessState
@@ -174,7 +161,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_2
         },
         {
           process.callback.command: UnlockTaskData
@@ -188,7 +175,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_2
         },
         {
           process.callback.command: CleanupGeneratedFromTask
@@ -202,7 +189,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_2
         },
         {
           process.callback.command: CommonTaskInitialization
@@ -216,7 +203,7 @@
       Status: Ok,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_2
         },
         {
           process.callback.command: ReleaseProcessingStatus
@@ -481,7 +468,7 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_2
+              TestId: Guid_1
             },
             {
               url.scheme: http
@@ -512,7 +499,7 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_2
+              TestId: Guid_1
             },
             {
               url.scheme: http
