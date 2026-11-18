@@ -11,6 +11,13 @@
         }
       },
       {
+        "id": "view-summary-from-info-link",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": ["linkToPage", "Se oppsummering med retur til generell info", "summary", true]
+        }
+      },
+      {
         "id": "NavigationButtons-CyX0nS",
         "textResourceBindings": {},
         "type": "NavigationButtons"

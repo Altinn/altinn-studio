@@ -699,5 +699,36 @@ describe('navigation', () => {
     back().should('not.exist');
     cy.url().should('not.include', 'backToPage=');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
+
+    // A legacy summary edit preserves an existing linked-page return. Invalidate only the affected shortcut.
+    const editSideChoices = () => {
+      cy.findByRole('link', { name: 'Se oppsummering med retur til generell info' }).clickAndGone();
+      cy.findByTestId('summary-Summary-extra').findByRole('button', { name: /Endre/ }).clickAndGone();
+      back().should('be.visible');
+      cy.findByRole('button', { name: 'Tilbake til generell info' }).should('be.visible');
+      cy.url().should('include', 'backToPage=info1');
+    };
+    cy.gotoNavGroup(/Informasjon/, 'desktop', /Generell info/);
+    editSideChoices();
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    cy.waitUntilSaved();
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    cy.waitUntilSaved();
+    cy.url().should('include', 'backToPage=info1');
+    cy.findByRole('button', { name: 'Tilbake til generell info' }).should('be.visible').click();
+    cy.location('pathname').should('match', /\/info1$/);
+
+    editSideChoices();
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
+    cy.url().should('not.include', 'backToPage=');
+    cy.findByRole('button', { name: 'Tilbake til generell info' }).should('not.exist');
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).uncheck();
+    back().click();
+    cy.location('pathname').should('match', /\/summary$/);
+    cy.navGroup(/Innsending/, /Oppsummering/).should('have.attr', 'aria-current', 'page');
+    cy.waitUntilSaved();
   });
 });
