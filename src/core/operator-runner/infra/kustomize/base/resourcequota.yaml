@@ -1,6 +1,6 @@
-# This quota limits the runs at the same time, so that they cannot take the sandbox nodes from CI. The core operator
-# admits as many runs as the quota has KVM slots, and queues the rest. The CPU and memory fit one run pod for each KVM
-# slot. The quota counts a stopped Job until the operator or its TTL removes it.
+# This quota limits the number of runs at the same time, so that they cannot take the sandbox nodes from CI. The core
+# operator admits as many runs as the quota has KVM slots, and queues the rest. The CPU and memory fit one run pod for
+# each KVM slot. The quota counts a stopped Job until the operator or its TTL removes it.
 apiVersion: v1
 kind: ResourceQuota
 metadata:

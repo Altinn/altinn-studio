@@ -5,8 +5,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /source
-# rust-toolchain.toml selects the compiler, as in CI. Renovate moves this image with it, and rustup installs the
-# release when the image does not have it.
+# rust-toolchain.toml selects the compiler, as in CI. Renovate updates this image together with that file. If the
+# image does not have the release, rustup installs it.
 COPY rust-toolchain.toml ./
 RUN rustup toolchain install --no-self-update \
     && rustc --version

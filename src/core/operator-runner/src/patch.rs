@@ -1,14 +1,14 @@
 //! Checks the patch of a run before the operator runner returns it.
 //!
-//! App code ran in the VM and could have written the patch file, so the operator runner reads it as untrusted input. It
-//! accepts only the format that `git diff --cached --binary --no-renames` writes, and refuses a patch with any other
-//! line, because `git apply` could read such a line as the header of another change. It also refuses the changes that
-//! no command makes:
+//! App code runs in the VM and can change the patch file, so the operator runner reads it as untrusted input. It
+//! accepts only the format that `git diff --cached --binary --no-renames` writes. It refuses a patch with any other
+//! line, because `git apply` can read such a line as the header of another change. It also refuses the changes that no
+//! command makes:
 //!
-//! - symbolic links and submodules, which can send `git apply` and the steps of the client out of the repository;
-//! - CI workflows, which run with the secrets of the repository;
-//! - the files that change what git does with the other files;
-//! - paths outside the app.
+//! - symbolic links and submodules, which can send `git apply` and the steps of the client out of the repository
+//! - CI workflows, which run with the secrets of the repository
+//! - the files that change what git does with the other files
+//! - paths outside the app
 //!
 //! A client applies the patch with `git apply`, which also refuses paths outside the repository and in `.git`.
 
@@ -37,8 +37,6 @@ impl fmt::Display for Refusal {
     }
 }
 
-/// Returns why the operator runner refuses the patch, if it does.
-///
 /// # Errors
 ///
 /// Returns the first line that is not in the format of `git diff`, or else every change that the operator runner
@@ -264,7 +262,8 @@ fn read_name(lines: &mut Lines<'_>, marker: &[u8], prefix: &[u8], path: &[u8]) -
     }
 }
 
-/// Reads the hunks of a text patch. Each hunk header counts its lines, so a line in a hunk is never read as a header.
+/// Reads the hunks of a text patch. Each hunk header counts its lines, so this function never reads a line in a hunk as
+/// a header.
 fn read_hunks(lines: &mut Lines<'_>) -> Result<(), Refusal> {
     let mut hunks = 0;
     while let Some(header) = lines.peek().and_then(|line| line.strip_prefix(b"@@ -")) {
@@ -331,7 +330,7 @@ fn read_binary_hunk(lines: &mut Lines<'_>) -> Result<(), Refusal> {
 }
 
 /// A line of a binary patch starts with a letter for the number of bytes in it, from `A` for 1 to `z` for 52. Each
-/// four bytes, and the rest, take five characters.
+/// group of four bytes takes five characters, also a shorter last group.
 fn is_base85_line(line: &[u8]) -> bool {
     let Some((&length, data)) = line.split_first() else {
         return false;
@@ -389,7 +388,7 @@ mod tests {
 
     use super::{Refusal, check};
 
-    /// The patch that the operator runner makes, by the same command as in `PATCH_SCRIPT`.
+    /// A git repository that makes its patch with the same command as `PATCH_SCRIPT`.
     struct Repo(tempfile::TempDir);
 
     impl Repo {

@@ -1,5 +1,5 @@
-# What the core operator needs to run operator runner Jobs. See src/core/operator-runner/README.md. Only the
-# environments with sandbox nodes include this file.
+# This file deploys what the core operator needs to run operator runner Jobs. See src/core/operator-runner/README.md.
+# Only the environments with sandbox nodes include this file.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
@@ -19,7 +19,7 @@ metadata:
   name: operator-runner
   namespace: default
 spec:
-  # No targetNamespace, because the artifact has a cluster-scoped admission policy.
+  # Do not set targetNamespace. The artifact has a cluster-scoped admission policy.
   interval: 5m
   sourceRef:
     kind: OCIRepository

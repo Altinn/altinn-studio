@@ -27,7 +27,8 @@ permissions:
   contents: read
 
 jobs:
-  # A published studioctl release runs this on its tag, which prod does not accept, so this job deploys main again.
+  # A published studioctl release starts this workflow on its tag. Prod does not accept a deploy from a tag, so this job
+  # deploys main again.
   deploy-studioctl-release:
     if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'studioctl/')
     runs-on: ubuntu-latest

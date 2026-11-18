@@ -22,7 +22,7 @@ pub type Body = Full<Bytes>;
 /// After the stop, open connections have this much time to complete.
 const DRAIN_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Serves the routes until `stop` completes. Returns the output of `stop`.
+/// Serves the routes until `stop` completes.
 ///
 /// After the stop, the server waits for the open connections, so that it writes the answers that it prepares. No idle
 /// connection can delay the stop, because each connection serves only one request.

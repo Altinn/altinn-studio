@@ -8,13 +8,12 @@ use tokio_util::sync::CancellationToken;
 
 use crate::run::{Command, Outcome, Run, RunError, Runner};
 
-/// The id that the client gives a run: a UUID in the form with hyphens. The operator runner compares run ids in lower
-/// case.
+/// The id that the client gives a run. It is a UUID with hyphens. The operator runner compares run ids in lower case.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RunId(String);
 
 impl RunId {
-    /// Returns `None` if `text` is not a UUID in the form with hyphens.
+    /// Returns `None` if `text` is not a UUID with hyphens.
     #[must_use]
     pub fn parse(text: &str) -> Option<Self> {
         let is_uuid = text.len() == 36
@@ -104,7 +103,6 @@ pub enum Start {
     Started,
     /// This run claimed the operator runner before. The run has this status.
     AlreadyClaimed(Status),
-    /// Another run claimed the operator runner.
     ClaimedByOther,
     Stopping,
 }
@@ -186,7 +184,7 @@ impl Phase {
     }
 }
 
-/// Counts an archive that arrives, until the guard is dropped.
+/// Counts an archive that arrives, until the caller drops the guard.
 pub struct Upload<'a>(&'a Host);
 
 impl Drop for Upload<'_> {
@@ -236,8 +234,8 @@ impl Host {
         self.state.borrow().phase.status_of(run_id)
     }
 
-    /// Returns what a start of this run gets instead of a claim, or `None` if the run can claim the operator runner. The
-    /// routes ask before they read the archive.
+    /// Returns what a start of this run gets instead of a claim, or `None` if the run can claim the operator runner.
+    /// The routes call it before they read the archive.
     #[must_use]
     pub fn refusal(&self, run_id: &RunId) -> Option<Start> {
         if self.is_stopping() {
@@ -294,14 +292,14 @@ impl Host {
         Some(())
     }
 
-    /// Serves the run until the operator runner must stop, and then deletes the VM. The operator runner refuses new runs
-    /// from then on.
+    /// Serves the run until the operator runner must stop, and then deletes the VM. The operator runner refuses new
+    /// runs from then on.
     ///
     /// When `signal` completes, this stops the running command, and waits until the run has its result.
     ///
     /// # Errors
     ///
-    /// Returns an error when the VM could not be deleted.
+    /// Returns an error if the operator runner cannot delete the VM.
     pub async fn serve_until_stop(
         &self,
         timeouts: Timeouts,
@@ -363,7 +361,6 @@ impl Host {
         .await
     }
 
-    /// Completes when a client fetched the result of the ended run.
     async fn fetched(&self) {
         self.wait_until(|state| matches!(&state.phase, Phase::Ended(ended) if ended.fetched))
             .await;
@@ -378,7 +375,6 @@ impl Host {
         self.wait_for(|state| condition(state).then_some(())).await;
     }
 
-    /// Waits until `pick` returns a value for the state.
     async fn wait_for<T>(&self, mut pick: impl FnMut(&State) -> Option<T>) -> T {
         let mut changes = self.state.subscribe();
         loop {

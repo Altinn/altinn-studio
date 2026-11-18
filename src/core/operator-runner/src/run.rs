@@ -24,7 +24,7 @@ const PREPARE_TIMEOUT: Duration = Duration::from_mins(2);
 /// The part of the run's timeout that the command leaves to read the report and to make and read the patch.
 const FINISH_TIMEOUT: Duration = Duration::from_mins(1);
 /// The output of a step only goes into the error of a failed run, which its status carries. The core operator reads a
-/// status of at most 64 KiB, and JSON can escape a byte in six.
+/// status of at most 64 KiB, and JSON can write one byte as six bytes.
 const STEP_OUTPUT_LIMITS: Limits = Limits {
     stdout: 8 * 1024,
     stderr: 8 * 1024,
@@ -89,7 +89,6 @@ pub enum Command {
 impl Command {
     const ALL: [Self; 1] = [Self::UpgradeV9];
 
-    /// Returns the command with this name, or `None` if the operator runner has no such command.
     #[must_use]
     pub fn from_name(name: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|command| command.name() == name)
@@ -336,8 +335,8 @@ mod tests {
                 .queue_execution_events_matching(move |spec| script_of(spec) == Some(script), events);
         }
 
-        /// Runs the upgrade in a VM that has the report and the patch that studioctl and git would write. The run finds
-        /// the VM by its name, so the test starts it first.
+        /// Runs the upgrade in a VM that already has the report and the patch from studioctl and git. The run finds the
+        /// VM by its name, so the test starts the VM first.
         async fn upgrade(&self, patch: &'static str) -> Result<Outcome, RunError> {
             let vm = self.vms.start(&[]).await?;
             let deadline = Instant::now() + Duration::from_mins(1);

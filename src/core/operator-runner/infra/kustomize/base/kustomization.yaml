@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Each namespaced object sets its namespace. A namespace transform would also add one to the cluster-scoped admission
-# policy, because kustomize does not know its scope.
+# Each namespaced object sets its namespace. Do not use a namespace transform. It also adds a namespace to the
+# cluster-scoped admission policy, because kustomize does not know the scope of that policy.
 resources:
   - namespace.yaml
   - podtemplate.yaml

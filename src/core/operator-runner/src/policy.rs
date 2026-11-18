@@ -18,8 +18,10 @@ pub const NUGET_HOSTS: &[&str] = &[
 
 const HTTPS_PORT: u16 = 443;
 
-/// The hosts that the VM of the run may reach. They are empty until the operator runner sets the hosts of the command,
-/// before it starts the VM, so a VM reaches no host that its command does not list.
+/// The hosts that the VM of the run can reach.
+///
+/// The list is empty until the operator runner sets the hosts of the command, before it starts the VM. A VM can reach
+/// only the hosts that its command lists.
 #[derive(Clone, Default)]
 pub struct AllowedHosts(Rc<Cell<&'static [&'static str]>>);
 
@@ -32,7 +34,7 @@ impl AllowedHosts {
 /// Lets the VM of a run resolve and reach the hosts of its command with HTTPS. It blocks all other network access.
 ///
 /// This policy checks host names, not addresses. The Sandbox network layer verifies the certificate of the server for
-/// the host name, and the network policy of `core-operator-runners` blocks the private address ranges.
+/// the host name. The network policy of `core-operator-runners` blocks the private address ranges.
 pub struct AllowlistPolicy {
     hosts: AllowedHosts,
 }

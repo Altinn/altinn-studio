@@ -15,17 +15,14 @@ use crate::{
     run::Command,
 };
 
-/// The maximum size of an app archive that the operator runner accepts.
 const MAX_ARCHIVE_BYTES: usize = 50 * 1024 * 1024;
 
 const ARCHIVE_CONTENT_TYPE: &str = "application/gzip";
-/// The first bytes of each gzip file.
 const GZIP_MAGIC: &[u8] = &[0x1f, 0x8b];
 const BODY_TIMEOUT: Duration = Duration::from_mins(2);
 /// The longest time that a request for the status or the result waits for the end of the run.
 const MAX_WAIT_SECONDS: u64 = 30;
 
-/// The HTTP API of the operator runner.
 pub struct Routes {
     host: Rc<Host>,
     max_archive_bytes: usize,

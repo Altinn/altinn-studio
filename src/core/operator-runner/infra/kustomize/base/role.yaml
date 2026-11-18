@@ -4,7 +4,7 @@ metadata:
   name: operator-runs
   namespace: core-operator-runners
 rules:
-  # Read the pod spec of the runner Jobs.
+  # Read the pod spec of the run Jobs.
   - apiGroups: [""]
     resources: [podtemplates]
     resourceNames: [operator-runner]
@@ -21,7 +21,7 @@ rules:
   - apiGroups: [""]
     resources: [resourcequotas]
     verbs: [get, list, watch]
-  # Log the operator runner's warnings and errors before the Job and its log are deleted.
+  # Log the warnings and errors of the operator runner before the operator deletes the Job and its log.
   - apiGroups: [""]
     resources: [pods/log]
     verbs: [get]

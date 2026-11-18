@@ -1,8 +1,8 @@
 # The core operator creates one Job here for each run of app code. The Job pods mount hostPath folders and request
 # /dev/kvm, because they start a microVM on a sandbox node. The namespace allows privileged pods, because the Pod
 # Security level baseline does not allow hostPath. The policy in admission-policy.yaml limits what the operator can
-# create. The prefix core- pairs the name with the namespace core-operator, and keeps it apart from the runtime
-# operator where the name appears without its cluster, such as in a conversation or an alert.
+# create. The prefix core- pairs the name with the namespace core-operator. It also separates the name from the
+# runtime operator if the name appears without its cluster, for example in a conversation or an alert.
 apiVersion: v1
 kind: Namespace
 metadata:

@@ -59,10 +59,11 @@ pub struct Vm {
 }
 
 impl Vms {
+    /// `hosts` must be the hosts that the network policy of `service` reads.
+    ///
     /// # Errors
     ///
-    /// Returns an error when the guest image is not pinned by digest. `hosts` are the hosts of the network policy of
-    /// `service`.
+    /// Returns an error when the guest image is not pinned by digest.
     pub fn new(service: SandboxService, arguments: VmArguments, hosts: AllowedHosts) -> Result<Self, io::Error> {
         validate_immutable_image_reference(&arguments.image)?;
         Ok(Self {
@@ -72,8 +73,6 @@ impl Vms {
         })
     }
 
-    /// Starts a new VM that can reach `allowed_hosts`.
-    ///
     /// # Errors
     ///
     /// Returns an error when the VM does not start.
@@ -112,8 +111,6 @@ impl Vms {
 }
 
 impl Vm {
-    /// Writes a file in the guest.
-    ///
     /// # Errors
     ///
     /// Returns an error when the write fails, or when it does not complete by `deadline`.
@@ -123,8 +120,6 @@ impl Vm {
         Ok(timeout_at(deadline, write).await.map_err(|_| too_late(path))??)
     }
 
-    /// Reads a file in the guest.
-    ///
     /// # Errors
     ///
     /// Returns an error when the read fails, when it does not complete by `deadline`, or when the file is larger than

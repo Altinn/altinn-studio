@@ -27,7 +27,7 @@ spec:
       message: The pod annotations of the Job must be the pod annotations of the PodTemplate operator-runner.
     - expression: has(object.spec.backoffLimit) && object.spec.backoffLimit == 0
       message: A run Job must not retry its pod.
-    # The Job lives through the upload of the caller, the run and the time that the operator runner keeps the result.
+    # The deadline covers the upload of the caller, the run and the time that the operator runner keeps the result.
     - expression: has(object.spec.activeDeadlineSeconds) && object.spec.activeDeadlineSeconds <= 1800
       message: A run Job must stop within 1800 seconds.
     - expression: has(object.spec.ttlSecondsAfterFinished)

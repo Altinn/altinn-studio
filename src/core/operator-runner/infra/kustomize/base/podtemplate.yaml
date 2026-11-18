@@ -108,8 +108,8 @@ template:
             value: 2Gi
           - name: SANDBOX_ROOT_FILESYSTEM
             value: 20Gi
-          # The core operator's upload timeout, and a minute for it to see that the pod is ready. The core operator's
-          # tests check these times against its own.
+          # REQUEST_TIMEOUT_SECONDS is the upload timeout of the core operator, plus one minute for the core operator
+          # to see that the pod is ready. The tests of the core operator compare these times with its own times.
           - name: REQUEST_TIMEOUT_SECONDS
             value: "360"
           - name: RESULT_RETENTION_SECONDS
