@@ -313,49 +313,57 @@ describe('calculations in the form store', () => {
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ enabled: null, total: 3 });
   });
 
-  it('converts booleans into numbers and numbers into booleans', async () => {
+  it('converts scalars with the rules expressions use for their arguments', async () => {
     const { store } = await renderCalculations(
       {
         calculations: [
-          { field: 'total', expression: true },
-          { field: 'quantity', expression: false },
+          { field: 'total', expression: '1.5e3' },
+          { field: 'quantity', expression: '-2.5' },
           { field: 'enabled', expression: 0 },
-          { field: 'nullableBoolean', expression: -0.5 },
-          { field: 'summary.Rows', expression: true },
+          { field: 'nullableBoolean', expression: '1' },
+          { field: 'label', expression: 'null' },
+          { field: 'strings', expression: ['list', 'TRUE', 2, false] },
         ],
       },
       { enabled: true },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
-      total: 1,
-      quantity: 0,
+      total: 1500,
+      quantity: -2.5,
       enabled: false,
       nullableBoolean: true,
-      summary: { Rows: 1 },
+      label: 'null',
+      strings: ['TRUE', '2', 'false'],
     });
   });
 
-  it('keeps the previous value for a numeric string with a comma and for a fraction into an integer', async () => {
+  it('keeps the previous value for a scalar that expressions would not accept as an argument', async () => {
     const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
     const { store } = await renderCalculations(
       {
         calculations: [
           { field: 'total', expression: '1,500' },
-          { field: 'quantity', expression: '2.5' },
+          { field: 'quantity', expression: ' 12 ' },
+          { field: 'nullableNumber', expression: true },
+          { field: 'enabled', expression: 2 },
+          { field: 'nullableBoolean', expression: 'yes' },
           { field: 'summary.Rows', expression: 1.5 },
           { field: 'summary.Total', expression: '1,5' },
         ],
       },
-      { total: 1, quantity: 1, summary: { Rows: 7 } },
+      { total: 1, quantity: 1, nullableNumber: 1, enabled: true, nullableBoolean: false, summary: { Rows: 7 } },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
       total: 1,
-      quantity: 2.5,
+      quantity: 1,
+      nullableNumber: 1,
+      enabled: true,
+      nullableBoolean: false,
       summary: { Rows: 7 },
     });
-    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('.total'));
-    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('summary.Rows'));
-    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('summary.Total'));
+    for (const field of ['total', 'quantity', 'nullableNumber', 'enabled', 'nullableBoolean', 'Rows', 'Total']) {
+      expect(logWarn).toHaveBeenCalledWith(expect.stringContaining(`.${field}`));
+    }
   });
 
   it('accepts a whole number for an integer target', async () => {

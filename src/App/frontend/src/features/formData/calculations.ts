@@ -4,14 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
-import { evalExpr } from 'src/features/expressions';
+import { evalExpr, ExprTypes } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { convertData } from 'src/features/formData/convertData';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
+import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDValue } from 'src/features/formData/FormDataWrite';
 
@@ -104,7 +105,7 @@ function isListOfObjects(value: unknown): value is unknown[] {
 }
 
 function schemaTypes(schema: JSONSchema7): string[] {
-  const types = Array.isArray(schema.type) ? [...schema.type] : schema.type ? [schema.type] : [];
+  const types: string[] = Array.isArray(schema.type) ? [...schema.type] : schema.type ? [schema.type] : [];
   for (const alternative of [...(schema.anyOf ?? []), ...(schema.oneOf ?? [])]) {
     if (typeof alternative === 'object') {
       types.push(...schemaTypes(alternative));
@@ -113,36 +114,52 @@ function schemaTypes(schema: JSONSchema7): string[] {
   return types;
 }
 
+const castContext = { expr: ['calculation'], path: [] } as unknown as EvaluateExpressionParams;
+
+/** Casts a value with the rules expressions use for their arguments, or gives undefined when it cannot. */
+function castLikeArgument<T extends ExprVal.Boolean | ExprVal.Number | ExprVal.String>(
+  value: string | number | boolean,
+  type: T,
+): ExprValToActual<T> | undefined {
+  try {
+    return ExprTypes[type].impl.call(castContext, value) as ExprValToActual<T>;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
- * Converts a scalar the way the backend does: a boolean into a number is 1 or 0, a number into a boolean is false
- * only for 0, a string is parsed strictly (no thousands separators), and a target with the schema type integer
- * only accepts whole numbers.
+ * Converts a scalar with the same rules as expressions use for their arguments, which the backend shares: a
+ * number target takes numbers and strictly formatted numeric strings, a boolean target takes true, false, 1 and 0,
+ * also as strings, and a string target takes the text of a number or boolean. A string is written as it is.
+ * A target with an integer type only takes whole numbers.
  */
 function convertScalar(
   result: string | number | boolean,
   schema: JSONSchema7,
 ): { value: FDValue; error: false } | { error: true } {
   const types = schemaTypes(schema);
-  const isNumeric = types.includes('number') || types.includes('integer');
-  let value = result;
-  if (!types.includes('string')) {
-    if (typeof value === 'boolean' && isNumeric) {
-      value = value ? 1 : 0;
-    } else if (typeof value === 'number' && types.includes('boolean')) {
-      value = value !== 0;
-    } else if (typeof value === 'string' && isNumeric && value.includes(',')) {
+  if (types.includes('string')) {
+    return { value: typeof result === 'string' ? result : castLikeArgument(result, ExprVal.String), error: false };
+  }
+  if (types.includes('number') || types.includes('integer')) {
+    const value = castLikeArgument(result, ExprVal.Number);
+    if (value === undefined || value === null || !Number.isFinite(value)) {
       return { error: true };
     }
+    const xsdType = schema['@xsdType'];
+    if (types.includes('integer') || xsdType === 'int' || xsdType === 'long' || xsdType === 'short') {
+      // convertData checks the range of the @xsdType
+      const converted = convertData(value, schema);
+      return Number.isInteger(value) && !converted.error ? { value, error: false } : { error: true };
+    }
+    return { value, error: false };
   }
-  const converted = convertData(value, schema);
-  if (converted.error) {
-    return { error: true };
+  if (types.includes('boolean')) {
+    const value = castLikeArgument(result, ExprVal.Boolean);
+    return value === undefined || value === null ? { error: true } : { value, error: false };
   }
-  // convertData reads an integer without @xsdType as a decimal
-  if (typeof converted.newValue === 'number' && types.includes('integer') && !Number.isInteger(converted.newValue)) {
-    return { error: true };
-  }
-  return { value: converted.newValue, error: false };
+  return { error: true };
 }
 
 /** Converts the values that replace the target as a whole: scalars, null and lists of primitives. */
