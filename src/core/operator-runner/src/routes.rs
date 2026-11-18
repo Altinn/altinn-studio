@@ -22,6 +22,8 @@ const GZIP_MAGIC: &[u8] = &[0x1f, 0x8b];
 const BODY_TIMEOUT: Duration = Duration::from_mins(2);
 /// The longest time that a request for the status or the result waits for the end of the run.
 const MAX_WAIT_SECONDS: u64 = 30;
+/// The admission policy stops a run Job within 1800 seconds.
+const MAX_TIMEOUT_SECONDS: u64 = 1800;
 
 pub struct Routes {
     host: Rc<Host>,
@@ -66,8 +68,9 @@ impl Routes {
             let detail = format!("The operator runner has no command {name}.");
             return invalid(StatusCode::NOT_FOUND, &detail);
         };
-        let Some(timeout) = query_value(request.uri(), "timeout").and_then(|seconds| seconds.parse().ok()) else {
-            return invalid(StatusCode::BAD_REQUEST, "The query must give the timeout in seconds.");
+        let timeout = query_value(request.uri(), "timeout").and_then(|seconds| seconds.parse().ok());
+        let Some(timeout) = timeout.filter(|seconds| (1..=MAX_TIMEOUT_SECONDS).contains(seconds)) else {
+            return invalid(StatusCode::BAD_REQUEST, "The timeout must be from 1 to 1800 seconds.");
         };
         if let Some(refused) = self.host.refusal(&run_id) {
             self.discard(request.into_body()).await;
@@ -560,10 +563,13 @@ mod tests {
         let by_length = put_head(RUN_ID, UPGRADE, &[header, "Content-Length: 11"]);
         let head = put_head(RUN_ID, UPGRADE, &[header, "Transfer-Encoding: chunked"]);
         let in_chunks = format!("{head}6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n");
+        let timeout = |seconds: u64| put(RUN_ID, &format!("?command=upgrade-v9&timeout={seconds}"), gzip, ARCHIVE);
         let requests = [
             ("an unknown command", put(RUN_ID, "?command=sh", gzip, ARCHIVE), 404),
             ("no command", put(RUN_ID, "", gzip, ARCHIVE), 400),
             ("no timeout", put(RUN_ID, "?command=upgrade-v9", gzip, ARCHIVE), 400),
+            ("a timeout of 0", timeout(0), 400),
+            ("a timeout that overflows", timeout(u64::MAX), 400),
             ("a start with a run id that is not a UUID", put_archive("run-1"), 400),
             ("a read with a run id that is not a UUID", get("/runs/run-1"), 404),
             ("a JSON body", put(RUN_ID, UPGRADE, "application/json", b"{}"), 415),
