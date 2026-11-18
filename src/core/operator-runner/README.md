@@ -34,8 +34,8 @@ survives a restart of the operator, which follows it with status reads and relay
 
 `PUT /runs/{runId}?command={command}&timeout={seconds}` with the app as the body: an `application/gzip` tar, without
 `.git`. The client chooses `runId`, a UUID, and names a command from [`src/run.rs`](src/run.rs), not a command line.
-The run has its result at most `timeout` seconds after it starts. The command stops a minute before, to leave time for
-the report and the patch.
+The command stops a minute before the end of `timeout`, to leave time for the report and the patch. The operator
+runner then deletes the VM, so the result can come up to about a minute after `timeout`.
 
 The operator runner answers 202 as soon as it has the whole body, and then starts the VM. The first run id that sends a
 whole body claims the operator runner, so a client can send the archive again after an upload that broke off. A repeat

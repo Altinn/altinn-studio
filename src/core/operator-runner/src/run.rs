@@ -182,7 +182,7 @@ async fn run_in_vm(vm: &Vm, run: Run) -> Result<Outcome, RunError> {
     let command = vm
         .run_script(spec.script, run.deadline - FINISH_TIMEOUT, spec.output_limits)
         .await?;
-    let finish = Instant::now() + FINISH_TIMEOUT;
+    let finish = (Instant::now() + FINISH_TIMEOUT).min(run.deadline);
     let report = match spec.report_file {
         Some(path) => read_report(vm, path, finish).await,
         None => None,
