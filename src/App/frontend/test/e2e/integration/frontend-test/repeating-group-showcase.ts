@@ -31,22 +31,21 @@ function openRow(variant: string, index: number) {
 }
 
 function assertTableArrows() {
-  cy.get('#group-validation-table-table-body > [data-for-row="4"] [data-validation-for]').should(($panels) => {
-    expect($panels).to.have.length(2);
-    for (const panel of $panels) {
-      const field = panel
-        .closest('tr')
-        ?.previousElementSibling?.querySelector<HTMLElement>(
-          `[data-validation-field="${panel.dataset.validationFor}"]`,
-        );
-      expect(field, 'arrow target').to.exist;
-      const target = field!.getBoundingClientRect();
-      const arrow = field!.querySelector('[data-validation-arrow]');
+  cy.get(row('table', 4)).should(($row) => {
+    const panel = $row[0].nextElementSibling?.querySelector('td > ul');
+    expect(panel, 'one shared row panel').to.exist;
+    const fields = $row[0].querySelectorAll('[data-validation-field]:has([data-validation-arrow])');
+    expect(fields).to.have.length(2);
+    for (const field of fields) {
+      const target = field.getBoundingClientRect();
+      const arrow = field.querySelector('[data-validation-arrow]');
       expect(arrow, 'field arrow').to.exist;
       const bounds = arrow!.getBoundingClientRect();
       expect(Math.abs(bounds.left + bounds.width / 2 - target.left - target.width / 2)).to.be.lessThan(2);
-      expect(bounds.top, 'arrow overlaps panel border').to.be.lessThan(panel.getBoundingClientRect().top);
-      expect(bounds.bottom).to.be.greaterThan(panel.getBoundingClientRect().top);
+      expect(bounds.top, 'arrow overlaps panel border').to.be.lessThan(panel!.getBoundingClientRect().top);
+      expect(bounds.bottom).to.be.greaterThan(panel!.getBoundingClientRect().top);
+      expect(arrow!.getAttribute('data-color')).to.equal(panel!.getAttribute('data-color'));
+      expect(getComputedStyle(arrow!).backgroundColor).to.equal(getComputedStyle(panel!).backgroundColor);
     }
   });
 }
@@ -156,11 +155,24 @@ describe('Repeating group validation showcase', () => {
       'contain.text',
       'Dyreslaget er endret siden forrige innrapportering.',
     );
-    cy.get('#group-validation-table-table-body > [data-for-row="4"] [data-validation-for]').should('have.length', 2);
-    cy.get('#group-validation-table-table-body > [data-for-row="6"] [data-validation-for]')
-      .find('li')
-      .should('have.length', 2);
-    cy.get('[data-validation-for]').find('button').should('not.exist');
+    cy.get(row('table', 4)).next().children('td').should('have.length', 1).and('have.attr', 'colspan', '4');
+    cy.get(row('table', 4)).next().find('td > ul').should('have.length', 1).and('have.attr', 'data-color', 'danger');
+    cy.get(row('table', 4)).next().find('td > ul > li').should('have.length', 2);
+    cy.get(row('table', 4))
+      .next()
+      .find('li > [data-field="validation"]')
+      .first()
+      .should('have.attr', 'data-color', 'danger');
+    cy.get(row('table', 4))
+      .next()
+      .find('li > [data-field="validation"]')
+      .last()
+      .should('have.attr', 'data-color', 'warning');
+    cy.get(row('table', 4))
+      .find('[data-validation-field="validation-table-age"] [data-testid="table-field-validation-indicator"]')
+      .should('have.attr', 'data-color', 'warning');
+    cy.get(row('table', 6)).next().find('td > ul').should('have.length', 1).children('li').should('have.length', 2);
+    cy.get('[data-testid="table-row-validation-messages"]').find('button').should('not.exist');
     assertTableArrows();
 
     cy.get(row('mixed', 0)).findByTestId('repeating-group-edit-button').click();
@@ -196,7 +208,7 @@ describe('Repeating group validation showcase', () => {
     cy.get('#validation-table-species-4').invoke('css', 'height', '100px');
     assertTableArrows();
     cy.get('#validation-table-species-4').invoke('css', 'height', '');
-    cy.get('#group-validation-table-table-body > [data-for-row="4"] [data-validation-for]').should('have.length', 2);
+    cy.get(row('table', 4)).next().find('td > ul').should('have.length', 1).children('li').should('have.length', 2);
     cy.get(appFrontend.errorReport)
       .findAllByRole('button', { name: 'Navnet stemmer ikke med opplysningene i registeret.' })
       .first()
