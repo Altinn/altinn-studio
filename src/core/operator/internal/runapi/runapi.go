@@ -19,6 +19,7 @@ import (
 	"altinn.studio/core-operator/internal/auth"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/problem"
+	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/runs"
 	"altinn.studio/core-operator/internal/telemetry"
 )
@@ -211,8 +212,9 @@ func statusOf(err error) (int, string) {
 	switch {
 	case errors.As(err, &invalid):
 		return http.StatusBadRequest, invalid.Message
-	case errors.As(err, &upload):
-		return uploadStatus(upload)
+	case errors.As(err, &upload) && upload.Reason == runner.ReasonInvalidArchive:
+		// The caller must fix the archive. A fault of the operator causes the other refusals.
+		return upload.Status, upload.Detail
 	case errors.Is(err, runs.ErrKindNotFound):
 		return http.StatusNotFound, "This environment has no such kind."
 	case errors.Is(err, runs.ErrKindForbidden):
@@ -235,17 +237,6 @@ func statusOf(err error) (int, string) {
 		return http.StatusServiceUnavailable, "The operator cannot reach its engine. Try again."
 	case errors.Is(err, runs.ErrRunner):
 		return http.StatusServiceUnavailable, "The operator cannot reach the run's Job. Try again."
-	default:
-		return http.StatusInternalServerError, ""
-	}
-}
-
-// uploadStatus forwards a refusal of an archive by the operator runner, if the caller must fix the archive. Other
-// refusals come from a fault of the operator.
-func uploadStatus(upload *runs.UploadError) (int, string) {
-	switch upload.Status {
-	case http.StatusBadRequest, http.StatusRequestEntityTooLarge, http.StatusUnsupportedMediaType:
-		return upload.Status, upload.Detail
 	default:
 		return http.StatusInternalServerError, ""
 	}

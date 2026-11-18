@@ -91,13 +91,14 @@ func (h *Runner) start(w http.ResponseWriter, r *http.Request) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.RunID != "" && h.RunID != r.PathValue("id") {
-		problem.Write(w, r, http.StatusConflict,
-			"Another run has claimed this operator runner. Each run needs a new operator runner.")
+		problem.WriteDetails(w, r, problem.Details{Status: http.StatusConflict, Reason: "claimed-by-other",
+			Detail: "Another run has claimed this operator runner. Each run needs a new operator runner."})
 		return
 	}
 	if h.RunID == "" {
 		if !bytes.HasPrefix(body, []byte{0x1f, 0x8b}) {
-			problem.Write(w, r, http.StatusBadRequest, "The body is not a gzip archive.")
+			problem.WriteDetails(w, r, problem.Details{Status: http.StatusBadRequest,
+				Reason: runner.ReasonInvalidArchive, Detail: "The body is not a gzip archive."})
 			return
 		}
 		h.RunID = r.PathValue("id")
@@ -119,7 +120,8 @@ func (h *Runner) getStatus(w http.ResponseWriter, r *http.Request) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.RunID == "" || h.RunID != r.PathValue("id") {
-		problem.Write(w, r, http.StatusNotFound, "This run has not claimed the operator runner.")
+		problem.WriteDetails(w, r, problem.Details{Status: http.StatusNotFound, Reason: runner.ReasonNotClaimed,
+			Detail: "This run has not claimed the operator runner."})
 		return
 	}
 	problem.WriteJSON(w, r, http.StatusOK, h.statusLocked())
@@ -129,7 +131,8 @@ func (h *Runner) getResult(w http.ResponseWriter, r *http.Request) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.RunID == "" || h.RunID != r.PathValue("id") {
-		problem.Write(w, r, http.StatusNotFound, "This run has not claimed the operator runner.")
+		problem.WriteDetails(w, r, problem.Details{Status: http.StatusNotFound, Reason: runner.ReasonNotClaimed,
+			Detail: "This run has not claimed the operator runner."})
 		return
 	}
 	if h.status == nil {

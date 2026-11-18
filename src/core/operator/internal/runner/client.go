@@ -36,14 +36,22 @@ var (
 	// ErrNotClaimed means that the run did not claim the operator runner, because no archive arrived for it.
 	ErrNotClaimed = errors.New("the run has not claimed the operator runner")
 	// ErrRejected means that the operator runner refused the request, and a repeat gets the same answer. An example is
-	// a pod that another run claimed. The error is a *RejectedError, with the status and detail of the operator runner.
+	// a pod that another run claimed. The error is a *RejectedError, with the problem of the operator runner.
 	ErrRejected = errors.New("the operator runner refused the request")
 	errStatus   = errors.New("unexpected response from the operator runner")
+)
+
+// The reasons in the operator runner's problems that the operator tells apart.
+const (
+	ReasonNotClaimed = "not-claimed"
+	// ReasonInvalidArchive means that the caller must send another archive.
+	ReasonInvalidArchive = "invalid-archive"
 )
 
 // RejectedError is the operator runner's answer to a request that a repeat cannot change, such as an archive that is
 // too large.
 type RejectedError struct {
+	Reason string
 	Detail string
 	Status int
 }
@@ -186,32 +194,26 @@ func (c *Client) do(pod Pod, req *http.Request) (*http.Response, error) {
 	return nil, fmt.Errorf("%w: %w", ErrUnreachable, err)
 }
 
-// failure is the error for an answer that the request does not expect. A 404 to a read means that the run did not claim
-// the operator runner. A 404 to a start means that the operator runner has no such command.
+// failure is the error for an answer that the request does not expect.
 func failure(res *http.Response) error {
+	text := readSnippet(res)
+	var details problem.Details
+	if json.Unmarshal([]byte(text), &details) == nil && details.Detail != "" {
+		text = details.Detail
+	}
 	switch {
-	case res.StatusCode == http.StatusNotFound && res.Request.Method == http.MethodGet:
+	case details.Reason == ReasonNotClaimed:
 		return ErrNotClaimed
 	case isPermanent(res.StatusCode):
-		return rejection(res)
+		return &RejectedError{Reason: details.Reason, Detail: text, Status: res.StatusCode}
 	}
-	return fmt.Errorf("%w: %d %s", errStatus, res.StatusCode, readSnippet(res))
+	return fmt.Errorf("%w: %d %s", errStatus, res.StatusCode, text)
 }
 
 // isPermanent reports whether the operator runner gives the same answer to a repeat. That is a 4xx other than 408 (a
 // body that came too slowly) and 429.
 func isPermanent(status int) bool {
 	return status >= 400 && status < 500 && status != http.StatusRequestTimeout && status != http.StatusTooManyRequests
-}
-
-// rejection reads the detail of the operator runner's problem, which the operator can forward to the caller.
-func rejection(res *http.Response) *RejectedError {
-	text := readSnippet(res)
-	var details problem.Details
-	if json.Unmarshal([]byte(text), &details) == nil && details.Detail != "" {
-		text = details.Detail
-	}
-	return &RejectedError{Status: res.StatusCode, Detail: text}
 }
 
 func readSnippet(res *http.Response) string {
