@@ -916,6 +916,227 @@ public class ProcessFlowUtilsTests
         Assert.StartsWith("Exclusive gateway 'Gateway_3' leads back to itself,", diagnostics[1].GetMessage());
     }
 
+    private const string ConfirmCondition = """["equals", ["gatewayAction"], "confirm"]""";
+
+    private const string RejectCondition = """["equals", ["gatewayAction"], "reject"]""";
+
+    // Task_1 leads straight to Gateway_1, which ends the process through Flow_3 or Flow_4.
+    private static string GatewayAfterTask(
+        string taskType,
+        string element = "serviceTask",
+        string flow3Condition = ConfirmCondition,
+        string flow4Condition = RejectCondition,
+        string gatewayDefault = ""
+    ) =>
+        Process(
+            $"""
+                <bpmn:startEvent id="StartEvent_1" />
+                <bpmn:{element} id="Task_1">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>{taskType}</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:{element}>
+                <bpmn:exclusiveGateway id="Gateway_1"{gatewayDefault}>
+                  <bpmn:outgoing>Flow_3</bpmn:outgoing>
+                  <bpmn:outgoing>Flow_4</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:endEvent id="EndEvent_1" />
+                <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+                <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Gateway_1" />
+                <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_1" targetRef="EndEvent_1">
+                  <bpmn:conditionExpression>{flow3Condition}</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1">
+                  <bpmn:conditionExpression>{flow4Condition}</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+            """
+        );
+
+    [Theory]
+    [InlineData("pdf")]
+    [InlineData("subformPdf")]
+    [InlineData("eFormidling")]
+    public void A_Gateway_Routing_On_The_Action_After_A_Service_Task_Without_One_Is_An_Error(string taskType)
+    {
+        var process = GatewayAfterTask(taskType);
+
+        var diagnostics = Collect(process);
+
+        AssertIds(diagnostics, "ALTINNAPP1030");
+        Assert.Equal(DiagnosticSeverity.Error, diagnostics[0].Severity);
+        Assert.Equal(
+            "Exclusive gateway 'Gateway_1' reads [\"gatewayAction\"] in the conditions on sequence flows 'Flow_3', "
+                + "'Flow_4', but directly follows service task 'Task_1'. A gateway after a service task sees the "
+                + $"action the service task returns, and a '{taskType}' task returns none, so [\"gatewayAction\"] is "
+                + "always null there: not the action of the task before, and not 'reject', since a failed service "
+                + "task can only be retried. Move service task 'Task_1' after the gateway, onto the branch that needs "
+                + "it, or remove the gateway if it only takes the user back from a failed service task.",
+            diagnostics[0].GetMessage()
+        );
+        var span = diagnostics[0].Location.SourceSpan;
+        Assert.Equal("<bpmn:exclusiveGateway", process.Substring(span.Start, span.Length));
+    }
+
+    [Theory]
+    [InlineData("""["and", ["equals", ["gatewayAction"], "confirm"], true]""")]
+    [InlineData("""["notEquals", ["gatewayAction"], null]""")]
+    public void One_Flow_Reading_The_Action_After_A_Service_Task_Without_One_Is_Named(string condition)
+    {
+        var diagnostics = Collect(
+            GatewayAfterTask("pdf", flow3Condition: """["equals", 1, 1]""", flow4Condition: condition)
+        );
+
+        AssertIds(diagnostics, "ALTINNAPP1030");
+        Assert.StartsWith(
+            "Exclusive gateway 'Gateway_1' reads [\"gatewayAction\"] in the condition on sequence flow 'Flow_4', but",
+            diagnostics[0].GetMessage()
+        );
+    }
+
+    [Theory]
+    [InlineData("fiksArkiv", "serviceTask")]
+    [InlineData("myCustomServiceTask", "serviceTask")]
+    [InlineData("data", "task")]
+    [InlineData("confirmation", "task")]
+    [InlineData("signing", "task")]
+    [InlineData("payment", "task")]
+    [InlineData("feedback", "task")]
+    public void A_Gateway_Routing_On_The_Action_After_A_Task_That_May_Return_One_Is_Not_Reported(
+        string taskType,
+        string element
+    )
+    {
+        Assert.Empty(Collect(GatewayAfterTask(taskType, element)));
+    }
+
+    [Theory]
+    [InlineData("""["equals", ["dataModel", "approved"], true]""")]
+    [InlineData("""["equals", "gatewayAction", "confirm"]""")]
+    [InlineData("""["equals", ["GatewayAction"], "confirm"]""")]
+    public void A_Gateway_Not_Routing_On_The_Action_After_A_Service_Task_Is_Not_Reported(string condition)
+    {
+        Assert.Empty(Collect(GatewayAfterTask("pdf", flow3Condition: condition, flow4Condition: condition)));
+    }
+
+    // The default's condition is never evaluated, and is an error of its own.
+    [Fact]
+    public void The_Action_Read_Only_On_The_Default_After_A_Service_Task_Is_Not_Reported_Again()
+    {
+        var diagnostics = Collect(
+            GatewayAfterTask("pdf", flow3Condition: """["equals", 1, 1]""", gatewayDefault: " default=\"Flow_4\"")
+        );
+
+        AssertIds(diagnostics, "ALTINNAPP1023");
+    }
+
+    [Fact]
+    public void The_Action_Read_By_Another_Gateway_Is_Not_Reported_After_A_Service_Task()
+    {
+        // The PDF task leads to Gateway_1, which routes on data; Gateway_2, after the data task, routes on the action.
+        var process = Process(
+            """
+                <bpmn:startEvent id="StartEvent_1" />
+                <bpmn:task id="Task_1">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>data</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:task>
+                <bpmn:exclusiveGateway id="Gateway_2" default="Flow_4">
+                  <bpmn:outgoing>Flow_3</bpmn:outgoing>
+                  <bpmn:outgoing>Flow_4</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:serviceTask id="PdfTask_1">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>pdf</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                </bpmn:serviceTask>
+                <bpmn:exclusiveGateway id="Gateway_1" default="Flow_7">
+                  <bpmn:outgoing>Flow_6</bpmn:outgoing>
+                  <bpmn:outgoing>Flow_7</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:endEvent id="EndEvent_1" />
+                <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+                <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Gateway_2" />
+                <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_2" targetRef="PdfTask_1">
+                  <bpmn:conditionExpression>["equals", ["gatewayAction"], "submit"]</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_2" targetRef="EndEvent_1" />
+                <bpmn:sequenceFlow id="Flow_5" sourceRef="PdfTask_1" targetRef="Gateway_1" />
+                <bpmn:sequenceFlow id="Flow_6" sourceRef="Gateway_1" targetRef="EndEvent_1">
+                  <bpmn:conditionExpression>["equals", ["dataModel", "archive"], true]</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="Flow_7" sourceRef="Gateway_1" targetRef="EndEvent_1" />
+            """
+        );
+
+        Assert.Empty(Collect(process));
+    }
+
+    [Fact]
+    public void A_Gateway_Routing_On_The_Action_After_A_Task_That_Follows_A_Service_Task_Is_Not_Reported()
+    {
+        var process = Process(
+            """
+                <bpmn:startEvent id="StartEvent_1" />
+                <bpmn:serviceTask id="PdfTask_1">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>pdf</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                  <bpmn:outgoing>Flow_2</bpmn:outgoing>
+                </bpmn:serviceTask>
+                <bpmn:task id="Task_1">
+                  <bpmn:extensionElements>
+                    <altinn:taskExtension>
+                      <altinn:taskType>confirmation</altinn:taskType>
+                    </altinn:taskExtension>
+                  </bpmn:extensionElements>
+                  <bpmn:incoming>Flow_2</bpmn:incoming>
+                  <bpmn:outgoing>Flow_3</bpmn:outgoing>
+                </bpmn:task>
+                <bpmn:exclusiveGateway id="Gateway_1">
+                  <bpmn:outgoing>Flow_4</bpmn:outgoing>
+                  <bpmn:outgoing>Flow_5</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:endEvent id="EndEvent_1" />
+                <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="PdfTask_1" />
+                <bpmn:sequenceFlow id="Flow_2" sourceRef="PdfTask_1" targetRef="Task_1" />
+                <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_1" targetRef="Gateway_1" />
+                <bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1">
+                  <bpmn:conditionExpression>["equals", ["gatewayAction"], "confirm"]</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="Flow_5" sourceRef="Gateway_1" targetRef="EndEvent_1">
+                  <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+            """
+        );
+
+        Assert.Empty(Collect(process));
+    }
+
+    [Theory]
+    [InlineData("""["gatewayAction"]""", true)]
+    [InlineData("""  ["equals", ["gatewayAction"], "confirm"]  """, true)]
+    [InlineData("""["or", ["equals", 1, 2], ["not", ["equals", ["gatewayAction"], "reject"]]]""", true)]
+    [InlineData("""["equals", "gatewayAction", "confirm"]""", false)]
+    [InlineData("""["equals", ["gatewayActions"], "confirm"]""", false)]
+    [InlineData("""["equals", ["dataModel", "gatewayAction"], "confirm"]""", false)]
+    [InlineData("\"gatewayAction\"", false)]
+    [InlineData("""{"function": "gatewayAction"}""", false)]
+    [InlineData("", false)]
+    [InlineData("""["equals", """, false)]
+    public void A_Condition_Reads_The_Action_Only_By_Calling_GatewayAction(string condition, bool expected)
+    {
+        Assert.Equal(expected, ProcessFlowUtils.ReadsGatewayAction(condition));
+    }
+
     [Fact]
     public void The_Diagnostic_Points_At_The_Element()
     {
