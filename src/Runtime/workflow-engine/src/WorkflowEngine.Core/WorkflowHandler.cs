@@ -120,7 +120,8 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(
                 1,
                 (TelemetryAttributes.Reason, "dependency_failed"),
-                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue()),
+                (TelemetryAttributes.Namespace, workflow.Namespace)
             );
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
@@ -184,7 +185,8 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(
                 1,
                 (TelemetryAttributes.Reason, FailureReason(workflow)),
-                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue()),
+                (TelemetryAttributes.Namespace, workflow.Namespace)
             );
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
@@ -371,7 +373,7 @@ internal sealed class WorkflowHandler(
             );
             workflow.BackoffUntil = null;
 
-            Metrics.StepsFailed.Add(1);
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
             logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
 
             return;
@@ -421,7 +423,7 @@ internal sealed class WorkflowHandler(
         );
         workflow.BackoffUntil = null;
 
-        Metrics.StepsFailed.Add(1);
+        Metrics.StepsFailed.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
         logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
     }
 
@@ -448,7 +450,7 @@ internal sealed class WorkflowHandler(
             );
             workflow.BackoffUntil = null;
 
-            Metrics.StepsFailed.Add(1);
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
             logger.FailingStepInvalidDefer(currentStep, delay);
 
             return;
@@ -477,7 +479,11 @@ internal sealed class WorkflowHandler(
             workflow.BackoffUntil = null;
             workflow.FailureReason = "wait_expired";
 
-            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "wait_expired"));
+            Metrics.StepsFailed.Add(
+                1,
+                (TelemetryAttributes.Reason, "wait_expired"),
+                (TelemetryAttributes.Namespace, workflow.Namespace)
+            );
             logger.FailingStepWaitExpired(currentStep, currentStep.DeferCount, waitBudget);
 
             return;

@@ -423,11 +423,10 @@ internal sealed class DbMaintenanceService(
 
         var staleDeadline = now - settings.StaleWorkflowThreshold;
 
-        // Bucketed by the head directive so poisoned finalization feeds the same
-        // altinn.workflow_engine.workflow.is_head alert dimension as the execution failure paths: an
-        // auxiliary (is_head = false) workflow that dies poisoned gates nothing and is otherwise
-        // silent, so it must reach the "false" failure alert.
-        var failedByIsHead = new Dictionary<string, int>(StringComparer.Ordinal);
+        // Bucketed by namespace and head directive so poisoned finalization feeds the same
+        // dimensions as the execution failure paths: an auxiliary (is_head = false) workflow that dies
+        // poisoned gates nothing and is otherwise silent, so it must reach the "false" failure alert.
+        var failedByTags = new Dictionary<(string Namespace, string IsHead), int>();
         int failed = 0;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
         {
@@ -439,26 +438,28 @@ internal sealed class DbMaintenanceService(
             await using var reader = await cmd.ExecuteReaderAsync(ct);
             while (await reader.ReadAsync(ct))
             {
-                bool? isHead = await reader.IsDBNullAsync(0, ct) ? null : reader.GetBoolean(0);
+                string ns = reader.GetString(0);
+                bool? isHead = await reader.IsDBNullAsync(1, ct) ? null : reader.GetBoolean(1);
                 string isHeadTag = isHead switch
                 {
                     true => "true",
                     false => "false",
                     null => "unset",
                 };
-                failedByIsHead[isHeadTag] = failedByIsHead.GetValueOrDefault(isHeadTag) + 1;
+                failedByTags[(ns, isHeadTag)] = failedByTags.GetValueOrDefault((ns, isHeadTag)) + 1;
                 failed++;
             }
         }
 
         if (failed > 0)
         {
-            foreach ((string isHeadTag, int count) in failedByIsHead)
+            foreach (((string ns, string isHeadTag), int count) in failedByTags)
             {
                 Metrics.WorkflowsFailed.Add(
                     count,
                     (TelemetryAttributes.Reason, "poisoned"),
-                    (TelemetryAttributes.WorkflowIsHead, isHeadTag)
+                    (TelemetryAttributes.WorkflowIsHead, isHeadTag),
+                    (TelemetryAttributes.Namespace, ns)
                 );
             }
 
@@ -675,7 +676,7 @@ internal sealed class DbMaintenanceService(
               AND heartbeat_at IS NOT NULL
               AND heartbeat_at < @staleDeadline
               AND reclaim_count >= @maxReclaimCount
-            RETURNING is_head
+            RETURNING namespace, is_head
             """;
 
         // execution_started_at is cleared with the lease: the dead attempt is over, and a workflow

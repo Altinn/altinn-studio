@@ -1,9 +1,11 @@
+using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -28,9 +30,28 @@ internal sealed class MetricsCollector(
     /// </summary>
     private const int _overdueMailboxCountCap = 10_000;
 
+    /// <summary>
+    /// The flags that make the engine degraded or unhealthy, each with the reason the health gauge reports it under.
+    /// </summary>
+    private static readonly (EngineHealthStatus Flag, string Reason)[] _healthReasonFlags =
+    [
+        .. Enum.GetValues<EngineHealthStatus>()
+            .Where(flag => (flag & (HealthStatusExtensions.DegradedMask | HealthStatusExtensions.UnhealthyMask)) != 0)
+            .Select(flag => (flag, JsonNamingPolicy.SnakeCaseLower.ConvertName(flag.ToString()))),
+    ];
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.StartingUp();
+
+        Metrics.ObserveHealth(
+            () => (long)engine.Status.ToHealthLevel(),
+            () =>
+            {
+                var status = engine.Status;
+                return _healthReasonFlags.Select(f => (f.Reason, (status & f.Flag) != 0));
+            }
+        );
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -39,6 +60,25 @@ internal sealed class MetricsCollector(
 
             try
             {
+                // One try/catch covers the whole pass, so a read that throws costs every gauge after it. The
+                // in-memory gauges go first, since in a database outage the first database read fails or is held
+                // until it times out.
+                var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
+                var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;
+                var workerSlotStatus = concurrencyLimiter.WorkerSlotStatus;
+                Metrics.SetAvailableDbSlots(dbSlotStatus.Available);
+                Metrics.SetUsedDbSlots(dbSlotStatus.Used);
+                Metrics.SetAvailableHttpSlots(httpSlotStatus.Available);
+                Metrics.SetUsedHttpSlots(httpSlotStatus.Used);
+                Metrics.SetAvailableWorkerSlots(workerSlotStatus.Available);
+                Metrics.SetUsedWorkerSlots(workerSlotStatus.Used);
+
+                Metrics.SetMailboxBufferDepths(
+                    mailboxMintBuffer.QueueDepth,
+                    mailboxCloseBuffer.QueueDepth,
+                    mailboxDeliveryBuffer.QueueDepth
+                );
+
                 var counts = await engineRepository.CountWorkflowsByStatus(stoppingToken);
                 var active = SumStatuses(counts.ByStatus, PersistentItemStatusMap.Incomplete);
                 var scheduled = counts.Scheduled;
@@ -59,29 +99,9 @@ internal sealed class MetricsCollector(
 
                 engine.UpdateWorkflowCounts(active, scheduled, failed);
 
-                Metrics.SetHealthStatus((long)engine.HealthLevel);
-
-                var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
-                var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;
-                var workerSlotStatus = concurrencyLimiter.WorkerSlotStatus;
-                Metrics.SetAvailableDbSlots(dbSlotStatus.Available);
-                Metrics.SetUsedDbSlots(dbSlotStatus.Used);
-                Metrics.SetAvailableHttpSlots(httpSlotStatus.Available);
-                Metrics.SetUsedHttpSlots(httpSlotStatus.Used);
-                Metrics.SetAvailableWorkerSlots(workerSlotStatus.Available);
-                Metrics.SetUsedWorkerSlots(workerSlotStatus.Used);
-
-                Metrics.SetMailboxBufferDepths(
-                    mailboxMintBuffer.QueueDepth,
-                    mailboxCloseBuffer.QueueDepth,
-                    mailboxDeliveryBuffer.QueueDepth
-                );
-
-                // Deliberately last: one try/catch covers the whole pass, so a throw here costs this gauge alone
-                // rather than suppressing engine health below it.
-
-                // The grace is the sweep's own cadence — counting a mailbox the sweep has not had a tick to reach
-                // would leave the gauge permanently non-zero on a healthy engine.
+                // Deliberately last, so a throw here costs this gauge alone. The grace is the sweep's own cadence:
+                // counting a mailbox the sweep has not had a tick to reach would leave the gauge permanently
+                // non-zero on a healthy engine.
                 var overdueCutoff = timeProvider.GetUtcNow() - engineSettings.Value.MailboxSweepInterval;
                 Metrics.SetOverdueOpenMailboxesCount(
                     await engineRepository.CountOverdueOpenMailboxes(

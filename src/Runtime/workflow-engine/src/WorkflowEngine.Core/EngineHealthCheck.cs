@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Core;
@@ -12,12 +13,13 @@ internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrency
         CancellationToken cancellationToken = default
     )
     {
+        var status = engineStatus.Status;
         var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
         var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;
 
         var data = new Dictionary<string, object>
         {
-            ["status"] = engineStatus.Status.ToString(),
+            ["status"] = status.ToString(),
             ["workers"] = new Dictionary<string, int>
             {
                 ["active"] = engineStatus.ActiveWorkerCount,
@@ -41,7 +43,7 @@ internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrency
             },
         };
 
-        var result = engineStatus.HealthLevel switch
+        var result = status.ToHealthLevel() switch
         {
             EngineHealthLevel.Unhealthy => HealthCheckResult.Unhealthy("Engine is unhealthy", data: data),
             EngineHealthLevel.Degraded => HealthCheckResult.Degraded("Engine is degraded", data: data),

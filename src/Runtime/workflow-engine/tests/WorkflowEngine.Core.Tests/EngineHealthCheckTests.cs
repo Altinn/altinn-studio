@@ -7,20 +7,6 @@ namespace WorkflowEngine.Core.Tests;
 
 public class EngineHealthCheckTests
 {
-    private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
-
-    private const EngineHealthStatus DegradedMask =
-        EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull | EngineHealthStatus.DatabaseUnavailable;
-
-    private static EngineHealthLevel DeriveHealthLevel(EngineHealthStatus status)
-    {
-        if ((status & UnhealthyMask) != 0)
-            return EngineHealthLevel.Unhealthy;
-        if ((status & DegradedMask) != 0)
-            return EngineHealthLevel.Degraded;
-        return EngineHealthLevel.Healthy;
-    }
-
     private static (EngineHealthCheck HealthCheck, Mock<IEngineStatus> StatusMock) CreateHealthCheck(
         EngineHealthStatus status,
         int activeWorkerCount = 0,
@@ -32,7 +18,6 @@ public class EngineHealthCheckTests
     {
         var statusMock = new Mock<IEngineStatus>();
         statusMock.Setup(e => e.Status).Returns(status);
-        statusMock.Setup(e => e.HealthLevel).Returns(DeriveHealthLevel(status));
         statusMock.Setup(e => e.ActiveWorkerCount).Returns(activeWorkerCount);
         statusMock.Setup(e => e.MaxWorkers).Returns(maxWorkers);
         statusMock.Setup(e => e.ActiveWorkflowCount).Returns(activeWorkflowCount);

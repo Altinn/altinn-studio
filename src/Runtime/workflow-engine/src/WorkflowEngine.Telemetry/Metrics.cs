@@ -133,15 +133,15 @@ public static class Metrics
     /// <summary>
     /// Counter of workflows that terminated in a <c>Failed</c> state. Tagged with
     /// <c>altinn.workflow_engine.reason</c> (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> /
-    /// <c>wait_expired</c> / <c>manual</c>) and <c>altinn.workflow_engine.workflow.is_head</c> (<c>true</c> /
-    /// <c>false</c> / <c>unset</c>). Alert on <c>altinn.workflow_engine.reason</c> in (<c>execution</c>,
-    /// <c>poisoned</c>) across all <c>altinn.workflow_engine.workflow.is_head</c> values; the head attribute is a
-    /// routing/severity dimension, not the filter - <c>"false"</c> marks auxiliary workflows,
-    /// whose terminal failures gate nothing and surface nowhere else. Exclude
-    /// <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
-    /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
-    /// the default alert: a step's wait budget running out means the awaited external outcome
-    /// never arrived, not that the engine or command failed — route it to the owning team instead.
+    /// <c>wait_expired</c> / <c>manual</c>), <c>altinn.workflow_engine.workflow.is_head</c> (<c>true</c> /
+    /// <c>false</c> / <c>unset</c>) and <c>altinn.workflow_engine.namespace</c>. Alert on
+    /// <c>altinn.workflow_engine.reason</c> in (<c>execution</c>, <c>poisoned</c>) across all
+    /// <c>altinn.workflow_engine.workflow.is_head</c> values; the head attribute is a routing/severity dimension,
+    /// not the filter - <c>"false"</c> marks auxiliary workflows, whose terminal failures gate nothing and surface
+    /// nowhere else. Exclude <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
+    /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from the default alert: a
+    /// step's wait budget running out means the awaited external outcome never arrived, not that the engine or
+    /// command failed — route it to the owning team instead.
     /// Exclude <c>manual</c> as well: a caller failed a parked workflow on purpose through the fail
     /// endpoint (the dashboard's Fail button included).
     /// </summary>
@@ -284,7 +284,9 @@ public static class Metrics
     );
 
     /// <summary>
-    /// Counter of steps that terminated in failure.
+    /// Counter of steps that terminated in failure, tagged with <c>altinn.workflow_engine.namespace</c>, and with
+    /// <c>altinn.workflow_engine.reason</c> when a step failed for a reason other than its own execution
+    /// (<c>wait_expired</c> / <c>manual</c>).
     /// </summary>
     public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>(
         "altinn.workflow_engine.step.execution.failed",
@@ -560,15 +562,35 @@ public static class Metrics
         description: "Number of consecutive database maintenance failures (0 = healthy)"
     );
 
-    private static long _healthStatus; // 0=healthy, 1=degraded, 2=unhealthy
+    private static Func<long>? _readHealthStatus;
+    private static Func<IEnumerable<(string Reason, bool Holds)>>? _readHealthReasons;
 
     /// <summary>
-    /// Gauge of overall engine health (0=healthy, 1=degraded, 2=unhealthy).
+    /// Gauge of overall engine health (0=healthy, 1=degraded, 2=unhealthy), read from the engine whenever the metrics
+    /// are exported. See <see cref="ObserveHealth"/>.
     /// </summary>
-    public static readonly ObservableGauge<long> HealthStatus = Meter.CreateObservableGauge(
+    public static readonly ObservableGauge<long> HealthStatus = Meter.CreateObservableGauge<long>(
         "altinn.workflow_engine.health.status",
-        static () => _healthStatus,
+        static () => _readHealthStatus is { } read ? [new Measurement<long>(read())] : [],
         description: "Engine health: 0=healthy, 1=degraded, 2=unhealthy"
+    );
+
+    /// <summary>
+    /// Gauge of why the engine is degraded or unhealthy: one measurement per condition that can make it so, tagged
+    /// with <c>altinn.workflow_engine.reason</c> (such as <c>queue_full</c> or <c>database_unavailable</c>), 1 while
+    /// the condition holds and 0 otherwise. Read like <see cref="HealthStatus"/>.
+    /// </summary>
+    public static readonly ObservableGauge<long> HealthReasons = Meter.CreateObservableGauge<long>(
+        "altinn.workflow_engine.health.reason",
+        static () =>
+            _readHealthReasons is { } read
+                ? read()
+                    .Select(r => new Measurement<long>(
+                        r.Holds ? 1 : 0,
+                        new KeyValuePair<string, object?>(TelemetryAttributes.Reason, r.Reason)
+                    ))
+                : [],
+        description: "1 while the condition in altinn.workflow_engine.reason makes the engine degraded or unhealthy, else 0"
     );
 
     private static long _activeWorkflowsCount;
@@ -784,9 +806,19 @@ public static class Metrics
     public static void SetTrippedThrottleBreakersCount(long count) => _trippedThrottleBreakersCount = count;
 
     /// <summary>
-    /// Sets the value reported by <see cref="HealthStatus"/>.
+    /// Sets where <see cref="HealthStatus"/> and <see cref="HealthReasons"/> read the engine's health: the health
+    /// level, and every condition that can make the engine degraded or unhealthy, whether it holds or not.
     /// </summary>
-    public static void SetHealthStatus(long status) => _healthStatus = status;
+    /// <remarks>
+    /// Read when the metrics are exported rather than set by the metrics collector's pass: in a database outage the
+    /// pass's first database read fails, or is held until it times out, and nothing retries it, so a value the pass
+    /// set after it would go on reporting the health from before the outage.
+    /// </remarks>
+    public static void ObserveHealth(Func<long> readStatus, Func<IEnumerable<(string Reason, bool Holds)>> readReasons)
+    {
+        _readHealthStatus = readStatus;
+        _readHealthReasons = readReasons;
+    }
 
     /// <summary>
     /// Sets the value reported by <see cref="ActiveWorkflows"/>.
