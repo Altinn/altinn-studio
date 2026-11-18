@@ -21,7 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- `studioctl app upgrade v9` adds PDF service tasks only where v8 made a PDF:
+- `studioctl app upgrade v9` adds PDF service tasks only where v8 made a PDF ([#21998](https://github.com/Altinn/altinn-studio/pull/21998)):
     - none when nothing in the app creates the task's data type
     - on the `sign` branch of a gateway after a signing task
     - a to-do instead for other gateways routing on `gatewayAction`
