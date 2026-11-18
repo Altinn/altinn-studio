@@ -1,5 +1,5 @@
 {
-  "name": "A row in the result that brings its own id keeps it",
+  "name": "A row in the result with an id the list does not have becomes a new row with that id",
   "dataModel": {
     "rows": [
       {
@@ -22,7 +22,6 @@
     "rows": [
       {
         "altinnRowId": "a0000000-0000-4000-8000-000000000005",
-        "decimal": 1,
         "total": 1
       },
       {
@@ -30,5 +29,6 @@
         "total": 2
       }
     ]
-  }
+  },
+  "comment": "The current row is not named by the result, so it is removed rather than merged into by position"
 }

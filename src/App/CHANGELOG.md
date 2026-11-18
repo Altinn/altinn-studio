@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; rows in a list of objects are matched by position and keep their `altinnRowId`, unless the result row brings one, as a row copied from another group does. Calculations also run on the data elements an instance is created with, so a new instance stores the same values the form calculates when it loads. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; a row in a list of objects that brings an `altinnRowId`, as a row copied from another group does, merges into the row with that id, and a row without one merges into the row at its position. The rows end up in the order of the result, and rows the result leaves out are removed. Calculations also run on the data elements an instance is created with, so a new instance stores the same values the form calculates when it loads. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
 
 ### Changed
 

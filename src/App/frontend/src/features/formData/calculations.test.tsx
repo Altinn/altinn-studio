@@ -548,7 +548,7 @@ describe('calculations in the form store', () => {
       { calculations: [{ field: 'copies', expression: ['dataModel', 'rows'] }] },
       {
         rows: [{ altinnRowId: rowIdA, price: 10 }],
-        copies: [{ altinnRowId: rowIdCopyA, price: 0, quantity: 5 }],
+        copies: [{ altinnRowId: rowIdA, price: 0, quantity: 5 }],
       },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({

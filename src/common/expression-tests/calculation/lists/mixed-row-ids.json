@@ -1,0 +1,39 @@
+{
+  "name": "Rows with ids are matched first, and rows without take the row at their position when no id names it",
+  "comment": "The first result row has no id, but the row at its position is named by the second, so it becomes a new row. The third takes the row at its position, and the row the result does not name is removed.",
+  "dataModel": {
+    "rows": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "text": "a" },
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 2, "text": "b" },
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000003", "decimal": 3, "text": "c" }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "total", 1],
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 2],
+        ["object", "total", 3]
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      { "altinnRowId": "<new>", "total": 1 },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1,
+        "text": "a",
+        "total": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000003",
+        "decimal": 3,
+        "text": "c",
+        "total": 3
+      }
+    ]
+  }
+}

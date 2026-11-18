@@ -255,13 +255,31 @@ function asRowId(value: unknown): string | undefined {
   return rowId === emptyGuid ? undefined : rowId;
 }
 
+/**
+ * Merges a list of objects into the rows of a list, the same way the backend does. A result row with an id merges into
+ * the row with that id, wherever it is, or becomes a new row with that id. A result row without one merges into the
+ * row at its position, unless another result row names that row by id, and becomes a new row otherwise. The rows end
+ * up in the order of the result, and rows the result does not name are removed.
+ */
 function mergeRows(target: string, rows: unknown[], context: CalculationTarget) {
   const { dataType, model, lookupTool } = context;
+  // Check the result before anything is written, so a result that fails leaves the list as it is
+  const resultRowIds: (string | undefined)[] = [];
+  const seenRowIds = new Set<string>();
   for (const [index, row] of rows.entries()) {
     if (!isObject(row)) {
       // A row that is not an object cannot be shown, so the calculation fails instead
       throw new Error(`The calculation for ${dataType}.${target} gives a list where row ${index} is not an object`);
     }
+    const rowId = asRowId(row[ALTINN_ROW_ID]);
+    if (rowId !== undefined) {
+      if (seenRowIds.has(rowId)) {
+        // Rows are matched by id, so the calculation fails rather than produce a list that cannot be told apart
+        throw new Error(`The calculation for ${dataType}.${target} gives more than one row the altinnRowId ${rowId}`);
+      }
+      seenRowIds.add(rowId);
+    }
+    resultRowIds.push(rowId);
   }
   const [schema] = lookupTool.getSchemaForPath(target);
   const [itemSchema] = lookupTool.getSchemaForPath(`${target}[0]`);
@@ -269,37 +287,57 @@ function mergeRows(target: string, rows: unknown[], context: CalculationTarget) 
     window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
     return;
   }
-  if (!Array.isArray(dot.pick(target, model.currentData))) {
-    dot.str(target, [], model.currentData);
-  }
-  const current: unknown[] = dot.pick(target, model.currentData);
-  for (const [index, row] of rows.entries()) {
-    if (!isObject(current[index])) {
-      const newRow = { [ALTINN_ROW_ID]: uuidv4() };
-      if (index < current.length) {
-        current[index] = newRow;
-      } else {
-        current.push(newRow);
-      }
+
+  const existing = dot.pick(target, model.currentData);
+  const current: unknown[] = Array.isArray(existing) ? existing : [];
+  const currentIndexById = new Map<string, number>();
+  for (const [index, row] of current.entries()) {
+    const rowId = isObject(row) ? asRowId(row[ALTINN_ROW_ID]) : undefined;
+    if (rowId !== undefined && !currentIndexById.has(rowId)) {
+      currentIndexById.set(rowId, index);
     }
+  }
+  const sources = planRows(resultRowIds, current, currentIndexById);
+  const arranged = sources.map((source, index) =>
+    source === NEW_ROW ? { [ALTINN_ROW_ID]: resultRowIds[index] ?? uuidv4() } : current[source],
+  );
+  if (Array.isArray(existing)) {
+    // dot-object refuses to replace a list that has rows
+    existing.splice(0, existing.length, ...arranged);
+  } else {
+    dot.str(target, arranged, model.currentData);
+  }
+  for (const [index, row] of rows.entries()) {
     mergeObject(`${target}[${index}]`, row as Record<string, unknown>, context);
   }
-  if (current.length > rows.length) {
-    current.splice(rows.length);
-  }
+}
 
-  // Rows that bring their own id can collide, such as a row listed twice. Rows are matched by id when saving, so
-  // the calculation fails rather than produce a list that cannot be told apart.
-  const rowIds = new Set<string>();
-  for (const row of current) {
-    const rowId = isObject(row) ? row[ALTINN_ROW_ID] : undefined;
-    if (typeof rowId === 'string' && rowId.length > 0) {
-      if (rowIds.has(rowId)) {
-        throw new Error(`The calculation for ${dataType}.${target} gives more than one row the altinnRowId ${rowId}`);
-      }
-      rowIds.add(rowId);
+/** The source of a result row that does not merge into a current row */
+const NEW_ROW = -1;
+
+/**
+ * Finds the current row each result row merges into, or NEW_ROW. Ids are matched first, so a row named by id is never
+ * taken by position.
+ */
+function planRows(
+  resultRowIds: (string | undefined)[],
+  current: unknown[],
+  currentIndexById: Map<string, number>,
+): number[] {
+  const namedById = new Set<number>();
+  const sources = resultRowIds.map((rowId) => {
+    const currentIndex = rowId === undefined ? undefined : currentIndexById.get(rowId);
+    if (currentIndex === undefined) {
+      return NEW_ROW;
     }
-  }
+    namedById.add(currentIndex);
+    return currentIndex;
+  });
+  return sources.map((source, index) =>
+    resultRowIds[index] === undefined && index < current.length && isObject(current[index]) && !namedById.has(index)
+      ? index
+      : source,
+  );
 }
 
 /** Calculations read and write the same draft so later expressions see earlier results. */

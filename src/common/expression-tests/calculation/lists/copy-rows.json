@@ -8,7 +8,7 @@
   ],
   "testCases": [
     {
-      "name": "source rows set the same properties",
+      "name": "a copy with an id the source does not have is replaced",
       "dataModel": {
         "rows": [
           {
@@ -58,7 +58,7 @@
       }
     },
     {
-      "name": "a property the source rows leave out is cleared",
+      "name": "a property the source rows leave out is cleared on the copy",
       "comment": "A data model lookup gives an object every property the schema knows, as null when the data leaves it out, the way the backend reads it from the C# model. So the copied row carries text: null, and the merge clears the text of the target row.",
       "dataModel": {
         "rows": [
@@ -69,7 +69,7 @@
         ],
         "copies": [
           {
-            "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
             "decimal": 0,
             "text": "kept"
           }
@@ -92,7 +92,7 @@
       }
     },
     {
-      "name": "a property the source rows set to null is cleared",
+      "name": "a property the source rows set to null is cleared on the copy",
       "dataModel": {
         "rows": [
           {
@@ -103,7 +103,7 @@
         ],
         "copies": [
           {
-            "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
             "decimal": 0,
             "text": "old"
           }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -17,12 +18,15 @@ namespace Altinn.App.Core.Features.DataProcessing;
 internal sealed class DataModelFieldCalculator
 {
     /// <summary>
-    /// A row in a result may carry its own row id, such as a row copied from another group. Rows without one keep
-    /// the id of the row they are merged into.
+    /// A row in a result may carry its own row id, such as a row copied from another group, and is then matched to
+    /// the row with that id. Rows without one are matched by position.
     /// </summary>
     private const string AltinnRowIdJsonName = "altinnRowId";
 
-    private static readonly ExpressionValue _emptyObject = ExpressionValue.FromJsonString("{}");
+    /// <summary>
+    /// The source of a result row that does not merge into a current row
+    /// </summary>
+    private const int NewRow = -1;
 
     private readonly ILogger<DataModelFieldCalculator> _logger;
     private readonly IAppResources _appResourceService;
@@ -208,14 +212,7 @@ internal sealed class DataModelFieldCalculator
         {
             // A row copied from another list brings its own id and keeps it. Anything but a GUID keeps the existing
             // id, as does the empty GUID, which would otherwise give the row a new id when ids are initialized.
-            if (
-                property.Name == AltinnRowIdJsonName
-                && !(
-                    property.Value.ValueKind == JsonValueKind.String
-                    && Guid.TryParseExact(property.Value.GetString(), "D", out var rowId)
-                    && rowId != Guid.Empty
-                )
-            )
+            if (property.Name == AltinnRowIdJsonName && GetRowId(property.Value) is null)
             {
                 LogSetFailed(field, $"{path}.{property.Name}");
                 continue;
@@ -225,83 +222,179 @@ internal sealed class DataModelFieldCalculator
         }
     }
 
+    /// <summary>
+    /// Merges a list of objects into the rows of a list, the same way the frontend does. A result row with an id
+    /// merges into the row with that id, wherever it is, or becomes a new row with that id. A result row without one
+    /// merges into the row at its position, unless another result row names that row by id, and becomes a new row
+    /// otherwise. The rows end up in the order of the result, and rows the result does not name are removed.
+    /// </summary>
     private void MergeRows(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement rows)
     {
-        var currentRowCount = formDataWrapper.GetRowCount(path, rowIndexes: default) ?? 0;
-        // Rows of a list have the same type, so a scalar in the first row means the list cannot hold the result.
-        // Check before anything is written, so the list is left as it is.
-        if (currentRowCount > 0 && formDataWrapper.Get($"{path}[0]") is { } firstRow && IsScalar(firstRow))
+        // Check the result before anything is written, so a result that fails leaves the list as it is
+        var resultRows = rows.EnumerateArray().ToList();
+        var resultRowIds = new Guid?[resultRows.Count];
+        var seenRowIds = new HashSet<Guid>();
+        for (var index = 0; index < resultRows.Count; index++)
         {
-            LogRowsNotWritten(field, path);
-            return;
-        }
-
-        var rowCount = 0;
-        foreach (var row in rows.EnumerateArray())
-        {
-            if (row.ValueKind != JsonValueKind.Object)
+            if (resultRows[index].ValueKind != JsonValueKind.Object)
             {
                 // The frontend cannot show a row that is not an object, so the calculation fails instead
                 throw new InvalidOperationException(
-                    $"The calculation for {field.Field} gives a list where row {rowCount} in {path} is {row.ValueKind}, not an object"
+                    $"The calculation for {field.Field} gives a list where row {index} in {path} is {resultRows[index].ValueKind}, not an object"
                 );
             }
 
-            var rowPath = $"{path}[{rowCount}]";
-            rowCount++;
-            // A new row is added as an empty object, and a null row replaced by one, before the properties are set.
-            // Row ids are initialized when the changes are collected, after all data processing.
-            var rowExists =
-                rowCount > currentRowCount
-                    ? formDataWrapper.AddRow(path, _emptyObject)
-                    : formDataWrapper.Get(rowPath) is not null || formDataWrapper.Set(rowPath, _emptyObject);
-            if (!rowExists)
+            resultRowIds[index] = resultRows[index].TryGetProperty(AltinnRowIdJsonName, out var rowId)
+                ? GetRowId(rowId)
+                : null;
+            if (resultRowIds[index] is { } id && !seenRowIds.Add(id))
             {
-                // The rows of the list are not objects, or the list cannot be added to. Stop before the rows beyond
-                // the result are removed, so a list that cannot hold the result is left as it is.
+                // Rows are matched by id, so the calculation fails rather than save a list it cannot tell apart
+                throw new InvalidOperationException(
+                    $"The calculation for {field.Field} gives more than one row in {path} the altinnRowId {id}"
+                );
+            }
+        }
+
+        var currentRowCount = formDataWrapper.GetRowCount(path, rowIndexes: default) ?? 0;
+        var currentRows = new object?[currentRowCount];
+        var currentIndexById = new Dictionary<Guid, int>();
+        for (var index = 0; index < currentRowCount; index++)
+        {
+            currentRows[index] = formDataWrapper.Get($"{path}[{index}]");
+            if (currentRows[index] is { } row && IsScalar(row))
+            {
+                // The rows of the list are not objects, so the list cannot hold the result
                 LogRowsNotWritten(field, path);
                 return;
             }
 
-            MergeObject(formDataWrapper, field, rowPath, row);
+            if (currentRows[index] is not null && GetCurrentRowId(formDataWrapper, $"{path}[{index}]") is { } id)
+            {
+                currentIndexById.TryAdd(id, index);
+            }
         }
 
-        for (var index = currentRowCount - 1; index >= rowCount; index--)
+        var sources = PlanRows(resultRowIds, currentRows, currentIndexById);
+        var rowsStayInPlace = true;
+        for (var index = 0; index < sources.Length; index++)
         {
-            formDataWrapper.RemoveField($"{path}[{index}]", RowRemovalOption.DeleteRow);
+            rowsStayInPlace &=
+                sources[index] == index
+                || (sources[index] == NewRow && (index >= currentRowCount || currentRows[index] is null));
         }
 
-        ThrowOnDuplicateRowIds(formDataWrapper, field, path, rowCount);
+        if (rowsStayInPlace)
+        {
+            // The common case, such as a result computed from the same list: rows are only added or removed at the
+            // end, or a null row is replaced, so the rows that stay are not touched
+            for (var index = 0; index < sources.Length; index++)
+            {
+                if (sources[index] != NewRow)
+                {
+                    continue;
+                }
+
+                var newRow = NewRowWithId(resultRowIds[index] ?? Guid.NewGuid());
+                var added =
+                    index >= currentRowCount
+                        ? formDataWrapper.AddRow(path, newRow)
+                        : formDataWrapper.Set($"{path}[{index}]", newRow);
+                if (!added)
+                {
+                    // The list cannot be added to. Stop before the rows beyond the result are removed, so a list
+                    // that cannot hold the result is left as it is.
+                    LogRowsNotWritten(field, path);
+                    return;
+                }
+            }
+
+            for (var index = currentRowCount - 1; index >= sources.Length; index--)
+            {
+                formDataWrapper.RemoveField($"{path}[{index}]", RowRemovalOption.DeleteRow);
+            }
+        }
+        else
+        {
+            // Rows move, so the list is written again from its own data in the new order, with new rows added.
+            // Properties the model does not serialize, such as those with [JsonIgnore], are lost on the moved rows.
+            var currentList = ExpressionValue.FromObject(formDataWrapper.Get(path)).JsonElement;
+            var arranged = new JsonArray();
+            for (var index = 0; index < sources.Length; index++)
+            {
+                arranged.Add(
+                    sources[index] == NewRow
+                        ? NewRowWithId(resultRowIds[index] ?? Guid.NewGuid())
+                        : JsonNode.Parse(currentList[sources[index]].GetRawText())
+                );
+            }
+
+            if (!formDataWrapper.Set(path, arranged))
+            {
+                LogRowsNotWritten(field, path);
+                return;
+            }
+        }
+
+        for (var index = 0; index < resultRows.Count; index++)
+        {
+            MergeObject(formDataWrapper, field, $"{path}[{index}]", resultRows[index]);
+        }
     }
 
     /// <summary>
-    /// Rows that carry their own id can collide, such as a row listed twice. The frontend matches rows by id, so
-    /// the calculation fails rather than save a list it cannot tell apart.
+    /// Finds the current row each result row merges into, or <see cref="NewRow"/>. Ids are matched first, so a row
+    /// named by id is never taken by position.
     /// </summary>
-    private static void ThrowOnDuplicateRowIds(
-        IFormDataWrapper formDataWrapper,
-        DataReference field,
-        string path,
-        int rowCount
-    )
+    private static int[] PlanRows(Guid?[] resultRowIds, object?[] currentRows, Dictionary<Guid, int> currentIndexById)
     {
-        var rowIds = new HashSet<string>(StringComparer.Ordinal);
-        for (var index = 0; index < rowCount; index++)
+        var sources = new int[resultRowIds.Length];
+        var namedById = new HashSet<int>();
+        for (var index = 0; index < resultRowIds.Length; index++)
         {
-            var rowId = formDataWrapper.Get($"{path}[{index}].{AltinnRowIdJsonName}") switch
+            sources[index] = NewRow;
+            if (resultRowIds[index] is { } id && currentIndexById.TryGetValue(id, out var currentIndex))
             {
-                Guid guid when guid != Guid.Empty => guid.ToString(),
-                string text when text.Length > 0 => text,
-                _ => null,
-            };
-            if (rowId is not null && !rowIds.Add(rowId))
-            {
-                throw new InvalidOperationException(
-                    $"The calculation for {field.Field} gives more than one row in {path} the altinnRowId {rowId}"
-                );
+                sources[index] = currentIndex;
+                namedById.Add(currentIndex);
             }
         }
+
+        for (var index = 0; index < resultRowIds.Length; index++)
+        {
+            if (
+                resultRowIds[index] is null
+                && index < currentRows.Length
+                && currentRows[index] is not null
+                && !namedById.Contains(index)
+            )
+            {
+                sources[index] = index;
+            }
+        }
+
+        return sources;
     }
+
+    private static JsonObject NewRowWithId(Guid rowId) => new() { [AltinnRowIdJsonName] = rowId.ToString() };
+
+    /// <summary>
+    /// A row id in a result is a GUID other than the empty one, as the backend stores it
+    /// </summary>
+    private static Guid? GetRowId(JsonElement value) =>
+        value.ValueKind == JsonValueKind.String
+        && Guid.TryParseExact(value.GetString(), "D", out var rowId)
+        && rowId != Guid.Empty
+            ? rowId
+            : null;
+
+    private static Guid? GetCurrentRowId(IFormDataWrapper formDataWrapper, string rowPath) =>
+        formDataWrapper.Get($"{rowPath}.{AltinnRowIdJsonName}") switch
+        {
+            Guid rowId when rowId != Guid.Empty => rowId,
+            string text when Guid.TryParse(text, out var rowId) && rowId != Guid.Empty => rowId,
+            _ => null,
+        };
 
     private void SetLeaf(IFormDataWrapper formDataWrapper, DataReference field, string path, ExpressionValue value)
     {

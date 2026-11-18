@@ -24,8 +24,15 @@
       ],
       "expects": {
         "rows": [
-          { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "total": 1 },
-          { "altinnRowId": "<new>", "total": 2 }
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          },
+          {
+            "altinnRowId": "<new>",
+            "total": 2
+          }
         ]
       },
       "expectsWarnings": ["rows[0].altinnRowId", "rows[1].altinnRowId"]
@@ -33,11 +40,18 @@
     {
       "name": "null",
       "calculations": [
-        { "field": "rows", "expression": ["list", ["object", "altinnRowId", null, "total", 1]] }
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "altinnRowId", null, "total", 1]]
+        }
       ],
       "expects": {
         "rows": [
-          { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "total": 1 }
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
         ]
       },
       "expectsWarnings": ["rows[0].altinnRowId"]
@@ -45,11 +59,18 @@
     {
       "name": "empty text",
       "calculations": [
-        { "field": "rows", "expression": ["list", ["object", "altinnRowId", "", "total", 1]] }
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "altinnRowId", "", "total", 1]]
+        }
       ],
       "expects": {
         "rows": [
-          { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "total": 1 }
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
         ]
       },
       "expectsWarnings": ["rows[0].altinnRowId"]
@@ -57,11 +78,18 @@
     {
       "name": "a number",
       "calculations": [
-        { "field": "rows", "expression": ["list", ["object", "altinnRowId", 5, "total", 1]] }
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "altinnRowId", 5, "total", 1]]
+        }
       ],
       "expects": {
         "rows": [
-          { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "total": 1 }
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
         ]
       },
       "expectsWarnings": ["rows[0].altinnRowId"]
@@ -79,13 +107,17 @@
       ],
       "expects": {
         "rows": [
-          { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "total": 1 }
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
         ]
       },
       "expectsWarnings": ["rows[0].altinnRowId"]
     },
     {
-      "name": "a GUID in uppercase is kept in lowercase",
+      "name": "a GUID in uppercase is a new row, kept in lowercase",
       "calculations": [
         {
           "field": "rows",
@@ -97,7 +129,10 @@
       ],
       "expects": {
         "rows": [
-          { "altinnRowId": "a0000000-0000-4000-8000-00000000000b", "decimal": 1, "total": 1 }
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-00000000000b",
+            "total": 1
+          }
         ]
       }
     }

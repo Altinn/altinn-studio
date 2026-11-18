@@ -170,7 +170,7 @@ public sealed class DataModelFieldCalculatorTests
     }
 
     [Fact]
-    public async Task ListOfObjectsKeepsRowIdsByPositionAndCopiedRowsKeepTheirSourceId()
+    public async Task ListOfObjectsKeepsRowIdsAndCopiedRowsKeepTheirSourceId()
     {
         var existingRowId = Guid.NewGuid();
         var existingCopyId = Guid.NewGuid();
@@ -240,8 +240,8 @@ public sealed class DataModelFieldCalculatorTests
         Assert.Equal(existingRowId, rows[0].AltinnRowId);
         Assert.Equal(5, rows[0].Price);
         Assert.Equal(10, rows[0].Quantity);
-        // The new row gets its id when the changes are collected after data processing
-        Assert.Equal(Guid.Empty, rows[1].AltinnRowId);
+        // A new row gets its id when it is added, so a later calculation can copy it with its id
+        Assert.NotEqual(Guid.Empty, rows[1].AltinnRowId);
         Assert.Equal(20, rows[1].Quantity);
 
         // Copied rows bring the id of the row they are copied from, so both sides compute the same ids
@@ -249,7 +249,7 @@ public sealed class DataModelFieldCalculatorTests
         Assert.Equal(2, copies.Count);
         Assert.Equal(existingRowId, copies[0].AltinnRowId);
         Assert.NotEqual(existingCopyId, copies[0].AltinnRowId);
-        Assert.Equal(Guid.Empty, copies[1].AltinnRowId);
+        Assert.Equal(rows[1].AltinnRowId, copies[1].AltinnRowId);
         Assert.Equal([5, 0], copies.Select(copy => copy.Price));
         Assert.Equal([10, 20], copies.Select(copy => copy.Quantity));
 
