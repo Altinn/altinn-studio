@@ -64,8 +64,8 @@ func testPodTemplate() *corev1.PodTemplate {
 
 // policyDenial is the error the API server gives when the admission policy refuses a Job, as the envtest shows.
 func policyDenial(name string) error {
-	cause := "ValidatingAdmissionPolicy 'sandbox-run-jobs' with binding 'sandbox-run-jobs' denied request: " +
-		"The pod spec of the Job must be the pod spec of the PodTemplate operator-runner."
+	cause := "ValidatingAdmissionPolicy 'core-operator-runner-jobs' with binding 'core-operator-runner-jobs' " +
+		"denied request: The pod spec of the Job must be the pod spec of the PodTemplate operator-runner."
 	return &apierrors.StatusError{ErrStatus: metav1.Status{
 		Status:  metav1.StatusFailure,
 		Code:    http.StatusUnprocessableEntity,
