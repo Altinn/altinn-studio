@@ -242,7 +242,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         return client;
     }
 
-    [GeneratedRegex("^[A-Za-z0-9][A-Za-z0-9._-]*$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9._-]*\z", RegexOptions.CultureInvariant)]
     private static partial Regex CommandKeyPattern();
 }
 

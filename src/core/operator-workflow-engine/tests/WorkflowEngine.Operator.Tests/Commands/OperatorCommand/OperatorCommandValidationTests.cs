@@ -51,6 +51,7 @@ public class OperatorCommandValidationTests
     [InlineData("/run.admit")]
     [InlineData("run.admit?x=1")]
     [InlineData("run admit")]
+    [InlineData("run.admit\n")]
     public void Validate_CommandKeyOutsideOneSegment_Rejects(string commandKey)
     {
         var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey }, ValidContext());
