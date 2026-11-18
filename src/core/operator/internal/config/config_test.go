@@ -120,6 +120,7 @@ func TestLoadRefusesInvalidConfiguration(t *testing.T) {
 		{"kinds: {upgrade-v9: {labels: [org, caller]}}", `label "caller", which is not a camelCase name`},
 		{"kinds: {upgrade-v9: {labels: [org, org]}}", "the label org twice"},
 		{"kinds: {upgrade-v9: {args: [target]}}", "has invalid keys: args"},
+		{"kinds: {other: {namespace: core-operator-runners}}", "share the namespace core-operator-runners"},
 		{"callers: {designer: {serviceAccount: " + defaultEngineServiceAccount + "}}", "serviceAccount of the engine"},
 		{"callers: {other: {kinds: [upgrade-v9]}}", "caller other has no serviceAccount"},
 		{"callers: {Designer: {serviceAccount: system:serviceaccount:default:a}}", `caller id "Designer" must be`},

@@ -210,8 +210,14 @@ func (c *Config) Validate() error {
 		}
 	}
 	problems = append(problems, c.callerProblems()...)
+	namespaces := map[string]string{}
 	for name, kind := range c.Kinds {
 		problems = append(problems, kindProblems(name, kind)...)
+		// The queue counts only the Jobs of one kind against the slots of its namespace.
+		if other, ok := namespaces[kind.Namespace]; ok {
+			problems = append(problems, "kinds "+name+" and "+other+" share the namespace "+kind.Namespace)
+		}
+		namespaces[kind.Namespace] = name
 	}
 	if len(problems) == 0 {
 		return nil
