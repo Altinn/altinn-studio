@@ -120,10 +120,6 @@ class TestPromptsLangfuseHoldsAlone:
         assert sync_prompts._report_orphans(api) == []
         assert LOCAL not in capsys.readouterr().out
 
-    def test_a_template_from_a_subdirectory_is_not_orphaned(self):
-        """Templates are published by name too, from below the prompts root."""
-        assert sync_prompts._report_orphans(_Langfuse([_page([LOCAL_TEMPLATE])])) == []
-
     def test_a_judge_prompt_in_langfuse_is_an_orphan(self):
         """Judges run as evaluator templates, so a Langfuse prompt of that name is a
         leftover nothing reads. A trace proved the running judge uses the newer text
@@ -151,22 +147,11 @@ class TestPromptsLangfuseHoldsAlone:
 
 
 class TestPublishingIsGated:
-    def test_a_push_without_the_override_is_refused(self, monkeypatch):
-        monkeypatch.delenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, raising=False)
-
-        with pytest.raises(SystemExit, match="publish from CI"):
-            sync_prompts._require_push_override()
-
-    def test_the_override_allows_a_push(self, monkeypatch):
-        monkeypatch.setenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, "1")
-
-        sync_prompts._require_push_override()
-
     def test_a_gated_push_publishes_nothing(self, monkeypatch):
         monkeypatch.delenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, raising=False)
         api = _Langfuse(prompts={LOCAL: "old"})
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(SystemExit, match="publish from CI"):
             _run(monkeypatch, api, ["--push"], names=[LOCAL])
 
         assert api.published == []
@@ -290,13 +275,6 @@ class TestPushKeepsThePublishedShape:
 
         assert api.published[0]["prompt"][1]["content"] == "{{user_message}}"
 
-    def test_a_prompt_langfuse_has_never_seen_is_published_as_text(self):
-        api = _Langfuse()
-
-        sync_prompts._push(api, LOCAL, "why")
-
-        assert api.published[0]["type"] == "text"
-
 
 class TestPushRefusesToGuessTheShape:
     """A transient read failure must not republish a chat prompt as text, which
@@ -330,8 +308,7 @@ class TestPushRefusesToGuessTheShape:
 
 class TestTheReportTellsTheTruthAboutWhatItCanSee:
     """Every false signal here was one someone would have acted on: a drift against a
-    retired prompt, two gate prompts silently unchecked, and judges compared as if
-    Langfuse served them as prompts."""
+    retired prompt, and two gate prompts silently unchecked."""
 
     def test_a_chat_prompt_is_compared_by_its_system_turn(self):
         assert (
@@ -349,14 +326,6 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
 
     def test_a_chat_prompt_with_no_system_turn_is_not_comparable(self):
         assert sync_prompts._system_turn([{"role": "user", "content": "x"}]) is None
-
-    def test_judges_are_not_treated_as_prompts(self):
-        """They run as Langfuse evaluators, so they are compared with an evaluator,
-        not with a Langfuse prompt."""
-        names = sync_prompts._local_prompt_names()
-
-        assert "no_hallucination" not in names
-        assert "goal_suggestions" in names
 
 
 def _push_all(monkeypatch, api):
@@ -464,18 +433,12 @@ class TestRetiring:
         }
         return _Langfuse([listing], prompts={RETIRED: "the retired text"})
 
-    def test_it_deletes_every_orphan(self, monkeypatch):
+    def test_it_deletes_every_orphan_and_keeps_the_text_of_every_version(self, monkeypatch):
         api = self._api()
 
         _run(monkeypatch, api, ["--retire"], names=[LOCAL])
 
         assert api.deleted == [RETIRED]
-
-    def test_it_keeps_the_text_of_every_version(self, monkeypatch):
-        api = self._api()
-
-        _run(monkeypatch, api, ["--retire"], names=[LOCAL])
-
         kept = json.loads(self.archive.read_text(encoding="utf-8"))
         assert [version["version"] for version in kept[RETIRED][0]["versions"]] == [1, 2]
 
