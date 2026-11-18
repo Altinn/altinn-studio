@@ -12,6 +12,7 @@ import httpx
 from benchmarks import remote, status
 from benchmarks.harvest import LOOP_CALL_NAME, TraceReader, read_trace
 from benchmarks.lf_api import LangfuseApi
+from shared.config import get_config
 
 ASSISTANT_ROOT = Path(__file__).resolve().parents[3]
 SOURCE_DIRS = ("agents", "api", "benchmarks", "scripts", "services", "shared")
@@ -141,3 +142,11 @@ class TestRemoteComments:
         path, params = api.requested[0]
         assert path == "/api/public/v3/scores"
         assert params["fields"] == "details", "the comment is in the details field group"
+
+
+def test_the_host_defaults_to_the_one_the_assistant_uses(monkeypatch):
+    """CI then needs only the two keys as secrets."""
+    monkeypatch.delenv("LANGFUSE_HOST", raising=False)
+    monkeypatch.delenv("LANGFUSE_BASE_URL", raising=False)
+
+    assert LangfuseApi(public_key="pk", secret_key="sk").host == get_config().LANGFUSE_HOST.rstrip("/")

@@ -7,6 +7,8 @@ from typing import Any
 
 import httpx
 
+from shared.config import get_config
+
 
 class LangfuseApi:
     def __init__(
@@ -15,18 +17,15 @@ class LangfuseApi:
         public_key: str | None = None,
         secret_key: str | None = None,
     ):
-        # The assistant service names the host LANGFUSE_BASE_URL; accept both.
-        host = host or os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
+        # The assistant service names the host LANGFUSE_BASE_URL; accept both, then fall back to its default.
+        env_host = os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
+        host = host or env_host or get_config().LANGFUSE_HOST
         public_key = public_key or os.environ.get("LANGFUSE_PUBLIC_KEY")
         secret_key = secret_key or os.environ.get("LANGFUSE_SECRET_KEY")
-        if not (host and public_key and secret_key):
+        if not (public_key and secret_key):
             missing = [
                 name
-                for name, value in [
-                    ("LANGFUSE_HOST (or LANGFUSE_BASE_URL)", host),
-                    ("LANGFUSE_PUBLIC_KEY", public_key),
-                    ("LANGFUSE_SECRET_KEY", secret_key),
-                ]
+                for name, value in [("LANGFUSE_PUBLIC_KEY", public_key), ("LANGFUSE_SECRET_KEY", secret_key)]
                 if not value
             ]
             raise SystemExit(
