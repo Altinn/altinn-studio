@@ -94,10 +94,10 @@ function NavigationButtonsComponentInner({
     Expressions.NavigationButtons.textResourceBindings.backToPage,
   );
 
-  const { getPageValidation, getReturnValidation } = usePageValidation(baseComponentId);
-  const validateOnForward = config.validateOnNext ?? getPageValidation();
+  const { pageValidation, returnValidation } = usePageValidation(baseComponentId);
+  const validateOnForward = config.validateOnNext ?? pageValidation;
   const validateOnBackward = config.validateOnPrevious;
-  const validateOnReturn = config.validateOnBackToSummary ?? config.validateOnNext ?? getReturnValidation();
+  const validateOnReturn = config.validateOnBackToSummary ?? config.validateOnNext ?? returnValidation;
 
   const { navigateToNextPage, navigateToPreviousPage, navigateToPage, maybeSaveOnPageChange } = useNavigatePage();
   const getVisibleOrder = useVisiblePageOrderSnapshot();
