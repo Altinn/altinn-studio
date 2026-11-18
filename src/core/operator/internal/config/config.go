@@ -245,7 +245,10 @@ func kindProblems(name string, kind Kind) []string {
 	if kind.Namespace == "" || kind.PodTemplate == "" || kind.Command == "" {
 		problems = append(problems, fmt.Sprintf("kind %s needs namespace, podTemplate and command", name))
 	}
-	if kind.MaxActivePerCaller < 0 || kind.MaxQueuedPerCaller < 1 {
+	if kind.MaxActivePerCaller < 0 {
+		problems = append(problems, fmt.Sprintf("kind %s needs a maxActivePerCaller of 0 or more", name))
+	}
+	if kind.MaxQueuedPerCaller < 1 {
 		problems = append(problems, fmt.Sprintf("kind %s needs a maxQueuedPerCaller of at least 1", name))
 	}
 	if kind.RunTimeout <= 0 || JobDeadline(kind.RunTimeout) > MaxJobDeadline {
