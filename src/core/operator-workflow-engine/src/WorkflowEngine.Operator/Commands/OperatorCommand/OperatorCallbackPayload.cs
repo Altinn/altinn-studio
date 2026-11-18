@@ -21,8 +21,8 @@ internal sealed record OperatorCallbackPayload
     public required Guid WorkflowId { get; init; }
 
     /// <summary>
-    /// The same for every attempt of the step, so the operator uses it as the idempotency key for a call it must not
-    /// repeat.
+    /// The same for every attempt of the step, so the operator can use it as the idempotency key for a call it must
+    /// not repeat.
     /// </summary>
     [JsonPropertyName("stepId")]
     public required Guid StepId { get; init; }

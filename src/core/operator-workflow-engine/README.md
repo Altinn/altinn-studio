@@ -49,7 +49,8 @@ lists them. The step's state is the operator's data, so the host keeps it out of
 
 `make run` starts PostgreSQL in a container and runs the host on <http://localhost:9090>, with Swagger at `/swagger`
 and the engine's dashboard at the root. In `Development` the host calls an operator on <http://localhost:8090> without
-a token. Set `OperatorCommandSettings__TokenPath` to a token file to send one. `make test` runs the command's tests.
+a token, and the operator answers 401. Set `OperatorCommandSettings__TokenPath` to a token file to send one.
+`make test` runs the command's tests.
 The core operator's [`make test-integration`](../operator/README.md#develop) runs this host with the real operator.
 
 ## Deployment

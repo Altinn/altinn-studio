@@ -18,7 +18,7 @@ internal sealed record OperatorCommandSettings
 
     /// <summary>
     /// The file with the projected ServiceAccount token the command sends as its bearer token. An empty path sends no
-    /// token, which only a local operator accepts.
+    /// token, and the operator answers 401. Use an empty path only with a stub of the operator.
     /// </summary>
     [JsonPropertyName("tokenPath")]
     public string TokenPath { get; set; } = "/var/run/secrets/core-operator/token";
