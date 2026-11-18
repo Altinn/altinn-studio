@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Build check `ALTINNAPP1030` (error) reports an exclusive gateway that routes on `gatewayAction` right after a `pdf`, `subformPdf` or `eFormidling` task. These tasks return no action, so the gateway never sees one, such as `reject`, and cannot route on it.
+- Build check `ALTINNAPP1030` (error) reports an exclusive gateway that routes on `gatewayAction` right after a `pdf`, `subformPdf` or `eFormidling` task. These tasks return no action, so the gateway never sees one, such as `reject`, and cannot route on it. ([#21997](https://github.com/Altinn/altinn-studio/pull/21997))
 
 ### Fixed
 
