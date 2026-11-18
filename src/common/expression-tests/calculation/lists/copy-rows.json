@@ -58,9 +58,8 @@
       }
     },
     {
-      "name": "a property the source rows leave out is kept",
-      "comment": "The frontend source row has no text property, so the merge leaves the text of the target row alone. The backend reads the source rows from the C# model, where text is null, so the result row carries text: null and the merge clears the text of the target row.",
-      "disabledBackend": true,
+      "name": "a property the source rows leave out is cleared",
+      "comment": "A data model lookup gives an object every property the schema knows, as null when the data leaves it out, the way the backend reads it from the C# model. So the copied row carries text: null, and the merge clears the text of the target row.",
       "dataModel": {
         "rows": [
           {
@@ -87,7 +86,7 @@
           {
             "altinnRowId": "a0000000-0000-4000-8000-000000000001",
             "decimal": 10,
-            "text": "kept"
+            "text": null
           }
         ]
       }

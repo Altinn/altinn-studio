@@ -37,7 +37,10 @@ const schema: JSONSchema7 = {
     },
     copies: {
       type: 'array',
-      items: { type: 'object', properties: { price: { type: 'number' }, quantity: { type: 'number' } } },
+      items: {
+        type: 'object',
+        properties: { price: { type: 'number' }, quantity: { type: 'number' }, total: { type: 'number' } },
+      },
     },
     summary: {
       type: 'object',
@@ -531,6 +534,23 @@ describe('calculations in the form store', () => {
     const previous = model.currentData;
     act(() => store.getState().data.debounce('forced'));
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toBe(previous);
+  });
+
+  it('clears a property in copied rows that the source rows leave out, as dataModel gives every property', async () => {
+    const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'copies', expression: ['dataModel', 'rows'] }] },
+      {
+        rows: [{ altinnRowId: 'a', price: 10 }],
+        copies: [{ altinnRowId: 'copy-a', price: 0, quantity: 5 }],
+      },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      rows: [{ altinnRowId: 'a', price: 10 }],
+      copies: [{ altinnRowId: 'a', price: 10, quantity: null }],
+    });
+    // The source rows have children, which the copies do not
+    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('copies[0].children'));
   });
 
   it('fails when a row in a list result is not an object', async () => {

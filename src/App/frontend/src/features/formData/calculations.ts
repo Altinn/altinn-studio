@@ -315,6 +315,7 @@ export function runCalculations(
             defaultDataType: () => dataType,
             hasDataType: (type) => type in state.data.models,
             read: (ref) => dot.pick(ref.field, state.data.models[ref.dataType]?.currentData),
+            getSchemaLookupTool: (type) => state.bootstrap.dataModels[type]?.schemaResult.lookupTool,
           },
           layout: { getLookups: () => state.bootstrap.layoutLookups },
           options: { getStaticOptions: (id) => state.bootstrap.staticOptions[id]?.options },
