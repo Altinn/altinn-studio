@@ -1,17 +1,10 @@
 import type { ChangeEventHandler, ReactElement } from 'react';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioAlert,
-  StudioHeading,
-  StudioParagraph,
-  StudioSwitch,
-  StudioTag,
-} from '@designer/components';
+import { StudioAlert, StudioHeading, StudioParagraph, StudioSwitch } from '@designer/components';
 import type { FeatureFlag } from '@designer/feature-flags';
 import {
   experimentalFeatureFlags,
-  featureFlagConfig,
   useExperimentalFeaturesMode,
   useFeatureFlagsContext,
   useFeatureToggle,
@@ -97,23 +90,16 @@ function ExperimentalFeature({ flag }: ExperimentalFeatureProps): ReactElement {
     [toggle],
   );
 
-  const label = (
-    <span className={classes.featureLabel}>
-      {t(`settings.user.experimental_features.${flag}.label`)}
-      {featureFlagConfig[flag].isNew && (
-        <StudioTag data-color='info' data-size='sm'>
-          {t('settings.user.experimental_features.new_tag')}
-        </StudioTag>
-      )}
-    </span>
-  );
-
   return (
     <StudioSwitch
       data-size='sm'
       checked={isEnabled}
       onChange={handleChange}
-      label={label}
+      label={
+        <span className={classes.featureLabel}>
+          {t(`settings.user.experimental_features.${flag}.label`)}
+        </span>
+      }
       description={t(`settings.user.experimental_features.${flag}.description`)}
     />
   );

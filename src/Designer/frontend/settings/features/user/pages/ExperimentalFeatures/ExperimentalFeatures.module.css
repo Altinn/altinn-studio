@@ -53,9 +53,6 @@
 }
 
 .featureLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ds-size-2);
   font-weight: var(--ds-font-weight-medium);
 }
 
