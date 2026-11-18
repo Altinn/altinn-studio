@@ -666,7 +666,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
         }
 
         // A number or a string is a bool as the expression functions read a boolean argument:
-        // 1, 0, "1", "0", and "true" or "false" in any casing
+        // 1, 0, "1", "0", and "true" or "false" in lowercase
         if (underlyingType == typeof(bool))
         {
             bool? boolValue = ToBoolLoose();

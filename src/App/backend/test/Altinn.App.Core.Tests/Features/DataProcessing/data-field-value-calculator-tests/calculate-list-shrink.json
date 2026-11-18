@@ -5,12 +5,12 @@
             "field": "form.children",
             "result": [
                 {
-                    "altinnRowId": "row-1",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000001",
                     "price": 1,
                     "quantity": 10
                 },
                 {
-                    "altinnRowId": "row-2",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000002",
                     "price": 2,
                     "quantity": 20
                 }
@@ -20,12 +20,12 @@
             "field": "form.copies",
             "result": [
                 {
-                    "altinnRowId": "row-1",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000001",
                     "price": 1,
                     "quantity": 10
                 },
                 {
-                    "altinnRowId": "row-2",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000002",
                     "price": 2,
                     "quantity": 20
                 }
@@ -64,24 +64,24 @@
         "form": {
             "children": [
                 {
-                    "altinnRowId": "row-1",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000001",
                     "price": 1,
                     "quantity": 0
                 },
                 {
-                    "altinnRowId": "row-2",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000002",
                     "price": 2,
                     "quantity": 0
                 },
                 {
-                    "altinnRowId": "row-3",
+                    "altinnRowId": "a0000000-0000-4000-8000-000000000003",
                     "price": 3,
                     "quantity": 0
                 }
             ],
             "copies": [
                 {
-                    "altinnRowId": "copy-1",
+                    "altinnRowId": "c0000000-0000-4000-8000-000000000001",
                     "price": 0,
                     "quantity": 0
                 }

@@ -51,6 +51,11 @@ const schema: JSONSchema7 = {
 };
 
 const isUuid = expect.stringMatching(/^[0-9a-f-]{36}$/);
+// Row ids are GUIDs, as the backend stores them
+const rowIdA = 'a0000000-0000-4000-8000-00000000000a';
+const rowIdB = 'a0000000-0000-4000-8000-00000000000b';
+const rowIdC = 'a0000000-0000-4000-8000-00000000000c';
+const rowIdCopyA = 'c0000000-0000-4000-8000-00000000000a';
 
 async function renderCalculations(
   config: CalculationConfig,
@@ -494,16 +499,16 @@ describe('calculations in the form store', () => {
       },
       {
         rows: [
-          { altinnRowId: 'a', price: 10, total: 0 },
-          { altinnRowId: 'b', price: 20, total: 0 },
-          { altinnRowId: 'c', price: 30, total: 0 },
+          { altinnRowId: rowIdA, price: 10, total: 0 },
+          { altinnRowId: rowIdB, price: 20, total: 0 },
+          { altinnRowId: rowIdC, price: 30, total: 0 },
         ],
       },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
       rows: [
-        { altinnRowId: 'a', price: 10, total: 1 },
-        { altinnRowId: 'b', price: 20, total: 2 },
+        { altinnRowId: rowIdA, price: 10, total: 1 },
+        { altinnRowId: rowIdB, price: 20, total: 2 },
       ],
     });
   });
@@ -513,21 +518,21 @@ describe('calculations in the form store', () => {
       { calculations: [{ field: 'copies', expression: ['dataModel', 'rows'] }] },
       {
         rows: [
-          { altinnRowId: 'a', price: 10, quantity: 1 },
-          { altinnRowId: 'b', price: 20, quantity: 2 },
+          { altinnRowId: rowIdA, price: 10, quantity: 1 },
+          { altinnRowId: rowIdB, price: 20, quantity: 2 },
         ],
-        copies: [{ altinnRowId: 'copy-a', price: 0, quantity: 0 }],
+        copies: [{ altinnRowId: rowIdCopyA, price: 0, quantity: 0 }],
       },
     );
     const model = store.getState().data.models[defaultDataTypeMock];
     expect(model.currentData).toEqual({
       rows: [
-        { altinnRowId: 'a', price: 10, quantity: 1 },
-        { altinnRowId: 'b', price: 20, quantity: 2 },
+        { altinnRowId: rowIdA, price: 10, quantity: 1 },
+        { altinnRowId: rowIdB, price: 20, quantity: 2 },
       ],
       copies: [
-        { altinnRowId: 'a', price: 10, quantity: 1 },
-        { altinnRowId: 'b', price: 20, quantity: 2 },
+        { altinnRowId: rowIdA, price: 10, quantity: 1 },
+        { altinnRowId: rowIdB, price: 20, quantity: 2 },
       ],
     });
 
@@ -542,13 +547,13 @@ describe('calculations in the form store', () => {
     const { store } = await renderCalculations(
       { calculations: [{ field: 'copies', expression: ['dataModel', 'rows'] }] },
       {
-        rows: [{ altinnRowId: 'a', price: 10 }],
-        copies: [{ altinnRowId: 'copy-a', price: 0, quantity: 5 }],
+        rows: [{ altinnRowId: rowIdA, price: 10 }],
+        copies: [{ altinnRowId: rowIdCopyA, price: 0, quantity: 5 }],
       },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
-      rows: [{ altinnRowId: 'a', price: 10 }],
-      copies: [{ altinnRowId: 'a', price: 10, quantity: null }],
+      rows: [{ altinnRowId: rowIdA, price: 10 }],
+      copies: [{ altinnRowId: rowIdA, price: 10, quantity: null }],
     });
     // The source rows have children, which the copies do not
     expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('copies[0].children'));
@@ -572,15 +577,15 @@ describe('calculations in the form store', () => {
               field: 'rows',
               expression: [
                 'list',
-                ['object', 'altinnRowId', 'same', 'price', 1],
-                ['object', 'altinnRowId', 'same', 'price', 2],
+                ['object', 'altinnRowId', rowIdA, 'price', 1],
+                ['object', 'altinnRowId', rowIdA, 'price', 2],
               ],
             },
           ],
         },
         { rows: [] },
       ),
-    ).rejects.toThrow('altinnRowId same');
+    ).rejects.toThrow(`altinnRowId ${rowIdA}`);
   });
 
   it('leaves a list of primitives alone when the result is a list of objects', async () => {
@@ -596,7 +601,7 @@ describe('calculations in the form store', () => {
   it('removes all rows when a list result is empty', async () => {
     const { store } = await renderCalculations(
       { calculations: [{ field: 'rows', expression: ['list'] }] },
-      { rows: [{ altinnRowId: 'a', price: 10 }] },
+      { rows: [{ altinnRowId: rowIdA, price: 10 }] },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ rows: [] });
   });

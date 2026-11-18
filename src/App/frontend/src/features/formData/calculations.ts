@@ -228,15 +228,31 @@ function writeCalculationResult(target: string, result: unknown, { dataType, mod
 
 function mergeObject(target: string, result: Record<string, unknown>, context: CalculationTarget) {
   for (const [key, value] of Object.entries(result)) {
-    // The row id is not in the schema. A row copied from another group brings its own, and keeps it.
+    // The row id is not in the schema. A row copied from another group brings its own, and keeps it. The backend
+    // stores the id as a Guid, so anything else keeps the existing id, as on the backend.
     if (key === ALTINN_ROW_ID) {
-      if (typeof value === 'string' && value.length > 0) {
-        dot.str(`${target}.${key}`, value, context.model.currentData);
+      const rowId = asRowId(value);
+      if (rowId === undefined) {
+        window.logWarnOnce(`Could not convert calculation result for ${context.dataType}.${target}.${key}`);
+      } else {
+        dot.str(`${target}.${key}`, rowId, context.model.currentData);
       }
       continue;
     }
     writeCalculationResult(`${target}.${key}`, value, context);
   }
+}
+
+const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const emptyGuid = '00000000-0000-0000-0000-000000000000';
+
+/** A row id is a GUID other than the empty one, written in lowercase as the backend writes a Guid. */
+function asRowId(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !guidPattern.test(value)) {
+    return undefined;
+  }
+  const rowId = value.toLowerCase();
+  return rowId === emptyGuid ? undefined : rowId;
 }
 
 function mergeRows(target: string, rows: unknown[], context: CalculationTarget) {

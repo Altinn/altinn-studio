@@ -206,6 +206,21 @@ internal sealed class DataModelFieldCalculator
     {
         foreach (var property in result.EnumerateObject())
         {
+            // A row copied from another list brings its own id and keeps it. Anything but a GUID keeps the existing
+            // id, as does the empty GUID, which would otherwise give the row a new id when ids are initialized.
+            if (
+                property.Name == AltinnRowIdJsonName
+                && !(
+                    property.Value.ValueKind == JsonValueKind.String
+                    && Guid.TryParseExact(property.Value.GetString(), "D", out var rowId)
+                    && rowId != Guid.Empty
+                )
+            )
+            {
+                LogSetFailed(field, $"{path}.{property.Name}");
+                continue;
+            }
+
             SetResult(formDataWrapper, field, $"{path}.{property.Name}", property.Value);
         }
     }
