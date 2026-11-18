@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -68,7 +69,12 @@ func (a *API) listKinds(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) findRuns(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
+	// URL.Query drops a pair that does not parse, and the find would then match more runs.
+	query, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		problem.Write(w, r, http.StatusBadRequest, "The query string is not valid.")
+		return
+	}
 	labels, err := runs.ParseLabelSelector(query.Get("labelSelector"))
 	if err != nil {
 		writeError(w, r, err)

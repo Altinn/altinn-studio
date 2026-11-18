@@ -314,7 +314,7 @@ func TestFindRuns(t *testing.T) {
 
 	for _, query := range []string{
 		"", "?labelSelector=repo=../x", "?labelSelector=org", "?labelSelector=org=a,org=b", "?labelSelector=runId=x",
-		"?kind=Upgrade",
+		"?kind=Upgrade", "?kind=upgrade&labelSelector=org=%zz",
 	} {
 		res = h.request(t, "assistant", http.MethodGet, "/api/v1/runs"+query, "", nil)
 		Expect(res.Code).To(Equal(http.StatusBadRequest), query)
