@@ -42,7 +42,7 @@ func writeFiles(t *testing.T, files map[string]string) string {
 	return dir
 }
 
-// loadValid loads a valid configuration: a base file, and an overlay's file that adds a kind.
+// loadValid loads a valid configuration from a base file and an overlay file that adds a kind.
 func loadValid(t *testing.T) *Config {
 	t.Helper()
 	cfg, err := LoadFrom(writeFiles(t, map[string]string{"config.yaml": baseFile, "kinds.yaml": kindsFile}))
@@ -106,8 +106,8 @@ func TestLoadReadsTheLabelsOfAKind(t *testing.T) {
 	Expect(cfg.Kinds["upgrade-v9"].Labels).To(Equal([]string{"org", "repoOwner", "repo", "commit"}))
 }
 
-// Each case loads the valid configuration with one more file, which breaks it in one way. The case expects the
-// problem of that file, so it cannot pass on another one.
+// Each case loads the valid configuration with one more file, which breaks it in one way. The case expects the problem
+// of that file, so that it cannot pass because of another problem.
 func TestLoadRefusesInvalidConfiguration(t *testing.T) {
 	longID := strings.Repeat("a", MaxNameLength+1)
 	cases := []struct{ override, problem string }{

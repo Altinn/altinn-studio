@@ -12,7 +12,7 @@ type timerEvent struct {
 	due bool
 }
 
-// FakeClock is a deterministic clock advanced explicitly by tests.
+// FakeClock is a deterministic clock that tests advance explicitly.
 //
 //nolint:govet // Field order groups the clock state. Size does not matter in a test helper.
 type FakeClock struct {
@@ -23,7 +23,7 @@ type FakeClock struct {
 	nextID  int64
 }
 
-// FakeTicker is driven by FakeClock.Advance.
+// FakeTicker ticks when FakeClock.Advance moves the time.
 type FakeTicker struct {
 	clock   *FakeClock
 	channel chan time.Time
@@ -233,7 +233,8 @@ func (t *FakeTicker) Stop() {
 	delete(t.clock.tickers, t)
 }
 
-// HasWaiters reports whether a timer from After is pending, so a test can advance the clock once a goroutine waits.
+// HasWaiters reports whether a timer from After is pending, so that a test can advance the clock after a goroutine
+// waits.
 func (f *FakeClock) HasWaiters() bool {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()

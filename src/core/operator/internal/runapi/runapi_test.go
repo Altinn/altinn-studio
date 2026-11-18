@@ -79,9 +79,9 @@ func newAPI(t *testing.T) *apiHarness {
 	}
 }
 
-// awaitArchive takes the run through the steps before run.await-archive, as the engine would, with its pod ready at
-// the fake operator runner. The fake engine runs no step, so this stores each step as completed, with its answer's
-// state.
+// awaitArchive moves the run through the steps before run.await-archive, as the engine does. The pod of the run is
+// ready at the fake operator runner. The fake engine runs no steps, so awaitArchive stores each step as completed, with
+// the state of its answer.
 func (h *apiHarness) awaitArchive(t *testing.T, runID string) {
 	t.Helper()
 	stored := h.workflow(t, runID)
@@ -113,7 +113,6 @@ func (h *apiHarness) awaitArchive(t *testing.T, runID string) {
 	}
 }
 
-// workflow finds a run's workflow in the fake engine.
 func (h *apiHarness) workflow(t *testing.T, runID string) enginetest.Workflow {
 	t.Helper()
 	for _, workflow := range h.engine.Workflows() {

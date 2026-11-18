@@ -34,7 +34,6 @@ var (
 	errNoPermission = errors.New("the Role does not allow it")
 )
 
-// testJob is the Job of a run of upgrade-v9 for the assistant.
 func testJob(runID string) sandbox.Job {
 	return sandbox.Job{
 		RunID:     runID,
@@ -182,7 +181,6 @@ func TestCreateJobTakesAnExistingJobAsCreated(t *testing.T) {
 		To(Succeed())
 }
 
-// addPod adds the pod p of the run's Job.
 func addPod(t *testing.T, k8s client.Client, phase corev1.PodPhase, conditions ...corev1.PodCondition) {
 	t.Helper()
 	pod := &corev1.Pod{

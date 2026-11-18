@@ -10,7 +10,6 @@ import (
 	"altinn.studio/core-operator/internal/config"
 )
 
-// maxLabelValue is the longest value of a label.
 const maxLabelValue = 100
 
 var labelValuePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]*$`)
@@ -25,17 +24,17 @@ func normalizedLabels(labels map[string]string) map[string]string {
 	return normalized
 }
 
-// checkLabels refuses labels that are not the kind's: a key it does not list, a key it lists that is missing, or a
-// value that is not valid. It expects normalized labels.
+// checkLabels refuses labels that do not agree with the kind. It refuses a key that the kind does not list, a missing
+// key that the kind lists, and a value that is not valid. It expects normalized labels.
 func checkLabels(kindName string, kind config.Kind, labels map[string]string) error {
 	if len(labels) > config.MaxLabels {
 		return &RequestError{Message: fmt.Sprintf("Send at most %d labels.", config.MaxLabels)}
 	}
-	// Sorted, so a request with several wrong labels always gets the same answer.
+	// Sort the keys, so that a request with several wrong labels always gets the same answer.
 	for _, key := range slices.Sorted(maps.Keys(labels)) {
 		if !slices.Contains(kind.Labels, key) {
 			if !config.ValidLabelKey(key) {
-				// Not quoted back, since it can be as long as the body.
+				// Do not quote the key in the answer, because it can be as long as the body.
 				return &RequestError{Message: labelKeyRule}
 			}
 			return &RequestError{Message: fmt.Sprintf(
@@ -75,13 +74,13 @@ func labelsOf(workflowLabels map[string]string) map[string]string {
 	return labels
 }
 
-// Filter is the query of a find: the labels and the kind that a run must have. A find needs at least one of them.
+// Filter is the query of a find, with the labels and the kind that a run must have. A find needs at least one of them.
 type Filter struct {
 	Labels map[string]string
 	Kind   string
 }
 
-// labels are the workflow labels that the filter asks for. It checks each label.
+// labels returns the workflow labels for the filter, and checks each label.
 func (f Filter) labels() (map[string]string, error) {
 	if len(f.Labels) > config.MaxLabels {
 		return nil, &RequestError{Message: fmt.Sprintf("Find runs by at most %d labels.", config.MaxLabels)}

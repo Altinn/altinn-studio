@@ -1,16 +1,15 @@
 # Tools the Makefile downloads, and the build output.
 bin/*
 
-# Test binary, built with `go test -c`
+# Test binaries that `go test -c` builds.
 *.test
 
 # Output of the go coverage tool
 *.out
 
-# Go workspace file
 go.work
 
-# editor and IDE paraphernalia
+# Editor and IDE files.
 .idea
 *.swp
 *.swo

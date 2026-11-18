@@ -82,7 +82,8 @@ func freeAddress(t *testing.T) string {
 	return address
 }
 
-// tokenFor asks the API server for a projected ServiceAccount token, as the kubelet mounts it in a caller's pod.
+// tokenFor requests a projected ServiceAccount token from the API server, as the kubelet mounts it in the pod of a
+// caller.
 func tokenFor(t *testing.T, clientset kubernetes.Interface, namespace, name, audience string) string {
 	t.Helper()
 	ctx := t.Context()
@@ -131,7 +132,6 @@ func call(t *testing.T, method, url, token string, body []byte) (int, string) {
 	return res.StatusCode, string(data)
 }
 
-// startAPIServer starts a Kubernetes API server with envtest, until the test ends.
 func startAPIServer(t *testing.T, assets string) (*rest.Config, kubernetes.Interface) {
 	t.Helper()
 	environment := &envtest.Environment{BinaryAssetsDirectory: assets}
@@ -151,15 +151,14 @@ func startAPIServer(t *testing.T, assets string) (*rest.Config, kubernetes.Inter
 	return restConfig, clientset
 }
 
-// servedOperator is the operator's process against a real API server and a fake engine, with the caller assistant
-// and a kind x. Callers and the engine send ServiceAccount tokens that the API server issued, and the operator reviews
-// them.
+// servedOperator is the operator process against a real API server and a fake engine, with the caller assistant and the
+// kind x. Callers and the engine send ServiceAccount tokens from the API server, and the operator reviews them.
 type servedOperator struct {
 	runAPI    string
 	callback  string
 	readiness string
-	// The tokens for the operator's audience of the caller, of the engine and of a ServiceAccount that is neither,
-	// and the caller's token for the API server's audience.
+	// Tokens with the operator audience for the caller, the engine and a ServiceAccount that is neither. forAPIServer
+	// is the token of the caller with the API server audience.
 	assistant, engine, stranger, forAPIServer string
 }
 
@@ -217,7 +216,7 @@ func serveOperator(t *testing.T) *servedOperator {
 		stranger:     tokenFor(t, clientset, "default", "someone-else", "operator"),
 		forAPIServer: tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "https://kubernetes.default.svc"),
 	}
-	// The run API listens once the cache has synced, which is after the probes answer.
+	// The run API starts to listen after the cache sync. The probes answer before that.
 	Eventually(func() int {
 		status, _ := call(t, http.MethodGet, operator.runAPI+"/kinds", operator.assistant, nil)
 		return status

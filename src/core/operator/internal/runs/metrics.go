@@ -21,13 +21,11 @@ const (
 // The histogram of admissions records nothing until RegisterMetrics makes it.
 var queueWaitDuration metric.Float64Histogram = noop.Float64Histogram{}
 
-// recordAdmission records a run that the queue let into the sandbox, waited after its create.
 func recordAdmission(ctx context.Context, kind, caller string, waited time.Duration) {
 	queueWaitDuration.Record(ctx, waited.Seconds(),
 		metric.WithAttributes(telemetry.AttrKind.String(kind), telemetry.AttrCaller.String(caller)))
 }
 
-// registerHistogram makes the histogram of admissions with meter.
 func registerHistogram(meter metric.Meter) error {
 	var err error
 	queueWaitDuration, err = meter.Float64Histogram(QueueWaitDuration, metric.WithUnit("s"), metric.WithDescription(

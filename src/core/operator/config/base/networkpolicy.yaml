@@ -1,7 +1,7 @@
-# The token check in the operator decides what each caller may do. This policy keeps everyone else from the ports.
+# The token check in the operator decides what each caller may do. This policy blocks all other sources at the ports.
 #
-# The kubelet probes need no rule: Azure Network Policy Manager filters only forwarded traffic, and the kubelet
-# connects from the node.
+# The kubelet probes need no rule. Azure Network Policy Manager filters only forwarded traffic, and the kubelet connects
+# from the node.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

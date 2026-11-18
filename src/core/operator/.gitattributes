@@ -1,7 +1,6 @@
-# Treat all files in the Go repo as binary, with no git magic updating
-# line endings. This produces predictable results in different environments.
+# Git does not change the line endings of any file, so that the result is the same in all environments.
 
-# Editors should use .editorconfig to pick appropriate line endings.
+# Editors must use .editorconfig to select the line endings.
 
 # Based on: https://github.com/golang/go/blob/beaf7f3282c2548267d3c894417cc4ecacc5d575/.gitattributes
 

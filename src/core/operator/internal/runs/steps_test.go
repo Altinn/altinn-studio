@@ -57,7 +57,7 @@ func TestAdmitQueuesBeyondTheLimits(t *testing.T) {
 	Expect(status.Status).To(Equal(StatusQueued))
 	Expect(*status.QueuePosition).To(Equal(1))
 
-	// The first run's Job counts once it exists, and its reservation ends.
+	// The Job of the first run counts after it exists, and its reservation ends.
 	Expect(h.call(t, first.ID, StepCreateJob).done()).To(BeTrue())
 	Expect(h.call(t, second.ID, StepAdmit).deferred()).To(BeTrue())
 
@@ -92,7 +92,8 @@ func TestCreateJobDefersWhileTheQuotaIsFull(t *testing.T) {
 	Expect(waiting.deferred()).To(BeTrue())
 	Expect(waiting.response.Defer.Delay).To(Equal(engine.Duration(5 * time.Second)))
 
-	// The run keeps its place while it waits, also past the time an admitted run without a Job is forgotten.
+	// The run keeps its place while it waits, also after admittedTTL, when the queue forgets an admitted run without a
+	// Job.
 	h.clock.Advance(2 * time.Minute)
 	Expect(h.call(t, run.ID, StepCreateJob).deferred()).To(BeTrue())
 	next := h.create(t, "assistant", "next")
@@ -111,7 +112,7 @@ func TestCreateJobFailsWhenTheSandboxRefusesTheJob(t *testing.T) {
 	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
 	Expect(callbacks.Ended(h.call(t, run.ID, StepCreateJob).body)).To(HaveField("Reason", ReasonStartFailed))
 
-	// The run gives up its place at once, so the caller's next run starts.
+	// The run releases its place at once, so the caller's next run starts.
 	h.sandbox.CreateErr = nil
 	Expect(h.call(t, h.create(t, "assistant", "next").ID, StepAdmit).done()).To(BeTrue())
 }
@@ -192,7 +193,7 @@ func TestAwaitResultFailsWhenThePodIsGone(t *testing.T) {
 	h.host.Close()
 	h.states[run.ID] = h.stateWith(t, run.ID, func(s *runState) { s.PodIP = ip })
 
-	// The pod is still there, so the operator runner may answer later.
+	// The pod is still there, so the operator runner can answer later.
 	h.sandbox.Add(sandbox.Job{RunID: run.ID, Kind: testKind, Caller: "assistant", Namespace: testNamespace})
 	h.sandbox.SetPod(testNamespace, run.ID, sandbox.Pod{Status: sandbox.PodReady, IP: ip})
 	Expect(h.call(t, run.ID, StepAwaitResult).status).To(Equal(http.StatusServiceUnavailable))
@@ -244,13 +245,13 @@ func TestARunKeepsItsKindWhenTheCatalogChanges(t *testing.T) {
 	Expect(started).To(Equal(run.ID))
 	Expect(command).To(Equal("upgrade-v9"))
 
-	// Without the kind in the catalog, the run still cleans up after itself.
+	// Without the kind in the catalog, run.cleanup still completes.
 	delete(h.cfg.Kinds, testKind)
 	Expect(h.call(t, run.ID, StepCleanup).done()).To(BeTrue())
 	Expect(h.hasJob(run.ID)).To(BeFalse())
 }
 
-// The queue's limits are the kind's current ones, so a kind that has left the catalog admits no more runs.
+// The queue uses the current limits of the kind, so a kind that left the catalog admits no more runs.
 func TestAdmitFailsARunWhoseKindIsGone(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -261,7 +262,7 @@ func TestAdmitFailsARunWhoseKindIsGone(t *testing.T) {
 		Detail: "The run's kind is not configured anymore."}))
 }
 
-// stateWith returns the run's initial state with change applied, as the steps before would have left it.
+// stateWith returns the run's initial state with change applied, as the earlier steps leave it.
 func (h *harness) stateWith(t *testing.T, runID string, change func(*runState)) *string {
 	t.Helper()
 	stored, ok := h.engine.Workflow(h.workflowID(t, runID))
@@ -280,7 +281,7 @@ func (h *harness) stateWith(t *testing.T, runID string, change func(*runState)) 
 	return encoded
 }
 
-// startCommand takes a run through its steps up to its running command, with the caller's archive.
+// startCommand moves a run through its steps until its command runs, with the caller's archive.
 func (h *harness) startCommand(t *testing.T, runID string) {
 	t.Helper()
 	for _, key := range []string{StepAdmit, StepCreateJob} {
@@ -298,8 +299,8 @@ func (h *harness) startCommand(t *testing.T, runID string) {
 	}
 }
 
-// The steps keep the times that the run shows: the upload deadline from when the pod was ready, the start from when the
-// archive arrived, and the end from when run.await-result had the outcome.
+// The steps keep the times that the run shows. The upload deadline starts when the pod is ready. The start time is when
+// the archive arrived, and the end time is when run.await-result had the outcome.
 func TestStepsKeepTheTimesOfTheRun(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -325,8 +326,8 @@ func TestStepsKeepTheTimesOfTheRun(t *testing.T) {
 	Expect(*state.FinishedAt).To(BeTemporally("==", h.clock.Now()))
 }
 
-// The engine runs a step again when it did not commit the step's answer, for example after the operator's pod
-// crashed. The operator runner still has the status then, since only the caller's fetch counts.
+// The engine runs a step again when it did not commit the step's answer, for example after the operator's pod crashed.
+// The operator runner still has the status then, because only the caller's fetch counts.
 func TestAwaitResultReadsTheStatusAgainWithoutAFetch(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -340,8 +341,7 @@ func TestAwaitResultReadsTheStatusAgainWithoutAFetch(t *testing.T) {
 	Expect(h.host.FetchCount()).To(BeZero())
 }
 
-// The caller may never fetch the result. run.cleanup then deletes the Job on its final check, once the result timeout
-// has passed.
+// If the caller does not fetch the result, run.cleanup deletes the Job on its final check, after the result timeout.
 func TestCleanupDeletesTheJobWhenNoOneFetchesTheResult(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -357,7 +357,7 @@ func TestCleanupDeletesTheJobWhenNoOneFetchesTheResult(t *testing.T) {
 	Expect(h.hasJob(run.ID)).To(BeFalse())
 }
 
-// A queue that restarted while a run waited for the cache to show its new Job learns of the run's place from
+// A queue that restarted while a run waited for the cache to show its new Job gets the place of the run from
 // run.await-pod.
 func TestAwaitPodKeepsTheReservationUntilTheJobShows(t *testing.T) {
 	RegisterTestingT(t)

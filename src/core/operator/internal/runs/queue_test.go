@@ -36,7 +36,6 @@ func openQueue(maxActivePerCaller int) (*Queue, *clock.FakeClock, *sandboxtest.S
 	return q, clk, box
 }
 
-// queued is a run of testKind.
 func queued(id, caller string) Work {
 	return Work{ID: id, Kind: testKind, Caller: caller}
 }
@@ -62,7 +61,7 @@ func TestQueueAdmitsTheOldestRunsThatFit(t *testing.T) {
 	Expect(ok).To(BeTrue())
 	Expect(position).To(Equal(2))
 
-	// An admitted run asking again stays admitted.
+	// An admitted run that asks again stays admitted.
 	Expect(q.Admit(t.Context(), queued("a", "assistant"), at(1))).To(Equal(Admission{Admitted: true}))
 
 	// When a finishes, c is next, and it is the assistant's only active run.
@@ -93,7 +92,7 @@ func TestQueueCountsJobsAndReservations(t *testing.T) {
 	Expect(box.DeleteJob(t.Context(), testNamespace, "x")).To(Succeed())
 	Expect(q.Admit(t.Context(), queued("b", "assistant"), at(2))).To(Equal(Admission{Admitted: true}))
 
-	// A reservation whose Job never appears is forgotten.
+	// The queue forgets a reservation whose Job does not appear.
 	clk.Advance(admittedTTL + time.Second)
 	Expect(q.Admit(t.Context(), queued("c", "assistant"), at(3))).To(Equal(Admission{Admitted: true}))
 
@@ -112,7 +111,7 @@ func TestQueueForgetsRunsThatStopAsking(t *testing.T) {
 	Expect(q.Admit(t.Context(), queued("b", "assistant"), at(2))).To(Equal(Admission{Position: 2}))
 	Expect(q.WaitingByKind()).To(Equal(map[string]int{testKind: 2}))
 
-	// a's workflow was canceled, so the engine stops calling run.admit for it.
+	// Someone canceled the workflow of a, so the engine stops its calls to run.admit for a.
 	clk.Advance(AdmitRecheck)
 	Expect(q.Admit(t.Context(), queued("b", "assistant"), at(2))).To(Equal(Admission{Position: 2}))
 	clk.Advance(waitingTTL)
@@ -137,7 +136,7 @@ func TestQueueRebuildsAfterARestart(t *testing.T) {
 	// The running run's Job counts at once, so it never waits.
 	Expect(after.Admit(t.Context(), queued("running", "other"), at(0))).To(Equal(Admission{Admitted: true}))
 
-	// They ask again every recheck while the queue warms up.
+	// They ask again at each recheck during the warmup.
 	for range int(warmup/AdmitRecheck) - 1 {
 		clk.Advance(AdmitRecheck)
 		for i, id := range []string{"c", "b", "a"} {
@@ -180,7 +179,7 @@ func TestQueueWaitsForTheEngineToCallAgain(t *testing.T) {
 	Expect(q.Admit(t.Context(), queued("b", "other"), at(2))).To(Equal(Admission{Position: 1}))
 
 	q.Open()
-	// a was admitted before the restart, and its run.create-job retries on the engine's longest backoff.
+	// The queue admitted a before the restart, and its run.create-job retries on the longest backoff of the engine.
 	clk.Advance(retryMaxDelay + quotaRecheck)
 	q.Hold(queued("a", "assistant"))
 	Expect(q.Admit(t.Context(), queued("b", "other"), at(2))).To(Equal(Admission{Position: 1}))

@@ -41,12 +41,10 @@ const kvmQuota = "requests.devices.altinn.studio/kvm"
 
 var errNoSlots = errors.New("no quota limits " + kvmQuota)
 
-// JobName is the name of a run's Job.
 func JobName(runID string) string {
 	return "run-" + runID
 }
 
-// jobLabels are the labels of a run's Job and its pod.
 func jobLabels(job sandbox.Job) map[string]string {
 	return map[string]string{
 		LabelName:      runnerName,
@@ -57,9 +55,9 @@ func jobLabels(job sandbox.Job) map[string]string {
 	}
 }
 
-// BuildJob makes the Job of a run from the kind's PodTemplate. The admission policy in src/core/operator-runner/infra
-// accepts a Job from the operator only when its pod spec and pod annotations equal the template's. So BuildJob copies
-// both as they are and adds only labels.
+// BuildJob makes the Job of a run from the PodTemplate of the kind. The admission policy in
+// src/core/operator-runner/infra accepts a Job from the operator only if the pod spec and pod annotations equal the
+// template. So BuildJob copies both without change and adds only labels.
 func BuildJob(template *corev1.PodTemplate, job sandbox.Job) *batchv1.Job {
 	podLabels := maps.Clone(template.Template.Labels)
 	if podLabels == nil {
@@ -88,7 +86,6 @@ func BuildJob(template *corev1.PodTemplate, job sandbox.Job) *batchv1.Job {
 	}
 }
 
-// Sandbox runs the Jobs of runs on Kubernetes.
 type Sandbox struct {
 	// Client reads Jobs and pods from the cache, which holds only the operator's Jobs and pods in the kind
 	// namespaces.
@@ -101,7 +98,6 @@ type Sandbox struct {
 
 var _ sandbox.Sandbox = (*Sandbox)(nil)
 
-// CreateJob creates the run's Job from its kind's PodTemplate.
 func (s *Sandbox) CreateJob(ctx context.Context, job sandbox.Job) error {
 	var template corev1.PodTemplate
 	key := client.ObjectKey{Namespace: job.Namespace, Name: job.Template}
@@ -145,8 +141,8 @@ func (s *Sandbox) Pod(ctx context.Context, namespace, runID string) (sandbox.Pod
 	}
 }
 
-// jobWithoutPod tells a Job whose pod the Job controller has not created yet from one that failed without a pod, and
-// from one that the cache has not seen yet.
+// jobWithoutPod finds why a Job has no pod. The Job controller did not create the pod yet, the Job failed without a
+// pod, or the cache did not see the Job yet.
 func (s *Sandbox) jobWithoutPod(ctx context.Context, namespace, runID string) (sandbox.Pod, error) {
 	var job batchv1.Job
 	err := s.Client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: JobName(runID)}, &job)
@@ -162,7 +158,7 @@ func (s *Sandbox) jobWithoutPod(ctx context.Context, namespace, runID string) (s
 	return sandbox.Pod{Status: sandbox.PodNone}, nil
 }
 
-// PodGone reports whether the pod at ip has stopped, is being deleted or has disappeared.
+// PodGone reports whether the pod at ip stopped, is in deletion or does not exist.
 func (s *Sandbox) PodGone(ctx context.Context, namespace, runID, ip string) (bool, error) {
 	pods, err := s.jobPods(ctx, namespace, runID)
 	if err != nil {
@@ -190,7 +186,6 @@ func (s *Sandbox) Slots(ctx context.Context, namespace string) (int, error) {
 	return 0, fmt.Errorf("%w in %s", errNoSlots, namespace)
 }
 
-// ActiveJobs lists the unfinished Jobs of a kind in a namespace.
 func (s *Sandbox) ActiveJobs(ctx context.Context, namespace, kind string) ([]sandbox.Ref, error) {
 	jobs, err := s.list(ctx, namespace, client.MatchingLabels{LabelManagedBy: ManagedBy, LabelRunKind: kind})
 	if err != nil {
@@ -205,7 +200,6 @@ func (s *Sandbox) ActiveJobs(ctx context.Context, namespace, kind string) ([]san
 	return refs, nil
 }
 
-// Jobs lists every run Job in a namespace.
 func (s *Sandbox) Jobs(ctx context.Context, namespace string) ([]sandbox.Ref, error) {
 	jobs, err := s.list(ctx, namespace, client.MatchingLabels{LabelManagedBy: ManagedBy})
 	if err != nil {
@@ -218,7 +212,7 @@ func (s *Sandbox) Jobs(ctx context.Context, namespace string) ([]sandbox.Ref, er
 	return refs, nil
 }
 
-// DeleteJob deletes a run's Job and, in the background, its pod. A missing Job is fine.
+// DeleteJob deletes the Job of a run, and its pod in the background. A missing Job is not an error.
 func (s *Sandbox) DeleteJob(ctx context.Context, namespace, runID string) error {
 	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Namespace: namespace, Name: JobName(runID)}}
 	err := s.Client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground))
@@ -229,7 +223,8 @@ func (s *Sandbox) DeleteJob(ctx context.Context, namespace, runID string) error 
 }
 
 // Log returns the last thousand lines of the operator runner's log in the newest pod of the run's Job. The operator
-// runner logs a few for each run. A pod whose container has not started has no log yet, and the API server answers 400.
+// runner logs a few lines for each run. A pod whose container did not start yet has no log, and the API server answers
+// 400.
 func (s *Sandbox) Log(ctx context.Context, namespace, runID string) ([]byte, error) {
 	pods, err := s.jobPods(ctx, namespace, runID)
 	if err != nil || len(pods) == 0 {
@@ -256,7 +251,6 @@ func (s *Sandbox) list(ctx context.Context, namespace string, labels client.Matc
 	return jobs.Items, nil
 }
 
-// jobPods lists the pods of a run's Job, the newest first.
 func (s *Sandbox) jobPods(ctx context.Context, namespace, runID string) ([]corev1.Pod, error) {
 	var pods corev1.PodList
 	err := s.Client.List(ctx, &pods, client.InNamespace(namespace),
@@ -320,8 +314,8 @@ func podEnded(pod *corev1.Pod) bool {
 	return pod.Status.Phase == corev1.PodFailed || pod.Status.Phase == corev1.PodSucceeded
 }
 
-// isAdmissionDenial reports whether an admission policy or webhook refused a request. The API server answers 422 for
-// a policy, as for an invalid object, so only the message tells them apart.
+// isAdmissionDenial reports whether an admission policy or webhook refused a request. The API server answers 422 for a
+// policy, as for an invalid object, so only the message shows the difference.
 func isAdmissionDenial(err error) bool {
 	var status apierrors.APIStatus
 	if !errors.As(err, &status) {
@@ -331,8 +325,8 @@ func isAdmissionDenial(err error) bool {
 	return strings.Contains(message, "ValidatingAdmissionPolicy") || strings.Contains(message, "admission webhook")
 }
 
-// isQuotaExceeded reports whether the API server refused a create because of a ResourceQuota, which frees up when
-// other runs finish.
+// isQuotaExceeded reports whether the API server refused a create because of a ResourceQuota. The quota becomes free
+// when other runs finish.
 func isQuotaExceeded(err error) bool {
 	return apierrors.IsForbidden(err) && strings.Contains(err.Error(), "exceeded quota")
 }

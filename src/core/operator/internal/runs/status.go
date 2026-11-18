@@ -26,7 +26,7 @@ const (
 	// StatusCompleted means the command ran and has a result, whatever its exit code. The caller fetches it by
 	// resultExpiresAt.
 	StatusCompleted Status = "completed"
-	// StatusFailed means the run could not complete, and its RunError says why. A new run may succeed.
+	// StatusFailed means the run could not complete, and its RunError says why. A new run can succeed.
 	StatusFailed Status = "failed"
 	// StatusCanceled means the caller canceled the run.
 	StatusCanceled Status = "canceled"
@@ -34,7 +34,7 @@ const (
 	StatusExpired Status = "expired"
 )
 
-// Final reports whether a run in this status has ended.
+// Final reports whether a run in this status is ended.
 func (s Status) Final() bool {
 	switch s {
 	case StatusCompleted, StatusFailed, StatusCanceled, StatusExpired:
@@ -79,7 +79,7 @@ type Run struct {
 	Status          Status            `json:"status"`
 }
 
-// maxDetail bounds the error detail a caller gets.
+// maxDetail limits the error detail that a caller gets.
 const maxDetail = 500
 
 // record is a run as its workflow in the engine keeps it. Only describe reads the workflow's progress and states.
@@ -88,7 +88,8 @@ type record struct {
 
 	// state is the newest step state, which has what every step before it learned.
 	state runState
-	// settled means the engine has ended the workflow and runs no step anymore, so the Job is gone or about to be.
+	// settled means that the engine ended the workflow and runs no more steps. So the Job is gone, or it will be gone
+	// soon.
 	settled bool
 }
 
@@ -97,7 +98,6 @@ func (r *record) keepsResult() bool {
 	return r.Status == StatusCompleted && !r.settled
 }
 
-// readRun reads a run from its workflow.
 func readRun(workflow *engine.Workflow) *record {
 	rec := describe(callbacks.Read(workflow))
 	rec.ID, rec.Kind = workflow.Labels[workflowLabelRunID], workflow.Labels[workflowLabelKind]
@@ -105,8 +105,8 @@ func readRun(workflow *engine.Workflow) *record {
 	return rec
 }
 
-// describe works out the run's status, its error and its times: from its outcome once it has one, and otherwise from
-// the step the workflow is at. Once every step has completed, the run is running until the engine settles the workflow.
+// describe finds the status, error and times of the run. It uses the outcome if the run has one, and otherwise the
+// current step of the workflow. After all steps are complete, the run is running until the engine settles the workflow.
 func describe(progress callbacks.Progress) *record {
 	r := &record{settled: progress.Settled, Run: Run{FinishedAt: progress.UpdatedAt}}
 	if state, err := parseState(progress.State); err == nil {
@@ -136,9 +136,9 @@ func describe(progress callbacks.Progress) *record {
 		r.Error = failure(progress)
 		r.Status = endStatus(r.Error.Reason)
 	case progress.CancelRequestedAt != nil && at != StatusRunning:
-		// Before the command runs, the cancel is final, because the operator deletes the Job with it. Once it runs, the
-		// step can get the result before the engine marks a cancel. So the run shows running until the engine settles
-		// it, and never shows canceled and then completed.
+		// Before the command runs, the cancel is final, because the operator deletes the Job with it. After the command
+		// starts, the step can get the result before the engine marks a cancel. So the run shows running until the
+		// engine settles it, and never shows canceled and then completed.
 		r.Status, r.FinishedAt = StatusCanceled, progress.CancelRequestedAt
 	default:
 		r.Status, r.FinishedAt = at, nil
@@ -158,8 +158,8 @@ func endStatus(reason string) Status {
 	return StatusFailed
 }
 
-// failure says why a settled workflow failed the run. A step that ended the run says why. The engine fails a step of
-// its own accord when its retries or wait budget run out, and its error then says nothing that the caller can use.
+// failure says why a settled workflow failed the run. A step that ended the run says why. The engine itself fails a
+// step when its retries or wait budget run out. Its error then has nothing that the caller can use.
 func failure(progress callbacks.Progress) *RunError {
 	if end := progress.End; end != nil {
 		return &RunError{Reason: end.Reason, Detail: truncate(end.Detail)}

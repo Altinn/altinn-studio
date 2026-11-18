@@ -1,7 +1,7 @@
 // Package auth authenticates the callers of the run API and the engine on the callback API.
 //
-// Each sends a projected ServiceAccount token whose audience is the operator. A Reviewer checks it, so the operator
-// holds no keys and no secret of its own, and the operator maps the user name of the token to a caller in its
+// Each sends a projected ServiceAccount token with the operator as audience. A Reviewer checks the token, so the
+// operator holds no keys and no secrets of its own. The operator maps the user name of the token to a caller in its
 // configuration. internal/kube reviews tokens with the Kubernetes API.
 package auth
 
@@ -24,11 +24,11 @@ import (
 )
 
 const (
-	// cacheTTL bounds how long a revoked token keeps working. Callers send each request with a token, and a review
-	// for each would double the load on the API server.
+	// cacheTTL limits how long a revoked token continues to work. Callers send a token with each request. A review for
+	// each request doubles the load on the API server.
 	cacheTTL = time.Minute
-	// cacheSize bounds the memory that tokens can take. There are a few callers, each with a token that changes
-	// about once an hour.
+	// cacheSize limits the memory for tokens. There are few callers, and the token of each caller changes about once an
+	// hour.
 	cacheSize = 1024
 )
 
@@ -38,12 +38,11 @@ var (
 	errReview          = errors.New("review the token")
 )
 
-// Reviewer checks a token with whoever issued it.
+// Reviewer checks a token with its issuer.
 type Reviewer interface {
 	Review(ctx context.Context, token string, audiences []string) (TokenStatus, error)
 }
 
-// TokenStatus is a reviewer's answer about a token.
 type TokenStatus struct {
 	Username string
 	// Audiences are the audiences of the request that the token is valid for.
@@ -51,7 +50,7 @@ type TokenStatus struct {
 	Authenticated bool
 }
 
-// Principal is who sent a request: the engine, or a caller by its id.
+// Principal is the sender of a request, either the engine or a caller id.
 type Principal struct {
 	Caller string
 	Engine bool
@@ -109,7 +108,7 @@ func (a *Authenticator) Authenticate(ctx context.Context, token string) (Princip
 }
 
 func (a *Authenticator) username(ctx context.Context, token string) (string, error) {
-	// The cache keys on a hash, so the process keeps no token that someone could read from a heap dump.
+	// The cache uses a hash as key, so the process keeps no token that someone can read from a heap dump.
 	key := sha256.Sum256([]byte(token))
 	now := a.clock.Now()
 
@@ -124,8 +123,8 @@ func (a *Authenticator) username(ctx context.Context, token string) (string, err
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", errReview, err)
 	}
-	// With spec.audiences set, the API server returns the audiences the token is valid for. A token for the API
-	// server itself is authenticated without them.
+	// If spec.audiences is set, the API server returns the audiences that the token is valid for. The API server
+	// authenticates a token for the API server itself, but without these audiences.
 	if !status.Authenticated || !slices.Contains(status.Audiences, a.audience) {
 		return "", ErrUnauthenticated
 	}
@@ -143,8 +142,8 @@ func (a *Authenticator) username(ctx context.Context, token string) (string, err
 	return status.Username, nil
 }
 
-// expiry reads the exp claim of a JWT, so a cached review ends with the token. The API server has checked the
-// signature, so the claim can be trusted here. A token that is no JWT gets the cache time.
+// expiry reads the exp claim of a JWT, so that a cached review ends with the token. The API server checked the
+// signature before, so this claim is safe to use. A token that is not a JWT gets the cache time.
 func expiry(token string) (time.Time, bool) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
@@ -169,7 +168,8 @@ func (a *Authenticator) evictLocked(now time.Time) {
 			delete(a.cache, key)
 		}
 	}
-	// Every entry is fresh, which takes more callers than exist. Dropping one at random costs one more review.
+	// All entries are fresh, which needs more callers than exist. The authenticator drops a random entry, which costs
+	// one more review.
 	for key := range a.cache {
 		if len(a.cache) < cacheSize {
 			break
@@ -194,7 +194,7 @@ func WithCaller(ctx context.Context, caller string) context.Context {
 	return context.WithValue(ctx, callerKey{}, caller)
 }
 
-// RequireCaller lets through requests from callers in the configuration, and puts the caller id in the context.
+// RequireCaller accepts only requests from callers in the configuration, and it puts the caller id in the context.
 func (a *Authenticator) RequireCaller(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		principal, ok := a.authenticate(w, r)
@@ -209,7 +209,7 @@ func (a *Authenticator) RequireCaller(next http.Handler) http.Handler {
 	})
 }
 
-// RequireEngine lets through requests from the engine only.
+// RequireEngine accepts only requests from the engine.
 func (a *Authenticator) RequireEngine(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		principal, ok := a.authenticate(w, r)

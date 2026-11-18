@@ -1,6 +1,6 @@
-// Package callbacks serves the callback API, which operator-workflow-engine calls for each step of an operator
-// workflow, and reads the workflow's progress back from the engine. The README's "Callback contract" describes it, and
-// the tests of both sides read the examples in testdata/callbacks.
+// Package callbacks serves the callback API that operator-workflow-engine calls for each step of an operator workflow.
+// It also reads the progress of the workflow from the engine. The section "Callback contract" in the README describes
+// the API. The tests of both sides read the examples in testdata/callbacks.
 package callbacks
 
 import (
@@ -30,7 +30,7 @@ const PathPrefix = "/workflow-engine-callbacks/"
 
 const (
 	maxPayloadBytes = 1 << 20
-	// deadlineMargin leaves time to send the answer before the engine gives up on the attempt.
+	// deadlineMargin reserves time to send the answer before the engine stops the attempt.
 	deadlineMargin = 2 * time.Second
 )
 
@@ -69,8 +69,8 @@ type Response struct {
 	Defer *Defer  `json:"defer"`
 }
 
-// Defer asks the engine to call the step again after Delay. The engine stores Reason for status reads, so it is
-// written for a person.
+// Defer asks the engine to call the step again after Delay. The engine stores Reason for status reads, so write Reason
+// for a person.
 type Defer struct {
 	Reason string          `json:"reason"`
 	Delay  engine.Duration `json:"delay"`
@@ -86,14 +86,15 @@ func Wait(state *string, delay time.Duration, reason string) Response {
 	return Response{State: state, Defer: &Defer{Delay: engine.Duration(delay), Reason: reason}}
 }
 
-// Handler runs one step. An *End fails the step and the workflow; any other error makes the engine retry the step under
-// its retry strategy.
+// Handler runs one step. An *End fails the step and the workflow. After any other error, the engine retries the step
+// under its retry strategy.
 type Handler func(ctx context.Context, payload *Payload) (Response, error)
 
-// End ends the workflow with Reason, a code of the workflow's domain, and Detail, a sentence for whoever started it.
-// The router answers it with a problem that carries both, which the engine keeps in the step's error history for Ended
-// to read back. Err is for the log only. Expected marks an end that is not a fault, such as a run that waited in the
-// queue longer than its kind allows: the router logs it as information and leaves the span unmarked.
+// End ends the workflow with Reason and Detail. Reason is a code of the workflow domain. Detail is a sentence for the
+// person who started the workflow. The router answers with a problem that has both. The engine keeps this problem in
+// the error history of the step, and Ended reads it back. Err is only for the log. Expected marks an end that is not a
+// fault, for example a run that waited in the queue longer than its kind allows. The router logs an expected end as
+// information and does not mark the span.
 type End struct { //nolint:errname // An End that is Expected is not a fault, so End is no XxxError.
 	Err      error
 	Reason   string
@@ -108,9 +109,9 @@ func (e *End) Error() string {
 	return e.Detail + " " + e.Err.Error()
 }
 
-// Ended reads the End that a step answered from the message of an error that the engine recorded for the step, which
-// is the router's answer, as testdata/callbacks/response-end.json shows. It returns nil for an error of the engine's
-// own, such as a wait budget that ran out.
+// Ended reads the End of a step from an error message that the engine recorded for the step. That message is the answer
+// of the router, as testdata/callbacks/response-end.json shows. Ended returns nil for an error from the engine itself,
+// for example a wait budget that ran out.
 func Ended(message string) *End {
 	var details problem.Details
 	if json.Unmarshal([]byte(message), &details) == nil &&
@@ -120,8 +121,8 @@ func Ended(message string) *End {
 	return nil
 }
 
-// Workflow is an operator workflow to enqueue. The engine calls its steps back in order, the first with State, and
-// retries each step under Retry. Name names the workflow in the engine, and the labels find it.
+// Workflow is an operator workflow to enqueue. The engine calls its steps in order and gives State to the first step.
+// It retries each step under Retry. Name is the name of the workflow in the engine, and the labels find it.
 type Workflow struct {
 	Labels  map[string]string
 	State   *string
@@ -138,14 +139,14 @@ type Step struct {
 	WaitBudget       time.Duration
 }
 
-// Retry is how the engine retries a step after an error: after BaseInterval, then twice as long each time up to
-// MaxDelay, for up to MaxDuration.
+// Retry is how the engine retries a step after an error. The first retry comes after BaseInterval. Each next delay is
+// twice as long, up to MaxDelay. The engine stops after MaxDuration.
 type Retry struct {
 	BaseInterval, MaxDelay, MaxDuration time.Duration
 }
 
-// Request builds the engine's request that enqueues the workflow. The engine hashes all of it but the context to tell
-// a replay from a reused idempotency key, so the same workflow builds the same request.
+// Request builds the engine request that enqueues the workflow. The engine hashes all of the request except the
+// context, to tell a replay from a reused idempotency key. So the same workflow must build the same request.
 func (w *Workflow) Request() (engine.EnqueueRequest, error) {
 	workflowContext, err := json.Marshal(w.Context)
 	if err != nil {
@@ -176,25 +177,25 @@ func (w *Workflow) Request() (engine.EnqueueRequest, error) {
 	}}, nil
 }
 
-// Progress is how far the engine has taken an operator workflow, in terms of its steps. A domain reads it to tell
-// what its workflow is doing, and knows none of the engine's statuses, step order or error history.
+// Progress is the position of the engine in an operator workflow, by step. A domain reads Progress to find the status
+// of its workflow. The domain does not need the engine statuses, step order or error history.
 type Progress struct {
-	// UpdatedAt is when the engine last changed the workflow, which is when it settled once Settled.
+	// UpdatedAt is the time of the last change to the workflow in the engine. After Settled, it is the time when the
+	// workflow settled.
 	UpdatedAt *time.Time
-	// CancelRequestedAt is when someone canceled the workflow. The engine may run a step before it settles.
+	// CancelRequestedAt is when someone canceled the workflow. The engine can run a step before the workflow settles.
 	CancelRequestedAt *time.Time
-	// State is what the newest step handed on, or the workflow's initial state before any step did.
+	// State is the output of the newest step, or the initial state of the workflow if no step gave an output.
 	State *string
-	// End is what Step answered when it ended the workflow. It is nil when the engine failed Step of its own accord,
-	// as when its retries or its wait budget ran out, and while Step has not failed.
+	// End is the answer of Step that ended the workflow. It is nil if Step did not fail. It is also nil if the engine
+	// failed Step itself, for example when its retries or its wait budget ran out.
 	End *End
-	// Step is the key of the first step that has not completed, or "" once every step has.
+	// Step is the key of the first step that is not complete, or "" after all steps are complete.
 	Step string
 	// Settled means the engine runs no step of the workflow anymore.
 	Settled bool
 }
 
-// Read reads the progress of an operator workflow from the engine's record of it.
 func Read(workflow *engine.Workflow) Progress {
 	steps := slices.Clone(workflow.Steps)
 	slices.SortFunc(steps, func(a, b engine.Step) int { return a.ProcessingOrder - b.ProcessingOrder })
@@ -214,8 +215,8 @@ func Read(workflow *engine.Workflow) Progress {
 	return progress
 }
 
-// Group is the handlers of one domain by command key, such as the run.* steps. The configuration turns groups on, so
-// a Deployment with other groups can run with another identity.
+// Group holds the handlers of one domain by command key, for example the run.* steps. The configuration enables groups,
+// so that a Deployment with other groups can run with another identity.
 type Group map[string]Handler
 
 // Router dispatches callbacks to the handlers of its groups.
@@ -265,7 +266,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		telemetry.AttrSubjectID.String(payload.Context.SubjectID),
 	)
 	if payload.ExecutionDeadline != nil {
-		// A step with less time left than the margin stops at once, since its answer would come too late.
+		// A step with less time than the margin stops at once, because its answer comes too late.
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, payload.ExecutionDeadline.Sub(r.clock.Now())-deadlineMargin)
 		defer cancel()
@@ -283,11 +284,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if end.Expected {
 			logger.Info("Callback ended the workflow", "reason", end.Reason, "error", err.Error())
 		} else {
-			// The workflow fails, so the error is worth an exported log record.
+			// The workflow fails, so the error gets an exported log record.
 			commontelemetry.SetError(span, "permanent", err)
 			logger.Error(err, "Callback failed the workflow", "reason", end.Reason)
 		}
-		// The engine does not retry a 422, and keeps the answer as the step's error, for Ended.
+		// The engine does not retry a 422. It keeps the answer as the error of the step, for Ended.
 		problem.WriteDetails(w, req, problem.Details{
 			Status: http.StatusUnprocessableEntity, Reason: end.Reason, Detail: end.Detail,
 		})

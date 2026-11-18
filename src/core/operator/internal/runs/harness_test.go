@@ -32,7 +32,6 @@ const (
 // appLabels are the labels of the test kinds, as upgrade-v9 has them.
 var appLabels = []string{"org", "repoOwner", "repo", "commit"}
 
-// testLabels are the labels of a run of the repository ttd/repo at testCommit.
 func testLabels(repo string) map[string]string {
 	return map[string]string{"org": "ttd", "repoOwner": "ttd", "repo": repo, "commit": testCommit}
 }
@@ -122,7 +121,6 @@ func gzipArchive(t *testing.T, content string) []byte {
 	return buffer.Bytes()
 }
 
-// create creates a run of testKind for the repository and fails the test on an error.
 func (h *harness) create(t *testing.T, caller, repo string) *Run {
 	t.Helper()
 	run, created, err := h.service.Create(t.Context(), caller, CreateRequest{Kind: testKind, Labels: testLabels(repo)})
@@ -135,7 +133,7 @@ func (h *harness) create(t *testing.T, caller, repo string) *Run {
 	return run
 }
 
-// upload sends an archive to the run's operator runner, as the run API passes on the caller's upload.
+// upload sends an archive to the run's operator runner, as the run API forwards the caller's upload.
 func (h *harness) upload(t *testing.T, runID, content string) {
 	t.Helper()
 	archive := bytes.NewReader(gzipArchive(t, content))
@@ -145,7 +143,6 @@ func (h *harness) upload(t *testing.T, runID, content string) {
 	}
 }
 
-// workflowID finds a run's workflow in the fake engine.
 func (h *harness) workflowID(t *testing.T, runID string) string {
 	t.Helper()
 	for _, workflow := range h.engine.Workflows() {
@@ -171,7 +168,7 @@ func (r stepResult) deferred() bool {
 	return r.status == http.StatusOK && r.response.Defer != nil
 }
 
-// call posts a step's callback as the engine would, with the state of the run's last answer, and keeps the state of
+// call posts a step's callback as the engine does, with the state of the last answer of the run. It keeps the state of
 // this answer for the next step.
 func (h *harness) call(t *testing.T, runID, key string, changes ...func(*callbacks.Payload)) stepResult {
 	t.Helper()
@@ -217,17 +214,14 @@ func (h *harness) call(t *testing.T, runID, key string, changes ...func(*callbac
 	return result
 }
 
-// readyPod makes the pod of a run's Job ready, with the fake operator runner's address.
 func (h *harness) readyPod(runID string) {
 	h.sandbox.SetPod(testNamespace, runID, sandbox.Pod{Status: sandbox.PodReady, IP: podIP})
 }
 
-// setPod sets the state of the pod of a run's Job.
 func (h *harness) setPod(runID string, status sandbox.PodStatus, detail string) {
 	h.sandbox.SetPod(testNamespace, runID, sandbox.Pod{Status: status, Detail: detail})
 }
 
-// hasJob reports whether a run's Job exists.
 func (h *harness) hasJob(runID string) bool {
 	_, ok := h.sandbox.Job(testNamespace, runID)
 	return ok

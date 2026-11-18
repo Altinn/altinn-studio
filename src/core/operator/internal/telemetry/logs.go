@@ -9,13 +9,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// WithOTelLogs sends the operator's log records to OpenTelemetry as well as to core. The logger
-// provider exports only WARN and above: the records of Error and of logging.Warn.
+// WithOTelLogs sends the operator's log records to core and to OpenTelemetry. The logger provider exports only WARN
+// and higher, which are the records of Error and of logging.Warn.
 //
-// A record carries the trace context of a context.Context value logged with it, so it links to
-// its trace. core never writes such a value.
+// A record has the trace context of a context.Context value in its fields, so it links to its trace. core never writes
+// such a value.
 //
-//nolint:ireturn // zap.WrapCore takes a function returning the interface.
+//nolint:ireturn // zap.WrapCore takes a function that returns the interface.
 func WithOTelLogs(core zapcore.Core) zapcore.Core {
 	return withOTelLogs(core, global.GetLoggerProvider())
 }
@@ -28,8 +28,8 @@ func withOTelLogs(core zapcore.Core, provider otellog.LoggerProvider) zapcore.Co
 	)
 }
 
-// withoutContextFields leaves out fields whose value is a context.Context, which are there only
-// to give the OpenTelemetry record its trace context.
+// withoutContextFields drops fields with a context.Context value. These fields only give the OpenTelemetry record its
+// trace context.
 type withoutContextFields struct {
 	zapcore.Core
 }

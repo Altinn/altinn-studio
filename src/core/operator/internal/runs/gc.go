@@ -20,15 +20,16 @@ import (
 
 const gcInterval = time.Minute
 
-// release frees what a run that ended holds: its place in the queue, and its Job after the operator runner's warnings
-// and errors are relayed. A cancel, a step that ends the run and run.cleanup release it. It is safe to repeat.
+// release frees what an ended run holds. It frees the place of the run in the queue. It deletes the Job after it relays
+// the warnings and errors of the operator runner. A cancel, a step that ends the run, and run.cleanup call release. It
+// is safe to repeat.
 func release(ctx context.Context, queue *Queue, box sandbox.Sandbox, namespace, runID string) error {
 	queue.Forget(runID)
 	return deleteJob(ctx, box, namespace, runID)
 }
 
-// Collector deletes the Jobs of runs that ended without a release: when the engine failed a step on its own, or when
-// a release could not delete the Job. The Job's deadline and TTL are the last backstop.
+// Collector deletes the Jobs of runs that ended without a release. This occurs if the engine failed a step itself, or
+// if a release did not delete the Job. The deadline and TTL of the Job are the last safeguard.
 type Collector struct {
 	cfg     *config.Config
 	engine  *engine.Client
@@ -40,7 +41,6 @@ func NewCollector(cfg *config.Config, engineClient *engine.Client, box sandbox.S
 	return &Collector{cfg: cfg, engine: engineClient, sandbox: box, clock: clk}
 }
 
-// Start runs Collect every minute until ctx ends.
 func (c *Collector) Start(ctx context.Context) error {
 	ticker := c.clock.NewTicker(gcInterval)
 	defer ticker.Stop()
@@ -54,9 +54,9 @@ func (c *Collector) Start(ctx context.Context) error {
 	}
 }
 
-// Collect makes one pass. It deletes the Jobs of runs that have ended or that the engine does not know, and leaves
-// alone whatever it cannot decide, such as when the engine does not answer. The cache holds Jobs in the namespaces of
-// the configured kinds only.
+// Collect makes one pass. It deletes the Jobs of runs that ended or that the engine does not know. It keeps a Job if it
+// cannot decide, for example if the engine does not answer. The cache holds Jobs only in the namespaces of the
+// configured kinds.
 func (c *Collector) Collect(ctx context.Context) {
 	ctx, span := telemetry.Tracer().Start(ctx, "gc.collect")
 	defer span.End()

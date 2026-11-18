@@ -29,7 +29,7 @@ func TestRunIDIsStablePerCallerAndKey(t *testing.T) {
 	Expect(EngineNamespace("assistant")).To(Equal("runs-assistant"))
 }
 
-// The key of a create names the run before it, so a create after a run has ended makes a new run.
+// The key of a create names the run before it, so a create after a run ends makes a new run.
 func TestCreateKeyDependsOnTheKindTheLabelsAndTheRunBefore(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -47,7 +47,6 @@ func TestCreateKeyDependsOnTheKindTheLabelsAndTheRunBefore(t *testing.T) {
 	).NotTo(Equal(createKey(testKind, map[string]string{"a=b": "c"}, "")))
 }
 
-// enqueueRequest builds the request of the assistant's run of the app ttd/app.
 func enqueueRequest(t *testing.T) engine.EnqueueRequest {
 	t.Helper()
 	request, err := BuildEnqueueRequest(newRun{
@@ -74,8 +73,8 @@ func TestEnqueueRequestIsTheSameForTheSameRun(t *testing.T) {
 	Expect(string(first.Context)).To(MatchJSON(`{"domain":"runs","caller":"assistant","subjectId":"` + id + `"}`))
 }
 
-// The engine calls the operator back for each step in the order of the run, and the run's status reads what each step
-// means. A kind without an archive has no step that waits for one.
+// The engine calls the operator for each step in the order of the run. The run's status reads what each step means. A
+// kind without an archive has no step that waits for one.
 func TestARunHasItsStepsInOrder(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -92,7 +91,7 @@ func TestARunHasItsStepsInOrder(t *testing.T) {
 	}
 }
 
-// A longer queue timeout makes the bound on a run's duration as much longer.
+// A longer queue timeout increases the maximum duration of a run by the same time.
 func TestMaxDurationGrowsWithTheQueueTimeout(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -109,7 +108,7 @@ func must(data []byte, err error) []byte {
 	return data
 }
 
-// The bound on a run's duration counts the archive step only for a kind that waits for an archive.
+// The maximum duration of a run includes the archive step only for a kind that waits for an archive.
 func TestMaxDurationCountsTheArchiveStep(t *testing.T) {
 	RegisterTestingT(t)
 

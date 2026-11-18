@@ -29,7 +29,7 @@ func readContract(t *testing.T, name string) []byte {
 	return data
 }
 
-// The payload has fields that the operator does not read, which decoding leaves out.
+// The payload has fields that the operator does not read. The decoder ignores them.
 func TestContractPayloadDecodes(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -135,7 +135,7 @@ func TestRouterAnswersByTheContract(t *testing.T) {
 		Expect(res.Code).To(Equal(http.StatusOK))
 		Expect(res.Body.String()).To(MatchJSON(`{"state":"s","defer":{"delay":"00:00:02","reason":"waiting"}}`))
 	})
-	// The engine does not retry a 422, and records the answer as the step's error, where a status read finds it.
+	// The engine does not retry a 422. It records the answer as the error of the step, where a status read finds it.
 	t.Run("a step that ends answers 422 with a problem", func(t *testing.T) {
 		RegisterTestingT(t)
 		res := post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"})
@@ -162,7 +162,7 @@ func TestRouterAnswersByTheContract(t *testing.T) {
 	})
 }
 
-// The engine calls the operator back for each step in order, with the step's command key, clocks and retries.
+// The engine calls the operator for each step in order, with the command key, clocks and retries of the step.
 func TestWorkflowRequestIsWhatTheEngineEnqueues(t *testing.T) {
 	RegisterTestingT(t)
 

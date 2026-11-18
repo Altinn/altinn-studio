@@ -63,7 +63,7 @@ func TestDurationIsATimeSpanInJSON(t *testing.T) {
 	Expect(string(data)).To(Equal(`"00:00:05"`))
 }
 
-// request is a workflow with initialState, so two requests with another state are another request.
+// request is a workflow with initialState, so that two different states give two different requests.
 func request(initialState string) engine.EnqueueRequest {
 	data := json.RawMessage(`{"commandKey":"run.admit"}`)
 	return engine.EnqueueRequest{

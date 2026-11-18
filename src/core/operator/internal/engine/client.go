@@ -1,7 +1,7 @@
 // Package engine is a client for the workflow engine that operator-workflow-engine hosts. The API is in
 // src/Runtime/workflow-engine/src/WorkflowEngine.Core/Endpoints/EngineEndpoints.cs.
 //
-// The engine has no authentication of its own: a NetworkPolicy lets only the operator reach it.
+// The engine has no authentication of its own. A NetworkPolicy lets only the operator reach it.
 package engine
 
 import (
@@ -21,18 +21,15 @@ import (
 )
 
 var (
-	// ErrConflict means the idempotency key was used with another request.
 	ErrConflict = errors.New("the idempotency key is in use with another request")
-	// ErrNotFound means the namespace has no such workflow.
 	ErrNotFound = errors.New("workflow not found")
-	// ErrTerminal means the workflow had already finished.
 	ErrTerminal = errors.New("the workflow has already finished")
 	// ErrInvalid means the engine refused the request, which a retry does not change.
 	ErrInvalid = errors.New("the engine refused the request")
 	errStatus  = errors.New("unexpected response from the engine")
 )
 
-// maxResponseBytes bounds what the operator reads from the engine. A workflow of six steps with its states is far
+// maxResponseBytes limits what the operator reads from the engine. A workflow of six steps with its states is far
 // smaller.
 const maxResponseBytes = 4 << 20
 
@@ -51,8 +48,8 @@ type EnqueueResult struct {
 	Created    bool
 }
 
-// Enqueue stores a request of one workflow. The engine answers a replay of the same key and request with the
-// existing workflow, and a reuse of the key with another request with ErrConflict.
+// Enqueue stores a request of one workflow. For a replay of the same key and request, the engine answers with the
+// existing workflow. For a reuse of the key with another request, Enqueue returns ErrConflict.
 func (c *Client) Enqueue(
 	ctx context.Context,
 	namespace string,
@@ -92,7 +89,6 @@ func (c *Client) Enqueue(
 	}
 }
 
-// Get returns a workflow with its steps and their states.
 func (c *Client) Get(ctx context.Context, namespace string, workflowID string) (workflow *Workflow, err error) {
 	res, err := c.do(ctx, http.MethodGet, c.workflowsURL(namespace)+"/"+url.PathEscape(workflowID), nil)
 	if err != nil {
@@ -220,8 +216,8 @@ func unexpected(res *http.Response) error {
 		problemDetail(res))
 }
 
-// closeBody drains and closes a response body, so the connection is reused. Its error becomes the call's error only
-// when the call has none of its own.
+// closeBody drains and closes a response body, so that the client can reuse the connection. Its error becomes the error
+// of the call only if the call has no error of its own.
 func closeBody(res *http.Response, err *error) {
 	_, drainErr := io.Copy(io.Discard, io.LimitReader(res.Body, maxResponseBytes))
 	closeErr := res.Body.Close()

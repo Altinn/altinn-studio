@@ -11,8 +11,8 @@ import (
 
 var errTimeSpan = errors.New("not a .NET TimeSpan")
 
-// Duration is a .NET TimeSpan in JSON: the constant format [-][d.]hh:mm:ss[.fffffff], which System.Text.Json reads
-// and writes.
+// Duration is a .NET TimeSpan in JSON. It uses the constant format [-][d.]hh:mm:ss[.fffffff], which System.Text.Json
+// reads and writes.
 type Duration time.Duration
 
 // FormatTimeSpan formats d in the .NET constant format, to a precision of 100 nanoseconds, a .NET tick.

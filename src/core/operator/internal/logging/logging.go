@@ -1,5 +1,5 @@
-// Package logging gives each package a logr.Logger: the one in its context, or the process's logger. Only
-// internal/kube uses the logging of controller-runtime, and it logs through the same logger.
+// Package logging gives each package a logr.Logger, from its context or the process logger. Only internal/kube uses the
+// logging of controller-runtime, and it logs through the same logger.
 package logging
 
 import (
@@ -18,8 +18,8 @@ var (
 	base = logr.Discard()
 )
 
-// New makes the process's logger: zap in development mode, which writes readable lines to stderr, with each record
-// also passed to wrap, such as to send it through OpenTelemetry.
+// New makes the process logger. It is zap in development mode, which writes readable lines to stderr. wrap also
+// receives each record, for example to send it through OpenTelemetry.
 func New(wrap func(zapcore.Core) zapcore.Core) (logr.Logger, error) {
 	config := zap.NewDevelopmentConfig()
 	logger, err := config.Build(zap.WrapCore(wrap))
@@ -36,7 +36,6 @@ func SetDefault(logger logr.Logger) {
 	base = logger
 }
 
-// Default returns the process's logger.
 func Default() logr.Logger {
 	mu.RLock()
 	defer mu.RUnlock()
@@ -53,7 +52,6 @@ func FromContext(ctx context.Context) logr.Logger {
 	return logger.WithValues("ctx", ctx)
 }
 
-// IntoContext returns a context with logger, which FromContext then returns.
 func IntoContext(ctx context.Context, logger logr.Logger) context.Context {
 	return logr.NewContext(ctx, logger)
 }

@@ -1,5 +1,5 @@
-// Package problem writes the operator's HTTP answers: JSON, and errors as RFC 9457 problem details, the error format
-// of the run API and the callback API.
+// Package problem writes the HTTP answers of the operator as JSON. It writes errors as RFC 9457 problem details, which
+// is the error format of the run API and the callback API.
 package problem
 
 import (
@@ -11,8 +11,8 @@ import (
 
 const ContentType = "application/problem+json"
 
-// Details is an RFC 9457 problem. Type is left out, which means about:blank: the status code says what happened.
-// Reason is an extension member for a code that a program can act on.
+// Details is an RFC 9457 problem. It has no Type, which means about:blank. The status code tells what happened. Reason
+// is an extension member with a code for programs.
 type Details struct {
 	Title  string `json:"title"`
 	Detail string `json:"detail,omitempty"`
@@ -25,14 +25,12 @@ func Write(w http.ResponseWriter, r *http.Request, status int, detail string) {
 	WriteDetails(w, r, Details{Status: status, Detail: detail})
 }
 
-// WriteDetails answers with details, whose title is the text of their status.
 func WriteDetails(w http.ResponseWriter, r *http.Request, details Details) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	details.Title = http.StatusText(details.Status)
 	write(w, r, details.Status, ContentType, details)
 }
 
-// WriteJSON answers with status and body as JSON.
 func WriteJSON(w http.ResponseWriter, r *http.Request, status int, body any) {
 	write(w, r, status, "application/json", body)
 }
@@ -47,7 +45,8 @@ func write(w http.ResponseWriter, r *http.Request, status int, contentType strin
 	w.Header().Set("Content-Type", contentType)
 	w.WriteHeader(status)
 	if _, err := w.Write(append(data, '\n')); err != nil {
-		// The status line is out, so only the log can tell. It is usually a client that went away.
+		// The server sent the status line, so only the log can show the error. Usually the client closed the
+		// connection.
 		logging.FromContext(r.Context()).V(1).Info("Write response failed", "path", r.URL.Path, "error", err.Error())
 	}
 }

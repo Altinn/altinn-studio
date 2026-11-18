@@ -1,4 +1,4 @@
-# Build context: src/
+# The build context is src/.
 # Send only the shared Go module and the operator's.
 **
 !common/go/**

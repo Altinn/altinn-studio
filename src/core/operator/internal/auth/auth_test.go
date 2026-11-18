@@ -25,8 +25,8 @@ const (
 
 var errAPIDown = errors.New("API server down")
 
-// fakeReviewer answers reviews from a map of tokens to user names, as the API server would for valid tokens with the
-// operator's audience.
+// fakeReviewer answers reviews from a map of tokens to user names. It acts as the API server does for valid tokens with
+// the operator audience.
 type fakeReviewer struct {
 	tokens    map[string]string
 	audiences map[string][]string
@@ -139,7 +139,7 @@ func TestAuthenticateCachesReviewsForAMinute(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(reviewer.callCount()).To(Equal(2))
 
-	// A refused token is reviewed every time, so a token that becomes valid works at once.
+	// The authenticator reviews a refused token each time, so that a token that becomes valid works at once.
 	for range 2 {
 		_, err = authenticator.Authenticate(ctx, "unknown-token")
 		Expect(err).To(MatchError(ErrUnauthenticated))

@@ -30,7 +30,6 @@ func recordMetrics(t *testing.T) *sdkmetric.ManualReader {
 	return reader
 }
 
-// histogram reads the data points of the histogram with the name.
 func histogram(t *testing.T, reader *sdkmetric.ManualReader, name string) []metricdata.HistogramDataPoint[float64] {
 	t.Helper()
 	var data metricdata.ResourceMetrics

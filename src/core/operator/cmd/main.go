@@ -71,8 +71,8 @@ func run() int {
 		setupLog.Error(err, "unable to connect to the cluster")
 		return 1
 	}
-	// The operator runner calls have no client timeout. Each step's execution deadline bounds the steps' calls, and the
-	// caller's request bounds an upload or a result that the operator passes on.
+	// The operator runner calls have no client timeout. The execution deadline of a step limits the calls of that step.
+	// The request of the caller limits an upload or a result that the operator forwards.
 	httpClient := &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 	host := runner.NewClient(httpClient, runner.Port, cluster.Sandbox())
 	if err = setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host); err != nil {
@@ -166,12 +166,12 @@ func setupRuns(
 	return runs.NewSteps(queue, box, hostClient).Group(), queue, nil
 }
 
-// server is an HTTP server that the cluster starts once its cache has synced.
+// server is an HTTP server that the cluster starts after its cache is in sync.
 type server struct {
 	handler http.Handler
 	name    string
 	address string
-	// onServe runs once the server listens.
+	// onServe runs after the server listens.
 	onServe []func()
 }
 
@@ -189,7 +189,8 @@ func (s *server) Start(ctx context.Context) error {
 		Handler:           s.handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		IdleTimeout:       idleTimeout,
-		// Requests end with the cluster, so a long poll answers at once and the engine retries a callback in flight.
+		// Requests end when the cluster stops. A long poll then answers at once, and the engine retries an open
+		// callback.
 		BaseContext: func(net.Listener) context.Context { return logging.IntoContext(ctx, logger) },
 	}
 	var listenConfig net.ListenConfig
@@ -219,8 +220,8 @@ func (s *server) Start(ctx context.Context) error {
 	}
 }
 
-// spanName names a request's span as the semantic conventions do: the method and the route, with HTTP for a method
-// that HTTP does not define, so that a client cannot put a value in a span name through either.
+// spanName names a request span from the method and the route, as the semantic conventions do. It uses "HTTP" for a
+// method that HTTP does not define, so that a client cannot put its own value in a span name.
 func spanName(method, path string) string {
 	switch method {
 	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete,
@@ -231,8 +232,8 @@ func spanName(method, path string) string {
 	return strings.TrimSpace(method + " " + route(path))
 }
 
-// route names the route of a path for span names, with run ids and command keys left out. A path that no route serves
-// gets no name, so that none of it reaches a span name.
+// route gives the route of a path for span names, without run ids and command keys. A path that no route serves gets an
+// empty name, so that no part of it gets into a span name.
 func route(path string) string {
 	if path == "/api/v1/kinds" || path == "/api/v1/runs" {
 		return path

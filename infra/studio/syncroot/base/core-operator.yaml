@@ -19,7 +19,8 @@ metadata:
   name: core-operator
   namespace: default
 spec:
-  # No targetNamespace: the artifact sets the namespace of each object, and it has cluster-scoped RBAC for TokenReview.
+  # This Kustomization sets no targetNamespace. The artifact sets the namespace of each object, and it has
+  # cluster-scoped RBAC for TokenReview.
   interval: 5m
   sourceRef:
     kind: OCIRepository

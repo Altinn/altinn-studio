@@ -22,7 +22,7 @@ func TestCollectorDeletesJobsOfFinishedOrUnknownRuns(t *testing.T) {
 	}
 	h.engine.Update(h.workflowID(t, canceled.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusCanceled })
 
-	// A Job whose run the engine has forgotten, such as after retention.
+	// A Job whose run the engine forgot, for example after retention.
 	unknown := RunID("assistant", "forgotten")
 	h.sandbox.Add(sandbox.Job{RunID: unknown, Kind: testKind, Caller: "assistant", Namespace: testNamespace})
 
@@ -46,8 +46,8 @@ func TestCollectorKeepsJobsWhenTheEngineDoesNotAnswer(t *testing.T) {
 	Expect(h.hasJob(run.ID)).To(BeTrue())
 }
 
-// A run of a kind that has left the catalog has its Job deleted when it fails, while another kind still uses the
-// namespace. The Job's deadline and TTL are the backstop for a namespace that no kind uses anymore.
+// If a kind leaves the catalog, the operator deletes the Job of its failed run while another kind still uses the
+// namespace. The deadline and TTL of the Job are the safeguard for a namespace that no kind uses anymore.
 func TestCollectorDeletesTheJobOfARunWhoseKindIsGone(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)

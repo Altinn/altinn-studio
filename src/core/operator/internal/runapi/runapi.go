@@ -1,5 +1,5 @@
-// Package runapi serves the run API to callers. It turns HTTP into calls to the runs service and its errors
-// into problem details.
+// Package runapi serves the run API to callers. It converts HTTP requests to calls of the runs service, and the errors
+// of the service to problem details.
 package runapi
 
 import (
@@ -24,10 +24,10 @@ import (
 )
 
 const (
-	// maxCreateBytes holds the largest create the operator accepts: 16 labels with keys of 63 and values of 100
-	// characters, also when the client escapes each character as a surrogate pair of 12 bytes.
+	// maxCreateBytes is large enough for the largest create that the operator accepts. That is 16 labels with keys of
+	// 63 and values of 100 characters, also if the client escapes each character as a surrogate pair of 12 bytes.
 	maxCreateBytes = 64 << 10
-	// retryAfterSeconds is the Retry-After of a 503: the engine and the operator runner are usually back within seconds.
+	// retryAfterSeconds is the Retry-After of a 503. The engine and the operator runner usually recover within seconds.
 	retryAfterSeconds = "5"
 )
 
@@ -135,7 +135,7 @@ func (a *API) getRun(w http.ResponseWriter, r *http.Request) {
 	problem.WriteJSON(w, r, http.StatusOK, run)
 }
 
-// uploadArchive passes the archive on to the run's operator runner as it arrives, so the operator never holds it.
+// uploadArchive streams the archive to the operator runner of the run, so that the operator does not hold it.
 func (a *API) uploadArchive(w http.ResponseWriter, r *http.Request) {
 	if !hasMediaType(r, "application/gzip") {
 		problem.Write(w, r, http.StatusUnsupportedMediaType, "Send the archive as application/gzip.")
@@ -160,7 +160,7 @@ func (a *API) uploadArchive(w http.ResponseWriter, r *http.Request) {
 
 var tooLarge = fmt.Sprintf("The archive is larger than %d MiB.", runs.MaxArchiveBytes>>20)
 
-// getResult passes the result on from the run's operator runner, so the operator holds no result in memory.
+// getResult streams the result from the operator runner of the run, so that the operator holds no result in memory.
 func (a *API) getResult(w http.ResponseWriter, r *http.Request) {
 	result, size, err := a.service.Result(r.Context(), auth.CallerFrom(r.Context()), r.PathValue("runId"))
 	if err != nil {
@@ -179,8 +179,8 @@ func (a *API) getResult(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	if _, err := io.Copy(w, result); err != nil {
-		// The status line is out, so only the log can tell. It is usually a client that went away, which can fetch
-		// the result again within the operator runner's grace.
+		// The server sent the status line, so only the log can show the error. Usually the client closed the
+		// connection. The client can fetch the result again within the grace time of the operator runner.
 		logger.V(1).Info("Write result failed", "path", r.URL.Path, "error", err.Error())
 	}
 }
@@ -240,8 +240,8 @@ func statusOf(err error) (int, string) {
 	}
 }
 
-// uploadStatus passes on the operator runner's refusal of an archive. Each is a problem with the archive, which the
-// caller must fix, except one that the operator caused.
+// uploadStatus forwards a refusal of an archive by the operator runner, if the caller must fix the archive. Other
+// refusals come from a fault of the operator.
 func uploadStatus(upload *runs.UploadError) (int, string) {
 	switch upload.Status {
 	case http.StatusBadRequest, http.StatusRequestEntityTooLarge, http.StatusUnsupportedMediaType:

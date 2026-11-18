@@ -31,7 +31,7 @@ func TestCreateFindsTheRunInProgress(t *testing.T) {
 	Expect(again.ID).To(Equal(first.ID))
 	Expect(h.engine.Workflows()).To(HaveLen(1))
 
-	// Label values are compared without case.
+	// The service compares label values without case.
 	upper := testLabels("APP")
 	upper["repoOwner"] = "TTD"
 	again, created, err = h.service.Create(ctx, "assistant", CreateRequest{Kind: testKind, Labels: upper})
@@ -50,7 +50,7 @@ func TestCreateFindsTheRunInProgress(t *testing.T) {
 	Expect(next.ID).NotTo(Equal(first.ID))
 }
 
-// Once a run has ended, a create for the same kind and source makes a new run, and the next create finds that one.
+// After a run ends, a create for the same kind and source makes a new run. The next create finds that new run.
 func TestCreateAfterARunEndedMakesANewRun(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -79,7 +79,7 @@ func TestCreateAfterARunEndedMakesANewRun(t *testing.T) {
 	Expect(third.ID).NotTo(BeElementOf(first.ID, second.ID))
 }
 
-// A canceled run has ended once the cancel answers, before the engine marks its workflow canceled at its next fetch.
+// A canceled run is ended when the cancel answers, before the engine marks its workflow canceled at its next fetch.
 func TestCreateRightAfterACancelMakesANewRun(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -91,7 +91,7 @@ func TestCreateRightAfterACancelMakesANewRun(t *testing.T) {
 	Expect(h.create(t, "assistant", "app").ID).NotTo(Equal(first.ID))
 }
 
-// The engine keeps the run: its labels name it and say what it is for, and its initial state has its kind.
+// The engine keeps the run. Its labels name it and tell what it is for, and its initial state has its kind.
 func TestCreateStoresTheRunInTheEngine(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -151,7 +151,7 @@ func TestCreateChecksTheKindTheLabelsAndTheQueue(t *testing.T) {
 	h.create(t, "assistant", "b")
 	_, _, err = h.service.Create(ctx, "assistant", CreateRequest{Kind: testKind, Labels: testLabels("c")})
 	Expect(err).To(MatchError(ErrQueueFull))
-	// A queued run is found, not made again.
+	// Create finds a queued run and does not make it again.
 	_, created, err := h.service.Create(ctx, "assistant", CreateRequest{Kind: testKind, Labels: testLabels("a")})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(created).To(BeFalse())
@@ -332,8 +332,8 @@ func TestGetStopsWaitingAtTheDeadline(t *testing.T) {
 	Expect(same.Status).To(Equal(StatusQueued))
 }
 
-// An operator runner that does not answer while its pod still runs may answer later, so the caller retries. Once the pod
-// is gone, so is the result.
+// An operator runner that does not answer while its pod still runs can answer later, so the caller retries. After the
+// pod is gone, the result is gone too.
 func TestResultIsUnavailableWhileTheRunnerDoesNotAnswer(t *testing.T) {
 	RegisterTestingT(t)
 	h := newHarness(t)
@@ -377,7 +377,8 @@ func TestKindsListsWhatTheCallerMayRun(t *testing.T) {
 		UploadTimeoutSeconds: 300,
 		RunTimeoutSeconds:    660, ResultTimeoutSeconds: 300, MaxDurationSeconds: 4380,
 	}
-	// A kind without an archive waits for no upload, so its bound is run.await-archive's budget and retries shorter.
+	// A kind without an archive waits for no upload. So its maximum duration is shorter by the budget and retries of
+	// run.await-archive.
 	noArchive := upgrade
 	noArchive.Name = noArchiveKind
 	noArchive.RequiresArchive = false

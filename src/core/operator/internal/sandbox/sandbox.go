@@ -1,5 +1,6 @@
-// Package sandbox is the contract between the run steps and the place where a run's command runs: a Job with an
-// operator runner in its pod. internal/kube implements it on Kubernetes, and sandboxtest in memory.
+// Package sandbox is the contract between the run steps and the place where a run's command runs. That place is a Job
+// with an operator runner in its pod. internal/kube implements it on Kubernetes, and sandboxtest implements it in
+// memory.
 package sandbox
 
 import (
@@ -9,7 +10,7 @@ import (
 )
 
 var (
-	// ErrQuotaFull means the sandbox has no room for the Job now. Room frees up when other runs end.
+	// ErrQuotaFull means the sandbox has no room for the Job now. Room becomes free when other runs end.
 	ErrQuotaFull = errors.New("the sandbox quota is full")
 	// ErrNotAdmitted means the sandbox's admission policy refused the Job. It compares the Job with a template that it
 	// caches, so a refusal during a rollout of the template can pass a moment later.
@@ -18,7 +19,7 @@ var (
 	ErrRefused = errors.New("the sandbox refused the Job")
 )
 
-// Job is a run's Job: what the sandbox needs to start the operator runner for the run.
+// Job has what the sandbox needs to start the operator runner for a run.
 type Job struct {
 	RunID  string
 	Kind   string
@@ -27,7 +28,7 @@ type Job struct {
 	Namespace string
 	// Template names the template of the Job's pod.
 	Template string
-	// Deadline is how long the Job may run before Kubernetes stops it.
+	// Deadline is how long the Job can run before Kubernetes stops it.
 	Deadline time.Duration
 }
 
@@ -37,7 +38,7 @@ type Ref struct {
 	Caller string
 }
 
-// PodStatus is the state of a run's pod, as the steps tell the run's status from it.
+// PodStatus is the state of a run's pod. The steps find the status of the run from it.
 type PodStatus int
 
 const (
@@ -47,7 +48,7 @@ const (
 	JobFailed
 	// PodNone means the Job exists and has no pod yet.
 	PodNone
-	// PodStarting means the pod is on its way to ready.
+	// PodStarting means the pod starts but is not ready yet.
 	PodStarting
 	// PodUnschedulable means no node has room for the pod now.
 	PodUnschedulable
@@ -57,7 +58,6 @@ const (
 	PodEnded
 )
 
-// Pod is the state of a run's pod.
 type Pod struct {
 	IP     string
 	Detail string
@@ -71,18 +71,17 @@ type Sandbox interface {
 	CreateJob(ctx context.Context, job Job) error
 	// Pod returns the state of the newest pod of the run's Job.
 	Pod(ctx context.Context, namespace, runID string) (Pod, error)
-	// PodGone reports whether the pod at ip has stopped or disappeared, so its operator runner can never answer.
+	// PodGone reports whether the pod at ip stopped or is not there anymore, so that its operator runner can never
+	// answer.
 	PodGone(ctx context.Context, namespace, runID, ip string) (bool, error)
 	// Slots returns how many runs the sandbox has room for at once in a namespace.
 	Slots(ctx context.Context, namespace string) (int, error)
-	// ActiveJobs lists the Jobs of a kind that have not finished. A finished Job holds no room, even before it is
-	// deleted.
+	// ActiveJobs lists the unfinished Jobs of a kind. A finished Job holds no room, also before its deletion.
 	ActiveJobs(ctx context.Context, namespace, kind string) ([]Ref, error)
-	// Jobs lists every run Job in a namespace.
 	Jobs(ctx context.Context, namespace string) ([]Ref, error)
-	// DeleteJob deletes a run's Job and its pod. A missing Job is fine.
+	// DeleteJob deletes a run's Job and its pod. A missing Job is not an error.
 	DeleteJob(ctx context.Context, namespace, runID string) error
-	// Log returns the end of the operator runner's log in the newest pod of the run's Job, or nothing when the Job
-	// has no pod whose operator runner has started. The log goes with the pod, so read it before DeleteJob.
+	// Log returns the end of the operator runner's log in the newest pod of the run's Job. It returns nothing if the
+	// operator runner did not start yet. The log is gone with the pod, so read it before DeleteJob.
 	Log(ctx context.Context, namespace, runID string) ([]byte, error)
 }

@@ -17,13 +17,13 @@ var (
 	cancelRequested = time.Date(2026, 11, 3, 10, 31, 0, 0, time.UTC)
 )
 
-// atStep is the progress of a workflow at the step. "" means every step has completed.
+// atStep is the progress of a workflow at the step. "" means that all steps are complete.
 func atStep(step string) callbacks.Progress {
 	return callbacks.Progress{Step: step, UpdatedAt: new(time.Date(2026, 11, 3, 10, 30, 0, 0, time.UTC))}
 }
 
-// settled is the progress of a workflow that the engine settled at the step, and ended that of one that the step ended
-// for the reason.
+// settled is the progress of a workflow that the engine settled at the step. ended is the progress of a workflow that
+// the step ended for the reason.
 func settled(step string) callbacks.Progress {
 	progress := atStep(step)
 	progress.Settled = true
@@ -41,8 +41,8 @@ func canceled(progress callbacks.Progress) callbacks.Progress {
 	return progress
 }
 
-// withResult gives the progress the state of a command that completed, and withOutcome that of one that ended with the
-// outcome and the error.
+// withResult gives the progress the state of a completed command. withOutcome gives it the state of a command that
+// ended with the outcome and the error.
 func withResult(progress callbacks.Progress) callbacks.Progress {
 	return withOutcome(progress, "completed", "")
 }

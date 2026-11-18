@@ -24,7 +24,7 @@ spec:
         app.kubernetes.io/name: core-operator
     spec:
       serviceAccountName: operator
-      # The operator calls the Kubernetes API: it reviews tokens, and creates and deletes Jobs.
+      # The operator calls the Kubernetes API. It reviews tokens, and it creates and deletes Jobs.
       automountServiceAccountToken: true
       enableServiceLinks: false
       terminationGracePeriodSeconds: 40

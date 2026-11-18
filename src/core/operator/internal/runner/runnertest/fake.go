@@ -1,4 +1,4 @@
-// Package runnertest is an operator runner for tests: one run per server, as in a pod.
+// Package runnertest is an operator runner for tests. It has one run per server, as in a pod.
 package runnertest
 
 import (
@@ -76,7 +76,6 @@ func (h *Runner) Claimed() string {
 	return h.RunID
 }
 
-// FetchCount returns how many times a client fetched the result.
 func (h *Runner) FetchCount() int {
 	h.mu.Lock()
 	defer h.mu.Unlock()

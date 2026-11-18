@@ -14,22 +14,22 @@ import (
 )
 
 const (
-	// runResultSlack is how long run.await-result may wait past the run timeout, for the operator runner to return the
+	// runResultSlack is how long run.await-result can wait after the run timeout, for the operator runner to return the
 	// result.
 	runResultSlack = 2 * time.Minute
-	// cleanupSlack is how long run.cleanup may wait beyond the time that the operator runner keeps the result, for the
+	// cleanupSlack is how long run.cleanup can wait after the time that the operator runner keeps the result, for the
 	// operator runner to exit and the operator to see it.
 	cleanupSlack = time.Minute
-	// retryMaxDuration bounds a run of consecutive errors in one step, such as an unreachable operator runner. It outlasts
-	// a restart of the operator or the engine, and maxDuration counts it up to nine times for a run.
+	// retryMaxDuration limits a series of consecutive errors in one step, for example an unreachable operator runner.
+	// It is longer than a restart of the operator or the engine. maxDuration counts it up to nine times for a run.
 	retryMaxDuration = 2 * time.Minute
-	// retryMaxDelay caps the engine's backoff between retries of a step, which is also how long the engine may take
-	// to call again after the operator was down.
+	// retryMaxDelay limits the engine's backoff between retries of a step. It is also how long the engine can take to
+	// call again after the operator was down.
 	retryMaxDelay = 30 * time.Second
 )
 
-// KindSpec is what a run uses of its kind. A run keeps it from its create to its end, so a change to the catalog
-// applies to new runs, and the Job's deadline fits the budgets of the run's workflow.
+// KindSpec is the part of its kind that a run uses. A run keeps it from its create to its end. So a change to the
+// catalog applies only to new runs, and the Job's deadline fits the budgets of the run's workflow.
 type KindSpec struct {
 	// Namespace holds the PodTemplate and the run's Job.
 	Namespace   string `json:"namespace"`
@@ -55,7 +55,7 @@ func specOf(kind config.Kind, timeScale float64) KindSpec {
 	}
 }
 
-// scaled shortens d by a time scale, which only the integration test sets. Zero leaves d as it is.
+// scaled shortens d by a time scale, which only the integration test sets. Zero does not change d.
 func scaled(d time.Duration, timeScale float64) time.Duration {
 	if timeScale == 0 {
 		return d
@@ -63,17 +63,17 @@ func scaled(d time.Duration, timeScale float64) time.Duration {
 	return time.Duration(float64(d) * timeScale)
 }
 
-// runState is the state that the steps hand on. The engine keeps it with each step, so a step that runs again after a
-// restart has what the earlier steps learned. The workflow starts with the kind and its spec, and each step adds what
-// it learned.
+// runState is the state that each step gives to the next step. The engine keeps it with each step, so a step that runs
+// again after a restart has what the earlier steps learned. The workflow starts with the kind and its spec, and each
+// step adds what it learned.
 type runState struct {
 	Kind string `json:"kind"`
-	// PodIP is the address of the run's operator runner, and UploadBy when run.await-archive gives up on the caller's
-	// archive, from run.await-pod on.
+	// PodIP is the address of the run's operator runner. UploadBy is the time when run.await-archive stops its wait for
+	// the caller's archive. run.await-pod sets both.
 	PodIP    string     `json:"podIP,omitempty"`
 	UploadBy *time.Time `json:"uploadBy,omitempty"`
-	// StartedAt is when the command started, from the step that started it on. Outcome and Error are the operator
-	// runner's status and error of the ended run, and FinishedAt when run.await-result had them.
+	// StartedAt is when the command started. The step that started the command sets it. Outcome and Error are the
+	// status and error of the ended run from the operator runner. FinishedAt is when run.await-result received them.
 	StartedAt  *time.Time `json:"startedAt,omitempty"`
 	Outcome    string     `json:"outcome,omitempty"`
 	Error      string     `json:"error,omitempty"`
@@ -130,8 +130,8 @@ func runSteps(spec KindSpec) []callbacks.Step {
 	return steps
 }
 
-// stepMeanings say what each step means for its run: the run's status while the step is the workflow's current one,
-// and why the run failed when the engine failed the step of its own accord.
+// stepMeanings tell what each step means for its run. status is the run's status while the step is the current step of
+// the workflow. reason is why the run failed if the engine itself failed the step.
 var stepMeanings = map[string]struct {
 	status Status
 	reason string
@@ -144,10 +144,11 @@ var stepMeanings = map[string]struct {
 	StepCleanup:      {StatusRunning, ReasonInternal},
 }
 
-// maxDuration bounds the time from the create of a run until its status is final, which it is once run.await-result
-// has the outcome or a step has failed, so run.cleanup does not count. A step may retry errors for retryMaxDuration
-// before it first defers, and again from its last deferral, which may come just before its wait budget runs out. The
-// last retry may start retryMaxDelay and engineLatency after that, and take the step's execution time.
+// maxDuration is the maximum time from the create of a run until its status is final. The status is final when
+// run.await-result has the outcome or a step failed, so run.cleanup does not count. A step can retry errors for
+// retryMaxDuration before it first defers. It can do this again from its last deferral, which can come just before its
+// wait budget runs out. The last retry can start retryMaxDelay and engineLatency after that, and use the execution time
+// of the step.
 func maxDuration(spec KindSpec) time.Duration {
 	var total time.Duration
 	for _, step := range runSteps(spec) {
@@ -172,7 +173,8 @@ type newRun struct {
 	Spec   KindSpec
 }
 
-// BuildEnqueueRequest builds the workflow of a run, which is the same for two creates with the same key, kind and labels.
+// BuildEnqueueRequest builds the workflow of a run, which is the same for two creates with the same key, kind and
+// labels.
 func BuildEnqueueRequest(run newRun) (engine.EnqueueRequest, error) {
 	initial, err := (&runState{Kind: run.Kind, Spec: run.Spec}).encode()
 	if err != nil {

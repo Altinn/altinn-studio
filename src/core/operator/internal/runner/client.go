@@ -1,5 +1,5 @@
 // Package runner is a client for the operator runner in the pod of a run Job (src/core/operator-runner). The operator
-// runner keeps one run per pod and keeps its result until the caller has fetched it, so the operator can repeat each
+// runner keeps one run per pod, and it keeps the result until the caller fetches it. So the operator can repeat each
 // call after a restart.
 package runner
 
@@ -21,21 +21,22 @@ import (
 // Port is the operator runner's HTTP port in the PodTemplate.
 const Port = 8080
 
-// maxStatusBytes bounds a status, which holds no output.
+// maxStatusBytes limits a status, which has no output.
 const maxStatusBytes = 64 << 10
 
-// maxDrainBytes bounds what the client reads of a body it does not use, so the connection can be reused.
+// maxDrainBytes limits what the client reads of a body that it does not use, so that the client can reuse the
+// connection.
 const maxDrainBytes = 1 << 20
 
 var (
-	// ErrUnreachable means the request did not get an answer, but the pod is there, so a repeat may get one.
+	// ErrUnreachable means that the request got no answer, but the pod is there. A repeat can get an answer.
 	ErrUnreachable = errors.New("the operator runner did not answer")
 	// ErrGone means the run's pod is gone, or the run has none, so its operator runner can never answer.
 	ErrGone = errors.New("the run's pod is gone")
-	// ErrNotClaimed means the run has not claimed the operator runner: no archive has arrived for it.
+	// ErrNotClaimed means that the run did not claim the operator runner, because no archive arrived for it.
 	ErrNotClaimed = errors.New("the run has not claimed the operator runner")
-	// ErrRejected means the operator runner refused the request, and a repeat gets the same answer, such as for a pod
-	// that another run has claimed. The error is a *RejectedError, which has the operator runner's status and detail.
+	// ErrRejected means that the operator runner refused the request, and a repeat gets the same answer. An example is
+	// a pod that another run claimed. The error is a *RejectedError, with the status and detail of the operator runner.
 	ErrRejected = errors.New("the operator runner refused the request")
 	errStatus   = errors.New("unexpected response from the operator runner")
 )
@@ -55,19 +56,18 @@ func (r *RejectedError) Unwrap() error {
 	return ErrRejected
 }
 
-// Result statuses.
 const (
 	StatusRunning   = "running"
 	StatusCompleted = "completed"
 	StatusFailed    = "failed"
 )
 
-// Status is the operator runner's answer to a status request: the run's status without its output. Reading it does not
-// count as fetching the result.
+// Status is the answer of the operator runner to a status request. It has the status of the run without its output. A
+// status read is not a fetch of the result.
 type Status struct {
 	ExitCode *int   `json:"exitCode"`
 	Status   string `json:"status"`
-	// Error is set when Status is failed.
+	// Error has a value only if Status is failed.
 	Error    string `json:"error,omitempty"`
 	TimedOut bool   `json:"timedOut"`
 }
@@ -80,7 +80,7 @@ type Pod struct {
 	IP string
 }
 
-// Pods tells whether a run's pod has stopped or disappeared, as sandbox.Sandbox does.
+// Pods reports whether the pod of a run stopped or is not there anymore, as sandbox.Sandbox does.
 type Pods interface {
 	PodGone(ctx context.Context, namespace, runID, ip string) (bool, error)
 }
@@ -99,8 +99,8 @@ func (c *Client) runURL(pod Pod) string {
 	return "http://" + net.JoinHostPort(pod.IP, strconv.Itoa(c.port)) + "/runs/" + url.PathEscape(pod.RunID)
 }
 
-// Start sends the archive and starts the command for at most timeout. The operator runner answers 202 for the run it
-// has, also when the archive comes again, which it then discards. size is -1 when it is not known.
+// Start sends the archive and starts the command for at most timeout. The operator runner answers 202 for its run, also
+// if the archive comes again. It then discards the second archive. size is -1 if the size is not known.
 func (c *Client) Start(
 	ctx context.Context, pod Pod, command string, timeout time.Duration, archive io.Reader, size int64,
 ) (err error) {
@@ -146,9 +146,9 @@ func (c *Client) Status(ctx context.Context, pod Pod, wait time.Duration) (statu
 	}
 }
 
-// OpenResult opens the result of an ended run, to pass it on as it is. This is the fetch: the operator runner keeps the
-// result for a grace after it, and then exits. The caller closes the body. size is -1 when the operator runner did not
-// say.
+// OpenResult opens the result of an ended run, to forward it without change. This call is the fetch. After it, the
+// operator runner keeps the result for a grace time and then exits. The caller must close the body. size is -1 if the
+// operator runner did not give it.
 func (c *Client) OpenResult(ctx context.Context, pod Pod) (body io.ReadCloser, size int64, err error) {
 	res, err := c.get(ctx, pod, c.runURL(pod)+"/result")
 	if err != nil {
@@ -170,8 +170,8 @@ func (c *Client) get(ctx context.Context, pod Pod, endpoint string) (*http.Respo
 	return c.do(pod, req)
 }
 
-// do sends a request to the operator runner in pod. A request that gets no answer fails with ErrGone once the pod is
-// gone, and with ErrUnreachable while it is there, since the operator runner may then answer a repeat.
+// do sends a request to the operator runner in pod. A request that gets no answer fails with ErrGone if the pod is
+// gone. It fails with ErrUnreachable while the pod is there, because the operator runner can then answer a repeat.
 func (c *Client) do(pod Pod, req *http.Request) (*http.Response, error) {
 	if pod.IP == "" {
 		return nil, fmt.Errorf("%w: the run has no pod IP", ErrGone)
@@ -186,8 +186,8 @@ func (c *Client) do(pod Pod, req *http.Request) (*http.Response, error) {
 	return nil, fmt.Errorf("%w: %w", ErrUnreachable, err)
 }
 
-// failure is the error for an answer that the request does not expect. A 404 to a read means that the run has not
-// claimed the operator runner, and to a start that the operator runner has no such command.
+// failure is the error for an answer that the request does not expect. A 404 to a read means that the run did not claim
+// the operator runner. A 404 to a start means that the operator runner has no such command.
 func failure(res *http.Response) error {
 	switch {
 	case res.StatusCode == http.StatusNotFound && res.Request.Method == http.MethodGet:
@@ -198,13 +198,13 @@ func failure(res *http.Response) error {
 	return fmt.Errorf("%w: %d %s", errStatus, res.StatusCode, readSnippet(res))
 }
 
-// isPermanent reports whether the operator runner gives the same answer to a repeat: a 4xx other than 408, for a body
-// that came too slowly, and 429.
+// isPermanent reports whether the operator runner gives the same answer to a repeat. That is a 4xx other than 408 (a
+// body that came too slowly) and 429.
 func isPermanent(status int) bool {
 	return status >= 400 && status < 500 && status != http.StatusRequestTimeout && status != http.StatusTooManyRequests
 }
 
-// rejection reads the detail of the operator runner's problem, which the operator may pass on to the caller.
+// rejection reads the detail of the operator runner's problem, which the operator can forward to the caller.
 func rejection(res *http.Response) *RejectedError {
 	text := readSnippet(res)
 	var details problem.Details
@@ -222,8 +222,8 @@ func readSnippet(res *http.Response) string {
 	return string(data)
 }
 
-// closeBody drains and closes a response body, so the connection is reused. Its error becomes the call's error only
-// when the call has none of its own.
+// closeBody drains and closes a response body, so that the client can reuse the connection. Its error becomes the error
+// of the call only if the call has no error of its own.
 func closeBody(res *http.Response, err *error) {
 	_, drainErr := io.Copy(io.Discard, io.LimitReader(res.Body, maxDrainBytes))
 	closeErr := res.Body.Close()

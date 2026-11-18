@@ -1,6 +1,6 @@
-// Package kube is the operator's one connection to Kubernetes, and the one package that uses controller-runtime and
-// client-go. It runs the process under a controller-runtime manager, runs the Jobs of runs as a sandbox.Sandbox, and
-// reviews tokens for internal/auth.
+// Package kube is the only connection of the operator to Kubernetes. It is the only package that uses
+// controller-runtime and client-go. It runs the process under a controller-runtime manager, runs the Jobs of runs as a
+// sandbox.Sandbox, and reviews tokens for internal/auth.
 package kube
 
 import (
@@ -16,7 +16,7 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	// The client auth plugins, so a local run can use the kubeconfig's.
+	// Load the client auth plugins, so that a local run can use the auth plugins of the kubeconfig.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -28,7 +28,6 @@ import (
 
 const gracefulShutdownTimeout = 30 * time.Second
 
-// Options configure the cluster.
 type Options struct {
 	// RESTConfig connects to the API server. Without it, the cluster uses the kubeconfig or the pod's
 	// ServiceAccount, as kubectl does.
@@ -40,15 +39,13 @@ type Options struct {
 	Namespaces []string
 }
 
-// Cluster runs the process's work in a Kubernetes cluster.
 type Cluster struct {
 	mgr  ctrl.Manager
 	pods corev1client.PodsGetter
 }
 
 // Runnable is work that starts with the cluster and stops when its context ends. A Runnable with a method
-// NeedLeaderElection that returns true runs on the leader only. Others start on every replica, once the cache has
-// synced.
+// NeedLeaderElection that returns true runs on the leader only. Others start on each replica after the cache sync.
 type Runnable interface {
 	Start(ctx context.Context) error
 }
@@ -108,7 +105,6 @@ func New(opts Options) (*Cluster, error) {
 	return &Cluster{mgr: mgr, pods: pods}, nil
 }
 
-// Add runs r with the cluster.
 func (c *Cluster) Add(r Runnable) error {
 	if err := c.mgr.Add(r); err != nil {
 		return fmt.Errorf("add to the manager: %w", err)
@@ -116,7 +112,6 @@ func (c *Cluster) Add(r Runnable) error {
 	return nil
 }
 
-// Start runs the cluster's work until ctx ends.
 func (c *Cluster) Start(ctx context.Context) error {
 	if err := c.mgr.Start(ctx); err != nil {
 		return fmt.Errorf("run the manager: %w", err)
@@ -124,12 +119,10 @@ func (c *Cluster) Start(ctx context.Context) error {
 	return nil
 }
 
-// Sandbox runs the Jobs of runs in the cluster.
 func (c *Cluster) Sandbox() *Sandbox {
 	return &Sandbox{Client: c.mgr.GetClient(), Reader: c.mgr.GetAPIReader(), Pods: c.pods}
 }
 
-// TokenReviewer reviews tokens with the cluster's API server.
 func (c *Cluster) TokenReviewer() TokenReviewer {
 	return TokenReviewer{Client: c.mgr.GetClient()}
 }

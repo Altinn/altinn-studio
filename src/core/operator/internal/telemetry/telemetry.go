@@ -16,7 +16,7 @@ import (
 
 const scopeName = "core-operator"
 
-// The operator's own attributes. Their values are bounded, so they can go on metrics.
+// The operator's own attributes. They have few distinct values, so metrics can use them.
 const (
 	// AttrKind is the run kind from the catalog, such as upgrade-v9.
 	AttrKind = attribute.Key("altinn.core_operator.kind")
@@ -28,11 +28,11 @@ const (
 	AttrCommandKey = attribute.Key("altinn.core_operator.command_key")
 )
 
-// AttrSubjectID is what a workflow works on, such as a run id, and goes on spans only. operator-workflow-engine puts
-// it, the domain, the caller and the command key on the engine's spans of the workflow, so a search finds both sides.
+// AttrSubjectID is what a workflow works on, for example a run id. Only spans use it. operator-workflow-engine puts it,
+// the domain, the caller and the command key on its spans of the workflow. So a search finds both sides.
 const AttrSubjectID = attribute.Key("altinn.core_operator.subject_id")
 
-// serviceVersion is the build's version, the commit the deployment workflow builds from:
+// serviceVersion is the version of the build, the commit that the deploy workflow builds. The Dockerfile sets it with
 // go build -ldflags "-X altinn.studio/core-operator/internal/telemetry.serviceVersion=...".
 var serviceVersion = "dev"
 
@@ -47,8 +47,8 @@ func Meter() otelmetric.Meter {
 }
 
 // ConfigureOTel exports traces, metrics and logs, as the standards for Studio services describe
-// (src/common/go/telemetry). The router in the cluster sets deployment.environment.name.
-// If it does not return an error, call shutdown before the process exits.
+// (src/common/go/telemetry). The router in the cluster sets deployment.environment.name. If it returns no error, call
+// shutdown before the process exits.
 func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	shutdown, err = commontelemetry.Setup(ctx, commontelemetry.Config{
 		ServiceVersion: serviceVersion,

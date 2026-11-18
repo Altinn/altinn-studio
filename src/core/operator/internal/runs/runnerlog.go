@@ -14,8 +14,8 @@ import (
 // maxRelayed is how many warnings and errors of one operator runner the operator logs. One more record counts the rest.
 const maxRelayed = 20
 
-// deleteJob deletes a run's Job, which takes the operator runner's log with its pod. The pipeline collects no container
-// logs, so the operator first logs the operator runner's warnings and errors.
+// deleteJob deletes the Job of a run. The log of the operator runner goes away with the pod. The log pipeline collects
+// no container logs, so the operator first logs the warnings and errors of the operator runner.
 func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string) error {
 	logger := logging.FromContext(ctx).WithName("operator-runner").WithValues("runId", runID)
 	log, err := box.Log(ctx, namespace, runID)
@@ -44,7 +44,7 @@ func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string
 }
 
 // parseRunnerLine reads a line of the operator runner's log, a record in tracing-subscriber's JSON format. A line that
-// is not one, such as a panic, is a warning. An empty line has no level.
+// is not a record, for example a panic, is a warning. An empty line has no level.
 func parseRunnerLine(line []byte) (level, message string, keysAndValues []any) {
 	if len(line) == 0 {
 		return "", "", nil

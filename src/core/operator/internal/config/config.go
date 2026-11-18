@@ -1,4 +1,4 @@
-// Package config loads the operator's configuration: the YAML files of its ConfigMap, merged in name order.
+// Package config loads the configuration of the operator from the YAML files of its ConfigMap, in name order.
 package config
 
 import (
@@ -36,45 +36,46 @@ const (
 	// MaxJobDeadline is the longest activeDeadlineSeconds of a run Job that the admission policy in
 	// src/core/operator-runner/infra accepts.
 	MaxJobDeadline = 1800 * time.Second
-	// PodBudget is how long a run may wait for its pod to be ready, which includes the image import on a new node.
-	// It is the wait budget of run.await-pod.
+	// PodBudget is how long a run can wait for its pod to be ready. This includes the image import on a new node. It is
+	// the wait budget of run.await-pod.
 	PodBudget = 5 * time.Minute
-	// UploadTimeout is how long a run of a kind that takes an archive waits for it once its pod is ready. It is the
-	// wait budget of run.await-archive.
+	// UploadTimeout is how long a run waits for its archive after its pod is ready, if the kind takes an archive. It is
+	// the wait budget of run.await-archive.
 	UploadTimeout = 5 * time.Minute
-	// ResultTimeout is how long the caller can fetch the result after the run ended, and the operator runner keeps it.
+	// ResultTimeout is how long the caller can fetch the result after the run ends. The operator runner keeps the
+	// result for this time.
 	ResultTimeout = 5 * time.Minute
-	// ResultGrace is how long the operator runner keeps the result after the first fetch, for a fetch that broke off.
-	// The kube tests check these three times against the operator runner's PodTemplate.
+	// ResultGrace is how long the operator runner keeps the result after the first fetch, for an interrupted fetch. The
+	// kube tests compare these three times with the PodTemplate of the operator runner.
 	ResultGrace = 30 * time.Second
-	// MaxLabels is the most labels a kind may have, and so the most a caller may send.
+	// MaxLabels is the maximum number of labels for a kind, and so for a caller to send.
 	MaxLabels = 16
-	// MaxNameLength keeps a kind name a Kubernetes label value.
+	// MaxNameLength makes sure that a kind name is a valid Kubernetes label value.
 	MaxNameLength = 63
 )
 
-// JobDeadline is the deadline of a run's Job: the time to start the pod, to receive the archive, to run the command and
-// to keep the result, and a minute for the engine's time between the steps. Kubernetes stops a Job at its deadline,
-// which must not come before the operator runner has handed over the result.
+// JobDeadline is the deadline of the Job of a run. It adds the times to start the pod, to receive the archive, to run
+// the command and to keep the result. It also adds one minute for the engine between the steps. Kubernetes stops a Job
+// at its deadline. The deadline must not come before the operator runner gives the result.
 func JobDeadline(runTimeout time.Duration) time.Duration {
 	return PodBudget + UploadTimeout + runTimeout + ResultTimeout + ResultGrace + time.Minute
 }
 
-// GroupRuns is the handler group for sandbox runs: the run API, the run.* callbacks and the garbage collector.
+// GroupRuns is the handler group for sandbox runs. It has the run API, the run.* callbacks and the garbage collector.
 const GroupRuns = "runs"
 
-// knownGroups are the handler groups that handlerGroups may turn on.
+// knownGroups are the handler groups that handlerGroups can enable.
 var knownGroups = []string{GroupRuns}
 
 var (
 	errInvalid = errors.New("invalid configuration")
 	// A caller id is part of the engine namespace runs-<caller>, and a kind name is a Kubernetes label value.
 	namePattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
-	// A label key is camelCase, as the keys the operator sets itself are.
+	// A label key is camelCase, as are the keys that the operator sets.
 	labelKeyPattern = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
 )
 
-// ReservedLabels are the labels that the operator puts on each run's workflow itself, so no kind may have them.
+// ReservedLabels are the labels that the operator itself puts on the workflow of each run. A kind must not have them.
 var ReservedLabels = []string{"runId", "kind", "caller"}
 
 type Config struct {
@@ -87,8 +88,8 @@ type Config struct {
 	CallbackAddress      string            `koanf:"callbackAddress"`
 	ProbeAddress         string            `koanf:"probeAddress"`
 	HandlerGroups        []string          `koanf:"handlerGroups"`
-	// TimeScale shortens the operator's own waits and budgets by this factor, so a run takes seconds. Only the
-	// integration test in cmd/ sets it, and no configuration file can. Zero leaves them as they are.
+	// TimeScale shortens the waits and budgets of the operator by this factor, so that a run takes seconds. Only the
+	// integration test in cmd/ sets it. A configuration file cannot set it. Zero does not change them.
 	TimeScale float64 `koanf:"-"`
 }
 
@@ -96,7 +97,7 @@ type Config struct {
 type Caller struct {
 	// ServiceAccount is the user name that a TokenReview returns for the caller's token.
 	ServiceAccount string `koanf:"serviceAccount"`
-	// Kinds are the kinds the caller may run. A kind that this environment does not configure is left out.
+	// Kinds are the kinds the caller may run. The operator ignores a kind that this environment does not configure.
 	Kinds []string `koanf:"kinds"`
 }
 
@@ -109,19 +110,19 @@ type Kind struct {
 	Command string `koanf:"command"`
 	// Labels are the label keys of each run of this kind. The caller sends a value for each and no other key.
 	Labels []string `koanf:"labels"`
-	// MaxActivePerCaller caps the sandbox's slots that one caller's runs may take. Zero sets no cap.
+	// MaxActivePerCaller limits the sandbox slots that the runs of one caller can use. Zero sets no limit.
 	MaxActivePerCaller int           `koanf:"maxActivePerCaller"`
 	MaxQueuedPerCaller int           `koanf:"maxQueuedPerCaller"`
 	QueueTimeout       time.Duration `koanf:"queueTimeout"`
 	// RunTimeout is how long the operator runner lets the command run.
 	RunTimeout time.Duration `koanf:"runTimeout"`
-	// RequiresArchive says whether the command runs on the caller's archive. When false, the operator starts the
-	// command as soon as the pod is ready.
+	// RequiresArchive tells if the command runs on the archive of the caller. If false, the operator starts the command
+	// when the pod is ready.
 	RequiresArchive bool `koanf:"requiresArchive"`
 }
 
-// Load reads the configuration from the folder that DirEnv names. A missing folder gives the defaults, which is what a
-// local run without a ConfigMap wants.
+// Load reads the configuration from the folder that DirEnv names. A missing folder gives the defaults. A local run
+// without a ConfigMap needs this.
 func Load() (*Config, error) {
 	dir := os.Getenv(DirEnv)
 	if dir == "" {
@@ -130,8 +131,8 @@ func Load() (*Config, error) {
 	return LoadFrom(dir)
 }
 
-// LoadFrom reads the *.yaml files in dir in name order, each overriding the keys it sets. The overlays of each
-// environment add a file, so they can add a kind without repeating the base file.
+// LoadFrom reads the *.yaml files in dir in name order. Each file overrides the keys that it sets. The overlay of each
+// environment adds a file, so that it can add a kind and not repeat the base file.
 func LoadFrom(dir string) (*Config, error) {
 	k := koanf.New(".")
 
@@ -193,7 +194,8 @@ func setDefault(value *string, fallback string) {
 	}
 }
 
-// Validate checks what the operator relies on. It returns all problems at once, so one deploy shows them all.
+// Validate checks the values that the operator needs. It returns all problems together, so that one deploy shows all of
+// them.
 func (c *Config) Validate() error {
 	var problems []string
 	if u, err := url.Parse(c.EngineURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
@@ -281,8 +283,8 @@ func labelProblems(kindName string, labels []string) []string {
 	return problems
 }
 
-// ValidLabelKey reports whether key can be the key of a run's label: a camelCase name of at most MaxNameLength
-// characters that the operator does not set itself.
+// ValidLabelKey reports whether key can be the key of a run label. The key must be a camelCase name of at most
+// MaxNameLength characters, and the operator must not set it.
 func ValidLabelKey(key string) bool {
 	return labelKeyPattern.MatchString(key) && len(key) <= MaxNameLength && !slices.Contains(ReservedLabels, key)
 }
@@ -337,7 +339,6 @@ func (c *Config) KindNamespaces() []string {
 	return namespaces
 }
 
-// HandlerGroupEnabled reports whether this process serves a handler group.
 func (c *Config) HandlerGroupEnabled(group string) bool {
 	return slices.Contains(c.HandlerGroups, group)
 }

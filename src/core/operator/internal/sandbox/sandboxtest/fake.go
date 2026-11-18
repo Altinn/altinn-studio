@@ -20,7 +20,7 @@ type Sandbox struct {
 	CreateErr error
 	// FailReads makes the reads fail.
 	FailReads error
-	// RunnerLog is what the operator runner of each run has logged.
+	// RunnerLog is what the operator runner of each run logged.
 	RunnerLog []byte
 	// SlotCount is how many runs the sandbox has room for at once.
 	SlotCount int
@@ -124,14 +124,13 @@ func (s *Sandbox) Log(_ context.Context, _, _ string) ([]byte, error) {
 	return s.RunnerLog, s.FailReads
 }
 
-// Add adds a Job that the steps did not create, such as one whose run the engine has forgotten.
+// Add adds a Job that the steps did not create, for example a Job whose run the engine forgot.
 func (s *Sandbox) Add(spec sandbox.Job) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.jobs[key(spec.Namespace, spec.RunID)] = &job{spec: spec, pod: sandbox.Pod{Status: sandbox.PodNone}}
 }
 
-// SetPod sets the state of the pod of a run's Job.
 func (s *Sandbox) SetPod(namespace, runID string, pod sandbox.Pod) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -141,7 +140,6 @@ func (s *Sandbox) SetPod(namespace, runID string, pod sandbox.Pod) {
 	}
 }
 
-// Job returns a run's Job, and whether it exists.
 func (s *Sandbox) Job(namespace, runID string) (sandbox.Job, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -7,7 +7,7 @@ linters:
   default: all
 
   disable:
-    - gomodguard # deprecated, replaced by gomodguard_v2
+    - gomodguard # gomodguard_v2 replaces this deprecated linter.
     - nonamedreturns
     - arangolint
     - ginkgolinter
@@ -22,7 +22,6 @@ linters:
     - gomoddirectives
     - depguard
     - godox
-    # - godoclint
     - exhaustruct
     - exhaustruct_v5
     - funcorder
@@ -39,8 +38,6 @@ linters:
 
     govet:
       enable-all: true
-      # disable:
-      #   - fieldalignment
 
     nakedret:
       max-func-lines: 0
@@ -50,16 +47,16 @@ linters:
 
     goconst:
       min-occurrences: 3
-      # goconst 1.11 also counts strings in composite literals; keep the scope these modules were written
-      # against, where struct fields and table-test cases were not reported.
+      # goconst 1.11 also counts strings in composite literals. Keep the earlier scope, which did not report struct
+      # fields and table test cases.
       exclude-types:
         - Call
         - CompositeLit
 
     modernize:
       disable:
-        # Go 1.27 lets a struct literal set promoted fields directly. Flattening every embedded
-        # ObjectMeta/TypeMeta literal is a style change of its own, not part of a toolchain update.
+        # Go 1.27 lets a struct literal set promoted fields directly. A change that flattens each embedded ObjectMeta or
+        # TypeMeta literal is a separate style change, not part of a toolchain update.
         - embedlit
 
     gocyclo:
@@ -84,17 +81,11 @@ linters:
         - 'net/http\.Client'
 
     gocritic:
-      # Settings passed to gocritic.
-      # The settings key is the name of a supported gocritic checker.
-      # The list of supported checkers can be found at https://go-critic.com/overview.
       settings:
         captLocal:
-          # Whether to restrict checker to params only.
-          # Default: true
           paramsOnly: false
         underef:
-          # Whether to skip (*x).method() calls where x is a pointer receiver.
-          # Default: true
+          # Also report (*x).method() calls if x is a pointer receiver.
           skipRecvDeref: false
 
     nolintlint:
@@ -125,15 +116,7 @@ linters:
 
   exclusions:
     generated: lax
-    # Log a warning if an exclusion rule is unused.
-    # Default: false
     warn-unused: true
-    # Predefined exclusion rules.
-    # Default: []
-    # presets:
-      # - std-error-handling
-      # - common-false-positives
-    # Excluding configuration per-path, per-linter, per-text and per-source.
     rules:
       - path: '_test\.go'
         linters:
@@ -151,13 +134,8 @@ formatters:
     generated: lax
   settings:
     goimports:
-      # A list of prefixes, which, if set, checks import paths
-      # with the given prefixes are grouped after 3rd-party packages.
-      # Default: []
       local-prefixes:
         - altinn.studio/
 
     golines:
-      # Target maximum line length.
-      # Default: 100
       max-len: 120

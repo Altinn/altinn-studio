@@ -25,13 +25,13 @@ import (
 	"altinn.studio/core-operator/internal/runner"
 )
 
-// operatorUser is the user name of the operator's ServiceAccount, which the admission policy matches on.
+// operatorUser is the user name of the operator's ServiceAccount. The admission policy matches it.
 const operatorUser = "system:serviceaccount:core-operator:operator"
 
-// runnerInfra is the operator runner's namespace, PodTemplate, Role and admission policy, as they are deployed.
+// runnerInfra is the folder with the deployed namespace, PodTemplate, Role and admission policy of the operator runner.
 var runnerInfra = filepath.Join("..", "..", "..", "operator-runner", "infra", "kustomize", "base")
 
-// The PodTemplate gives the operator runner the times that the operator's budgets count on, and the port it calls.
+// The PodTemplate gives the operator runner the times that the operator budgets use, and the port that it calls.
 func TestPodTemplateHasTheOperatorsTimesAndPort(t *testing.T) {
 	RegisterTestingT(t)
 	data, err := os.ReadFile(filepath.Join(runnerInfra, "podtemplate.yaml"))
@@ -52,8 +52,8 @@ func TestPodTemplateHasTheOperatorsTimesAndPort(t *testing.T) {
 	Expect(container.Ports).To(ContainElement(HaveField("ContainerPort", int32(runner.Port))))
 }
 
-// envtestAssets finds the binaries of envtest: KUBEBUILDER_ASSETS, as make test sets it, or what make setup-envtest
-// downloaded into bin/k8s, for a run from an IDE.
+// envtestAssets finds the envtest binaries. It uses KUBEBUILDER_ASSETS, which make test sets. For a run from an IDE, it
+// uses the binaries that make setup-envtest downloaded into bin/k8s.
 func envtestAssets() string {
 	if dir := os.Getenv("KUBEBUILDER_ASSETS"); dir != "" {
 		return dir
@@ -95,9 +95,9 @@ func applyFile(t *testing.T, c client.Client, name string) {
 	}
 }
 
-// The admission policy in src/core/operator-runner/infra lets the operator create only Jobs whose pod is the
-// PodTemplate's. This test runs the policy in a real API server, so a change to BuildJob or to the template that would
-// make every run fail shows here first.
+// The admission policy in src/core/operator-runner/infra lets the operator create only Jobs whose pod equals the
+// PodTemplate. This test runs the policy in a real API server. A change to BuildJob or to the template that makes all
+// runs fail then shows here first.
 func TestAdmissionPolicyAcceptsTheJobsTheOperatorBuilds(t *testing.T) {
 	RegisterTestingT(t)
 	assets := envtestAssets()
@@ -122,7 +122,7 @@ func TestAdmissionPolicyAcceptsTheJobsTheOperatorBuilds(t *testing.T) {
 		applyFile(t, adminClient, name)
 	}
 
-	// The operator's ServiceAccount, through impersonation, so RBAC and the policy see the operator.
+	// Impersonate the operator's ServiceAccount, so that RBAC and the policy see the operator.
 	operatorConfig := rest.CopyConfig(admin)
 	operatorConfig.Impersonate = rest.ImpersonationConfig{UserName: operatorUser}
 	operatorClient, err := client.New(operatorConfig, client.Options{Scheme: clientgoscheme.Scheme})
@@ -159,12 +159,12 @@ func TestAdmissionPolicyAcceptsTheJobsTheOperatorBuilds(t *testing.T) {
 		Expect(apierrors.IsInvalid(err) || apierrors.IsForbidden(err)).To(BeTrue(), "%s: %v", name, err)
 	}
 
-	// A Job that would run longer than the policy allows.
+	// A Job with a deadline longer than the policy allows.
 	long := BuildJob(&template, testJob(uuid.NewString()))
 	long.Spec.ActiveDeadlineSeconds = new(int64(config.MaxJobDeadline/time.Second + 1))
 	Expect(operatorClient.Create(t.Context(), long)).NotTo(Succeed())
 
-	// The operator may not create anything but Jobs there.
+	// The operator can create only Jobs there.
 	pod := &corev1.Pod{}
 	pod.Namespace = "core-operator-runners"
 	pod.Name = "direct"

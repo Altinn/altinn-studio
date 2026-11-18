@@ -1,6 +1,6 @@
-// Package enginetest stores workflows for tests behind the engine's HTTP API. It runs no step and copies none of the
-// engine's rules: a test sets the statuses it needs with Update or a switch, and the integration test in cmd/ checks the
-// operator against the real engine.
+// Package enginetest stores workflows for tests behind the HTTP API of the engine. It runs no steps and copies none of
+// the engine rules. A test sets the statuses that it needs with Update or a switch. The integration test in cmd/ checks
+// the operator against the real engine.
 package enginetest
 
 import (
@@ -112,7 +112,6 @@ func (e *Engine) enqueue(w http.ResponseWriter, r *http.Request) {
 	problem.WriteJSON(w, r, http.StatusCreated, accepted(workflow))
 }
 
-// findLocked returns the workflow with the id in the namespace, or nil.
 func (e *Engine) findLocked(namespace, id string) *Workflow {
 	index := slices.IndexFunc(e.workflows, func(w *Workflow) bool { return w.State.DatabaseID == id })
 	if index < 0 || (namespace != "" && e.workflows[index].State.Namespace != namespace) {
@@ -207,7 +206,6 @@ func (e *Engine) cancel(w http.ResponseWriter, r *http.Request) {
 	problem.WriteJSON(w, r, http.StatusAccepted, map[string]any{"workflowId": workflow.State.DatabaseID})
 }
 
-// Workflows returns a copy of every stored workflow.
 func (e *Engine) Workflows() []Workflow {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -218,7 +216,6 @@ func (e *Engine) Workflows() []Workflow {
 	return workflows
 }
 
-// Workflow returns a copy of one workflow.
 func (e *Engine) Workflow(id string) (Workflow, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -229,7 +226,7 @@ func (e *Engine) Workflow(id string) (Workflow, bool) {
 	return *workflow, true
 }
 
-// Update changes a stored workflow, such as its status, which a test needs for a run in that state.
+// Update changes a stored workflow, for example its status, for a test that needs a run in that state.
 func (e *Engine) Update(id string, change func(*engine.Workflow)) {
 	e.mu.Lock()
 	defer e.mu.Unlock()

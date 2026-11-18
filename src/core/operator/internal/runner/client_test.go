@@ -38,8 +38,8 @@ type example struct {
 	Status  int             `json:"status"`
 }
 
-// The client reads each answer of the fake operator runner as it reads the operator runner's answer in the examples, so
-// a test with the fake shows what the operator does with the operator runner.
+// The client reads each answer of the fake operator runner as it reads the answer in the examples. So a test with the
+// fake shows what the operator does with the real operator runner.
 func TestTheFakeAnswersAsTheExamplesOfTheProtocol(t *testing.T) {
 	RegisterTestingT(t)
 	data, err := os.ReadFile(filepath.Join("..", "..", "..", "operator-runner", "examples", "protocol.json"))
@@ -76,7 +76,7 @@ func TestTheFakeAnswersAsTheExamplesOfTheProtocol(t *testing.T) {
 	}
 }
 
-// ask sends request with the client, and returns what the client makes of the answer.
+// ask sends request with the client, and returns how the client reads the answer.
 func ask(server *httptest.Server, request string, archive []byte) []any {
 	address, ok := server.Listener.Addr().(*net.TCPAddr)
 	Expect(ok).To(BeTrue())
