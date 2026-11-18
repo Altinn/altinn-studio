@@ -41,9 +41,10 @@ The operator runs as one replica, because its queue lives in memory. A restart s
 Runs in flight continue: the engine retries the step it was on, and the operator runner keeps the result.
 
 Each kind of work is a domain, such as [`internal/runs`](internal/runs), with its own group of callback handlers and
-its own engine namespaces. Only [`internal/kube`](internal/kube) uses Kubernetes. A domain that needs cluster work
-states it as a contract with no Kubernetes types, such as [`internal/sandbox`](internal/sandbox/sandbox.go), and
-`internal/kube` implements it.
+its own engine namespaces. A domain builds its workflow and reads its progress through
+[`internal/callbacks`](internal/callbacks), so it knows none of the engine's statuses. Only
+[`internal/kube`](internal/kube) uses Kubernetes. A domain that needs cluster work states it as a contract with no
+Kubernetes types, such as [`internal/sandbox`](internal/sandbox/sandbox.go), and `internal/kube` implements it.
 
 ## Identities
 

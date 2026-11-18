@@ -113,14 +113,6 @@ type ErrorEntry struct {
 	Message string `json:"message"`
 }
 
-// LastError returns the message of the newest error of a step, or "".
-func (s *Step) LastError() string {
-	if len(s.ErrorHistory) == 0 {
-		return ""
-	}
-	return s.ErrorHistory[len(s.ErrorHistory)-1].Message
-}
-
 type listResponse struct {
 	Data []Workflow `json:"data"`
 }

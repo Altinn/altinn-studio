@@ -396,11 +396,9 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 		logging.FromContext(ctx).
 			Info("Could not release a canceled run", "runId", runID, "error", err.Error())
 	}
-	if workflow.CancellationRequestedAt == nil {
-		now := s.clock.Now()
-		workflow.CancellationRequestedAt = &now
-	}
-	return &s.read(workflow).Run, true, nil
+	// The engine has stored the cancel, so the run reads as canceled, or as running until its command has ended.
+	run, getErr := s.Get(ctx, caller, runID, 0)
+	return run, true, getErr
 }
 
 // keyedMutex serializes the creates of one kind and labels, so two requests at the same time cannot both find no run

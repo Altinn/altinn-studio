@@ -1,14 +1,16 @@
 // Package callbacks serves the callback API, which operator-workflow-engine calls for each step of an operator
-// workflow. The README's "Callback contract" describes it, and the tests of both sides read the examples in
-// testdata/callbacks.
+// workflow, and reads the workflow's progress back from the engine. The README's "Callback contract" describes it, and
+// the tests of both sides read the examples in testdata/callbacks.
 package callbacks
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -32,9 +34,9 @@ const (
 	deadlineMargin = 2 * time.Second
 )
 
-// CommandType is the type of the engine command that calls the operator. operator-workflow-engine registers its
+// commandType is the type of the engine command that calls the operator. operator-workflow-engine registers its
 // OperatorCommand under it.
-const CommandType = "operator"
+const commandType = "operator"
 
 // Payload is the body of a callback, OperatorCallbackPayload in operator-workflow-engine, with the fields that the
 // operator reads.
@@ -56,8 +58,8 @@ type Context struct {
 	SubjectID string `json:"subjectId"`
 }
 
-// CommandData is the data of each step's command at enqueue, OperatorCommandData in operator-workflow-engine.
-type CommandData struct {
+// commandData is the data of each step's command at enqueue, OperatorCommandData in operator-workflow-engine.
+type commandData struct {
 	CommandKey string `json:"commandKey"`
 }
 
@@ -116,6 +118,100 @@ func Ended(message string) *End {
 		return &End{Reason: details.Reason, Detail: details.Detail}
 	}
 	return nil
+}
+
+// Workflow is an operator workflow to enqueue. The engine calls its steps back in order, the first with State, and
+// retries each step under Retry. Name names the workflow in the engine, and the labels find it.
+type Workflow struct {
+	Labels  map[string]string
+	State   *string
+	Context Context
+	Name    string
+	Steps   []Step
+	Retry   Retry
+}
+
+// Step is a step of an operator workflow. WaitBudget is its total time in deferrals, and zero means it does not wait.
+type Step struct {
+	Key              string
+	MaxExecutionTime time.Duration
+	WaitBudget       time.Duration
+}
+
+// Retry is how the engine retries a step after an error: after BaseInterval, then twice as long each time up to
+// MaxDelay, for up to MaxDuration.
+type Retry struct {
+	BaseInterval, MaxDelay, MaxDuration time.Duration
+}
+
+// Request builds the engine's request that enqueues the workflow. The engine hashes all of it but the context to tell
+// a replay from a reused idempotency key, so the same workflow builds the same request.
+func (w *Workflow) Request() (engine.EnqueueRequest, error) {
+	workflowContext, err := json.Marshal(w.Context)
+	if err != nil {
+		return engine.EnqueueRequest{}, fmt.Errorf("encode workflow context: %w", err)
+	}
+	retry := &engine.RetryStrategy{
+		BackoffType:  engine.BackoffExponential,
+		BaseInterval: engine.Duration(w.Retry.BaseInterval),
+		MaxDelay:     engine.DurationOf(w.Retry.MaxDelay),
+		MaxDuration:  engine.DurationOf(w.Retry.MaxDuration),
+	}
+	steps := make([]engine.StepRequest, 0, len(w.Steps))
+	for _, step := range w.Steps {
+		data, err := json.Marshal(commandData{CommandKey: step.Key})
+		if err != nil {
+			return engine.EnqueueRequest{}, fmt.Errorf("encode command data: %w", err)
+		}
+		command := engine.CommandDefinition{
+			Type: commandType, MaxExecutionTime: engine.DurationOf(step.MaxExecutionTime), Data: data,
+		}
+		if step.WaitBudget > 0 {
+			command.WaitBudget = engine.DurationOf(step.WaitBudget)
+		}
+		steps = append(steps, engine.StepRequest{OperationID: step.Key, Command: command, RetryStrategy: retry})
+	}
+	return engine.EnqueueRequest{Labels: w.Labels, Context: workflowContext, Workflows: []engine.WorkflowRequest{
+		{OperationID: w.Name, State: w.State, Steps: steps},
+	}}, nil
+}
+
+// Progress is how far the engine has taken an operator workflow, in terms of its steps. A domain reads it to tell
+// what its workflow is doing, and knows none of the engine's statuses, step order or error history.
+type Progress struct {
+	// UpdatedAt is when the engine last changed the workflow, which is when it settled once Settled.
+	UpdatedAt *time.Time
+	// CancelRequestedAt is when someone canceled the workflow. The engine may run a step before it settles.
+	CancelRequestedAt *time.Time
+	// State is what the newest step handed on, or the workflow's initial state before any step did.
+	State *string
+	// End is what Step answered when it ended the workflow. It is nil when the engine failed Step of its own accord,
+	// as when its retries or its wait budget ran out, and while Step has not failed.
+	End *End
+	// Step is the key of the first step that has not completed, or "" once every step has.
+	Step string
+	// Settled means the engine runs no step of the workflow anymore.
+	Settled bool
+}
+
+// Read reads the progress of an operator workflow from the engine's record of it.
+func Read(workflow *engine.Workflow) Progress {
+	steps := slices.Clone(workflow.Steps)
+	slices.SortFunc(steps, func(a, b engine.Step) int { return a.ProcessingOrder - b.ProcessingOrder })
+	progress := Progress{UpdatedAt: workflow.UpdatedAt, CancelRequestedAt: workflow.CancellationRequestedAt,
+		State: workflow.InitialState, Settled: workflow.OverallStatus.Terminal()}
+	for _, step := range steps {
+		if step.StateOut != nil && *step.StateOut != "" {
+			progress.State = step.StateOut
+		}
+		if progress.Step == "" && step.Status != engine.StatusCompleted {
+			progress.Step = step.OperationID
+			if step.Status == engine.StatusFailed && len(step.ErrorHistory) > 0 {
+				progress.End = Ended(step.ErrorHistory[len(step.ErrorHistory)-1].Message)
+			}
+		}
+	}
+	return progress
 }
 
 // Group is the handlers of one domain by command key, such as the run.* steps. The configuration turns groups on, so

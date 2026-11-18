@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	. "github.com/onsi/gomega"
 
-	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
 )
@@ -75,25 +74,22 @@ func TestEnqueueRequestIsTheSameForTheSameRun(t *testing.T) {
 	Expect(string(first.Context)).To(MatchJSON(`{"domain":"runs","caller":"assistant","subjectId":"` + id + `"}`))
 }
 
-// The engine calls the operator back for each step in the order of the run, with the step's own command key.
-func TestEnqueueRequestHasTheRunSteps(t *testing.T) {
+// The engine calls the operator back for each step in the order of the run, and the run's status reads what each step
+// means. A kind without an archive has no step that waits for one.
+func TestARunHasItsStepsInOrder(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := enqueueRequest(t)
-	Expect(request.Workflows).To(HaveLen(1))
-	keys := make([]string, 0, len(request.Workflows[0].Steps))
-	for _, step := range request.Workflows[0].Steps {
-		keys = append(keys, step.OperationID)
-		Expect(step.Command.Type).To(Equal(callbacks.CommandType))
-		Expect(step.RetryStrategy).NotTo(BeNil(), step.OperationID)
-		Expect(stepMeanings).To(HaveKey(step.OperationID), "a run's status reads what the step means")
-		var data callbacks.CommandData
-		Expect(json.Unmarshal(step.Command.Data, &data)).To(Succeed())
-		Expect(data.CommandKey).To(Equal(step.OperationID))
+	for kind, keys := range map[string][]string{
+		testKind:      {StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive, StepAwaitResult, StepCleanup},
+		noArchiveKind: {StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitResult, StepCleanup},
+	} {
+		steps := runSteps(specOf(testConfig().Kinds[kind], 0))
+		Expect(steps).To(HaveLen(len(keys)), kind)
+		for i, step := range steps {
+			Expect(step.Key).To(Equal(keys[i]), kind)
+			Expect(stepMeanings).To(HaveKey(step.Key), "a run's status reads what the step means")
+		}
 	}
-	Expect(keys).To(Equal([]string{
-		StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive, StepAwaitResult, StepCleanup,
-	}))
 }
 
 // A longer queue timeout makes the bound on a run's duration as much longer.
@@ -113,16 +109,11 @@ func must(data []byte, err error) []byte {
 	return data
 }
 
-func TestAKindWithoutArchiveHasNoArchiveStep(t *testing.T) {
+// The bound on a run's duration counts the archive step only for a kind that waits for an archive.
+func TestMaxDurationCountsTheArchiveStep(t *testing.T) {
 	RegisterTestingT(t)
 
 	spec := specOf(testConfig().Kinds[noArchiveKind], 0)
-	keys := make([]string, 0, len(runSteps(spec)))
-	for _, step := range runSteps(spec) {
-		keys = append(keys, step.key)
-	}
-	Expect(keys).To(Equal([]string{StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitResult, StepCleanup}))
-
 	withArchive := specOf(testConfig().Kinds[testKind], 0)
 	archiveStep := 2*(retryMaxDuration+retryMaxDelay+engineLatency+10*time.Second) + config.UploadTimeout
 	Expect(maxDuration(withArchive) - maxDuration(spec)).To(Equal(archiveStep))

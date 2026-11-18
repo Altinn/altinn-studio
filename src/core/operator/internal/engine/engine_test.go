@@ -206,6 +206,6 @@ func TestWorkflowDecodesTheEngineShape(t *testing.T) {
 	Expect(json.Unmarshal([]byte(body), &workflow)).To(Succeed())
 	Expect(workflow.OverallStatus).To(Equal(engine.StatusFailed))
 	Expect(workflow.OverallStatus.Terminal()).To(BeTrue())
-	Expect(workflow.Steps[0].LastError()).To(HavePrefix("Wait budget of"))
+	Expect(workflow.Steps[0].ErrorHistory[0].Message).To(HavePrefix("Wait budget of"))
 	Expect(workflow.CreatedAt.Nanosecond()).To(Equal(123456700))
 }

@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"altinn.studio/core-operator/internal/clock"
+	"altinn.studio/core-operator/internal/engine"
 )
 
 var errTest = errors.New("test failure")
@@ -72,15 +73,6 @@ func TestContractResponsesEncode(t *testing.T) {
 		Expect(json.Unmarshal(readContract(t, file), &decoded)).To(Succeed())
 		Expect(decoded).To(Equal(response), file)
 	}
-}
-
-// The engine runs the step's command with this data.
-func TestCommandDataEncodes(t *testing.T) {
-	RegisterTestingT(t)
-
-	encoded, err := json.Marshal(CommandData{CommandKey: "run.admit"})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(encoded).To(MatchJSON(`{"commandKey":"run.admit"}`))
 }
 
 func newTestRouter(clk clock.Clock) *Router {
@@ -170,16 +162,58 @@ func TestRouterAnswersByTheContract(t *testing.T) {
 	})
 }
 
-func TestEndedReadsTheEndThatAStepAnswered(t *testing.T) {
+// The engine calls the operator back for each step in order, with the step's command key, clocks and retries.
+func TestWorkflowRequestIsWhatTheEngineEnqueues(t *testing.T) {
+	RegisterTestingT(t)
+
+	workflow := Workflow{
+		Labels: map[string]string{"runId": "r1"}, State: new("initial"), Name: "run",
+		Context: Context{Domain: "runs", Caller: "assistant", SubjectID: "r1"},
+		Steps: []Step{
+			{Key: "run.admit", MaxExecutionTime: 10 * time.Second, WaitBudget: time.Minute},
+			{Key: "run.cleanup", MaxExecutionTime: 30 * time.Second},
+		},
+		Retry: Retry{BaseInterval: time.Second, MaxDelay: 30 * time.Second, MaxDuration: 2 * time.Minute},
+	}
+	request, err := workflow.Request()
+	Expect(err).NotTo(HaveOccurred())
+	retry := `{"backoffType":"Exponential","baseInterval":"00:00:01","maxDelay":"00:00:30","maxDuration":"00:02:00"}`
+	Expect(json.Marshal(request)).To(MatchJSON(`{
+		"labels": {"runId": "r1"},
+		"context": {"domain": "runs", "caller": "assistant", "subjectId": "r1"},
+		"workflows": [{"operationId": "run", "state": "initial", "steps": [
+			{"operationId": "run.admit", "retryStrategy": ` + retry + `, "command": {"type": "operator",
+				"maxExecutionTime": "00:00:10", "waitBudget": "00:01:00", "data": {"commandKey": "run.admit"}}},
+			{"operationId": "run.cleanup", "retryStrategy": ` + retry + `, "command": {"type": "operator",
+				"maxExecutionTime": "00:00:30", "data": {"commandKey": "run.cleanup"}}}
+		]}]
+	}`))
+}
+
+func TestReadSaysWhereTheWorkflowIsAndWhatEndedIt(t *testing.T) {
 	RegisterTestingT(t)
 	router := newTestRouter(clock.NewFakeClock())
 
+	initial, admitted := "initial", "admitted"
+	workflow := &engine.Workflow{InitialState: &initial, OverallStatus: engine.StatusProcessing, Steps: []engine.Step{
+		{OperationID: "run.await-pod", ProcessingOrder: 2, Status: engine.StatusEnqueued},
+		{OperationID: "run.create-job", ProcessingOrder: 1, Status: engine.StatusRequeued},
+		{OperationID: "run.admit", ProcessingOrder: 0, Status: engine.StatusCompleted, StateOut: &admitted},
+	}}
+	Expect(Read(workflow)).To(Equal(Progress{State: &admitted, Step: "run.create-job"}))
+
 	ended := post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"}).Body.String()
-	Expect(Ended(ended)).To(Equal(&End{Reason: "queue-timeout", Detail: queueTimeout}))
+	workflow.OverallStatus, workflow.Steps[1].Status = engine.StatusFailed, engine.StatusFailed
+	workflow.Steps[1].ErrorHistory = []engine.ErrorEntry{{Message: "an earlier attempt"}, {Message: ended}}
+	Expect(Read(workflow)).To(Equal(Progress{State: &admitted, Step: "run.create-job", Settled: true,
+		End: &End{Reason: "queue-timeout", Detail: queueTimeout}}))
+
 	failed := post(t, router, "run.retry", Payload{CommandKey: "run.retry"}).Body.String()
-	Expect(Ended(failed)).To(BeNil(), "a step that failed")
 	engineError := "Wait budget of 00:15:00 exhausted after 300 deferral(s): queued"
-	Expect(Ended(engineError)).To(BeNil(), "the engine's own error")
+	for _, message := range []string{failed, engineError} {
+		workflow.Steps[1].ErrorHistory = []engine.ErrorEntry{{Message: message}}
+		Expect(Read(workflow).End).To(BeNil(), "the engine failed the step of its own accord: "+message)
+	}
 }
 
 func TestRouterBoundsTheStepByItsExecutionDeadline(t *testing.T) {

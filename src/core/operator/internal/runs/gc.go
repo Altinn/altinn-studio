@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
+	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/clock"
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
@@ -83,7 +84,7 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		case err != nil:
 			logger.Info("Could not find the workflow of a run Job", "runId", job.RunID, "error", err.Error())
 			continue
-		case !workflow.OverallStatus.Terminal():
+		case !callbacks.Read(workflow).Settled:
 			continue
 		}
 		if err := deleteJob(ctx, c.sandbox, namespace, job.RunID); err != nil {
