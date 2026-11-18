@@ -9,6 +9,6 @@ metadata:
 spec:
   hard:
     requests.devices.altinn.studio/kvm: "2"
-    requests.cpu: "6"
-    requests.memory: 11Gi
+    requests.cpu: "4"
+    requests.memory: 5Gi
     count/jobs.batch: "10"

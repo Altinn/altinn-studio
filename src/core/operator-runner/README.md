@@ -19,7 +19,7 @@ App code in a run can get:
 
 - the files of that run
 - HTTPS to the hosts that its command lists in [`src/policy.rs`](src/policy.rs)
-- the CPU, memory and disk of one VM, for the time of the run
+- the CPU, memory and disk of one VM, for the time of the run ([why the VM has its size](docs/vm-size.md))
 
 It cannot get:
 

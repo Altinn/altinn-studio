@@ -70,8 +70,8 @@ jobs:
       OPERATOR_RUNNER_IMAGE: operator-runner:ci
       OPERATOR_RUNNER_URL: http://127.0.0.1:8080
       # In a cluster, the PodTemplate sets these values.
-      SANDBOX_CPUS: "2"
-      SANDBOX_MEMORY: 4Gi
+      SANDBOX_CPUS: "1"
+      SANDBOX_MEMORY: 2Gi
       SANDBOX_ROOT_FILESYSTEM: 20Gi
       REQUEST_TIMEOUT_SECONDS: "120"
       RESULT_RETENTION_SECONDS: "300"

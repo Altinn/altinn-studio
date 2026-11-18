@@ -12,6 +12,6 @@ patches:
         path: /spec/hard
         value:
           requests.devices.altinn.studio/kvm: "4"
-          requests.cpu: "12"
-          requests.memory: 22Gi
+          requests.cpu: "8"
+          requests.memory: 10Gi
           count/jobs.batch: "20"

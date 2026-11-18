@@ -101,10 +101,11 @@ template:
             value: /var/cache/altinn/sandbox
           - name: SANDBOX_IMAGE
             value: altinntjenestercontainerregistry.azurecr.io/altinn-studio/core-operator-runner-guest:latest
+          # src/core/operator-runner/docs/vm-size.md has the measurements behind the size of the VM.
           - name: SANDBOX_CPUS
-            value: "2"
+            value: "1"
           - name: SANDBOX_MEMORY
-            value: 4Gi
+            value: 2Gi
           - name: SANDBOX_ROOT_FILESYSTEM
             value: 20Gi
           # The core operator's upload timeout, and a minute for it to see that the pod is ready. The core operator's
@@ -126,12 +127,12 @@ template:
         # container.
         resources:
           requests:
-            cpu: "3"
-            memory: 5632Mi
+            cpu: "2"
+            memory: 2560Mi
             ephemeral-storage: 1Gi
             devices.altinn.studio/kvm: "1"
           limits:
-            memory: 6Gi
+            memory: 3Gi
             ephemeral-storage: 2Gi
             devices.altinn.studio/kvm: "1"
         volumeMounts:
