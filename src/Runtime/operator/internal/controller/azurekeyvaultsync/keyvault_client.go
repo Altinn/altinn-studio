@@ -21,10 +21,10 @@ type azureKeyVaultSecretsClient struct {
 func (c *azureKeyVaultSecretsClient) GetSecret(ctx context.Context, name, version string) (string, error) {
 	resp, err := c.client.GetSecret(ctx, name, version, nil)
 	if err != nil {
-		return "", fmt.Errorf("get secret %q from Key Vault: %w", name, err)
+		return "", fmt.Errorf("azsecrets: %w", err)
 	}
 	if resp.Value == nil {
-		return "", fmt.Errorf("%w: %q", errKeyVaultSecretNilValue, name)
+		return "", errKeyVaultSecretNilValue
 	}
 	return *resp.Value, nil
 }

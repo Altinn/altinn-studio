@@ -1,5 +1,5 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
@@ -12,7 +12,7 @@ import {
   PencilIcon,
   TenancyIcon,
   UploadIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';

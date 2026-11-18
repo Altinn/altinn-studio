@@ -81,6 +81,7 @@ function RepeatingGroupsEditContainerInternal({
   const { multiPageEnabled, multiPageIndex, nextMultiPage, prevMultiPage, hasNextMultiPage, hasPrevMultiPage } =
     useRepeatingGroupEdit();
   const isDeleting = RepGroupContext.useIsDeletingRow(editId);
+  const instanceLocked = FormStore.useIsInstanceLocked();
   const id = useIndexedId(baseComponentId);
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
 
@@ -150,7 +151,7 @@ function RepeatingGroupsEditContainerInternal({
             <Button
               variant='tertiary'
               color='danger'
-              disabled={isDeleting}
+              disabled={isDeleting || instanceLocked}
               onClick={() => deleteRow({ index: row.index, uuid: row.uuid })}
               data-testid='delete-button'
             >

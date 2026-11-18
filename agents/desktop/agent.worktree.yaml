@@ -12,7 +12,3 @@ spec:
         source: ../..
         target: /home/agent/code/altinn-studio
         readOnly: false
-      # Arrays replace inherited arrays, so retain the default Agent's build scratch space.
-      - type: tmpfs
-        target: /tmp
-        capacity: "2Gi"

@@ -58,63 +58,22 @@ export const availableForTypeMap: Record<ResourceAvailableForTypeOption, string>
 };
 
 export type EnvId = 'tt02' | 'prod' | 'yt01' | 'at22' | 'at23' | 'at24';
-export type EnvType = 'test' | 'prod';
-export type Environment = {
-  id: EnvId;
-  label: string;
-  envType: EnvType;
+
+/**
+ * The translation key for the name of each environment. Which environments an organization can
+ * publish a resource to is decided by the backend, so only the label belongs in the frontend.
+ */
+const environmentLabels: Record<EnvId, string> = {
+  ['at22']: 'resourceadm.deploy_at22_env',
+  ['at23']: 'resourceadm.deploy_at23_env',
+  ['at24']: 'resourceadm.deploy_at24_env',
+  ['yt01']: 'resourceadm.deploy_yt01_env',
+  ['tt02']: 'resourceadm.deploy_test_env',
+  ['prod']: 'resourceadm.deploy_prod_env',
 };
 
-const environments: Record<EnvId, Environment> = {
-  ['at22']: {
-    id: 'at22' as EnvId,
-    label: 'resourceadm.deploy_at22_env',
-    envType: 'test' as EnvType,
-  },
-  ['at23']: {
-    id: 'at23' as EnvId,
-    label: 'resourceadm.deploy_at23_env',
-    envType: 'test' as EnvType,
-  },
-  ['at24']: {
-    id: 'at24' as EnvId,
-    label: 'resourceadm.deploy_at24_env',
-    envType: 'test' as EnvType,
-  },
-  ['yt01']: {
-    id: 'yt01' as EnvId,
-    label: 'resourceadm.deploy_yt01_env',
-    envType: 'test' as EnvType,
-  },
-  ['tt02']: {
-    id: 'tt02' as EnvId,
-    label: 'resourceadm.deploy_test_env',
-    envType: 'test' as EnvType,
-  },
-  ['prod']: {
-    id: 'prod' as EnvId,
-    label: 'resourceadm.deploy_prod_env',
-    envType: 'prod' as EnvType,
-  },
-};
-
-export const getAvailableEnvironments = (org: string): Environment[] => {
-  const availableEnvs = [environments['tt02'], environments['prod']];
-  if (org === 'ttd' || org === 'digdir') {
-    availableEnvs.push(
-      environments['yt01'],
-      environments['at22'],
-      environments['at23'],
-      environments['at24'],
-    );
-  }
-  if (org === 'skd') {
-    availableEnvs.push(environments['yt01']);
-  }
-  return availableEnvs;
-};
 export const getEnvLabel = (env: EnvId): string => {
-  return environments[env]?.label || '';
+  return environmentLabels[env] || '';
 };
 
 /**

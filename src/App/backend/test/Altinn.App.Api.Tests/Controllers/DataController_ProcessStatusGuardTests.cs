@@ -1,25 +1,21 @@
 using System.Net.Http.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public sealed class DataControllerProcessStatusGuardTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public sealed class DataControllerProcessStatusGuardTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 501337;
 
-    public DataControllerProcessStatusGuardTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataControllerProcessStatusGuardTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData("create")]
@@ -78,8 +74,12 @@ public sealed class DataControllerProcessStatusGuardTests : ApiTestBase, IClassF
                         [
                             new(
                                 dataGuid,
-                                new JsonPatch(
-                                    PatchOperation.Replace(JsonPointer.Create("Navn"), JsonValue.Create("Changed"))
+                                JsonPatchOperation.ParseList(
+                                    """
+                                    [
+                                        { "op": "replace", "path": "/Navn", "value": "Changed" }
+                                    ]
+                                    """
                                 )
                             ),
                         ],

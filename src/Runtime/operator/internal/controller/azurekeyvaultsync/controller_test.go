@@ -3,15 +3,21 @@ package azurekeyvaultsync
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/go-logr/zapr"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal"
 	opclock "altinn.studio/operator/internal/clock"
@@ -232,6 +238,96 @@ func TestReconciler_ContinuesOnPartialFailure(t *testing.T) {
 	// Bad secret should not exist
 	err = h.k8sClient.Get(h.ctx(), badMapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
+}
+
+// cancelingKeyVaultClient stands in for a Key Vault request that the operator's shutdown cancels.
+type cancelingKeyVaultClient struct {
+	cancel    context.CancelFunc
+	failure   error
+	requested []string
+}
+
+func (c *cancelingKeyVaultClient) GetSecret(_ context.Context, name, _ string) (string, error) {
+	c.requested = append(c.requested, name)
+	if c.failure != nil && len(c.requested) == 1 {
+		return "", c.failure
+	}
+	c.cancel()
+	return "", context.Canceled
+}
+
+func TestReconciler_StopsSyncingWhenCanceled(t *testing.T) {
+	for _, priorFailure := range []error{nil, errRawMappingOutputMustBeString} {
+		t.Run(fmt.Sprint(priorFailure), func(t *testing.T) {
+			g := NewWithT(t)
+			mappings := []KeyVaultSecretMapping{
+				{Name: "first", Namespace: "default", FileName: "key", Secrets: []string{"first-secret"}},
+				{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
+				{Name: "third", Namespace: "default", FileName: "key", Secrets: []string{"third-secret"}},
+			}
+			core, logs := observer.New(zap.InfoLevel)
+			logger := zapr.NewLogger(zap.New(core))
+			ctx, cancel := context.WithCancel(log.IntoContext(context.Background(), logger))
+			defer cancel()
+			kvClient := &cancelingKeyVaultClient{cancel: cancel, failure: priorFailure}
+			reconciler := NewReconcilerForTesting(
+				newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentLocal),
+				newFakeK8sClient(),
+				kvClient,
+				mappings,
+			)
+			reconciler.logger = logger
+
+			err := reconciler.SyncAll(ctx)
+			g.Expect(errors.Is(err, context.Canceled)).To(BeTrue())
+			wantRequested := []string{"first-secret"}
+			wantErrors := 0
+			if priorFailure != nil {
+				g.Expect(errors.Is(err, priorFailure)).To(BeTrue())
+				wantRequested = append(wantRequested, "second-secret")
+				wantErrors = 1 // The mapping failure. The run itself was canceled.
+			}
+			g.Expect(kvClient.requested).To(Equal(wantRequested))
+			g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(wantErrors))
+			g.Expect(err.Error()).To(ContainSubstring(`get Key Vault secret "first-secret"`))
+		})
+	}
+}
+
+// keyVaultClientFunc is a Key Vault client that answers with a function.
+type keyVaultClientFunc func(name string) (string, error)
+
+func (f keyVaultClientFunc) GetSecret(_ context.Context, name, _ string) (string, error) {
+	return f(name)
+}
+
+func TestReconciler_LogsAFailureThatCoincidesWithCancellation(t *testing.T) {
+	g := NewWithT(t)
+	mappings := []KeyVaultSecretMapping{
+		{Name: "first", Namespace: "default", FileName: "key", Secrets: []string{"first-secret"}},
+		{Name: "second", Namespace: "default", FileName: "key", Secrets: []string{"second-secret"}},
+	}
+	core, logs := observer.New(zap.InfoLevel)
+	logger := zapr.NewLogger(zap.New(core))
+	ctx, cancel := context.WithCancel(log.IntoContext(context.Background(), logger))
+	defer cancel()
+	var requested []string
+	reconciler := NewReconcilerForTesting(
+		newTestRuntime(t, opclock.NewFakeClock(), operatorcontext.EnvironmentLocal),
+		newFakeK8sClient(),
+		keyVaultClientFunc(func(name string) (string, error) {
+			requested = append(requested, name)
+			cancel()
+			return "", fakes.TransientError()
+		}),
+		mappings,
+	)
+	reconciler.logger = logger
+
+	err := reconciler.SyncAll(ctx)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(requested).To(Equal([]string{"first-secret"}))
+	g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(Equal(1))
 }
 
 func TestReconciler_SyncsMultipleMappings(t *testing.T) {

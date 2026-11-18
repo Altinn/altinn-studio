@@ -1,18 +1,18 @@
 import classes from './DeploymentEnvironmentLogList.module.css';
-import { DateUtils } from '@studio/pure-functions';
+import { DateUtils } from '@designer/pure-functions';
 import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
 import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { BuildResult } from 'app-shared/types/Build';
 import {
   ExclamationmarkTriangleFillIcon,
   CheckmarkCircleFillIcon,
   XMarkOctagonFillIcon,
   ExternalLinkIcon,
-} from '@studio/icons';
-import { StudioLink, StudioSpinner, StudioTable } from '@studio/components';
+} from '@designer/icons';
+import { StudioLink, StudioSpinner, StudioTable } from '@designer/components';
 import { getAzureDevopsBuildResultUrl } from 'app-development/utils/urlHelper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { grafanaPodLogsUrl } from 'app-shared/ext-urls';
@@ -21,7 +21,7 @@ export interface DeploymentEnvironmentLogListProps {
   envName: string;
   isProduction: boolean;
   pipelineDeploymentList: PipelineDeployment[];
-  kubernetesDeployment?: KubernetesDeployment;
+  runningApp?: RunningApp;
 }
 
 const getIcon = (buildResult: BuildResult) => {
@@ -145,7 +145,7 @@ export const DeploymentEnvironmentLogList = ({
                                     target='_blank'
                                     icon={
                                       <ExternalLinkIcon
-                                        title={t('general.open_app_in_new_window')}
+                                        title={t('general.link_opens_in_new_tab')}
                                       />
                                     }
                                     iconPlacement={'right'}
@@ -160,7 +160,7 @@ export const DeploymentEnvironmentLogList = ({
                                   rel='noopener noreferrer'
                                   target='_blank'
                                   icon={
-                                    <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                                    <ExternalLinkIcon title={t('general.link_opens_in_new_tab')} />
                                   }
                                   iconPlacement={'right'}
                                 >

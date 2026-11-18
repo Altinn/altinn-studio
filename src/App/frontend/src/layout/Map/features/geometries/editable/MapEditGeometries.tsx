@@ -15,6 +15,8 @@ import type { Feature } from 'geojson';
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { toRelativePath } from 'src/features/saveToGroup/useSaveToGroup';
+import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
+import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useMapParsedGeometries } from 'src/layout/Map/features/geometries/fixed/hooks';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
@@ -48,12 +50,19 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
   const isEditableBinding = useDataModelBindingsFor(baseComponentId, 'Map')?.geometryIsEditable;
   const geometryDataFieldName = geometryDataBinding?.field.split('.').pop();
   const isEditableFieldName = isEditableBinding?.field.split('.').pop();
-  const initialGeometries = useMapParsedGeometries(baseComponentId)?.filter((g) => g.isEditable);
+  const allGeometries = useMapParsedGeometries(baseComponentId);
+  // Rebuilding the layers below throws away leaflet-draw's state, and a layer added during a zoom animation is drawn
+  // at the wrong scale until the animation ends. Saves often give the rows a new identity without changing what is
+  // drawn (the backend adds fields such as `"Label": null`), so only rebuild when the drawn geometries change.
+  const editableGeometries = useMemoDeepEqual(
+    () => allGeometries?.filter((g) => g.isEditable).map(({ altinnRowId, data }) => ({ altinnRowId, data })),
+    [allGeometries],
+  );
 
   const geometryDataPath = toRelativePath(geometryBinding, geometryDataBinding);
 
   const appendToList = FormStore.data.useAppendToList();
-  const setLeafValue = FormStore.data.useSetLeafValue();
+  const setLeafValueInList = FormStore.data.useSetLeafValueInList();
   const removeFromList = FormStore.data.useRemoveFromListCallback();
 
   const config = useComponentConfig(baseComponentId, 'Map');
@@ -63,14 +72,14 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
   const toolbarCircle = useEvalExpression(config.toolbar?.circle, Expressions.Map.toolbar.circle);
   const toolbarMarker = useEvalExpression(config.toolbar?.marker, Expressions.Map.toolbar.marker);
 
-  // Load initial data into the FeatureGroup on component mount
+  // Load the editable geometries into the FeatureGroup whenever they change
   useEffect(() => {
     const featureGroup = editRef.current;
-    if (featureGroup && initialGeometries) {
-      // Clear existing layers to prevent duplication if initialData changes
+    if (featureGroup && editableGeometries) {
+      // Clear existing layers to prevent duplication if the geometries change
       featureGroup.clearLayers();
 
-      initialGeometries.forEach((item) => {
+      editableGeometries.forEach((item) => {
         if (item.data && item.data.type === 'FeatureCollection') {
           item.data.features.forEach((feature: Feature) => {
             // Attach the unique ID to the feature's properties
@@ -117,9 +126,9 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
         }
       });
     }
-  }, [initialGeometries]);
+  }, [editableGeometries]);
 
-  const onCreatedHandler = (e: L.DrawEvents.Created) => {
+  const onCreatedHandler = useOurEffectEvent((e: L.DrawEvents.Created) => {
     if (!geometryBinding || !geometryDataFieldName || !isEditableFieldName) {
       return;
     }
@@ -150,10 +159,10 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
         [isEditableFieldName]: true,
       },
     });
-  };
+  });
 
-  const onEditedHandler = (e: L.DrawEvents.Edited) => {
-    if (!geometryBinding || !geometryDataBinding || !isEditableBinding) {
+  const onEditedHandler = useOurEffectEvent((e: L.DrawEvents.Edited) => {
+    if (!geometryBinding || !geometryDataPath || !isEditableBinding) {
       return;
     }
 
@@ -167,20 +176,16 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
       if (componentConfig.geometryType === 'WKT') {
         geoString = geojsonToWKT(editedGeo.geometry);
       }
-
-      initialGeometries?.forEach((g, index) => {
-        if (g.altinnRowId === altinnRowId) {
-          const field = `${geometryBinding.field}[${index}].${geometryDataPath}`;
-          setLeafValue({
-            reference: { dataType: geometryDataBinding?.dataType, field },
-            newValue: geoString,
-          });
-        }
+      setLeafValueInList({
+        reference: geometryBinding,
+        findRow: (row) => row[ALTINN_ROW_ID] === altinnRowId,
+        field: geometryDataPath,
+        newValue: geoString,
       });
     });
-  };
+  });
 
-  const onDeletedHandler = (e: L.DrawEvents.Deleted) => {
+  const onDeletedHandler = useOurEffectEvent((e: L.DrawEvents.Deleted) => {
     if (!geometryBinding) {
       return;
     }
@@ -193,7 +198,7 @@ export function MapEditGeometries({ baseComponentId }: MapEditGeometriesProps) {
         callback: (item) => item[ALTINN_ROW_ID] === deletedGeo.properties?.altinnRowId,
       });
     });
-  };
+  });
 
   return (
     <FeatureGroup ref={editRef}>

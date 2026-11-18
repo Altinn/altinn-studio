@@ -1,8 +1,8 @@
 import type { KeyboardEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import { addableComponentTypes } from '../../utils/newComponentUtils';
 import type { AddableComponentType } from '../../utils/newComponentUtils';
 import classes from './InsertPoint.module.css';

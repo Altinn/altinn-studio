@@ -1,5 +1,5 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useFeatureFlagsContext } from '@studio/feature-flags';
+import { useFeatureFlagsContext } from '@designer/feature-flags';
 import { FeatureName } from 'app-shared/enums/CanUseFeature';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';

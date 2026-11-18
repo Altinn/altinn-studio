@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { StudioCallToActionBar } from '@studio/components';
+import { StudioCallToActionBar } from '@designer/components';
 import type { IInternalLayout } from '../../types/global';
 import classes from './WithHoverAddButton.module.css';
 import { InlineItemAdder } from '../../containers/DesignView/AddItem/AddItem';

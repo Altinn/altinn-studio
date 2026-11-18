@@ -4,7 +4,7 @@
   "version": "1.0.1",
   "author": "Altinn",
   "dependencies": {
-    "@studio/icons": "workspace:^",
+    "@designer/icons": "workspace:^",
     "classnames": "2.5.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -12,7 +12,7 @@
     "uuid": "13.0.2"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
+    "@designer/ui-test": "workspace:^",
     "@typescript/native": "npm:typescript@7.0.2"
   },
   "license": "MIT",

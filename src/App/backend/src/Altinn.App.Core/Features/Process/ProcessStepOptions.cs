@@ -1,12 +1,14 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Optional per-step execution preferences a process handler can declare for the workflow engine.
-/// Every field is nullable and independently resolved: a <c>null</c> field falls back to the next tier
-/// (the command's own default, then the engine's global default), so an implementation can override
-/// just the timeout, just the retry strategy, or both.
+/// Optional per-step execution preferences for the workflow engine, declared by a lifecycle hook through
+/// <see cref="IProcessStepConfigurable"/> or by a pipeline where it composes the step. Every field is nullable
+/// and independently resolved: a <c>null</c> field falls back to the next tier (the command's own default,
+/// then the engine's global default), so a declaration can set just the timeout, just the retry strategy,
+/// or both.
 /// </summary>
 /// <seealso cref="IProcessStepConfigurable"/>
+/// <seealso cref="PipelineBuilder"/>
 public sealed record ProcessStepOptions
 {
     /// <summary>

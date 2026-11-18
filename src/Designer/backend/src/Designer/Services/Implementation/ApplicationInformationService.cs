@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,6 +30,13 @@ public class ApplicationInformationService : IApplicationInformationService
     private readonly IResourceRegistry _resourceRegistryService;
     private readonly IOrgService _orgService;
     private readonly IEnvironmentsService _environmentsService;
+
+    // A deploy publishes the same files at the same commit to Storage, Authorization and the Resource Registry. Reading
+    // each from Gitea once saves a request to it per file. The service is transient, so it keeps them for one deploy.
+    private readonly ConcurrentDictionary<(string Org, string App, string Reference), Task<string>> _appMetadataJson =
+        new();
+    private readonly ConcurrentDictionary<(string Org, string App, string Reference), Task<string>> _policyFiles =
+        new();
 
     /// <summary>
     /// Constructor
@@ -72,18 +80,13 @@ public class ApplicationInformationService : IApplicationInformationService
         await _applicationMetadataService.UpdateApplicationMetadataInStorageAsync(
             org,
             app,
+            await GetApplicationMetadataJson(org, app, shortCommitId),
             shortCommitId,
             envName,
             cancellationToken
         );
 
-        Task updateAuthPolicyTask = _authorizationPolicyService.UpdateApplicationAuthorizationPolicyAsync(
-            org,
-            app,
-            shortCommitId,
-            envName,
-            cancellationToken
-        );
+        Task updateAuthPolicyTask = UpdateAuthorizationPolicy(org, app, shortCommitId, envName, cancellationToken);
 
         Task updateTextResources = _textResourceService.UpdateTextResourcesAsync(
             org,
@@ -111,11 +114,7 @@ public class ApplicationInformationService : IApplicationInformationService
 
         try
         {
-            string appMetadataJson = await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
-                org,
-                app,
-                shortCommitId
-            );
+            string appMetadataJson = await GetApplicationMetadataJson(org, app, shortCommitId);
             ApplicationMetadata? applicationMetadata =
                 JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataJson, s_jsonOptions)
                 ?? throw new JsonException("Could not deserialize application metadata");
@@ -134,11 +133,7 @@ public class ApplicationInformationService : IApplicationInformationService
                 .WithOrgInformation(org, orgListOrg)
                 .WithDefaultTranslations();
 
-            string policyString = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
-                org,
-                app,
-                shortCommitId
-            );
+            string policyString = await GetPolicyFile(org, app, shortCommitId);
             policyString = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(policyString, org, app);
             byte[] policyBytes = Encoding.UTF8.GetBytes(policyString);
 
@@ -184,4 +179,39 @@ public class ApplicationInformationService : IApplicationInformationService
             return new ResourceRegistryPublishResult(false, ex.Message);
         }
     }
+
+    private async Task UpdateAuthorizationPolicy(
+        string org,
+        string app,
+        string shortCommitId,
+        string envName,
+        CancellationToken cancellationToken
+    )
+    {
+        string policyFile = await GetPolicyFile(org, app, shortCommitId);
+        await _authorizationPolicyService.UpdateApplicationAuthorizationPolicyAsync(
+            org,
+            app,
+            policyFile,
+            envName,
+            cancellationToken
+        );
+    }
+
+    private Task<string> GetApplicationMetadataJson(string org, string app, string reference) =>
+        _appMetadataJson.GetOrAdd(
+            (org, app, reference),
+            key =>
+                _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
+                    key.Org,
+                    key.App,
+                    key.Reference
+                )
+        );
+
+    private Task<string> GetPolicyFile(string org, string app, string reference) =>
+        _policyFiles.GetOrAdd(
+            (org, app, reference),
+            key => _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(key.Org, key.App, key.Reference)
+        );
 }

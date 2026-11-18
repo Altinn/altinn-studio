@@ -41,7 +41,7 @@ public class ProfileClientTests
                 new DataType()
                 {
                     Id = "test",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     EnableFileScan = false,
                     ValidationErrorOnPendingFileScan = false,
                 },

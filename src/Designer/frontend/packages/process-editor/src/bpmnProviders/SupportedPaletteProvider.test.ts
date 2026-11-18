@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import BpmnModdle from 'bpmn-moddle';
 import { SupportedPaletteProvider } from './SupportedPaletteProvider';
 import { altinnCustomTasks } from '../extensions/altinnCustomTasks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 vi.mock('app-shared/utils/generateRandomId', () => {
   let counter = 0;

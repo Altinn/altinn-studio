@@ -23,6 +23,8 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "PersonNyttFornavn",
+          "summaryTitle": "Fornavnet som skal vises i oppsummeringen av navneendringen",
+          "description": "Dette fornavnet blir registrert etter innsending",
           "help": "PersonNyttFornavn.helptext"
         },
         "dataModelBindings": {
@@ -856,8 +858,25 @@
           "md": 4
         },
         "queryParameters": {
-          "source": ["dataModel", "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"]
+          "source": ["dataModel", "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"],
+          "fail": ["dataModel", "FailReferenceOptions"]
         }
+      },
+      {
+        "id": "fail-reference-options",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Feil ved lasting av alternativer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FailReferenceOptions"
+        },
+        "options": [
+          {
+            "label": "La lasting av referanser feile",
+            "value": true
+          }
+        ]
       },
       {
         "id": "reference2",

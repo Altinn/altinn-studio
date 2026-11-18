@@ -5,8 +5,8 @@ import { DefaultToolbar } from './DefaultToolbar';
 
 import classes from './Elements.module.css';
 
-import { StudioButton, StudioHeading, StudioParagraph } from '@studio/components';
-import { SidebarLeftIcon } from '@studio/icons';
+import { StudioButton, StudioHeading, StudioParagraph } from '@designer/components';
+import { SidebarLeftIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 
 export interface ElementsProps {

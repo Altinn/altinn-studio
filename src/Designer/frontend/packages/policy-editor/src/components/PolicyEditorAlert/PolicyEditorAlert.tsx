@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PolicyEditorAlert.module.css';
-import { StudioParagraph, StudioAlert } from '@studio/components';
+import { StudioParagraph, StudioAlert } from '@designer/components';
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { useTranslation } from 'react-i18next';
 

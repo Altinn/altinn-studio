@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	selfcmd "altinn.studio/studioctl/internal/cmd/self"
 	installpkg "altinn.studio/studioctl/internal/install"
 	"altinn.studio/studioctl/internal/osutil"
 
@@ -204,6 +205,7 @@ func (c *SelfCommand) runWindowsUpdateHelper(ctx context.Context, flags windowsS
 		TargetDir:  filepath.Dir(flags.target),
 		Candidates: nil,
 		WarnPath:   false,
+		AddToPath:  false,
 	}); err != nil {
 		return fmt.Errorf("apply Windows self update: %w", err)
 	}
@@ -212,9 +214,26 @@ func (c *SelfCommand) runWindowsUpdateHelper(ctx context.Context, flags windowsS
 }
 
 func (c *SelfCommand) runWindowsUninstallHelper(ctx context.Context, flags windowsSelfHelperFlags) error {
-	return c.runConfirmedUninstall(ctx, func() (installpkg.UninstallResult, error) {
-		return c.service.UninstallBinaryAt(flags.target)
+	var result installpkg.UninstallResult
+	err := c.runConfirmedUninstall(ctx, func() (installpkg.UninstallResult, error) {
+		var uninstallErr error
+		result, uninstallErr = c.service.UninstallBinaryAt(flags.target)
+		return result, uninstallErr //nolint:wrapcheck // runConfirmedUninstall wraps it.
 	})
+	// A shared directory such as %USERPROFILE%\.local\bin keeps its PATH entry, which another tool may have added.
+	if err != nil || result.RemovedDir == "" || !selfcmd.IsOwnInstallDir(result.RemovedDir) {
+		return err
+	}
+
+	removed, err := selfcmd.RemoveFromUserPath(result.RemovedDir, c.out)
+	if err != nil {
+		c.out.Verbosef("failed to remove %s from PATH: %v", result.RemovedDir, err)
+		return nil
+	}
+	if removed {
+		c.out.Successf("Removed %s from your PATH", result.RemovedDir)
+	}
+	return nil
 }
 
 func waitForWindowsProcessExit(handle windows.Handle) error {

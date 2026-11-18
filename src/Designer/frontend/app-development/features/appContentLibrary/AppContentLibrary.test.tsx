@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import AppContentLibrary from './AppContentLibrary';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -14,8 +14,8 @@ import type {
   ContentLibraryConfig,
   PagesConfig,
   TextResourceWithLanguage,
-} from '@studio/content-library';
-import { PageName } from '@studio/content-library';
+} from '@designer/content-library';
+import { PageName } from '@designer/content-library';
 import { optionList1Data, optionListDataList } from './test-data/optionListDataList';
 import { label1ResourceNb, textResources } from './test-data/textResources';
 import type { ITextResourcesObjectFormat } from 'app-shared/types/global';
@@ -23,8 +23,8 @@ import { codeListTitles } from './test-data/codeListTitles';
 import { RoutePaths } from '../../enums/RoutePaths';
 
 // Mocks:
-vi.mock('@studio/content-library', async () => ({
-  ...(await vi.importActual('@studio/content-library')),
+vi.mock('@designer/content-library', async () => ({
+  ...(await vi.importActual('@designer/content-library')),
   ContentLibrary: (props) => MockContentLibrary(props),
 }));
 

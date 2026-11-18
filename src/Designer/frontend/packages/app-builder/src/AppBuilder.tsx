@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioPageSpinner } from '@studio/components';
+import { StudioAlert, StudioPageSpinner } from '@designer/components';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';

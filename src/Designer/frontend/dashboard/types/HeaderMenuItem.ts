@@ -1,6 +1,6 @@
 import type { HeaderMenuGroupKey } from '../enums/HeaderMenuGroupKey';
 import type { HeaderMenuItemKey } from '../enums/HeaderMenuItemKey';
-import type { FeatureFlag } from '@studio/feature-flags';
+import type { FeatureFlag } from '@designer/feature-flags';
 
 export type HeaderMenuItem = {
   key: HeaderMenuItemKey;

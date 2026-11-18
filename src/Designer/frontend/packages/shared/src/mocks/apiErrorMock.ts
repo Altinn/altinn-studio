@@ -1,16 +1,14 @@
 import type { ApiError } from 'app-shared/types/api/ApiError';
-import type { AxiosResponse } from 'axios';
-import { AxiosError } from 'axios';
+import { HttpError } from 'app-shared/utils/networking';
+import { failedRequestMock } from './httpErrorMock';
 
 export const createApiErrorMock = (
   status?: number,
   errorCode?: string,
   customErrorMessages?: string[],
-): AxiosError<ApiError> => {
-  const error = new AxiosError();
-  error.response = {
+): HttpError<ApiError> =>
+  new HttpError<ApiError>(failedRequestMock, {
     status,
     data: { errorCode, customErrorMessages },
-  } as AxiosResponse;
-  return error;
-};
+    headers: new Headers(),
+  });

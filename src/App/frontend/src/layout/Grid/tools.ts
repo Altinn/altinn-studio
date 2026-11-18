@@ -61,7 +61,7 @@ function useIsHiddenInRow(row: GridRow) {
   return useIsHiddenMulti(baseIds);
 }
 
-function useHiddenInRows(rows: GridRows | undefined) {
+export function useHiddenInRows(rows: GridRows | undefined) {
   const baseIds =
     rows
       ?.map((row) => row.cells.map((cell) => (isGridCellNode(cell) && cell.component ? cell.component : undefined)))
@@ -111,7 +111,5 @@ export function getGridCellHiddenExpr(cell: GridCell) {
   if (!cell || typeof cell !== 'object') {
     return undefined;
   }
-  const options =
-    'columnOptions' in cell ? (cell as { columnOptions?: { hidden?: unknown } }).columnOptions : undefined;
-  return options?.hidden;
+  return cell.columnOptions?.hidden;
 }

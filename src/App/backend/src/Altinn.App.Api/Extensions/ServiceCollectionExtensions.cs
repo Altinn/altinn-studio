@@ -8,6 +8,7 @@ using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Middleware;
+using Altinn.App.Api.Infrastructure.RateLimiting;
 using Altinn.App.Api.Infrastructure.Telemetry;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
@@ -57,6 +58,9 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScopeAuthorization();
+        services.AddRateLimiter(options =>
+            options.AddPolicy<string, PdfPreviewRateLimiterPolicy>(PdfPreviewRateLimiterPolicy.Name)
+        );
 
         mvcBuilder
             .AddApplicationPart(typeof(InstancesController).Assembly)
@@ -589,11 +593,10 @@ public static class ServiceCollectionExtensions
             // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
             // The values of the tokens are not the same and both need to be present and valid in a "unsafe" request.
 
-            // Axios which we are using for client-side automatically extracts the value from the cookie named XSRF-TOKEN. We are setting this cookie in the UserController.
+            // The frontend's http client (addXsrfToken in @studio/http-client) sends the value of the cookie named XSRF-TOKEN as the header. HomeController sets that cookie.
             // We will therefore have two token cookies. One that contains the .net core cookie token; And one that is the request token and is added as a header in requests.
             // The tokens are based on the logged-in user and must be updated if the user changes.
             // https://docs.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-3.1
-            // https://github.com/axios/axios/blob/master/lib/defaults.js
             options.Cookie.Name = "AS-XSRF-TOKEN";
             options.HeaderName = "X-XSRF-TOKEN";
         });

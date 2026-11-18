@@ -8,11 +8,13 @@ namespace Altinn.App.Core.Internal.App;
 
 internal sealed class IndexPageGenerator : IIndexPageGenerator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        }
+    );
 
     private readonly IFrontendFeatures _frontendFeatures;
     private readonly AppFilesAccessor _appFiles;

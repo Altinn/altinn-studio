@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
 import { useAddRepoMutation } from '../../hooks/mutations/useAddRepoMutation';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
@@ -40,7 +40,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     isPending: isCreatingRepo,
     isSuccess: isCreatingRepoSuccess,
   } = useAddRepoMutation({
-    hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+    hideDefaultError: (error: HttpError) => error?.response?.status === ServerCodes.Conflict,
   });
 
   const [formError, setFormError] = useState<CreateServiceFormError>(initialFormError);
@@ -56,8 +56,8 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     packagesRouter.navigateToPackage('editorOverview');
   };
 
-  const evaluateErrorKind = (error: AxiosError): ErrorKind | null => {
-    if (error.response.status === ServerCodes.Conflict) {
+  const evaluateErrorKind = (error: HttpError): ErrorKind | null => {
+    if (error.response?.status === ServerCodes.Conflict) {
       return ErrorKind.AppNameAlreadyExists;
     } else if (
       error.response?.status === ServerCodes.BadRequest &&
@@ -82,7 +82,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
         onSuccess: (): void => {
           navigateToEditorOverview(org, repoName);
         },
-        onError: (error: AxiosError): void => {
+        onError: (error: HttpError): void => {
           const errorKind = evaluateErrorKind(error);
 
           switch (errorKind) {

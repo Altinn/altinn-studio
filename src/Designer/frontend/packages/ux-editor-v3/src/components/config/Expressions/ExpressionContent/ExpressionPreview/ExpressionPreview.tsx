@@ -4,8 +4,8 @@ import { expressionInPreviewPropertyTextKeys } from '../../../../../types/Expres
 import { complexExpressionIsSet } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpressionPreview } from './SimpleExpressionPreview';
-import { StudioButton } from '@studio/components';
-import { PencilIcon, TrashIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PencilIcon, TrashIcon } from '@designer/icons';
 import { useText } from '../../../../../hooks';
 import cn from 'classnames';
 import { Trans } from 'react-i18next';

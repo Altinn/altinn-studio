@@ -299,6 +299,7 @@ describe('Expression validation', () => {
     cy.findByRole('textbox', { name: /fra/i }).type('01.12.2023');
     cy.findByRole('textbox', { name: /^til/i }).type('01.06.2023'); // Intentionally invalid
     cy.findByRole('button', { name: /lagre og lukk/i }).click();
+    cy.waitUntilSaved();
 
     cy.findByText('Startdatoen må være før sluttdato').should('be.visible');
     cy.findByText('Sluttdato må være etter startdato').should('be.visible');

@@ -89,7 +89,11 @@ public sealed class EngineLeaseTokenTests : IAsyncLifetime
         await webhookHit.Task.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
 
         // The lease-lost counter should tick when the worker's writeback is rejected.
-        await telemetry.WaitForCounterTotal("engine.workflows.execution.lease_lost", minValue: 1);
+        await telemetry.WaitForCounterTotal("altinn.workflow_engine.workflow.execution.lease_lost", minValue: 1);
+        Assert.All(
+            telemetry.GetMeasurements("altinn.workflow_engine.workflow.execution.lease_lost"),
+            m => Assert.Empty(m.Tags)
+        );
 
         // Assert: DB state reflects the reclaim, not the zombie's intended completion.
         await AssertZombieWritebackRejected(workflowId, swappedInToken);

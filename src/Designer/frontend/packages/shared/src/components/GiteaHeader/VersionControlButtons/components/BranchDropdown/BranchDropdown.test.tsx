@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { BranchDropdown } from './BranchDropdown';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import {
@@ -12,11 +12,11 @@ import {
 } from '../../test/mocks/branchingMocks';
 import { useBranchData } from '../../hooks/useBranchData/useBranchData';
 import { useBranchOperations } from '../../hooks/useBranchOperations/useBranchOperations';
-import { useMediaQuery } from '@studio/hooks';
+import { useMediaQuery } from '@designer/hooks';
 
 vi.mock('../../hooks/useBranchData/useBranchData');
 vi.mock('../../hooks/useBranchOperations/useBranchOperations');
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 const mockUseBranchData = vi.mocked(useBranchData);
 const mockUseBranchOperations = vi.mocked(useBranchOperations);

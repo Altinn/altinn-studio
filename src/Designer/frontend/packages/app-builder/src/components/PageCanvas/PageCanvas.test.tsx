@@ -6,10 +6,11 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { getLanguageFromCode } from '@app/language';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { LayoutComponent, PageLayout, TextsById } from '../../types';
 import type { DataModel } from '../../hooks/useDataModelQuery';
 import { usePageLayoutsQuery } from '../../hooks/usePageLayoutsQuery';
@@ -300,11 +301,14 @@ describe('PageCanvas, deleting components', () => {
     data: { layout: [heading, nameInput] },
   };
   const textsWithInput: TextsById = { ...texts, 'name.title': 'Fornavn' };
-  const published = {
+  const published: DeploymentsResponse = {
     pipelineDeploymentList: [],
-    kubernetesDeploymentList: [{ envName: 'tt02', release: '', version: '1' }],
+    environmentList: [{ environment: 'tt02', state: 'running' }],
   };
-  const notPublished = { pipelineDeploymentList: [], kubernetesDeploymentList: [] };
+  const notPublished: DeploymentsResponse = {
+    pipelineDeploymentList: [],
+    environmentList: [{ environment: 'tt02', state: 'notRunning' }],
+  };
 
   const openDeleteDialog = async (
     user: ReturnType<typeof userEvent.setup>,

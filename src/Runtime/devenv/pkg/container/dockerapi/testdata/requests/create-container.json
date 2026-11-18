@@ -1,0 +1,7 @@
+[
+{"method":"GET","path":"/images/registry:2/json"},
+{"query":{"fromImage":["docker.io/library/registry"],"tag":["2"]},"method":"POST","path":"/images/create"},
+{"query":{"name":["devenv-ctr"]},"header":{"Content-Type":"application/json"},"body":{"Cmd":["serve","--verbose",""],"Env":["A=1"],"ExposedPorts":{"5000/tcp":{},"53/udp":{}},"Healthcheck":{"Interval":1000000000,"Retries":3,"Test":["CMD","true"],"Timeout":2000000000},"HostConfig":{"Binds":["/src:/src:ro,z"],"CapAdd":["CAP_AUDIT_WRITE","CAP_MKNOD","CAP_NET_ADMIN","CAP_NET_RAW"],"ExtraHosts":["host.docker.internal:host-gateway"],"Mounts":[{"Source":"/data","Target":"/var/lib/registry","Type":"bind"},{"ReadOnly":true,"Source":"cache","Target":"/cache","Type":"volume"}],"NetworkMode":"primary","PortBindings":{"5000/tcp":[{"HostIp":"127.0.0.1","HostPort":"5001"}],"53/udp":[{"HostPort":"5353"}]},"RestartPolicy":{"Name":"unless-stopped"},"UsernsMode":"keep-id"},"Image":"registry:2","Labels":{"altinn.studio/devenv":"true","empty":""},"NetworkingConfig":{"EndpointsConfig":{"primary":{"Aliases":["registry"]}}},"User":"1000:1000"},"method":"POST","path":"/containers/create"},
+{"header":{"Content-Type":"application/json"},"body":{"Container":"id1"},"method":"POST","path":"/networks/secondary/connect"},
+{"method":"POST","path":"/containers/id1/start"}
+]

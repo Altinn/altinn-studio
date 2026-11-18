@@ -15,7 +15,7 @@ import {
   ReceiptIcon,
   SealCheckmarkIcon,
   TasklistIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 
 const layoutSetsMock = [
   { id: 'layout1', dataType: null, type: '', task: { id: 'task1', type: 'data' } },

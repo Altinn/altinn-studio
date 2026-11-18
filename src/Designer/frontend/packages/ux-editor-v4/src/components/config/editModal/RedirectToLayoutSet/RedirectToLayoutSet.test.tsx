@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { RedirectToLayoutSet } from './RedirectToLayoutSet';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';

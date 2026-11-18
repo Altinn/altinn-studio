@@ -1,4 +1,4 @@
-import { StudioCard, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioCard, StudioHeading, StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './Infobox.module.css';
 

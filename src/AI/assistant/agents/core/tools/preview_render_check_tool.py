@@ -58,8 +58,7 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
     is_concurrency_safe = False
 
     async def run(self, args: PreviewRenderCheckArgs, ctx: LoopContext) -> ToolResult:
-        config = get_config()
-        refusal = _check_preconditions(ctx, is_enabled=config.PREVIEW_CHECK_ENABLED)
+        refusal = _check_preconditions(ctx)
         if refusal is not None:
             return refusal
 
@@ -74,12 +73,13 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
                 is_error=True,
             )
 
+        config = get_config()
         try:
             results = await asyncio.to_thread(
                 render_check,
                 studio_base=config.PREVIEW_STUDIO_BASE_URL,
                 username=config.PREVIEW_STUDIO_USER,
-                org=ctx.org,
+                repo_owner=ctx.repo_owner,
                 app=ctx.extras["app_name"],
                 branch=ctx.extras["session_branch"],
                 page_order=page_order,
@@ -91,10 +91,8 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
         return _report_results(results)
 
 
-def _check_preconditions(ctx: LoopContext, *, is_enabled: bool) -> ToolResult | None:
-    if not is_enabled:
-        return _report_unavailable("Preview render check is disabled in this deployment.")
-    if not ctx.extras.get("session_committed") or not ctx.extras.get("session_branch"):
+def _check_preconditions(ctx: LoopContext) -> ToolResult | None:
+    if not ctx.extras.get("session_pushed") or not ctx.extras.get("session_branch"):
         return ToolResult(
             content=(
                 "Nothing to check yet: the preview renders the pushed session "
@@ -103,8 +101,8 @@ def _check_preconditions(ctx: LoopContext, *, is_enabled: bool) -> ToolResult | 
             ),
             is_error=True,
         )
-    if not ctx.extras.get("app_name") or not ctx.org:
-        return _report_unavailable("Preview render check cannot resolve the app's org/name.")
+    if not ctx.extras.get("app_name") or not ctx.repo_owner:
+        return _report_unavailable("Preview render check cannot resolve the repository owner or the app name.")
     return None
 
 

@@ -89,7 +89,7 @@ internal sealed record TestFixture(
         App.Services.GetRequiredService<IFiksArkivConfigResolver>();
     public IFiksArkivInstanceClient FiksArkivInstanceClient =>
         App.Services.GetRequiredService<IFiksArkivInstanceClient>();
-    public IPipelineServiceTask FiksArkivServiceTask =>
+    public IServiceTask FiksArkivServiceTask =>
         AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
 
     /// <summary>
@@ -186,6 +186,9 @@ internal sealed record TestFixture(
         hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(hostEnvironment);
         loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(Mock.Of<ILogger>());
         appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/unit-testing"));
+        maskinportenClientMock
+            .Setup(x => x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(JwtToken.Parse(TestHelpers.DummyToken));
 
         builder.Services.AddSingleton(hostEnvironmentMock.Object);
         builder.Services.AddSingleton(appMetadataMock.Object);

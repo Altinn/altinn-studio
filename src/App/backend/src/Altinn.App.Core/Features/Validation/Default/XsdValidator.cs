@@ -1,5 +1,6 @@
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -45,7 +46,7 @@ internal sealed class XsdValidator : IValidator
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
         _appMetadata.ApplicationMetadata.DataTypes.Exists(dt =>
-            dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
+            dt.IsBoundToTask(taskId) && dt.AppLogic?.ClassRef is not null
         );
 
     /// <inheritdoc />

@@ -25,6 +25,9 @@ internal sealed record MigrationResult(IReadOnlyList<UpgradeMessage> Messages)
 /// <summary>Utility functions for building a migrator's message list.</summary>
 internal static class UpgradeMessageListExtensions
 {
+    public static void Ok(this List<UpgradeMessage> messages, string text) =>
+        messages.Add(new UpgradeMessage(text, UpgradeMessageStatus.Ok));
+
     public static void Warn(this List<UpgradeMessage> messages, string text) =>
         messages.Add(new UpgradeMessage(text, UpgradeMessageStatus.Warning));
 

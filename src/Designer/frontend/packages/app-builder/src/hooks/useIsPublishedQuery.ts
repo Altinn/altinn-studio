@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { environmentsOf } from 'app-shared/types/api/DeploymentsResponse';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 
 export type IsPublishedQueryResult = {
@@ -9,7 +10,10 @@ export type IsPublishedQueryResult = {
   isPending: boolean;
 };
 
-/** Whether any version of the app is deployed to an environment. */
+/**
+ * Whether the app runs in any environment. It is unknown when an environment cannot tell, since the
+ * app may run there.
+ */
 export const useIsPublishedQuery = (org: string, app: string): IsPublishedQueryResult => {
   const { getDeployments } = useServicesContext();
   const { data, isPending, isError } = useQuery<DeploymentsResponse>({
@@ -21,6 +25,10 @@ export const useIsPublishedQuery = (org: string, app: string): IsPublishedQueryR
 
   if (isPending) return { isPending: true };
   if (isError || !data) return { isPending: false };
-  const deployments = data.kubernetesDeploymentList ?? [];
-  return { isPublished: deployments.some(({ version }) => Boolean(version)), isPending: false };
+  const environments = environmentsOf(data);
+  if (environments.some(({ state }) => state === 'running')) {
+    return { isPublished: true, isPending: false };
+  }
+  const isKnownNotPublished = environments.every(({ state }) => state === 'notRunning');
+  return { isPublished: isKnownNotPublished ? false : undefined, isPending: false };
 };

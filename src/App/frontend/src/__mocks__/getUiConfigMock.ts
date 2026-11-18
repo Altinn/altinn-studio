@@ -12,6 +12,7 @@ export function getGlobalPageSettingsMock(): GlobalPageSettings {
     showExpandWidthButton: true,
     expandedWidth: false,
     showProgress: false,
+    hideOptionalIndicator: false,
     autoSaveBehavior: 'onChangeFormData',
     taskNavigation: [],
     navigationTitle: undefined,

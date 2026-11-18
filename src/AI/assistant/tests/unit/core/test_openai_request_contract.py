@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import pytest
 
-from agents.core.llm_adapter import _is_reasoning_model, build_openai_request
+from agents.core.llm_adapter import _message_to_openai, build_openai_request
+from agents.core.messages import AssistantMessage, TextBlock, ToolResultBlock, ToolUseBlock, UserMessage
+from shared.utils.models import is_reasoning_model
 
 MESSAGES = [{"role": "user", "content": "hei"}]
 TOOL_SCHEMAS = [{"name": "read_file", "description": "read", "input_schema": {}}]
 BUDGET = 32768
 
 # A prefix rule, so the rule is tested rather than the deployments of the day.
-REASONING_PREFIXES = ["o1", "o3", "gpt-5"]
-NON_REASONING = ["gpt-4o", "gpt-4.1", "claude-sonnet-5", "claude-haiku-4-5", ""]
+REASONING_PREFIXES = ["o1", "o3", "gpt-5", "gpt-6"]
+NON_REASONING = ["gpt-4o", "gpt-4.1", "gpt-4", "claude-sonnet-5", "claude-haiku-4-5", ""]
 
 
 def _request(model_is_reasoning: bool, *, tools=None, effort="low") -> dict:
@@ -71,17 +73,22 @@ class TestTheReasoningModelRule:
     @pytest.mark.parametrize("prefix", REASONING_PREFIXES)
     def test_a_prefixed_model_is_a_reasoning_model(self, prefix):
         for name in (prefix, f"{prefix}-mini", f"{prefix}.6-somename"):
-            assert _is_reasoning_model(name), f"{name} must classify, or every call 400s"
+            assert is_reasoning_model(name), f"{name} must classify, or every call 400s"
 
     @pytest.mark.parametrize("model", NON_REASONING)
     def test_anything_else_is_not(self, model):
-        assert not _is_reasoning_model(model)
+        assert not is_reasoning_model(model)
 
     def test_no_model_is_not(self):
-        assert not _is_reasoning_model(None)
+        assert not is_reasoning_model(None)
 
     def test_the_rule_is_case_insensitive(self):
-        assert _is_reasoning_model("GPT-5.6-Terra")
+        assert is_reasoning_model("GPT-5.6-Terra")
+
+    @pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra", "gpt-6-luna", "gpt-10"])
+    def test_later_gpt_generations_are_reasoning_models(self, model):
+        """A deployment upgrade must not fall out of the rule because the generation number grew."""
+        assert is_reasoning_model(model)
 
 
 class TestShapeInvariants:
@@ -94,3 +101,35 @@ class TestShapeInvariants:
     def test_no_tools_means_no_tools_key(self):
         """An empty tools list is not the same as omitting it for some endpoints."""
         assert "tools" not in _request(True, tools=[])
+
+
+class TestToolResultOrder:
+    def test_a_notice_beside_tool_results_comes_after_them(self):
+        """The loop adds its wrap-up and truncation notices to the message that
+        carries the tool results.  OpenAI rejects a request where anything comes
+        between an assistant's tool calls and their results."""
+        conversation = [
+            AssistantMessage(
+                content=[
+                    ToolUseBlock(id="call_1", name="read_file", input={"path": "a"}),
+                    ToolUseBlock(id="call_2", name="read_file", input={"path": "b"}),
+                ]
+            ),
+            UserMessage(
+                content=[
+                    ToolResultBlock(tool_use_id="call_1", content="a"),
+                    ToolResultBlock(tool_use_id="call_2", content="b"),
+                    TextBlock(text="4 turns left"),
+                ]
+            ),
+        ]
+
+        translated = [m for message in conversation for m in _message_to_openai(message)]
+
+        assert [(m["role"], m.get("tool_call_id")) for m in translated] == [
+            ("assistant", None),
+            ("tool", "call_1"),
+            ("tool", "call_2"),
+            ("user", None),
+        ]
+        assert translated[-1]["content"] == "4 turns left"

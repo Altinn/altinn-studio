@@ -1,3 +1,5 @@
+using Altinn.Studio.Common.Telemetry;
+
 namespace Altinn.Studio.Designer.Telemetry;
 
 internal static partial class ServiceTelemetry
@@ -9,26 +11,45 @@ internal static partial class ServiceTelemetry
     /// </summary>
     public static class Attributes
     {
-        public const string ServiceVersion = "service.version";
-        public const string ServiceInstanceId = "service.instance.id";
         public const string UrlFull = "url.full";
         public const string EndUserId = "enduser.id";
         public const string ErrorType = "error.type";
 
-        public const string ServiceOwner = "altinn.service_owner";
-        public const string App = "altinn.app";
-        public const string RepoType = "altinn.repo_type";
+        /// <summary>
+        /// A finished Azure DevOps run's result: success, failure, cancellation or error.
+        /// </summary>
+        public const string CicdPipelineResult = "cicd.pipeline.result";
+
+        /// <summary>
+        /// The Azure DevOps pipeline's name, such as the one that deploys apps.
+        /// </summary>
+        public const string CicdPipelineName = "cicd.pipeline.name";
+
+        /// <summary>
+        /// The state of an Azure DevOps run that a duration covers: pending while it waits in the queue, and executing
+        /// while it runs.
+        /// </summary>
+        public const string CicdPipelineRunState = "cicd.pipeline.run.state";
+
+        public const string ServiceOwner = AltinnAttributes.ServiceOwner;
+        public const string App = AltinnAttributes.App;
+        public const string RepoType = AltinnAttributes.RepoType;
 
         /// <summary>
         /// The runtime environment an operation targets, such as tt02 for a deploy. Never a Studio environment:
         /// where Designer itself runs is the resource's deployment.environment.name.
         /// </summary>
-        public const string Environment = "altinn.environment";
+        public const string Environment = AltinnAttributes.Environment;
 
         /// <summary>
         /// Marks a span whose trace the collectors' tail sampling always keeps.
         /// </summary>
-        public const string Sampling = "altinn.studio.sampling";
+        public const string Sampling = AltinnAttributes.Sampling;
+
+        /// <summary>
+        /// The Azure DevOps run that deploys or undeploys an app, on every part of the deploy.
+        /// </summary>
+        public const string AppDeployBuildId = AltinnAttributes.AppDeployBuildId;
 
         public static class AppActivity
         {
@@ -48,6 +69,34 @@ internal static partial class ServiceTelemetry
             public const string TimeoutSeconds = Prefix + "timeout_seconds";
             public const string UndeployedAppWithSignalCount = Prefix + "undeployed_app_with_signal_count";
             public const string WindowDays = Prefix + "window_days";
+        }
+
+        public static class AppDeploy
+        {
+            private const string Prefix = "altinn.designer.app_deploy.";
+
+            /// <summary>
+            /// Whether the pipeline deploys or undeploys the app: deploy or undeploy.
+            /// </summary>
+            public const string PipelineType = Prefix + "pipeline.type";
+
+            /// <summary>
+            /// The Azure DevOps run's status when Designer polled it, such as in_progress or completed. It is not the
+            /// semantic conventions' cicd.pipeline.run.state, which has no state for a run that has finished.
+            /// </summary>
+            public const string PipelineStatus = Prefix + "pipeline.status";
+
+            /// <summary>
+            /// How the deploy or undeploy ended: Flux's result, such as install_succeeded or upgrade_failed, or
+            /// pipeline_failed or pipeline_canceled when the pipeline did not succeed.
+            /// </summary>
+            public const string Result = Prefix + "result";
+
+            /// <summary>
+            /// What made Designer queue the pipeline: manual, for a deploy or undeploy someone asked for, or
+            /// inactivity, for the nightly undeploy of an inactive app.
+            /// </summary>
+            public const string Trigger = Prefix + "trigger";
         }
 
         public static class ChatCleanup
@@ -82,6 +131,7 @@ internal static partial class ServiceTelemetry
             public const string CloneCloned = Prefix + "clone.cloned";
             public const string CloneFailureHandled = Prefix + "clone.failure_handled";
             public const string CloneRepoExisted = Prefix + "clone.repo_existed";
+            public const string CombineStatus = Prefix + "combine.status";
             public const string CommitCreated = Prefix + "commit.created";
             public const string CommitIsDirty = Prefix + "commit.is_dirty";
             public const string CommitMessageEmpty = Prefix + "commit.message_empty";
@@ -89,6 +139,7 @@ internal static partial class ServiceTelemetry
             public const string CommitSha = Prefix + "commit.sha";
             public const string ContentStatusCount = Prefix + "content_status_count";
             public const string FeatureBranch = Prefix + "feature_branch";
+            public const string FetchTrackingRefsRebuilt = Prefix + "fetch.tracking_refs_rebuilt";
             public const string FilePath = Prefix + "file.path";
             public const string FileStaged = Prefix + "file.staged";
             public const string IsDirty = Prefix + "is_dirty";
@@ -118,6 +169,11 @@ internal static partial class ServiceTelemetry
             public const string Repository = Prefix + "repository";
             public const string RepositoryStatus = Prefix + "repository_status";
             public const string SourceBranch = Prefix + "source_branch";
+
+            /// <summary>
+            /// Why the repository status could not save refreshed stat data in the index, such as a locked index.
+            /// </summary>
+            public const string StatusIndexUpdateFailure = Prefix + "status.index_update_failure";
             public const string TargetBranch = Prefix + "target_branch";
         }
 
@@ -141,10 +197,19 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.notification.";
 
+            /// <summary>
+            /// Who a delivery goes to: the service owner's contact points, or the Studio team's internal channel.
+            /// </summary>
+            public const string Audience = Prefix + "audience";
             public const string ContactMethodType = Prefix + "contact_method.type";
             public const string ContactPointId = Prefix + "contact_point.id";
             public const string DeliveryCount = Prefix + "delivery_count";
             public const string DeliveryFailedCount = Prefix + "delivery_failed_count";
+
+            /// <summary>
+            /// What a notification is about, such as an alert or a periodic report.
+            /// </summary>
+            public const string Kind = Prefix + "kind";
             public const string Title = Prefix + "title";
         }
 
@@ -226,7 +291,6 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.undeploy.";
 
-            public const string BuildId = Prefix + "build.id";
             public const string PendingAgeSeconds = Prefix + "pending_age_seconds";
             public const string PendingSkipThresholdSeconds = Prefix + "pending_skip_threshold_seconds";
             public const string SkipReason = Prefix + "skip_reason";

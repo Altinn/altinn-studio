@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';

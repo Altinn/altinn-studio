@@ -4,7 +4,7 @@ import { useCreateDeploymentMutation } from '../../../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
-import { StudioSpinner, StudioError, StudioAlert } from '@studio/components';
+import { StudioSpinner, StudioError, StudioAlert } from '@designer/components';
 
 export interface DeployProps {
   appDeployedVersion: string;

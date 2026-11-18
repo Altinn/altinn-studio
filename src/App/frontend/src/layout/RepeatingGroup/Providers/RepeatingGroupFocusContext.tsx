@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
-import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
+import { isRepeatingParent } from 'src/features/form/layout/utils/repeating';
 import { useFocusComponentRequest } from 'src/layout/focusComponent';
 import {
   RepGroupContext,
@@ -52,7 +52,7 @@ const { Provider, useCtx } = createContext<Context>({
 export const useRepeatingGroupsFocusContext = () => useCtx();
 
 export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
-  const elementRefs = useMemo(() => new Map<string, HTMLElement | null>(), []);
+  const elementRefs = useRef(new Map<string, HTMLElement | null>());
   const waitingForFocus = useRef<number | null>(null);
   const waitingForEditContainer = useRef<number | null>(null);
   const waitingForEditButton = useRef<number | null>(null);
@@ -62,7 +62,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
 
   const triggerFocus: FocusTrigger = (rowIndex) => {
     waitingForFocus.current = null;
-    if (elementRefs.size === 0) {
+    if (elementRefs.current.size === 0) {
       waitingForFocus.current = rowIndex;
       return;
     }
@@ -71,7 +71,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
     // container last, so we only focus an action button when there is nothing else to focus.
     const prefix = `${rowIndex}-`;
     const rowContainerKey = `${rowIndex}-${ROW_CONTAINER_KEY}`;
-    const matching = Array.from(elementRefs.entries()).filter(([key]) => key.startsWith(prefix));
+    const matching = Array.from(elementRefs.current.entries()).filter(([key]) => key.startsWith(prefix));
     const ordered = [
       ...matching.filter(([key]) => key !== rowContainerKey),
       ...matching.filter(([key]) => key === rowContainerKey),
@@ -90,7 +90,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
 
   const refSetter: RefSetter = (rowIndex, key, node) => {
     if (node) {
-      elementRefs.set(`${rowIndex}-${key}`, node);
+      elementRefs.current.set(`${rowIndex}-${key}`, node);
 
       if (waitingForFocus.current === rowIndex) {
         waitingForFocus.current = null;
@@ -105,14 +105,14 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
         focusEditButton(rowIndex);
       }
     } else {
-      elementRefs.delete(`${rowIndex}-${key}`);
+      elementRefs.current.delete(`${rowIndex}-${key}`);
     }
   };
 
   // Move focus to the first focusable element inside the edit container of a row. Used when
   // navigating between multiPage pages and when opening the next row for editing
   const focusEditContainer = (rowIndex: number) => {
-    const element = elementRefs.get(`${rowIndex}-${EDIT_CONTAINER_KEY}`);
+    const element = elementRefs.current.get(`${rowIndex}-${EDIT_CONTAINER_KEY}`);
     const firstFocusableChild = element && findFirstFocusableElement(element);
     if (firstFocusableChild) {
       waitingForEditContainer.current = null;
@@ -124,7 +124,7 @@ export function RepeatingGroupsFocusProvider({ children }: PropsWithChildren) {
 
   // Move focus to a row's edit button
   const focusEditButton = (rowIndex: number) => {
-    const element = elementRefs.get(`${rowIndex}-${EDIT_BUTTON_KEY}`);
+    const element = elementRefs.current.get(`${rowIndex}-${EDIT_BUTTON_KEY}`);
     if (element) {
       waitingForEditButton.current = null;
       element.focus();
@@ -239,11 +239,13 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     while (subject.type === 'node') {
       const parent = layoutLookups.componentToParent[subject.id];
       if (parent?.id === baseComponentId) {
-        targetChild = subject.id;
+        if (isRepeatingParent(config, subject.id)) {
+          targetChild = subject.id;
+        }
         break;
       }
       const parentComponent = layoutLookups.allComponents[parent.id];
-      if (parentComponent && isRepeatingComponentType(parentComponent.type)) {
+      if (isRepeatingParent(parentComponent, subject.id)) {
         // For every repeating component type we encounter in the hierarchy above this target, we should look backwards
         // in the indexed id for our actual row id.
         negativeRowIndex -= 1;
@@ -286,13 +288,11 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     baseComponentId,
     changePageToRow,
     dataModelBindings.group,
-    config.edit?.mode,
+    config,
     layoutLookups.allComponents,
     layoutLookups.componentToParent,
     openForEditing,
-    config.pagination,
     rowsSelector,
     focusRequest,
-    config.tableColumns,
   ]);
 }

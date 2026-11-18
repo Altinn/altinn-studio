@@ -16,6 +16,7 @@ import type {
   ITableColumnProperties,
 } from '@app/layout-contract/generated/common.generated';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
@@ -30,6 +31,10 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Grid/GridSummary.module.css';
 import { useIsGridRowHidden } from 'src/layout/Grid/tools';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import {
+  useSummaryCaptionProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import {
   EmptyChildrenBoundary,
   useHasOnlyEmptyChildren,
@@ -51,6 +56,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import { getLabelSettings, useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -67,6 +73,7 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const pdfModeActive = usePdfModeActive();
@@ -150,14 +157,18 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
         data-testid={`summary-${indexedId}`}
       >
         {title && (
-          <caption className={classes.tableCaption}>
-            <Heading
-              data-size='xs'
-              level={4}
-            >
-              <Lang id={title} />
-            </Heading>
-          </caption>
+          <Caption
+            {...captionProps}
+            className={classes.tableCaption}
+            title={
+              <Heading
+                data-size='xs'
+                level={4}
+              >
+                <Lang id={title} />
+              </Heading>
+            }
+          />
         )}
         {tableSections}
       </Table>
@@ -287,13 +298,12 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   );
 
   const required = useComponentIsRequired(config);
-  const showOptionalMarking =
-    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const showOptionalMarking = useShowOptionalIndicator(getLabelSettings(config));
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
   let indicator = '';
-  if (required) {
+  if (required && !readOnly) {
     indicator = ` ${langAsNonProcessedString('form_filler.required_label')}`;
   } else if (required === false && showOptionalMarking && !readOnly) {
     indicator = ` ${langAsString('general.optional')}`;
@@ -317,7 +327,7 @@ function SummaryCellInner({
   isSmall,
 }: CellProps & { headerTitle: string }) {
   if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/immutability
     mutableColumnSettings[idx] = cell.columnOptions;
   }
 
@@ -410,7 +420,18 @@ function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
   );
 }
 
-function SummaryCellWithComponent({
+function SummaryCellWithComponent(props: CellWithComponentProps & { baseComponentId: string }) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenSummaryCell isHeader={props.isHeader} /> : <VisibleSummaryCellWithComponent {...props} />;
+}
+
+function HiddenSummaryCell({ isHeader }: { isHeader?: boolean }) {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  return <CellComponent />;
+}
+
+function VisibleSummaryCellWithComponent({
   baseComponentId,
   columnStyleOptions,
   isHeader = false,
@@ -422,7 +443,6 @@ function SummaryCellWithComponent({
   const displayData = useDisplayData(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const isHidden = useIsHidden(baseComponentId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(baseComponentId);
 
@@ -439,10 +459,6 @@ function SummaryCellWithComponent({
         : SummaryContains.EmptyValueNotRequired
       : SummaryContains.SomeUserContent,
   );
-
-  if (isHidden) {
-    return <CellComponent />;
-  }
 
   return (
     <CellComponent
@@ -504,6 +520,7 @@ function SummaryCellWithLabel({
   isSmall,
 }: CellWithLabelProps) {
   const config = useComponentConfig(cell.labelFrom);
+  const { description, help } = useSummaryLabelText(cell.labelFrom);
   const title2 = useEvalExpression(
     config.textResourceBindings && 'title' in config.textResourceBindings
       ? config.textResourceBindings.title
@@ -512,7 +529,7 @@ function SummaryCellWithLabel({
   );
   const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const required = useComponentIsRequired(config);
-  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = getLabelSettings(config);
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 
@@ -527,6 +544,8 @@ function SummaryCellWithLabel({
       <LabelContent
         id={useIndexedId(cell.labelFrom)}
         label={title2}
+        description={description}
+        help={help}
         required={required}
         readOnly={readOnly}
         labelSettings={labelSettings}

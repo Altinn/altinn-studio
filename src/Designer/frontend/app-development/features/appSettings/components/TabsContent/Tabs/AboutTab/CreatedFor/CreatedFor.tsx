@@ -2,9 +2,9 @@ import type { ReactElement } from 'react';
 import classes from './CreatedFor.module.css';
 import { useTranslation } from 'react-i18next';
 import type { Repository } from 'app-shared/types/Repository';
-import { StudioParagraph } from '@studio/components';
-import { DateUtils } from '@studio/pure-functions';
-import { createdForOrganization } from '@studio/testing/testids';
+import { StudioParagraph } from '@designer/components';
+import { DateUtils } from '@designer/pure-functions';
+import { createdForOrganization } from '@designer/testing/testids';
 
 export type CreatedForProps = {
   repository: Repository;

@@ -3,7 +3,7 @@ import { pageValidationDefinition } from '@app/layout-contract';
 import { getAllowedValues } from '../../../../../data/componentCatalog';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 
 export enum Scope {
   AllTasks = 'allTasks',

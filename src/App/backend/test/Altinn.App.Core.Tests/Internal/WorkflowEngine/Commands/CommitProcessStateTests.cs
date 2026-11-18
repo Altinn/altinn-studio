@@ -27,11 +27,11 @@ public class CommitProcessStateTests
         CommandSetup setup = CreateCommandSetup(CreateInstance("Task_1"));
         List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)CreateCommand()).Execute(
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)CreateCommand()).Execute(
             CreateContext(setup.UnitOfWork, CreateProcessStateChangePayload(setup.UnitOfWork.Instance, "Task_2"))
         );
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         setup.MutationClient.VerifyNoOtherCalls();
         Assert.Equal(WorkflowAggregateSaveOutcome.Saved, await Save(setup));
         StorageInstanceMutationRequest mutation = Assert.Single(mutations);
@@ -141,10 +141,10 @@ public class CommitProcessStateTests
     {
         CommandSetup setup = CreateCommandSetup(CreateInstance("Task_1"));
 
-        ProcessEngineCommandResult result = await CreateDeleteData()
+        WorkflowEngineCommandResult result = await CreateDeleteData()
             .Execute(CreateContext(setup.UnitOfWork, serializedPayload: null));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, await Save(setup));
     }
@@ -277,11 +277,11 @@ public class CommitProcessStateTests
             }
         );
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
             CreateContext(setup.UnitOfWork, payload)
         );
 
-        var failure = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failure = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failure.NonRetryable);
         Assert.Equal("InvalidOperationException", failure.ExceptionType);
         Assert.Same(originalProcess, setup.UnitOfWork.Instance.Process);
@@ -308,11 +308,11 @@ public class CommitProcessStateTests
         );
         CommitProcessState command = CreateCommand();
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
             CreateContext(setup.UnitOfWork, payload)
         );
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
         setup.MutationClient.VerifyNoOtherCalls();
@@ -325,9 +325,9 @@ public class CommitProcessStateTests
         var context = CreateContext(Mock.Of<IInstanceDataMutator>(), payload);
         CommitProcessState command = CreateCommand();
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(context);
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(context);
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }
@@ -347,11 +347,11 @@ public class CommitProcessStateTests
         var mutatorMock = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
         CommitProcessState command = CreateCommand();
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
             CreateContext(mutatorMock.Object, serializedPayload)
         );
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("CommitProcessState payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
@@ -373,12 +373,15 @@ public class CommitProcessStateTests
             Data = [],
         };
 
-    private static ProcessEngineCommandContext CreateContext(
+    private static WorkflowEngineCommandContext CreateContext(
         IInstanceDataMutator mutator,
         ProcessStateChangePayload payload
     ) => CreateContext(mutator, CommandPayloadSerializer.Serialize(payload));
 
-    private static ProcessEngineCommandContext CreateContext(IInstanceDataMutator mutator, string? serializedPayload) =>
+    private static WorkflowEngineCommandContext CreateContext(
+        IInstanceDataMutator mutator,
+        string? serializedPayload
+    ) =>
         new()
         {
             StateCarry = new(),
@@ -441,10 +444,10 @@ public class CommitProcessStateTests
     private static async Task ExecuteAndSave(
         CommandSetup setup,
         IWorkflowEngineCommand command,
-        ProcessEngineCommandContext context
+        WorkflowEngineCommandContext context
     )
     {
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(await command.Execute(context));
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(await command.Execute(context));
         await Save(setup);
     }
 

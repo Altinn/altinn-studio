@@ -13,6 +13,8 @@ public static class SyncErrorCodes
     public const string LayoutSetComponentIdSyncError = nameof(LayoutSetComponentIdSyncError);
     public const string LayoutSetDeletedLayoutsSyncError = nameof(LayoutSetDeletedLayoutsSyncError);
     public const string LayoutSetIdChangedLayoutsSyncError = nameof(LayoutSetIdChangedLayoutsSyncError);
+    public const string LayoutSetIdChangedProcessSyncError = nameof(LayoutSetIdChangedProcessSyncError);
+    public const string LayoutSetDeletedProcessSyncError = nameof(LayoutSetDeletedProcessSyncError);
     public const string LayoutSetSubFormButtonSyncError = nameof(LayoutSetSubFormButtonSyncError);
     public const string SettingsComponentIdSyncError = nameof(SettingsComponentIdSyncError);
     public const string LayoutPageAddSyncError = nameof(LayoutPageAddSyncError);

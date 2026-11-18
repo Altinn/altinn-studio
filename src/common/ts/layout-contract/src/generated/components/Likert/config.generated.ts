@@ -38,9 +38,13 @@ export interface CompLikertExternal
 
 export type ILikertFilter = { key: 'start' | 'stop'; value: string | number }[];
 
+export interface LikertSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type LikertSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Likert' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & LikertSummaryOverrides)
+  | ({ componentType: 'Likert' } & LikertSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Container,
@@ -66,8 +70,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompLikertExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: LikertSummaryOverrides;
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: b6a9af4ddec8143c69ca4387ab35d715ba4159464eec98d2da86e3353f2550c9
+// Source hash: 5566c8f5188131429b531c4b6ab767ecc240bef0fd311311dd0684b9b1422ea5

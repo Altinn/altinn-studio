@@ -35,7 +35,7 @@
       "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"],
       "language/*": ["./language/*"],
       "packages/*": ["./packages/*"],
-      "@studio/testing/*": ["./testing/*"]
+      "@designer/testing/*": ["./testing/*"]
     },
     "plugins": [
       {

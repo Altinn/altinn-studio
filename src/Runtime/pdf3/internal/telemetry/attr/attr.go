@@ -4,8 +4,11 @@
 //
 // A concept has one name on every signal: a log record about a request uses the key the
 // request's span uses. No attribute name is a string literal at a call site. The package imports
-// nothing, so every package, including log and assert, can use it.
+// only the shared vocabulary, which imports nothing, so every package, including log and assert,
+// can use it.
 package attr
+
+import sharedattr "altinn.studio/common/telemetry/attr"
 
 // Semantic conventions pdf3 sets on log records. Spans and metrics take these from semconv.
 const (
@@ -23,8 +26,8 @@ const Error = "error"
 // The shared Altinn vocabulary. ServiceOwner and App are the service owner and app a PDF request
 // is for, on the entry spans of the proxy and the worker, never on metrics.
 const (
-	ServiceOwner = "altinn.service_owner"
-	App          = "altinn.app"
+	ServiceOwner = sharedattr.ServiceOwner
+	App          = sharedattr.App
 )
 
 const prefix = "altinn.pdf."

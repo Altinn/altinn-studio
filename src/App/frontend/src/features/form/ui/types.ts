@@ -9,6 +9,7 @@ export type GlobalPageSettings = {
   showExpandWidthButton: boolean;
   expandedWidth: boolean;
   showProgress: boolean;
+  hideOptionalIndicator: boolean;
   autoSaveBehavior: 'onChangeFormData' | 'onChangePage';
   navigationTitle: ExprValToActualOrExpr<ExprVal.String> | undefined;
   taskNavigation: (NavigationTask | NavigationReceipt)[];

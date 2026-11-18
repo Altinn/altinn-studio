@@ -47,7 +47,12 @@ export enum SummaryContains {
 }
 
 export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProps) {
+  const hidden = useIsHiddenInSummary(targetBaseComponentId);
+  const { leafCanReturnNull } = useSummarySoftHidden(hidden);
   const type = useComponentConfig(targetBaseComponentId).type;
+  if (hidden && leafCanReturnNull) {
+    return <HiddenSummary />;
+  }
   const def = getComponentDef(type);
   const SummaryRenderer = def.renderSummary2;
   return SummaryRenderer ? (
@@ -55,6 +60,11 @@ export function ComponentSummary({ targetBaseComponentId }: ComponentSummaryProp
       <SummaryRenderer targetBaseComponentId={targetBaseComponentId} />
     </FormComponentContextProvider>
   ) : null;
+}
+
+function HiddenSummary() {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  return null;
 }
 
 export function useSummarySoftHidden(hidden: boolean | undefined) {
@@ -72,7 +82,7 @@ export function useSummarySoftHidden(hidden: boolean | undefined) {
   };
 }
 
-function useIsHiddenInSummary(baseComponentId: string) {
+export function useIsHiddenInSummary(baseComponentId: string) {
   const hiddenInOverride = useSummaryOverrides(baseComponentId)?.hidden;
 
   // We say that we're not respecting DevTools here, but that's just because Summary2 implements that support

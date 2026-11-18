@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StudioAlert, StudioToggleableTextfield } from '@studio/components';
+import { StudioAlert, StudioToggleableTextfield } from '@designer/components';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { useTranslation } from 'react-i18next';

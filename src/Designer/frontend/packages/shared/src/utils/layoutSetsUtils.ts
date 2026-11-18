@@ -3,7 +3,7 @@ import type { LayoutSetConfig, LayoutSets } from 'app-shared/types/api/LayoutSet
 import { validateLayoutNameAndLayoutSetName } from 'app-shared/utils/LayoutAndLayoutSetNameValidationUtils/validateLayoutNameAndLayoutSetName';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 /**
  * Returns the task a layout set is connected to, normalizing across app-frontend versions.

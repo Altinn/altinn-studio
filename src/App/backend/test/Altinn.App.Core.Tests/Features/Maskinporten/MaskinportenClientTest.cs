@@ -9,7 +9,9 @@ using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.PlatformServices.Tests.Mocks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
@@ -49,18 +51,27 @@ public class MaskinportenClientTests
         public MaskinportenClient Client() =>
             (MaskinportenClient)App.Services.GetRequiredService<IMaskinportenClient>();
 
-        public static Fixture Create(bool configureMaskinporten = true, string? authority = null)
+        public static Fixture Create(
+            bool configureMaskinporten = true,
+            string? authority = null,
+            string org = "tdd",
+            string hostName = DeployedHostName
+        )
         {
             var mockHttpClientFactory = new Mock<IHttpClientFactory>();
             var fakeTimeProvider = new FakeTime(new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero));
             var effectiveAuthority = authority ?? DefaultSettings.Authority;
+            var appMetadataMock = new Mock<IAppMetadata>();
+            appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata($"{org}/test-app"));
 
             var app = AppBuilder.Build(registerCustomAppServices: services =>
             {
                 services.AddSingleton(mockHttpClientFactory.Object);
+                services.AddSingleton(appMetadataMock.Object);
                 services.Configure<MemoryCacheOptions>(options => options.Clock = fakeTimeProvider);
                 services.AddSingleton<TimeProvider>(fakeTimeProvider);
                 services.AddSingleton(fakeTimeProvider);
+                services.Configure<GeneralSettings>(options => options.HostName = hostName);
 
                 if (configureMaskinporten)
                 {
@@ -90,6 +101,8 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
+                App.Services.GetRequiredService<IAppMetadata>(),
+                App.Services.GetRequiredService<RuntimeEnvironment>(),
                 logger ?? App.Services.GetRequiredService<ILogger<MaskinportenClient>>(),
                 timeProvider ?? App.Services.GetRequiredService<TimeProvider>()
             );
@@ -103,6 +116,8 @@ public class MaskinportenClientTests
                 App.Services.GetRequiredService<IOptions<PlatformSettings>>(),
                 App.Services.GetRequiredService<IHttpClientFactory>(),
                 App.Services.GetRequiredService<HybridCache>(),
+                App.Services.GetRequiredService<IAppMetadata>(),
+                App.Services.GetRequiredService<RuntimeEnvironment>(),
                 new CapturingLogger(sink),
                 App.Services.GetRequiredService<TimeProvider>()
             );
@@ -281,6 +296,109 @@ public class MaskinportenClientTests
         Assert.Equal(altinnAccessToken, result.Value);
         Assert.Equal(expectedExpiresAt, result.ExpiresAt);
         Assert.Equal(formattedScopes, result.Scope);
+    }
+
+    [Theory]
+    [InlineData("ttd", "?test=true")]
+    [InlineData("TTD", "?test=true")]
+    [InlineData("digdir", "")]
+    [InlineData("brg", "")]
+    public async Task GetAltinnExchangedToken_AsksForATestTokenOnlyForTtdApps(string org, string expectedQuery)
+    {
+        // Arrange - a ttd app's client is Digdir's, which Authentication only issues as ttd when asked for a test token
+        await using var fixture = Fixture.Create(org: org);
+        var capturedUrls = new CapturedUrls();
+        var maskinportenTokenResponse = TestAuthentication.GetMaskinportenToken(
+            scope: "scope",
+            expiry: TimeSpan.FromMinutes(2),
+            fixture.FakeTime
+        );
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+            {
+                var mockHandler = TestHelpers.MockHttpMessageHandlerFactory(
+                    maskinportenTokenResponse,
+                    TestAuthentication.GetServiceOwnerToken(),
+                    wellKnownIssuer: null,
+                    capturedUrls
+                );
+                return new HttpClient(mockHandler.Object);
+            });
+
+        // Act
+        await fixture.Client().GetAltinnExchangedToken(["scope"]);
+
+        // Assert
+        Assert.NotNull(capturedUrls.ExchangeUrl);
+        Assert.Equal(expectedQuery, capturedUrls.ExchangeUrl.Query);
+    }
+
+    [Fact]
+    public async Task GetAltinnExchangedToken_OnLocaltest_GetsTheTokenFromLocaltestWithoutAMaskinportenClient()
+    {
+        // Arrange - a local run usually has no Maskinporten client, and localtest has no exchange endpoint
+        await using var fixture = Fixture.Create(configureMaskinporten: false, org: "ttd", hostName: LocaltestHostName);
+        var requests = new List<HttpRequestMessage>();
+        var localtestToken = TestAuthentication.GetServiceOwnerToken(org: "ttd");
+        fixture
+            .HttpClientFactoryMock.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(() =>
+                new HttpClient(
+                    new DelegatingHandlerStub(
+                        (request, _) =>
+                        {
+                            requests.Add(request);
+                            return Task.FromResult(
+                                new HttpResponseMessage(HttpStatusCode.OK)
+                                {
+                                    Content = new StringContent(localtestToken),
+                                }
+                            );
+                        }
+                    )
+                )
+            );
+
+        // Act
+        var result = await fixture.Client().GetAltinnExchangedToken(["b", "a"]);
+
+        // Assert
+        Assert.Equal(localtestToken, result.Value);
+        var request = Assert.Single(requests);
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.Equal(
+            "http://localhost:5101/Home/GetTestOrgToken?org=ttd&orgNumber=991825827&authenticationLevel=3&scopes=a%20b",
+            request.RequestUri?.AbsoluteUri
+        );
+    }
+
+    public static TheoryData<string> RequestsLocaltestCannotIssue => ["consumer org", "resource", "system user"];
+
+    [Theory]
+    [MemberData(nameof(RequestsLocaltestCannotIssue))]
+    public async Task GetAltinnExchangedToken_OnLocaltest_ThrowsForARequestLocaltestCannotIssue(string kind)
+    {
+        // Arrange
+        await using var fixture = Fixture.Create(configureMaskinporten: false, hostName: LocaltestHostName);
+        var request = kind switch
+        {
+            "consumer org" => new MaskinportenTokenRequest
+            {
+                Scopes = ["scope"],
+                ConsumerOrg = OrganizationNumber.Parse("991825827"),
+            },
+            "resource" => new MaskinportenTokenRequest { Scopes = ["scope"], Resource = "https://api.example.com/v1" },
+            "system user" => new MaskinportenTokenRequest
+            {
+                Scopes = ["scope"],
+                SystemUser = new MaskinportenSystemUser { Organization = OrganizationNumber.Parse("991825827") },
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+
+        // Act & assert - throws before any request, so the HttpClientFactory mock needs no setup
+        await Assert.ThrowsAsync<NotSupportedException>(() => fixture.Client().GetAltinnExchangedToken(request));
     }
 
     [Fact]
@@ -1014,7 +1132,6 @@ public class MaskinportenClientTests
         // Arrange
         await using var fixture = Fixture.Create();
         const string expectedIssuer = "https://issuer.maskinporten.no/";
-        var shouldFail = false;
         var fetches = 0;
         var firstRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var secondRound = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -1022,14 +1139,14 @@ public class MaskinportenClientTests
             fixture,
             (_, _) =>
             {
+                // The fetch number decides the response, not a flag the test flips: the test resumes as
+                // soon as a round signals, which can be before this handler has built its response.
                 var n = Interlocked.Increment(ref fetches);
                 if (n == 1)
                     firstRound.TrySetResult();
                 if (n == 2)
                     secondRound.TrySetResult();
-                return Task.FromResult(
-                    shouldFail ? WellKnownErrorResponse() : WellKnownSuccessResponse(expectedIssuer)
-                );
+                return Task.FromResult(n == 1 ? WellKnownSuccessResponse(expectedIssuer) : WellKnownErrorResponse());
             }
         );
         var logger = new RecordingLogger<MaskinportenWellKnownRefreshService>();
@@ -1038,7 +1155,6 @@ public class MaskinportenClientTests
         // Act - resolve, then the next tick's refresh fails
         await service.StartAsync(CancellationToken.None);
         await firstRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        shouldFail = true;
         fixture.FakeTime.Advance(MaskinportenWellKnownRefreshService.WellKnownRefreshInterval);
         await secondRound.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var result = await fixture.Client().GetAudienceFromWellKnown();
@@ -1467,10 +1583,9 @@ public class MaskinportenClientTests
         // Act
         var jwt = fixture.Client().GenerateJwtGrant(request, "https://aud/");
         var details = DecodeJwtPayload(jwt).GetProperty("authorization_details");
-        var parsed = Authenticated.AuthorizationDetailsClaim.Parse(details);
+        var systemUser = Authenticated.SystemUserAuthorizationDetailsClaim.Parse(details);
 
         // Assert
-        var systemUser = Assert.IsType<Authenticated.SystemUserAuthorizationDetailsClaim>(parsed);
         Assert.Equal("iso6523-actorid-upis", systemUser.SystemUserOrg.Authority);
         Assert.Equal("0192:991825827", systemUser.SystemUserOrg.Id);
     }

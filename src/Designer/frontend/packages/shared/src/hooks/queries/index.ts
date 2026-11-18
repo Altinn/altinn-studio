@@ -12,7 +12,6 @@ export { useBranchesQuery } from './useBranchesQuery';
 export { useCurrentBranchQuery } from './useCurrentBranchQuery';
 export { useTextResourcesQuery } from './useTextResourcesQuery';
 export { useUserQuery } from './useUserQuery';
-export { useResourcePolicyActionsQuery } from './useResourcePolicyActionsQuery';
 export { useResourcePolicySubjectsQuery } from './useResourcePolicySubjectsQuery';
 export { useResourceAccessPackagesQuery } from './useResourceAccessPackagesQuery';
 export { useUserOrgPermissionsQuery } from './useUserOrgPermissionsQuery';

@@ -59,7 +59,6 @@ export enum QueryKey {
   RuleHandler = 'RuleHandler',
   SearchRepos = 'SearchRepos',
   StarredRepos = 'StarredRepos',
-  SubformComponents = 'SubformComponents',
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
   Widgets = 'Widgets',
@@ -81,6 +80,9 @@ export enum QueryKey {
   AppHealthMetrics = 'AppHealthMetrics',
   AppInstances = 'AppInstances',
   AppInstanceDetails = 'AppInstanceDetails',
+  AppInstancesWorkflowHealth = 'AppInstancesWorkflowHealth',
+  AppInstanceWorkflows = 'AppInstanceWorkflows',
+  AppWorkflowProblems = 'AppWorkflowProblems',
   AppProcessMetadata = 'AppProcessMetadata',
   ProcessHistory = 'ProcessHistory',
   InstanceEvents = 'InstanceEvents',
@@ -89,9 +91,9 @@ export enum QueryKey {
 
   // Resourceadm
   ResourceList = 'ResourceList',
+  ResourceEnvironments = 'ResourceEnvironments',
   Altinn2ResourcePolicies = 'Altinn2ResourcePolicies',
   ResourcePolicy = 'ResourcePolicy',
-  ResourcePolicyActions = 'ResourcePolicyActions',
   ResourcePolicySubjects = 'ResourcePolicySubjects',
   ResourcePolicyAccessPackages = 'ResourcePolicyAccessPackages',
   ResourcePolicyAccessPackageServices = 'ResourcePolicyAccessPackageServices',

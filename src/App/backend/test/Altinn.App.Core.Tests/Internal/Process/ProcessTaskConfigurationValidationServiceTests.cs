@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
@@ -9,6 +10,7 @@ using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
+using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -83,6 +85,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     public async Task StartAsync_MissingOrBlankTaskType_FailsValidation(string? taskType)
     {
         var reader = new Mock<IProcessReader>();
+        reader.Setup(r => r.GetExclusiveGateways()).Returns([]);
         reader
             .Setup(r => r.GetProcessTasks())
             .Returns([
@@ -186,6 +189,55 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
     }
 
+    [Fact]
+    public async Task StartAsync_ReportsALifecyclePipelineThatCannotBeComposed()
+    {
+        // The pipeline is composed on every transition, so one that cannot be composed would fail every transition
+        // into the task. It is reported at startup instead, with the rest of the task's configuration errors.
+        var exception = await Validate(
+            services => services.AddSingleton<IProcessTask>(new UncomposableTask("archive")),
+            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Task 'Task_Custom': composing its start pipeline failed: no stages for you",
+            exception.Message
+        );
+    }
+
+    private sealed class UncomposableTask(string type) : IProcessTask
+    {
+        public string Type => type;
+
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            throw new InvalidOperationException("no stages for you");
+    }
+
+    [Fact]
+    public async Task StartAsync_ReportsALifecyclePipelineComposedAsNull()
+    {
+        // The interface promises a pipeline, but a null slips through at run time as a failed step on every
+        // transition out of the task; at startup it is a finding like any other composition failure.
+        var exception = await Validate(
+            services => services.AddSingleton<IProcessTask>(new NullPipelineTask("archive")),
+            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Task 'Task_Custom': composing its end pipeline failed: NullPipelineTask.DefineEnd returned null",
+            exception.Message
+        );
+    }
+
+    private sealed class NullPipelineTask(string type) : IProcessTask
+    {
+        public string Type => type;
+
+        public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => null!;
+    }
+
     [Theory]
     [InlineData("bpmn")]
     [InlineData("metadata")]
@@ -228,7 +280,9 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => validate(context);
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
@@ -419,7 +473,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             {
                 s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
                 s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
-                s.AddSingleton<IPipelineServiceTask>(new SimpleTask("notify"));
+                s.AddSingleton<IServiceTask>(new SimpleTask("notify"));
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
             logger
@@ -467,7 +521,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             s =>
             {
                 s.AddSingleton<IServiceTask>(Uninitialized<PdfServiceTask>());
-                s.AddSingleton<IPipelineServiceTask>(Uninitialized<EFormidlingServiceTask>());
+                s.AddSingleton<IServiceTask>(Uninitialized<EFormidlingServiceTask>());
                 s.AddSingleton<IServiceTask>(Uninitialized<SubformPdfServiceTask>());
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
@@ -520,8 +574,173 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.Contains($"({typeof(OtherSimpleTask).FullName})", warning.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartAsync_RequestDependentGateway_DefersOnlyCodeDependentValidation(bool expressions)
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+        var httpContext = new Microsoft.AspNetCore.Http.HttpContextAccessor();
+        var exception = await Validate(
+            services =>
+                services.AddTransient<IProcessExclusiveGateway>(provider =>
+                {
+                    _ = httpContext.HttpContext ?? throw new InvalidOperationException("No HTTP context available");
+                    return new DataValuesFilter("Gateway1", "choose");
+                }),
+            GatewayReader(null, Flow("Flow3", false), Flow("Flow4", expressions)),
+            logger
+        );
+
+        if (expressions)
+        {
+            Assert.NotNull(exception);
+            Assert.Contains("not its default: 'Flow3'", exception.Message);
+        }
+        else
+        {
+            Assert.Null(exception);
+        }
+        Assert.Contains(
+            logger.Collector.GetSnapshot(),
+            record =>
+                record.Level == LogLevel.Warning
+                && record.Message.Contains("deferred until navigation", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public async Task StartAsync_GatewayDefaultWithoutCondition_PassesValidation()
+    {
+        var exception = await Validate(_ => { }, ProcessTestUtils.SetupProcessReader("gateway-default-fallback.bpmn"));
+
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    // Every flow has a condition.
+    [InlineData(null, true, true, false)]
+    // No conditions and no default: the app's own gateway code decides.
+    [InlineData(null, false, false, true)]
+    // No conditions: the app's own gateway code decides, so the default is up to it.
+    [InlineData("Flow3", false, false, true)]
+    public async Task StartAsync_GatewayFlowsWithConditionsOrOwnCode_PassValidation(
+        string? defaultFlow,
+        bool flow3HasCondition,
+        bool flow4HasCondition,
+        bool gatewayCode
+    )
+    {
+        var exception = await Validate(
+            s =>
+            {
+                if (gatewayCode)
+                    s.AddSingleton<IProcessExclusiveGateway>(new DataValuesFilter("Gateway1", "choose"));
+            },
+            GatewayReader(defaultFlow, Flow("Flow3", flow3HasCondition), Flow("Flow4", flow4HasCondition))
+        );
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task StartAsync_GatewayWithOnlyOneFlowWithoutCondition_PassesValidation()
+    {
+        var exception = await Validate(_ => { }, GatewayReader(null, Flow("Flow3", false)));
+
+        Assert.Null(exception);
+    }
+
+    // Without code for the gateway, both flows are always taken.
+    [Fact]
+    public async Task StartAsync_FlowsWithoutConditionOrDefault_FailsValidation()
+    {
+        var exception = await Validate(_ => { }, GatewayReader(null, Flow("Flow3", false), Flow("Flow4", false)));
+
+        Assert.NotNull(exception);
+        Assert.Contains("not its default: 'Flow3', 'Flow4'. ", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("default=", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task StartAsync_FlowWithoutConditionBesideConditions_SuggestsMakingItTheDefault()
+    {
+        var exception = await Validate(_ => { }, GatewayReader(null, Flow("Flow3", false), Flow("Flow4", true)));
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Exclusive gateway 'Gateway1' has outgoing sequence flows without a condition that are not its default: "
+                + "'Flow3'.",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("default=\"Flow3\"", exception.Message, StringComparison.Ordinal);
+    }
+
+    // Without code for the gateway, Flow4 would always be taken and the default never.
+    [Fact]
+    public async Task StartAsync_FlowWithoutConditionBesideDefault_FailsValidation()
+    {
+        var exception = await Validate(_ => { }, GatewayReader("Flow3", Flow("Flow3", false), Flow("Flow4", false)));
+
+        Assert.NotNull(exception);
+        Assert.Contains("not its default: 'Flow4'. ", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("default=", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    // Beside a flow with a condition.
+    [InlineData(true, false)]
+    // Beside a flow without one, which the app's own gateway code would choose if the default had no condition.
+    [InlineData(false, true)]
+    public async Task StartAsync_DefaultFlowWithCondition_FailsValidation(bool flow4HasCondition, bool gatewayCode)
+    {
+        var exception = await Validate(
+            s =>
+            {
+                if (gatewayCode)
+                    s.AddSingleton<IProcessExclusiveGateway>(new DataValuesFilter("Gateway1", "choose"));
+            },
+            GatewayReader("Flow3", Flow("Flow3", true), Flow("Flow4", flow4HasCondition))
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "  - Exclusive gateway 'Gateway1' has a condition on its default, sequence flow 'Flow3'. The gateway takes "
+                + "its default only when no other flow's condition holds, and never evaluates the default's own "
+                + "condition. Remove the condition from 'Flow3', or remove default=\"Flow3\" from the gateway so the "
+                + "condition is evaluated.",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    private static SequenceFlow Flow(string id, bool hasCondition) =>
+        new()
+        {
+            Id = id,
+            SourceRef = "Gateway1",
+            TargetRef = "EndEvent",
+            ConditionExpression = hasCondition ? """["equals", ["gatewayAction"], "reject"]""" : null,
+        };
+
+    private static IProcessReader GatewayReader(string? defaultFlow, params SequenceFlow[] flows)
+    {
+        var gateway = new ExclusiveGateway
+        {
+            Id = "Gateway1",
+            Default = defaultFlow,
+            Outgoing = flows.Select(flow => flow.Id).ToList(),
+        };
+        var reader = new Mock<IProcessReader>();
+        reader.Setup(r => r.GetProcessTasks()).Returns([]);
+        reader.Setup(r => r.GetExclusiveGateways()).Returns([gateway]);
+        reader.Setup(r => r.GetOutgoingSequenceFlows(gateway)).Returns(flows.ToList());
+        return reader.Object;
+    }
+
     public static TheoryData<Type> TaskHookTypes =>
-        [typeof(IOnTaskStartingHandler), typeof(IOnTaskEndingHandler), typeof(IOnTaskAbandonHandler)];
+        [typeof(IOnTaskStartingHandler), typeof(IOnTaskEndingHandler), typeof(IOnTaskAbandoningHandler)];
 
     [Theory]
     [MemberData(nameof(TaskHookTypes))]
@@ -595,7 +814,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             {
                 s.AddSingleton<IOnTaskStartingHandler>(hook);
                 s.AddSingleton<IOnTaskEndingHandler>(hook);
-                s.AddSingleton<IOnTaskAbandonHandler>(hook);
+                s.AddSingleton<IOnTaskAbandoningHandler>(hook);
                 s.AddSingleton<IOnProcessEndedHandler>(hook);
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
@@ -684,7 +903,7 @@ public class ProcessTaskConfigurationValidationServiceTests
         [
             typeof(IOnTaskStartingHandler),
             typeof(IOnTaskEndingHandler),
-            typeof(IOnTaskAbandonHandler),
+            typeof(IOnTaskAbandoningHandler),
             typeof(IOnProcessEndedHandler),
         ];
 
@@ -742,10 +961,10 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public bool ShouldRunForTask(string taskId) => true;
 
-        public Task<HookResult> Execute(OnTaskStartingContext context) =>
+        public Task<HandlerResult> Execute(OnTaskStartingContext context) =>
             throw new InvalidOperationException("Validation must not execute the hook.");
 
-        public Task<HookResult> Execute(OnTaskEndingContext context) =>
+        public Task<HandlerResult> Execute(OnTaskEndingContext context) =>
             throw new InvalidOperationException("Validation must not execute the hook.");
 
         public void Dispose() => disposals.Hooks.Add(this);
@@ -758,18 +977,18 @@ public class ProcessTaskConfigurationValidationServiceTests
     private class Hook(Func<string, bool> runsForTask)
         : IOnTaskStartingHandler,
             IOnTaskEndingHandler,
-            IOnTaskAbandonHandler,
+            IOnTaskAbandoningHandler,
             IOnProcessEndedHandler
     {
         public bool ShouldRunForTask(string taskId) => runsForTask(taskId);
 
-        public Task<HookResult> Execute(OnTaskStartingContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnTaskStartingContext context) => throw NotExecuted();
 
-        public Task<HookResult> Execute(OnTaskEndingContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnTaskEndingContext context) => throw NotExecuted();
 
-        public Task<HookResult> Execute(OnTaskAbandonContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnTaskAbandoningContext context) => throw NotExecuted();
 
-        public Task<HookResult> Execute(OnProcessEndedContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnProcessEndedContext context) => throw NotExecuted();
 
         private static InvalidOperationException NotExecuted() => new("Validation must not execute the hook.");
     }
@@ -780,7 +999,9 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
@@ -791,7 +1012,9 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 

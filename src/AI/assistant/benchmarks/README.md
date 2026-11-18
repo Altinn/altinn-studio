@@ -41,52 +41,17 @@ nothing to Langfuse.
 
 ## How it works
 
-`langfuse.run_experiment` controls the run. It runs the items and traces each task. It keeps a
-failed item separate from the other items. It records the item scores and links the dataset run.
-Our code supplies the task and the scorers. Item upserts and score configs use the REST API in
-`lf_api.py`.
+`langfuse.run_experiment` runs the items, and our code supplies the task and the scorers. The task starts a workflow
+on the local stack, waits for it and clones the session branch. The scorers compare that branch with the rubric. The
+committed repository is the ground truth, not the trace, since spans cut long payloads and lack files.
 
-```
-langfuse.run_experiment(dataset items, task=AgentTask, evaluators)
-        │
-        │  for each item, one at a time
-        ▼
-POST /api/agent/start on the local stack ──► agent works ──► pushes assistant_<id>
-        │                                                          │
-        ▼                                                          ▼
-poll /api/agent/status until terminal                     clone the session branch
-        │                                                          │
-        └────────────► deterministic evaluators (repo vs rubric) ◄─┘
-                                │
-                                ▼
-                    scores returned as the task output
-                                │
-                                ▼
-                 item scores on the task trace, in the dataset run
-```
+Each item has two traces. The runner's task trace holds the item scores. The agent's workflow trace holds the model
+calls and the judges that Langfuse runs. `--run-name` names the experiment context on the agent's trace, and the SDK
+names its run itself, so the two names differ.
 
-Each item has two traces:
-
-- The SDK traces the task on the runner side. The item scores are on this trace.
-- The agent is a different service with its own workflow trace. This trace has the LLM calls and
-  the judges that Langfuse manages.
-
-The runner gives the agent an experiment context at the start. The agent puts this context on
-its trace. The name of the context comes from `--run-name`. The default is the dataset name. The
-SDK gives its run the name `<timestamp>-<eval>-<model>-<suffix>`. Thus, the two names are
-different.
-
-The runner records only item scores. `run_experiment` gets no evaluators for the full run.
-
-The items run one at a time. An agent run pushes to one repository and uses one browser preview.
-Thus, two runs cannot occur at the same time. For e2e, the concurrency is always 1
-(`E2E_MAX_CONCURRENCY` in `check.py`). `--max-concurrency` applies only to the other evals.
-
-When the runner cannot score an item, `run_experiment` records a failed item. It does not remove
-the item, so a comparison always has all items.
-
-The committed **repository is the ground truth**. The evaluation does not build the app again
-from trace spans. Spans cut long payloads, and they do not have all files.
+The e2e items run one at a time, since each run pushes to one repository and uses one preview.
+`--max-concurrency` applies only to the other evals. An item the runner cannot score stays in the run as failed, so
+a comparison always has every item.
 
 ## The rubric
 
@@ -152,7 +117,8 @@ Langfuse cannot aggregate it across runs.
 The `.env` file in this directory (or the exported environment) has these values:
 
 ```
-LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is also accepted for the host
+LANGFUSE_PUBLIC_KEY=…
+LANGFUSE_SECRET_KEY=…
 AGENT_DESIGNER_API_KEY=…            # X-Api-Key for the agent API and the Gitea proxy
 AGENT_BASE_URL=http://localhost:8071
 BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
@@ -169,8 +135,7 @@ with the userinfo endpoint of Designer. Thus, a Gitea personal access token does
 key with `bootstrap_api_key` (prerequisite 4).
 
 The dataset items refer to attachments in `metadata.attachments`. These files are in
-`benchmarks/assets/`. Git ignores this directory, because binary test fixtures must not be in the
-repository. To use a different directory, use `--assets-dir`.
+`benchmarks/assets/`. To use a different directory, use `--assets-dir`.
 
 ```bash
 # One time: make the bench_* score configs in Langfuse
@@ -274,8 +239,10 @@ fail.
 The agent can use the same engine as the `preview_render_check` loop tool. Thus, a run can verify
 its own work after `commit_session_branch`. The tool is off unless `PREVIEW_CHECK_ENABLED=true` is
 set **in the environment of the agent container**. Set it in `.env.docker`, then run
-`docker compose up -d altinity-agents`. It has no effect in `benchmarks/.env`, because the tool
-runs in the agent, not in the runner.
+`docker compose up -d altinity-agents`. When it is off, the agent does not register the tool, and
+its system prompt does not mention the check. Do not set it in `benchmarks/.env`. The runner
+computes the `actor_prompt` and `tools` digests in its own environment, so the flag there gives
+digests that are not equal to the digests in `BASELINE.json`.
 
 This setting changes what the benchmark measures. `bench_pages_render` gives a score to the app
 in the state that the agent left it. When the tool is on, the agent can see its render failures

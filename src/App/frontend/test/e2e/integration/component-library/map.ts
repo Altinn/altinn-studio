@@ -16,6 +16,11 @@ describe('Map component', () => {
   });
 
   it('Is able to draw new geometries on a map using the toolbar and delete them after', () => {
+    // Hold the save response until the drawn path has been captured, so the test can tell if the response redraws it
+    let releaseSave: () => void = () => undefined;
+    const saveReleased = new Promise<void>((resolve) => (releaseSave = resolve));
+    cy.intercept('PATCH', '**/data?*', (req) => req.continue(() => saveReleased)).as('save');
+
     // Draw a polygon
     cy.findByRole('link', { name: 'Draw a polygon' }).click();
     cy.findByText('Click to start drawing shape.').should('exist');
@@ -39,8 +44,14 @@ describe('Map component', () => {
     cy.findByText('Click first point to close this shape.').should('exist');
     cy.get(selectors.map).find(selectors.drawVertex).first().should('be.visible').click();
     assertPath(4, true);
-    // Saving refreshes the Leaflet Draw control, so wait before entering deletion mode.
-    cy.waitUntilSaved();
+    // The save response must not redraw the path. A redraw during the map's zoom to fit the new geometry draws it at
+    // the wrong scale, which used to make the delete click below miss the path.
+    cy.get('@save.all').should('have.length', 1);
+    cy.get(selectors.path).then(($drawn) => {
+      releaseSave();
+      cy.waitUntilSaved();
+      cy.get(selectors.path).should(($path) => expect($path[0]).to.equal($drawn[0]));
+    });
 
     cy.get('g>path').should('to.be.visible');
 
@@ -49,6 +60,81 @@ describe('Map component', () => {
     cy.get(selectors.path).click('center');
     cy.findByRole('link', { name: 'Save' }).click();
     cy.get('g>path').should('not.exist');
+  });
+
+  it('Is able to edit a geometry after deleting another one', () => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+    cy.gotoNavPage('Kart');
+
+    cy.intercept('GET', '**/**.png').as('tileRequest');
+
+    const map = '#form-content-MapPage-MapComponent-Geometries';
+    const drawPolygon = (points: [number, number][]) => {
+      cy.findByRole('link', { name: 'Draw a polygon' }).click();
+      points.forEach(([x, y], index) => {
+        if (index > 0) {
+          // wait for zoom to adjust (double clicking causes a zoom)
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(200);
+        }
+        cy.get(map).click(x, y);
+      });
+      // Close through the first vertex so completion does not depend on double-click timing.
+      cy.get(`${map} .leaflet-editing-icon`).first().click();
+      cy.get(`${map} .leaflet-editing-icon`).should('not.exist');
+      // wait for map to zoom to fit the new geometry
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(1000);
+    };
+
+    // The map zooms to fit the first polygon in the center, so the second one is drawn to the left
+    drawPolygon([
+      [300, 300],
+      [400, 200],
+      [400, 400],
+    ]);
+    cy.get(`${map} g>path`).should('have.length', 1);
+    drawPolygon([
+      [40, 300],
+      [140, 200],
+      [140, 400],
+    ]);
+    cy.get(`${map} g>path`).should('have.length', 2);
+
+    cy.get(map).findByRole('link', { name: 'Delete layers' }).click();
+    cy.get(`${map} g>path`).first().click('center');
+    cy.findByRole('link', { name: 'Save' }).click();
+    cy.get(`${map} g>path`).should('have.length', 1);
+
+    // leaflet-draw uses a deprecated Leaflet API in edit mode
+    cy.ignoreConsoleMessages([/Deprecated use of _flat/]);
+    cy.get(`${map} g>path`)
+      .invoke('attr', 'd')
+      .then((pathBefore) => {
+        cy.get(map).findByRole('link', { name: 'Edit layers' }).click();
+        cy.get(`${map} .leaflet-editing-icon`)
+          .first()
+          .then(($corner) => {
+            const { left, top, width, height } = $corner[0].getBoundingClientRect();
+            const x = left + width / 2;
+            const y = top + height / 2;
+            cy.wrap($corner).trigger('mousedown', {
+              button: 0,
+              clientX: x,
+              clientY: y,
+              eventConstructor: 'MouseEvent',
+            });
+            // move on the map, so the leaflet-draw tooltip follows the mouse and does not cover the Save button
+            cy.get(map).trigger('mousemove', { clientX: x + 25, clientY: y + 25, eventConstructor: 'MouseEvent' });
+            cy.get(map).trigger('mousemove', { clientX: x + 50, clientY: y + 50, eventConstructor: 'MouseEvent' });
+            cy.get(map).trigger('mouseup', { clientX: x + 50, clientY: y + 50, eventConstructor: 'MouseEvent' });
+          });
+        cy.findByRole('link', { name: 'Save' }).click();
+
+        cy.get(`${map} g>path`).should('have.length', 1).and('not.have.attr', 'd', pathBefore);
+      });
+
+    cy.findByText(/Invalid geometry item/).should('not.exist');
   });
 
   it('should pass accessibility tests', () => {

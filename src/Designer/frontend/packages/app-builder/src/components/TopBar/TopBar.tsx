@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsMutating } from '@tanstack/react-query';
-import { StudioButton, StudioLinkButton, StudioSelect } from '@studio/components';
-import { PlayFillIcon } from '@studio/icons';
+import { StudioButton, StudioLinkButton, StudioSelect } from '@designer/components';
+import { PlayFillIcon } from '@designer/icons';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import classes from './TopBar.module.css';

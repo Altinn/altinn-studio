@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioToggleableTextfield } from '@studio/components';
+import { StudioToggleableTextfield } from '@designer/components';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';

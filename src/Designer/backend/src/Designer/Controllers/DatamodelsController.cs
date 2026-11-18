@@ -10,8 +10,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Authorization;
@@ -144,6 +146,25 @@ public class DatamodelsController : ControllerBase
     }
 
     /// <summary>
+    /// Generates the C# classes, the XSD and the application metadata of a data model from the request, without
+    /// reading or writing a repository.
+    /// </summary>
+    /// <param name="request">The JSON schema of the data model, and the app files that the endpoint reads.</param>
+    [HttpPost]
+    [AllowApiKey]
+    [IgnoreAntiforgeryToken]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
+    [UseSystemTextJson]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [Route("datamodel/generate")]
+    public async Task<ActionResult<GeneratedDatamodel>> GenerateDatamodel([FromBody] GenerateDatamodelRequest request)
+    {
+        return Ok(await _schemaModelService.GenerateDatamodel(request));
+    }
+
+    /// <summary>
     /// Deletes the specified datamodel in the git repository.
     /// </summary>
     /// <param name="org">The org owning the repository.</param>
@@ -214,7 +235,7 @@ public class DatamodelsController : ControllerBase
     /// <param name="repository">The name of the repository to which the file is being added.</param>
     /// <param name="theFile">The XSD file being uploaded.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [Authorize(Policy = AltinnPolicy.MustBeMemberOfAnyOrganization)]
     [HttpPost]
     [Route("upload")]
     public async Task<IActionResult> AddXsd(
@@ -252,7 +273,7 @@ public class DatamodelsController : ControllerBase
     /// Replaces the data model at <paramref name="modelPath"/> with an uploaded XSD. The model keeps
     /// its name, so references to it, e.g. the data type in the application metadata, are kept intact.
     /// </summary>
-    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [Authorize(Policy = AltinnPolicy.MustBeMemberOfAnyOrganization)]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

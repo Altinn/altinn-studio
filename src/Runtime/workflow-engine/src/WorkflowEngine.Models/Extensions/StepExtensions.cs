@@ -1,8 +1,7 @@
 namespace WorkflowEngine.Models.Extensions;
 
 /// <summary>
-/// Helpers for projecting <see cref="Step"/> data into telemetry tags, and for the derived wait values
-/// that depend on engine configuration.
+/// Helpers for the derived retry and wait values of a <see cref="Step"/> that depend on engine configuration.
 /// </summary>
 public static class StepExtensions
 {
@@ -54,25 +53,5 @@ public static class StepExtensions
             step.ExecutionStartedAt is { } startedAt
             && step.ResolveWaitDeadline(settings) is { } deadline
             && startedAt >= deadline;
-
-        /// <summary>
-        /// Step metadata useful for enriching telemetry activities.
-        /// </summary>
-        public (string key, object? value)[] GetActivityTags() =>
-            [
-                ("step.database.id", step.DatabaseId),
-                ("step.operation.id", step.OperationId),
-                ("step.command.type", step.Command.Type),
-            ];
-
-        /// <summary>
-        /// Step metadata useful for enriching telemetry histograms.
-        /// </summary>
-        public (string key, object? value)[] GetHistogramTags() =>
-            [
-                ("operation.type", step.Command.Type),
-                ("operation.id", step.OperationId),
-                ("operation.order", step.ProcessingOrder),
-            ];
     }
 }

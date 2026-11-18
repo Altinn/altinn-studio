@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Direction, useReposSearch } from './useRepoSearch';
-import { waitFor } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
+import { QueryClient } from '@tanstack/react-query';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { repository } from 'app-shared/mocks/mocks';
 import type { SearchRepoFilterParams } from 'app-shared/types/api';
@@ -75,5 +76,53 @@ describe('useRepoSearch', () => {
 
     await waitFor(() => result.current.onSortClick('name'));
     await waitFor(() => expect(result.current.searchResults.data).toEqual(reposSortedByName));
+  });
+
+  it('should not fetch a prefetched page again when the user opens it', async () => {
+    const searchRepos = vi.fn().mockResolvedValue({
+      data: reposSortedByName,
+      ok: true,
+      totalCount: 15,
+      totalPages: 3,
+    });
+    // The dashboard's client keeps the default stale time, unlike the test client's Infinity.
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const { result } = renderHookWithProviders(() => useReposSearch({ defaultPageSize: 5 }), {
+      queries: { searchRepos },
+      queryClient,
+    });
+
+    await waitFor(() =>
+      expect(searchRepos).toHaveBeenCalledWith(expect.objectContaining({ page: 2 })),
+    );
+    act(() => result.current.setPageNumber(2));
+    await waitFor(() =>
+      expect(searchRepos).toHaveBeenCalledWith(expect.objectContaining({ page: 3 })),
+    );
+
+    const pageTwoRequests = searchRepos.mock.calls.filter(([filter]) => filter.page === 2);
+    expect(pageTwoRequests).toHaveLength(1);
+  });
+
+  it('should prefetch the next page while the search has one, also when the total count fits on fewer pages', async () => {
+    const searchRepos = vi.fn().mockResolvedValue({
+      data: reposSortedByName,
+      ok: true,
+      totalCount: 10,
+      totalPages: 3,
+    });
+    const { result } = renderHookWithProviders(
+      () => useReposSearch({ defaultPageSize: 5, excludeNonAppRepos: true }),
+      { queries: { searchRepos } },
+    );
+
+    await waitFor(() => expect(result.current.searchResults).toBeDefined());
+    await waitFor(() => result.current.setPageNumber(2));
+
+    await waitFor(() =>
+      expect(searchRepos).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 3, excludeNonAppRepos: true }),
+      ),
+    );
   });
 });

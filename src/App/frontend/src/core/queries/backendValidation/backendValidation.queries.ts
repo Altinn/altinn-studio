@@ -15,11 +15,6 @@ export const backendValidationQueryKeys = {
   withInstanceId: (instanceId: string | undefined) => [...backendValidationQueryKeys.all(), instanceId] as const,
 };
 
-/**
- * For backwards compatibility, we need to use the old data element validation API for older apps that do not specify if validations are incrementally updated or not.
- * This is because the old API did not run ITaskValidators, and the regular validate API does. If we cannot tell if validations incrementally update, then
- * we cannot distinguish between regular custom validations and ITaskValidator validations (with a field property set), which will block the user from submitting until they refresh.
- */
 function backendValidationQueryFn({
   backendValidationApi,
   instanceId,

@@ -13,7 +13,6 @@ using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -21,7 +20,7 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Process.ServiceTasks.Pdf;
 
-public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class PdfServiceTaskTests : ApiTestBase
 {
     private const string Org = "ttd";
     private const string App = "service-tasks";
@@ -30,8 +29,8 @@ public class PdfServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFact
     private static readonly Guid _instanceGuid = new("a2af1cfd-db99-45f9-9625-9dfa1223485f");
     private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
 
-    public PdfServiceTaskTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public PdfServiceTaskTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         var eFormidlingServiceMock = new Mock<IEFormidlingService>();
         // This app's process runs the eFormidling task after the PDF one, and that task now waits for

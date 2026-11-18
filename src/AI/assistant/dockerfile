@@ -1,4 +1,4 @@
-# Built from the repo root so the image can bundle the v9 layout schemas from
+# Built from the repo root so the image can bundle the layout contract schemas from
 # src/common. dockerfile.dockerignore limits the context to what the image needs.
 FROM debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
 
@@ -26,9 +26,9 @@ COPY src/AI/assistant/agents/ ./agents/
 COPY src/AI/assistant/api/ ./api/
 COPY src/AI/assistant/services/ ./services/
 COPY src/AI/assistant/shared/ ./shared/
-# The v9 layout schemas, where BaseConfig.LAYOUT_SCHEMA_V9_DIR points from /app. The CDN
+# The layout contract schemas, where the schema paths in BaseConfig point from /app. The CDN
 # serves only the v8 contract.
-COPY src/common/ts/layout-contract/schemas/json/layout/ /common/ts/layout-contract/schemas/json/layout/
+COPY src/common/ts/layout-contract/schemas/json/ /common/ts/layout-contract/schemas/json/
 
 EXPOSE 8071
 

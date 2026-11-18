@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
@@ -128,6 +129,118 @@ public class RepositoryControllerStudioOidcTests
         Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
 
         Assert.True(File.Exists($"{CreatedFolderPath}/test2.txt"));
+    }
+
+    [Theory]
+    [InlineData(GiteaConstants.TestOrgUsername)]
+    public async Task Pull_WithDirtyWorktreeAndRemoteChangeOnSameFile_ReturnsCheckoutConflictWithoutCommit(string org)
+    {
+        string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+        await CreateAppUsingDesigner(org, targetRepo);
+
+        const string MetadataPath = "App/config/applicationmetadata.json";
+        string collaboratorRepoPath = GitRepositoryTestHelper.CloneRepository(GiteaFixture.GiteaUrl, org, targetRepo);
+
+        try
+        {
+            using LibGit2Sharp.Repository localRepoBeforePull = new(CreatedFolderPath);
+            string headShaBeforePull = localRepoBeforePull.Head.Tip.Sha;
+
+            string localMetadata = await File.ReadAllTextAsync($"{CreatedFolderPath}/{MetadataPath}");
+            await File.WriteAllTextAsync(
+                $"{CreatedFolderPath}/{MetadataPath}",
+                localMetadata.Replace($"\"id\": \"{org}/{targetRepo}\"", $"\"id\": \"{org}/{targetRepo}-local\"")
+            );
+
+            string collaboratorMetadataPath = Path.Combine(collaboratorRepoPath, MetadataPath);
+            string collaboratorMetadata = await File.ReadAllTextAsync(collaboratorMetadataPath);
+            GitRepositoryTestHelper.CommitAndPushFile(
+                collaboratorRepoPath,
+                MetadataPath,
+                collaboratorMetadata.Replace($"\"nb\": \"{targetRepo}\"", "\"nb\": \"remote-title\""),
+                "remote update"
+            );
+
+            using HttpResponseMessage pullResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/pull"
+            );
+            Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
+
+            RepoStatus repoStatus = await pullResponse.Content.ReadAsAsync<RepoStatus>();
+            Assert.Equal(RepositoryStatus.CheckoutConflict, repoStatus.RepositoryStatus);
+
+            using LibGit2Sharp.Repository localRepoAfterPull = new(CreatedFolderPath);
+            Assert.Equal(headShaBeforePull, localRepoAfterPull.Head.Tip.Sha);
+            string metadataAfterPull = await File.ReadAllTextAsync($"{CreatedFolderPath}/{MetadataPath}");
+            Assert.Contains($"{org}/{targetRepo}-local", metadataAfterPull);
+            Assert.DoesNotContain("remote-title", metadataAfterPull);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(collaboratorRepoPath);
+        }
+    }
+
+    [Theory]
+    [InlineData(GiteaConstants.TestOrgUsername)]
+    public async Task CommitAndPush_WhenRemoteChangedTheSameLine_LeavesConflictForTheUser(string org)
+    {
+        string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+        await CreateAppUsingDesigner(org, targetRepo);
+
+        const string MetadataPath = "App/config/applicationmetadata.json";
+        string appId = $"\"id\": \"{org}/{targetRepo}\"";
+        string collaboratorRepoPath = GitRepositoryTestHelper.CloneRepository(GiteaFixture.GiteaUrl, org, targetRepo);
+
+        try
+        {
+            string collaboratorMetadata = await File.ReadAllTextAsync(Path.Combine(collaboratorRepoPath, MetadataPath));
+            string remoteCommitSha = GitRepositoryTestHelper.CommitAndPushFile(
+                collaboratorRepoPath,
+                MetadataPath,
+                collaboratorMetadata.Replace(appId, $"\"id\": \"{org}/{targetRepo}-remote\""),
+                "remote update"
+            );
+
+            string localMetadata = await File.ReadAllTextAsync($"{CreatedFolderPath}/{MetadataPath}");
+            await File.WriteAllTextAsync(
+                $"{CreatedFolderPath}/{MetadataPath}",
+                localMetadata.Replace(appId, $"\"id\": \"{org}/{targetRepo}-local\"")
+            );
+
+            using var commitAndPushContent = new StringContent(
+                GetCommitInfoJson("local update", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                commitAndPushContent
+            );
+            Assert.Equal(HttpStatusCode.Conflict, commitAndPushResponse.StatusCode);
+
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/status"
+            );
+            RepoStatus repoStatus = await statusResponse.Content.ReadAsAsync<RepoStatus>();
+            Assert.Equal(RepositoryStatus.MergeConflict, repoStatus.RepositoryStatus);
+
+            string metadataAfterConflict = await File.ReadAllTextAsync($"{CreatedFolderPath}/{MetadataPath}");
+            Assert.Contains($"{org}/{targetRepo}-local", metadataAfterConflict);
+            Assert.Contains($"{org}/{targetRepo}-remote", metadataAfterConflict);
+
+            // Read through git refs: Gitea updates its branch list in the background after a push.
+            using HttpResponseMessage refResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/git/refs/heads/master"
+            );
+            Assert.Equal(HttpStatusCode.OK, refResponse.StatusCode);
+            var refNode = JsonNode.Parse(await refResponse.Content.ReadAsStringAsync());
+            Assert.Equal(remoteCommitSha, refNode![0]!["object"]!["sha"]!.ToString());
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(collaboratorRepoPath);
+        }
     }
 
     [Theory]

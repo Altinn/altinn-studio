@@ -340,7 +340,7 @@ public class ValidationServiceTests : IAsyncLifetime
             .Returns("FormDataValidatorNoAppLogic")
             .Verifiable(Times.AtLeastOnce);
         _services.AddSingleton(formDataValidatorNoAppLogicMock.Object);
-        _appMetadata.DataTypes.Add(new DataType { Id = "dataTypeNoAppLogic", TaskId = TaskId });
+        _appMetadata.DataTypes.Add(new DataType { Id = "dataTypeNoAppLogic", TaskIds = [TaskId] });
 
         var formDataValidatorWrongTaskMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
         {
@@ -361,7 +361,7 @@ public class ValidationServiceTests : IAsyncLifetime
             new DataType
             {
                 Id = "dataTypeWrongTask",
-                TaskId = "wrongTask",
+                TaskIds = ["wrongTask"],
                 AppLogic = new() { ClassRef = "System.String" },
             }
         );
@@ -393,7 +393,7 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 Id = "dataType",
                 AppLogic = new() { ClassRef = "System.String" },
-                TaskId = TaskId,
+                TaskIds = [TaskId],
             }
         );
 
@@ -427,7 +427,7 @@ public class ValidationServiceTests : IAsyncLifetime
             new DataType
             {
                 Id = dataTypeName,
-                TaskId = taskId,
+                TaskIds = [taskId],
                 AppLogic = new() { ClassRef = valueToValidate.GetType().FullName },
             }
         );

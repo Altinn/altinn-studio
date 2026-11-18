@@ -9,12 +9,14 @@ namespace Altinn.App.Core.Features.Signing.Services;
 internal interface ISigningDelegationService
 {
     /// <summary>
-    /// Delegate signee rights for the instance to a given party from the instance owner.
+    /// Delegates signee rights for the instance from the instance owner to every signee not yet delegated,
+    /// recording the outcome on each signee's state. A failure that concerns only one signee is recorded on that
+    /// signee; any other failure is thrown, leaving the signees reached so far marked as delegated.
     /// </summary>
-    Task<(List<SigneeContext>, bool success)> DelegateSigneeRights(
+    Task DelegateSigneeRights(
         string taskId,
         string instanceIdCombo,
-        Guid? instanceOwnerPartyUuid,
+        Guid instanceOwnerPartyUuid,
         AppIdentifier appIdentifier,
         List<SigneeContext> signeeContexts,
         CancellationToken cancellationToken

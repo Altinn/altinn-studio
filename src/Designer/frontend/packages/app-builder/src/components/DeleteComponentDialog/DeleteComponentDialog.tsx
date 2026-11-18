@@ -9,8 +9,8 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioSpinner,
-} from '@studio/components';
-import { TrashIcon } from '@studio/icons';
+} from '@designer/components';
+import { TrashIcon } from '@designer/icons';
 import type { LayoutComponent, TextsById } from '../../types';
 import type { DataModel } from '../../hooks/useDataModelQuery';
 import { useAllLayoutsQuery } from '../../hooks/useAllLayoutsQuery';

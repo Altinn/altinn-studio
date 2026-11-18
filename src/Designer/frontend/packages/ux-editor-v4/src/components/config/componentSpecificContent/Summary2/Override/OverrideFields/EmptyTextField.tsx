@@ -2,7 +2,7 @@ import type { ChangeEvent } from 'react';
 import { useState } from 'react';
 import classes from './EmptyTextField.module.css';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioProperty, StudioTextfield } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type EmptyTextFieldProps = {

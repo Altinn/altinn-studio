@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import { isValidFieldName, suggestFieldName } from '../../utils/fieldNameUtils';
 import type { AddableComponentType } from '../../utils/newComponentUtils';
 import classes from './NewComponentForm.module.css';
