@@ -10,7 +10,8 @@ describe('VersionSwitcher', () => {
   const assign = vi.fn();
 
   function setLocation(href: string) {
-    Object.defineProperty(window, 'location', { configurable: true, value: { href, assign } });
+    const { hostname } = new URL(href);
+    Object.defineProperty(window, 'location', { configurable: true, value: { href, hostname, assign } });
   }
 
   beforeEach(() => {
@@ -19,6 +20,13 @@ describe('VersionSwitcher', () => {
 
   afterEach(() => {
     Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+  });
+
+  it('is hidden in production, where the backend ignores the parameter', () => {
+    setLocation('https://ttd.apps.altinn.no/ttd/app/');
+    render(<VersionSwitcher />);
+
+    expect(screen.queryByRole('textbox', { name: 'Frontend versjon' })).not.toBeInTheDocument();
   });
 
   it('shows the version from the address', () => {

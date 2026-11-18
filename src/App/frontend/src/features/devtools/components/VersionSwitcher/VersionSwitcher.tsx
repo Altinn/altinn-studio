@@ -9,12 +9,23 @@ import {
   getUrlWithFrontendVersion,
   isValidFrontendVersion,
 } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
+import { isDev } from 'src/utils/isDev';
 
-// The backend applies the version only in development and test environments, but dev tools also opens in production.
 const description = 'Siden lastes på nytt med versjonen i adressen. Virker bare i utviklings- og testmiljø.';
 const versionsLinkText = 'Se tilgjengelige versjoner (åpnes i ny fane)';
 
+/**
+ * Hidden in production, where the backend ignores the parameter. isDev() knows localtest, TT02 and Studio by their
+ * hostnames; in the other test environments (AT, YT) the field is hidden, but the parameter in the address still works.
+ */
 export function VersionSwitcher() {
+  if (!isDev()) {
+    return null;
+  }
+  return <VersionSwitcherField />;
+}
+
+function VersionSwitcherField() {
   const [version, setVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
   const [error, setError] = useState<string | undefined>(undefined);
   const errorId = useId();
