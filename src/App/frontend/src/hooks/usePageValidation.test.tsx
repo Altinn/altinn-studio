@@ -15,11 +15,11 @@ const schema: PageValidation = { page: 'current', show: ['Schema'] };
 const optOut: PageValidation = { page: 'current', show: [] };
 
 function Validations() {
-  const { getPageValidation, getReturnValidation } = useEffectivePageValidation('edited');
+  const { pageValidation, returnValidation } = useEffectivePageValidation('edited');
   return (
     <>
-      <div data-testid='next'>{JSON.stringify(getPageValidation() ?? null)}</div>
-      <div data-testid='return'>{JSON.stringify(getReturnValidation() ?? null)}</div>
+      <div data-testid='next'>{JSON.stringify(pageValidation ?? null)}</div>
+      <div data-testid='return'>{JSON.stringify(returnValidation ?? null)}</div>
     </>
   );
 }
