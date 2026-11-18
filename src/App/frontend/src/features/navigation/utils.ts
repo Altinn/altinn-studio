@@ -13,7 +13,7 @@ import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useGetAltinnTaskType } from 'src/features/instance/useProcessQuery';
-import { getValidationsForNode } from 'src/features/validation/deriveValidationState';
+import { getNodeRefValidations } from 'src/features/validation/deriveValidationState';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useGetDerivedValidationState, usePageValidations } from 'src/features/validation/validationHooks';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -151,7 +151,7 @@ export function useGetNavigationIsPrevented() {
       const snapshot = (derived ??= getDerivedValidationState());
       const mask = getVisibilityMask(validationOnNavigation.show);
       return (snapshot.nodeIdsByPage.get(pageId) ?? []).some((nodeId) => {
-        const validations = getValidationsForNode(snapshot, nodeId, mask, 'error');
+        const validations = getNodeRefValidations(snapshot, nodeId, mask, 'error');
         return validations.length > 0;
       });
     });

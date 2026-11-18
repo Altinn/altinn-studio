@@ -4,7 +4,7 @@ import type { PageValidation } from '@app/layout-contract/generated/common.gener
 
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
-import { getValidationsForNode } from 'src/features/validation/deriveValidationState';
+import { getNodeRefValidations } from 'src/features/validation/deriveValidationState';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { useWaitForValidation } from 'src/features/validation/validationContext';
 import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
@@ -84,7 +84,7 @@ export function useOnPageNavigationValidation() {
     let hasErrors = false;
     for (const [pageKey, nodeIds] of scope.nodeIdsPerPage.entries()) {
       const hasErrorsOnPage = nodeIds.some((id) => {
-        const validations = getValidationsForNode(scope.derived, id, mask, 'error');
+        const validations = getNodeRefValidations(scope.derived, id, mask, 'error');
         if (validations.length > 0) {
           onCurrentOrPreviousPage = onCurrentOrPreviousPage || scope.nodesOnCurrentOrPreviousPages.has(id);
           return true;

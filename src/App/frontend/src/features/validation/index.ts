@@ -1,5 +1,6 @@
 import type { Expression, ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { TextReference } from 'src/features/language/useLanguage';
+import type { RowContext } from 'src/utils/layout/rowContext';
 
 export enum FrontendValidationSource {
   EmptyField = '__empty_field__',
@@ -205,6 +206,8 @@ export type AnyValidation<Severity extends ValidationSeverity = ValidationSeveri
 export type NodeRefValidation<Validation extends AnyValidation<any> = AnyValidation<any>> = Validation & {
   baseComponentId: string;
   nodeId: string;
+  /** Present for a validation on the repeating row object itself. */
+  repeatingGroupRow?: RowContext;
 };
 
 export type ValidationsProcessedLast = {
