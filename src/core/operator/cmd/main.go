@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
+	"go.opentelemetry.io/otel/trace"
 
 	"altinn.studio/core-operator/internal/auth"
 	"altinn.studio/core-operator/internal/callbacks"
@@ -73,7 +75,7 @@ func run() int {
 	}
 	// The operator runner calls have no client timeout. The execution deadline of a step limits the calls of that step.
 	// The request of the caller limits an upload or a result that the operator forwards.
-	httpClient := &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
+	httpClient := &http.Client{Transport: otelhttp.NewTransport(withoutQuery{http.DefaultTransport})}
 	host := runner.NewClient(httpClient, runner.Port, cluster.Sandbox())
 	if err = setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host); err != nil {
 		setupLog.Error(err, "unable to set up the operator")
@@ -147,7 +149,7 @@ func setupRuns(
 	hostClient *runner.Client,
 ) (callbacks.Group, *runs.Queue, error) {
 	engineClient := engine.NewClient(cfg.EngineURL, &http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Transport: otelhttp.NewTransport(withoutQuery{http.DefaultTransport}),
 		Timeout:   engineRequestTimeout,
 	})
 	queue := runs.NewQueue(cfg, box, clk)
@@ -251,4 +253,15 @@ func route(path string) string {
 		return callbacks.PathPrefix + "{commandKey}"
 	}
 	return ""
+}
+
+// withoutQuery keeps the query string out of url.full on the client span. otelhttp sets url.full before it calls this
+// transport.
+type withoutQuery struct{ next http.RoundTripper }
+
+func (t withoutQuery) RoundTrip(r *http.Request) (*http.Response, error) {
+	u := *r.URL
+	u.RawQuery = ""
+	trace.SpanFromContext(r.Context()).SetAttributes(semconv.URLFull(u.String()))
+	return t.next.RoundTrip(r) //nolint:wrapcheck // A transport passes the error of the next transport on as it is.
 }

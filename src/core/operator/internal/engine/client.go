@@ -187,6 +187,10 @@ func (c *Client) do(ctx context.Context, method, endpoint string, body []byte) (
 	}
 	res, err := c.http.Do(req)
 	if err != nil {
+		// The operator logs this error, and logs keep no query string.
+		if urlErr, ok := errors.AsType[*url.Error](err); ok {
+			urlErr.URL, _, _ = strings.Cut(urlErr.URL, "?")
+		}
 		return nil, fmt.Errorf("call the engine: %w", err)
 	}
 	return res, nil

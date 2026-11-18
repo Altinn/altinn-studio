@@ -116,6 +116,7 @@ func TestUnreachableRunner(t *testing.T) {
 	Expect(err).To(MatchError(runner.ErrUnreachable))
 	err = client.Start(t.Context(), pod, "upgrade-v9", time.Minute, bytes.NewReader(nil), 0)
 	Expect(err).To(MatchError(runner.ErrUnreachable))
+	Expect(err.Error()).NotTo(ContainSubstring("?"), "logs keep no query string")
 
 	_, err = runner.NewClient(http.DefaultClient, port, pods(true)).Status(t.Context(), pod, 0)
 	Expect(err).To(MatchError(runner.ErrGone), "a pod that is gone")

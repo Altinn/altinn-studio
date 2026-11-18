@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"altinn.studio/core-operator/internal/problem"
@@ -187,6 +188,10 @@ func (c *Client) do(pod Pod, req *http.Request) (*http.Response, error) {
 	res, err := c.http.Do(req)
 	if err == nil {
 		return res, nil
+	}
+	// The operator logs this error, and logs keep no query string.
+	if urlErr, ok := errors.AsType[*url.Error](err); ok {
+		urlErr.URL, _, _ = strings.Cut(urlErr.URL, "?")
 	}
 	if gone, podErr := c.pods.PodGone(req.Context(), pod.Namespace, pod.RunID, pod.IP); podErr == nil && gone {
 		return nil, fmt.Errorf("%w: %w", ErrGone, err)
