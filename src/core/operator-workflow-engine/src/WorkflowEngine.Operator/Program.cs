@@ -6,11 +6,10 @@ using WorkflowEngine.Operator.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile(
-    builder.Environment.IsDevelopment() ? "appsettings.Local.json" : "/app/secrets/secrets.json",
-    optional: true,
-    reloadOnChange: true
-);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+}
 builder.Configuration.AddEnvironmentVariables();
 
 var connectionString =

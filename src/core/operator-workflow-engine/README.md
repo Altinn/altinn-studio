@@ -32,25 +32,20 @@ NetworkPolicy lets only the operator's pods reach it.
 ## The database
 
 The engine stores workflows in its own database on the existing Studio PostgreSQL server in each environment.
-altinn-studio-infra provisions the database. The host's role owns the database, because the engine's migrations create
-the schema `engine` at startup. The role has no access to the server's other databases.
+altinn-studio-infra provisions the database `operator_workflow_engine`. The host's role owns the database, because the
+engine's migrations create the schema `engine` at startup. The role has no access to the server's other databases.
 
 The host connects directly on port 5432, not through a transaction pooler such as PgBouncer. The engine keeps a
 `LISTEN` connection and takes session advisory locks, and transaction pooling breaks both.
 
 The host logs in as its Entra identity, the workload identity of the `operator-workflow-engine` ServiceAccount.
-The connection string has no password, so the engine fetches an Entra token and refreshes it before it expires:
-
-```text
-Host=<server>.postgres.database.azure.com;Port=5432;Database=<database>;Username=<role of the Entra identity>;Ssl Mode=VerifyFull;GSS Encryption Mode=Disable
-```
-
-The Key Vault secret `operator-workflow-engine-connection-string` in the Studio Key Vault holds the connection
-string, and [secrets.yaml](infra/kustomize/base/secrets.yaml) gives it to the host. The identity needs:
+The connection string in [deployment.yaml](infra/kustomize/base/deployment.yaml) has no password, so the engine
+fetches an Entra token and refreshes it before it expires. The connection string holds no secret, so the host needs no
+Key Vault secret. altinn-studio-infra sets the server and the role in the Flux variables
+`OPERATOR_WORKFLOW_ENGINE_DB_HOST` and `OPERATOR_WORKFLOW_ENGINE_DB_USERNAME`. The identity needs:
 
 - a federated credential for `system:serviceaccount:operator-workflow-engine:operator-workflow-engine`
 - a Postgres role that owns the database
-- read access to the Key Vault secret
 
 ## Configuration
 

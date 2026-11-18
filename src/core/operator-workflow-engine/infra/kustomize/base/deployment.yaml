@@ -94,10 +94,10 @@ spec:
               value: "15000"
             - name: ASPNETCORE_HTTP_PORTS
               value: "9090"
+            # No password: the engine logs in as the ServiceAccount's Entra identity, as README.md describes.
+            - name: ConnectionStrings__WorkflowEngine
+              value: "Host=${OPERATOR_WORKFLOW_ENGINE_DB_HOST};Port=5432;Database=operator_workflow_engine;Username=${OPERATOR_WORKFLOW_ENGINE_DB_USERNAME};Ssl Mode=VerifyFull;GSS Encryption Mode=Disable"
           volumeMounts:
-            - name: secrets
-              mountPath: /app/secrets
-              readOnly: true
             # The token the command sends to the operator's callbacks.
             - name: core-operator-token
               mountPath: /var/run/secrets/core-operator
@@ -128,14 +128,6 @@ spec:
             limits:
               memory: 1Gi
       volumes:
-        - name: secrets
-          projected:
-            sources:
-              - secret:
-                  name: operator-workflow-engine-secrets
-                  items:
-                    - key: secrets.json
-                      path: secrets.json
         - name: core-operator-token
           projected:
             sources:

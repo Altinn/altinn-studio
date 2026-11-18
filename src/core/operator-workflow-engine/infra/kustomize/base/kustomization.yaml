@@ -6,7 +6,6 @@ namespace: operator-workflow-engine
 resources:
   - namespace.yaml
   - serviceaccount.yaml
-  - secrets.yaml
   - service.yaml
   - deployment.yaml
   - networkpolicy.yaml
