@@ -57,6 +57,9 @@ public sealed class CalculationFixture
     [JsonPropertyName("expectsWarnings")]
     public List<string>? ExpectsWarnings { get; set; }
 
+    [JsonPropertyName("expectsErrors")]
+    public List<string>? ExpectsErrors { get; set; }
+
     [JsonPropertyName("testCases")]
     public List<CalculationFixture>? TestCases { get; set; }
 
@@ -93,6 +96,7 @@ public sealed class CalculationFixture
                     ExpectsFailure = testCase.ExpectsFailure,
                     ExpectsFailureBackend = testCase.ExpectsFailureBackend,
                     ExpectsWarnings = testCase.ExpectsWarnings,
+                    ExpectsErrors = testCase.ExpectsErrors,
                 }
             );
         }

@@ -215,6 +215,10 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
                     testCase.Expects is not null || testCase.ExpectsFailure is not null,
                     $"{where} has no expects or expectsFailure"
                 );
+                Assert.True(
+                    testCase.ExpectsErrors is null || testCase.Expects is not null,
+                    $"{where} has expectsErrors without expects"
+                );
                 Assert.False(testCase.DisabledFrontend && testCase.DisabledBackend, $"{where} runs on neither side");
                 Assert.True(
                     !(testCase.DisabledFrontend || testCase.DisabledBackend) || testCase.Comment is not null,

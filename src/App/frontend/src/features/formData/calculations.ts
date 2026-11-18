@@ -33,17 +33,12 @@ export function resolveCalculationConfig(config: unknown): CalculationConfig | n
     const field = isObject && 'field' in definition ? definition.field : undefined;
     const expression = isObject && 'expression' in definition ? definition.expression : undefined;
     const name = typeof field === 'string' ? field : `calculations[${index}]`;
-    if (
-      typeof field === 'string' &&
-      field.trim() !== '' &&
-      expression !== undefined &&
-      expression !== null &&
-      ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)
-    ) {
-      calculations.push({ field, expression });
-    } else {
+    if (typeof field !== 'string' || field.trim() === '' || expression === undefined || expression === null) {
       window.logWarn(`Skipping invalid calculation for ${name}`);
+    } else if (ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)) {
+      calculations.push({ field, expression });
     }
+    // An invalid expression is skipped too, and the validation has logged it as an error
   }
   return { calculations };
 }

@@ -1,13 +1,22 @@
 {
-  "name": "A calculation with a function that does not exist",
+  "name": "A calculation with a function that does not exist logs an error and keeps the previous value",
   "dataModel": {
-    "text": "old"
+    "text": "old",
+    "decimal": 1
   },
   "calculations": [
     {
       "field": "text",
       "expression": ["noSuchFunction"]
+    },
+    {
+      "field": "decimal",
+      "expression": 2
     }
   ],
-  "expectsFailure": "noSuchFunction"
+  "expects": {
+    "text": "old",
+    "decimal": 2
+  },
+  "expectsErrors": ["noSuchFunction"]
 }

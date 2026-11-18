@@ -72,7 +72,7 @@ export interface LayoutPreprocessorTest {
   name: string;
   layouts: ILayoutCollection;
   expects: ILayoutCollection;
-  expectsWarnings?: string[];
+  expectsErrors?: string[];
 }
 
 interface TestFolder<T> {
@@ -125,6 +125,7 @@ export interface CalculationTestCase {
   expectsFailure?: string;
   expectsFailureBackend?: string;
   expectsWarnings?: string[];
+  expectsErrors?: string[];
 }
 
 export interface CalculationTest extends CalculationTestCase {
@@ -183,6 +184,7 @@ export function getCalculationTestCases(test: CalculationTest): CalculationTestC
       expectsFailure: testCase.expectsFailure,
       expectsFailureBackend: testCase.expectsFailureBackend,
       expectsWarnings: testCase.expectsWarnings,
+      expectsErrors: testCase.expectsErrors,
     });
   }
   return cases;
