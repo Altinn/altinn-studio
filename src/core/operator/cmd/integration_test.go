@@ -171,15 +171,15 @@ func (it *integration) tokens(t *testing.T) {
 
 func (it *integration) runCompletes(t *testing.T) {
 	RegisterTestingT(t)
-	c := it.assistant
+	assistant := it.assistant
 	labels := it.app("app")
-	created := c.create("upgrade", labels, http.StatusAccepted)
+	created := assistant.create("upgrade", labels, http.StatusAccepted)
 	Expect(created.Status).To(Equal(runs.StatusQueued))
-	again := c.create("upgrade", map[string]string{"app": strings.ToUpper(labels["app"])}, http.StatusOK)
+	again := assistant.create("upgrade", map[string]string{"app": strings.ToUpper(labels["app"])}, http.StatusOK)
 	Expect(again.ID).To(Equal(created.ID), "label values are compared without case")
 
 	it.ready(created.ID)
-	c.await(created.ID, runs.StatusAwaitingArchive)
+	assistant.await(created.ID, runs.StatusAwaitingArchive)
 	job, _ := it.box.Job(namespace, created.ID)
 	Expect(job).To(Equal(sandbox.Job{
 		RunID: created.ID, Kind: "upgrade", Caller: "assistant", Namespace: namespace,
@@ -190,58 +190,59 @@ func (it *integration) runCompletes(t *testing.T) {
 	Expect([]any{runID, command, received, starts}).To(Equal([]any{created.ID, "upgrade-v9", it.archive, 1}))
 
 	path := "/api/v1/runs/" + created.ID + "/result"
-	Expect(c.call(http.MethodGet, path, "", nil)).To(Equal(http.StatusConflict), "the run runs")
+	Expect(assistant.call(http.MethodGet, path, "", nil)).To(Equal(http.StatusConflict), "the run runs")
 	result := `{"status":"completed","exitCode":0,"report":{"exitCode":0,"steps":[]},"patch":"cGF0Y2g="}`
 	it.finish(created.ID, result)
-	completed := c.await(created.ID, runs.StatusCompleted)
+	completed := assistant.await(created.ID, runs.StatusCompleted)
 	Expect(completed.ResultExpiresAt).NotTo(BeNil())
 	Expect(completed.Error).To(BeNil())
-	Expect(c.read(path)).To(MatchJSON(result))
+	Expect(assistant.read(path)).To(MatchJSON(result))
 	Expect(it.runners.of(created.ID).FetchCount()).To(Equal(1), "the steps read the status, which is no fetch")
 }
 
 func (it *integration) cleanupDeletesTheJob(t *testing.T) {
 	RegisterTestingT(t)
-	c := it.assistant
+	assistant := it.assistant
 	labels := it.app("cleanup")
-	done := c.create("upgrade", labels, http.StatusAccepted)
+	done := assistant.create("upgrade", labels, http.StatusAccepted)
 	it.ready(done.ID)
-	c.await(done.ID, runs.StatusAwaitingArchive)
+	assistant.await(done.ID, runs.StatusAwaitingArchive)
 	it.upload(done.ID)
 	it.finish(done.ID, `{}`)
-	c.await(done.ID, runs.StatusCompleted)
+	assistant.await(done.ID, runs.StatusCompleted)
 
 	// The operator runner exits after the grace, and run.cleanup deletes the Job with the result.
 	it.box.SetPod(namespace, done.ID, sandbox.Pod{Status: sandbox.PodEnded, IP: "127.0.0.1"})
 	Eventually(func() bool { _, ok := it.box.Job(namespace, done.ID); return ok }, 10*time.Second).Should(BeFalse())
-	Eventually(func() int { return c.call(http.MethodGet, "/api/v1/runs/"+done.ID+"/result", "", nil) }).
+	Eventually(func() int { return assistant.call(http.MethodGet, "/api/v1/runs/"+done.ID+"/result", "", nil) }).
 		Should(Equal(http.StatusGone), "once the engine has ended the workflow")
-	Expect(c.await(done.ID, runs.StatusCompleted).ResultExpiresAt).To(BeNil(), "the result is gone")
+	Expect(assistant.await(done.ID, runs.StatusCompleted).ResultExpiresAt).To(BeNil(), "the result is gone")
 
-	next := c.create("upgrade", labels, http.StatusAccepted)
+	next := assistant.create("upgrade", labels, http.StatusAccepted)
 	Expect(next.ID).NotTo(Equal(done.ID))
 	var found struct {
 		Runs []runs.Run `json:"runs"`
 	}
-	Expect(json.Unmarshal([]byte(c.read("/api/v1/runs?labelSelector=app="+labels["app"])), &found)).To(Succeed())
+	listed := assistant.read("/api/v1/runs?labelSelector=app=" + labels["app"])
+	Expect(json.Unmarshal([]byte(listed), &found)).To(Succeed())
 	Expect(found.Runs).To(HaveLen(2))
 	Expect([]string{found.Runs[0].ID, found.Runs[1].ID}).To(Equal([]string{next.ID, done.ID}), "the newest first")
-	c.cancel(next.ID)
+	assistant.cancel(next.ID)
 }
 
 func (it *integration) queuedRunExpires(t *testing.T) {
 	RegisterTestingT(t)
-	c := it.assistant
+	assistant := it.assistant
 	// The pod of the first run never gets ready, so the run keeps the kind's one place.
-	first := c.create("one-at-a-time", it.app("first"), http.StatusAccepted)
-	c.await(first.ID, runs.StatusStarting)
-	queued := c.create("one-at-a-time", it.app("queued"), http.StatusAccepted)
+	first := assistant.create("one-at-a-time", it.app("first"), http.StatusAccepted)
+	assistant.await(first.ID, runs.StatusStarting)
+	queued := assistant.create("one-at-a-time", it.app("queued"), http.StatusAccepted)
 	Expect(*queued.QueuePosition).To(Equal(1))
-	expired := c.await(queued.ID, runs.StatusExpired)
+	expired := assistant.await(queued.ID, runs.StatusExpired)
 	Expect(expired.Error).To(Equal(&runs.RunError{
 		Reason: runs.ReasonQueueTimeout, Detail: "The run waited in the queue longer than its kind allows.",
 	}))
-	c.cancel(first.ID)
+	assistant.cancel(first.ID)
 }
 
 func (it *integration) runFailsWithoutArchive(t *testing.T) {
@@ -267,16 +268,16 @@ func (it *integration) runFailsWhenAStepFails(t *testing.T) {
 
 func (it *integration) cancelDeletesTheJob(t *testing.T) {
 	RegisterTestingT(t)
-	c := it.assistant
-	run := c.create("upgrade", it.app("canceled"), http.StatusAccepted)
+	assistant := it.assistant
+	run := assistant.create("upgrade", it.app("canceled"), http.StatusAccepted)
 	it.ready(run.ID)
-	c.await(run.ID, runs.StatusAwaitingArchive)
-	c.cancel(run.ID)
+	assistant.await(run.ID, runs.StatusAwaitingArchive)
+	assistant.cancel(run.ID)
 	_, ok := it.box.Job(namespace, run.ID)
 	Expect(ok).To(BeFalse())
-	Eventually(func() int { return c.call(http.MethodPost, "/api/v1/runs/"+run.ID+"/cancel", "", nil) }).
+	Eventually(func() int { return assistant.call(http.MethodPost, "/api/v1/runs/"+run.ID+"/cancel", "", nil) }).
 		Should(Equal(http.StatusOK), "the engine has canceled the workflow")
-	Expect(c.call(http.MethodGet, "/api/v1/runs/"+run.ID+"/result", "", nil)).To(Equal(http.StatusConflict))
+	Expect(assistant.call(http.MethodGet, "/api/v1/runs/"+run.ID+"/result", "", nil)).To(Equal(http.StatusConflict))
 }
 
 func (it *integration) runOutlivesARestart(t *testing.T) {

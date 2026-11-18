@@ -8,16 +8,16 @@ internal static class ServiceCollectionExtensions
     {
         public IServiceCollection ConfigureOperatorCommand()
         {
-            const string ns = nameof(OperatorCommandSettings);
+            const string sectionName = nameof(OperatorCommandSettings);
 
             services
                 .AddOptions<OperatorCommandSettings>()
-                .BindConfiguration(ns)
+                .BindConfiguration(sectionName)
                 .Validate(
                     config =>
                         Uri.TryCreate(config.CommandEndpoint, UriKind.Absolute, out var uri)
                         && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps),
-                    $"{ns}.{nameof(OperatorCommandSettings.CommandEndpoint)} must be an absolute http or https URL."
+                    $"{sectionName}.{nameof(OperatorCommandSettings.CommandEndpoint)} must be an absolute http or https URL."
                 )
                 .ValidateOnStart();
 

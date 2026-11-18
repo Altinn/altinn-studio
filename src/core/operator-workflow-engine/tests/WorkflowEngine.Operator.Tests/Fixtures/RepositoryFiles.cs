@@ -18,11 +18,15 @@ internal static class RepositoryFiles
     /// </remarks>
     private static string Root([CallerFilePath] string sourceFile = "")
     {
-        for (var dir = Path.GetDirectoryName(sourceFile); dir is not null; dir = Path.GetDirectoryName(dir))
+        for (
+            var directory = Path.GetDirectoryName(sourceFile);
+            directory is not null;
+            directory = Path.GetDirectoryName(directory)
+        )
         {
-            var git = Path.Combine(dir, ".git");
+            var git = Path.Combine(directory, ".git");
             if (Directory.Exists(git) || File.Exists(git))
-                return dir;
+                return directory;
         }
 
         throw new InvalidOperationException($"No repository root above '{sourceFile}'.");
