@@ -1,18 +1,18 @@
 {
   "axes": {
     "actor_prompt": "55a1d094fc83",
-    "code": "ae360d4 clean",
-    "dataset": "84 items d7671477fb57",
+    "code": "e13971f clean",
+    "dataset": "87 items 259bb6306c05",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
-    "models": "actor gpt-6.1-terra, default gpt-6-luna, planner gpt-6.1-sol",
+    "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261113T085949Z-agent-skills-format-21938-ae360d4d5c-6eac",
-  "label": "Agent Skills format, #21938 ae360d4d5c",
-  "recorded_at": "2026-11-13T09:07:19+00:00",
-  "why": "#21938 moves the skills to the Agent Skills format, which changes the actor prompt and the tool schemas. Full check with e2e, with PREVIEW_CHECK_ENABLED off as in production. All four builds finished with success. In each build the actor loaded the skills by their new names, and it loaded references/v8.md for each skill that has one before its first write. Against the #21937 baseline, every scored behavior has the same score except scope.declines-in-users-language, which went up by one item on gpt-6-luna. The scope prompt has no skills. The replay items of Loop/traces keep the system prompt that production recorded, with the old skill names, so they do not measure the new listing. The run before this one, on the same commit, lost simple-contact-one-page before the actor started, because the security gate returned details.fields as a list and SecurityCheckResult expects a string. Studio's preview did not load the app, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol."
+  "check_id": "20261117T142133Z-decision-model-request-gate-with-e2e-21981-on-e13971f5b6-1f8f",
+  "label": "decision-model request gate with e2e, #21981 on e13971f5b6",
+  "recorded_at": "2026-11-17T14:26:46+00:00",
+  "why": "#21981 replaces the scope and security gates with one call to the decisions API on gpt-6-luna, and changes the gate datasets. Gates/scope uses the key relevance, drops decline_language and has 37 items in place of 31. Gates/security keeps 30 items, with the CI item marked unsafe. Both datasets run through judge_request, three runs per item, and an item passes only when every run does. Full check with e2e on e13971f, with a clean tree. The assistant container ran the same commit against the local Designer stack and the app ttd/assistant-bench, with PREVIEW_CHECK_ENABLED off as in production. Every scored behavior matches the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, on Loop/traces 0.889 for gen_required_tools, 1.000 for gen_stopped_cleanly and 0.000 for gen_content_pairings, and 1.000 on bench_completed, bench_field_coverage, bench_order_integrity and bench_texts_bound. All four builds finished with success. The render check was off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force, as the last baseline was. The judge is gpt-6.1-sol."
 }

@@ -269,7 +269,7 @@ describe('FormData', () => {
 
   describe('Rendering and re-rendering', () => {
     function RenderCountingReader({ path, countKey, renderCounts }: Props) {
-      // eslint-disable-next-line react-compiler/react-compiler
+      // eslint-disable-next-line react-hooks/immutability
       renderCounts[countKey]++;
       const {
         formData: { simpleBinding: value },
@@ -281,7 +281,7 @@ describe('FormData', () => {
     }
 
     function RenderCountingWriter({ path, countKey, renderCounts }: Props) {
-      // eslint-disable-next-line react-compiler/react-compiler
+      // eslint-disable-next-line react-hooks/immutability
       renderCounts[countKey]++;
       const {
         formData: { simpleBinding: value },

@@ -113,10 +113,16 @@ class TestTheTaskMatchesTheDatasetKind:
         _run_one(client, "Benchmarks/forms")
         assert isinstance(client.last["task"], AgentTask)
 
-    def test_a_prompt_dataset_sends_one_gate_message(self, client):
-        from benchmarks.gates import GateTask
+    def test_a_gate_dataset_asks_the_decision_model(self, client):
+        from benchmarks.decisions import DecisionTask
 
         _run_one(client, "Gates/scope")
+        assert isinstance(client.last["task"], DecisionTask)
+
+    def test_a_prompt_dataset_sends_one_message(self, client):
+        from benchmarks.gates import GateTask
+
+        _run_one(client, "Planner/intake")
         assert isinstance(client.last["task"], GateTask)
 
     def test_a_planner_dataset_calls_the_planner(self, client):

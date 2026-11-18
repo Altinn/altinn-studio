@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from agents.prompts import loader
-from agents.prompts.loader import compiled_system_message, get_prompt_with_langfuse
+from agents.prompts.loader import compiled_system_message, get_prompt_with_langfuse, load_prompt
 
 SYSTEM = "You are the safety gate."
 
@@ -51,7 +51,7 @@ class TestFallbackToTheLocalFile:
         prompt = _Prompt([{"role": "system", "content": SYSTEM}])
         monkeypatch.setattr(loader, "get_raw_langfuse_prompt", lambda name, **k: prompt)
 
-        content, raw = get_prompt_with_langfuse("security_check")
+        content, raw = get_prompt_with_langfuse("goal_suggestions")
 
         assert content == SYSTEM
         assert raw is prompt
@@ -65,9 +65,9 @@ class TestFallbackToTheLocalFile:
             lambda name, **k: _Prompt([{"role": "user", "content": "x"}]),
         )
 
-        content, raw = get_prompt_with_langfuse("security_check")
+        content, raw = get_prompt_with_langfuse("goal_suggestions")
 
-        assert "safety gate for Altinity" in content
+        assert content == load_prompt("goal_suggestions")["content"]
         assert raw is None
 
     def test_a_compile_failure_falls_back(self, monkeypatch):
@@ -77,9 +77,9 @@ class TestFallbackToTheLocalFile:
 
         monkeypatch.setattr(loader, "get_raw_langfuse_prompt", lambda name, **k: Broken())
 
-        content, raw = get_prompt_with_langfuse("scope_check")
+        content, raw = get_prompt_with_langfuse("intake_planning")
 
-        assert "scope classifier" in content
+        assert content == load_prompt("intake_planning")["content"]
         assert raw is None
 
     def test_a_missing_local_file_is_an_error_not_an_empty_prompt(self, monkeypatch):
