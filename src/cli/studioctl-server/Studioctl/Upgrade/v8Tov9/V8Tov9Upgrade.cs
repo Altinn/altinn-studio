@@ -2031,7 +2031,6 @@ internal static class V8Tov9Upgrade
         UpgradeConsole.BeginStep("PDF service tasks");
         try
         {
-            // The app's code is read on the pristine view, which the v8 compilation binds.
             var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder, scanner.PristineView);
             var result = await migrator.Migrate();
             // Phrased as an end state, not an action: this migrator reports no warnings both when it

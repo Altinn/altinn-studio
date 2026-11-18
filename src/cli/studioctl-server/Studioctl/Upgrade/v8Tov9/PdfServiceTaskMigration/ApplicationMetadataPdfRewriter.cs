@@ -40,25 +40,30 @@ internal sealed class ApplicationMetadataPdfRewriter
     public bool ManualActionRequired { get; private set; }
 
     /// <summary>
-    /// Returns the distinct tasks that made a PDF in v8, in document order, each with the qualifying data types
-    /// bound to it, in document order. The first of them that an instance has is the task's form data model, which
-    /// is what a gateway after the task would previously have inferred from its UI configuration (see
+    /// Parses the file. Throws <see cref="System.Text.DecoderFallbackException"/> when it is not UTF-8, and
+    /// <see cref="JsonException"/> when it is not JSON.
+    /// </summary>
+    public JsonDocument Read() => JsonDocument.Parse(Utf8TextFile.Decode(File.ReadAllBytes(_metadataFile)).Text);
+
+    /// <summary>
+    /// Returns the distinct tasks that made a PDF in v8, in document order, each with the ids of the qualifying data
+    /// types bound to it, in document order. The first of them that an instance has is the task's form data model,
+    /// which is what a gateway after the task would previously have inferred from its UI configuration (see
     /// PdfProcessRewriter).
     /// </summary>
-    public IReadOnlyList<TaskRequiringPdf> GetTasksRequiringPdf()
+    /// <param name="metadata">The file's content, from <see cref="Read"/>.</param>
+    public IReadOnlyList<TaskRequiringPdf> GetTasksRequiringPdf(JsonElement metadata)
     {
-        using var doc = JsonDocument.Parse(Utf8TextFile.Decode(File.ReadAllBytes(_metadataFile)).Text);
         if (
-            doc.RootElement.ValueKind != JsonValueKind.Object
-            || !doc.RootElement.TryGetProperty("dataTypes", out var dataTypes)
+            metadata.ValueKind != JsonValueKind.Object
+            || !metadata.TryGetProperty("dataTypes", out var dataTypes)
             || dataTypes.ValueKind != JsonValueKind.Array
         )
         {
             return [];
         }
 
-        var shadowFieldTargets = ShadowFieldTargets(dataTypes);
-        var tasks = new List<(string TaskId, List<PdfFormDataType> DataTypes)>();
+        var tasks = new List<(string TaskId, List<string?> DataTypeIds)>();
         foreach (var dataType in dataTypes.EnumerateArray())
         {
             if (dataType.ValueKind != JsonValueKind.Object)
@@ -99,56 +104,17 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            var pdfDataType = new PdfFormDataType(
-                dataTypeId,
-                IsAutoCreated(appLogic) || (dataTypeId is not null && shadowFieldTargets.Contains(dataTypeId))
-            );
             foreach (var task in boundTasks)
             {
                 var index = tasks.FindIndex(t => t.TaskId == task);
                 if (index < 0)
-                    tasks.Add((task, [pdfDataType]));
+                    tasks.Add((task, [dataTypeId]));
                 else
-                    tasks[index].DataTypes.Add(pdfDataType);
+                    tasks[index].DataTypeIds.Add(dataTypeId);
             }
         }
 
-        return [.. tasks.Select(t => new TaskRequiringPdf(t.TaskId, t.DataTypes))];
-    }
-
-    /// <summary>
-    /// Whether the v8 backend creates the data type's element itself when its task starts:
-    /// <c>appLogic.autoCreate</c> is true.
-    /// </summary>
-    private static bool IsAutoCreated(JsonElement appLogic) =>
-        TryGetPropertyIgnoreCase(appLogic, "autoCreate", out var autoCreate)
-        && autoCreate.ValueKind == JsonValueKind.True;
-
-    /// <summary>
-    /// The data types other data types save their shadow fields to (<c>appLogic.shadowFields.saveToDataType</c>),
-    /// whose elements the v8 backend creates when the task ends.
-    /// </summary>
-    private static HashSet<string> ShadowFieldTargets(JsonElement dataTypes)
-    {
-        var targets = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var dataType in dataTypes.EnumerateArray())
-        {
-            if (
-                dataType.ValueKind == JsonValueKind.Object
-                && dataType.TryGetProperty("appLogic", out var appLogic)
-                && appLogic.ValueKind == JsonValueKind.Object
-                && TryGetPropertyIgnoreCase(appLogic, "shadowFields", out var shadowFields)
-                && shadowFields.ValueKind == JsonValueKind.Object
-                && TryGetPropertyIgnoreCase(shadowFields, "saveToDataType", out var saveTo)
-                && saveTo.ValueKind == JsonValueKind.String
-                && saveTo.GetString() is { Length: > 0 } target
-            )
-            {
-                targets.Add(target);
-            }
-        }
-
-        return targets;
+        return [.. tasks.Select(t => new TaskRequiringPdf(t.TaskId, t.DataTypeIds))];
     }
 
     /// <summary>
@@ -233,7 +199,7 @@ internal sealed class ApplicationMetadataPdfRewriter
         return rest is "true" or "false";
     }
 
-    private static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
+    internal static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
     {
         // System.Text.Json's TryGetProperty is always ordinal; enumerate to match Newtonsoft's
         // case-insensitive property binding. Prefer an exact match, then fall back to a case-insensitive
@@ -267,12 +233,5 @@ internal sealed class ApplicationMetadataPdfRewriter
     }
 }
 
-/// <summary>
-/// A data type whose elements made its task's PDF in v8. <paramref name="AutoCreated"/> says whether the v8 backend
-/// creates its element from the configuration in applicationmetadata.json: <c>appLogic.autoCreate</c>, or another
-/// data type saving its shadow fields to it.
-/// </summary>
-internal sealed record PdfFormDataType(string? Id, bool AutoCreated);
-
-/// <summary>A task that made a PDF in v8, with the data types bound to it whose elements made it.</summary>
-internal sealed record TaskRequiringPdf(string TaskId, IReadOnlyList<PdfFormDataType> DataTypes);
+/// <summary>A task that made a PDF in v8, with the ids of the data types bound to it whose elements made it.</summary>
+internal sealed record TaskRequiringPdf(string TaskId, IReadOnlyList<string?> DataTypeIds);

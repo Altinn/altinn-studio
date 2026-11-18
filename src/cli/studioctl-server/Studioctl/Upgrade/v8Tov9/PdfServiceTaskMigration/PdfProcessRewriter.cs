@@ -34,25 +34,13 @@ internal sealed class PdfProcessRewriter
     private readonly XNamespace _dcNs = "http://www.omg.org/spec/DD/20100524/DC";
     private readonly XNamespace _diNs = "http://www.omg.org/spec/DD/20100524/DI";
     private readonly List<string> _warnings = new();
-    private readonly List<string> _todos = new();
+    private readonly List<string> _infos = new();
     private readonly List<string> _skippedTasks = new();
     private readonly List<string> _insertedTasks = new();
     private readonly bool _sourceHadBom;
     private readonly string _newline;
     private readonly bool _hadTrailingNewline;
     private bool _addedShapes;
-
-    /// <summary>
-    /// The configuration elements of payment and signing tasks that name a data type the task creates elements of.
-    /// </summary>
-    private static readonly HashSet<string> _taskCreatedDataTypeElements = new(StringComparer.Ordinal)
-    {
-        "paymentDataType",
-        "paymentReceiptPdfDataType",
-        "signatureDataType",
-        "signeeStatesDataTypeId",
-        "signingPdfDataType",
-    };
 
     // Standard bpmn.io task shape size and the vertical gap below the source task.
     private const int PdfShapeWidth = 100;
@@ -73,8 +61,11 @@ internal sealed class PdfProcessRewriter
 
     public IReadOnlyList<string> GetWarnings() => _warnings;
 
-    /// <summary>What is left for the developer to do about a task whose PDF service task was not inserted.</summary>
-    public IReadOnlyList<string> GetTodos() => _todos;
+    /// <summary>What the rewriter did that needs no action.</summary>
+    public IReadOnlyList<string> GetInfos() => _infos;
+
+    /// <summary>The process as read, before <see cref="InsertPdfServiceTasks"/> changes it.</summary>
+    public XDocument Document => _doc;
 
     /// <summary>Whether any insertion actually changed the document; false means nothing to write.</summary>
     public bool HasChanges { get; private set; }
@@ -89,14 +80,6 @@ internal sealed class PdfProcessRewriter
 
     /// <summary>Task ids whose PDF service task this rewriter inserted (not counting already migrated ones).</summary>
     public IReadOnlyList<string> GetInsertedTasks() => _insertedTasks;
-
-    /// <summary>The data types whose elements the process's payment and signing tasks create.</summary>
-    public IReadOnlySet<string> DataTypesCreatedByTasks() =>
-        _doc.Descendants()
-            .Where(e => e.Name.Namespace == _altinnNs && _taskCreatedDataTypeElements.Contains(e.Name.LocalName))
-            .Select(e => e.Value.Trim())
-            .Where(dataType => dataType.Length > 0)
-            .ToHashSet(StringComparer.Ordinal);
 
     /// <summary>The id of the PDF service task inserted after <paramref name="taskId"/>.</summary>
     public static string PdfTaskIdFor(string taskId) => $"PdfTask_{taskId}";
@@ -247,19 +230,18 @@ internal sealed class PdfProcessRewriter
         {
             case GatewayActionRouting.SignBranch signBranch:
                 flow = signBranch.SignFlow;
-                _warnings.Add(
-                    $"Put PDF service task '{pdfTaskId}' on the sign branch of gateway '{signBranch.GatewayId}' after "
-                        + $"signing task '{taskId}', so the gateway still routes on the signer's action. As in v8, "
-                        + "signing makes the PDF and rejecting does not."
+                _infos.Add(
+                    $"Put PDF service task '{pdfTaskId}' on the sign branch of gateway '{signBranch.GatewayId}', which "
+                        + $"routes on gatewayAction after signing task '{taskId}'. As in v8, signing makes the PDF and "
+                        + "rejecting does not."
                 );
                 break;
             case GatewayActionRouting.Unsupported unsupported:
-                _todos.Add(
-                    $"Did not add PDF service task '{pdfTaskId}' after task '{taskId}': gateway "
-                        + $"'{unsupported.GatewayId}' after it routes on gatewayAction, and after a service task a "
-                        + "gateway sees the service task's action instead of the user's, so no flow would match. "
-                        + $"Add a 'pdf' service task '{pdfTaskId}' with autoPdfTaskIds '{taskId}' on the branch of "
-                        + $"'{unsupported.GatewayId}' that should produce the PDF, and run the upgrade again."
+                _warnings.Add(
+                    $"Gateway '{unsupported.GatewayId}' after task '{taskId}' routes on gatewayAction, which a PDF "
+                        + "service task between them would replace with its own action. Skipped PDF service task "
+                        + $"insertion - add a 'pdf' service task '{pdfTaskId}' with autoPdfTaskIds '{taskId}' on the "
+                        + $"branch of '{unsupported.GatewayId}' that should produce the PDF."
                 );
                 _skippedTasks.Add(taskId);
                 return;
@@ -330,11 +312,11 @@ internal sealed class PdfProcessRewriter
         );
 
         flow.AddAfterSelf(newFlow);
-        var source = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == flowSource) ?? task;
+        var source = ElementById(process, flowSource) ?? task;
         source.AddAfterSelf(pdfTask);
 
         // 4) Best-effort: repoint the original target's <incoming> hint from the old flow to the new one.
-        var target = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == originalTarget);
+        var target = ElementById(process, originalTarget);
         var incomingHint = target?.Elements().FirstOrDefault(e => e.Name.LocalName == "incoming" && e.Value == flowId);
         incomingHint?.SetValue(newFlowId);
 
@@ -375,11 +357,8 @@ internal sealed class PdfProcessRewriter
     }
 
     /// <summary>
-    /// Finds a gateway that routes on <c>gatewayAction</c> after <paramref name="task"/>. A pdf task between them
-    /// would break it: the process continues from a service task with the service task's action, not the user's.
-    /// Only a signing task whose flow leads straight to a gateway with the plain sign and reject conditions, and
-    /// nothing else entering it, has a branch to put the pdf task on instead: the sign branch, where v8 made the
-    /// PDF.
+    /// Finds a gateway that routes on <c>gatewayAction</c> after <paramref name="task"/>, and whether it is a signing
+    /// task's plain sign and reject split, with nothing else entering the gateway.
     /// </summary>
     private static GatewayActionRouting FindGatewayActionRouting(XElement process, XElement task, XElement taskFlow)
     {

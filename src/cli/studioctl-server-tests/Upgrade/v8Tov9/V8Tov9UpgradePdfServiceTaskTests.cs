@@ -36,7 +36,7 @@ public sealed class V8Tov9UpgradePdfServiceTaskTests : IDisposable
             """
             public class SigningModelCreator
             {
-                public void Create(IDataClient client, Instance instance) => client.InsertFormData(instance, "signing", new object());
+                public void Create(IInstanceDataMutator mutator) => mutator.AddFormDataElement("signing", new object());
             }
             """
         );
@@ -105,8 +105,17 @@ public sealed class V8Tov9UpgradePdfServiceTaskTests : IDisposable
 
         var pdfStep = Assert.Single(report.Steps, step => step.Name == "PDF service tasks");
         Assert.DoesNotContain(pdfStep.Messages, message => message.Status == UpgradeMessageStatus.Todo);
-        var info = Assert.Single(pdfStep.Messages, message => message.Status == UpgradeMessageStatus.Info);
-        Assert.StartsWith("Added no PDF service task after task 'Task_4'", info.Text, StringComparison.Ordinal);
+        Assert.Equal(
+            [
+                "Skipped PDF service task insertion after task 'Task_4': v8 made its PDF only when the instance had a "
+                    + "'notes' element, and nothing in the app creates one.",
+                "Put PDF service task 'PdfTask_Task_2' on the sign branch of gateway 'Gateway_1', which routes on "
+                    + "gatewayAction after signing task 'Task_2'. As in v8, signing makes the PDF and rejecting does not.",
+            ],
+            pdfStep
+                .Messages.Where(message => message.Status == UpgradeMessageStatus.Info)
+                .Select(message => message.Text)
+        );
 
         var process = XDocument.Parse(_app.Read("config/process/process.bpmn"));
         var flows = process

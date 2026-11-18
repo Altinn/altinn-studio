@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
@@ -99,11 +100,11 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
         Assert.NotNull(pdfTask);
         Assert.Equal("Task_2", pdfTask.Descendants().Single(e => e.Name.LocalName == "taskId").Value);
         Assert.Empty(result.Todos);
-        Assert.Contains(
-            "Put PDF service task 'PdfTask_Task_2' on the sign branch of gateway 'Gateway_1' after signing task "
-                + "'Task_2', so the gateway still routes on the signer's action. As in v8, signing makes the PDF and "
-                + "rejecting does not.",
-            result.Warnings
+        var info = Assert.Single(result.Messages, m => m.Status == UpgradeMessageStatus.Info);
+        Assert.Equal(
+            "Put PDF service task 'PdfTask_Task_2' on the sign branch of gateway 'Gateway_1', which routes on "
+                + "gatewayAction after signing task 'Task_2'. As in v8, signing makes the PDF and rejecting does not.",
+            info.Text
         );
         Assert.DoesNotContain(
             "enablePdfCreation",
@@ -197,7 +198,7 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
 
     [Theory]
     [MemberData(nameof(OtherShapes))]
-    public async Task OtherGatewayActionShapes_GetNoPdfTask_AndATodo(string shape, string[] elements)
+    public async Task OtherGatewayActionShapes_GetNoPdfTask_AndAWarning(string shape, string[] elements)
     {
         WriteMetadata();
         _app.Write("config/process/process.bpmn", Process(elements));
@@ -207,30 +208,35 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
 
         Assert.True(processBefore == _app.Read("config/process/process.bpmn"), shape);
         Assert.Contains(
-            result.Todos,
-            todo =>
-                todo.StartsWith(
-                    "Did not add PDF service task 'PdfTask_Task_2' after task 'Task_2': gateway 'Gateway_",
-                    StringComparison.Ordinal
-                )
+            result.Warnings,
+            warning =>
+                warning.StartsWith("Gateway 'Gateway_", StringComparison.Ordinal)
+                && warning.Contains("after task 'Task_2' routes on gatewayAction", StringComparison.Ordinal)
+        );
+        Assert.Equal(
+            ["Could not insert the PDF service task(s) for [Task_2]"],
+            result.Todos.Select(todo => todo[..todo.IndexOf(" automatically", StringComparison.Ordinal)])
         );
         Assert.Contains("enablePdfCreation", _app.Read("config/applicationmetadata.json"), StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task DataTaskBeforeAGatewayActionGateway_TodoNamesTheTaskAndTheGateway()
+    public async Task DataTaskBeforeAGatewayActionGateway_WarningNamesTheTaskAndTheGateway()
     {
         WriteMetadata();
         _app.Write("config/process/process.bpmn", Process(Elements(taskType: "data")));
 
         var result = await Migrate();
 
+        Assert.Contains(
+            "Gateway 'Gateway_1' after task 'Task_2' routes on gatewayAction, which a PDF service task between them "
+                + "would replace with its own action. Skipped PDF service task insertion - add a 'pdf' service task "
+                + "'PdfTask_Task_2' with autoPdfTaskIds 'Task_2' on the branch of 'Gateway_1' that should produce the "
+                + "PDF.",
+            result.Warnings
+        );
         Assert.Equal(
             [
-                "Did not add PDF service task 'PdfTask_Task_2' after task 'Task_2': gateway 'Gateway_1' after it routes "
-                    + "on gatewayAction, and after a service task a gateway sees the service task's action instead of "
-                    + "the user's, so no flow would match. Add a 'pdf' service task 'PdfTask_Task_2' with autoPdfTaskIds "
-                    + "'Task_2' on the branch of 'Gateway_1' that should produce the PDF, and run the upgrade again.",
                 "Could not insert the PDF service task(s) for [Task_2] automatically, so these tasks generate no PDF in "
                     + "v9. Left applicationmetadata.json unchanged. Resolve the problems reported above (or add the "
                     + "service task(s) manually) and re-run the upgrade.",

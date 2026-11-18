@@ -13,15 +13,14 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <param name="UnknownDataTypes">
 /// The calls whose data type is not a compile-time constant, so could be any data type.
 /// </param>
-internal sealed record DataElementCreations(
+internal sealed record CodeCreatedDataTypes(
     IReadOnlySet<string> DataTypes,
     IReadOnlyList<CSharpApiMatch> UnknownDataTypes
 );
 
 /// <summary>
-/// Finds <see cref="DataElementCreations"/>. Run it on the pristine view (see
-/// <see cref="CSharpSourceScanner.PristineView"/>), where the v8 compilation binds the calls. Without a semantic
-/// model, a call counts by its method name, and only a string literal in the data type's position names a data type.
+/// Finds <see cref="CodeCreatedDataTypes"/>. With a semantic model a call counts when it binds to an Altinn.App
+/// method. Without one, a call counts by its method name, and only a string literal names its data type.
 /// </summary>
 internal sealed class DataElementCreationDetector
 {
@@ -42,6 +41,19 @@ internal sealed class DataElementCreationDetector
         "dataTypeId",
     };
 
+    /// <summary>
+    /// The position of the data type in every overload of a creating method, where they agree. The overloads of
+    /// <c>InsertFormData</c> and <c>InsertBinaryData</c> put it in different places.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, int> _dataTypePositions = new Dictionary<string, int>(
+        StringComparer.Ordinal
+    )
+    {
+        ["AddFormDataElement"] = 0,
+        ["AddBinaryDataElement"] = 0,
+        ["InsertJsonObject"] = 1,
+    };
+
     private readonly CSharpSourceScanner _scanner;
 
     public DataElementCreationDetector(CSharpSourceScanner scanner)
@@ -49,7 +61,7 @@ internal sealed class DataElementCreationDetector
         _scanner = scanner;
     }
 
-    public DataElementCreations Detect()
+    public CodeCreatedDataTypes Detect()
     {
         var dataTypes = new HashSet<string>(StringComparer.Ordinal);
         var unknown = new List<CSharpApiMatch>();
@@ -74,7 +86,7 @@ internal sealed class DataElementCreationDetector
             }
         }
 
-        return new DataElementCreations(dataTypes, unknown);
+        return new CodeCreatedDataTypes(dataTypes, unknown);
     }
 
     /// <summary>
@@ -106,27 +118,23 @@ internal sealed class DataElementCreationDetector
     }
 
     /// <summary>
-    /// The string literal a call passes as the data type: a named argument, or the position the data type has in
-    /// the overloads with that many arguments. Null when it is anything else, or the position is ambiguous.
+    /// The string literal a call passes as the data type: a named argument, or the argument at the position every
+    /// overload of the method has its data type in. Null when it is anything else.
     /// </summary>
     private static string? SyntaxDataType(string method, ArgumentListSyntax arguments)
     {
         var list = arguments.Arguments;
-        var named = list.FirstOrDefault(a =>
-            a.NameColon is { } nameColon && _dataTypeParameters.Contains(nameColon.Name.Identifier.Text)
-        );
-        int? index = method switch
-        {
-            "AddFormDataElement" or "AddBinaryDataElement" => 0,
-            "InsertJsonObject" => 1,
-            // (dataToSerialize, instanceGuid, type, org, app, instanceOwnerPartyId, dataType, ...)
-            // or (instance, dataType, ...)
-            "InsertFormData" => list.Count >= 7 ? 6 : 1,
-            // (instanceId, dataType, contentType, filename, stream); with more arguments the overloads collide.
-            "InsertBinaryData" => list.Count <= 5 ? 1 : null,
-            _ => null,
-        };
-        var expression = named?.Expression ?? (index < list.Count ? list[index.Value].Expression : null);
+        var expression =
+            list.FirstOrDefault(a =>
+                a.NameColon is { } nameColon && _dataTypeParameters.Contains(nameColon.Name.Identifier.Text)
+            )?.Expression
+            ?? (
+                _dataTypePositions.TryGetValue(method, out var index)
+                && index < list.Count
+                && list[index].NameColon is null
+                    ? list[index].Expression
+                    : null
+            );
         return expression is LiteralExpressionSyntax { Token.Value: string dataType } ? dataType : null;
     }
 }

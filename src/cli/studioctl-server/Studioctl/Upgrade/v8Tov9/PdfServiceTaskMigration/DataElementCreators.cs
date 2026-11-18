@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Xml.Linq;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using LayoutSetsToTaskUiMigrator = Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration.LayoutSetsToTaskUiMigrator;
 
@@ -16,33 +17,50 @@ internal enum DataElementCreation
 }
 
 /// <summary>
-/// What creates the elements of a data type besides <c>appLogic.autoCreate</c>, which v8 made a task's PDF only
-/// for when the instance had one (see <see cref="ApplicationMetadataPdfRewriter"/>): the app's code (see
-/// <see cref="DataElementCreationDetector"/>), a Subform component, which creates entries of the data type of the
-/// layout set it names, and a payment or signing task, which creates elements of the data types its configuration
-/// names. The v4 frontend creates no other form data elements.
+/// What creates the elements of a data type in a v8 app, which v8 made a task's PDF only for when the instance had
+/// one (see <see cref="ApplicationMetadataPdfRewriter"/>):
+/// <list type="bullet">
+/// <item>the backend, for a data type with <c>appLogic.autoCreate</c>, one another data type saves its shadow
+/// fields to (<c>appLogic.shadowFields.saveToDataType</c>), and a payment task's <c>paymentDataType</c></item>
+/// <item>a Subform component, which creates entries of the data type of the layout set it names</item>
+/// <item>the app's code (see <see cref="DataElementCreationDetector"/>)</item>
+/// </list>
+/// This assumes the v8 app frontend (v4) creates no other form data elements.
 /// </summary>
 internal sealed class DataElementCreators
 {
-    private readonly DataElementCreations _code;
-    private readonly IReadOnlySet<string> _subforms;
-    private readonly IReadOnlySet<string> _tasks;
+    private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
-    private DataElementCreators(DataElementCreations code, IReadOnlySet<string> subforms, IReadOnlySet<string> tasks)
+    private readonly HashSet<string> _created;
+    private readonly CodeCreatedDataTypes _code;
+
+    private DataElementCreators(HashSet<string> created, CodeCreatedDataTypes code)
     {
+        _created = created;
         _code = code;
-        _subforms = subforms;
-        _tasks = tasks;
     }
 
     /// <param name="projectFolder">The app's folder.</param>
-    /// <param name="code">The app's C# source, on the view that binds against v8.</param>
-    /// <param name="createdByTasks">The data types the process's tasks create elements of.</param>
+    /// <param name="code">The app's C# source.</param>
+    /// <param name="metadata">The content of applicationmetadata.json.</param>
+    /// <param name="process">process.bpmn.</param>
     public static DataElementCreators Find(
         string projectFolder,
         CSharpSourceScanner code,
-        IReadOnlySet<string> createdByTasks
-    ) => new(new DataElementCreationDetector(code).Detect(), SubformDataTypes(projectFolder), createdByTasks);
+        JsonElement metadata,
+        XDocument process
+    )
+    {
+        var codeCreated = new DataElementCreationDetector(code).Detect();
+        HashSet<string> created =
+        [
+            .. CreatedByBackend(metadata),
+            .. PaymentDataTypes(process),
+            .. SubformDataTypes(projectFolder),
+            .. codeCreated.DataTypes,
+        ];
+        return new DataElementCreators(created, codeCreated);
+    }
 
     /// <summary>
     /// The calls in the app's code that create elements of a data type it does not name with a constant.
@@ -51,98 +69,101 @@ internal sealed class DataElementCreators
 
     public DataElementCreation Of(string dataTypeId)
     {
-        if (_code.DataTypes.Contains(dataTypeId) || _subforms.Contains(dataTypeId) || _tasks.Contains(dataTypeId))
+        if (_created.Contains(dataTypeId))
             return DataElementCreation.Created;
 
         return _code.UnknownDataTypes.Count > 0 ? DataElementCreation.Unknown : DataElementCreation.None;
     }
 
     /// <summary>
-    /// The data types of the layout sets Subform components name: the <c>dataType</c> in layout-sets.json, or, once
-    /// the layout-set migration has moved the layout sets to folders, the <c>defaultDataType</c> in the folder's
-    /// settings.
+    /// The data types the backend creates from applicationmetadata.json: with <c>appLogic.autoCreate</c> when their
+    /// task starts, and those another data type saves its shadow fields to when its task ends. Property names match
+    /// in any case, as v8 reads the file with Newtonsoft.
     /// </summary>
-    private static HashSet<string> SubformDataTypes(string projectFolder)
+    private static IEnumerable<string> CreatedByBackend(JsonElement metadata)
     {
-        var dataTypes = new HashSet<string>(StringComparer.Ordinal);
-        if (new TaskUiSettings(projectFolder).UiFolder is not { } uiFolder)
-            return dataTypes;
-
-        var layoutSets = ReadLayoutSets(Path.Combine(uiFolder, TaskUiSettings.LayoutSetsFileName));
-        foreach (var layoutSet in LayoutSetsToTaskUiMigrator.CollectSubformLayoutSetReferences(uiFolder))
+        if (
+            metadata.ValueKind != JsonValueKind.Object
+            || !metadata.TryGetProperty("dataTypes", out var dataTypes)
+            || dataTypes.ValueKind != JsonValueKind.Array
+        )
         {
-            var dataType = layoutSets is null
-                ? ReadString(Path.Combine(uiFolder, layoutSet, TaskUiSettings.SettingsFileName), "defaultDataType")
-                : layoutSets.GetValueOrDefault(layoutSet);
-            if (dataType is not null)
-                dataTypes.Add(dataType);
+            yield break;
         }
 
-        return dataTypes;
-    }
-
-    /// <summary>
-    /// The data type of each layout set in layout-sets.json; null when the file is missing or unreadable.
-    /// </summary>
-    private static Dictionary<string, string>? ReadLayoutSets(string file)
-    {
-        if (!File.Exists(file))
-            return null;
-
-        var dataTypes = new Dictionary<string, string>(StringComparer.Ordinal);
-        try
+        foreach (var dataType in dataTypes.EnumerateArray())
         {
-            using var doc = JsonDocument.Parse(File.ReadAllText(file), TaskUiSettings.JsonOptions);
             if (
-                doc.RootElement.ValueKind != JsonValueKind.Object
-                || !doc.RootElement.TryGetProperty("sets", out var sets)
-                || sets.ValueKind != JsonValueKind.Array
+                dataType.ValueKind != JsonValueKind.Object
+                || !ApplicationMetadataPdfRewriter.TryGetPropertyIgnoreCase(dataType, "appLogic", out var appLogic)
+                || appLogic.ValueKind != JsonValueKind.Object
             )
             {
-                return dataTypes;
+                continue;
             }
 
-            foreach (var set in sets.EnumerateArray())
+            if (
+                ApplicationMetadataPdfRewriter.TryGetPropertyIgnoreCase(appLogic, "autoCreate", out var autoCreate)
+                && autoCreate.ValueKind == JsonValueKind.True
+                && StringProperty(dataType, "id") is { } id
+            )
             {
-                if (
-                    set.ValueKind == JsonValueKind.Object
-                    && StringProperty(set, "id") is { } id
-                    && StringProperty(set, "dataType") is { } dataType
+                yield return id;
+            }
+
+            if (
+                ApplicationMetadataPdfRewriter.TryGetPropertyIgnoreCase(appLogic, "shadowFields", out var shadowFields)
+                && shadowFields.ValueKind == JsonValueKind.Object
+                && ApplicationMetadataPdfRewriter.TryGetPropertyIgnoreCase(
+                    shadowFields,
+                    "saveToDataType",
+                    out var saveTo
                 )
-                {
-                    dataTypes.TryAdd(id, dataType);
-                }
+                && saveTo.ValueKind == JsonValueKind.String
+                && saveTo.GetString() is { Length: > 0 } target
+            )
+            {
+                yield return target;
             }
         }
-        catch (JsonException)
-        {
-            // The layout-set migration reports an unreadable layout-sets.json.
-        }
-
-        return dataTypes;
     }
 
-    private static string? ReadString(string file, string property)
+    /// <summary>The <c>paymentDataType</c> of each payment task, whose element the payment creates.</summary>
+    private static IEnumerable<string> PaymentDataTypes(XDocument process) =>
+        process
+            .Root?.Elements()
+            .Where(e => e.Name.LocalName == "process")
+            .SelectMany(p => p.Elements())
+            .Where(e => e.Name.LocalName is "task" or "serviceTask")
+            .Select(task =>
+                task.Elements()
+                    .FirstOrDefault(e => e.Name.LocalName == "extensionElements")
+                    ?.Element(_altinnNs + "taskExtension")
+            )
+            .Where(extension => extension?.Element(_altinnNs + "taskType")?.Value.Trim() == "payment")
+            .Select(extension =>
+                extension?.Element(_altinnNs + "paymentConfig")?.Element(_altinnNs + "paymentDataType")?.Value.Trim()
+            )
+            .OfType<string>()
+            .Where(dataType => dataType.Length > 0)
+        ?? [];
+
+    /// <summary>The data types of the layout sets Subform components name.</summary>
+    private static IEnumerable<string> SubformDataTypes(string projectFolder)
     {
-        if (!File.Exists(file))
-            return null;
+        var taskUiSettings = new TaskUiSettings(projectFolder);
+        if (taskUiSettings.UiFolder is not { } uiFolder)
+            return [];
 
-        try
-        {
-            using var doc = JsonDocument.Parse(File.ReadAllText(file), TaskUiSettings.JsonOptions);
-            return doc.RootElement.ValueKind == JsonValueKind.Object ? StringProperty(doc.RootElement, property) : null;
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        // An unreadable file is reported by the layout-set migration.
+        return LayoutSetsToTaskUiMigrator
+            .CollectSubformLayoutSetReferences(uiFolder)
+            .Select(layoutSet => taskUiSettings.FindDataTypeForLayoutSet(layoutSet, _ => { }))
+            .OfType<string>();
     }
 
-    private static string? StringProperty(JsonElement element, string name)
-    {
-        if (!element.TryGetProperty(name, out var value) || value.ValueKind != JsonValueKind.String)
-            return null;
-
-        return value.GetString() is { Length: > 0 } text ? text : null;
-    }
+    private static string? StringProperty(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
 }

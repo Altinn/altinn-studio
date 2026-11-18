@@ -125,9 +125,8 @@ public sealed class PdfServiceTaskDataElementCreationTests : IDisposable
 
         Assert.Equal(["PdfTask_Task_1"], PdfTasks());
         Assert.Equal(
-            "Added no PDF service task after task 'Task_2': v8 never made its PDF, because nothing creates a "
-                + "'signing' element. appLogic.autoCreate is not true, and neither the app's code nor a Subform "
-                + "component creates one.",
+            "Skipped PDF service task insertion after task 'Task_2': v8 made its PDF only when the instance had a "
+                + "'signing' element, and nothing in the app creates one.",
             Info(result)
         );
         Assert.Empty(result.Todos);
@@ -313,19 +312,15 @@ public sealed class PdfServiceTaskDataElementCreationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("client.InsertFormData(instance, \"signing\", data)", "signing", false)]
     [InlineData("client.InsertFormData(instance, dataTypeString: \"signing\", data)", "signing", false)]
-    [InlineData("client.InsertFormData(data, guid, type, org, app, 1, \"signing\")", "signing", false)]
-    [InlineData("client.InsertBinaryData(id, \"signing\", \"application/pdf\", \"a.pdf\", stream)", "signing", false)]
+    [InlineData("client.InsertBinaryData(dataType: \"signing\", instanceId: id)", "signing", false)]
     [InlineData("accessor.AddFormDataElement(\"signing\", data)", "signing", false)]
+    [InlineData("accessor.AddBinaryDataElement(\"signing\", \"application/pdf\", null, bytes)", "signing", false)]
     [InlineData("service.InsertJsonObject(id, \"signing\", data)", "signing", false)]
-    [InlineData("client.InsertFormData(instance, Constants.Signing, data)", null, true)]
-    // With six arguments InsertBinaryData's overloads put the data type in different places.
-    [InlineData(
-        "client.InsertBinaryData(id, \"signing\", \"application/pdf\", \"a.pdf\", stream, \"Task_1\")",
-        null,
-        true
-    )]
+    [InlineData("accessor.AddFormDataElement(Constants.Signing, data)", null, true)]
+    // The overloads of InsertFormData and InsertBinaryData put the data type in different places.
+    [InlineData("client.InsertFormData(instance, \"signing\", data)", null, true)]
+    [InlineData("client.InsertBinaryData(id, \"signing\", \"application/pdf\", \"a.pdf\", stream)", null, true)]
     public void WithoutASemanticModel_OnlyALiteralInTheDataTypesPositionNamesIt(
         string call,
         string? dataType,
@@ -408,6 +403,48 @@ public sealed class PdfServiceTaskDataElementCreationTests : IDisposable
 
         Assert.Equal(["PdfTask_Task_1", "PdfTask_Task_2"], PdfTasks());
         Assert.Null(Info(result));
+    }
+
+    [Fact]
+    public async Task AutoCreateInAnyCasing_CreatesIt()
+    {
+        // v8 reads applicationmetadata.json with Newtonsoft, which matches property names in any casing.
+        WriteApp();
+        _app.Write(
+            "config/applicationmetadata.json",
+            _app.Read("config/applicationmetadata.json")
+                .Replace(
+                    "\"classRef\": \"Altinn.App.Models.signing\"",
+                    "\"AutoCreate\": true, \"classRef\": \"Altinn.App.Models.signing\"",
+                    StringComparison.Ordinal
+                )
+        );
+
+        var result = await Migrate();
+
+        Assert.Equal(["PdfTask_Task_1", "PdfTask_Task_2"], PdfTasks());
+        Assert.Null(Info(result));
+    }
+
+    [Fact]
+    public async Task SigningTaskConfiguration_DoesNotCreateIt()
+    {
+        // Only a payment task's paymentDataType counts; a signing task's data types hold files, not form data.
+        WriteApp();
+        _app.Write(
+            "config/process/process.bpmn",
+            _app.Read("config/process/process.bpmn")
+                .Replace(
+                    "<altinn:taskType>signing</altinn:taskType>",
+                    "<altinn:taskType>signing</altinn:taskType><altinn:paymentConfig><altinn:paymentDataType>signing</altinn:paymentDataType></altinn:paymentConfig><altinn:signatureConfig><altinn:signatureDataType>signing</altinn:signatureDataType></altinn:signatureConfig>",
+                    StringComparison.Ordinal
+                )
+        );
+
+        var result = await Migrate();
+
+        Assert.Equal(["PdfTask_Task_1"], PdfTasks());
+        Assert.NotNull(Info(result));
     }
 
     private void WriteSubformLayouts()

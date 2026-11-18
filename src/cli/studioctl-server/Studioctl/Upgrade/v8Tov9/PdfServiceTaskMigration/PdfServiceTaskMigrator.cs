@@ -30,7 +30,10 @@ internal sealed class PdfServiceTaskMigrator
     private readonly CSharpSourceScanner _code;
 
     /// <param name="projectFolder">The app's folder.</param>
-    /// <param name="code">The app's C# source, on the view that binds against v8.</param>
+    /// <param name="code">
+    /// The app's C# source, on the pristine view (<see cref="CSharpSourceScanner.PristineView"/>), which the v8
+    /// compilation binds before the other steps rewrite the code.
+    /// </param>
     public PdfServiceTaskMigrator(string projectFolder, CSharpSourceScanner code)
     {
         _projectFolder = projectFolder;
@@ -56,10 +59,12 @@ internal sealed class PdfServiceTaskMigrator
 
         var metadataRewriter = new ApplicationMetadataPdfRewriter(metadataFile);
 
+        JsonDocument metadata;
         IReadOnlyList<TaskRequiringPdf> tasksRequiringPdf;
         try
         {
-            tasksRequiringPdf = metadataRewriter.GetTasksRequiringPdf();
+            metadata = metadataRewriter.Read();
+            tasksRequiringPdf = metadataRewriter.GetTasksRequiringPdf(metadata.RootElement);
         }
         catch (DecoderFallbackException)
         {
@@ -79,6 +84,7 @@ internal sealed class PdfServiceTaskMigrator
             return new MigrationResult(messages);
         }
 
+        using var _ = metadata;
         if (tasksRequiringPdf.Count > 0)
         {
             var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
@@ -114,7 +120,13 @@ internal sealed class PdfServiceTaskMigrator
                 return new MigrationResult(messages);
             }
 
-            var (tasks, uncertain) = TasksWithCreatedDataTypes(tasksRequiringPdf, processRewriter, messages);
+            var creators = DataElementCreators.Find(
+                _projectFolder,
+                _code,
+                metadata.RootElement,
+                processRewriter.Document
+            );
+            var (tasks, uncertain) = PlanPdfTasks(tasksRequiringPdf, creators, messages);
 
             // Decide how each task's PDF must render before changing anything. A task whose legacy PDF
             // came from a custom layout gets a layout set of its own for its PDF service task.
@@ -174,9 +186,9 @@ internal sealed class PdfServiceTaskMigrator
             // satisfied must not reformat the file for nothing.
             if (processRewriter.HasChanges)
                 await processRewriter.Write();
+            foreach (var info in processRewriter.GetInfos())
+                messages.Info(info);
             messages.WarnRange(processRewriter.GetWarnings());
-            foreach (var todo in processRewriter.GetTodos())
-                messages.Todo(todo);
             foreach (var taskId in processRewriter.GetInsertedTasks())
             {
                 if (uncertain.TryGetValue(taskId, out var todo))
@@ -238,33 +250,22 @@ internal sealed class PdfServiceTaskMigrator
     /// <summary>
     /// The tasks to add a PDF service task after, each with the data type a gateway after it infers its data model
     /// from: the first of its data types an instance may have. A task none of whose data types anything creates
-    /// gets none, with a message saying so. <c>Uncertain</c> maps a task whose data types only the app's code may
-    /// create to the to-do for its PDF service task.
+    /// gets none, with a message saying so.
     /// </summary>
-    private (
-        List<(string TaskId, string? DataTypeId)> Tasks,
-        Dictionary<string, string> Uncertain
-    ) TasksWithCreatedDataTypes(
+    private static PdfTaskPlan PlanPdfTasks(
         IReadOnlyList<TaskRequiringPdf> tasksRequiringPdf,
-        PdfProcessRewriter processRewriter,
+        DataElementCreators creators,
         List<UpgradeMessage> messages
     )
     {
-        var creators = new Lazy<DataElementCreators>(() =>
-            DataElementCreators.Find(_projectFolder, _code, processRewriter.DataTypesCreatedByTasks())
-        );
         var tasks = new List<(string TaskId, string? DataTypeId)>();
         var uncertain = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var task in tasksRequiringPdf)
         {
+            // A data type without an id cannot be looked up, so it keeps its PDF.
             var creations = task
-                .DataTypes.Select(dataType =>
-                    (
-                        dataType.Id,
-                        Creation: dataType is { AutoCreated: false, Id: { } id }
-                            ? creators.Value.Of(id)
-                            : DataElementCreation.Created
-                    )
+                .DataTypeIds.Select(id =>
+                    (Id: id, Creation: id is null ? DataElementCreation.Created : creators.Of(id))
                 )
                 .ToList();
             var created = creations.Where(c => c.Creation == DataElementCreation.Created).ToList();
@@ -280,19 +281,28 @@ internal sealed class PdfServiceTaskMigrator
                 uncertain[task.TaskId] = MayBeUnwanted(
                     task.TaskId,
                     [.. unknown.Select(c => c.Id).OfType<string>()],
-                    creators.Value.UnknownCreations
+                    creators.UnknownCreations
                 );
             }
             tasks.Add((task.TaskId, creations.First(c => c.Creation != DataElementCreation.None).Id));
         }
 
-        return (tasks, uncertain);
+        return new PdfTaskPlan(tasks, uncertain);
     }
 
+    /// <summary>The tasks to add a PDF service task after, as <see cref="PlanPdfTasks"/> plans them.</summary>
+    /// <param name="Tasks">Each task, with the data type a gateway after it infers its data model from.</param>
+    /// <param name="Uncertain">
+    /// The to-do for each task whose data types only the app's code may create, should its PDF service task be added.
+    /// </param>
+    private sealed record PdfTaskPlan(
+        List<(string TaskId, string? DataTypeId)> Tasks,
+        Dictionary<string, string> Uncertain
+    );
+
     private static string NothingCreates(string taskId, IReadOnlyList<string> dataTypes) =>
-        $"Added no PDF service task after task '{taskId}': v8 never made its PDF, because nothing creates "
-        + $"{ElementsOf(dataTypes)}. appLogic.autoCreate is not true, and neither the app's code nor a Subform "
-        + "component creates one.";
+        $"Skipped PDF service task insertion after task '{taskId}': v8 made its PDF only when the instance had "
+        + $"{ElementsOf(dataTypes)}, and nothing in the app creates one.";
 
     private static string MayBeUnwanted(
         string taskId,

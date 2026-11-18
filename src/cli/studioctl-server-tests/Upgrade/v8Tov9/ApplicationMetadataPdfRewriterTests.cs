@@ -182,10 +182,10 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             """
         );
 
-        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+        var tasks = TasksRequiringPdf(file);
 
         (string TaskId, string? DataTypeId)[] expected = requiresPdf ? [("Task_1", "model")] : [];
-        Assert.Equal(expected, tasks.Select(t => (t.TaskId, t.DataTypes.Single().Id)));
+        Assert.Equal(expected, tasks.Select(t => (t.TaskId, t.DataTypeIds.Single())));
     }
 
     [Fact]
@@ -207,57 +207,40 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             """
         );
 
-        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+        var tasks = TasksRequiringPdf(file);
 
         Assert.Equal(["Task_1", "Task_2"], tasks.Select(t => t.TaskId));
-        Assert.All(tasks, t => Assert.Equal([new PdfFormDataType("model", AutoCreated: false)], t.DataTypes));
+        Assert.All(tasks, t => Assert.Equal(["model"], t.DataTypeIds));
     }
 
     [Fact]
-    public void FormDataTypes_AreListedPerTask_WithWhetherTheBackendCreatesThem()
+    public void FormDataTypes_AreListedPerTask_InDocumentOrder()
     {
-        // The backend creates an element of a data type with autoCreate (any casing, as Newtonsoft reads it), and
-        // of the data type another one saves its shadow fields to.
         var file = _app.Write(
             "config/applicationmetadata.json",
             """
             {
               "dataTypes": [
-                {
-                  "id": "auto",
-                  "taskId": "Task_1",
-                  "enablePdfCreation": true,
-                  "appLogic": { "AutoCreate": true, "classRef": "Altinn.App.Models.auto", "shadowFields": { "prefix": "AltinnSF_", "saveToDataType": "shadow" } }
-                },
-                {
-                  "id": "manual",
-                  "taskId": "Task_1",
-                  "enablePdfCreation": true,
-                  "appLogic": { "autoCreate": false, "classRef": "Altinn.App.Models.manual" }
-                },
-                {
-                  "id": "shadow",
-                  "taskId": "Task_2",
-                  "enablePdfCreation": true,
-                  "appLogic": { "classRef": "Altinn.App.Models.shadow" }
-                }
+                { "id": "first", "taskId": "Task_1", "enablePdfCreation": true, "appLogic": { "classRef": "A" } },
+                { "id": "second", "taskId": "Task_2", "enablePdfCreation": true, "appLogic": { "classRef": "B" } },
+                { "id": "third", "taskId": "Task_1", "enablePdfCreation": true, "appLogic": { "classRef": "C" } }
               ]
             }
             """
         );
 
-        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+        var tasks = TasksRequiringPdf(file);
 
         Assert.Equal(
-            [
-                new TaskRequiringPdf(
-                    "Task_1",
-                    [new PdfFormDataType("auto", true), new PdfFormDataType("manual", false)]
-                ),
-                new TaskRequiringPdf("Task_2", [new PdfFormDataType("shadow", true)]),
-            ],
-            tasks,
-            (expected, actual) => expected.TaskId == actual.TaskId && expected.DataTypes.SequenceEqual(actual.DataTypes)
+            [("Task_1", "first, third"), ("Task_2", "second")],
+            tasks.Select(t => (t.TaskId, string.Join(", ", t.DataTypeIds)))
         );
+    }
+
+    private static IReadOnlyList<TaskRequiringPdf> TasksRequiringPdf(string file)
+    {
+        var rewriter = new ApplicationMetadataPdfRewriter(file);
+        using var metadata = rewriter.Read();
+        return rewriter.GetTasksRequiringPdf(metadata.RootElement);
     }
 }
