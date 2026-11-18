@@ -1,4 +1,4 @@
-# The build context is src/.
+# Build context: src/
 **
 !common/dotnet/Altinn.Studio.Common/**
 !common/dotnet/Altinn.Studio.Common.Telemetry/**
