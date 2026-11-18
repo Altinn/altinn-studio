@@ -5,7 +5,7 @@ using Altinn.App.Models;
 namespace Altinn.App.logic.Validation;
 
 /// <summary>
-/// Lets the validation showcase switch component, row-container and whole-group messages independently.
+/// Lets the validation showcase switch component, row-object and whole-array messages independently.
 /// </summary>
 internal sealed class RepeatingGroupShowcaseValidator : IValidator
 {
@@ -32,55 +32,53 @@ internal sealed class RepeatingGroupShowcaseValidator : IValidator
             .Split(',').ToHashSet();
         var issues = new List<ValidationIssue>();
         var dataElement = dataAccessor.GetDataElementsForType("nested-group").Single();
-        foreach (var variant in Variants)
+        if (selected.Contains("groups"))
         {
-            var componentId = $"validation-{variant}";
-            if (selected.Contains("groups"))
+            foreach (var severity in new[]
             {
-                foreach (var severity in new[]
+                ValidationIssueSeverity.Error, ValidationIssueSeverity.Warning,
+                ValidationIssueSeverity.Informational, ValidationIssueSeverity.Success,
+            })
+            {
+                issues.Add(new ValidationIssue
                 {
-                    ValidationIssueSeverity.Error, ValidationIssueSeverity.Warning,
-                    ValidationIssueSeverity.Informational, ValidationIssueSeverity.Success,
-                })
-                {
-                    issues.Add(new ValidationIssue
+                    DataElementId = dataElement.Id,
+                    Field = nameof(NestedGroup.Pets),
+                    Severity = severity,
+                    Description = severity switch
                     {
-                        DataElementId = dataElement.Id,
-                        ComponentId = componentId,
-                        Severity = severity,
-                        Description = severity switch
-                        {
-                            ValidationIssueSeverity.Success => "Kjæledyrene i denne gruppen er kontrollert samlet.",
-                            ValidationIssueSeverity.Informational => "Denne meldingen gjelder hele listen med kjæledyr.",
-                            _ => "Kontroller kjæledyrene i denne gruppen samlet.",
-                        },
-                    });
-                }
+                        ValidationIssueSeverity.Success => "Kjæledyrene i denne gruppen er kontrollert samlet.",
+                        ValidationIssueSeverity.Informational => "Denne meldingen gjelder hele listen med kjæledyr.",
+                        _ => "Kontroller kjæledyrene i denne gruppen samlet.",
+                    },
+                });
+            }
+        }
+
+        for (var rowIndex = 0; rowIndex < pets.Count; rowIndex++)
+        {
+            var messages = GetFieldMessages(pets[rowIndex].UniqueId);
+            if (selected.Contains("rows") && messages.Length > 0)
+            {
+                issues.Add(new ValidationIssue
+                {
+                    DataElementId = dataElement.Id,
+                    Field = $"{nameof(NestedGroup.Pets)}[{rowIndex}]",
+                    Severity = messages[0].Severity,
+                    Description = "Denne meldingen gjelder opplysningene om kjæledyret samlet.",
+                });
             }
 
-            for (var rowIndex = 0; rowIndex < pets.Count; rowIndex++)
+            if (selected.Contains("fields"))
             {
-                var messages = GetFieldMessages(pets[rowIndex].UniqueId);
-                if (selected.Contains("rows") && messages.Length > 0)
-                {
-                    issues.Add(new ValidationIssue
-                    {
-                        DataElementId = dataElement.Id,
-                        ComponentId = $"{componentId}-row",
-                        RowIndexes = [rowIndex],
-                        Severity = messages[0].Severity,
-                        Description = "Denne meldingen gjelder opplysningene om kjæledyret samlet.",
-                    });
-                }
-
-                if (selected.Contains("fields"))
+                foreach (var variant in Variants)
                 {
                     foreach (var message in messages)
                     {
                         issues.Add(new ValidationIssue
                         {
                             DataElementId = dataElement.Id,
-                            ComponentId = $"{componentId}-{message.Field}",
+                            ComponentId = $"validation-{variant}-{message.Field}",
                             RowIndexes = [rowIndex],
                             Severity = message.Severity,
                             Description = message.Description,

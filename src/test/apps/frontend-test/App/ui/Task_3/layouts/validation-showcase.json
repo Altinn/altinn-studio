@@ -43,12 +43,7 @@
           "not",
           [
             "contains",
-            [
-              "_experimentalSelectAndMap",
-              "Pets",
-              "UniqueId",
-              "|"
-            ],
+            ["_experimentalSelectAndMap", "Pets", "UniqueId", "|"],
             "|validation-showcase-"
           ]
         ],
@@ -65,12 +60,9 @@
         "children": [
           "validation-default-name",
           "validation-default-species",
-          "validation-default-row"
+          "validation-default-age"
         ],
-        "tableHeaders": [
-          "validation-default-name",
-          "validation-default-species"
-        ]
+        "tableHeaders": ["validation-default-name", "validation-default-species"]
       },
       {
         "id": "validation-default-name",
@@ -119,36 +111,13 @@
         }
       },
       {
-        "id": "validation-default-row",
-        "type": "Group",
-        "children": [
-          "validation-default-age"
-        ],
-        "textResourceBindings": {
-          "title": [
-            "concat",
-            "Samlet kontroll: ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ]
-        },
-        "headingLevel": 3
-      },
-      {
         "id": "validation-mixed",
         "type": "RepeatingGroup",
         "hidden": [
           "not",
           [
             "contains",
-            [
-              "_experimentalSelectAndMap",
-              "Pets",
-              "UniqueId",
-              "|"
-            ],
+            ["_experimentalSelectAndMap", "Pets", "UniqueId", "|"],
             "|validation-showcase-"
           ]
         ],
@@ -162,15 +131,8 @@
         "labelSettings": {
           "optionalIndicator": false
         },
-        "children": [
-          "validation-mixed-name",
-          "validation-mixed-species",
-          "validation-mixed-row"
-        ],
-        "tableHeaders": [
-          "validation-mixed-name",
-          "validation-mixed-species"
-        ],
+        "children": ["validation-mixed-name", "validation-mixed-species", "validation-mixed-age"],
+        "tableHeaders": ["validation-mixed-name", "validation-mixed-species"],
         "edit": {
           "mode": "showTable"
         },
@@ -232,36 +194,13 @@
         }
       },
       {
-        "id": "validation-mixed-row",
-        "type": "Group",
-        "children": [
-          "validation-mixed-age"
-        ],
-        "textResourceBindings": {
-          "title": [
-            "concat",
-            "Samlet kontroll: ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ]
-        },
-        "headingLevel": 3
-      },
-      {
         "id": "validation-table",
         "type": "RepeatingGroup",
         "hidden": [
           "not",
           [
             "contains",
-            [
-              "_experimentalSelectAndMap",
-              "Pets",
-              "UniqueId",
-              "|"
-            ],
+            ["_experimentalSelectAndMap", "Pets", "UniqueId", "|"],
             "|validation-showcase-"
           ]
         ],
@@ -275,12 +214,7 @@
         "labelSettings": {
           "optionalIndicator": false
         },
-        "children": [
-          "validation-table-name",
-          "validation-table-species",
-          "validation-table-age",
-          "validation-table-row"
-        ],
+        "children": ["validation-table-name", "validation-table-species", "validation-table-age"],
         "tableHeaders": [
           "validation-table-name",
           "validation-table-species",
@@ -337,37 +271,14 @@
         }
       },
       {
-        "id": "validation-table-row",
-        "type": "Group",
-        "children": [],
-        "textResourceBindings": {
-          "title": [
-            "concat",
-            "Samlet kontroll: ",
-            [
-              "dataModel",
-              "Pets.Name"
-            ]
-          ]
-        },
-        "headingLevel": 3
-      },
-      {
         "id": "validation-example-controls",
         "type": "Group",
-        "children": [
-          "validation-controls"
-        ],
+        "children": ["validation-controls"],
         "hidden": [
           "not",
           [
             "contains",
-            [
-              "_experimentalSelectAndMap",
-              "Pets",
-              "UniqueId",
-              "|"
-            ],
+            ["_experimentalSelectAndMap", "Pets", "UniqueId", "|"],
             "|validation-showcase-"
           ]
         ]
@@ -405,9 +316,7 @@
         "type": "NavigationButtons",
         "validateOnNext": {
           "page": "current",
-          "show": [
-            "All"
-          ]
+          "show": ["All"]
         }
       }
     ]
