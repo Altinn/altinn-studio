@@ -16,12 +16,10 @@ describe('Map component', () => {
   });
 
   it('Is able to draw new geometries on a map using the toolbar and delete them after', () => {
-    // Hold the save response, so the drawn path can be captured before the response arrives
-    cy.intercept('PATCH', '**/data?*', (req) =>
-      req.continue((res) => {
-        res.setDelay(500);
-      }),
-    ).as('save');
+    // Hold the save response until the drawn path has been captured, so the test can tell if the response redraws it
+    let releaseSave: () => void = () => undefined;
+    const saveReleased = new Promise<void>((resolve) => (releaseSave = resolve));
+    cy.intercept('PATCH', '**/data?*', (req) => req.continue(() => saveReleased)).as('save');
 
     // Draw a polygon
     cy.findByRole('link', { name: 'Draw a polygon' }).click();
@@ -50,6 +48,7 @@ describe('Map component', () => {
     // the wrong scale, which used to make the delete click below miss the path.
     cy.get('@save.all').should('have.length', 1);
     cy.get(selectors.path).then(($drawn) => {
+      releaseSave();
       cy.waitUntilSaved();
       cy.get(selectors.path).should(($path) => expect($path[0]).to.equal($drawn[0]));
     });
