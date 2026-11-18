@@ -67,9 +67,7 @@
       "expectsWarnings": ["decimal"]
     },
     {
-      "name": "comma",
-      "comment": "The frontend removes commas as thousands separators before it parses, so \"1,5\" becomes 15. The backend does not parse \"1,5\" and keeps the previous value.",
-      "disabledFrontend": true,
+      "name": "comma is not a decimal or thousands separator",
       "calculations": [
         {
           "field": "decimal",
@@ -82,7 +80,7 @@
       "expectsWarnings": ["decimal"]
     },
     {
-      "name": "surrounding spaces",
+      "name": "surrounding spaces keep the previous value",
       "calculations": [
         {
           "field": "decimal",
@@ -90,7 +88,20 @@
         }
       ],
       "expects": {
-        "decimal": 12
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "exponent",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "1.5e3"
+        }
+      ],
+      "expects": {
+        "decimal": 1500
       }
     }
   ]

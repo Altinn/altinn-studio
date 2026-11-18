@@ -1,5 +1,7 @@
 {
   "name": "A null result keeps the value of a non-nullable value type",
+  "comment": "The backend cannot set a non-nullable value type to null, so it keeps the previous value and logs a warning. The frontend accepts null for any field, since nothing is required before validation, and sets both fields to null.",
+  "disabledFrontend": true,
   "dataModel": {
     "valueTypes": {
       "decimal": 1,

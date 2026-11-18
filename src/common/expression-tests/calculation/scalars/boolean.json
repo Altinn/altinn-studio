@@ -64,9 +64,7 @@
       }
     },
     {
-      "name": "boolean into number",
-      "comment": "The backend converts true to 1. The frontend cannot convert a boolean to a number, keeps the previous value and logs a warning.",
-      "disabledFrontend": true,
+      "name": "boolean into number keeps the previous value",
       "calculations": [
         {
           "field": "decimal",
@@ -76,13 +74,12 @@
       "expects": {
         "boolean": false,
         "text": "old",
-        "decimal": 1
-      }
+        "decimal": 5
+      },
+      "expectsWarnings": ["decimal"]
     },
     {
       "name": "number into boolean",
-      "comment": "The backend converts 1 to true. The frontend only accepts true and false, keeps the previous value and logs a warning.",
-      "disabledFrontend": true,
       "calculations": [
         {
           "field": "boolean",
@@ -91,6 +88,54 @@
       ],
       "expects": {
         "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "number other than 0 and 1 into boolean keeps the previous value",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": 2
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 5
+      },
+      "expectsWarnings": ["boolean"]
+    },
+    {
+      "name": "string 1 into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": "1"
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "zero into boolean",
+      "dataModel": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      },
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": 0
+        }
+      ],
+      "expects": {
+        "boolean": false,
         "text": "old",
         "decimal": 5
       }

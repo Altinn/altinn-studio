@@ -1,7 +1,5 @@
 {
   "name": "A null result clears an optional number that the schema does not mark as nullable",
-  "comment": "Studio generates an optional number as a nullable decimal with the schema type number. The backend sets it to null. The frontend only accepts null when the schema type includes null, so it keeps the previous value and logs a warning.",
-  "disabledFrontend": true,
   "dataModel": {
     "decimal": 3,
     "boolean": true

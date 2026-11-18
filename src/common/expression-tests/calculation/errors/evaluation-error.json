@@ -1,14 +1,22 @@
 {
-  "name": "An expression that fails to evaluate fails the calculation",
-  "comment": "The backend logs the error and throws, so nothing after it runs. The frontend logs the error, keeps the previous value and runs the other calculations.",
+  "name": "An expression that fails to evaluate logs an error and keeps the previous value",
   "dataModel": {
-    "decimal": 42
+    "decimal": 42,
+    "text": "old"
   },
   "calculations": [
     {
       "field": "decimal",
       "expression": ["if", "yes", 1, "else", 2]
+    },
+    {
+      "field": "text",
+      "expression": "calculated"
     }
   ],
-  "expectsFailure": "Expected boolean, got value \"yes\""
+  "expects": {
+    "decimal": 42,
+    "text": "calculated"
+  },
+  "expectsErrors": ["Expected boolean, got value \"yes\""]
 }

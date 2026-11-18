@@ -4,14 +4,15 @@ import { v4 as uuidv4 } from 'uuid';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { JSONSchema7 } from 'json-schema';
 
-import { evalExpr } from 'src/features/expressions';
+import { evalExpr, ExprTypes } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { convertData } from 'src/features/formData/convertData';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
+import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { FDValue } from 'src/features/formData/FormDataWrite';
 
@@ -32,16 +33,12 @@ export function resolveCalculationConfig(config: unknown): CalculationConfig | n
     const field = isObject && 'field' in definition ? definition.field : undefined;
     const expression = isObject && 'expression' in definition ? definition.expression : undefined;
     const name = typeof field === 'string' ? field : `calculations[${index}]`;
-    if (
-      typeof field === 'string' &&
-      field.trim() !== '' &&
-      expression !== undefined &&
-      ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)
-    ) {
-      calculations.push({ field, expression });
-    } else {
+    if (typeof field !== 'string' || field.trim() === '' || expression === undefined || expression === null) {
       window.logWarn(`Skipping invalid calculation for ${name}`);
+    } else if (ExprValidation.isValidOrScalar(expression, ExprVal.Any, `Invalid calculation for ${name}`)) {
+      calculations.push({ field, expression });
     }
+    // An invalid expression is skipped too, and the validation has logged it as an error
   }
   return { calculations };
 }
@@ -102,27 +99,77 @@ function isListOfObjects(value: unknown): value is unknown[] {
   return Array.isArray(value) && value.some(isObject);
 }
 
+function schemaTypes(schema: JSONSchema7): string[] {
+  const types: string[] = Array.isArray(schema.type) ? [...schema.type] : schema.type ? [schema.type] : [];
+  for (const alternative of [...(schema.anyOf ?? []), ...(schema.oneOf ?? [])]) {
+    if (typeof alternative === 'object') {
+      types.push(...schemaTypes(alternative));
+    }
+  }
+  return types;
+}
+
+const castContext = { expr: ['calculation'], path: [] } as unknown as EvaluateExpressionParams;
+
+/** Casts a value with the rules expressions use for their arguments, or gives undefined when it cannot. */
+function castLikeArgument<T extends ExprVal.Boolean | ExprVal.Number | ExprVal.String>(
+  value: string | number | boolean,
+  type: T,
+): ExprValToActual<T> | undefined {
+  try {
+    return ExprTypes[type].impl.call(castContext, value) as ExprValToActual<T>;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Converts a scalar with the same rules as expressions use for their arguments, which the backend shares: a
+ * number target takes numbers and strictly formatted numeric strings, a boolean target takes true, false, 1 and 0,
+ * also as strings, and a string target takes the text of a number or boolean. A string is written as it is.
+ * A target with an integer type only takes whole numbers.
+ */
+function convertScalar(
+  result: string | number | boolean,
+  schema: JSONSchema7,
+): { value: FDValue; error: false } | { error: true } {
+  const types = schemaTypes(schema);
+  if (types.includes('string')) {
+    return { value: typeof result === 'string' ? result : castLikeArgument(result, ExprVal.String), error: false };
+  }
+  if (types.includes('number') || types.includes('integer')) {
+    const value = castLikeArgument(result, ExprVal.Number);
+    if (value === undefined || value === null || !Number.isFinite(value)) {
+      return { error: true };
+    }
+    const xsdType = schema['@xsdType'];
+    if (types.includes('integer') || xsdType === 'int' || xsdType === 'long' || xsdType === 'short') {
+      // convertData checks the range of the @xsdType
+      const converted = convertData(value, schema);
+      return Number.isInteger(value) && !converted.error ? { value, error: false } : { error: true };
+    }
+    return { value, error: false };
+  }
+  if (types.includes('boolean')) {
+    const value = castLikeArgument(result, ExprVal.Boolean);
+    return value === undefined || value === null ? { error: true } : { value, error: false };
+  }
+  return { error: true };
+}
+
 /** Converts the values that replace the target as a whole: scalars, null and lists of primitives. */
 function convertCalculationResult(
   result: unknown,
   target: string,
   lookupTool: SchemaLookupTool,
 ): { value: FDValue; error: false } | { error: true } {
-  const [schema] = lookupTool.getSchemaForPath(target, result === null);
+  const [schema] = lookupTool.getSchemaForPath(target);
   if (!schema) {
     return { error: true };
   }
   if (result === null) {
-    // Backend reference types accept null, but non-nullable numeric and boolean value types do not.
-    const allowsNull =
-      hasType(schema, 'null') ||
-      hasType(schema, 'string') ||
-      hasType(schema, 'array') ||
-      hasType(schema, 'object') ||
-      [...(schema.anyOf ?? []), ...(schema.oneOf ?? [])].some(
-        (alternative) => typeof alternative === 'object' && hasType(alternative, 'null'),
-      );
-    return allowsNull ? { value: null, error: false } : { error: true };
+    // Any field may be null until validation, also numbers and booleans that cannot be null when the data is submitted
+    return { value: null, error: false };
   }
   if (Array.isArray(result) && hasType(schema, 'array')) {
     const values: FDValue[] = [];
@@ -136,8 +183,7 @@ function convertCalculationResult(
     return { value: values, error: false };
   }
   if (typeof result === 'string' || typeof result === 'number' || typeof result === 'boolean') {
-    const converted = convertData(result, schema);
-    return converted.error ? { error: true } : { value: converted.newValue, error: false };
+    return convertScalar(result, schema);
   }
   return { error: true };
 }
@@ -269,6 +315,7 @@ export function runCalculations(
             defaultDataType: () => dataType,
             hasDataType: (type) => type in state.data.models,
             read: (ref) => dot.pick(ref.field, state.data.models[ref.dataType]?.currentData),
+            getSchemaLookupTool: (type) => state.bootstrap.dataModels[type]?.schemaResult.lookupTool,
           },
           layout: { getLookups: () => state.bootstrap.layoutLookups },
           options: { getStaticOptions: (id) => state.bootstrap.staticOptions[id]?.options },

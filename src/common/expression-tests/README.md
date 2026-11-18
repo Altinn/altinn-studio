@@ -66,10 +66,15 @@ are in `valueTypes`, which is required in the schema. Rows in `rows`, `copies` a
   so an invalid calculation is a test too.
 - `expects` is the whole data model after the calculations, so a write anywhere else shows up.
 - `expectsFailure` is a part of the error message instead. The backend matches it against the exception the
-  calculation throws, the frontend against the error it logs or throws. `expectsFailureBackend` replaces it on the
-  backend.
+  calculation throws, the frontend against the error it logs or throws.
+- `expectsFailureBackend` is a part of the message the backend fails with. It replaces `expectsFailure` on the
+  backend, or stands next to `expects` and `expectsWarnings` when only the backend fails: the backend fails with this
+  message, and the frontend gets that result.
 - `expectsWarnings` lists parts of the warnings the calculations log, such as when a value cannot be converted. Each
   must match a warning, and each warning must match one of them. Without it, no warning may be logged.
+- `expectsErrors` lists parts of the errors the calculations log, with the same rules as `expectsWarnings`. A
+  calculation whose expression fails to evaluate logs an error, keeps the previous value, and the other calculations
+  still run, so it stands next to `expects`.
 - `testCases` is a list of cases with their own `name` and expectation. A case uses the data and the calculations of
   the file unless it has its own. The file itself is a case when it has an expectation.
 - Rows in the data must have an `altinnRowId`, as data from the backend always has. Use UUIDs, since the backend reads

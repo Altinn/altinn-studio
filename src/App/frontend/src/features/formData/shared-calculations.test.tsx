@@ -189,6 +189,19 @@ async function renderCalculations(testCase: CalculationTestCase, dataModels: Dat
   return store!;
 }
 
+/** Every expected substring must match a message, and every message must match one of them */
+function expectMatching(kind: string, messages: string[], expected: string[] = []) {
+  for (const substring of expected) {
+    expect(messages).toContainEqual(expect.stringContaining(substring));
+  }
+  for (const message of messages) {
+    expect(
+      expected.some((substring) => message.includes(substring)),
+      `Unexpected ${kind}: ${message}`,
+    ).toBe(true);
+  }
+}
+
 describe('Shared calculation tests', () => {
   beforeEach(() => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
@@ -219,10 +232,20 @@ describe('Shared calculation tests', () => {
       'expectsFailure',
       'expectsFailureBackend',
       'expectsWarnings',
+      'expectsErrors',
     ];
     expect(Object.keys(test).filter((key) => ![...known, 'testCases'].includes(key))).toEqual([]);
     for (const testCase of test.testCases ?? []) {
       expect(Object.keys(testCase).filter((key) => !known.includes(key))).toEqual([]);
+    }
+  });
+
+  // expectsFailureBackend may stand next to expects: the backend fails with it, and the frontend gets the result
+  it.each(files)('$file has one kind of expectation in each case', ({ test }) => {
+    for (const testCase of getCalculationTestCases(test)) {
+      expect(testCase.expects === undefined || testCase.expectsFailure === undefined, testCase.name).toBe(true);
+      expect(testCase.expects !== undefined || testCase.expectsFailure !== undefined, testCase.name).toBe(true);
+      expect(testCase.expectsErrors === undefined || testCase.expects !== undefined, testCase.name).toBe(true);
     }
   });
 
@@ -260,17 +283,8 @@ describe('Shared calculation tests', () => {
         return;
       }
 
-      expect(errors).toEqual([]);
-      const expectedWarnings = testCase.expectsWarnings ?? [];
-      for (const substring of expectedWarnings) {
-        expect(warnings).toContainEqual(expect.stringContaining(substring));
-      }
-      for (const warning of warnings) {
-        expect(
-          expectedWarnings.some((substring) => warning.includes(substring)),
-          `Unexpected warning: ${warning}`,
-        ).toBe(true);
-      }
+      expectMatching('error', errors, testCase.expectsErrors);
+      expectMatching('warning', warnings, testCase.expectsWarnings);
 
       const expects = getExpects(testCase, dataModels);
       for (const { dataElement, data } of dataModels) {
