@@ -185,7 +185,7 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
         var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
 
         (string TaskId, string? DataTypeId)[] expected = requiresPdf ? [("Task_1", "model")] : [];
-        Assert.Equal(expected, tasks);
+        Assert.Equal(expected, tasks.Select(t => (t.TaskId, t.DataTypes.Single().Id)));
     }
 
     [Fact]
@@ -209,6 +209,55 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
 
         var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
 
-        Assert.Equal([("Task_1", "model"), ("Task_2", "model")], tasks);
+        Assert.Equal(["Task_1", "Task_2"], tasks.Select(t => t.TaskId));
+        Assert.All(tasks, t => Assert.Equal([new PdfFormDataType("model", AutoCreated: false)], t.DataTypes));
+    }
+
+    [Fact]
+    public void FormDataTypes_AreListedPerTask_WithWhetherTheBackendCreatesThem()
+    {
+        // The backend creates an element of a data type with autoCreate (any casing, as Newtonsoft reads it), and
+        // of the data type another one saves its shadow fields to.
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            """
+            {
+              "dataTypes": [
+                {
+                  "id": "auto",
+                  "taskId": "Task_1",
+                  "enablePdfCreation": true,
+                  "appLogic": { "AutoCreate": true, "classRef": "Altinn.App.Models.auto", "shadowFields": { "prefix": "AltinnSF_", "saveToDataType": "shadow" } }
+                },
+                {
+                  "id": "manual",
+                  "taskId": "Task_1",
+                  "enablePdfCreation": true,
+                  "appLogic": { "autoCreate": false, "classRef": "Altinn.App.Models.manual" }
+                },
+                {
+                  "id": "shadow",
+                  "taskId": "Task_2",
+                  "enablePdfCreation": true,
+                  "appLogic": { "classRef": "Altinn.App.Models.shadow" }
+                }
+              ]
+            }
+            """
+        );
+
+        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+
+        Assert.Equal(
+            [
+                new TaskRequiringPdf(
+                    "Task_1",
+                    [new PdfFormDataType("auto", true), new PdfFormDataType("manual", false)]
+                ),
+                new TaskRequiringPdf("Task_2", [new PdfFormDataType("shadow", true)]),
+            ],
+            tasks,
+            (expected, actual) => expected.TaskId == actual.TaskId && expected.DataTypes.SequenceEqual(actual.DataTypes)
+        );
     }
 }

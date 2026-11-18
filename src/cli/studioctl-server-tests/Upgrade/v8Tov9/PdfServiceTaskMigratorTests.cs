@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 using LayoutSetsToTaskUiMigrator = Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration.LayoutSetsToTaskUiMigrator;
@@ -14,7 +15,8 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private async Task<MigrationResult> MigrateResult() => await new PdfServiceTaskMigrator(_app.Root).Migrate();
+    private async Task<MigrationResult> MigrateResult() =>
+        await new PdfServiceTaskMigrator(_app.Root, new CSharpSourceScanner(Path.Combine(_app.Root, "App"))).Migrate();
 
     private async Task<IReadOnlyList<string>> Migrate() => (await MigrateResult()).Warnings;
 
@@ -286,7 +288,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         second.Write("config/process/process.bpmn", bpmn);
 
-        await new PdfServiceTaskMigrator(second.Root).Migrate();
+        await new PdfServiceTaskMigrator(
+            second.Root,
+            new CSharpSourceScanner(Path.Combine(second.Root, "App"))
+        ).Migrate();
         Assert.False(
             second.ReadBytes("config/process/process.bpmn") is [0xEF, 0xBB, 0xBF, ..],
             "expected no UTF-8 BOM to be introduced"
@@ -800,6 +805,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
                       "taskId": "Task_1",
                       "EnablePdfCreation": true,
                       "appLogic": {
+                        "autoCreate": true,
                         "classRef": "Altinn.App.Models.model"
                       }
                     }

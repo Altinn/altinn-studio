@@ -92,13 +92,15 @@ internal static class BpmnBuilder
             }
             """;
 
-    public static string FormDataType(string id, string taskId, bool enablePdfCreation) =>
+    /// <param name="autoCreate">Whether <c>appLogic.autoCreate</c> is true; when false the property is left out.</param>
+    public static string FormDataType(string id, string taskId, bool enablePdfCreation, bool autoCreate = true) =>
         $$"""
                 {
                   "id": "{{id}}",
                   "taskId": "{{taskId}}",
                   "enablePdfCreation": {{(enablePdfCreation ? "true" : "false")}},
                   "appLogic": {
+                    {{(autoCreate ? "\"autoCreate\": true," : "")}}
                     "classRef": "Altinn.App.Models.{{id}}"
                   }
                 }

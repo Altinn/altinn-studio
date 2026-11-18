@@ -302,7 +302,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder, scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
@@ -2026,12 +2026,13 @@ internal static class V8Tov9Upgrade
     /// <summary>
     /// Job 8: Migrate the deprecated enablePdfCreation flag to 'pdf' service tasks
     /// </summary>
-    static async Task<int> MigratePdfServiceTasks(string projectFolder)
+    static async Task<int> MigratePdfServiceTasks(string projectFolder, CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("PDF service tasks");
         try
         {
-            var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
+            // The app's code is read on the pristine view, which the v8 compilation binds.
+            var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder, scanner.PristineView);
             var result = await migrator.Migrate();
             // Phrased as an end state, not an action: this migrator reports no warnings both when it
             // migrated cleanly and when there was nothing to migrate, and MigrationResult cannot tell the

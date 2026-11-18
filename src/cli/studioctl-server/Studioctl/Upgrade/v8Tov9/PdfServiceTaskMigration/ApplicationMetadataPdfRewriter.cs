@@ -8,11 +8,12 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 ///
 /// Legacy semantics (app-lib-dotnet v8): a PDF was generated at the end of a task only for dataTypes
 /// that had <c>appLogic.classRef</c> set, <c>enablePdfCreation == true</c>, and were bound to that
-/// task via <c>taskId</c>. Exactly one PDF was produced per task-end regardless of how many datamodels
-/// qualified. The flag on attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a
-/// no-op. We therefore group qualifying datamodels by taskId; each distinct task gets one pdf task. The
-/// task binding is read with <see cref="DataTypeTaskIdsMigration.BoundTasks"/>, so a dataType already
-/// moved to <c>taskIds</c> counts for each task it lists.
+/// task via <c>taskId</c>, and only when the instance had an element of one of them. Exactly one PDF was
+/// produced per task-end regardless of how many datamodels qualified. The flag on attachment dataTypes (no
+/// classRef) or without a taskId (e.g. stateless) was a no-op. We therefore group qualifying datamodels by
+/// taskId; each distinct task gets one pdf task. The task binding is read with
+/// <see cref="DataTypeTaskIdsMigration.BoundTasks"/>, so a dataType already moved to <c>taskIds</c> counts for
+/// each task it lists.
 ///
 /// v8 also counted a missing flag as true, but this migration deliberately does not: only an explicit
 /// <c>true</c> gets a pdf task. It removes <c>false</c> too, so on a re-run of the upgrade a missing flag
@@ -39,13 +40,12 @@ internal sealed class ApplicationMetadataPdfRewriter
     public bool ManualActionRequired { get; private set; }
 
     /// <summary>
-    /// Returns the distinct taskIds that require a PDF service task, in document order, each paired
-    /// with the id of the first qualifying dataType bound to that task. The dataType id is used to
-    /// preserve gateway expression evaluation when a PDF task is inserted in front of a gateway
-    /// (see PdfProcessRewriter): it is the task's form data model, which is what the gateway would
-    /// previously have inferred from the data task's UI configuration.
+    /// Returns the distinct tasks that made a PDF in v8, in document order, each with the qualifying data types
+    /// bound to it, in document order. The first of them that an instance has is the task's form data model, which
+    /// is what a gateway after the task would previously have inferred from its UI configuration (see
+    /// PdfProcessRewriter).
     /// </summary>
-    public IReadOnlyList<(string TaskId, string? DataTypeId)> GetTasksRequiringPdf()
+    public IReadOnlyList<TaskRequiringPdf> GetTasksRequiringPdf()
     {
         using var doc = JsonDocument.Parse(Utf8TextFile.Decode(File.ReadAllBytes(_metadataFile)).Text);
         if (
@@ -57,7 +57,8 @@ internal sealed class ApplicationMetadataPdfRewriter
             return [];
         }
 
-        var tasks = new List<(string TaskId, string? DataTypeId)>();
+        var shadowFieldTargets = ShadowFieldTargets(dataTypes);
+        var tasks = new List<(string TaskId, List<PdfFormDataType> DataTypes)>();
         foreach (var dataType in dataTypes.EnumerateArray())
         {
             if (dataType.ValueKind != JsonValueKind.Object)
@@ -98,11 +99,56 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            foreach (var task in boundTasks.Where(task => !tasks.Exists(t => t.TaskId == task)))
-                tasks.Add((task, dataTypeId));
+            var pdfDataType = new PdfFormDataType(
+                dataTypeId,
+                IsAutoCreated(appLogic) || (dataTypeId is not null && shadowFieldTargets.Contains(dataTypeId))
+            );
+            foreach (var task in boundTasks)
+            {
+                var index = tasks.FindIndex(t => t.TaskId == task);
+                if (index < 0)
+                    tasks.Add((task, [pdfDataType]));
+                else
+                    tasks[index].DataTypes.Add(pdfDataType);
+            }
         }
 
-        return tasks;
+        return [.. tasks.Select(t => new TaskRequiringPdf(t.TaskId, t.DataTypes))];
+    }
+
+    /// <summary>
+    /// Whether the v8 backend creates the data type's element itself when its task starts:
+    /// <c>appLogic.autoCreate</c> is true.
+    /// </summary>
+    private static bool IsAutoCreated(JsonElement appLogic) =>
+        TryGetPropertyIgnoreCase(appLogic, "autoCreate", out var autoCreate)
+        && autoCreate.ValueKind == JsonValueKind.True;
+
+    /// <summary>
+    /// The data types other data types save their shadow fields to (<c>appLogic.shadowFields.saveToDataType</c>),
+    /// whose elements the v8 backend creates when the task ends.
+    /// </summary>
+    private static HashSet<string> ShadowFieldTargets(JsonElement dataTypes)
+    {
+        var targets = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var dataType in dataTypes.EnumerateArray())
+        {
+            if (
+                dataType.ValueKind == JsonValueKind.Object
+                && dataType.TryGetProperty("appLogic", out var appLogic)
+                && appLogic.ValueKind == JsonValueKind.Object
+                && TryGetPropertyIgnoreCase(appLogic, "shadowFields", out var shadowFields)
+                && shadowFields.ValueKind == JsonValueKind.Object
+                && TryGetPropertyIgnoreCase(shadowFields, "saveToDataType", out var saveTo)
+                && saveTo.ValueKind == JsonValueKind.String
+                && saveTo.GetString() is { Length: > 0 } target
+            )
+            {
+                targets.Add(target);
+            }
+        }
+
+        return targets;
     }
 
     /// <summary>
@@ -220,3 +266,13 @@ internal sealed class ApplicationMetadataPdfRewriter
         return string.Empty;
     }
 }
+
+/// <summary>
+/// A data type whose elements made its task's PDF in v8. <paramref name="AutoCreated"/> says whether the v8 backend
+/// creates its element from the configuration in applicationmetadata.json: <c>appLogic.autoCreate</c>, or another
+/// data type saving its shadow fields to it.
+/// </summary>
+internal sealed record PdfFormDataType(string? Id, bool AutoCreated);
+
+/// <summary>A task that made a PDF in v8, with the data types bound to it whose elements made it.</summary>
+internal sealed record TaskRequiringPdf(string TaskId, IReadOnlyList<PdfFormDataType> DataTypes);
