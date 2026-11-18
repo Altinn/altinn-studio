@@ -1,3 +1,4 @@
+import { breakpoints } from '@app/form-component';
 import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 
 import texts from 'test/e2e/fixtures/texts.json';
@@ -11,6 +12,72 @@ const appFrontend = new AppFrontend();
 const common = new Common();
 
 describe('Summary', () => {
+  it('stacks RepeatingGroup table summaries on phones and tablets while keeping PDF tabular', { retries: 0 }, () => {
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_3.pages.pdfLayoutName = 'summary';
+    });
+    cy.interceptLayout(
+      'Task_3',
+      (component) => {
+        if (component.type === 'RepeatingGroup' && component.id === 'mainGroup') {
+          component.tableHeaders = ['currentValue', 'newValue'];
+        }
+      },
+      (layouts) => {
+        layouts.summary!.data.layout = [
+          { id: 'nav-summary', type: 'NavigationBar' },
+          {
+            id: 'table-summary',
+            type: 'Summary2',
+            target: { type: 'component', id: 'mainGroup' },
+            overrides: [{ componentId: 'mainGroup', display: 'table' }],
+          },
+        ];
+      },
+      {}, // Keep the same Summary2 layout when the PDF view reloads it.
+    );
+    cy.goto('group');
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.currentValue).type('123');
+    cy.get(appFrontend.group.newValue).type('456');
+    cy.get(appFrontend.group.saveMainGroup).clickAndGone();
+    cy.gotoNavPage('summary');
+
+    const table = () => cy.findByRole('table', { name: 'Group summary title' });
+    table().should('have.css', 'display', 'table');
+    cy.viewport(breakpoints.md - 5, 1024);
+    table().should('have.css', 'display', 'block');
+    table()
+      .find('td[data-header-title]')
+      .should(($cells) => {
+        expect($cells[1].getBoundingClientRect().top).to.be.at.least($cells[0].getBoundingClientRect().bottom);
+      });
+    table()
+      .findByRole('button', { name: /^Endre/ })
+      .click();
+    cy.get(appFrontend.group.currentValue).clear();
+    cy.get(appFrontend.group.currentValue).type('124');
+    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).click();
+    table().should('contain.text', '124');
+
+    cy.viewport('samsung-s10');
+    table().should('have.css', 'display', 'block');
+    cy.viewport(breakpoints.md, 768);
+    table().should('have.css', 'display', 'table');
+    cy.visualTesting('summary:repeating-group-table');
+
+    cy.testPdf({
+      callback: () => {
+        table().should('have.css', 'display', 'table').and('contain.text', '124');
+        table()
+          .findByRole('button', { name: /^Endre/ })
+          .should('not.exist');
+      },
+    });
+  });
+
   it('keeps the help marker square when a legacy Summary heading wraps', () => {
     const title = 'En lang overskrift som skal brytes over flere linjer i oppsummeringen av skjemaet';
     const help = 'Her finner du mer informasjon om oppsummeringen.';
