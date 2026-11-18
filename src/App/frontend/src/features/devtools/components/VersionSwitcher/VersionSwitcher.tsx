@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 
 import { Button, Input } from '@app/form-component';
 import { Fieldset, ValidationMessage } from '@digdir/designsystemet-react';
@@ -10,12 +10,14 @@ import {
   isValidFrontendVersion,
 } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
 
-const description = 'Siden lastes på nytt med versjonen i adressen.';
+// The backend applies the version only in development and test environments, but dev tools also opens in production.
+const description = 'Siden lastes på nytt med versjonen i adressen. Virker bare i utviklings- og testmiljø.';
 const versionsLinkText = 'Se tilgjengelige versjoner (åpnes i ny fane)';
 
 export function VersionSwitcher() {
   const [version, setVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
   const [error, setError] = useState<string | undefined>(undefined);
+  const errorId = useId();
 
   function switchVersion() {
     const trimmed = version.trim();
@@ -36,6 +38,7 @@ export function VersionSwitcher() {
         value={version}
         placeholder='9.0.0-preview.12'
         error={error}
+        aria-describedby={error ? errorId : undefined}
         onChange={(e) => {
           setVersion(e.target.value);
           setError(undefined);
@@ -46,7 +49,14 @@ export function VersionSwitcher() {
           }
         }}
       />
-      {error && <ValidationMessage data-size='sm'>{error}</ValidationMessage>}
+      {error && (
+        <ValidationMessage
+          id={errorId}
+          data-size='sm'
+        >
+          {error}
+        </ValidationMessage>
+      )}
       <a
         href={frontendVersionsUrl}
         target='_blank'

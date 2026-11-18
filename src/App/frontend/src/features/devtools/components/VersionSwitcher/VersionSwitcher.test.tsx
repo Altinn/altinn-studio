@@ -48,7 +48,9 @@ describe('VersionSwitcher', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Bytt versjon' }));
 
     expect(assign).not.toHaveBeenCalled();
-    expect(screen.getByText('Skriv et versjonsnummer, for eksempel 9.0.0-preview.12')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Frontend versjon' })).toHaveAccessibleDescription(
+      'Skriv et versjonsnummer, for eksempel 9.0.0-preview.12',
+    );
   });
 
   it('links to the list of versions in a new tab', () => {

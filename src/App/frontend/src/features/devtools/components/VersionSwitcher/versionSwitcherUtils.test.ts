@@ -28,6 +28,12 @@ describe('getFrontendVersionFromUrl', () => {
     );
   });
 
+  it('returns an empty string when the parameter is there more than once', () => {
+    expect(
+      getFrontendVersionFromUrl('http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.0&frontendVersion=9.0.1'),
+    ).toBe('');
+  });
+
   it('returns an empty string without the parameter', () => {
     expect(getFrontendVersionFromUrl('http://local.altinn.cloud/ttd/app/')).toBe('');
   });

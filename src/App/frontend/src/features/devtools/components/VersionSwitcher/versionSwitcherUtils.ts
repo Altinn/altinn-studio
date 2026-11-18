@@ -18,8 +18,13 @@ export function isValidFrontendVersion(version: string): boolean {
   return version.length <= maxVersionLength && versionRegex.test(version);
 }
 
+/**
+ * Returns the version in the address, or an empty string. With the parameter more than once, the backend gets the
+ * values joined with a comma and ignores them, so the field stays empty then too.
+ */
 export function getFrontendVersionFromUrl(href: string): string {
-  return new URL(href).searchParams.get(frontendVersionSearchParam) ?? '';
+  const values = new URL(href).searchParams.getAll(frontendVersionSearchParam);
+  return values.length === 1 ? values[0] : '';
 }
 
 /**
