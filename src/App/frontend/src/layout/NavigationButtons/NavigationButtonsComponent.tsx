@@ -136,7 +136,7 @@ function NavigationButtonsComponentInner({
    */
   const resetScrollPosition = useResetScrollPosition(getScrollPosition, '[data-testid="ErrorReport"]');
 
-  const validationBlocksNavigation = async (validation: PageValidation | undefined) => {
+  const validationBlocksNavigation = async (validation: PageValidation | undefined, isCancelled?: () => boolean) => {
     if (!validation) {
       return false;
     }
@@ -147,8 +147,8 @@ function NavigationButtonsComponentInner({
     }
 
     const prevScrollPosition = getScrollPosition();
-    const hasErrors = await onPageNavigationValidation(pageKey, validation);
-    if (hasErrors) {
+    const hasErrors = await onPageNavigationValidation(pageKey, validation, isCancelled);
+    if (hasErrors && !isCancelled?.()) {
       resetScrollPosition(prevScrollPosition);
     }
     return hasErrors;
@@ -178,6 +178,7 @@ function NavigationButtonsComponentInner({
     performProcess(key, async () => {
       const sourcePath = window.location.pathname;
       let leftSourcePage = false;
+      const isCancelled = () => leftSourcePage || window.location.pathname !== sourcePath;
       let stopWatchingHistory = () => {};
       const historyNavigation = new Promise<void>((resolve) => {
         const onPopState = () => {
@@ -199,7 +200,7 @@ function NavigationButtonsComponentInner({
         const routeBefore = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
 
         await maybeSaveOnPageChange();
-        if (leftSourcePage || window.location.pathname !== sourcePath) {
+        if (isCancelled()) {
           return;
         }
 
@@ -207,7 +208,7 @@ function NavigationButtonsComponentInner({
         if (
           validateOnReturn &&
           validateOnReturn.show.length > 0 &&
-          (await validationBlocksNavigation(validateOnReturn))
+          (await validationBlocksNavigation(validateOnReturn, isCancelled))
         ) {
           return;
         }
@@ -215,12 +216,7 @@ function NavigationButtonsComponentInner({
         // Saving or validation can reveal a page on the way back, before the rendered state has caught up.
         // Then ClearInvalidReturnState removes the shortcut, and the user continues with regular navigation.
         const routeAfter = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
-        if (
-          !leftSourcePage &&
-          window.location.pathname === sourcePath &&
-          getTargetPage() === targetPage &&
-          returnRouteStillValid(routeBefore, routeAfter)
-        ) {
+        if (!isCancelled() && getTargetPage() === targetPage && returnRouteStillValid(routeBefore, routeAfter)) {
           await navigateToPage(targetPage, { skipAutoSave: true });
         }
       };
