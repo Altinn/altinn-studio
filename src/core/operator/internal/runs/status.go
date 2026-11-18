@@ -83,13 +83,10 @@ type Run struct {
 // maxDetail bounds the error detail a caller gets.
 const maxDetail = 500
 
-// record is a run as its workflow in the engine keeps it. Only readRun reads the workflow's steps and states, so no
-// other code knows which step keeps which fact.
+// record is a run as its workflow in the engine keeps it. Only readRun reads the workflow's steps and states.
 type record struct {
 	Run
 
-	// uploadBy is when run.await-archive gives up on the caller's archive, once the run awaits it.
-	uploadBy *time.Time
 	// state is the newest step state, which has what every step before it learned.
 	state runState
 	// settled means the engine has ended the workflow and runs no step anymore, so the Job is gone or about to be.
@@ -120,18 +117,8 @@ func readRun(workflow *engine.Workflow) *record {
 			rec.state = *state
 		}
 	}
-	// run.await-result runs the command, which the step before it started: run.await-archive once the archive arrived,
-	// or run.await-pod for a kind that requires none.
-	command := slices.IndexFunc(steps, func(step engine.Step) bool { return step.OperationID == StepAwaitResult })
-	if command > 0 && steps[command-1].Status == engine.StatusCompleted {
-		rec.StartedAt = steps[command-1].UpdatedAt
-	}
-	archive := slices.IndexFunc(steps, func(step engine.Step) bool { return step.OperationID == StepAwaitArchive })
-	if archive > 0 && steps[archive-1].Status == engine.StatusCompleted && steps[archive-1].UpdatedAt != nil {
-		uploadBy := steps[archive-1].UpdatedAt.Add(scaled(config.UploadTimeout, rec.state.Spec.TimeScale))
-		rec.uploadBy = &uploadBy
-	}
-	rec.describe(workflow, steps, command)
+	rec.StartedAt = rec.state.StartedAt
+	rec.describe(workflow, steps)
 	if rec.keepsResult() && rec.FinishedAt != nil {
 		expiresAt := rec.FinishedAt.Add(scaled(config.ResultTimeout, rec.state.Spec.TimeScale))
 		rec.ResultExpiresAt = &expiresAt
@@ -140,17 +127,18 @@ func readRun(workflow *engine.Workflow) *record {
 }
 
 // describe works out the run's status, its error and when it finished: from its outcome once it has one, and otherwise
-// from the engine's status and the step the workflow is at.
-func (r *record) describe(workflow *engine.Workflow, steps []engine.Step, command int) {
+// from the engine's status and the step the workflow is at. Once every step has completed, the run is running until
+// the engine ends the workflow.
+func (r *record) describe(workflow *engine.Workflow, steps []engine.Step) {
+	at := StatusRunning
 	current := slices.IndexFunc(steps, func(step engine.Step) bool { return step.Status != engine.StatusCompleted })
+	if current >= 0 {
+		at = stepMeanings[steps[current].OperationID].status
+	}
 	switch {
-	case r.state.Outcome != "" && command >= 0:
-		// A cancel or a failure in run.cleanup does not change the outcome. The run finished when run.await-result had
-		// it.
-		if steps[command].UpdatedAt != nil {
-			r.FinishedAt = steps[command].UpdatedAt
-		}
-		r.Status = StatusCompleted
+	case r.state.Outcome != "":
+		// A cancel or a failure in run.cleanup does not change the outcome.
+		r.Status, r.FinishedAt = StatusCompleted, r.state.FinishedAt
 		if r.state.Outcome == runner.StatusFailed {
 			r.Status, r.Error = StatusFailed, &RunError{Reason: ReasonRunFailed, Detail: truncate(r.state.Error)}
 		}
@@ -163,21 +151,15 @@ func (r *record) describe(workflow *engine.Workflow, steps []engine.Step, comman
 		// A step that failed because the cancel deleted the Job fails the workflow before the engine cancels it.
 		r.Status = StatusCanceled
 	case r.settled:
-		r.Error = failure(steps, command)
+		r.Error = failure(steps)
 		r.Status = endStatus(r.Error.Reason)
-	case current < 0 || current >= command:
-		// From run.await-result on, the step can get the result before the engine marks a cancel. So the run shows
-		// running until the engine settles it, and never shows canceled and then completed.
-		r.Status, r.FinishedAt = StatusRunning, nil
-	case workflow.CancellationRequestedAt != nil:
-		// Before the command runs, the cancel is final, because the operator deletes the Job with it.
+	case workflow.CancellationRequestedAt != nil && at != StatusRunning:
+		// Before the command runs, the cancel is final, because the operator deletes the Job with it. Once it runs, the
+		// step can get the result before the engine marks a cancel. So the run shows running until the engine settles
+		// it, and never shows canceled and then completed.
 		r.Status, r.FinishedAt = StatusCanceled, workflow.CancellationRequestedAt
-	case steps[current].OperationID == StepAdmit:
-		r.Status, r.FinishedAt = StatusQueued, nil
-	case steps[current].OperationID == StepAwaitArchive:
-		r.Status, r.FinishedAt = StatusAwaitingArchive, nil
 	default:
-		r.Status, r.FinishedAt = StatusStarting, nil
+		r.Status, r.FinishedAt = at, nil
 	}
 }
 
@@ -191,7 +173,7 @@ func endStatus(reason string) Status {
 
 // failure says why a settled workflow failed the run. A step that ended the run says why. The engine fails a step of
 // its own accord when its retries or wait budget run out, and its error then says nothing that the caller can use.
-func failure(steps []engine.Step, command int) *RunError {
+func failure(steps []engine.Step) *RunError {
 	index := slices.IndexFunc(steps, func(step engine.Step) bool { return step.Status == engine.StatusFailed })
 	if index < 0 {
 		return &RunError{Reason: ReasonInternal, Detail: "A run this depends on failed."}
@@ -199,11 +181,11 @@ func failure(steps []engine.Step, command int) *RunError {
 	if end := callbacks.Ended(steps[index].LastError()); end != nil {
 		return &RunError{Reason: end.Reason, Detail: truncate(end.Detail)}
 	}
-	switch {
-	case index < command:
-		return &RunError{Reason: ReasonStartFailed, Detail: "The run could not start."}
-	case index == command:
-		return &RunError{Reason: ReasonRunFailed, Detail: "The run could not finish."}
+	switch reason := stepMeanings[steps[index].OperationID].reason; reason {
+	case ReasonStartFailed:
+		return &RunError{Reason: reason, Detail: "The run could not start."}
+	case ReasonRunFailed:
+		return &RunError{Reason: reason, Detail: "The run could not finish."}
 	}
 	return &RunError{Reason: ReasonInternal, Detail: "The operator failed."}
 }

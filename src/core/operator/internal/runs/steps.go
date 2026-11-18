@@ -96,6 +96,15 @@ type stepRun struct {
 	caller string
 }
 
+// done completes the step and hands on the state, with what the step learned.
+func (r *stepRun) done() (callbacks.Response, error) {
+	state, err := r.state.encode()
+	if err != nil {
+		return callbacks.Response{}, err
+	}
+	return callbacks.Done(state), nil
+}
+
 // wait defers the step by delay, which the run's time scale shortens.
 func (r *stepRun) wait(payload *callbacks.Payload, delay time.Duration, reason string) callbacks.Response {
 	return callbacks.Wait(payload.State, scaled(delay, r.state.Spec.TimeScale), reason)
@@ -208,16 +217,15 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		return callbacks.Response{}, ends(ReasonStartFailed, "The pod stopped before it was ready: "+pod.Detail, nil)
 	case sandbox.PodReady:
 		run.state.PodIP = pod.IP
-		if !run.state.Spec.RequiresArchive {
-			if err = s.startWithoutArchive(ctx, run); err != nil {
-				return callbacks.Response{}, err
-			}
+		if run.state.Spec.RequiresArchive {
+			run.state.UploadBy = new(s.queue.clock.Now().Add(scaled(config.UploadTimeout, run.state.Spec.TimeScale)))
+			return run.done()
 		}
-		state, err := run.state.encode()
-		if err != nil {
+		if err = s.startWithoutArchive(ctx, run); err != nil {
 			return callbacks.Response{}, err
 		}
-		return callbacks.Done(state), nil
+		run.state.StartedAt = new(s.queue.clock.Now().UTC())
+		return run.done()
 	case sandbox.PodUnschedulable:
 		waiting = "Waiting for a sandbox node."
 	case sandbox.PodStarting:
@@ -241,7 +249,8 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 	_, err = s.host.Status(ctx, run.state.pod(run.id), 0)
 	switch {
 	case err == nil:
-		return callbacks.Done(payload.State), nil
+		run.state.StartedAt = new(s.queue.clock.Now().UTC())
+		return run.done()
 	case errors.Is(err, runner.ErrNotClaimed):
 		if payload.IsFinalWaitCheck {
 			return callbacks.Response{}, errArchiveTimeout
@@ -298,13 +307,9 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 	}
 	logging.FromContext(ctx).Info("Run finished", "outcome", status.Status, "exitCode", status.ExitCode,
 		"timedOut", status.TimedOut)
-	run.state.Outcome = status.Status
-	run.state.Error = status.Error
-	state, err := run.state.encode()
-	if err != nil {
-		return callbacks.Response{}, err
-	}
-	return callbacks.Done(state), nil
+	run.state.Outcome, run.state.Error = status.Status, status.Error
+	run.state.FinishedAt = new(s.queue.clock.Now().UTC())
+	return run.done()
 }
 
 // runnerError ends the run for reason when a repeat of a request to the operator runner cannot succeed, and otherwise

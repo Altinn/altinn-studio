@@ -251,10 +251,9 @@ func TestUploadEndsWithTheUploadTimeout(t *testing.T) {
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	h.readyPod(run.ID)
 	Expect(h.call(t, run.ID, StepAwaitPod).done()).To(BeTrue())
-	readyAt := h.clock.Now()
 	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) {
 		for i := range 3 {
-			w.Steps[i].Status, w.Steps[i].UpdatedAt = engine.StatusCompleted, &readyAt
+			w.Steps[i].Status, w.Steps[i].StateOut = engine.StatusCompleted, h.states[run.ID]
 		}
 	})
 	h.clock.Advance(config.UploadTimeout)

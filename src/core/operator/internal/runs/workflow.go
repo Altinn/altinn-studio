@@ -67,12 +67,17 @@ func scaled(d time.Duration, timeScale float64) time.Duration {
 // it learned.
 type runState struct {
 	Kind string `json:"kind"`
-	// PodIP is the address of the run's operator runner, from run.await-pod on.
-	PodIP string `json:"podIP,omitempty"`
-	// Outcome and Error are the operator runner's status and error of the ended run, from run.await-result on.
-	Outcome string   `json:"outcome,omitempty"`
-	Error   string   `json:"error,omitempty"`
-	Spec    KindSpec `json:"spec"`
+	// PodIP is the address of the run's operator runner, and UploadBy when run.await-archive gives up on the caller's
+	// archive, from run.await-pod on.
+	PodIP    string     `json:"podIP,omitempty"`
+	UploadBy *time.Time `json:"uploadBy,omitempty"`
+	// StartedAt is when the command started, from the step that started it on. Outcome and Error are the operator
+	// runner's status and error of the ended run, and FinishedAt when run.await-result had them.
+	StartedAt  *time.Time `json:"startedAt,omitempty"`
+	Outcome    string     `json:"outcome,omitempty"`
+	Error      string     `json:"error,omitempty"`
+	FinishedAt *time.Time `json:"finishedAt,omitempty"`
+	Spec       KindSpec   `json:"spec"`
 }
 
 // pod is where the run's operator runner listens.
@@ -142,6 +147,20 @@ func runSteps(spec KindSpec) []stepDefinition {
 			waitBudget:       scale(config.ResultTimeout + config.ResultGrace + cleanupSlack),
 		},
 	)
+}
+
+// stepMeanings say what each step means for its run: the run's status while the step is the workflow's current one,
+// and why the run failed when the engine failed the step of its own accord.
+var stepMeanings = map[string]struct {
+	status Status
+	reason string
+}{
+	StepAdmit:        {StatusQueued, ReasonStartFailed},
+	StepCreateJob:    {StatusStarting, ReasonStartFailed},
+	StepAwaitPod:     {StatusStarting, ReasonStartFailed},
+	StepAwaitArchive: {StatusAwaitingArchive, ReasonStartFailed},
+	StepAwaitResult:  {StatusRunning, ReasonRunFailed},
+	StepCleanup:      {StatusRunning, ReasonInternal},
 }
 
 // maxDuration bounds the time from the create of a run until its status is final, which it is once run.await-result

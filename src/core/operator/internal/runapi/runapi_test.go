@@ -107,9 +107,8 @@ func (h *apiHarness) awaitArchive(t *testing.T, runID string) {
 		Expect(json.Unmarshal(res.Body.Bytes(), &answer)).To(Succeed())
 		Expect(answer.Defer).To(BeNil(), key)
 		state = answer.State
-		now := h.clock.Now()
 		h.engine.Update(stored.State.DatabaseID, func(w *engine.Workflow) {
-			w.Steps[i].Status, w.Steps[i].UpdatedAt, w.Steps[i].StateOut = engine.StatusCompleted, &now, state
+			w.Steps[i].Status, w.Steps[i].StateOut = engine.StatusCompleted, state
 		})
 	}
 }

@@ -1,6 +1,7 @@
 package runs
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -10,16 +11,19 @@ import (
 	"altinn.studio/core-operator/internal/engine"
 )
 
-// workflowAt builds a workflow whose steps before current have completed, as the engine reports it.
+// commandEnded is when run.await-result had the outcome in the workflows that the tests build.
+var commandEnded = time.Date(2026, 11, 3, 10, 20, 0, 0, time.UTC)
+
+// workflowAt builds a workflow of a kind that requires an archive, whose steps before current have completed, as the
+// engine reports it.
 func workflowAt(overall engine.Status, current string, currentStatus engine.Status) *engine.Workflow {
 	updated := time.Date(2026, 11, 3, 10, 30, 0, 0, time.UTC)
-	keys := []string{StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive, StepAwaitResult, StepCleanup}
 	workflow := &engine.Workflow{OverallStatus: overall, UpdatedAt: &updated}
 	reached := current == ""
-	for i, key := range keys {
-		step := engine.Step{OperationID: key, ProcessingOrder: i, Status: engine.StatusEnqueued}
+	for i, definition := range runSteps(KindSpec{RequiresArchive: true}) {
+		step := engine.Step{OperationID: definition.key, ProcessingOrder: i, Status: engine.StatusEnqueued}
 		switch {
-		case key == current:
+		case definition.key == current:
 			step.Status = currentStatus
 			reached = true
 		case !reached:
@@ -54,10 +58,10 @@ func withFailedCommand(workflow *engine.Workflow) *engine.Workflow {
 }
 
 func withOutcome(workflow *engine.Workflow, outcome, message string) *engine.Workflow {
+	state := string(must(json.Marshal(runState{Kind: testKind, Spec: KindSpec{Namespace: testNamespace},
+		Outcome: outcome, Error: message, StartedAt: new(commandEnded.Add(-time.Minute)), FinishedAt: &commandEnded})))
 	for i := range workflow.Steps {
 		if workflow.Steps[i].OperationID == StepAwaitResult {
-			state := `{"kind":"upgrade-v9","spec":{"namespace":"sandbox-runs"},"podIP":"10.0.0.1","outcome":"` +
-				outcome + `","error":"` + message + `"}`
 			workflow.Steps[i].StateOut = &state
 		}
 	}
@@ -136,50 +140,13 @@ func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 	}
 }
 
-func TestDescribeTellsUntilWhenTheResultCanBeFetched(t *testing.T) {
+func TestDescribeTellsWhenTheRunRanAndUntilWhenTheResultCanBeFetched(t *testing.T) {
 	RegisterTestingT(t)
 
-	ended := time.Date(2026, 11, 3, 10, 20, 0, 0, time.UTC)
-	workflow := withResult(atStep(engine.StatusWaiting, StepCleanup))
-	for i := range workflow.Steps {
-		if workflow.Steps[i].OperationID == StepAwaitResult {
-			workflow.Steps[i].UpdatedAt = &ended
-		}
-	}
-	described := readRun(workflow)
-	Expect(*described.FinishedAt).To(Equal(ended))
-	Expect(*described.ResultExpiresAt).To(Equal(ended.Add(5 * time.Minute)))
-}
-
-func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
-	RegisterTestingT(t)
-
-	starting := atStep(engine.StatusWaiting, StepAwaitArchive)
-	Expect(readRun(starting).StartedAt).To(BeNil())
-
-	sent := time.Date(2026, 11, 3, 10, 29, 0, 0, time.UTC)
-	running := atStep(engine.StatusWaiting, StepAwaitResult)
-	for i := range running.Steps {
-		if running.Steps[i].OperationID == StepAwaitArchive {
-			running.Steps[i].UpdatedAt = &sent
-		}
-	}
-	Expect(readRun(running).StartedAt).To(Equal(&sent))
-
-	// A kind without an archive has no run.await-archive. Its command starts when run.await-pod ends.
-	started := time.Date(2026, 11, 3, 10, 28, 0, 0, time.UTC)
-	withoutArchive := atStep(engine.StatusWaiting, StepAwaitResult)
-	steps := withoutArchive.Steps[:0]
-	for _, step := range withoutArchive.Steps {
-		if step.OperationID == StepAwaitPod {
-			step.UpdatedAt = &started
-		}
-		if step.OperationID != StepAwaitArchive {
-			steps = append(steps, step)
-		}
-	}
-	withoutArchive.Steps = steps
-	Expect(readRun(withoutArchive).StartedAt).To(Equal(&started))
+	described := readRun(withResult(atStep(engine.StatusWaiting, StepCleanup)))
+	Expect(*described.StartedAt).To(Equal(commandEnded.Add(-time.Minute)))
+	Expect(*described.FinishedAt).To(Equal(commandEnded))
+	Expect(*described.ResultExpiresAt).To(Equal(commandEnded.Add(5 * time.Minute)))
 }
 
 func TestDescribeShowsACancelBeforeTheCommandAtOnce(t *testing.T) {

@@ -86,6 +86,7 @@ func TestEnqueueRequestHasTheRunSteps(t *testing.T) {
 		keys = append(keys, step.OperationID)
 		Expect(step.Command.Type).To(Equal(callbacks.CommandType))
 		Expect(step.RetryStrategy).NotTo(BeNil(), step.OperationID)
+		Expect(stepMeanings).To(HaveKey(step.OperationID), "a run's status reads what the step means")
 		var data callbacks.CommandData
 		Expect(json.Unmarshal(step.Command.Data, &data)).To(Succeed())
 		Expect(data.CommandKey).To(Equal(step.OperationID))

@@ -298,6 +298,33 @@ func (h *harness) startCommand(t *testing.T, runID string) {
 	}
 }
 
+// The steps keep the times that the run shows: the upload deadline from when the pod was ready, the start from when the
+// archive arrived, and the end from when run.await-result had the outcome.
+func TestStepsKeepTheTimesOfTheRun(t *testing.T) {
+	RegisterTestingT(t)
+	h := newHarness(t)
+
+	run := h.create(t, "assistant", "app")
+	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
+	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
+	h.readyPod(run.ID)
+	Expect(h.call(t, run.ID, StepAwaitPod).done()).To(BeTrue())
+	ready := h.clock.Now()
+	h.clock.Advance(time.Minute)
+	h.upload(t, run.ID, "app")
+	Expect(h.call(t, run.ID, StepAwaitArchive).done()).To(BeTrue())
+	started := h.clock.Now()
+	h.clock.Advance(time.Minute)
+	h.host.Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, `{"status":"completed"}`)
+	Expect(h.call(t, run.ID, StepAwaitResult).done()).To(BeTrue())
+
+	state, err := parseState(h.states[run.ID])
+	Expect(err).NotTo(HaveOccurred())
+	Expect(*state.UploadBy).To(BeTemporally("==", ready.Add(config.UploadTimeout)))
+	Expect(*state.StartedAt).To(BeTemporally("==", started))
+	Expect(*state.FinishedAt).To(BeTemporally("==", h.clock.Now()))
+}
+
 // The engine runs a step again when it did not commit the step's answer, for example after the operator's pod
 // crashed. The operator runner still has the status then, since only the caller's fetch counts.
 func TestAwaitResultReadsTheStatusAgainWithoutAFetch(t *testing.T) {
@@ -368,6 +395,7 @@ func TestAwaitPodStartsTheCommandOfAKindWithoutArchive(t *testing.T) {
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
 	h.readyPod(run.ID)
 	Expect(h.call(t, run.ID, StepAwaitPod).done()).To(BeTrue())
+	Expect(parseState(h.states[run.ID])).To(HaveField("StartedAt", HaveValue(BeTemporally("==", h.clock.Now()))))
 
 	runID, command, archive, starts := h.host.Snapshot()
 	Expect(runID).To(Equal(run.ID))
