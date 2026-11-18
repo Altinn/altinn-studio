@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/metric/noop"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
@@ -75,7 +76,9 @@ func run() int {
 	}
 	// The operator runner calls have no client timeout. The execution deadline of a step limits the calls of that step.
 	// The request of the caller limits an upload or a result that the operator forwards.
-	httpClient := &http.Client{Transport: otelhttp.NewTransport(withoutQuery{http.DefaultTransport})}
+	// The client records no metrics, because they carry the pod IP, which is new for each run.
+	noMetrics := otelhttp.WithMeterProvider(noop.NewMeterProvider())
+	httpClient := &http.Client{Transport: otelhttp.NewTransport(withoutQuery{http.DefaultTransport}, noMetrics)}
 	host := runner.NewClient(httpClient, runner.Port, cluster.Sandbox())
 	if err = setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host); err != nil {
 		setupLog.Error(err, "unable to set up the operator")
