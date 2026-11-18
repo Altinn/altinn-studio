@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"maps"
 	"slices"
+	"time"
 
 	"altinn.studio/core-operator/internal/logging"
 	"altinn.studio/core-operator/internal/sandbox"
@@ -18,7 +19,10 @@ const maxRelayed = 20
 // no container logs, so the operator first logs the warnings and errors of the operator runner.
 func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string) error {
 	logger := logging.FromContext(ctx).WithName("operator-runner").WithValues("runId", runID)
-	log, err := box.Log(ctx, namespace, runID)
+	// A log read that stalls must leave time to delete the Job.
+	logCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	log, err := box.Log(logCtx, namespace, runID)
 	if err != nil {
 		logger.Info("Could not read the operator runner's log", "error", err.Error())
 	}
