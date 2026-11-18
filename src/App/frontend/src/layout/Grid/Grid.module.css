@@ -4,6 +4,10 @@
   background-color: var(--ds-color-neutral-background-tinted);
 }
 
+.rowReadOnly:hover {
+  background-color: unset;
+}
+
 .contentFormatting {
   --cell-text-alignment: left;
   display: block;
