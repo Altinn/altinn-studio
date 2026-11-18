@@ -367,6 +367,7 @@ impl Host {
                 Reply::from(ran)
             }
             None => Reply::Failed {
+                reason: "stopping",
                 error: "The operator runner stopped before the command ended.".to_string(),
             },
         };
@@ -378,7 +379,7 @@ impl Host {
             Reply::Completed(outcome) => {
                 tracing::info!(%run_id, exit_code = ?outcome.exit_code, timed_out = outcome.timed_out, "the run ended");
             }
-            Reply::Failed { error } => tracing::error!(%run_id, %error, "the run failed"),
+            Reply::Failed { reason, .. } => tracing::error!(%run_id, reason, "the run failed"),
             Reply::Running => {}
         }
         let reply = Rc::new(reply);

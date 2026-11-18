@@ -214,8 +214,8 @@ async fn prepare_app(vm: &Vm, archive: Bytes, deadline: Instant) -> Result<(), R
 async fn read_report(vm: &Vm, path: &str, deadline: Instant) -> Option<Map<String, Value>> {
     match vm.read_file(path, MAX_REPORT_BYTES, deadline).await {
         Ok(contents) => parse_report(&contents),
-        Err(error) => {
-            tracing::warn!(%error, "the command wrote no report");
+        Err(_error) => {
+            tracing::warn!("the command wrote no report");
             None
         }
     }

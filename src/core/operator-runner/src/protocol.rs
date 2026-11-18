@@ -35,7 +35,12 @@ pub enum Status {
 pub enum Reply {
     Running,
     Completed(Outcome),
-    Failed { error: String },
+    Failed {
+        /// Logs carry this reason and not the error, because the error can contain text from the app and the VM.
+        #[serde(skip)]
+        reason: &'static str,
+        error: String,
+    },
 }
 
 impl Reply {
@@ -54,12 +59,15 @@ impl From<Result<Outcome, RunError>> for Reply {
         match ran {
             Ok(outcome) => Self::Completed(outcome),
             Err(RunError::InvalidArchive(detail)) => Self::Failed {
+                reason: "invalid-archive",
                 error: format!("The archive does not extract: {detail}"),
             },
             Err(RunError::RefusedPatch(refusal)) => Self::Failed {
+                reason: "refused-patch",
                 error: format!("The operator runner refused the changes of the command: {refusal}"),
             },
             Err(RunError::Failed(error)) => Self::Failed {
+                reason: "vm-error",
                 error: error.to_string(),
             },
         }
@@ -83,7 +91,7 @@ impl<'a> From<&'a Reply> for Summary<'a> {
                 exit_code: outcome.exit_code,
                 timed_out: outcome.timed_out,
             },
-            Reply::Failed { error } => Self::Failed {
+            Reply::Failed { error, .. } => Self::Failed {
                 error: &error[..error.floor_char_boundary(MAX_STATUS_ERROR_BYTES)],
             },
         }
@@ -200,6 +208,7 @@ mod tests {
     #[test]
     fn cuts_the_error_of_a_status_to_what_the_core_operator_reads() -> serde_json::Result<()> {
         let reply = Reply::Failed {
+            reason: "refused-patch",
             error: "€\u{1}".repeat(64 * 1024),
         };
 
