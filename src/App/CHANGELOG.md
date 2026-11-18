@@ -10,19 +10,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Expressions read text with spaces around a number, such as `" 12 "`, as that number, in the form and on the server. A comma is still not a decimal separator, and the error now says so. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- Expressions on the server read text as a boolean only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- A calculated value is converted to the type of its field with the same rules as expressions use for their arguments, in the form and on the server. A number field does not take `true`; a boolean field takes `true`, `false`, `1` and `0`, also as text, and nothing else; a text field takes the text of a number or a boolean; a whole-number field does not take a fraction, which the server rounded before. A result that does not fit keeps the previous value and logs a warning. `null` clears any field. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- `["dataModel", ...]` in the form gives an object, or the rows of a list, with every property the data model has, as `null` where the data has no value, as on the server. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- A calculation that fails to evaluate on the server, such as `["if", "yes", 1]` on text that is not a boolean, no longer fails the save: the error is logged, the field keeps its value and the other calculations run. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+
 ### Fixed
 
-- The backend reads a text as a boolean in expressions only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- Calculated values are stored the same way in the form and on the server: ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-  - `true` becomes `"true"` in a text field
-  - `true` or `" 12 "` into a number field, or a fraction into a whole-number field, keeps the old value with a warning
-  - list items are converted, so `["4", "5"]` fills a list of numbers
-- A calculation that fails, such as `["if", "yes", 1]` on text that is not a boolean, no longer fails the save on the server: the error is logged, the field keeps its value and the other calculations run. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- A path that continues past an item in a list of numbers or text, such as `numbers[0].v`, no longer overwrites that item. A calculation that gives a list of objects for such a list now keeps the list and logs a warning. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. The frontend now keeps the cleared field as `null`, as the backend returns it. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- The form stores the result of a calculation in a field with the same rules as expressions use for their arguments, as the backend does. A number field takes numbers and numeric text such as `"12"` or `"1.5e3"`, but not `"1,5"`, `" 12 "` or `true`; a boolean field takes `true`, `false`, `1` and `0`, also as text; a text field takes the text of a number or boolean; and a whole-number field does not take a fraction. A result that does not fit keeps the previous value and logs a warning. `null` clears any field, also a number or boolean that must be filled in before the form is submitted. A calculation with `"expression": null` is skipped with a warning. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- `["dataModel", ...]` in the form gives an object or the rows of a list with every property the data model has, as `null` where the data has no value, as the backend does. A calculation that copies rows into another list now clears the properties the source rows have no value for, whether or not the form has been saved. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 
 ## [9.0.0-preview.12] - 2026-11-17
