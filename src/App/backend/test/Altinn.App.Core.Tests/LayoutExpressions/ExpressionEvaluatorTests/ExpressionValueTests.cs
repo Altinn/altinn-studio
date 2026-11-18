@@ -266,10 +266,9 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize<int?>(ExpressionValue.Null, null, true);
         TestTryDeserialize<int?>(ExpressionValue.False, 0, true);
         TestTryDeserialize<int?>(ExpressionValue.True, 1, true);
-        // Not sure what the correct string representation should be for JsonTokenType.True and JsonTokenType.False:
-        // There are many possibilites "true", "True", "sann", "ja", "ok", "1"
-        TestTryDeserialize<string?>(ExpressionValue.False, null, false);
-        TestTryDeserialize<string?>(ExpressionValue.True, null, false);
+        // A bool is written as in JSON, as the frontend writes it
+        TestTryDeserialize<string?>(ExpressionValue.False, "false", true);
+        TestTryDeserialize<string?>(ExpressionValue.True, "true", true);
         TestTryDeserialize<string?>(ExpressionValue.Null, null, true);
         TestTryDeserialize("2020-02-03T12:34:56Z", DateTime.Parse("2020-02-03T12:34:56Z").ToUniversalTime(), true);
         TestTryDeserialize("2020-02-03T12:34:56Z", DateTimeOffset.Parse("2020-02-03T12:34:56Z"), true);
@@ -727,8 +726,126 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
     [Fact]
     public void TryDeserialize_FailsForANonFiniteDoubleIntoDecimal()
     {
-        Assert.Throws<OverflowException>(() =>
-            ExpressionValue.FromObject(double.PositiveInfinity).TryDeserialize<decimal>(out _)
-        );
+        Assert.False(ExpressionValue.FromObject(double.PositiveInfinity).TryDeserialize<decimal>(out _));
+        Assert.False(ExpressionValue.FromObject(double.NegativeInfinity).TryDeserialize<decimal?>(out _));
+    }
+
+    [Theory]
+    [InlineData(" 12 ", 12)]
+    [InlineData("12 ", 12)]
+    [InlineData("\t-3.5\n", -3.5)]
+    public void TryDeserialize_IgnoresWhitespaceAroundANumberInAString(string text, double expected)
+    {
+        ExpressionValue value = text;
+
+        Assert.True(value.TryDeserialize<decimal>(out var decimalResult));
+        Assert.Equal((decimal)expected, decimalResult);
+        Assert.True(value.TryDeserialize<double?>(out var doubleResult));
+        Assert.Equal(expected, doubleResult);
+    }
+
+    [Theory]
+    [InlineData(" ")]
+    [InlineData("1 2")]
+    [InlineData(" 1,5 ")]
+    public void TryDeserialize_RefusesAStringThatIsNotANumberAfterTrimming(string text)
+    {
+        ExpressionValue value = text;
+
+        Assert.False(value.TryDeserialize<decimal>(out _));
+        Assert.False(value.TryDeserialize<int?>(out _));
+    }
+
+    [Fact]
+    public void TryDeserialize_WritesABoolIntoAStringAsInJson()
+    {
+        Assert.True(ExpressionValue.True.TryDeserialize<string>(out var trueText));
+        Assert.Equal("true", trueText);
+        Assert.True(ExpressionValue.False.TryDeserialize<string>(out var falseText));
+        Assert.Equal("false", falseText);
+    }
+
+    [Theory]
+    [InlineData(typeof(int))]
+    [InlineData(typeof(int?))]
+    [InlineData(typeof(long))]
+    [InlineData(typeof(short))]
+    [InlineData(typeof(byte))]
+    [InlineData(typeof(sbyte))]
+    [InlineData(typeof(uint))]
+    [InlineData(typeof(ulong?))]
+    [InlineData(typeof(ushort))]
+    public void TryDeserialize_RefusesANonIntegralNumberForAnIntegerType(Type type)
+    {
+        // Rounding would write a value the calculation did not give
+        Assert.False(ExpressionValue.FromObject(1.5).TryDeserialize(type, out var fromNumber));
+        Assert.Null(fromNumber);
+        Assert.False(((ExpressionValue)"2.5").TryDeserialize(type, out var fromString));
+        Assert.Null(fromString);
+
+        Assert.True(ExpressionValue.FromObject(2.0).TryDeserialize(type, out var integral));
+        Assert.Equal(2L, Convert.ToInt64(integral, CultureInfo.InvariantCulture));
+        Assert.True(((ExpressionValue)" 3 ").TryDeserialize(type, out var integralString));
+        Assert.Equal(3L, Convert.ToInt64(integralString, CultureInfo.InvariantCulture));
+    }
+
+    [Theory]
+    [InlineData(typeof(double))]
+    [InlineData(typeof(float))]
+    [InlineData(typeof(decimal))]
+    public void TryDeserialize_KeepsANonIntegralNumberForAFractionalType(Type type)
+    {
+        Assert.True(ExpressionValue.FromObject(1.5).TryDeserialize(type, out var result));
+        Assert.Equal(1.5, Convert.ToDouble(result, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void TryDeserialize_RefusesANumberOutsideTheRangeOfTheType()
+    {
+        Assert.False(ExpressionValue.FromObject(300).TryDeserialize<byte>(out _));
+        Assert.False(ExpressionValue.FromObject(-1).TryDeserialize<uint?>(out _));
+        Assert.False(ExpressionValue.FromObject(1e20).TryDeserialize<int>(out _));
+        Assert.False(((ExpressionValue)"1e300").TryDeserialize<decimal>(out _));
+    }
+
+    [Fact]
+    public void TryDeserialize_ConvertsAListOfScalarsItemByItem()
+    {
+        Assert.True(ExpressionValue.FromJsonString("""["4", " 5 "]""").TryDeserialize<List<decimal>>(out var numbers));
+        Assert.Equal([4m, 5m], numbers!);
+
+        Assert.True(ExpressionValue.FromJsonString("[4, 0.5, true]").TryDeserialize<List<string>>(out var texts));
+        Assert.Equal(["4", "0.5", "true"], texts!);
+
+        Assert.True(ExpressionValue.FromJsonString("""["1", 2]""").TryDeserialize<int[]>(out var array));
+        Assert.Equal([1, 2], array!);
+
+        Assert.True(ExpressionValue.FromJsonString("""[1, "true"]""").TryDeserialize<IList<bool>>(out var booleans));
+        Assert.Equal([true, true], booleans!);
+
+        Assert.True(ExpressionValue.FromJsonString("[]").TryDeserialize<List<int>>(out var empty));
+        Assert.Empty(empty!);
+    }
+
+    [Fact]
+    public void TryDeserialize_RefusesAListOfScalarsWithAnItemThatCannotBeConverted()
+    {
+        Assert.False(ExpressionValue.FromJsonString("""["4", "x"]""").TryDeserialize<List<decimal>>(out var result));
+        Assert.Null(result);
+        Assert.False(ExpressionValue.FromJsonString("[1, 1.5]").TryDeserialize<List<int>>(out _));
+        Assert.False(ExpressionValue.FromJsonString("""[{"v": 1}]""").TryDeserialize<List<decimal>>(out _));
+        Assert.False(ExpressionValue.FromJsonString("[[1]]").TryDeserialize<List<string>>(out _));
+    }
+
+    [Fact]
+    public void TryDeserialize_NullItemsInAListOfScalars()
+    {
+        // Null is an item where the item type allows it, as when System.Text.Json reads the list
+        Assert.True(ExpressionValue.FromJsonString("[null, 1]").TryDeserialize<List<decimal?>>(out var numbers));
+        Assert.Equal([null, 1m], numbers!);
+        Assert.True(ExpressionValue.FromJsonString("""[null, "a"]""").TryDeserialize<List<string?>>(out var texts));
+        Assert.Equal([null, "a"], texts!);
+
+        Assert.False(ExpressionValue.FromJsonString("[null, 1]").TryDeserialize<List<decimal>>(out _));
     }
 }

@@ -83,8 +83,6 @@
     },
     {
       "name": "surrounding spaces",
-      "comment": "The frontend removes whitespace before it parses, so \" 12 \" becomes 12. The backend does not parse \" 12 \", keeps the previous value and logs a warning.",
-      "disabledBackend": true,
       "calculations": [
         {
           "field": "decimal",

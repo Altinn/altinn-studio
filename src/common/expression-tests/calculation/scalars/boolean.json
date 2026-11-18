@@ -51,8 +51,6 @@
     },
     {
       "name": "boolean into string",
-      "comment": "The frontend writes \"true\". The backend cannot convert a boolean to a string, keeps the previous value and logs a warning.",
-      "disabledBackend": true,
       "calculations": [
         {
           "field": "text",

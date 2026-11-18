@@ -36,8 +36,6 @@
     },
     {
       "name": "strings into numbers",
-      "comment": "The frontend converts each item to the item type and writes [4, 5]. The backend deserializes the list with System.Text.Json, which does not read numbers from strings, keeps the previous value and logs a warning.",
-      "disabledBackend": true,
       "calculations": [
         {
           "field": "numbers",
@@ -52,8 +50,6 @@
     },
     {
       "name": "numbers into strings",
-      "comment": "The frontend converts each item to the item type and writes [\"4\", \"5\"]. The backend deserializes the list with System.Text.Json, which does not read strings from numbers, keeps the previous value and logs a warning.",
-      "disabledBackend": true,
       "calculations": [
         {
           "field": "texts",
