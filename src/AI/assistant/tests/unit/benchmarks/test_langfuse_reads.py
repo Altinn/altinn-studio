@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import importlib
 import json
-import os
 import re
 from pathlib import Path
 from typing import cast
 
 import httpx
 
-import benchmarks
 from benchmarks import remote, status
 from benchmarks.harvest import LOOP_CALL_NAME, TraceReader, read_trace
 from benchmarks.lf_api import LangfuseApi
@@ -144,12 +141,3 @@ class TestRemoteComments:
         path, params = api.requested[0]
         assert path == "/api/public/v3/scores"
         assert params["fields"] == "details", "the comment is in the details field group"
-
-
-def test_the_sdk_reaches_the_same_langfuse_as_this_client(monkeypatch):
-    """The SDK reads its host from the environment, and an old .env can still name another one."""
-    monkeypatch.setenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")
-
-    importlib.reload(benchmarks)
-
-    assert os.environ["LANGFUSE_BASE_URL"] == LangfuseApi(public_key="pk", secret_key="sk").host

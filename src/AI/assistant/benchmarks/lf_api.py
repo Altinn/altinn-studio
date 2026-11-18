@@ -25,8 +25,7 @@ class LangfuseApi:
                 + ", ".join(missing)
                 + " — set them in benchmarks/.env or the environment."
             )
-        self.host = get_config().LANGFUSE_HOST
-        self._client = httpx.Client(base_url=self.host, auth=(public_key, secret_key), timeout=60)
+        self._client = httpx.Client(base_url=get_config().LANGFUSE_HOST, auth=(public_key, secret_key), timeout=60)
 
     def _get(self, path: str, **params: Any) -> dict:
         response = self._client.get(path, params=params)

@@ -11,7 +11,7 @@ from typing import Any
 from benchmarks import manifest
 from benchmarks.diff import NOISE_FLOOR, Comparison, compare
 from benchmarks.runstore import BehaviorResult, ItemResult, Run, load, series
-from shared.config import get_config
+from shared.config import BaseConfig
 
 VERDICT_WORDS = {
     "holding": "holding",
@@ -494,7 +494,7 @@ def _unwrap(value: object) -> object:
 
 
 def trace_url(trace_id: str | None) -> str | None:
-    return f"{get_config().LANGFUSE_HOST}/trace/{trace_id}" if trace_id else None
+    return f"{BaseConfig.LANGFUSE_HOST}/trace/{trace_id}" if trace_id else None
 
 
 # Wider than this is an item id by another name, and tells a reader nothing.

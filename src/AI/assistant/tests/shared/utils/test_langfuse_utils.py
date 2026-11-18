@@ -1,3 +1,4 @@
+import os
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -5,6 +6,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
+from shared.config import get_config
 from shared.utils import langfuse_utils
 from shared.utils.langfuse_utils import (
     _PropagatedAttributesProcessor,
@@ -85,3 +87,9 @@ class TestPropagateSpanAttributes:
             pass
 
         assert "k" not in (exporter.get_finished_spans()[0].attributes or {})
+
+
+def test_a_client_the_sdk_builds_itself_reaches_the_assistants_langfuse():
+    """llm_client asks the SDK for a client even when init_langfuse() failed. The SDK then
+    builds one from LANGFUSE_BASE_URL, and without it reaches cloud.langfuse.com."""
+    assert os.environ["LANGFUSE_BASE_URL"] == get_config().LANGFUSE_HOST

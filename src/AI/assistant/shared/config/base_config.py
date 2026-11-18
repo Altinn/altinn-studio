@@ -75,6 +75,11 @@ class BaseConfig:
     LANGFUSE_TRACE_RETENTION_DAYS = int(os.getenv("LANGFUSE_TRACE_RETENTION_DAYS", "90"))
 
 
+# The SDK reads this when it builds a client itself, such as when init_langfuse() failed,
+# and would otherwise reach cloud.langfuse.com.
+os.environ["LANGFUSE_BASE_URL"] = BaseConfig.LANGFUSE_HOST
+
+
 def get_config() -> BaseConfig:
     return BaseConfig()
 
