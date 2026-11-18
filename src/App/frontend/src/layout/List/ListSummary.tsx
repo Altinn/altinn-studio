@@ -2,7 +2,6 @@ import React from 'react';
 
 import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
 
 import { Caption } from 'src/components/form/caption/Caption';
@@ -93,16 +92,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
               <Caption
                 {...captionProps}
                 className={classes.tableCaption}
-                title={
-                  title ? (
-                    <Heading
-                      data-size='xs'
-                      level={4}
-                    >
-                      <Lang id={title} />
-                    </Heading>
-                  ) : undefined
-                }
+                title={title && <Lang id={title} />}
               />
             )}
             {config.tableColumns && !mobileView && (

@@ -199,7 +199,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
           (title || description || help) && (
             <Caption
               id={getLabelId(componentId)}
-              title={tableHeading}
+              title={title && <Lang id={title} />}
               description={description && <Lang id={description} />}
               helpText={help ? { text: <Lang id={help} />, accessibleTitle: langAsString(title) } : undefined}
               labelSettings={{ optionalIndicator: false }}
