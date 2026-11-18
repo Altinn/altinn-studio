@@ -1,0 +1,99 @@
+{
+  "name": "A string result is parsed into a number field",
+  "dataModel": {
+    "decimal": 1
+  },
+  "testCases": [
+    {
+      "name": "integer",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "12"
+        }
+      ],
+      "expects": {
+        "decimal": 12
+      }
+    },
+    {
+      "name": "decimal",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "1.5"
+        }
+      ],
+      "expects": {
+        "decimal": 1.5
+      }
+    },
+    {
+      "name": "negative",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "-3"
+        }
+      ],
+      "expects": {
+        "decimal": -3
+      }
+    },
+    {
+      "name": "not a number keeps the previous value",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "abc"
+        }
+      ],
+      "expects": {
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "empty string keeps the previous value",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": ""
+        }
+      ],
+      "expects": {
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "comma",
+      "comment": "The frontend removes commas as thousands separators before it parses, so \"1,5\" becomes 15. The backend does not parse \"1,5\" and keeps the previous value.",
+      "disabledFrontend": true,
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "1,5"
+        }
+      ],
+      "expects": {
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "surrounding spaces",
+      "comment": "The frontend removes whitespace before it parses, so \" 12 \" becomes 12. The backend does not parse \" 12 \", keeps the previous value and logs a warning.",
+      "disabledBackend": true,
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": " 12 "
+        }
+      ],
+      "expects": {
+        "decimal": 12
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "A null result keeps the value of a non-nullable value type",
+  "dataModel": {
+    "valueTypes": {
+      "decimal": 1,
+      "integer": 2,
+      "boolean": true
+    }
+  },
+  "calculations": [
+    {
+      "field": "valueTypes.decimal",
+      "expression": ["if", false, 1, "else", null]
+    },
+    {
+      "field": "valueTypes.boolean",
+      "expression": ["if", false, 1, "else", null]
+    }
+  ],
+  "expects": {
+    "valueTypes": {
+      "decimal": 1,
+      "integer": 2,
+      "boolean": true
+    }
+  },
+  "expectsWarnings": ["valueTypes.decimal", "valueTypes.boolean"]
+}

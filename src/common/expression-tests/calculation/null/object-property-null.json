@@ -1,0 +1,29 @@
+{
+  "name": "A property set to null in an object result clears it, and a property left out is not touched",
+  "comment": "The frontend deletes the property when the result is null, while the backend sets it to null and returns it as null. After a save, the frontend calculates again, deletes the property again and sees a change to save (the save loop in #21297).",
+  "disabledFrontend": true,
+  "dataModel": {
+    "object": {
+      "text": "a",
+      "decimal": 1,
+      "nested": {
+        "text": "b"
+      }
+    }
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "text", null, "nested", ["object", "text", null]]
+    }
+  ],
+  "expects": {
+    "object": {
+      "text": null,
+      "decimal": 1,
+      "nested": {
+        "text": null
+      }
+    }
+  }
+}

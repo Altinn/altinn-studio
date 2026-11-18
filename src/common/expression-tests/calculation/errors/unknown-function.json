@@ -1,0 +1,13 @@
+{
+  "name": "A calculation with a function that does not exist",
+  "dataModel": {
+    "text": "old"
+  },
+  "calculations": [
+    {
+      "field": "text",
+      "expression": ["noSuchFunction"]
+    }
+  ],
+  "expectsFailure": "noSuchFunction"
+}

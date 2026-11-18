@@ -1,0 +1,46 @@
+{
+  "name": "Results calculated into an integer field",
+  "dataModel": {
+    "integer": 1
+  },
+  "testCases": [
+    {
+      "name": "integer",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": 3
+        }
+      ],
+      "expects": {
+        "integer": 3
+      }
+    },
+    {
+      "name": "string",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": "7"
+        }
+      ],
+      "expects": {
+        "integer": 7
+      }
+    },
+    {
+      "name": "decimal",
+      "comment": "The backend rounds 1.5 to 2 when it converts to int. The frontend writes 1.5, because a schema type of integer without @xsdType is parsed as a decimal.",
+      "disabledFrontend": true,
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": 1.5
+        }
+      ],
+      "expects": {
+        "integer": 2
+      }
+    }
+  ]
+}

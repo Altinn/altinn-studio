@@ -1,0 +1,27 @@
+{
+  "name": "Non-nullable value types are set like the others",
+  "dataModel": {
+    "valueTypes": {
+      "decimal": 1,
+      "integer": 2,
+      "boolean": false
+    }
+  },
+  "calculations": [
+    {
+      "field": "valueTypes.decimal",
+      "expression": 5
+    },
+    {
+      "field": "valueTypes.boolean",
+      "expression": true
+    }
+  ],
+  "expects": {
+    "valueTypes": {
+      "decimal": 5,
+      "integer": 2,
+      "boolean": true
+    }
+  }
+}

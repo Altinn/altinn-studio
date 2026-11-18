@@ -1,0 +1,101 @@
+{
+  "name": "Boolean results and boolean fields",
+  "dataModel": {
+    "boolean": false,
+    "text": "old",
+    "decimal": 5
+  },
+  "testCases": [
+    {
+      "name": "boolean into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": true
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "string true into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": "true"
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "string that is not a boolean keeps the previous value",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": "yes"
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 5
+      },
+      "expectsWarnings": ["boolean"]
+    },
+    {
+      "name": "boolean into string",
+      "comment": "The frontend writes \"true\". The backend cannot convert a boolean to a string, keeps the previous value and logs a warning.",
+      "disabledBackend": true,
+      "calculations": [
+        {
+          "field": "text",
+          "expression": true
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "true",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "boolean into number",
+      "comment": "The backend converts true to 1. The frontend cannot convert a boolean to a number, keeps the previous value and logs a warning.",
+      "disabledFrontend": true,
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": true
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 1
+      }
+    },
+    {
+      "name": "number into boolean",
+      "comment": "The backend converts 1 to true. The frontend only accepts true and false, keeps the previous value and logs a warning.",
+      "disabledFrontend": true,
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": 1
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    }
+  ]
+}

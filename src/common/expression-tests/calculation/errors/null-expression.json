@@ -1,0 +1,15 @@
+{
+  "name": "A calculation whose expression is null",
+  "comment": "The backend rejects the calculation file. The frontend accepts null as a literal expression, and clears the field.",
+  "disabledFrontend": true,
+  "dataModel": {
+    "text": "old"
+  },
+  "calculations": [
+    {
+      "field": "text",
+      "expression": null
+    }
+  ],
+  "expectsFailure": "\"expression\" must not be null"
+}

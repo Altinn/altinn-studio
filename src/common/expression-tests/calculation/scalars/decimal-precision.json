@@ -1,0 +1,17 @@
+{
+  "name": "A floating point result is stored in a decimal field",
+  "comment": "The frontend stores the double 0.30000000000000004. The backend converts the double to a C# decimal with every digit of its binary value, and stores 0.3000000000000000444089209850.",
+  "disabledBackend": true,
+  "dataModel": {
+    "decimal": 0
+  },
+  "calculations": [
+    {
+      "field": "decimal",
+      "expression": 0.30000000000000004
+    }
+  ],
+  "expects": {
+    "decimal": 0.30000000000000004
+  }
+}

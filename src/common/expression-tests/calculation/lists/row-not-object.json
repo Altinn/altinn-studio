@@ -1,0 +1,33 @@
+{
+  "name": "A list of objects with a row that is not an object fails the calculation",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "null row",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "total", 1], null]
+        }
+      ],
+      "expectsFailure": "not an object"
+    },
+    {
+      "name": "number row",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": ["list", 3, ["object", "total", 1]]
+        }
+      ],
+      "expectsFailure": "not an object"
+    }
+  ]
+}

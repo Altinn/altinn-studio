@@ -1,0 +1,17 @@
+{
+  "name": "Two rows with the same id fail the calculation",
+  "dataModel": {
+    "rows": []
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 1],
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 2]
+      ]
+    }
+  ],
+  "expectsFailure": "altinnRowId a0000000-0000-4000-8000-000000000001"
+}

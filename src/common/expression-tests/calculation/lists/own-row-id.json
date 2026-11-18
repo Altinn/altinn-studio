@@ -1,0 +1,34 @@
+{
+  "name": "A row in the result that brings its own id keeps it",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000005", "total", 1],
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000006", "total", 2]
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000005",
+        "decimal": 1,
+        "total": 1
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000006",
+        "total": 2
+      }
+    ]
+  }
+}

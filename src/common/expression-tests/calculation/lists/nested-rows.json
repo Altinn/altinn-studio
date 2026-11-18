@@ -1,0 +1,55 @@
+{
+  "name": "A list of objects with nested lists merges each level by position",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "a",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+            "text": "x"
+          },
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000002",
+            "text": "y"
+          }
+        ]
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "children", ["list", ["object", "decimal", 1]]],
+        ["object", "children", ["list", ["object", "text", "new"]]]
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "a",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+            "text": "x",
+            "decimal": 1
+          }
+        ]
+      },
+      {
+        "altinnRowId": "<new>",
+        "children": [
+          {
+            "altinnRowId": "<new>",
+            "text": "new"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "A list of primitives replaces the whole list",
+  "dataModel": {
+    "numbers": [1, 2, 3],
+    "texts": ["x", "y"],
+    "text": "c"
+  },
+  "testCases": [
+    {
+      "name": "strings",
+      "calculations": [
+        {
+          "field": "texts",
+          "expression": ["list", "a", "b", ["dataModel", "text"]]
+        }
+      ],
+      "expects": {
+        "numbers": [1, 2, 3],
+        "texts": ["a", "b", "c"],
+        "text": "c"
+      }
+    },
+    {
+      "name": "numbers",
+      "calculations": [
+        {
+          "field": "numbers",
+          "expression": ["list", 4, 5]
+        }
+      ],
+      "expects": {
+        "numbers": [4, 5],
+        "texts": ["x", "y"],
+        "text": "c"
+      }
+    },
+    {
+      "name": "strings into numbers",
+      "comment": "The frontend converts each item to the item type and writes [4, 5]. The backend deserializes the list with System.Text.Json, which does not read numbers from strings, keeps the previous value and logs a warning.",
+      "disabledBackend": true,
+      "calculations": [
+        {
+          "field": "numbers",
+          "expression": ["list", "4", "5"]
+        }
+      ],
+      "expects": {
+        "numbers": [4, 5],
+        "texts": ["x", "y"],
+        "text": "c"
+      }
+    },
+    {
+      "name": "numbers into strings",
+      "comment": "The frontend converts each item to the item type and writes [\"4\", \"5\"]. The backend deserializes the list with System.Text.Json, which does not read strings from numbers, keeps the previous value and logs a warning.",
+      "disabledBackend": true,
+      "calculations": [
+        {
+          "field": "texts",
+          "expression": ["list", 4, 5]
+        }
+      ],
+      "expects": {
+        "numbers": [1, 2, 3],
+        "texts": ["4", "5"],
+        "text": "c"
+      }
+    }
+  ]
+}
