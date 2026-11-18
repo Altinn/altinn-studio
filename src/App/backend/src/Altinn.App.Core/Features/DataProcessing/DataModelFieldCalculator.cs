@@ -209,6 +209,14 @@ internal sealed class DataModelFieldCalculator
     private void MergeRows(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement rows)
     {
         var currentRowCount = formDataWrapper.GetRowCount(path, rowIndexes: default) ?? 0;
+        // Rows of a list have the same type, so a scalar in the first row means the list cannot hold the result.
+        // Check before anything is written, so the list is left as it is.
+        if (currentRowCount > 0 && formDataWrapper.Get($"{path}[0]") is { } firstRow && IsScalar(firstRow))
+        {
+            LogRowsNotWritten(field, path);
+            return;
+        }
+
         var rowCount = 0;
         foreach (var row in rows.EnumerateArray())
         {
@@ -230,8 +238,10 @@ internal sealed class DataModelFieldCalculator
                     : formDataWrapper.Get(rowPath) is not null || formDataWrapper.Set(rowPath, _emptyObject);
             if (!rowExists)
             {
-                LogSetFailed(field, rowPath);
-                continue;
+                // The rows of the list are not objects, or the list cannot be added to. Stop before the rows beyond
+                // the result are removed, so a list that cannot hold the result is left as it is.
+                LogRowsNotWritten(field, path);
+                return;
             }
 
             MergeObject(formDataWrapper, field, rowPath, row);
@@ -291,6 +301,18 @@ internal sealed class DataModelFieldCalculator
             field.DataElementIdentifier.Id
         );
     }
+
+    private void LogRowsNotWritten(DataReference field, string path)
+    {
+        _logger.LogWarning(
+            "Could not set calculated value for field {Field} in data element {DataElementId}. "
+                + "The result is a list of objects, and the rows of the field cannot be set to objects.",
+            path,
+            field.DataElementIdentifier.Id
+        );
+    }
+
+    private static bool IsScalar(object value) => value is string || value.GetType().IsValueType;
 
     /// <summary>
     /// A list with an object in it is merged as rows, and every row must then be an object. A list of primitives,

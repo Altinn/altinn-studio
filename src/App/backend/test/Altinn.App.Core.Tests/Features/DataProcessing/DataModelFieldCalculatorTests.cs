@@ -320,6 +320,72 @@ public sealed class DataModelFieldCalculatorTests
         Assert.Contains("rows", exception.Message);
     }
 
+    [Theory]
+    [InlineData(new double[] { 2, 3 })]
+    [InlineData(new double[0])]
+    public async Task ListOfObjectsIntoAListOfPrimitivesKeepsTheListAndWarns(double[] numbers)
+    {
+        var model = new ListModel { Numbers = numbers.Select(number => (decimal)number).ToList() };
+        var dataAccessor = CreateListModelAccessor(
+            model,
+            """{ "field": "numbers", "expression": ["list", ["object", "v", 1], ["object", "v", 2]] }"""
+        );
+
+        await _dataModelFieldCalculator.Calculate(dataAccessor, TaskId);
+
+        Assert.Equal(numbers.Select(number => (decimal)number), model.Numbers);
+        var warning = Assert.Single(_logger.Collector.GetSnapshot());
+        Assert.Equal(Microsoft.Extensions.Logging.LogLevel.Warning, warning.Level);
+        Assert.Contains("numbers", warning.Message);
+    }
+
+    [Fact]
+    public async Task ListOfObjectsIntoAListOfPrimitivesWithANullRowKeepsTheListAndWarns()
+    {
+        var model = new ListModel { NullableNumbers = [null, 3] };
+        var dataAccessor = CreateListModelAccessor(
+            model,
+            """{ "field": "nullableNumbers", "expression": ["list", ["object", "v", 1]] }"""
+        );
+
+        await _dataModelFieldCalculator.Calculate(dataAccessor, TaskId);
+
+        Assert.Equal([null, 3m], model.NullableNumbers);
+        var warning = Assert.Single(_logger.Collector.GetSnapshot());
+        Assert.Contains("nullableNumbers", warning.Message);
+    }
+
+    private InstanceDataAccessorFake CreateListModelAccessor(ListModel model, string calculation)
+    {
+        var calculationConfig = JsonSerializer.Deserialize<CalculationConfig>(
+            $$"""{ "calculations": [{{calculation}}] }""",
+            _jsonSerializerOptions
+        );
+        _appResources.Setup(ar => ar.GetCalculationConfig("default")).Returns(calculationConfig);
+        _appResources.Setup(ar => ar.GetTexts("org", "app", "nb")).ReturnsAsync((TextResource?)null);
+        return new InstanceDataAccessorFake(
+            new Instance()
+            {
+                Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+                AppId = "org/app",
+                Process = new() { CurrentTask = new() { ElementId = TaskId } },
+            },
+            applicationMetadata: null,
+            translationService: new TranslationService(
+                new AppIdentifier("org", "app"),
+                _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_output)
+            ),
+            layout: null,
+            frontEndSettings: _frontendSettings.Value,
+            gatewayAction: null,
+            language: null
+        )
+        {
+            { _defaultSingleDataElement, model },
+        };
+    }
+
     private sealed class ListModel
     {
         [JsonPropertyName("rows")]
@@ -333,6 +399,12 @@ public sealed class DataModelFieldCalculatorTests
 
         [JsonPropertyName("address")]
         public AddressModel? Address { get; set; }
+
+        [JsonPropertyName("numbers")]
+        public List<decimal>? Numbers { get; set; }
+
+        [JsonPropertyName("nullableNumbers")]
+        public List<decimal?>? NullableNumbers { get; set; }
     }
 
     private sealed class AddressModel

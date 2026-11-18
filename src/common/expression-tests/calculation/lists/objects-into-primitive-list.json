@@ -1,7 +1,5 @@
 {
   "name": "A list of objects for a list of primitives is not written",
-  "comment": "The frontend checks that the items of the target are objects, keeps the list and logs a warning. The backend merges row by row and removes the rows beyond the result. With the generated wrapper, setting numbers[0].v sets numbers[0] to 1 without a warning, so the list becomes [1]. With the reflection wrapper, the set fails with a warning, so the list becomes [2].",
-  "disabledBackend": true,
   "dataModel": {
     "numbers": [2, 3]
   },
