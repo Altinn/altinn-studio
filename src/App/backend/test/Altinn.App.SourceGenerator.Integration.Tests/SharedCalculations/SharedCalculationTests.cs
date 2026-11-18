@@ -158,7 +158,7 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         {
             throw new Xunit.Sdk.XunitException($"The calculation failed: {exception}");
         }
-        Assert.DoesNotContain(logs, log => log.Level >= LogLevel.Error);
+        AssertLogs("error", testCase.ExpectsErrors, logs.Where(log => log.Level >= LogLevel.Error).ToList());
 
         var expects = GetExpects(testCase, dataModels);
         var serializer = new ModelSerializationService(Mock.Of<IAppModel>());
@@ -179,7 +179,7 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
             Compare(expected, actual, dataType, errors, inputRowIds[dataType], actualRowIds);
             Assert.True(errors.Count == 0, string.Join(Environment.NewLine, errors));
         }
-        AssertWarnings(testCase.ExpectsWarnings, logs.Where(log => log.Level == LogLevel.Warning).ToList());
+        AssertLogs("warning", testCase.ExpectsWarnings, logs.Where(log => log.Level == LogLevel.Warning).ToList());
     }
 
     /// <summary>
@@ -389,21 +389,29 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         );
     }
 
-    private static void AssertWarnings(List<string>? expected, List<FakeLogRecord> warnings)
+    /// <summary>
+    /// Every expected substring matches a logged record, and every logged record matches an expected substring.
+    /// Without a list, nothing may be logged at that level. An error is logged with the exception that failed the
+    /// calculation, so the substring can be a part of its message, as it is on the frontend.
+    /// </summary>
+    private static void AssertLogs(string level, List<string>? expected, List<FakeLogRecord> records)
     {
         expected ??= [];
+        var texts = records
+            .Select(record => record.Exception is null ? record.Message : $"{record.Message}: {record.Exception}")
+            .ToList();
         foreach (var substring in expected)
         {
             Assert.True(
-                warnings.Exists(w => w.Message.Contains(substring, StringComparison.Ordinal)),
-                $"Expected a warning with '{substring}'"
+                texts.Exists(text => text.Contains(substring, StringComparison.Ordinal)),
+                $"Expected an {level} with '{substring}'"
             );
         }
-        foreach (var warning in warnings)
+        foreach (var text in texts)
         {
             Assert.True(
-                expected.Exists(substring => warning.Message.Contains(substring, StringComparison.Ordinal)),
-                $"Unexpected warning: {warning.Message}"
+                expected.Exists(substring => text.Contains(substring, StringComparison.Ordinal)),
+                $"Unexpected {level}: {text}"
             );
         }
     }

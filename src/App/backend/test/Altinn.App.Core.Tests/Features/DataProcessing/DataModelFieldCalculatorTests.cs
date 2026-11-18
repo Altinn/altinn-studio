@@ -67,11 +67,11 @@ public sealed class DataModelFieldCalculatorTests
     }
 
     [Fact]
-    public async Task ShouldLogErrorAndThrowWhenExpressionEvaluatorThrowsException()
+    public async Task ShouldLogErrorAndContinueWhenExpressionEvaluatorThrowsException()
     {
         var testCaseJson = """
                 {
-                  "name": "Should log error and throw when ExpressionEvaluator throws exception",
+                  "name": "Should log error and run the other calculations when ExpressionEvaluator throws exception",
                   "expects": [
                       {
                           "logMessage": "Error while evaluating calculation for field form.formDataWrapperThrows"
@@ -83,12 +83,17 @@ public sealed class DataModelFieldCalculatorTests
                           {
                             "field": "form.formDataWrapperThrows",
                             "expression": ["noneExistingExpression"]
+                          },
+                          {
+                            "field": "form.after",
+                            "expression": "calculated"
                           }
                       ]
                   },
                   "formData": {
                       "form": {
-                          "formDataWrapperThrows": true
+                          "formDataWrapperThrows": true,
+                          "after": "old"
                       }
                   },
                   "layouts": {}
@@ -102,15 +107,22 @@ public sealed class DataModelFieldCalculatorTests
 
         var dataAccessor = Setup(testCase);
 
-        var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
-            _dataModelFieldCalculator.Calculate(dataAccessor, TaskId)
-        );
+        // Data in the data model can make an expression fail, so the save goes on as on the frontend
+        await _dataModelFieldCalculator.Calculate(dataAccessor, TaskId);
 
-        Assert.Contains(testCase.Expects.First().LogMessage, _logger.Collector.GetSnapshot().Select(x => x.Message));
+        var error = Assert.Single(_logger.Collector.GetSnapshot());
+        Assert.Equal(Microsoft.Extensions.Logging.LogLevel.Error, error.Level);
+        Assert.Equal(testCase.Expects.First().LogMessage, error.Message);
+        var exception = Assert.IsType<ExpressionEvaluatorTypeErrorException>(error.Exception);
         Assert.Contains(
             $"Function \"noneExistingExpression\" not implemented in backend [\"noneExistingExpression\"]",
             exception.Message
         );
+
+        // The field keeps its value, and the calculation after it runs
+        var formDataWrapper = await dataAccessor.GetFormDataWrapper(_defaultSingleDataElement);
+        Assert.Equal(true, formDataWrapper.Get("form.formDataWrapperThrows"));
+        Assert.Equal("calculated", formDataWrapper.Get("form.after"));
     }
 
     [Theory]

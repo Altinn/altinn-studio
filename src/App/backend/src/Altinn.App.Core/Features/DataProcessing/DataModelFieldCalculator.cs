@@ -153,27 +153,31 @@ internal sealed class DataModelFieldCalculator
         Expression calculation
     )
     {
+        ExpressionValue calculationResult;
         try
         {
-            var calculationResult = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
+            calculationResult = await ExpressionEvaluator.EvaluateExpressionToExpressionValue(
                 dataAccessor,
                 calculation,
                 context,
                 positionalArguments
             );
-            if (calculationResult.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
-            {
-                SetResult(formDataWrapper, resolvedField, resolvedField.Field, calculationResult.JsonElement);
-            }
-            else
-            {
-                SetLeaf(formDataWrapper, resolvedField, resolvedField.Field, calculationResult);
-            }
         }
         catch (Exception e)
         {
+            // Data in the data model can make an expression fail, as when a text that is not a number is added.
+            // The field keeps its value and the other calculations run, as on the frontend.
             _logger.LogError(e, "Error while evaluating calculation for field {Field}", resolvedField.Field);
-            throw;
+            return;
+        }
+
+        if (calculationResult.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
+        {
+            SetResult(formDataWrapper, resolvedField, resolvedField.Field, calculationResult.JsonElement);
+        }
+        else
+        {
+            SetLeaf(formDataWrapper, resolvedField, resolvedField.Field, calculationResult);
         }
     }
 
