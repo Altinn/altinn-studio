@@ -1,7 +1,5 @@
 {
   "name": "A null result clears a field",
-  "comment": "The frontend deletes the property when the result is null, while the backend sets it to null and returns it as null. After a save, the frontend calculates again, deletes the property again and sees a change to save (the save loop in #21297).",
-  "disabledFrontend": true,
   "dataModel": {
     "text": "old",
     "nullableDecimal": 3,

@@ -94,8 +94,6 @@
     },
     {
       "name": "a property the source rows set to null is cleared",
-      "comment": "The frontend deletes the property when the result is null, while the backend sets it to null and returns it as null.",
-      "disabledFrontend": true,
       "dataModel": {
         "rows": [
           {
