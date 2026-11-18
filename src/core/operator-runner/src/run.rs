@@ -298,8 +298,8 @@ mod tests {
     use tokio::time::Instant;
 
     use super::{
-        Command, Outcome, PATCH_PATH, PATCH_SCRIPT, PREPARE_SCRIPT, Run, RunError, Runner as _, parse_report,
-        to_outcome,
+        Command, FINISH_TIMEOUT, Outcome, PATCH_PATH, PATCH_SCRIPT, PREPARE_SCRIPT, Run, RunError, Runner as _,
+        parse_report, to_outcome,
     };
     use crate::{
         output::{Collected, Limits, collect},
@@ -336,10 +336,11 @@ mod tests {
         }
 
         /// Runs the upgrade in a VM that already has the report and the patch from studioctl and git. The run finds the
-        /// VM by its name, so the test starts the VM first.
+        /// VM by its name, so the test starts the VM first. The command must stop `FINISH_TIMEOUT` before the deadline,
+        /// so the deadline gives the command one more minute.
         async fn upgrade(&self, patch: &'static str) -> Result<Outcome, RunError> {
             let vm = self.vms.start(&[]).await?;
-            let deadline = Instant::now() + Duration::from_mins(1);
+            let deadline = Instant::now() + FINISH_TIMEOUT + Duration::from_mins(1);
             let report = Bytes::from_static(br#"{"exitCode": 0}"#);
             vm.write_file("/job/report.json", report, deadline).await?;
             vm.write_file(PATCH_PATH, Bytes::from_static(patch.as_bytes()), deadline)
