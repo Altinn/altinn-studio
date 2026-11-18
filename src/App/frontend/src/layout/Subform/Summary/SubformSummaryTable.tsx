@@ -20,6 +20,7 @@ import { useAllNavigationParams, useIsSubformPage } from 'src/hooks/navigation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
+import classes1 from 'src/layout/Subform/SubformComponent.module.css';
 import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
@@ -190,6 +191,7 @@ export function SubformSummaryTable({
       >
         <BaseTable
           id={`subform-${componentId}-table`}
+          className={classes1.subformTable}
           headerBackground='gray'
           headerDivider='light'
           headerPadding='large'

@@ -183,7 +183,9 @@ function ButtonCell({
   children,
   className,
   ...rest
-}: PropsWithChildren<ComponentPropsWithoutRef<typeof Table.Cell>>) {
+}: PropsWithChildren<
+  Omit<ComponentPropsWithoutRef<typeof Table.Cell>, 'dangerouslySetInnerHTML'>
+>) {
   return (
     <Table.Cell className={cn(classes.buttonCell, className)} {...rest}>
       <div className={classes.buttonCellContent}>{children}</div>

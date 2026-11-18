@@ -73,7 +73,7 @@ describe('BaseTable', () => {
     expect(screen.getByTestId('table')).toHaveClass(classes.headerLookInNestedTables);
   });
 
-  it('tints only header cells in a thead with tintedThead', () => {
+  it('adds the tintedThead class for headerBackground tintedThead', () => {
     expect(classes.headerBackgroundTintedThead).toBeTruthy();
     renderTable({ headerBackground: 'tintedThead' });
     expect(screen.getByTestId('table')).toHaveClass(classes.headerBackgroundTintedThead);

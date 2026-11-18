@@ -202,7 +202,15 @@ export default defineConfig([
           paths: [
             {
               name: '@digdir/designsystemet-react',
-              importNames: ['Table'],
+              importNames: [
+                'Table',
+                'TableHead',
+                'TableBody',
+                'TableFoot',
+                'TableRow',
+                'TableHeaderCell',
+                'TableCell',
+              ],
               message:
                 'Use BaseTable, so that every table differs from the designsystem in one place.',
             },

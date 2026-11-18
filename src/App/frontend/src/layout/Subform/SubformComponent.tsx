@@ -105,6 +105,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
       >
         <BaseTable
           id={`subform-${componentId}-table`}
+          className={classes.subformTable}
           headerBackground='gray'
           headerDivider='light'
           headerPadding='large'

@@ -123,7 +123,8 @@
   padding-bottom: var(--ds-size-4);
 }
 
-.table.rowHeightLarge tr {
+.table.rowHeightLarge:where(.lookInNestedTables) tr,
+.table.rowHeightLarge:where(:not(.lookInNestedTables)) > :is(thead, tbody, tfoot) > tr {
   height: 60px;
 }
 
@@ -134,7 +135,7 @@
 
 /* Replaces the designsystem's thick line above the footer with a light line under it */
 .table.footerBackgroundGray:where(.lookInNestedTables) tfoot td,
-.table.footerBackgroundGray:where(:not(.lookInNestedTables)) > tfoot td {
+.table.footerBackgroundGray:where(:not(.lookInNestedTables)) > tfoot > tr > td {
   background-color: #f5f5f5;
   border-top: none;
   border-bottom: 1px solid #dde3e5;
@@ -150,12 +151,16 @@
   padding-right: var(--modal-padding-x);
 }
 
-/* Comes after the look rules, with the same specificity, so that stacked cells lose their borders and padding */
-.table.stackedRows {
+/*
+ * The stacked th and td rules come after the look rules, with the same specificity, so that stacked cells lose their
+ * borders and padding. The other stacked rules have the specificity of the component rules they replace, so that the
+ * component's own and its callers' rules still win over them.
+ */
+:where(.table).stackedRows {
   display: block;
 }
 
-.table.stackedRows thead {
+:where(.table).stackedRows thead {
   display: none;
 }
 
@@ -164,8 +169,8 @@
   border: none;
 }
 
-.table.stackedRows tbody,
-.table.stackedRows tr {
+:where(.table).stackedRows tbody,
+:where(.table).stackedRows tr {
   display: block;
 }
 
@@ -176,41 +181,41 @@
   padding: var(--ds-size-2) 0;
 }
 
-.table.stackedRows td[data-header-title]:not([data-header-title=''])::before,
-.table.stackedRows th[data-header-title]:not([data-header-title=''])::before {
+:where(.table).stackedRows td[data-header-title]:not([data-header-title=''])::before,
+:where(.table).stackedRows th[data-header-title]:not([data-header-title=''])::before {
   content: attr(data-header-title);
   display: block;
   text-align: left;
   font-weight: 500;
 }
 
-.table.stackedRowsFramed caption {
+:where(.table).stackedRowsFramed caption {
   display: block;
 }
 
-.table.stackedRowsFramed tbody tr:last-child {
+:where(.table).stackedRowsFramed tbody tr:last-child {
   border-bottom: 2px solid var(--ds-color-neutral-border-strong);
 }
 
-.table.stackedRowsFramed tbody tr:first-child {
+:where(.table).stackedRowsFramed tbody tr:first-child {
   border-top: 2px solid var(--ds-color-neutral-border-strong);
 }
 
-.table.stackedRowsFramed tr {
+:where(.table).stackedRowsFramed tr {
   border-bottom: 1px solid var(--ds-color-neutral-border-strong);
   padding-top: var(--ds-size-3);
   padding-bottom: var(--ds-size-3);
 }
 
-.table.stackedRowsFramed tr:hover td {
+:where(.table).stackedRowsFramed tr:hover td {
   background-color: unset;
 }
 
-.table.stackedRowsDivided tbody:last-child tr:last-child {
+:where(.table).stackedRowsDivided tbody:last-child tr:last-child {
   border-bottom: none;
 }
 
-.table.stackedRowsDivided tr {
+:where(.table).stackedRowsDivided tr {
   border-bottom: 2px solid var(--ds-color-neutral-border-strong);
   padding-top: var(--ds-size-3);
   padding-bottom: var(--ds-size-3);
