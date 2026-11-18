@@ -51,10 +51,7 @@ func TestContractPayloadDecodes(t *testing.T) {
 	router := NewRouter(clock.NewFakeClock(), Group{
 		"run.await-result": func(_ context.Context, p *Payload) (Response, error) { return Done(p.State), nil },
 	})
-	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, PathPrefix+"run.await-result",
-		bytes.NewReader(readContract(t, "payload.json")))
-	res := httptest.NewRecorder()
-	router.ServeHTTP(res, req)
+	res := postBody(t, router, "run.await-result", readContract(t, "payload.json"))
 	Expect(res.Code).To(Equal(http.StatusOK), res.Body.String())
 }
 
@@ -117,6 +114,11 @@ func post(t *testing.T, router http.Handler, key string, payload Payload) *httpt
 	if err != nil {
 		t.Fatal(err)
 	}
+	return postBody(t, router, key, body)
+}
+
+func postBody(t *testing.T, router http.Handler, key string, body []byte) *httptest.ResponseRecorder {
+	t.Helper()
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, PathPrefix+key, bytes.NewReader(body))
 	res := httptest.NewRecorder()
 	router.ServeHTTP(res, req)
@@ -126,46 +128,58 @@ func post(t *testing.T, router http.Handler, key string, payload Payload) *httpt
 const queueTimeout = "The run waited in the queue longer than its kind allows."
 
 func TestRouterAnswersByTheContract(t *testing.T) {
-	RegisterTestingT(t)
-
 	router := newTestRouter(clock.NewFakeClock())
 	state := "s"
 
-	res := post(t, router, "run.done", Payload{CommandKey: "run.done", State: &state})
-	Expect(res.Code).To(Equal(http.StatusOK))
-	Expect(res.Body.String()).To(MatchJSON(`{"state":"s","defer":null}`))
-
-	res = post(t, router, "run.wait", Payload{CommandKey: "run.wait", State: &state})
-	Expect(res.Code).To(Equal(http.StatusOK))
-	Expect(res.Body.String()).To(MatchJSON(`{"state":"s","defer":{"delay":"00:00:02","reason":"waiting"}}`))
-
+	t.Run("a step that is done answers 200 with its state", func(t *testing.T) {
+		RegisterTestingT(t)
+		res := post(t, router, "run.done", Payload{CommandKey: "run.done", State: &state})
+		Expect(res.Code).To(Equal(http.StatusOK))
+		Expect(res.Body.String()).To(MatchJSON(`{"state":"s","defer":null}`))
+	})
+	t.Run("a step that waits answers 200 with a defer", func(t *testing.T) {
+		RegisterTestingT(t)
+		res := post(t, router, "run.wait", Payload{CommandKey: "run.wait", State: &state})
+		Expect(res.Code).To(Equal(http.StatusOK))
+		Expect(res.Body.String()).To(MatchJSON(`{"state":"s","defer":{"delay":"00:00:02","reason":"waiting"}}`))
+	})
 	// The engine does not retry a 422, and records the answer as the step's error, where a status read finds it.
-	res = post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"})
-	Expect(res.Code).To(Equal(http.StatusUnprocessableEntity))
-	Expect(res.Header().Get("Content-Type")).To(Equal("application/problem+json"))
-	Expect(res.Body.String()).To(MatchJSON(readContract(t, "response-end.json")))
-	Expect(Ended(res.Body.String())).To(Equal(&End{Reason: "queue-timeout", Detail: queueTimeout}))
+	t.Run("a step that ends answers 422 with a problem", func(t *testing.T) {
+		RegisterTestingT(t)
+		res := post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"})
+		Expect(res.Code).To(Equal(http.StatusUnprocessableEntity))
+		Expect(res.Header().Get("Content-Type")).To(Equal("application/problem+json"))
+		Expect(res.Body.String()).To(MatchJSON(readContract(t, "response-end.json")))
+	})
+	t.Run("a step that fails answers 503, so the engine retries it", func(t *testing.T) {
+		RegisterTestingT(t)
+		Expect(post(t, router, "run.retry", Payload{CommandKey: "run.retry"}).Code).
+			To(Equal(http.StatusServiceUnavailable))
+	})
+	t.Run("an unknown command key answers 404", func(t *testing.T) {
+		RegisterTestingT(t)
+		Expect(post(t, router, "run.unknown", Payload{CommandKey: "run.unknown"}).Code).To(Equal(http.StatusNotFound))
+	})
+	t.Run("a payload for another command key answers 400", func(t *testing.T) {
+		RegisterTestingT(t)
+		Expect(post(t, router, "run.done", Payload{CommandKey: "run.wait"}).Code).To(Equal(http.StatusBadRequest))
+	})
+	t.Run("a body that is not JSON answers 400", func(t *testing.T) {
+		RegisterTestingT(t)
+		Expect(postBody(t, router, "run.done", []byte("not json")).Code).To(Equal(http.StatusBadRequest))
+	})
+}
 
-	res = post(t, router, "run.retry", Payload{CommandKey: "run.retry"})
-	Expect(res.Code).To(Equal(http.StatusServiceUnavailable))
-	Expect(Ended(res.Body.String())).To(BeNil())
-	Expect(Ended("Wait budget of 00:15:00 exhausted after 300 deferral(s): queued")).To(BeNil())
+func TestEndedReadsTheEndThatAStepAnswered(t *testing.T) {
+	RegisterTestingT(t)
+	router := newTestRouter(clock.NewFakeClock())
 
-	res = post(t, router, "run.unknown", Payload{CommandKey: "run.unknown"})
-	Expect(res.Code).To(Equal(http.StatusNotFound))
-
-	res = post(t, router, "run.done", Payload{CommandKey: "run.wait"})
-	Expect(res.Code).To(Equal(http.StatusBadRequest))
-
-	req := httptest.NewRequestWithContext(
-		t.Context(),
-		http.MethodPost,
-		PathPrefix+"run.done",
-		bytes.NewReader([]byte("not json")),
-	)
-	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, req)
-	Expect(rec.Code).To(Equal(http.StatusBadRequest))
+	ended := post(t, router, "run.permanent", Payload{CommandKey: "run.permanent"}).Body.String()
+	Expect(Ended(ended)).To(Equal(&End{Reason: "queue-timeout", Detail: queueTimeout}))
+	failed := post(t, router, "run.retry", Payload{CommandKey: "run.retry"}).Body.String()
+	Expect(Ended(failed)).To(BeNil(), "a step that failed")
+	engineError := "Wait budget of 00:15:00 exhausted after 300 deferral(s): queued"
+	Expect(Ended(engineError)).To(BeNil(), "the engine's own error")
 }
 
 func TestRouterBoundsTheStepByItsExecutionDeadline(t *testing.T) {

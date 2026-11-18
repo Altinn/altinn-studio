@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	"altinn.studio/core-operator/internal/clock"
@@ -130,30 +131,52 @@ func call(t *testing.T, method, url, token string, body []byte) (int, string) {
 	return res.StatusCode, string(data)
 }
 
-// The operator's manager, servers and token checks against a real API server: callers and the engine send
-// ServiceAccount tokens that the API server issued, and the operator reviews them.
-func TestTheOperatorServesItsAPIs(t *testing.T) {
-	RegisterTestingT(t)
-	assets := envtestAssets()
-	if assets == "" {
-		t.Skip("envtest binaries not found: run make test, or make setup-envtest first")
-	}
-
+// startAPIServer starts a Kubernetes API server with envtest, until the test ends.
+func startAPIServer(t *testing.T, assets string) (*rest.Config, kubernetes.Interface) {
+	t.Helper()
 	environment := &envtest.Environment{BinaryAssetsDirectory: assets}
 	restConfig, err := environment.Start()
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		t.Fatal(err)
+	}
 	t.Cleanup(func() {
 		if stopErr := environment.Stop(); stopErr != nil {
 			t.Error(stopErr)
 		}
 	})
 	clientset, err := kubernetes.NewForConfig(restConfig)
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return restConfig, clientset
+}
 
+// servedOperator is the operator's process against a real API server and a fake engine, with the caller assistant
+// and a kind x. Callers and the engine send ServiceAccount tokens that the API server issued, and the operator reviews
+// them.
+type servedOperator struct {
+	runAPI    string
+	callback  string
+	readiness string
+	// The tokens for the operator's audience of the caller, of the engine and of a ServiceAccount that is neither,
+	// and the caller's token for the API server's audience.
+	assistant, engine, stranger, forAPIServer string
+}
+
+func serveOperator(t *testing.T) *servedOperator {
+	t.Helper()
+	assets := envtestAssets()
+	if assets == "" {
+		t.Skip("envtest binaries not found: run make test, or make setup-envtest first")
+	}
+	restConfig, clientset := startAPIServer(t, assets)
 	fakeEngine := enginetest.New(time.Now)
 	t.Cleanup(fakeEngine.Close)
+
 	cfg, err := config.LoadFrom(t.TempDir())
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		t.Fatal(err)
+	}
 	cfg.EngineURL = fakeEngine.URL()
 	cfg.APIAddress = freeAddress(t)
 	cfg.CallbackAddress = freeAddress(t)
@@ -167,9 +190,13 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 	}}
 
 	cluster, err := newCluster(cfg, kube.Options{RESTConfig: restConfig})
-	Expect(err).NotTo(HaveOccurred())
+	if err != nil {
+		t.Fatal(err)
+	}
 	host := runner.NewClient(http.DefaultClient, runner.Port, cluster.Sandbox())
-	Expect(setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host)).To(Succeed())
+	if err := setup(cluster, cfg, clock.NewRealClock(), cluster.Sandbox(), host); err != nil {
+		t.Fatal(err)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	stopped := make(chan error)
 	go func() { stopped <- cluster.Start(ctx) }()
@@ -180,43 +207,65 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 		}
 	})
 
-	assistant := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "operator")
 	engine := "operator-workflow-engine"
-	engineToken := tokenFor(t, clientset, engine, engine, "operator")
-	stranger := tokenFor(t, clientset, "default", "someone-else", "operator")
-	apiServerToken := tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "https://kubernetes.default.svc")
-
-	api := "http://" + cfg.APIAddress
-	callbacks := "http://" + cfg.CallbackAddress + "/workflow-engine-callbacks/run.admit"
+	operator := &servedOperator{
+		runAPI:       "http://" + cfg.APIAddress + "/api/v1",
+		callback:     "http://" + cfg.CallbackAddress + "/workflow-engine-callbacks/run.admit",
+		readiness:    "http://" + cfg.ProbeAddress + "/readyz",
+		assistant:    tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "operator"),
+		engine:       tokenFor(t, clientset, engine, engine, "operator"),
+		stranger:     tokenFor(t, clientset, "default", "someone-else", "operator"),
+		forAPIServer: tokenFor(t, clientset, "default", "altinn-altinity-agents-sa", "https://kubernetes.default.svc"),
+	}
+	// The run API listens once the cache has synced, which is after the probes answer.
 	Eventually(func() int {
-		status, _ := call(t, http.MethodGet, "http://"+cfg.ProbeAddress+"/readyz", "", nil)
+		status, _ := call(t, http.MethodGet, operator.runAPI+"/kinds", operator.assistant, nil)
 		return status
 	}, 10*time.Second, 100*time.Millisecond).Should(Equal(http.StatusOK))
-	Eventually(func() int {
-		status, _ := call(t, http.MethodGet, api+"/api/v1/kinds", assistant, nil)
-		return status
-	}, 10*time.Second, 100*time.Millisecond).Should(Equal(http.StatusOK))
+	return operator
+}
 
-	status, body := call(t, http.MethodGet, api+"/api/v1/kinds", assistant, nil)
-	Expect(status).To(Equal(http.StatusOK))
-	Expect(
-		body,
-	).To(MatchJSON(`{"kinds":[{"name":"x","labels":[],"requiresArchive":true,"queueTimeoutSeconds":60,` +
-		`"uploadTimeoutSeconds":300,"runTimeoutSeconds":60,"resultTimeoutSeconds":300,"maxDurationSeconds":2940}]}`))
+func TestTheOperatorServesItsAPIs(t *testing.T) {
+	RegisterTestingT(t)
+	operator := serveOperator(t)
 
-	status, _ = call(t, http.MethodGet, api+"/api/v1/kinds", "", nil)
-	Expect(status).To(Equal(http.StatusUnauthorized))
-	status, _ = call(t, http.MethodGet, api+"/api/v1/kinds", apiServerToken, nil)
-	Expect(status).To(Equal(http.StatusUnauthorized), "a token for the API server")
-	status, _ = call(t, http.MethodGet, api+"/api/v1/kinds", stranger, nil)
-	Expect(status).To(Equal(http.StatusForbidden))
-	status, _ = call(t, http.MethodGet, api+"/api/v1/kinds", engineToken, nil)
-	Expect(status).To(Equal(http.StatusForbidden))
-
-	status, _ = call(t, http.MethodPost, callbacks, assistant, []byte(`{}`))
-	Expect(status).To(Equal(http.StatusForbidden))
-	payload := []byte(`{"commandKey":"run.admit","context":{"domain":"runs","caller":"assistant",` +
-		`"subjectId":"4e1f6a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b"}}`)
-	status, body = call(t, http.MethodPost, callbacks, engineToken, payload)
-	Expect(status).To(Equal(http.StatusUnprocessableEntity), "a run the operator does not know: %s", body)
+	t.Run("the readiness probe answers", func(t *testing.T) {
+		RegisterTestingT(t)
+		status, _ := call(t, http.MethodGet, operator.readiness, "", nil)
+		Expect(status).To(Equal(http.StatusOK))
+	})
+	t.Run("the run API lists the caller's kinds", func(t *testing.T) {
+		RegisterTestingT(t)
+		status, body := call(t, http.MethodGet, operator.runAPI+"/kinds", operator.assistant, nil)
+		Expect(status).To(Equal(http.StatusOK))
+		Expect(body).To(MatchJSON(`{"kinds":[{"name":"x","labels":[],"requiresArchive":true,"queueTimeoutSeconds":60,` +
+			`"uploadTimeoutSeconds":300,"runTimeoutSeconds":60,"resultTimeoutSeconds":300,"maxDurationSeconds":2940}]}`))
+	})
+	t.Run("the run API refuses every token but a caller's", func(t *testing.T) {
+		RegisterTestingT(t)
+		for name, want := range map[string]struct {
+			token  string
+			status int
+		}{
+			"no token":                           {token: "", status: http.StatusUnauthorized},
+			"a token for the API server":         {token: operator.forAPIServer, status: http.StatusUnauthorized},
+			"a ServiceAccount that is no caller": {token: operator.stranger, status: http.StatusForbidden},
+			"the engine's token":                 {token: operator.engine, status: http.StatusForbidden},
+		} {
+			status, _ := call(t, http.MethodGet, operator.runAPI+"/kinds", want.token, nil)
+			Expect(status).To(Equal(want.status), name)
+		}
+	})
+	t.Run("the callbacks refuse a caller's token", func(t *testing.T) {
+		RegisterTestingT(t)
+		status, _ := call(t, http.MethodPost, operator.callback, operator.assistant, []byte(`{}`))
+		Expect(status).To(Equal(http.StatusForbidden))
+	})
+	t.Run("the callbacks take the engine's token", func(t *testing.T) {
+		RegisterTestingT(t)
+		payload := []byte(`{"commandKey":"run.admit","context":{"domain":"runs","caller":"assistant",` +
+			`"subjectId":"4e1f6a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b"}}`)
+		status, body := call(t, http.MethodPost, operator.callback, operator.engine, payload)
+		Expect(status).To(Equal(http.StatusUnprocessableEntity), "a run that the operator does not know: %s", body)
+	})
 }

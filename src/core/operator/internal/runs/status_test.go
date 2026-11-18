@@ -33,6 +33,26 @@ func workflowAt(overall engine.Status, current string, currentStatus engine.Stat
 	return workflow
 }
 
+// atStep builds a workflow whose current step has the workflow's status, as workflowAt does.
+func atStep(status engine.Status, current string) *engine.Workflow {
+	return workflowAt(status, current, status)
+}
+
+// failedAt builds a workflow that failed at the step.
+func failedAt(current string) *engine.Workflow {
+	return atStep(engine.StatusFailed, current)
+}
+
+// withResult gives the workflow the state of a command that completed.
+func withResult(workflow *engine.Workflow) *engine.Workflow {
+	return withOutcome(workflow, "completed", "")
+}
+
+// withFailedCommand gives the workflow the state of a command that failed.
+func withFailedCommand(workflow *engine.Workflow) *engine.Workflow {
+	return withOutcome(workflow, "failed", "boom")
+}
+
 func withOutcome(workflow *engine.Workflow, outcome, message string) *engine.Workflow {
 	for i := range workflow.Steps {
 		if workflow.Steps[i].OperationID == StepAwaitResult {
@@ -44,10 +64,12 @@ func withOutcome(workflow *engine.Workflow, outcome, message string) *engine.Wor
 	return workflow
 }
 
-func withError(workflow *engine.Workflow, key, message string) *engine.Workflow {
+// withError gives the workflow's current step, the first that has not completed, an error with the message.
+func withError(workflow *engine.Workflow, message string) *engine.Workflow {
 	for i := range workflow.Steps {
-		if workflow.Steps[i].OperationID == key {
+		if workflow.Steps[i].Status != engine.StatusCompleted {
 			workflow.Steps[i].ErrorHistory = []engine.ErrorEntry{{Message: message}}
+			break
 		}
 	}
 	return workflow
@@ -56,121 +78,45 @@ func withError(workflow *engine.Workflow, key, message string) *engine.Workflow 
 func TestDescribeMapsTheWorkflowToARunStatus(t *testing.T) {
 	// The engine's own error when a wait budget runs out, which the operator does not let happen to run.admit.
 	waitExpired := "Wait budget of 00:15:00 exhausted after 300 deferral(s): The run is number 3 in the queue."
+	queueTimeout := `{"status":422,"reason":"queue-timeout","detail":"The run waited."}`
+	noArchive := `{"status":422,"reason":"archive-timeout","detail":"No archive arrived."}`
 	cases := []struct {
-		workflow *engine.Workflow
 		name     string
+		workflow *engine.Workflow
 		status   Status
 		reason   string
 	}{
-		{name: "new", workflow: workflowAt(engine.StatusEnqueued, StepAdmit, engine.StatusEnqueued),
-			status: StatusQueued},
-		{name: "queued", workflow: workflowAt(engine.StatusWaiting, StepAdmit, engine.StatusWaiting),
-			status: StatusQueued},
-		{
-			name:     "creating the Job",
-			workflow: workflowAt(engine.StatusProcessing, StepCreateJob, engine.StatusProcessing),
-			status:   StatusStarting,
-		},
-		{name: "waiting for the pod", workflow: workflowAt(engine.StatusWaiting, StepAwaitPod, engine.StatusWaiting),
-			status: StatusStarting},
-		{
-			name:     "waiting for the archive",
-			workflow: workflowAt(engine.StatusWaiting, StepAwaitArchive, engine.StatusWaiting),
-			status:   StatusAwaitingArchive,
-		},
-		{
-			name:     "retrying the operator runner while waiting for the archive",
-			workflow: workflowAt(engine.StatusRequeued, StepAwaitArchive, engine.StatusRequeued),
-			status:   StatusAwaitingArchive,
-		},
-		{name: "running", workflow: workflowAt(engine.StatusWaiting, StepAwaitResult, engine.StatusWaiting),
-			status: StatusRunning},
-		{name: "cleaning up after a result",
-			workflow: withOutcome(workflowAt(engine.StatusProcessing, StepCleanup, engine.StatusProcessing),
-				"completed", ""),
-			status: StatusCompleted},
-		{name: "every step done before the workflow",
-			workflow: withOutcome(workflowAt(engine.StatusProcessing, "", ""), "completed", ""),
-			status:   StatusCompleted},
-		{name: "cleaning up after a failed command",
-			workflow: withOutcome(workflowAt(engine.StatusProcessing, StepCleanup, engine.StatusProcessing),
-				"failed", "boom"),
-			status: StatusFailed, reason: ReasonRunFailed},
-		{name: "completed", workflow: withOutcome(workflowAt(engine.StatusCompleted, "", ""), "completed", ""),
-			status: StatusCompleted},
-		{name: "completed without an outcome", workflow: workflowAt(engine.StatusCompleted, "", ""),
-			status: StatusFailed, reason: ReasonInternal},
-		{
-			name: "queue timeout",
-			workflow: withError(
-				workflowAt(engine.StatusFailed, StepAdmit, engine.StatusFailed),
-				StepAdmit,
-				`{"status":422,"reason":"queue-timeout","detail":"The run waited."}`,
-			),
-			status: StatusExpired,
-			reason: ReasonQueueTimeout,
-		},
-		{
-			name: "wait budget of admit run out in the engine",
-			workflow: withError(
-				workflowAt(engine.StatusFailed, StepAdmit, engine.StatusFailed),
-				StepAdmit,
-				waitExpired,
-			),
-			status: StatusFailed,
-			reason: ReasonStartFailed,
-		},
-		{name: "Job refused", workflow: workflowAt(engine.StatusFailed, StepCreateJob, engine.StatusFailed),
-			status: StatusFailed, reason: ReasonStartFailed},
-		{name: "pod failed", workflow: workflowAt(engine.StatusFailed, StepAwaitPod, engine.StatusFailed),
-			status: StatusFailed, reason: ReasonStartFailed},
-		{
-			name:     "operator runner refused",
-			workflow: workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed),
-			status:   StatusFailed,
-			reason:   ReasonStartFailed,
-		},
-		{
-			name: "no archive arrived",
-			workflow: withError(
-				workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed),
-				StepAwaitArchive,
-				`{"status":422,"reason":"archive-timeout","detail":"No archive arrived."}`,
-			),
-			status: StatusFailed,
-			reason: ReasonArchiveTimeout,
-		},
-		{
-			name:     "pod gone while running",
-			workflow: workflowAt(engine.StatusFailed, StepAwaitResult, engine.StatusFailed),
-			status:   StatusFailed,
-			reason:   ReasonRunFailed,
-		},
-		{name: "cleanup failed after a result",
-			workflow: withOutcome(workflowAt(engine.StatusFailed, StepCleanup, engine.StatusFailed), "completed", ""),
-			status:   StatusCompleted},
-		{name: "cleanup failed without a result",
-			workflow: workflowAt(engine.StatusFailed, StepCleanup, engine.StatusFailed),
-			status:   StatusFailed, reason: ReasonInternal},
-		{name: "abandoned", workflow: workflowAt(engine.StatusAbandoned, StepAwaitArchive, engine.StatusFailed),
-			status: StatusFailed, reason: ReasonStartFailed},
-		{
-			name:     "dependency failed",
-			workflow: workflowAt(engine.StatusDependencyFailed, StepAdmit, engine.StatusEnqueued),
-			status:   StatusFailed,
-			reason:   ReasonInternal,
-		},
-		{name: "canceled", workflow: workflowAt(engine.StatusCanceled, StepAwaitPod, engine.StatusWaiting),
-			status: StatusCanceled},
-		{
-			name: "canceled after the result",
-			workflow: withOutcome(
-				workflowAt(engine.StatusCanceled, StepCleanup, engine.StatusEnqueued),
-				"completed",
-				"",
-			),
-			status: StatusCompleted,
-		},
+		{"new", atStep(engine.StatusEnqueued, StepAdmit), StatusQueued, ""},
+		{"queued", atStep(engine.StatusWaiting, StepAdmit), StatusQueued, ""},
+		{"creating the Job", atStep(engine.StatusProcessing, StepCreateJob), StatusStarting, ""},
+		{"waiting for the pod", atStep(engine.StatusWaiting, StepAwaitPod), StatusStarting, ""},
+		{"waiting for the archive", atStep(engine.StatusWaiting, StepAwaitArchive), StatusAwaitingArchive, ""},
+		{"retrying the operator runner while waiting for the archive", atStep(engine.StatusRequeued, StepAwaitArchive),
+			StatusAwaitingArchive, ""},
+		{"running", atStep(engine.StatusWaiting, StepAwaitResult), StatusRunning, ""},
+		{"cleaning up after a result", withResult(atStep(engine.StatusProcessing, StepCleanup)), StatusCompleted, ""},
+		{"every step done before the workflow", withResult(atStep(engine.StatusProcessing, "")), StatusCompleted, ""},
+		{"cleaning up after a failed command", withFailedCommand(atStep(engine.StatusProcessing, StepCleanup)),
+			StatusFailed, ReasonRunFailed},
+		{"completed", withResult(atStep(engine.StatusCompleted, "")), StatusCompleted, ""},
+		{"completed without an outcome", atStep(engine.StatusCompleted, ""), StatusFailed, ReasonInternal},
+		{"queue timeout", withError(failedAt(StepAdmit), queueTimeout), StatusExpired, ReasonQueueTimeout},
+		{"wait budget of admit run out in the engine", withError(failedAt(StepAdmit), waitExpired),
+			StatusFailed, ReasonStartFailed},
+		{"Job refused", failedAt(StepCreateJob), StatusFailed, ReasonStartFailed},
+		{"pod failed", failedAt(StepAwaitPod), StatusFailed, ReasonStartFailed},
+		{"operator runner refused", failedAt(StepAwaitArchive), StatusFailed, ReasonStartFailed},
+		{"no archive arrived", withError(failedAt(StepAwaitArchive), noArchive), StatusFailed, ReasonArchiveTimeout},
+		{"pod gone while running", failedAt(StepAwaitResult), StatusFailed, ReasonRunFailed},
+		{"cleanup failed after a result", withResult(failedAt(StepCleanup)), StatusCompleted, ""},
+		{"cleanup failed without a result", failedAt(StepCleanup), StatusFailed, ReasonInternal},
+		{"abandoned", workflowAt(engine.StatusAbandoned, StepAwaitArchive, engine.StatusFailed),
+			StatusFailed, ReasonStartFailed},
+		{"dependency failed", workflowAt(engine.StatusDependencyFailed, StepAdmit, engine.StatusEnqueued),
+			StatusFailed, ReasonInternal},
+		{"canceled", workflowAt(engine.StatusCanceled, StepAwaitPod, engine.StatusWaiting), StatusCanceled, ""},
+		{"canceled after the result", withResult(workflowAt(engine.StatusCanceled, StepCleanup, engine.StatusEnqueued)),
+			StatusCompleted, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -194,7 +140,7 @@ func TestDescribeTellsUntilWhenTheResultCanBeFetched(t *testing.T) {
 	RegisterTestingT(t)
 
 	ended := time.Date(2026, 11, 3, 10, 20, 0, 0, time.UTC)
-	workflow := withOutcome(workflowAt(engine.StatusWaiting, StepCleanup, engine.StatusWaiting), "completed", "")
+	workflow := withResult(atStep(engine.StatusWaiting, StepCleanup))
 	for i := range workflow.Steps {
 		if workflow.Steps[i].OperationID == StepAwaitResult {
 			workflow.Steps[i].UpdatedAt = &ended
@@ -208,11 +154,11 @@ func TestDescribeTellsUntilWhenTheResultCanBeFetched(t *testing.T) {
 func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
 	RegisterTestingT(t)
 
-	starting := workflowAt(engine.StatusWaiting, StepAwaitArchive, engine.StatusWaiting)
+	starting := atStep(engine.StatusWaiting, StepAwaitArchive)
 	Expect(readRun(starting).StartedAt).To(BeNil())
 
 	sent := time.Date(2026, 11, 3, 10, 29, 0, 0, time.UTC)
-	running := workflowAt(engine.StatusWaiting, StepAwaitResult, engine.StatusWaiting)
+	running := atStep(engine.StatusWaiting, StepAwaitResult)
 	for i := range running.Steps {
 		if running.Steps[i].OperationID == StepAwaitArchive {
 			running.Steps[i].UpdatedAt = &sent
@@ -222,7 +168,7 @@ func TestStartedAtIsWhenTheArchiveArrived(t *testing.T) {
 
 	// A kind without an archive has no run.await-archive. Its command starts when run.await-pod ends.
 	started := time.Date(2026, 11, 3, 10, 28, 0, 0, time.UTC)
-	withoutArchive := workflowAt(engine.StatusWaiting, StepAwaitResult, engine.StatusWaiting)
+	withoutArchive := atStep(engine.StatusWaiting, StepAwaitResult)
 	steps := withoutArchive.Steps[:0]
 	for _, step := range withoutArchive.Steps {
 		if step.OperationID == StepAwaitPod {
@@ -241,7 +187,7 @@ func TestDescribeShowsACancelBeforeTheCommandAtOnce(t *testing.T) {
 
 	requested := time.Date(2026, 11, 3, 10, 31, 0, 0, time.UTC)
 	for _, step := range []string{StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive} {
-		workflow := workflowAt(engine.StatusWaiting, step, engine.StatusWaiting)
+		workflow := atStep(engine.StatusWaiting, step)
 		workflow.CancellationRequestedAt = &requested
 		described := readRun(workflow)
 		Expect(described.Status).To(Equal(StatusCanceled), step)
@@ -253,15 +199,15 @@ func TestDescribeLetsAResultWinOverACancel(t *testing.T) {
 	RegisterTestingT(t)
 
 	requested := time.Date(2026, 11, 3, 10, 31, 0, 0, time.UTC)
-	running := workflowAt(engine.StatusWaiting, StepAwaitResult, engine.StatusWaiting)
+	running := atStep(engine.StatusWaiting, StepAwaitResult)
 	running.CancellationRequestedAt = &requested
 	Expect(readRun(running).Status).To(Equal(StatusRunning))
 
-	cleaning := withOutcome(workflowAt(engine.StatusProcessing, StepCleanup, engine.StatusProcessing), "completed", "")
+	cleaning := withResult(atStep(engine.StatusProcessing, StepCleanup))
 	cleaning.CancellationRequestedAt = &requested
 	Expect(readRun(cleaning).Status).To(Equal(StatusCompleted))
 
-	completed := withOutcome(workflowAt(engine.StatusCompleted, "", ""), "completed", "")
+	completed := withResult(atStep(engine.StatusCompleted, ""))
 	completed.CancellationRequestedAt = &requested
 	Expect(readRun(completed).Status).To(Equal(StatusCompleted))
 
@@ -270,7 +216,7 @@ func TestDescribeLetsAResultWinOverACancel(t *testing.T) {
 	Expect(readRun(canceled).Status).To(Equal(StatusCanceled))
 
 	// The cancel deleted the Job, so the step failed before the engine canceled the workflow.
-	failed := workflowAt(engine.StatusFailed, StepAwaitResult, engine.StatusFailed)
+	failed := failedAt(StepAwaitResult)
 	failed.CancellationRequestedAt = &requested
 	Expect(readRun(failed).Status).To(Equal(StatusCanceled))
 }
@@ -279,10 +225,8 @@ func TestDescribeKeepsTheErrorDetailShort(t *testing.T) {
 	RegisterTestingT(t)
 
 	long := strings.Repeat("æ", maxDetail)
-	failed := workflowAt(engine.StatusFailed, StepAwaitArchive, engine.StatusFailed)
-	described := readRun(
-		withError(failed, StepAwaitArchive, `{"status":422,"reason":"start-failed","detail":"`+long+`"}`),
-	)
+	problem := `{"status":422,"reason":"start-failed","detail":"` + long + `"}`
+	described := readRun(withError(failedAt(StepAwaitArchive), problem))
 	Expect(len(described.Error.Detail)).To(BeNumerically("<=", maxDetail))
 	Expect(strings.ToValidUTF8(described.Error.Detail, "?")).To(Equal(described.Error.Detail))
 }

@@ -190,41 +190,66 @@ func decodeRun(t *testing.T, res *httptest.ResponseRecorder) runs.Run {
 	return run
 }
 
-func TestCreateRunStatusCodes(t *testing.T) {
+func TestCreateRunAnswersWithTheQueuedRun(t *testing.T) {
 	RegisterTestingT(t)
 	h := newAPI(t)
 
 	res := h.createRun(t, "assistant", createBody(kind, "app"))
 	Expect(res.Code).To(Equal(http.StatusAccepted), res.Body.String())
 	Expect(res.Header().Get("Content-Type")).To(Equal("application/json"))
-	created := decodeRun(t, res)
-	Expect(created.Status).To(Equal(runs.StatusQueued))
-	Expect(*created.QueuePosition).To(Equal(1))
-	Expect(created.Labels).To(Equal(map[string]string{
-		"org": "ttd", "repoOwner": "ttd", "repo": "app", "commit": commit,
-	}))
-	Expect(res.Body.String()).To(ContainSubstring(`"finishedAt":null`))
-	Expect(res.Body.String()).To(ContainSubstring(`"resultExpiresAt":null`))
-	Expect(res.Body.String()).To(ContainSubstring(`"error":null`))
+	Expect(res.Body.String()).To(MatchJSON(`{
+		"id": "` + decodeRun(t, res).ID + `",
+		"kind": "upgrade-v9",
+		"labels": {"org": "ttd", "repoOwner": "ttd", "repo": "app", "commit": "` + commit + `"},
+		"status": "queued",
+		"queuePosition": 1,
+		"createdAt": "2026-11-03T10:01:00Z",
+		"startedAt": null,
+		"finishedAt": null,
+		"resultExpiresAt": null,
+		"error": null
+	}`))
+}
 
-	// The same kind and labels find the run in progress.
-	res = h.createRun(t, "assistant", createBody(kind, "APP"))
+// Gitea compares the names in the labels without case.
+func TestCreateRunAgainFindsTheRunInProgress(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
+
+	res := h.createRun(t, "assistant", createBody(kind, "APP"))
 	Expect(res.Code).To(Equal(http.StatusOK), res.Body.String())
 	Expect(decodeRun(t, res).ID).To(Equal(created.ID))
+}
 
-	Expect(h.createRun(t, "assistant", createBody("upgrade-v10", "app")).Code).To(Equal(http.StatusNotFound))
-	Expect(h.createRun(t, "designer", createBody(kind, "app")).Code).To(Equal(http.StatusForbidden))
+func TestCreateRunRefusesAKindThatTheCallerCannotRun(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+
+	res := h.createRun(t, "assistant", createBody("upgrade-v10", "app"))
+	Expect(res.Code).To(Equal(http.StatusNotFound), "a kind that this environment does not have")
+	res = h.createRun(t, "designer", createBody(kind, "app"))
+	Expect(res.Code).To(Equal(http.StatusForbidden), "a kind that the caller may not run")
+}
+
+func TestCreateRunAsksForARetryWhenTheEngineIsAtCapacity(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
 
 	h.engine.AtCapacity = true
-	res = h.createRun(t, "assistant", createBody(kind, "busy"))
+	res := h.createRun(t, "assistant", createBody(kind, "app"))
 	Expect(res.Code).To(Equal(http.StatusServiceUnavailable))
 	Expect(res.Header().Get("Retry-After")).To(Equal("5"))
-	h.engine.AtCapacity = false
+}
+
+func TestCreateRunRefusesARunPastTheCallersQueueLimit(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
 
 	// maxQueuedPerCaller is 2.
-	Expect(h.createRun(t, "assistant", createBody(kind, "busy")).Code).To(Equal(http.StatusAccepted))
-	res = h.createRun(t, "assistant", createBody(kind, "third"))
-	Expect(res.Code).To(Equal(http.StatusTooManyRequests))
+	Expect(h.createRun(t, "assistant", createBody(kind, "first")).Code).To(Equal(http.StatusAccepted))
+	Expect(h.createRun(t, "assistant", createBody(kind, "second")).Code).To(Equal(http.StatusAccepted))
+	Expect(h.createRun(t, "assistant", createBody(kind, "third")).Code).To(Equal(http.StatusTooManyRequests))
 }
 
 func TestCreateRunRefusesBadRequests(t *testing.T) {
@@ -298,36 +323,88 @@ func TestFindRuns(t *testing.T) {
 	}
 }
 
-func TestGetAndCancelRun(t *testing.T) {
+func TestGetRunAnswersWithTheRun(t *testing.T) {
 	RegisterTestingT(t)
 	h := newAPI(t)
 	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
 
 	res := h.request(t, "assistant", http.MethodGet, "/api/v1/runs/"+created.ID+"?wait=0", "", nil)
 	Expect(res.Code).To(Equal(http.StatusOK))
-	Expect(decodeRun(t, res).Status).To(Equal(runs.StatusQueued))
+	Expect(decodeRun(t, res)).To(Equal(created))
+}
 
-	res = h.request(t, "designer", http.MethodGet, "/api/v1/runs/"+created.ID, "", nil)
-	Expect(res.Code).To(Equal(http.StatusNotFound), "another caller's run")
-	res = h.request(t, "assistant", http.MethodGet, "/api/v1/runs/nope", "", nil)
-	Expect(res.Code).To(Equal(http.StatusNotFound))
-	res = h.request(t, "assistant", http.MethodGet, "/api/v1/runs/"+created.ID+"?wait=-1", "", nil)
-	Expect(res.Code).To(Equal(http.StatusBadRequest))
+func TestGetRunRefusesAnotherCallersRunAndABadWait(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	runPath := "/api/v1/runs/" + decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app"))).ID
 
-	res = h.request(t, "assistant", http.MethodPost, "/api/v1/runs/"+created.ID+"/cancel", "", nil)
+	for _, want := range []struct {
+		caller, path string
+		status       int
+	}{
+		{caller: "designer", path: runPath, status: http.StatusNotFound},
+		{caller: "assistant", path: "/api/v1/runs/nope", status: http.StatusNotFound},
+		{caller: "assistant", path: runPath + "?wait=-1", status: http.StatusBadRequest},
+	} {
+		got := want
+		got.status = h.request(t, want.caller, http.MethodGet, want.path, "", nil).Code
+		Expect(got).To(Equal(want))
+	}
+}
+
+func (h *apiHarness) cancelRun(t *testing.T, runID string) *httptest.ResponseRecorder {
+	t.Helper()
+	return h.request(t, "assistant", http.MethodPost, "/api/v1/runs/"+runID+"/cancel", "", nil)
+}
+
+// endWorkflows ends every workflow as canceled, as the engine does after a cancel.
+func (h *apiHarness) endWorkflows() {
+	for _, workflow := range h.engine.Workflows() {
+		h.engine.Update(workflow.State.DatabaseID, func(stored *engine.Workflow) {
+			stored.OverallStatus = engine.StatusCanceled
+		})
+	}
+}
+
+func TestCancelRunAnswersWithTheCanceledRun(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
+
+	res := h.cancelRun(t, created.ID)
 	Expect(res.Code).To(Equal(http.StatusAccepted))
 	Expect(decodeRun(t, res).Status).To(Equal(runs.StatusCanceled))
+}
 
-	for _, workflow := range h.engine.Workflows() {
-		h.engine.Update(workflow.State.DatabaseID, func(w *engine.Workflow) { w.OverallStatus = engine.StatusCanceled })
-	}
-	res = h.request(t, "assistant", http.MethodPost, "/api/v1/runs/"+created.ID+"/cancel", "", nil)
-	Expect(res.Code).To(Equal(http.StatusOK))
-	res = h.request(t, "assistant", http.MethodGet, "/api/v1/runs/"+created.ID+"/result", "", nil)
-	Expect(res.Code).To(Equal(http.StatusConflict), "a canceled run has no result")
+func TestCancelRunAgainAfterTheEngineEndedTheRun(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
+	h.cancelRun(t, created.ID)
+	h.endWorkflows()
 
-	// A create after the run has ended starts a new run.
-	res = h.createRun(t, "assistant", createBody(kind, "app"))
+	Expect(h.cancelRun(t, created.ID).Code).To(Equal(http.StatusOK))
+}
+
+func TestACanceledRunHasNoResult(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
+	h.cancelRun(t, created.ID)
+	h.endWorkflows()
+
+	res := h.request(t, "assistant", http.MethodGet, "/api/v1/runs/"+created.ID+"/result", "", nil)
+	Expect(res.Code).To(Equal(http.StatusConflict))
+}
+
+func TestCreateRunAfterTheRunEndedStartsANewRun(t *testing.T) {
+	RegisterTestingT(t)
+	h := newAPI(t)
+	created := decodeRun(t, h.createRun(t, "assistant", createBody(kind, "app")))
+	h.cancelRun(t, created.ID)
+	h.endWorkflows()
+
+	res := h.createRun(t, "assistant", createBody(kind, "app"))
 	Expect(res.Code).To(Equal(http.StatusAccepted))
 	Expect(decodeRun(t, res).ID).NotTo(Equal(created.ID))
 }

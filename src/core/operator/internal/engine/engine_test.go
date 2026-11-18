@@ -50,10 +50,14 @@ func TestTimeSpanParse(t *testing.T) {
 		_, err := engine.ParseTimeSpan(text)
 		Expect(err).To(HaveOccurred(), text)
 	}
+}
 
-	var d engine.Duration
-	Expect(json.Unmarshal([]byte(`"00:00:05"`), &d)).To(Succeed())
-	Expect(time.Duration(d)).To(Equal(5 * time.Second))
+func TestDurationIsATimeSpanInJSON(t *testing.T) {
+	RegisterTestingT(t)
+
+	var duration engine.Duration
+	Expect(json.Unmarshal([]byte(`"00:00:05"`), &duration)).To(Succeed())
+	Expect(time.Duration(duration)).To(Equal(5 * time.Second))
 	data, err := json.Marshal(engine.Duration(5 * time.Second))
 	Expect(err).NotTo(HaveOccurred())
 	Expect(string(data)).To(Equal(`"00:00:05"`))
@@ -80,52 +84,90 @@ func request(initialState string) engine.EnqueueRequest {
 	}
 }
 
-func TestClientAgainstTheFakeEngine(t *testing.T) {
-	RegisterTestingT(t)
-
+// enqueued starts a fake engine and enqueues a workflow in the namespace runs-assistant, with the key "key" and
+// request("a"). It returns the workflow's id.
+func enqueued(t *testing.T) (*enginetest.Engine, *engine.Client, string) {
+	t.Helper()
 	fake := enginetest.New(time.Now)
-	defer fake.Close()
+	t.Cleanup(fake.Close)
 	client := engine.NewClient(fake.URL()+"/", http.DefaultClient)
-	ctx := t.Context()
+	created, err := client.Enqueue(t.Context(), "runs-assistant", "key", request("a"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !created.Created {
+		t.Fatal("expected a new workflow")
+	}
+	return fake, client, created.WorkflowID
+}
 
-	created, err := client.Enqueue(ctx, "runs-assistant", "key", request("a"))
-	Expect(err).NotTo(HaveOccurred())
-	Expect(created.Created).To(BeTrue())
+func TestEnqueueAgainFindsTheWorkflow(t *testing.T) {
+	RegisterTestingT(t)
+	_, client, workflowID := enqueued(t)
 
-	again, err := client.Enqueue(ctx, "runs-assistant", "key", request("a"))
+	again, err := client.Enqueue(t.Context(), "runs-assistant", "key", request("a"))
 	Expect(err).NotTo(HaveOccurred())
-	Expect(again).To(Equal(engine.EnqueueResult{WorkflowID: created.WorkflowID, Created: false}))
+	Expect(again).To(Equal(engine.EnqueueResult{WorkflowID: workflowID, Created: false}))
+}
+
+func TestEnqueueWithAnotherRequestUnderTheKeyConflicts(t *testing.T) {
+	RegisterTestingT(t)
+	fake, client, _ := enqueued(t)
 
 	fake.Conflict = true
-	_, err = client.Enqueue(ctx, "runs-assistant", "key", request("b"))
+	_, err := client.Enqueue(t.Context(), "runs-assistant", "key", request("b"))
 	Expect(err).To(MatchError(engine.ErrConflict))
-	fake.Conflict = false
+}
 
-	workflow, err := client.Get(ctx, "runs-assistant", created.WorkflowID)
+// The operator retries an engine at capacity like one that does not answer.
+func TestEnqueueFailsWhenTheEngineIsAtCapacity(t *testing.T) {
+	RegisterTestingT(t)
+	fake, client, _ := enqueued(t)
+
+	fake.AtCapacity = true
+	_, err := client.Enqueue(t.Context(), "runs-assistant", "other", request("a"))
+	Expect(err).To(MatchError(ContainSubstring("429 at capacity")))
+}
+
+func TestGetReadsTheWorkflow(t *testing.T) {
+	RegisterTestingT(t)
+	_, client, workflowID := enqueued(t)
+
+	workflow, err := client.Get(t.Context(), "runs-assistant", workflowID)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(workflow.OverallStatus).To(Equal(engine.StatusEnqueued))
 	Expect(workflow.Steps).To(HaveLen(1))
 	Expect(workflow.Labels).To(HaveKeyWithValue("runId", "r"))
+}
 
-	_, err = client.Get(ctx, "runs-designer", created.WorkflowID)
+func TestGetFindsNoWorkflowOfAnotherNamespace(t *testing.T) {
+	RegisterTestingT(t)
+	_, client, workflowID := enqueued(t)
+
+	_, err := client.Get(t.Context(), "runs-designer", workflowID)
 	Expect(err).To(MatchError(engine.ErrNotFound))
+}
 
-	found, err := client.FindByLabels(ctx, "runs-assistant", map[string]string{"runId": "r"}, 1)
+func TestFindByLabelsFindsOnlyTheWorkflowsWithTheLabels(t *testing.T) {
+	RegisterTestingT(t)
+	_, client, _ := enqueued(t)
+
+	found, err := client.FindByLabels(t.Context(), "runs-assistant", map[string]string{"runId": "r"}, 1)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(found).To(HaveLen(1))
-	found, err = client.FindByLabels(ctx, "runs-assistant", map[string]string{"runId": "other"}, 1)
+	found, err = client.FindByLabels(t.Context(), "runs-assistant", map[string]string{"runId": "other"}, 1)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(found).To(BeEmpty())
+}
 
-	Expect(client.Cancel(ctx, "runs-assistant", created.WorkflowID)).To(Succeed())
-	Expect(client.Cancel(ctx, "runs-assistant", created.WorkflowID)).To(Succeed(), "a repeated cancel")
-	fake.Update(created.WorkflowID, func(w *engine.Workflow) { w.OverallStatus = engine.StatusCanceled })
-	Expect(client.Cancel(ctx, "runs-assistant", created.WorkflowID)).To(MatchError(engine.ErrTerminal))
+func TestCancelSucceedsAgainUntilTheWorkflowHasEnded(t *testing.T) {
+	RegisterTestingT(t)
+	fake, client, workflowID := enqueued(t)
 
-	// The operator retries an engine at capacity like one that does not answer.
-	fake.AtCapacity = true
-	_, err = client.Enqueue(ctx, "runs-assistant", "other", request("a"))
-	Expect(err).To(MatchError(ContainSubstring("429 at capacity")))
+	Expect(client.Cancel(t.Context(), "runs-assistant", workflowID)).To(Succeed())
+	Expect(client.Cancel(t.Context(), "runs-assistant", workflowID)).To(Succeed(), "a repeated cancel")
+	fake.Update(workflowID, func(workflow *engine.Workflow) { workflow.OverallStatus = engine.StatusCanceled })
+	Expect(client.Cancel(t.Context(), "runs-assistant", workflowID)).To(MatchError(engine.ErrTerminal))
 }
 
 // The engine's models are C# records, which ASP.NET Core writes in camel case with string enums. The operator's
