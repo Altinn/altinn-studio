@@ -99,32 +99,45 @@ export function ClearInvalidReturnState() {
   const [searchParams, setSearchParams] = useSearchParams();
   // The URL belongs to the active form. A parent only watches its own summary return.
   const backToPage = isParentForm ? null : searchParams.get(SearchParams.BackToPage);
-  const returnPage = returnToView?.pageId ?? backToPage;
-  const previous = useRef<{ from: string | undefined; to: string; pages: string[] }>(undefined);
+  const summaryPage = returnToView?.pageId;
+  const previousRoutes = useRef<
+    Partial<Record<'summary' | 'link', { from: string | undefined; to: string; pages: string[] }>>
+  >({});
 
   useEffect(() => {
-    if (readOnly || !returnPage) {
-      previous.current = undefined;
+    if (readOnly) {
+      previousRoutes.current = {};
       return;
     }
-    const pages = getReturnRoute(order, currentPage, returnPage);
 
-    const sameRoute = previous.current?.from === currentPage && previous.current?.to === returnPage;
-    if (!pages || (sameRoute && !returnRouteStillValid(previous.current?.pages, pages))) {
+    const isInvalid = (key: 'summary' | 'link', target: string | null | undefined) => {
+      const previous = previousRoutes.current[key];
+      delete previousRoutes.current[key];
+      if (!target) {
+        return false;
+      }
+      const pages = getReturnRoute(order, currentPage, target);
+      const sameRoute = previous?.from === currentPage && previous?.to === target;
+      if (!pages || (sameRoute && !returnRouteStillValid(previous?.pages, pages))) {
+        return true;
+      }
+      // Hiding a page is safe, but revealing it again must remove this shortcut.
+      previousRoutes.current[key] = { from: currentPage, to: target, pages };
+      return false;
+    };
+
+    if (isInvalid('summary', summaryPage)) {
       setReturnToView?.(undefined);
       setSummaryNodeOfOrigin?.(undefined);
-      if (backToPage) {
-        setSearchParams((params) => {
-          const next = new URLSearchParams(params);
-          next.delete(SearchParams.BackToPage);
-          return next;
-        }, replaceAndPreventResetOptions);
-      }
-    } else {
-      // Hiding a page is safe, but revealing it again must remove the shortcut.
-      previous.current = { from: currentPage, to: returnPage, pages };
     }
-  }, [readOnly, returnPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
+    if (isInvalid('link', backToPage)) {
+      setSearchParams((params) => {
+        const next = new URLSearchParams(params);
+        next.delete(SearchParams.BackToPage);
+        return next;
+      }, replaceAndPreventResetOptions);
+    }
+  }, [readOnly, summaryPage, currentPage, order, backToPage, setReturnToView, setSummaryNodeOfOrigin, setSearchParams]);
 
   return null;
 }
