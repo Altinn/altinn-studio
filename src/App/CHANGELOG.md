@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. The frontend now keeps the cleared field as `null`, as the backend returns it. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 

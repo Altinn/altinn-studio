@@ -701,4 +701,34 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         // Compact output is unchanged
         Assert.Equal("""{"obj":{"a":[1,2],"b":{"c":null}}}""", JsonSerializer.Serialize(outer));
     }
+
+    [Theory]
+    [InlineData(0.3, "0.3")]
+    [InlineData(1.1, "1.1")]
+    [InlineData(123456.789, "123456.789")]
+    [InlineData(0.30000000000000004, "0.30000000000000004")]
+    [InlineData(-2.5, "-2.5")]
+    [InlineData(1e-7, "0.0000001")]
+    public void TryDeserialize_ConvertsADoubleToTheDecimalOfItsShortestText(double number, string expected)
+    {
+        // The plain .NET conversion gives the decimal expansion of the binary value, so 0.3 would become
+        // 0.2999999999999999888977697537m. The shortest round-trip text is what the frontend stores and what the
+        // backend reads back from the saved JSON.
+        var value = ExpressionValue.FromObject(number);
+
+        Assert.True(value.TryDeserialize<decimal>(out var result));
+        Assert.Equal(decimal.Parse(expected, CultureInfo.InvariantCulture), result);
+        Assert.Equal(expected, result.ToString(CultureInfo.InvariantCulture));
+
+        Assert.True(value.TryDeserialize<decimal?>(out var nullableResult));
+        Assert.Equal(result, nullableResult);
+    }
+
+    [Fact]
+    public void TryDeserialize_FailsForANonFiniteDoubleIntoDecimal()
+    {
+        Assert.Throws<OverflowException>(() =>
+            ExpressionValue.FromObject(double.PositiveInfinity).TryDeserialize<decimal>(out _)
+        );
+    }
 }

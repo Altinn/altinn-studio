@@ -1160,17 +1160,7 @@ public static partial class ExpressionEvaluator
         }
     }
 
-    private static decimal ToDecimal(double value)
-    {
-        if (!double.IsFinite(value))
-        {
-            throw new OverflowException($"{value} cannot be represented as a decimal");
-        }
-
-        Span<char> text = stackalloc char[32];
-        value.TryFormat(text, out int length, provider: CultureInfo.InvariantCulture);
-        return decimal.Parse(text[..length], NumberStyles.Float, CultureInfo.InvariantCulture);
-    }
+    private static decimal ToDecimal(double value) => ExpressionValue.DoubleToDecimal(value);
 
     [GeneratedRegex(@"^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$")]
     private static partial Regex NumberRegex();

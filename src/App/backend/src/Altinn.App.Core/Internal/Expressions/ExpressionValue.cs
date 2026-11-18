@@ -613,6 +613,9 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             case JsonValueKind.False or JsonValueKind.True when IsSupportedNumericType(underlyingType):
                 result = Convert.ChangeType(Bool ? 1 : 0, underlyingType, CultureInfo.InvariantCulture);
                 return true;
+            case JsonValueKind.Number when underlyingType == typeof(decimal):
+                result = DoubleToDecimal(Number);
+                return true;
             case JsonValueKind.Number when IsSupportedNumericType(underlyingType):
                 result = Convert.ChangeType(Number, underlyingType, CultureInfo.InvariantCulture);
                 return true;
@@ -706,6 +709,23 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
 
         result = null;
         return false;
+    }
+
+    /// <summary>
+    /// Converts through the shortest text that reads back to the same double, so that 0.3 becomes 0.3m and not the
+    /// decimal expansion of its binary value, 0.2999999999999999888977697537m, which the conversion in .NET gives.
+    /// This is the value the frontend stores, and the value the backend reads back from the saved JSON.
+    /// </summary>
+    internal static decimal DoubleToDecimal(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            throw new OverflowException($"{value} cannot be represented as a decimal");
+        }
+
+        Span<char> text = stackalloc char[32];
+        value.TryFormat(text, out int length, provider: CultureInfo.InvariantCulture);
+        return decimal.Parse(text[..length], NumberStyles.Float, CultureInfo.InvariantCulture);
     }
 
     private static bool IsSupportedNumericType(Type type)
