@@ -125,8 +125,8 @@ The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets these times and th
 
 ## Guest image
 
-[`Dockerfile.guest`](Dockerfile.guest) has the tools of the commands and the user `app-build`. Its comments say why
-each part is there, and how to update studioctl.
+[`Dockerfile.guest`](Dockerfile.guest) has the tools of the commands, the newest published release of studioctl and the
+user `app-build`. Its comments say why each part is there.
 
 ## Add a command
 
@@ -153,13 +153,7 @@ need no KVM:
 make check
 ```
 
-A VM needs `/dev/kvm`. To check the guest image without a VM, run the upgrade in a container:
-
-```sh
-docker build -t operator-runner-guest:local -f Dockerfile.guest .
-docker run --rm -v "$PWD/../../App/template/v8/src:/template:ro" operator-runner-guest:local \
-  sh -c 'cp -R /template app && cd app && git init -q && git add -A && git commit -qm base && studioctl app upgrade v9 -p .'
-```
+A VM needs `/dev/kvm`. The deploy checks the guest image without a VM, with the upgrade in a container.
 
 The workflow [`core-operator-runner-build-test.yaml`](../../../.github/workflows/core-operator-runner-build-test.yaml)
 runs one upgrade through the operator runner in a real microVM, on a GitHub runner with KVM. Its steps show how to start
@@ -171,7 +165,7 @@ the operator runner in a container and call it with `curl`.
 start runs in it. Each file says why it is there.
 
 [`deploy-core-operator-runner.yaml`](../../../.github/workflows/deploy-core-operator-runner.yaml) builds the guest
-image, the operator runner image and the prepared guest image. It pins them by digest in the PodTemplate, and pushes
-`infra/kustomize` as an OCI artifact. Flux applies it in each environment with sandbox nodes, from
-[`operator-runner.yaml`](../../../infra/studio/syncroot/base/operator-runner.yaml). There, the pod gets
-`/dev/kvm` from [`sandbox-node`](../../ci/sandbox-node/README.md).
+image, the operator runner image and the prepared guest image for each change and each studioctl release. It pins them
+by digest in the PodTemplate, and pushes `infra/kustomize` as an OCI artifact. Flux applies it in each environment with
+sandbox nodes, from [`operator-runner.yaml`](../../../infra/studio/syncroot/base/operator-runner.yaml). There, the pod
+gets `/dev/kvm` from [`sandbox-node`](../../ci/sandbox-node/README.md).

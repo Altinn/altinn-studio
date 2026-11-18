@@ -11,29 +11,17 @@ COPY --from=sdk10 /usr/share/dotnet/sdk /usr/share/dotnet/sdk
 COPY --from=sdk10 /usr/share/dotnet/sdk-manifests /usr/share/dotnet/sdk-manifests
 COPY --from=sdk10 /usr/share/dotnet/shared /usr/share/dotnet/shared
 
-# These two values pin studioctl, so only a reviewed change puts a new version into production. Renovate cannot change
-# them together. Set STUDIOCTL_VERSION to the release tag, and STUDIOCTL_INSTALL_SCRIPT_SHA256 to the SHA-256 of its
-# install.sh:
-#   gh release download studioctl/<tag> -R Altinn/altinn-studio -p install.sh -O - | sha256sum
-# CI then upgrades the v8 template with the new version in a microVM.
-ARG STUDIOCTL_VERSION=v0.1.0-preview.33
-ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=03c0c0d7ae5e74190c856ed05d3d326df54c3caae4ac8509daded26b63b97357
-
 # The commands run as app-build, which is not root in the VM. This makes an escape from the VM more difficult.
 RUN useradd --create-home --user-group --shell /bin/bash app-build \
     && install --directory --owner app-build --group app-build /job
 
-# The installer compares the binaries with the checksums of the release. app-build owns the home folder of
-# studioctl, because studioctl writes to it.
-RUN curl -fsSL \
-        "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
-        -o /tmp/studioctl-install.sh \
-    && echo "${STUDIOCTL_INSTALL_SCRIPT_SHA256}  /tmp/studioctl-install.sh" | sha256sum -c - \
-    && STUDIOCTL_HOME=/opt/studioctl sh /tmp/studioctl-install.sh \
-        --version "${STUDIOCTL_VERSION}" \
-        --install-dir /usr/local/bin \
-    && rm /tmp/studioctl-install.sh \
-    && test "$(STUDIOCTL_HOME=/opt/studioctl studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
+# studioctl is the newest published release, and each publish deploys this image again. The installer compares the
+# binaries with the checksums of the release. studioctl writes to its home folder, so app-build owns it.
+RUN tag="$(git -c versionsort.suffix=-preview. ls-remote --tags --refs --sort=-v:refname \
+        https://github.com/Altinn/altinn-studio.git 'refs/tags/studioctl/v*' | head -n 1 | cut -f 2)" \
+    && curl -fsSL "https://github.com/Altinn/altinn-studio/releases/download/${tag#refs/tags/}/install.sh" \
+        | STUDIOCTL_HOME=/opt/studioctl sh -s -- --version "${tag#refs/tags/}" --install-dir /usr/local/bin \
+    && STUDIOCTL_HOME=/opt/studioctl studioctl version \
     && chown -R app-build:app-build /opt/studioctl
 
 # NuGet checks revocation offline, because the network allowlist blocks the certificate revocation servers.
