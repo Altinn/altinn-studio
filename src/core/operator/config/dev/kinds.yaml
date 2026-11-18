@@ -9,7 +9,7 @@ callers:
       - upgrade-v9
 kinds:
   upgrade-v9:
-    namespace: sandbox-runs
+    namespace: core-operator-runners
     podTemplate: operator-runner
     command: upgrade-v9
     requiresArchive: true

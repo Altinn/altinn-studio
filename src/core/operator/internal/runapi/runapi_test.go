@@ -49,7 +49,7 @@ func newAPI(t *testing.T) *apiHarness {
 	t.Cleanup(host.Close)
 	_, port := host.Address()
 	kindConfig := config.Kind{
-		Namespace: "sandbox-runs", PodTemplate: "operator-runner", Command: kind, RequiresArchive: true,
+		Namespace: "core-operator-runners", PodTemplate: "operator-runner", Command: kind, RequiresArchive: true,
 		Labels:             []string{"org", "repoOwner", "repo", "commit"},
 		MaxActivePerCaller: 1, MaxQueuedPerCaller: 2,
 		QueueTimeout: 15 * time.Minute, RunTimeout: 660 * time.Second,
@@ -91,7 +91,7 @@ func (h *apiHarness) awaitArchive(t *testing.T, runID string) {
 	ip, _ := h.host.Address()
 	for i, key := range []string{runs.StepAdmit, runs.StepCreateJob, runs.StepAwaitPod} {
 		if key == runs.StepAwaitPod {
-			h.box.SetPod("sandbox-runs", runID, sandbox.Pod{Status: sandbox.PodReady, IP: ip})
+			h.box.SetPod("core-operator-runners", runID, sandbox.Pod{Status: sandbox.PodReady, IP: ip})
 		}
 		deadline := h.clock.Now().Add(time.Minute)
 		body, err := json.Marshal(callbacks.Payload{

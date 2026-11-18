@@ -24,7 +24,7 @@ const (
 	testKind = "upgrade-v9"
 	// noArchiveKind is testKind for a command that requires no archive.
 	noArchiveKind = "no-archive"
-	testNamespace = "sandbox-runs"
+	testNamespace = "core-operator-runners"
 	podIP         = "127.0.0.1"
 	testCommit    = "0123456789abcdef0123456789abcdef01234567"
 )

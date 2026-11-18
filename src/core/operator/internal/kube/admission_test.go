@@ -129,7 +129,7 @@ func TestAdmissionPolicyAcceptsTheJobsTheOperatorBuilds(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 
 	var template corev1.PodTemplate
-	key := client.ObjectKey{Namespace: "sandbox-runs", Name: "operator-runner"}
+	key := client.ObjectKey{Namespace: "core-operator-runners", Name: "operator-runner"}
 	Expect(operatorClient.Get(t.Context(), key, &template)).To(Succeed(), "the Role lets the operator read it")
 
 	// The API server loads a new policy within a few seconds, so the first check waits until it refuses.
@@ -166,7 +166,7 @@ func TestAdmissionPolicyAcceptsTheJobsTheOperatorBuilds(t *testing.T) {
 
 	// The operator may not create anything but Jobs there.
 	pod := &corev1.Pod{}
-	pod.Namespace = "sandbox-runs"
+	pod.Namespace = "core-operator-runners"
 	pod.Name = "direct"
 	pod.Spec = template.Template.Spec
 	Expect(apierrors.IsForbidden(operatorClient.Create(t.Context(), pod))).To(BeTrue())

@@ -24,7 +24,7 @@ callers:
     kinds: [upgrade-v9]
 kinds:
   upgrade-v9:
-    namespace: sandbox-runs
+    namespace: core-operator-runners
     podTemplate: operator-runner
     command: upgrade-v9
     requiresArchive: true
@@ -77,7 +77,7 @@ func TestLoadGivesAKindTheDefaultsThatItLeavesOut(t *testing.T) {
 	RegisterTestingT(t)
 
 	Expect(loadValid(t).Kinds).To(Equal(map[string]Kind{"upgrade-v9": {
-		Namespace:          "sandbox-runs",
+		Namespace:          "core-operator-runners",
 		PodTemplate:        "operator-runner",
 		Command:            "upgrade-v9",
 		RequiresArchive:    true,
@@ -169,7 +169,7 @@ func TestKindsForListsTheKindsThatACallerMayRun(t *testing.T) {
 func TestKindNamespacesListsTheNamespacesOfTheKinds(t *testing.T) {
 	RegisterTestingT(t)
 
-	Expect(loadValid(t).KindNamespaces()).To(Equal([]string{"sandbox-runs"}))
+	Expect(loadValid(t).KindNamespaces()).To(Equal([]string{"core-operator-runners"}))
 }
 
 func TestCallerByServiceAccountFindsTheCallerOfAToken(t *testing.T) {

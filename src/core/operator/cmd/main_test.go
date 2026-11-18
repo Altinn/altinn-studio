@@ -185,7 +185,7 @@ func serveOperator(t *testing.T) *servedOperator {
 		"assistant": {ServiceAccount: "system:serviceaccount:default:altinn-altinity-agents-sa", Kinds: []string{"x"}},
 	}
 	cfg.Kinds = map[string]config.Kind{"x": {
-		Namespace: "sandbox-runs", PodTemplate: "operator-runner", Command: "x", RequiresArchive: true,
+		Namespace: "core-operator-runners", PodTemplate: "operator-runner", Command: "x", RequiresArchive: true,
 		MaxActivePerCaller: 1, MaxQueuedPerCaller: 1, QueueTimeout: time.Minute, RunTimeout: time.Minute,
 	}}
 

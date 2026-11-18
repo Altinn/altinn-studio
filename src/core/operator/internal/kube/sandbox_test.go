@@ -23,13 +23,13 @@ import (
 )
 
 const (
-	testNamespace = "sandbox-runs"
+	testNamespace = "core-operator-runners"
 	testRunID     = "4e1f6a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b"
 )
 
 var (
 	errQuota = errors.New(
-		"exceeded quota: sandbox-runs, requested: count/jobs.batch=1, limited: count/jobs.batch=2",
+		"exceeded quota: core-operator-runners, requested: count/jobs.batch=1, limited: count/jobs.batch=2",
 	)
 	errNoPermission = errors.New("the Role does not allow it")
 )
@@ -330,7 +330,7 @@ func TestSlotsAreTheKVMDevicesOfTheQuota(t *testing.T) {
 	Expect(err).To(HaveOccurred(), "no quota")
 
 	Expect(k8s.Create(t.Context(), &corev1.ResourceQuota{
-		ObjectMeta: metav1.ObjectMeta{Name: "sandbox-runs", Namespace: testNamespace},
+		ObjectMeta: metav1.ObjectMeta{Name: "core-operator-runners", Namespace: testNamespace},
 		Spec:       corev1.ResourceQuotaSpec{Hard: corev1.ResourceList{kvmQuota: resource.MustParse("4")}},
 	})).To(Succeed())
 	Expect(box.Slots(t.Context(), testNamespace)).To(Equal(4))

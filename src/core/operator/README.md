@@ -27,7 +27,7 @@ flowchart LR
   engine -->|"one callback for each step"| callbacks
   callbacks --> runs
   runs -->|"create, watch, delete Job"| k8s["Kubernetes API"]
-  api -->|"archive in, result out"| host["Operator runner in sandbox-runs"]
+  api -->|"archive in, result out"| host["Operator runner in core-operator-runners"]
   runs -->|"status"| host
 ```
 
