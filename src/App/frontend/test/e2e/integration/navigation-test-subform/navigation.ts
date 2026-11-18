@@ -469,7 +469,12 @@ describe('navigation', () => {
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Utfylling/, /Kjøretøy/).should('have.attr', 'aria-current', 'page');
-      cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      if (device === 'desktop') {
+        cy.gotoNavGroup(/Innsending/, device, /Samlet oversikt/);
+        cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).clickAndGone();
+      } else {
+        cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      }
 
       cy.findByRole('heading', { name: 'En fet Toyota fra 1998' }).should('be.visible');
       cy.findByRole('heading', { name: 'En fet Lamborghini fra 2010' }).should('be.visible');
@@ -495,6 +500,14 @@ describe('navigation', () => {
         .eq(1)
         .should('contain.text', '⟦XY98765⟧ — Lamborghini — 2010');
 
+      if (device === 'desktop') {
+        // Nested full-summary providers must preserve the parent page's URL return.
+        cy.url().should('include', '/summary?backToPage=summary2');
+        cy.findByRole('button', { name: 'Tilbake til samlet oversikt' }).clickAndGone();
+        cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).should('be.visible');
+        cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      }
+
       // Not a typo, this is different from the two above
       cy.findByTestId('summary-Summary-subform')
         .then((container) => cy.findByRole('button', { name: /Endre/, container }))
@@ -504,8 +517,24 @@ describe('navigation', () => {
       cy.navGroup(/Utfylling/, /Kjøretøy/).should('have.attr', 'aria-current', 'page');
       isUsingMobile && cy.hideNavGroupsMobile();
       isUsingTablet && cy.hideNavGroupsTablet();
+      if (device === 'desktop') {
+        // Editing an entry must keep the parent form's summary return.
+        cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
+        cy.get('#subform-subform-table tbody tr').eq(0).findByRole('button', { name: 'Endre' }).clickAndGone();
+        cy.waitForLoad();
+        cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+        cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+        cy.findByRole('textbox', { name: /Årsmodell/ }).clear();
+        cy.findByRole('textbox', { name: /Årsmodell/ }).type('1999');
+        cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+        cy.waitForLoad();
+      }
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
       cy.findByText('skrue.mcduck@altinn.no').should('be.visible');
+      if (device === 'desktop') {
+        cy.findByTestId('summary-Summary-subform').should('be.visible');
+        cy.findByRole('heading', { name: 'En fet Toyota fra 1999' }).should('be.visible');
+      }
 
       cy.get('#subform-subform-table tbody tr')
         .eq(0)
@@ -524,6 +553,18 @@ describe('navigation', () => {
       isUsingTablet && cy.hideNavGroupsTablet();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
 
+      if (device === 'desktop') {
+        // An entry on a different page must not inherit the edited page's return.
+        cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
+        cy.openNavGroup(/Utfylling/, /Kjøretøy/, /Biler/);
+        cy.findByRole('button', { name: 'En fet Toyota fra 1999' }).clickAndGone();
+        cy.waitForLoad();
+        cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+        cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+        cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
+        cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      }
+
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
       cy.findByRole('heading', { name: 'Se over svarene dine før du sender inn' }).should('be.visible');
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
@@ -531,9 +572,22 @@ describe('navigation', () => {
     }),
   );
 
-  it('validates returns and resets shortcuts when an edit changes the visible pages', () => {
+  it('validates returns, resets shortcuts and releases navigation processing', () => {
     cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Fødselsdag/);
+    // Typing invalid data into the date-picker and immediately clicking next
+    // causes us to first wait for saving, then when the validation fails
+    // the error report causes the next-button to unmount before
+    // saving finishes. This unmounts the waitForState hook so the promise
+    // is never resolved and the callback is never completed.
+    // Make sure this does not lead to everything staying disabled.
+    cy.findByRole('textbox', { name: /Fødselsdag/ }).type('1234');
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.findByRole('button', { name: 'Legg til ny' }).should('be.visible');
+    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByRole('button', { name: 'Neste' }).should('not.be.disabled');
+
     // These values came from the real Settings.json files through the backend HTML response.
     cy.window().then(({ altinnAppGlobalData: { ui } }) => {
       expect(ui.settings?.validateOnBackToSummary).to.deep.equal({ page: 'current', show: [] });
@@ -631,81 +685,5 @@ describe('navigation', () => {
     back().should('not.exist');
     cy.url().should('not.include', 'backToPage=');
     cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
-  });
-
-  it('preserves a linked-page return while rendering a full subform summary', () => {
-    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
-    cy.waitForLoad();
-    cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
-    cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
-    cy.waitForLoad();
-    cy.findByRole('textbox', { name: /Registreringsnummer/ }).type('AB12345');
-    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.dsSelect('#brand', 'Toyota');
-    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.findByRole('textbox', { name: /Årsmodell/ }).type('1998');
-    cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
-    cy.waitForLoad();
-
-    cy.gotoNavGroup(/Innsending/, 'desktop', /Samlet oversikt/);
-    cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).clickAndGone();
-    cy.findByRole('heading', { name: 'En fet Toyota fra 1998' }).should('be.visible');
-    cy.url().should('include', '/summary?backToPage=summary2');
-    cy.findByRole('button', { name: 'Tilbake til samlet oversikt' }).clickAndGone();
-    cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).should('be.visible');
-  });
-
-  it('keeps the summary return after editing a subform entry', () => {
-    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
-    cy.waitForLoad();
-    cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
-    cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
-    cy.waitForLoad();
-    cy.findByRole('textbox', { name: /Registreringsnummer/ }).type('AB12345');
-    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.dsSelect('#brand', 'Toyota');
-    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.findByRole('textbox', { name: /Årsmodell/ }).type('1998');
-    cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
-    cy.waitForLoad();
-
-    cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
-    cy.findByTestId('summary-Summary-subform').findByRole('button', { name: /Endre/ }).clickAndGone();
-    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
-    cy.findByRole('button', { name: 'Endre' }).clickAndGone();
-    cy.waitForLoad();
-    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.findByRole('textbox', { name: /Årsmodell/ }).clear();
-    cy.findByRole('textbox', { name: /Årsmodell/ }).type('1999');
-    cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
-    cy.waitForLoad();
-    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
-    cy.findByTestId('summary-Summary-subform').should('be.visible');
-
-    // An entry on another page than the one being edited does not inherit its return.
-    cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
-    cy.openNavGroup(/Utfylling/, /Kjøretøy/, /Biler/);
-    cy.findByRole('button', { name: 'En fet Toyota fra 1999' }).clickAndGone();
-    cy.waitForLoad();
-    cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
-    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
-    cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
-  });
-
-  it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
-    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
-    cy.waitForLoad();
-    cy.gotoNavGroup(/Utfylling/, 'desktop', /Fødselsdag/);
-    // Typing invalid data into the date-picker and immediately clicking next
-    // causes us to first wait for saving, then when the validation fails
-    // the error report causes the next-button to unmount before
-    // saving finishes. This unmounts the waitForState hook so the promise
-    // is never resolved and the callback is never completed.
-    // Make sure this does not lead to everything staying disabled.
-    cy.findByRole('textbox', { name: /Fødselsdag/ }).type('1234');
-    cy.findByRole('button', { name: 'Neste' }).click();
-    cy.get(appFrontend.errorReport).should('not.exist');
-    cy.findByRole('button', { name: 'Neste' }).should('not.be.disabled');
   });
 });
