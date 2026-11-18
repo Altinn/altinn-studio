@@ -94,6 +94,16 @@ internal static class SetterGenerator
                 }
                 else
                 {
+                    // A primitive element has no properties, so a path that continues past it does not exist
+                    builder.Append(
+                        """
+                                if (offset != -1)
+                                {
+                                    return false;
+                                }
+
+                        """
+                    );
                     AppendSetElement(builder, modelPathNode, indent: "        ");
                 }
             }

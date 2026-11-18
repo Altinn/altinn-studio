@@ -555,6 +555,10 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         {
             return false;
         }
+        if (offset != -1)
+        {
+            return false;
+        }
         if (value.TryDeserialize<decimal>(out var result))
         {
             model[literalIndex] = result;
@@ -576,6 +580,10 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             return false;
         }
         if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        if (offset != -1)
         {
             return false;
         }

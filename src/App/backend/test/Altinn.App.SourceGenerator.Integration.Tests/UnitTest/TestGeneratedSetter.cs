@@ -308,6 +308,27 @@ public class TestGeneratedSetter
         Assert.Equal(generatedResult, reflectionResult);
     }
 
+    [Theory]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[0].x", "\"new-tag\"")]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[1].x", "{}")]
+    public void TestSet_PathPastPrimitiveListElement_FailsInBothImplementations(string path, string json)
+    {
+        // A primitive element has no properties, so the path does not exist and the element must not be written
+        var value = ExpressionValue.FromJsonString(json);
+
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.False(generatedWrapper.Set(path, value), $"Source-generated Set succeeded for path: {path}");
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.False(reflectionWrapper.Set(path, value), $"Reflection Set succeeded for path: {path}");
+
+        Assert.Equal(JsonSerializer.Serialize(CreateTestSkjema()), JsonSerializer.Serialize(generatedSkjema));
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
+    }
+
     [Fact]
     public void TestSet_NegativeIndex_BothImplementations()
     {

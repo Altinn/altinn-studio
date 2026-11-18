@@ -874,6 +874,10 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             return false;
         }
+        if (offset != -1)
+        {
+            return false;
+        }
         if (value.TryDeserialize<string>(out var result))
         {
             model[literalIndex] = result!;
@@ -954,6 +958,10 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         {
             return false;
         }
+        if (offset != -1)
+        {
+            return false;
+        }
         if (value.TryDeserialize<int>(out var result))
         {
             model[literalIndex] = result;
@@ -975,6 +983,10 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             return false;
         }
         if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        if (offset != -1)
         {
             return false;
         }
