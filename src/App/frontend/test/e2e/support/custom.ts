@@ -210,12 +210,6 @@ const knownWcagViolations: KnownViolation[] = [
     nodeLength: 2,
   },
   {
-    spec: 'frontend-test/list-component.ts',
-    test: 'Should take a snapshot of Summary2 for every list',
-    id: 'heading-order',
-    nodeLength: 1,
-  },
-  {
     spec: 'frontend-test/grid.ts',
     test: 'should work with basic table functionality',
     id: 'list',
