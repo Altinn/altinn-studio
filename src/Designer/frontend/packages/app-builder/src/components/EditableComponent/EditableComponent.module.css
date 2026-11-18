@@ -1,0 +1,65 @@
+.editableComponent {
+  position: relative;
+  padding: var(--ds-size-2);
+  border-radius: var(--ds-border-radius-md);
+  outline: 1px solid transparent;
+}
+
+.editableComponent:hover {
+  outline-color: var(--ds-color-accent-border-subtle);
+}
+
+.selected,
+.selected:hover {
+  outline: 2px solid var(--ds-color-accent-border-strong);
+  background-color: var(--ds-color-accent-background-tinted);
+}
+
+.selected :global([data-text-key]) {
+  outline: 1px dashed var(--ds-color-accent-border-default);
+  outline-offset: 2px;
+}
+
+.selectButton {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.selected .selectButton {
+  cursor: text;
+}
+
+.selectButton:focus-visible {
+  outline: 2px solid var(--ds-color-focus-outer);
+  outline-offset: 2px;
+}
+
+.toolbar {
+  position: absolute;
+  top: calc(-1 * var(--ds-size-10));
+  right: 0;
+  z-index: 2;
+  display: flex;
+  gap: var(--ds-size-1);
+  padding: var(--ds-size-1);
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-default);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+/* The "required" and "optional" tags can be clicked, although the select button covers them. */
+.overIndicator :global([data-indicator]) {
+  outline: 2px solid var(--ds-color-accent-border-strong);
+  outline-offset: 1px;
+}
+
+.overIndicator .selectButton,
+.overIndicator.selected .selectButton {
+  cursor: pointer;
+}

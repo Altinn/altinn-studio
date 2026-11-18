@@ -1,4 +1,5 @@
 export enum QueryKey {
+  AppBuilderFormLayouts = 'AppBuilderFormLayouts',
   AppDeployments = 'AppDeployments',
   AppMetadata = 'AppMetadata',
   AppMetadataModelIds = 'AppMetadataModelIds',

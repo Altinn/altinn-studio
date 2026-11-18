@@ -1,0 +1,7 @@
+.editableText {
+  border-radius: 2px;
+}
+
+.editing {
+  visibility: hidden;
+}

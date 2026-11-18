@@ -1,0 +1,59 @@
+.insertPoint {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: var(--ds-size-6);
+  margin: calc(-1 * var(--ds-size-3)) 0;
+}
+
+/* The line shows where the component will go. */
+.insertPoint::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  border-top: 2px dashed var(--ds-color-accent-border-default);
+  opacity: 0;
+}
+
+.addButton {
+  z-index: 1;
+  border-radius: 50%;
+  background-color: var(--ds-color-neutral-background-default);
+  opacity: 0;
+}
+
+.insertPoint:hover::before,
+.insertPoint:focus-within::before,
+.insertPoint:hover .addButton,
+.addButton:focus-visible,
+.alwaysVisible .addButton {
+  opacity: 1;
+}
+
+.alwaysVisible {
+  height: auto;
+  margin: 0;
+}
+
+.componentList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-4);
+  border: 1px solid var(--ds-color-accent-border-default);
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-default);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.componentListTitle {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.componentTypes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}

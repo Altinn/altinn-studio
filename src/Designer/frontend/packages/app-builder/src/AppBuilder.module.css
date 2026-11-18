@@ -1,0 +1,12 @@
+.appBuilder {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.canvasArea {
+  flex: 1;
+  min-height: 0;
+  background-color: var(--ds-color-neutral-background-tinted);
+}

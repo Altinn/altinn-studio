@@ -1,0 +1,19 @@
+.floatingTextEditor {
+  position: absolute;
+  z-index: 3;
+  box-sizing: content-box;
+  margin: -4px 0 0 -6px;
+  padding: 3px 5px;
+  border: 1px solid var(--ds-color-accent-border-strong);
+  border-radius: 4px;
+  background-color: var(--ds-color-neutral-background-default);
+  color: var(--ds-color-neutral-text-default);
+  resize: none;
+  field-sizing: content;
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.floatingTextEditor:focus {
+  outline: 2px solid var(--ds-color-accent-border-strong);
+  outline-offset: 0;
+}

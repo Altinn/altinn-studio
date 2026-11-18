@@ -1,0 +1,17 @@
+.pageCanvas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-4);
+  max-width: 768px;
+  margin: 0 auto;
+  padding: var(--ds-size-12) var(--ds-size-6);
+}
+
+.emptyPage {
+  padding: var(--ds-size-8);
+  border: 1px dashed var(--ds-color-neutral-border-default);
+  border-radius: var(--ds-border-radius-md);
+  color: var(--ds-color-neutral-text-subtle);
+  text-align: center;
+}

@@ -25,6 +25,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@altinn/app-builder@workspace:src/Designer/frontend/packages/app-builder":
+  version: 0.0.0-use.local
+  resolution: "@altinn/app-builder@workspace:src/Designer/frontend/packages/app-builder"
+  dependencies:
+    "@app/form-component": "workspace:*"
+    "@app/language": "workspace:*"
+    classnames: "npm:2.5.1"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
+  languageName: unknown
+  linkType: soft
+
 "@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/policy-editor@workspace:src/Designer/frontend/packages/policy-editor"

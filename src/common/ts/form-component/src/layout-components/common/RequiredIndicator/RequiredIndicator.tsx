@@ -12,7 +12,7 @@ export const RequiredIndicator = ({ required }: IRequiredIndicatorProps) => {
   }
 
   return (
-    <IndicatorTag color='warning'>
+    <IndicatorTag kind='required'>
       {langAsNonProcessedString('form_filler.required_label')}
     </IndicatorTag>
   );

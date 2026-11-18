@@ -1,0 +1,49 @@
+.newComponentForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  padding: var(--ds-size-4);
+  border: 2px solid var(--ds-color-accent-border-strong);
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-default);
+  box-shadow: var(--ds-shadow-md);
+}
+
+.title {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+}
+
+.savedAs {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  font-size: var(--ds-font-size-3);
+}
+
+.note {
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-font-size-3);
+}
+
+.error {
+  color: var(--ds-color-danger-text-subtle);
+  font-size: var(--ds-font-size-3);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-size-2);
+}
