@@ -6,8 +6,8 @@ namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 /// Body the engine posts to the core operator for each attempt of a step.
 /// </summary>
 /// <remarks>
-/// <c>src/core/operator/api/callbacks/payload.json</c> is its example, which the tests of both sides read. Change them
-/// together.
+/// <c>src/core/operator/testdata/callbacks/payload.json</c> is its example, which the tests of both sides read. Change
+/// them together.
 /// </remarks>
 internal sealed record OperatorCallbackPayload
 {

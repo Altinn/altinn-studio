@@ -8,7 +8,7 @@ namespace WorkflowEngine.Operator.Tests.Fixtures;
 internal static class RepositoryFiles
 {
     public static string CallbackContractDirectory =>
-        Path.Combine(Root(), "src", "core", "operator", "api", "callbacks");
+        Path.Combine(Root(), "src", "core", "operator", "testdata", "callbacks");
 
     /// <summary>
     /// Walks up from this source file to the folder with <c>.git</c>, a directory in a clone and a file in a worktree.

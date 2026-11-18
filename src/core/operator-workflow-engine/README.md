@@ -16,8 +16,8 @@ followed by the step's command key, such as `run.admit`. It sends a projected Se
 - A status code in the step's `NonRetryableHttpStatusCodes` also ends the step, as for the engine's `WebhookCommand`.
 - The engine retries the step after other answers, such as 503.
 
-The tests of both sides read the examples in [`api/callbacks`](../operator/api/callbacks), so change them together.
-The engine's own API has no authentication, so its NetworkPolicy lets only the operator's pods reach it.
+The tests of both sides read the examples in [`testdata/callbacks`](../operator/testdata/callbacks), so change them
+together. The engine's own API has no authentication, so its NetworkPolicy lets only the operator's pods reach it.
 
 ## The database
 

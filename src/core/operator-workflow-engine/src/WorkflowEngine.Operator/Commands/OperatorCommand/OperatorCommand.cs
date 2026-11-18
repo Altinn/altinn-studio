@@ -196,7 +196,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         var statusCode = (int)response.StatusCode;
         var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
 
-        // The operator ends a step with a 422 problem, such as src/core/operator/api/callbacks/response-end.json.
+        // The operator ends a step with a 422 problem, such as src/core/operator/testdata/callbacks/response-end.json.
         // The step keeps it as its error as it is, for the operator to read back.
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
             return ExecutionResult.CriticalError(errorBody, httpStatusCode: statusCode);
