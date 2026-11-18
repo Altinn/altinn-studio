@@ -30,7 +30,7 @@
   place-items: center;
   width: var(--ds-size-10);
   height: var(--ds-size-12);
-  color: var(--ds-color-text-default);
+  color: var(--ds-color-text-subtle);
 }
 
 .indicator > svg {
