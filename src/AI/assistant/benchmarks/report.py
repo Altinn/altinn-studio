@@ -11,7 +11,6 @@ from typing import Any
 from benchmarks import manifest
 from benchmarks.diff import NOISE_FLOOR, Comparison, compare
 from benchmarks.runstore import BehaviorResult, ItemResult, Run, load, series
-from shared.config import BaseConfig
 
 VERDICT_WORDS = {
     "holding": "holding",
@@ -494,6 +493,8 @@ def _unwrap(value: object) -> object:
 
 
 def trace_url(trace_id: str | None) -> str | None:
+    from shared.config import BaseConfig
+
     return f"{BaseConfig.LANGFUSE_HOST}/trace/{trace_id}" if trace_id else None
 
 
