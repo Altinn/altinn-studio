@@ -140,14 +140,14 @@ describe('Expression calculations stored in the data model', () => {
     cy.findByText(emptyAnnualWork).should('be.visible');
 
     setNumber('Number of persons', '2');
-    setNumber('Annual work', '1.5');
-    cy.findByLabelText(/^Calculated annual work/).should('have.text', '1.5');
+    setNumber('Annual work', '0.38');
+    cy.findByLabelText(/^Calculated annual work/).should('have.text', '0.38');
 
     setNumber('Annual work', '');
     cy.findByText(emptyAnnualWork).should('be.visible');
 
-    setNumber('Annual work', '2.5');
-    cy.findByLabelText(/^Calculated annual work/).should('have.text', '2.5');
+    setNumber('Annual work', '2.35');
+    cy.findByLabelText(/^Calculated annual work/).should('have.text', '2.35');
 
     setNumber('Annual work', '');
     cy.findByText(emptyAnnualWork).should('be.visible');
