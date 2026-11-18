@@ -10,6 +10,9 @@ import {
   isValidFrontendVersion,
 } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
 
+const description = 'Siden lastes på nytt med versjonen i adressen.';
+const versionsLinkText = 'Se tilgjengelige versjoner (åpnes i ny fane)';
+
 export function VersionSwitcher() {
   const [version, setVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
   const [error, setError] = useState<string | undefined>(undefined);
@@ -26,7 +29,7 @@ export function VersionSwitcher() {
   return (
     <Fieldset style={{ width: 250 }}>
       <Fieldset.Legend>Frontend versjon</Fieldset.Legend>
-      <Fieldset.Description>Siden lastes på nytt med versjonen i adressen.</Fieldset.Description>
+      <Fieldset.Description>{description}</Fieldset.Description>
       <Input
         aria-label='Frontend versjon'
         size='sm'
@@ -49,7 +52,7 @@ export function VersionSwitcher() {
         target='_blank'
         rel='noopener noreferrer'
       >
-        Se tilgjengelige versjoner (åpnes i ny fane)
+        {versionsLinkText}
       </a>
       <Button
         size='sm'
