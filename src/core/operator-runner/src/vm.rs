@@ -16,7 +16,7 @@ use tokio::{
 };
 
 use crate::{
-    output::{Collected, Limits, collect},
+    output::{Captured, Collected, Ending, Limits, collect},
     policy::AllowedHosts,
 };
 
@@ -146,8 +146,15 @@ impl Vm {
     pub async fn run_script(&self, script: &str, deadline: Instant, limits: Limits) -> Result<Collected, AnyError> {
         let spec = ExecutionSpec::command(SandboxPath::new("/bin/sh"), ["-c".to_string(), script.to_string()])
             .with_working_directory(SandboxPath::new(JOB_FOLDER));
-        let mut started = self.handle.start_execution(StartExecutionRequest::new(spec)).await?;
-        collect(&mut started.events, deadline, limits).await
+        let start = self.handle.start_execution(StartExecutionRequest::new(spec));
+        let Ok(started) = timeout_at(deadline, start).await else {
+            return Ok(Collected {
+                ending: Ending::TimedOut,
+                stdout: Captured::default(),
+                stderr: Captured::default(),
+            });
+        };
+        collect(&mut started?.events, deadline, limits).await
     }
 }
 
