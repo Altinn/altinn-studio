@@ -68,11 +68,16 @@ class BaseConfig:
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
-    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")
+    LANGFUSE_HOST = "https://langfuse.digdir.cloud"
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
     LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "assistant-agents")
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)
     LANGFUSE_TRACE_RETENTION_DAYS = int(os.getenv("LANGFUSE_TRACE_RETENTION_DAYS", "90"))
+
+
+# The SDK reads this when it builds a client itself, such as when init_langfuse() failed,
+# and would otherwise reach cloud.langfuse.com.
+os.environ["LANGFUSE_BASE_URL"] = BaseConfig.LANGFUSE_HOST
 
 
 def get_config() -> BaseConfig:
