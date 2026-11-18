@@ -30,10 +30,12 @@ import {
   useRepeatingGroupsFocusContext,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import { RepeatingGroupRowValidation } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
+import {
+  getRowValidationSeverity,
+  RepeatingGroupRowValidation,
+} from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import { useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import {
-  RepeatingGroupRowMessages,
   RepeatingGroupTableField,
   RepeatingGroupTableMessages,
 } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
@@ -43,6 +45,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
+import type { ValidationSeverity } from 'src/features/validation';
 import type { CompTypes } from 'src/layout/layout';
 
 export interface IRepeatingGroupTableRowProps {
@@ -115,6 +118,14 @@ export function RepeatingGroupTableRow({
   const tableEditingIds = tableItems
     .filter((item) => shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns))
     .map((item) => item.baseId);
+  const inlineValidations = rowValidations.filter(
+    (validation) =>
+      (!mobileView && tableEditingIds.includes(validation.baseComponentId)) ||
+      ((config.edit?.mode === 'onlyTable' || tableEditingIds.length > 0) &&
+        validation.nodeId === ownerIndexedId &&
+        validation.repeatingGroupRow),
+  );
+  const panelSeverity = getRowValidationSeverity(inlineValidations);
   const mobileTableItems = tableItems.filter(
     (item) =>
       !isEditingRow ||
@@ -166,6 +177,7 @@ export function RepeatingGroupTableRow({
                 refSetter={refSetter}
                 baseComponentId={item.baseId}
                 columnSettings={config.tableColumns}
+                panelSeverity={panelSeverity}
               />
             ) : (
               <NonEditableCell
@@ -277,25 +289,12 @@ export function RepeatingGroupTableRow({
           </>
         )}
       </Table.Row>
-      {!mobileView && (
-        <RepeatingGroupTableMessages
-          validations={rowValidations.filter((validation) => tableEditingIds.includes(validation.baseComponentId))}
-          tableIds={tableIds}
-          columnSpan={tableItems.length + columnCount}
-          index={index}
-          className={isEditingRow ? classes.editingRow : undefined}
-        />
-      )}
-      {(config.edit?.mode === 'onlyTable' || tableEditingIds.length > 0) && (
-        <RepeatingGroupRowMessages
-          validations={rowValidations.filter(
-            (validation) => validation.nodeId === ownerIndexedId && validation.repeatingGroupRow,
-          )}
-          columnSpan={mobileView ? 2 : tableItems.length + columnCount}
-          index={index}
-          className={isEditingRow ? classes.editingRow : undefined}
-        />
-      )}
+      <RepeatingGroupTableMessages
+        validations={inlineValidations}
+        columnSpan={mobileView ? 2 : tableItems.length + columnCount}
+        index={index}
+        className={isEditingRow ? classes.editingRow : undefined}
+      />
     </>
   );
 }
@@ -432,10 +431,12 @@ function EditableCell({
   columnSettings,
   refSetter,
   index,
+  panelSeverity,
 }: {
   baseComponentId: string;
   columnSettings: ITableColumnFormatting | undefined;
   index: number;
+  panelSeverity: ValidationSeverity | undefined;
   refSetter: ((index: number, id: string, ref: HTMLDivElement | null) => void) | undefined;
 }) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
@@ -447,7 +448,10 @@ function EditableCell({
         style={style}
         ref={(ref) => refSetter && refSetter(index, `component-${baseComponentId}`, ref)}
       >
-        <RepeatingGroupTableField baseComponentId={baseComponentId} />
+        <RepeatingGroupTableField
+          baseComponentId={baseComponentId}
+          panelSeverity={panelSeverity}
+        />
       </div>
     </Table.Cell>
   );
