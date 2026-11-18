@@ -176,29 +176,61 @@ function NavigationButtonsComponentInner({
 
   const onClickReturn = (key: 'backToSummary' | 'backToPage', getTargetPage: () => string | null | undefined) =>
     performProcess(key, async () => {
-      const targetPage = getTargetPage();
-      if (!targetPage) {
-        return;
-      }
-      const currentPage = layoutLookups.componentToPage[baseComponentId];
-      const routeBefore = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
+      const sourcePath = window.location.pathname;
+      let leftSourcePage = false;
+      let stopWatchingHistory = () => {};
+      const historyNavigation = new Promise<void>((resolve) => {
+        const onPopState = () => {
+          if (window.location.pathname !== sourcePath) {
+            leftSourcePage = true;
+            resolve();
+          }
+        };
+        window.addEventListener('popstate', onPopState);
+        stopWatchingHistory = () => window.removeEventListener('popstate', onPopState);
+      });
 
-      await maybeSaveOnPageChange();
+      const returnToPage = async () => {
+        const targetPage = getTargetPage();
+        if (!targetPage) {
+          return;
+        }
+        const currentPage = layoutLookups.componentToPage[baseComponentId];
+        const routeBefore = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
 
-      // An empty show list opts out. Validating with it would hide errors that are already visible.
-      if (
-        validateOnReturn &&
-        validateOnReturn.show.length > 0 &&
-        (await validationBlocksNavigation(validateOnReturn))
-      ) {
-        return;
-      }
+        await maybeSaveOnPageChange();
+        if (leftSourcePage || window.location.pathname !== sourcePath) {
+          return;
+        }
 
-      // Saving or validation can reveal a page on the way back, before the rendered state has caught up.
-      // Then ClearInvalidReturnState removes the shortcut, and the user continues with regular navigation.
-      const routeAfter = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
-      if (getTargetPage() === targetPage && returnRouteStillValid(routeBefore, routeAfter)) {
-        await navigateToPage(targetPage, { skipAutoSave: true });
+        // An empty show list opts out. Validating with it would hide errors that are already visible.
+        if (
+          validateOnReturn &&
+          validateOnReturn.show.length > 0 &&
+          (await validationBlocksNavigation(validateOnReturn))
+        ) {
+          return;
+        }
+
+        // Saving or validation can reveal a page on the way back, before the rendered state has caught up.
+        // Then ClearInvalidReturnState removes the shortcut, and the user continues with regular navigation.
+        const routeAfter = getReturnRoute(getVisibleOrder(), currentPage, targetPage);
+        if (
+          !leftSourcePage &&
+          window.location.pathname === sourcePath &&
+          getTargetPage() === targetPage &&
+          returnRouteStillValid(routeBefore, routeAfter)
+        ) {
+          await navigateToPage(targetPage, { skipAutoSave: true });
+        }
+      };
+
+      try {
+        // History can replace the form store, leaving the old save/validation wait unable to finish.
+        // Release navigation processing when that happens, and ignore any late result from the old page.
+        await Promise.race([returnToPage(), historyNavigation]);
+      } finally {
+        stopWatchingHistory();
       }
     });
 
