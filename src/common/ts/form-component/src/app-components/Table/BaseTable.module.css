@@ -133,7 +133,8 @@
 }
 
 /* Replaces the designsystem's thick line above the footer with a light line under it */
-.table.footerBackgroundGray > tfoot td {
+.table.footerBackgroundGray:where(.lookInNestedTables) tfoot td,
+.table.footerBackgroundGray:where(:not(.lookInNestedTables)) > tfoot td {
   background-color: #f5f5f5;
   border-top: none;
   border-bottom: 1px solid #dde3e5;
