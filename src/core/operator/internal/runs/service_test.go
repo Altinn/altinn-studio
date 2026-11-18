@@ -166,18 +166,14 @@ func TestCreateAnswersUnavailableWhenTheEngineIsDown(t *testing.T) {
 	request := CreateRequest{Kind: testKind, Labels: testLabels("app")}
 
 	h.engine.AtCapacity = true
+	Expect(h.service.Create(ctx, "assistant", request)).Error().To(MatchError(ErrUnavailable))
+	Expect(h.queue.WaitingByKind()).To(BeEmpty(), "a run that the engine did not store leaves the line at once")
+	h.engine.AtCapacity, h.engine.FailReads = false, true
 	_, _, err := h.service.Create(ctx, "assistant", request)
-	Expect(err).To(MatchError(ErrUnavailable))
-	h.engine.AtCapacity = false
-	h.engine.FailReads = true
-	_, _, err = h.service.Create(ctx, "assistant", request)
 	Expect(err).To(MatchError(ErrUnavailable), "the operator cannot tell whether the run exists")
 
 	h.engine.FailReads = false
-	run, created, err := h.service.Create(ctx, "assistant", request)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(created).To(BeTrue())
-	Expect(run.Status).To(Equal(StatusQueued))
+	Expect(h.create(t, "assistant", "app").Status).To(Equal(StatusQueued))
 }
 
 func TestCreateForTheSameSourceAtOnceMakesOneRun(t *testing.T) {

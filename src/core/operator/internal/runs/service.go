@@ -172,11 +172,11 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 		Labels: request.Labels,
 		Spec:   specOf(kind, s.cfg.TimeScale),
 	}
-	if err = s.queue.Join(Work{ID: run.ID, Kind: run.Kind, Caller: caller}, kind.MaxQueuedPerCaller); err != nil {
-		return nil, false, err
-	}
 	enqueueRequest, err := BuildEnqueueRequest(run)
 	if err != nil {
+		return nil, false, err
+	}
+	if err = s.queue.Join(Work{ID: run.ID, Kind: run.Kind, Caller: caller}, kind.MaxQueuedPerCaller); err != nil {
 		return nil, false, err
 	}
 	result, err := s.engine.Enqueue(ctx, namespace, run.ID, enqueueRequest)
@@ -186,8 +186,11 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 		return nil, false, ErrConflict
 	case errors.Is(err, engine.ErrInvalid):
 		// The operator built a workflow the engine does not accept, so a retry does not help.
+		s.queue.Forget(run.ID)
 		return nil, false, fmt.Errorf("enqueue the run workflow: %w", err)
 	case err != nil:
+		// If the engine stored the run after all, the run takes its place again at its first run.admit.
+		s.queue.Forget(run.ID)
 		return nil, false, fmt.Errorf("%w: %w", ErrUnavailable, err)
 	}
 
