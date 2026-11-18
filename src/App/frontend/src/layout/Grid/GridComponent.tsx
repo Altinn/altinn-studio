@@ -165,7 +165,7 @@ function GridRowRenderer({ row, mutableColumnSettings, extraCells = [] }: GridRo
     <BaseTable.Row className={row.readOnly ? css.rowReadOnly : undefined}>
       {cells.map(({ cell, columnIndex: cellIdx, colSpan }) => {
         if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-          // eslint-disable-next-line react-compiler/react-compiler
+          // eslint-disable-next-line react-hooks/immutability
           mutableColumnSettings[cellIdx] = cell.columnOptions;
         }
 

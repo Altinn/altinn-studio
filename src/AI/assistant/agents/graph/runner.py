@@ -7,13 +7,9 @@ from langfuse import get_client, propagate_attributes
 from langgraph.graph import END, StateGraph
 from opentelemetry import trace as otel_trace
 
+from agents.services.decisions import judge_request
 from agents.services.events import AgentEvent, EventSink, sink
-from agents.services.llm import (
-    GATE_FAILED_ACTION,
-    check_scope_async,
-    check_security_async,
-    suggest_goal_correction,
-)
+from agents.services.llm import suggest_goals_with_llm
 from shared.utils.langfuse_utils import (
     flush_langfuse,
     get_current_trace_id,
@@ -127,14 +123,14 @@ _log = _logging.getLogger(__name__)
 
 WORKFLOW_TRACE_NAME = "Altinity Agent Workflow"
 
-_FALLBACK_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
+_DECLINE_MESSAGE = "Jeg kan bare hjelpe med utvikling av Altinn-apper."
 _UNSAFE_GOAL_MESSAGE = (
     "Jeg kan dessverre ikke utføre denne forespørselen, fordi den kan føre til "
     "en utrygg eller utilsiktet endring. Du kan gjerne omformulere den."
 )
 _GATE_UNAVAILABLE_MESSAGE = (
     "Jeg får ikke kontakt med modellen som vurderer forespørsler akkurat nå, så "
-    "jeg stopper her i stedet for å endre appen uten den sjekken. Prøv igjen om "
+    "jeg stopper her i stedet for å fortsette uten den sjekken. Prøv igjen om "
     "litt."
 )
 
@@ -149,38 +145,55 @@ class GoalRejected(Exception):
 
 
 async def _gate_goal(state: AgentState, event_sink: EventSink) -> str | None:
-    """Run the pre-graph gates. Returns the decline text when the turn was
-    already fully handled (read-only out-of-scope decline) — the caller must
-    then skip the graph. Raises GoalRejected for write-mode rejections.
+    """Judge the goal with one decisions call before the graph, in chat and write runs alike.
+    Returns the decline text when a chat question that is not relevant has been answered, so the
+    caller skips the graph, and raises GoalRejected for every other rejection."""
+    _raise_if_cancelled(state, event_sink)
+    attachment_names = [attachment.name for attachment in state.attachments or []]
+    judgment = await judge_request(state.user_goal, attachment_names, state.conversation_history)
+    # The gate is a model call, so a cancel can land while it runs.
+    _raise_if_cancelled(state, event_sink)
 
-    Two gates with different jobs:
-    - Scope check (ALL runs): is this about Altinn app development at all?
-      Product behavior, not security — the assistant must not act as a
-      general-purpose chatbot on government infrastructure. An out-of-scope
-      write request rejects like any other invalid goal; an out-of-scope
-      chat question gets a polite decline delivered as a normal reply.
-    - Security check (write runs only): see _check_security.
-    """
-    _raise_if_cancelled(state, event_sink)
-    scope_result = await check_scope_async(state.user_goal, state.conversation_history)
-    # The scope check is an LLM call, so a cancel can land while it runs.
-    _raise_if_cancelled(state, event_sink)
-    if not scope_result.in_scope:
-        decline_text = scope_result.decline_message or _FALLBACK_DECLINE_MESSAGE
-        _log.info(
-            "Out-of-scope goal for session %s (%s)",
-            state.session_id,
-            scope_result.reason,
-        )
+    if judgment is None:
+        raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
+    if not judgment.safe:
+        _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, judgment.concern)
+        suggestions = await _suggest_goals(state, judgment.reason)
+        # The suggestions are model calls too, so a cancel can land while they run.
+        _raise_if_cancelled(state, event_sink)
+        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
+    if not judgment.relevant:
+        _log.info("Goal for session %s is not relevant", state.session_id)
         if state.allow_app_changes:
-            raise GoalRejected(decline_text)
-        if not _emit_chat_decline(state, event_sink, decline_text):
+            raise GoalRejected(_DECLINE_MESSAGE)
+        if not _emit_chat_decline(state, event_sink, _DECLINE_MESSAGE):
             raise WorkflowCancelled(f"Session {state.session_id} was cancelled")
-        return decline_text
-
-    if state.allow_app_changes:
-        await _check_security(state)
+        return _DECLINE_MESSAGE
     return None
+
+
+async def _suggest_goals(state: AgentState, reason: str | None) -> list[str]:
+    """Goals the user could ask for instead, without the ones the gate would reject too:
+    offering those sends the user round in a circle.
+
+    Never raises: a rejection must not turn into a generic error because the
+    suggestions could not be produced.
+    """
+    try:
+        candidates = await asyncio.to_thread(
+            suggest_goals_with_llm, state.user_goal, reason, state.conversation_history
+        )
+    except Exception as e:
+        _log.warning("Could not generate goal suggestions: %s", e)
+        return []
+    judgments = await asyncio.gather(
+        *(judge_request(candidate, conversation=state.conversation_history) for candidate in candidates)
+    )
+    return [
+        candidate
+        for candidate, judgment in zip(candidates, judgments, strict=True)
+        if judgment and judgment.safe and judgment.relevant
+    ]
 
 
 def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: str) -> bool:
@@ -223,38 +236,6 @@ def _emit_chat_decline(state: AgentState, event_sink: EventSink, decline_text: s
             ),
         ],
         history=("assistant", decline_text),
-    )
-
-
-async def _check_security(state: AgentState):
-    """Reject unsafe goals, for write runs only.
-
-    An unclear goal is not rejected here. It goes to the loop, which reads the
-    app to find what to change. When the loop cannot tell, its prompt has it end
-    with a message that says what it needs.
-
-    Read-only runs are held back structurally rather than by this gate.
-    """
-    parsed = await check_security_async(
-        state.user_goal, attachments=state.attachments, conversation=state.conversation_history
-    )
-
-    if parsed.action == GATE_FAILED_ACTION:
-        _log.error("Security gate could not run for session %s: %s", state.session_id, parsed.reason)
-        raise GoalRejected(_GATE_UNAVAILABLE_MESSAGE)
-
-    if not parsed.safe:
-        _log.warning("Unsafe goal rejected for session %s: %s", state.session_id, parsed.reason)
-        suggestions = await suggest_goal_correction(
-            state.user_goal, parsed.reason, conversation=state.conversation_history
-        )
-        raise GoalRejected(_UNSAFE_GOAL_MESSAGE, suggestions)
-
-    _log.info(
-        "Goal passed the security gate for session %s: action=%s, component=%s",
-        state.session_id,
-        parsed.action,
-        parsed.component,
     )
 
 
