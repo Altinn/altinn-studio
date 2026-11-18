@@ -59,8 +59,9 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     /// <summary>
     /// One context pool for the repositories <c>CreateRepository</c> builds, as the engine has one, so a repository
-    /// method that breaks its context fails the calls after it. The pool keeps one idle context: a call that starts
-    /// after the previous one finished gets that call's context, while overlapping calls can get different ones.
+    /// method that breaks its context fails the calls after it. The pool keeps at most one idle context, so in a run
+    /// of calls that don't overlap, each gets the context the one before it used. Overlapping calls use different
+    /// contexts, and only one of those goes back to the pool.
     /// </summary>
     private PooledDbContextFactory<EngineDbContext> ContextFactory =>
         _contextFactory ?? throw new InvalidOperationException("The fixture has not been initialized yet.");
