@@ -11,7 +11,8 @@ internal static class RepositoryFiles
         Path.Combine(Root(), "src", "core", "operator", "testdata", "callbacks");
 
     /// <summary>
-    /// Walks up from this source file to the folder with <c>.git</c>, a directory in a clone and a file in a worktree.
+    /// Finds the nearest folder above this source file with <c>.git</c>, a directory in a clone and a file in a
+    /// worktree.
     /// </summary>
     /// <remarks>
     /// The compiled-in source path works from any folder, but only on the machine that built the tests.

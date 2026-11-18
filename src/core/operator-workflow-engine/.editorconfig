@@ -1,22 +1,18 @@
 root = true
 
 [*]
-# Non-configurable behaviors
 charset = utf-8
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# Configurable behaviors
-# end_of_line = lf - there is no 'auto' with a .editorconfig
+# EditorConfig has no 'auto' value for end_of_line, so this section does not set it.
 indent_style = space
 indent_size = 4
 max_line_length = 120
 
-# XML project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
 indent_size = 2
 
-# XML config files
 [*.{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}]
 indent_size = 2
 
@@ -26,9 +22,6 @@ dotnet_separate_import_directive_groups = false
 
 end_of_line = lf
 
-#### Naming styles ####
-
-# Interfaces start with 'I'
 dotnet_naming_symbols.interface.applicable_kinds = interface
 dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix =
@@ -38,26 +31,22 @@ dotnet_naming_rule.interface_should_be_begins_with_i.severity = warning
 dotnet_naming_rule.interface_should_be_begins_with_i.symbols = interface
 dotnet_naming_rule.interface_should_be_begins_with_i.style = begins_with_i
 
-# Types should be PascalCase
 dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, namespace, delegate
 dotnet_naming_rule.types_should_be_pascal_case.severity = warning
 dotnet_naming_rule.types_should_be_pascal_case.symbols = types
 dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
 
-# Non-private members should be PascalCase
 dotnet_naming_symbols.non_private_members.applicable_kinds = property, event, field
 dotnet_naming_symbols.non_private_members.applicable_accessibilities = public, internal, protected, protected_internal
 dotnet_naming_rule.non_private_members_should_be_pascal_case.severity = warning
 dotnet_naming_rule.non_private_members_should_be_pascal_case.symbols = non_private_members
 dotnet_naming_rule.non_private_members_should_be_pascal_case.style = pascal_case
 
-# All methods should be PascalCase
 dotnet_naming_symbols.methods.applicable_kinds = method, local_function
 dotnet_naming_rule.methods_should_be_pascal_case.severity = warning
 dotnet_naming_rule.methods_should_be_pascal_case.symbols = methods
 dotnet_naming_rule.methods_should_be_pascal_case.style = pascal_case
 
-# Private member should be '_' prefixed and camelCase
 dotnet_naming_symbols.private_members.applicable_kinds = property, event, field
 dotnet_naming_symbols.private_members.applicable_accessibilities = private, private_protected
 dotnet_naming_style.__prefixed_camel_case.required_prefix = _
@@ -68,20 +57,16 @@ dotnet_naming_rule.private_members_should_be___prefixed_camel_case.severity = wa
 dotnet_naming_rule.private_members_should_be___prefixed_camel_case.symbols = private_members
 dotnet_naming_rule.private_members_should_be___prefixed_camel_case.style = __prefixed_camel_case
 
-# Const fields should be PascalCase
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = warning
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case
 dotnet_naming_symbols.constant_fields.applicable_kinds   = field
 dotnet_naming_symbols.constant_fields.required_modifiers = const
 
-# General naming styles
 dotnet_naming_style.pascal_case.required_prefix =
 dotnet_naming_style.pascal_case.required_suffix =
 dotnet_naming_style.pascal_case.word_separator =
 dotnet_naming_style.pascal_case.capitalization = pascal_case
-
-#### General ####
 
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
@@ -107,8 +92,6 @@ csharp_indent_labels = one_less_than_current
 resharper_convert_to_primary_constructor_highlighting = none
 csharp_style_namespace_declarations = file_scoped:error
 
-#### Diagnostics ####
-
 # S2325: Methods and properties that don't access instance data should be static
 dotnet_diagnostic.S2325.severity = none
 # S2139: Either log this exception and handle it, or rethrow it with some contextual information
@@ -125,11 +108,9 @@ dotnet_diagnostic.S3251.severity = none
 dotnet_diagnostic.S3267.severity = none
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = none
-# Explicit argument passed to parameter with caller info attribute -- triggers for all Telemetry->StartActivity calls
+# Explicit argument passed to parameter with caller info attribute. Each StartActivity call triggers it.
 resharper_explicit_caller_info_argument_highlighting = none
 
-
-## Test projects ##
 
 [tests/**/*.cs]
 
@@ -154,14 +135,11 @@ dotnet_diagnostic.S3928.severity = none
 # CA1032: Implement standard exception constructors
 dotnet_diagnostic.CA1032.severity = none
 
-## JSON and YAML ##
-
 [*.{yml,yaml,json}]
 indent_size = 2
 end_of_line = lf
 
 
-## Verify ##
 # https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
 
 [*.{received,verified}.{json,txt,xml}]

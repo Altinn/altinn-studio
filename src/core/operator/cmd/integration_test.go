@@ -40,7 +40,7 @@ const postgresEnv = "OPERATOR_ENGINE_POSTGRES"
 const (
 	engineHost = "../../operator-workflow-engine/src/WorkflowEngine.Operator"
 	namespace  = "core-operator-runners"
-	// timeScale cuts the operator's rechecks and its upload timeout to a hundredth. The upload timeout is 3 seconds.
+	// timeScale cuts the operator's rechecks and its upload timeout to a hundredth, so the upload timeout is 3 seconds.
 	timeScale = 0.01
 )
 
@@ -233,7 +233,7 @@ func (it *integration) cleanupDeletesTheJob(t *testing.T) {
 func (it *integration) queuedRunExpires(t *testing.T) {
 	RegisterTestingT(t)
 	assistant := it.assistant
-	// The pod of the first run never gets ready, so the run keeps the kind's one place.
+	// The pod of the first run never becomes ready, so the run keeps the kind's one place.
 	first := assistant.create("one-at-a-time", it.app("first"), http.StatusAccepted)
 	assistant.await(first.ID, runs.StatusStarting)
 	queued := assistant.create("one-at-a-time", it.app("queued"), http.StatusAccepted)
@@ -297,19 +297,17 @@ func (it *integration) app(name string) map[string]string {
 	return map[string]string{"app": fmt.Sprintf("%s-%x", name, time.Now().UnixNano())}
 }
 
-// ready makes the pod of the run's Job ready, once the operator has created the Job.
+// ready makes the pod of the run's Job ready, after the operator has created the Job.
 func (it *integration) ready(runID string) {
 	Eventually(func() bool { _, ok := it.box.Job(namespace, runID); return ok }).Should(BeTrue())
 	it.box.SetPod(namespace, runID, sandbox.Pod{Status: sandbox.PodReady, IP: "127.0.0.1"})
 }
 
-// upload puts the archive of the assistant's run.
 func (it *integration) upload(runID string) {
 	Expect(it.assistant.call(http.MethodPut, "/api/v1/runs/"+runID+"/archive", "application/gzip", it.archive)).
 		To(Equal(http.StatusAccepted))
 }
 
-// finish completes the command of the run at its operator runner, with the result.
 func (it *integration) finish(runID, result string) {
 	it.runners.of(runID).Finish(runner.Status{Status: runner.StatusCompleted, ExitCode: new(0)}, result)
 }
@@ -386,7 +384,7 @@ func startOperator(
 	ctx, cancel := context.WithCancel(context.WithoutCancel(t.Context()))
 	stopped := make(chan error, 1)
 	go func() { stopped <- cluster.Start(ctx) }()
-	// The run API listens once the cache has synced, which is after the probes answer.
+	// The run API starts to listen after the cache syncs. The probes answer before that.
 	Eventually(func() int {
 		return status("http://" + cfg.APIAddress + "/api/v1/kinds")
 	}, 10*time.Second, 50*time.Millisecond).Should(Equal(http.StatusUnauthorized))
@@ -433,7 +431,7 @@ type client struct {
 	token  string
 }
 
-// do returns the status and the body of the answer. The body is bytes or a reader.
+// do returns the status and the body of the answer. The request body is []byte or an io.Reader.
 func (c *client) do(method, path, contentType string, body any) (int, string) {
 	var reader io.Reader
 	switch value := body.(type) {

@@ -34,8 +34,6 @@ public class OperatorCommandExecutionTests
         Assert.Equal("previous-state", payload.State);
     }
 
-    // --- Authorization ---
-
     [Fact]
     public async Task Execute_TokenRotated_SendsNewTokenOnNextCallback()
     {
@@ -97,8 +95,6 @@ public class OperatorCommandExecutionTests
             Assert.Single(fixture.CallbackRouter.LogEntries).RequestMessage.Headers!.ContainsKey("Authorization")
         );
     }
-
-    // --- Response classification ---
 
     [Fact]
     public async Task Execute_EmptySuccessBody_ReturnsSuccessWithoutState()

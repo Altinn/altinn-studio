@@ -13,7 +13,7 @@ using WorkflowEngine.Telemetry.Extensions;
 namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 
 /// <summary>
-/// Handles "operator" commands by calling the core operator's callback router, which runs the step.
+/// Calls the core operator's callback router for "operator" commands. The router runs the step.
 /// </summary>
 internal sealed partial class OperatorCommand : Command<OperatorCommandData, OperatorWorkflowContext>
 {
@@ -53,7 +53,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         if (commandData is null || string.IsNullOrWhiteSpace(commandData.CommandKey))
             return new CommandValidationResult.Invalid("OperatorCommand requires a 'commandKey' in command data");
 
-        // The key becomes one path segment under the callback router, so it must not escape it.
+        // The key becomes one path segment under the callback router, so it must not point outside the router.
         if (!CommandKeyPattern().IsMatch(commandData.CommandKey))
             return new CommandValidationResult.Invalid(
                 "OperatorCommand requires a 'commandKey' of letters, digits, '.', '-' and '_' that starts with a letter or digit"
@@ -115,7 +115,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                // Without a token, the operator would refuse the callback and fail the step for good. The fault is
+                // Without a token, the operator refuses the callback and fails the step permanently. The fault is
                 // this pod's, not the step's, so the step retries.
                 _logger.TokenUnavailable(_settings.TokenPath, ex);
                 return ExecutionResult.RetryableError(
@@ -197,7 +197,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
 
         // The operator ends a step with a 422 problem, such as src/core/operator/testdata/callbacks/response-end.json.
-        // The step keeps it as its error as it is, for the operator to read back.
+        // The step keeps the problem unchanged as its error, and the operator reads it back.
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
             return ExecutionResult.CriticalError(errorBody, httpStatusCode: statusCode);
 
@@ -236,7 +236,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
 #pragma warning restore S1075
 
         // The executor cancels the callback when the step's execution budget runs out. HttpClient's default timeout
-        // of 100 seconds would cut off a long poll first.
+        // of 100 seconds would stop a long poll before that.
         client.Timeout = Timeout.InfiniteTimeSpan;
 
         return client;
@@ -248,7 +248,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
 
 internal static partial class OperatorCommandLogs
 {
-    // Log routing fields only. The state is the operator's own data, which the engine stores without reading.
+    // Log routing fields only. The state is the operator's own data, which the engine stores but does not read.
     [LoggerMessage(
         LogLevel.Information,
         "Sending OperatorCommand '{CommandKey}' to {Endpoint} (workflowId: {WorkflowId}, domain: {Domain}, caller: {Caller}, subject: {SubjectId})"

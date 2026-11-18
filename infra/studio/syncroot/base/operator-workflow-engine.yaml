@@ -18,7 +18,7 @@ metadata:
   name: operator-workflow-engine
   namespace: default
 spec:
-  # No targetNamespace: the artifact creates and sets its own namespace.
+  # The artifact creates and sets its own namespace, so this Kustomization sets no targetNamespace.
   interval: 5m
   sourceRef:
     kind: OCIRepository

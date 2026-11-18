@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 
 /// <summary>
-/// Workflow.Context shape for operator commands: what the workflow works on, set by the operator at enqueue.
+/// Workflow.Context shape for operator commands. The operator sets it at enqueue to name what the workflow works on.
 /// </summary>
 internal sealed record OperatorWorkflowContext
 {

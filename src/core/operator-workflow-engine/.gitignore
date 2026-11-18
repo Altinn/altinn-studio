@@ -6,5 +6,4 @@
 bin\\Debug/
 bin\\Release/
 
-# Local appsettings override
 appsettings.Local.json

@@ -40,7 +40,7 @@ internal sealed record OperatorCallbackPayload
     public string? State { get; init; }
 
     /// <summary>
-    /// How many times this step has been retried after a retryable failure since it last deferred.
+    /// How many times the engine retried this step after a retryable failure since its last deferral.
     /// </summary>
     [JsonPropertyName("retryCount")]
     public int RetryCount { get; init; }

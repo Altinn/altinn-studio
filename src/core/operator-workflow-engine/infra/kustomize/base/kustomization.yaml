@@ -10,7 +10,7 @@ resources:
   - deployment.yaml
   - networkpolicy.yaml
 
-# The deploy workflow pins the image in the annotation, and this copies it to the container.
+# The deploy workflow pins the image in the annotation. This replacement copies it to the container.
 replacements:
   - source:
       kind: Deployment

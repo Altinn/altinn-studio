@@ -69,7 +69,7 @@ jobs:
       - name: flux install
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
-      # The build context is src/, since the image also builds the engine library and the common projects.
+      # The build context is src/, because the image also builds the engine library and the common projects.
       - name: docker build
         working-directory: src
         run: |

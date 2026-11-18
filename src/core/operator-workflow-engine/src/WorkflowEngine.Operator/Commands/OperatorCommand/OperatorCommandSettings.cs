@@ -17,8 +17,8 @@ internal sealed record OperatorCommandSettings
 #pragma warning restore S5332
 
     /// <summary>
-    /// The file with the projected ServiceAccount token the command sends as its bearer token. Empty sends no token,
-    /// which only a local operator accepts.
+    /// The file with the projected ServiceAccount token the command sends as its bearer token. An empty path sends no
+    /// token, which only a local operator accepts.
     /// </summary>
     [JsonPropertyName("tokenPath")]
     public string TokenPath { get; set; } = "/var/run/secrets/core-operator/token";

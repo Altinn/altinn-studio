@@ -14,7 +14,7 @@ COPY common/dotnet/Altinn.Studio.Common.Telemetry/ common/dotnet/Altinn.Studio.C
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 COPY core/operator-workflow-engine/ core/operator-workflow-engine/
 
-# Prune host build artifacts, including literal backslash dirs such as `bin\Debug`.
+# Remove local build output. bin* also matches directories with a literal backslash, such as `bin\Debug`.
 RUN find common Runtime core -type d \( -name 'bin*' -o -name 'obj*' \) -prune -exec rm -rf '{}' +
 
 WORKDIR /build/core/operator-workflow-engine/src/WorkflowEngine.Operator

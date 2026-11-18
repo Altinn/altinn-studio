@@ -10,7 +10,7 @@ on:
       - 'src/Runtime/workflow-engine/Directory.Build.props'
       - 'src/Runtime/workflow-engine/Directory.Packages.props'
       - 'src/core/operator-workflow-engine/**'
-      # The core operator, which the integration test runs against this host.
+      # The integration test runs the core operator against this host.
       - 'src/core/operator/**'
       - 'src/common/go/**'
       - '.github/workflows/core-operator-workflow-engine-tests.yaml'
@@ -57,7 +57,7 @@ jobs:
       - name: Test
         run: dotnet test --no-build
 
-  # The operator's own workflow does not run this test, since it does not run when the engine library changes.
+  # The operator's own workflow does not start when the engine library changes, so this workflow runs the test.
   integration:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Integration test with the core operator

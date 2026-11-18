@@ -1,11 +1,11 @@
-# Build context: src/
+# The build context is src/.
 **
 !common/dotnet/Altinn.Studio.Common/**
 !common/dotnet/Altinn.Studio.Common.Telemetry/**
 !Runtime/workflow-engine/**
 !core/operator-workflow-engine/**
 
-# Build outputs, including literal backslash dirs such as `bin\Debug` on macOS
+# bin* and obj* also match directories with a literal backslash, such as `bin\Debug` on macOS.
 **/bin*
 **/bin*/**
 **/obj*
