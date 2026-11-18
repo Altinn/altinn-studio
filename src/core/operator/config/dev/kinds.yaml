@@ -13,7 +13,7 @@ kinds:
     podTemplate: operator-runner
     command: upgrade-v9
     requiresArchive: true
-    labels: [org, app, repoOwner, repo, commit]
+    labels: [org, repoOwner, repo, commit]
     maxActivePerCaller: 1
     # studioctl stops an upgrade after 10 minutes. The run timeout also covers the VM start and the patch.
     runTimeout: 780s

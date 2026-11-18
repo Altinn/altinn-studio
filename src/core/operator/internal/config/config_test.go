@@ -94,10 +94,10 @@ func TestLoadReadsWhetherAKindRequiresAnArchive(t *testing.T) {
 func TestLoadReadsTheLabelsOfAKind(t *testing.T) {
 	RegisterTestingT(t)
 
-	labelsFile := kindsFile + "    labels: [org, app, repoOwner, repo, commit]\n"
+	labelsFile := kindsFile + "    labels: [org, repoOwner, repo, commit]\n"
 	cfg, err := LoadFrom(writeFiles(t, map[string]string{"config.yaml": baseFile, "kinds.yaml": labelsFile}))
 	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg.Kinds["upgrade-v9"].Labels).To(Equal([]string{"org", "app", "repoOwner", "repo", "commit"}))
+	Expect(cfg.Kinds["upgrade-v9"].Labels).To(Equal([]string{"org", "repoOwner", "repo", "commit"}))
 }
 
 func TestLoadRefusesInvalidConfiguration(t *testing.T) {

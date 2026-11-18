@@ -50,7 +50,7 @@ func newAPI(t *testing.T) *apiHarness {
 	_, port := host.Address()
 	kindConfig := config.Kind{
 		Namespace: "sandbox-runs", PodTemplate: "operator-runner", Command: kind, RequiresArchive: true,
-		Labels:             []string{"org", "app", "repoOwner", "repo", "commit"},
+		Labels:             []string{"org", "repoOwner", "repo", "commit"},
 		MaxActivePerCaller: 1, MaxQueuedPerCaller: 2,
 		QueueTimeout: 15 * time.Minute, RunTimeout: 660 * time.Second,
 	}
@@ -152,8 +152,8 @@ func (h *apiHarness) request(
 }
 
 func createBody(kindName, repo string) []byte {
-	body := `{"kind":"` + kindName + `","labels":{"org":"ttd","app":"` + repo + `","repoOwner":"ttd","repo":"` + repo +
-		`","commit":"` + commit + `"}`
+	body := `{"kind":"` + kindName + `","labels":{"org":"ttd","repoOwner":"ttd","repo":"` + repo + `","commit":"` + commit +
+		`"}`
 	return []byte(body + "}")
 }
 
@@ -201,7 +201,7 @@ func TestCreateRunStatusCodes(t *testing.T) {
 	Expect(created.Status).To(Equal(runs.StatusQueued))
 	Expect(*created.QueuePosition).To(Equal(1))
 	Expect(created.Labels).To(Equal(map[string]string{
-		"org": "ttd", "app": "app", "repoOwner": "ttd", "repo": "app", "commit": commit,
+		"org": "ttd", "repoOwner": "ttd", "repo": "app", "commit": commit,
 	}))
 	Expect(res.Body.String()).To(ContainSubstring(`"finishedAt":null`))
 	Expect(res.Body.String()).To(ContainSubstring(`"resultExpiresAt":null`))
@@ -229,16 +229,16 @@ func TestCreateRunStatusCodes(t *testing.T) {
 
 func TestCreateRunRefusesBadRequests(t *testing.T) {
 	h := newAPI(t)
-	labels := `"labels":{"org":"ttd","app":"app","repoOwner":"ttd","repo":"app","commit":"` + commit + `"}`
+	labels := `"labels":{"org":"ttd","repoOwner":"ttd","repo":"app","commit":"` + commit + `"}`
 	cases := map[string]string{
 		"bad kind":       `{"kind":"Upgrade V9",` + labels + `}`,
 		"unknown field":  `{"kind":"upgrade-v9","command":"sh",` + labels + `}`,
 		"not JSON":       `kind=upgrade-v9`,
 		"no labels":      `{"kind":"upgrade-v9"}`,
 		"the old source": `{"kind":"upgrade-v9","source":{"org":"ttd"}}`,
-		"missing label":  `{"kind":"upgrade-v9","labels":{"org":"ttd","app":"app","repoOwner":"ttd","repo":"app"}}`,
-		"bad repo":       `{"kind":"upgrade-v9","labels":{"org":"ttd","app":"app","repoOwner":"ttd","repo":"../x","commit":"` + commit + `"}}`,
-		"unknown label":  `{"kind":"upgrade-v9","labels":{"org":"ttd","app":"app","repoOwner":"ttd","repo":"app","commit":"` + commit + `","branch":"main"}}`,
+		"missing label":  `{"kind":"upgrade-v9","labels":{"org":"ttd","repoOwner":"ttd","repo":"app"}}`,
+		"bad repo":       `{"kind":"upgrade-v9","labels":{"org":"ttd","repoOwner":"ttd","repo":"../x","commit":"` + commit + `"}}`,
+		"unknown label":  `{"kind":"upgrade-v9","labels":{"org":"ttd","repoOwner":"ttd","repo":"app","commit":"` + commit + `","branch":"main"}}`,
 		"label not text": `{"kind":"upgrade-v9","labels":{"org":1}}`,
 	}
 	for name, body := range cases {
@@ -369,7 +369,7 @@ func TestListKinds(t *testing.T) {
 	res := h.request(t, "assistant", http.MethodGet, "/api/v1/kinds", "", nil)
 	Expect(res.Code).To(Equal(http.StatusOK))
 	Expect(res.Body.String()).To(MatchJSON(`{"kinds":[
-		{"name":"upgrade-v9","labels":["org","app","repoOwner","repo","commit"],"requiresArchive":true,
+		{"name":"upgrade-v9","labels":["org","repoOwner","repo","commit"],"requiresArchive":true,
 			"queueTimeoutSeconds":900,"uploadTimeoutSeconds":300,"runTimeoutSeconds":660,"resultTimeoutSeconds":300,
 			"maxDurationSeconds":4380}
 	]}`))

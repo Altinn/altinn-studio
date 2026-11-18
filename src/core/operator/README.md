@@ -69,9 +69,9 @@ catalog lists the label keys of each kind, and a create sends a value for each k
 runs by them, and a dashboard can count runs by them. The command never gets the labels. Labels hold no personal data,
 because the engine's dashboard shows them.
 
-`upgrade-v9` has the labels `org`, `app`, `repoOwner`, `repo` and `commit`. The org and the app come from the app's id,
-and the repository's owner and name from Gitea. They can differ, such as for a copy of an app in a user's own
-repositories.
+`upgrade-v9` has the labels `org`, `repoOwner`, `repo` and `commit`. The org comes from the app's id, so a dashboard
+can show upgrades by service owner. The repository's owner and name come from Gitea. The owner can differ from the org,
+such as for a copy of an app in a user's own repositories.
 
 The workflow's initial state has what the run uses of its kind. Each step passes the state on and adds what it learned,
 such as the pod's address. A run keeps its kind to its end, so a change to the catalog applies to new runs. The queue
@@ -139,7 +139,7 @@ The operator passes `report` on without reading it, so a new kind with its own r
 The assistant and Designer both run `upgrade-v9`, the assistant from its chat and Designer from its UI. Each sees only
 its own runs.
 
-- **Create.** Send the kind and its labels. For `upgrade-v9` these are the app's org and name, the repository's owner
+- **Create.** Send the kind and its labels. For `upgrade-v9` these are the org in the app's id, the repository's owner
   and name, and the commit that you will upload. After a timeout or a restart, create again: the operator answers with
   the run in progress.
 - **Find.** `GET /api/v1/runs?labelSelector=repoOwner=…,repo=…,commit=…` lists your runs of that commit, newest first.

@@ -30,11 +30,11 @@ const (
 )
 
 // appLabels are the labels of the test kinds, as upgrade-v9 has them.
-var appLabels = []string{"org", "app", "repoOwner", "repo", "commit"}
+var appLabels = []string{"org", "repoOwner", "repo", "commit"}
 
-// testLabels are the labels of a run of the app ttd/app at testCommit.
-func testLabels(app string) map[string]string {
-	return map[string]string{"org": "ttd", "app": app, "repoOwner": "ttd", "repo": app, "commit": testCommit}
+// testLabels are the labels of a run of the repository ttd/repo at testCommit.
+func testLabels(repo string) map[string]string {
+	return map[string]string{"org": "ttd", "repoOwner": "ttd", "repo": repo, "commit": testCommit}
 }
 
 func testConfig() *config.Config {
@@ -122,10 +122,10 @@ func gzipArchive(t *testing.T, content string) []byte {
 	return buffer.Bytes()
 }
 
-// create creates a run of testKind for the app and fails the test on an error.
-func (h *harness) create(t *testing.T, caller, app string) *Run {
+// create creates a run of testKind for the repository and fails the test on an error.
+func (h *harness) create(t *testing.T, caller, repo string) *Run {
 	t.Helper()
-	run, created, err := h.service.Create(t.Context(), caller, CreateRequest{Kind: testKind, Labels: testLabels(app)})
+	run, created, err := h.service.Create(t.Context(), caller, CreateRequest{Kind: testKind, Labels: testLabels(repo)})
 	if err != nil {
 		t.Fatal(err)
 	}

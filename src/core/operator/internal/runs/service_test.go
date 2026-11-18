@@ -107,7 +107,7 @@ func TestCreateStoresTheRunInTheEngine(t *testing.T) {
 	Expect(stored.State.Namespace).To(Equal("runs-assistant"))
 	Expect(stored.State.Labels).To(Equal(map[string]string{
 		"runId": run.ID, "kind": testKind, "caller": "assistant",
-		"org": "ttd", "app": "app", "repoOwner": "ttd", "repo": "app", "commit": testCommit,
+		"org": "ttd", "repoOwner": "ttd", "repo": "app", "commit": testCommit,
 	}))
 	state, err := parseState(stored.Request.Workflows[0].State)
 	Expect(err).NotTo(HaveOccurred())
@@ -128,12 +128,12 @@ func TestCreateChecksTheKindTheLabelsAndTheQueue(t *testing.T) {
 	for message, change := range map[string]func(map[string]string){
 		"The label repo must be":                              func(l map[string]string) { l["repo"] = "../app" },
 		"The label org must be":                               func(l map[string]string) { l["org"] = "" },
-		"The label app must be":                               func(l map[string]string) { l["app"] = strings.Repeat("a", 101) },
+		"The label repoOwner must be":                         func(l map[string]string) { l["repoOwner"] = strings.Repeat("a", 101) },
 		"A run of the kind upgrade-v9 needs the label commit": func(l map[string]string) { delete(l, "commit") },
 		"The kind upgrade-v9 has no label branch":             func(l map[string]string) { l["branch"] = "main" },
 		"A label key must be":                                 func(l map[string]string) { l["runId"] = "x" },
 		"Send at most 16 labels": func(l map[string]string) {
-			for i := range 12 {
+			for i := range 13 {
 				l[fmt.Sprintf("extra%d", i)] = "x"
 			}
 		},
