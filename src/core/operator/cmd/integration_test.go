@@ -39,7 +39,7 @@ const postgresEnv = "OPERATOR_ENGINE_POSTGRES"
 
 const (
 	engineHost = "../../operator-workflow-engine/src/WorkflowEngine.Operator"
-	namespace  = "sandbox-runs"
+	namespace  = "core-operator-runners"
 	// timeScale cuts the operator's rechecks and its upload timeout to a hundredth. The upload timeout is 3 seconds.
 	timeScale = 0.01
 )
