@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- The receipt page no longer stays blank with placeholder fields when every data type in the app, including the data model, has `autoDeleteOnProcessEnd`. It shows the receipt without attachments. ([Altinn/app-frontend-react#4414](https://github.com/Altinn/app-frontend-react/pull/4414))
+- The receipt page no longer stays blank with placeholder fields when every data type in the app, including the data model, has `autoDeleteOnProcessEnd`. It shows the receipt without attachments. ([#21999](https://github.com/Altinn/altinn-studio/pull/21999))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 
 ## [9.0.0-preview.12] - 2026-11-17
