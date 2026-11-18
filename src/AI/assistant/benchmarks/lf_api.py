@@ -11,15 +11,7 @@ from shared.config import get_config
 
 
 class LangfuseApi:
-    def __init__(
-        self,
-        host: str | None = None,
-        public_key: str | None = None,
-        secret_key: str | None = None,
-    ):
-        # The assistant service names the host LANGFUSE_BASE_URL; accept both, then fall back to its default.
-        env_host = os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
-        host = host or env_host or get_config().LANGFUSE_HOST
+    def __init__(self, public_key: str | None = None, secret_key: str | None = None):
         public_key = public_key or os.environ.get("LANGFUSE_PUBLIC_KEY")
         secret_key = secret_key or os.environ.get("LANGFUSE_SECRET_KEY")
         if not (public_key and secret_key):
@@ -33,7 +25,7 @@ class LangfuseApi:
                 + ", ".join(missing)
                 + " — set them in benchmarks/.env or the environment."
             )
-        self.host = host.rstrip("/")
+        self.host = get_config().LANGFUSE_HOST
         self._client = httpx.Client(base_url=self.host, auth=(public_key, secret_key), timeout=60)
 
     def _get(self, path: str, **params: Any) -> dict:

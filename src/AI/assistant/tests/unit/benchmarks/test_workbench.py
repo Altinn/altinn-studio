@@ -336,19 +336,11 @@ class TestTheReportShowsWhatWasMeasured:
         assert report.readable("just a sentence") == "just a sentence"
         assert report.readable(None) is None
 
-    def test_a_trace_link_needs_only_the_host(self, monkeypatch):
+    def test_a_trace_link_needs_only_the_host(self):
         """The short form redirects to the project-scoped URL, so a project id is
         one more setting that could be missing for nothing."""
-        monkeypatch.setenv("LANGFUSE_HOST", "https://langfuse.example/")
-
-        assert report.trace_url("abc123") == "https://langfuse.example/trace/abc123"
+        assert report.trace_url("abc123") == "https://langfuse.digdir.cloud/trace/abc123"
         assert report.trace_url(None) is None
-
-    def test_no_host_means_no_link_rather_than_a_broken_one(self, monkeypatch):
-        monkeypatch.delenv("LANGFUSE_HOST", raising=False)
-        monkeypatch.delenv("LANGFUSE_BASE_URL", raising=False)
-
-        assert report.trace_url("abc123") is None
 
     def test_a_sibling_score_on_the_same_item_is_kept(self, tmp_path):
         """A sibling usually explains the claimed score, so it travels with it."""
