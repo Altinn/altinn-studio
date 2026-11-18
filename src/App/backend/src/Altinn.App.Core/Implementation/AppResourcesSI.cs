@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.Platform.Storage.Interface.Models;
@@ -340,9 +341,14 @@ internal sealed class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetCalculationConfiguration(string dataTypeId)
+    public CalculationConfig? GetCalculationConfig(string dataTypeId)
     {
-        return ToStringOrNull(_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration);
+        if (_appFiles.Current.GetModelFiles(dataTypeId)?.CalculationConfiguration is not { } bytes)
+        {
+            return null;
+        }
+
+        return CalculationConfig.Parse(bytes, $"models/{dataTypeId}.calculation.json");
     }
 
     /// <summary>

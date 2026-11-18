@@ -164,6 +164,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public async Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier)
     {
+        // A data element staged for creation is served from its change, so what data processors write to it is
+        // what gets saved
+        if (GetFormDataChangeForCreation(dataElementIdentifier) is { } formDataChange)
+        {
+            return formDataChange.CurrentFormDataWrapper;
+        }
+
         return await _formDataCache.GetOrCreate(
             dataElementIdentifier,
             async () =>
@@ -252,6 +259,25 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
+        if (GetChangeForCreation(dataElementIdentifier) is { } creationChange)
+        {
+            switch (creationChange)
+            {
+                case FormDataChange formDataChange:
+                    // Serialized now, as data processors may have changed the form data since it was staged
+                    var (serialized, _) = _modelSerializationService.SerializeToStorage(
+                        formDataChange.CurrentFormDataWrapper.BackingData<object>(),
+                        formDataChange.DataType,
+                        null
+                    );
+                    return serialized;
+                case BinaryDataChange binaryDataChange:
+                    return binaryDataChange.CurrentBinaryData;
+                default:
+                    throw new UnreachableException("Created change must be a form or binary data change");
+            }
+        }
+
         // Verify that the data element exists on the instance
         GetDataElement(dataElementIdentifier);
 
@@ -266,6 +292,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
     {
+        // A data element staged for creation has a staged DataElement until the change is saved
+        if (GetChangeForCreation(dataElementIdentifier)?.DataElement is { } stagedDataElement)
+        {
+            return stagedDataElement;
+        }
+
         if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
         {
             throw new InvalidOperationException("Cannot access instance data before it has been created");
@@ -503,6 +535,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _pendingDataElementLockStatuses[change.DataElementIdentifier] = locked;
         }
     }
+
+    private DataElementChange? GetChangeForCreation(DataElementIdentifier dataElementIdentifier) =>
+        _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier);
+
+    private FormDataChange? GetFormDataChangeForCreation(DataElementIdentifier dataElementIdentifier) =>
+        GetChangeForCreation(dataElementIdentifier) as FormDataChange;
 
     private DataElement CreateStagedDataElement(DataType dataType, string contentType, string? filename = null) =>
         new()

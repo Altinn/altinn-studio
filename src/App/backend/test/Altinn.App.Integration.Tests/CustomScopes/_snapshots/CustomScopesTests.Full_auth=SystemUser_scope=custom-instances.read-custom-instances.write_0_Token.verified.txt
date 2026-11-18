@@ -1,16 +1,25 @@
 ﻿{
   actual_iss: localtest,
   authorization_details: {
-    ValueKind: Object
+    type: urn:altinn:systemuser,
+    systemuser_id: [
+      Guid_1
+    ],
+    system_id: 913312465_sbs,
+    systemuser_org: {
+      authority: iso6523-actorid-upis,
+      ID: 0192:950474084
+    }
   },
-  client_id: Guid_1,
+  client_id: Guid_2,
   consumer: {
-    ValueKind: Object
+    authority: iso6523-actorid-upis,
+    ID: 0192:913312465
   },
   exp: {Scrubbed},
   iat: {Scrubbed},
   iss: https://platform.tt02.altinn.no/authentication/api/v1/openid/,
-  jti: Guid_2,
+  jti: Guid_3,
   nbf: {Scrubbed},
   scope: custom:instances.read custom:instances.write,
   token_type: Bearer,

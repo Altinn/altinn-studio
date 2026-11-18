@@ -16,20 +16,24 @@
     ],
     "calculationConfig": {
         "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
-        "calculations": {
-            "form.nameResultBoolean": {
+        "calculations": [
+            {
+                "field": "form.nameResultBoolean",
                 "expression": ["equals", ["dataModel", "form.name"], "none"]
             },
-            "form.emailResultBoolean": {
+            {
+                "field": "form.emailResultBoolean",
                 "expression": ["equals", ["dataModel", "form.email"], "none"]
             },
-            "form.nameResultNumber": {
+            {
+                "field": "form.nameResultNumber",
                 "expression": ["equals", ["dataModel", "form.name"], "none"]
             },
-            "form.emailResultNumber": {
+            {
+                "field": "form.emailResultNumber",
                 "expression": ["equals", ["dataModel", "form.email"], "none"]
             }
-        }
+        ]
     },
     "formData": {
         "form": {
