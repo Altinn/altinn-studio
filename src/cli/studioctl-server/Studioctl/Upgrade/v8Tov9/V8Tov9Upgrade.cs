@@ -1695,6 +1695,30 @@ internal static class V8Tov9Upgrade
 
             var layoutSetDirectories = Directory.GetDirectories(uiPath);
             var collidingProcessorNames = layoutSetDirectories
+                .Where(directory =>
+                {
+                    var layout = Path.GetFileName(directory);
+                    var existingProcessor = File.Exists(
+                        Path.Combine(
+                            projectFolder,
+                            "App",
+                            "logic",
+                            "ConvertedLegacyRules",
+                            CSharpCodeGenerator.ProcessorClassName(layout) + ".cs"
+                        )
+                    );
+                    var configPath = Path.Combine(directory, "RuleConfiguration.json");
+                    if (!File.Exists(configPath))
+                        return existingProcessor;
+                    var config = new RuleConfigurationParser(configPath);
+                    config.Parse();
+                    expressions.ConvertedRules.TryGetValue(layout, out var converted);
+                    expressions.ManualRules.TryGetValue(layout, out var manual);
+                    return config
+                            .GetDataProcessingRules()
+                            .Keys.Any(id => converted?.Contains(id) != true && manual?.Contains(id) != true)
+                        || existingProcessor;
+                })
                 .GroupBy(
                     directory => CSharpCodeGenerator.ProcessorClassName(Path.GetFileName(directory)),
                     StringComparer.OrdinalIgnoreCase
