@@ -32,7 +32,11 @@ export function CanvasFrame({ title, children }: CanvasFrameProps): ReactElement
     const frame = frameRef.current;
     if (!frame) return;
     const handleLoad = (): void => setCanvasDocument(frame.contentDocument);
-    if (frame.contentDocument?.readyState === 'complete' && frame.contentDocument.body)
+    // Until the srcDoc has loaded, the frame holds an empty about:blank document that also reports
+    // complete. Rendering into it would leave the canvas in a document that is replaced: popovers in
+    // it, like the date picker's, then throw when they are toggled.
+    const document = frame.contentDocument;
+    if (document?.URL === 'about:srcdoc' && document.readyState === 'complete' && document.body)
       handleLoad();
     frame.addEventListener('load', handleLoad);
     return () => frame.removeEventListener('load', handleLoad);
