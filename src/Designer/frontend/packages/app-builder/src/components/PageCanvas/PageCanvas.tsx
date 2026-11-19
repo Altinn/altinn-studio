@@ -167,42 +167,52 @@ function ComponentGrid({ components, addFlow }: ComponentGridProps): ReactElemen
       <InsertLine className={classes.fullWidth} onClick={() => openAddBox(placement)} />
     );
 
-  const renderComponent = (component: LayoutComponent): ReactElement => (
-    <Fragment key={component.id}>
-      {renderInsertPoint(
-        { kind: 'before', componentId: component.id },
-        isAddingBefore(component.id),
-      )}
-      <EditableComponent
-        component={component}
-        preview={
-          <ComponentPreview
+  const renderComponent = (component: LayoutComponent): ReactElement => {
+    const before: Placement = { kind: 'before', componentId: component.id };
+    const isAdding = isAddingBefore(component.id);
+    return (
+      <Fragment key={component.id}>
+        {isAdding && <AddArea placement={before} addFlow={addFlow} className={classes.fullWidth} />}
+        {/* The line sits in the component's cell, so two half-width fields stay side by side. */}
+        <div
+          className={cn(classes.cell, {
+            [classes.fullWidth]: getWidth(component) !== 'half',
+          })}
+        >
+          {!isAdding && (
+            <InsertLine className={classes.cellInsertLine} onClick={() => openAddBox(before)} />
+          )}
+          <EditableComponent
             component={component}
-            isSelected={selectedComponentId === component.id}
-          />
-        }
-        className={getWidth(component) === 'half' ? undefined : classes.fullWidth}
-        onDelete={() => requestDelete(component.id)}
-      />
-      {selectedComponentId === component.id && openSettings === 'component' && (
-        <div className={classes.fullWidth}>
-          <ComponentSettingsPanel
-            component={component}
+            preview={
+              <ComponentPreview
+                component={component}
+                isSelected={selectedComponentId === component.id}
+              />
+            }
             onDelete={() => requestDelete(component.id)}
           />
         </div>
-      )}
-      {isGroup(component) && (
-        <div className={cn(classes.fullWidth, classes.groupChildren)}>
-          {getChildComponents(layout, component).map(renderComponent)}
-          {renderInsertPoint(
-            { kind: 'inGroup', groupId: component.id },
-            isAddingInGroup(component.id),
-          )}
-        </div>
-      )}
-    </Fragment>
-  );
+        {selectedComponentId === component.id && openSettings === 'component' && (
+          <div className={classes.fullWidth}>
+            <ComponentSettingsPanel
+              component={component}
+              onDelete={() => requestDelete(component.id)}
+            />
+          </div>
+        )}
+        {isGroup(component) && (
+          <div className={cn(classes.fullWidth, classes.groupChildren)}>
+            {getChildComponents(layout, component).map(renderComponent)}
+            {renderInsertPoint(
+              { kind: 'inGroup', groupId: component.id },
+              isAddingInGroup(component.id),
+            )}
+          </div>
+        )}
+      </Fragment>
+    );
+  };
 
   return (
     <div className={classes.grid} data-canvas-background=''>

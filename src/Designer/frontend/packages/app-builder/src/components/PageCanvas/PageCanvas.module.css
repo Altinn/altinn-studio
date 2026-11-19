@@ -49,6 +49,23 @@
   grid-column: 1 / -1;
 }
 
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Centred in the gap above the component, without taking up a row of its own. */
+.cellInsertLine {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--ds-size-3) / -2 - var(--ds-size-2));
+  right: 0;
+  left: 0;
+  margin: 0;
+}
+
 /* The children of a group follow it, marked by a line on the left. */
 .groupChildren {
   display: grid;
