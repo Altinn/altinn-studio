@@ -1085,9 +1085,9 @@ public sealed class StorageCallRewriterTests : IDisposable
                         }
                     }
 
-                    public class InstantiationProcessor(DataClientWrapper wrapper) : IInstantiationProcessor
+                    public class Hook(DataClientWrapper wrapper) : IProcessTaskEnd
                     {
-                        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+                        public async Task End(string taskId, Instance instance)
                         {
                             var model = new Model();
                             await wrapper.CreateDataModel(instance, "vedlegg", model);
@@ -1097,7 +1097,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                     }
                     """,
                 "await dataClient.UpdateFormData(instance, model, element);",
-                "DataClientWrapper.UpdateDataModel writes dataType right after InstantiationProcessor.DataCreation added it; in v9 an added element is saved as it is at the end of the step, and ReplaceFormData cannot target it. Give the add path its own code that changes the object it passes to AddFormDataElement."
+                "DataClientWrapper.UpdateDataModel writes dataType right after Hook.End added it; in v9 an added element is saved as it is at the end of the step, and ReplaceFormData cannot target it. Give the add path its own code that changes the object it passes to AddFormDataElement."
             },
             {
                 "a read with an authentication method the code passes on",
