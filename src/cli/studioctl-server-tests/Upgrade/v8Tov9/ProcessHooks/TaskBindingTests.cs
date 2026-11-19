@@ -88,7 +88,7 @@ public sealed class TaskBindingTests : IDisposable
             private async Task UpdateData({{IInstanceDataMutator}} dataMutator, InstanceIdentifier instanceIdentifier, DataElement modelData, AllocatedCaseNumber model)
             {
                 var modelDataId = Guid.Parse(modelData.Id);
-                await dataMutator.ReplaceFormData(new {{DataElementIdentifier}}(modelDataId), model);
+                (await dataMutator.GetFormDataWrapper(new {{DataElementIdentifier}}(modelDataId))).ReplaceBackingData(model);
             }
         }
         """;
@@ -484,7 +484,7 @@ public sealed class TaskBindingTests : IDisposable
             {
                 Instance instance = dataMutator.Instance;
                 var element = instance.Data.First(d => d.DataType == "kvittering");
-                await dataMutator.ReplaceFormData(element, new Kvittering { A = "x" });
+                (await dataMutator.GetFormDataWrapper(element)).ReplaceBackingData(new Kvittering { A = "x" });
             }
         }
         """;
@@ -547,7 +547,7 @@ public sealed class TaskBindingTests : IDisposable
             {
                 Instance instance = dataMutator.Instance;
                 var element = instance.Data.First(d => d.DataType == "kvittering");
-                await dataMutator.ReplaceFormData(element, new Kvittering { A = "x" });
+                (await dataMutator.GetFormDataWrapper(element)).ReplaceBackingData(new Kvittering { A = "x" });
             }
         }
         """;
@@ -593,7 +593,7 @@ public sealed class TaskBindingTests : IDisposable
                 if (taskId == "Task_1")
                 {
                     var element = instance.Data.First(d => d.DataType == "kvittering");
-                    await dataMutator.ReplaceFormData(element, new Kvittering { A = "x" });
+                    (await dataMutator.GetFormDataWrapper(element)).ReplaceBackingData(new Kvittering { A = "x" });
                 }
                 return {{HandlerResult}}.Success();
             }
@@ -632,7 +632,7 @@ public sealed class TaskBindingTests : IDisposable
                 if (taskId == "Task_2")
                 {
                     var element = instance.Data.First(d => d.Id == instance.DataValues!["skjemaId"]);
-                    await dataMutator.ReplaceFormData(element, new Skjema { A = "x" });
+                    (await dataMutator.GetFormDataWrapper(element)).ReplaceBackingData(new Skjema { A = "x" });
                 }
                 return {{HandlerResult}}.Success();
             }
@@ -884,7 +884,7 @@ public sealed class TaskBindingTests : IDisposable
                 {
                     var identifier = new InstanceIdentifier(instance);
                     var model = instance.Data.First(d => d.DataType == "model");
-                    await dataMutator.ReplaceFormData(model, new Model { A = "x" });
+                    (await dataMutator.GetFormDataWrapper(model)).ReplaceBackingData(new Model { A = "x" });
                     var element = instance.Data.First(d => d.Id == instance.DataValues!["formId"]);
                     object form = await dataMutator.GetFormData(element);
                 }

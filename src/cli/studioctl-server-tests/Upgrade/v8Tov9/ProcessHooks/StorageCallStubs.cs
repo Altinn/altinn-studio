@@ -215,6 +215,11 @@ internal static class StorageCallStubs
             using Altinn.App.Core.Models;
             using Altinn.Platform.Storage.Interface.Models;
 
+            public interface IFormDataWrapper
+            {
+                void ReplaceBackingData(object dataModel);
+            }
+
             public interface IDataClient
             {
                 Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default) where T : notnull;
@@ -326,6 +331,7 @@ internal static class StorageCallStubs
                 string? Language { get; }
                 IReadOnlyCollection<DataType> DataTypes { get; }
                 Task<object> GetFormData(DataElementIdentifier dataElementIdentifier);
+                Task<Altinn.App.Core.Internal.Data.IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier);
                 Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier);
                 DataElement GetDataElement(DataElementIdentifier dataElementIdentifier);
                 void OverrideAuthenticationMethod(DataType dataType, StorageAuthenticationMethod method);
@@ -345,7 +351,6 @@ internal static class StorageCallStubs
                 BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, List<KeyValueEntry>? metadata = null);
                 BinaryDataChange UpdateBinaryDataElement(DataElementIdentifier dataElementIdentifier, string contentType, ReadOnlyMemory<byte> bytes);
                 void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
-                Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model) where T : class;
             }
 
             public interface IInstantiationProcessor

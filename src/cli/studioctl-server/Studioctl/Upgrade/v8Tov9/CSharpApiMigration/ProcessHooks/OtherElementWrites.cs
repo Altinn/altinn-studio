@@ -111,8 +111,7 @@ internal static class OtherElementWrites
                 $"{write.Model.Name} is read from {read.DataType}, changed and written to {write.DataType}. v8 saved the "
                     + $"changes in {write.DataType} only; v9 saves them in {read.DataType} too, since "
                     + $"{rewrite.Mutator}.GetFormData returns the model the transition saves. To keep {read.DataType} as it "
-                    + $"was, write {write.Model.Name} to {write.DataType} before changing it, and change the object "
-                    + "ReplaceFormData returns."
+                    + $"was, change a copy of {write.Model.Name}."
             );
         }
     }

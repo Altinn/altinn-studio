@@ -413,7 +413,7 @@ internal sealed class StorageCallRewriter(
         {
             "InsertFormData" => $"{rewrite.Mutator}.AddFormDataElement",
             "InsertBinaryData" => $"{rewrite.Mutator}.AddBinaryDataElement",
-            "UpdateData" or "UpdateFormData" => $"{rewrite.Mutator}.ReplaceFormData",
+            "UpdateData" or "UpdateFormData" => $"{rewrite.Mutator}.GetFormDataWrapper(...).ReplaceBackingData",
             "UpdateBinaryData" => $"{rewrite.Mutator}.UpdateBinaryDataElement",
             "DeleteData" or "DeleteBinaryData" => $"{rewrite.Mutator}.RemoveDataElement",
             "Update" => "IDataClient.Update outside the transition (the mutator cannot save element metadata)",
@@ -977,8 +977,8 @@ internal sealed class StorageCallRewriter(
             rewrite.Todo(
                 call.Syntax,
                 $"{call.DisplayName} writes {added.DataType} right after {rewrite.Entry.Name} added it; in v9 an added "
-                    + "element is saved as it is at the end of the step, and ReplaceFormData cannot target it. Change the "
-                    + "object passed to AddFormDataElement instead."
+                    + "element is saved as it is at the end of the step, and its form cannot be replaced before it is saved. "
+                    + "Change the object passed to AddFormDataElement instead."
             );
             return;
         }
@@ -998,15 +998,24 @@ internal sealed class StorageCallRewriter(
                 $"{rewrite.Method.ContainingType.Name}.{rewrite.Method.Name} writes {dataType?.ToString() ?? "a form"} "
                     + $"right after {earlier.Entry.Name} added it"
                     + (others.Count > 0 ? $", and also from {string.Join(", ", others)}" : "")
-                    + "; in v9 an added element is saved as it is at the end of the step, and ReplaceFormData cannot "
-                    + "target it. Give the add path its own code that changes the object it passes to AddFormDataElement."
+                    + "; in v9 an added element is saved as it is at the end of the step, and its form cannot be replaced "
+                    + "before it is saved. Give the add path its own code that changes the object it passes to "
+                    + "AddFormDataElement."
             );
             return;
         }
 
         var mutator = Piece.Fixed(rewrite.MutatorExpression());
-        var replace = Piece.Expression("$0.ReplaceFormData($1, $2)", mutator, id, Piece.Of(modelExpression));
-        if (!StagedAsync(rewrite, call, replace, id))
+        var wrapper = Piece.Expression("$0.GetFormDataWrapper($1)", mutator, id);
+        var replace = rewrite.IsAsync
+            ? Piece.Statement("(await $0).ReplaceBackingData($1);", wrapper, Piece.Of(modelExpression))
+            : Piece.Statement(
+                "$0.GetAwaiter().GetResult().ReplaceBackingData($1);",
+                wrapper,
+                Piece.Of(modelExpression)
+            );
+        var element = Piece.Expression("$0.GetDataElement($1)", mutator, id);
+        if (!Staged(rewrite, call, [replace], element, target => IsElementArgument(call, target)))
         {
             return;
         }
@@ -1014,72 +1023,10 @@ internal sealed class StorageCallRewriter(
         rewrite.MovedWrites.Add(call);
         rewrite.Moved(
             call.Syntax,
-            $"{call.DisplayName} now replaces the form with {rewrite.Mutator}.ReplaceFormData, which copies "
-                + $"{modelExpression} as it is here into the element's form, as v8 saved it. If {modelExpression} is the "
-                + $"object {rewrite.Mutator}.GetFormData returned for this element, later changes to it are saved too."
+            $"{call.DisplayName} now makes {modelExpression} the element's form with "
+                + $"{rewrite.Mutator}.GetFormDataWrapper(...).ReplaceBackingData. v8 saved {modelExpression} as it was "
+                + "here; v9 saves it as it is when the step ends, so later changes to it are saved too."
         );
-    }
-
-    /// <summary>
-    /// An async mutator call (<c>ReplaceFormData</c>) in place of a client write that returned the element: awaited
-    /// as a statement (waited for in a method that is not async), and the element taken from the mutator where the code
-    /// uses what the call returned.
-    /// </summary>
-    private static bool StagedAsync(MethodRewrite rewrite, StorageClientCall call, Piece staged, Piece id)
-    {
-        var use = call.Use;
-        var statement = use.Statement;
-        var awaited = rewrite.IsAsync
-            ? Piece.Statement("await $0;", staged)
-            : Piece.Statement("$0.GetAwaiter().GetResult();", staged);
-        switch (use.Kind)
-        {
-            case CallUseKind.Statement
-            or CallUseKind.Discard when statement is not null && (use.Awaited || rewrite.IsAsync):
-            case CallUseKind.Assignment when statement is not null && IsElementArgument(call, use.Target):
-                rewrite.ReplaceStatement(statement, awaited);
-                return true;
-            case CallUseKind.Statement or CallUseKind.Discard when statement is not null:
-                // v8 did not wait for the write; the mutator stages it only when it completes, before the step saves.
-                rewrite.ReplaceStatement(statement, Piece.Statement("$0.GetAwaiter().GetResult();", staged));
-                return true;
-            case CallUseKind.Declaration
-            or CallUseKind.Assignment when statement is not null && use.Awaited && use.Target is { } target:
-                var mutator = Piece.Fixed(rewrite.MutatorExpression());
-                var element = Piece.Expression("$0.GetDataElement($1)", mutator, id);
-                var assign =
-                    use.Kind == CallUseKind.Declaration && statement is LocalDeclarationStatementSyntax declaration
-                        ? Piece.Statement($"{declaration.Declaration.Type} {target.Name} = $0;", element)
-                        : Piece.Statement(
-                            $"{((AssignmentExpressionSyntax)((ExpressionStatementSyntax)statement).Expression).Left} = $0;",
-                            element
-                        );
-                rewrite.ReplaceStatement(statement, awaited, assign);
-                return true;
-            case CallUseKind.Return
-                when statement is ReturnStatementSyntax && !rewrite.IsAsync && ReturnsPlainTask(rewrite):
-                rewrite.ReplaceStatement(statement, Piece.Statement("return $0;", staged));
-                return true;
-            case CallUseKind.Return
-                when ArrowBodied(rewrite, call) is not null && !rewrite.IsAsync && ReturnsPlainTask(rewrite):
-                rewrite.Replace(use.Outer, staged);
-                return true;
-            case CallUseKind.Return when ArrowBodied(rewrite, call) is { } arrowMethod && rewrite.IsAsync:
-                var returned = ReturnsPlainTask(rewrite)
-                    ? (Piece[])[]
-                    :
-                    [
-                        Piece.Statement(
-                            "return $0;",
-                            Piece.Expression("$0.GetDataElement($1)", Piece.Fixed(rewrite.MutatorExpression()), id)
-                        ),
-                    ];
-                WithBlockBody(rewrite, arrowMethod, [awaited, .. returned]);
-                return true;
-            default:
-                Unported(rewrite, call, $"it uses the DataElement that {call.Name} returned");
-                return false;
-        }
     }
 
     /// <summary>The rewritten method, when the call is its expression body.</summary>
