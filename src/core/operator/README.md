@@ -48,11 +48,9 @@ Kubernetes types, such as [`internal/sandbox`](internal/sandbox/sandbox.go), and
 
 ## Identities
 
-| Who        | ServiceAccount                                                            | May use               |
-| ---------- | ------------------------------------------------------------------------- | --------------------- |
-| Assistant  | `system:serviceaccount:default:altinn-altinity-agents-sa`                 | Run API, `upgrade-v9` |
-| Designer   | `system:serviceaccount:default:altinn-designer`                           | Run API, `upgrade-v9` |
-| The engine | `system:serviceaccount:operator-workflow-engine:operator-workflow-engine` | Callback API          |
+[config/base](config/base/config.yaml) names the ServiceAccount of each caller of the run API, and the `kinds.yaml` of
+each overlay says which kinds a caller may run. Only the engine's ServiceAccount, a default in
+[internal/config](internal/config/config.go), may use the callback API.
 
 Each sends a projected ServiceAccount token with the audience `operator` as a bearer token. The operator checks
 it with a TokenReview and maps the user name to a caller in its configuration. So no new secret exists, and the callers
@@ -80,17 +78,14 @@ uses the kind's current limits, and fails a queued run whose kind has left the c
 
 Each step is an operator command with a `commandKey`:
 
-| Step                | What the operator does                                                                                    | Defers while            |
-| ------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `run.admit`         | Admits the run when it is among the oldest that fit under the limits of its kind                          | the run is queued       |
-| `run.create-job`    | Creates the Job `run-<runId>` from the kind's PodTemplate                                                 | the quota is full       |
-| `run.await-pod`     | Waits for the pod to be ready, or fails the run. For a kind without an archive, starts the command        | the pod is not ready    |
-| `run.await-archive` | For a kind with an archive: waits until the archive reaches the operator runner, which starts the command | no archive has come     |
-| `run.await-result`  | Reads the operator runner's status until the command has ended, and keeps the outcome                     | the command runs        |
-| `run.cleanup`       | Deletes the Job once the operator runner has handed over the result, or at the result timeout             | the result is not taken |
-
-A kind sets `requiresArchive: true` when its command runs on the files of the caller's archive, as `upgrade-v9` does.
-A run of a kind without it goes from `starting` to `running`, and an upload answers 409.
+| Step                | What the operator does                                                                        | Defers while            |
+| ------------------- | --------------------------------------------------------------------------------------------- | ----------------------- |
+| `run.admit`         | Admits the run when it is among the oldest that fit under the limits of its kind              | the run is queued       |
+| `run.create-job`    | Creates the Job `run-<runId>` from the kind's PodTemplate                                     | the quota is full       |
+| `run.await-pod`     | Waits for the pod to be ready, or fails the run                                               | the pod is not ready    |
+| `run.await-archive` | Waits until the archive reaches the operator runner, which starts the command                 | no archive has come     |
+| `run.await-result`  | Reads the operator runner's status until the command has ended, and keeps the outcome         | the command runs        |
+| `run.cleanup`       | Deletes the Job once the operator runner has handed over the result, or at the result timeout | the result is not taken |
 
 A step that waits answers with a deferral, so the engine calls it again later and the step holds no worker. The wait
 budget of each step bounds how long it may wait. When the queue timeout or the upload timeout has run out, the engine
@@ -196,8 +191,8 @@ repeat. The operator decodes only the fields that its handlers read, so the engi
 ## Telemetry
 
 - `altinn.core_operator.queue.wait.duration` times each run from its create to its admission.
-- The operator's spans of a run carry its id as `altinn.core_operator.subject_id`, as the engine's spans of the run's
-  workflow do.
+- The operator's spans and logs of a run carry its id as `altinn.core_operator.subject_id`, as the engine's spans of the
+  run's workflow do.
 - Before the operator deletes a run's Job, it logs the operator runner's warnings and errors, because the pipeline
   collects no container logs.
 
@@ -223,52 +218,3 @@ The image builds from `src/`, for the shared Go module in [src/common/go](../../
 [deploy workflow](../../../.github/workflows/deploy-core-operator.yaml) pins the image in the Deployment and pushes
 [config](config) as the Flux artifact that
 [infra/studio/syncroot](../../../infra/studio/syncroot/base/core-operator.yaml) deploys.
-
-## Later: run events
-
-Today a caller sees a run's status while it runs, and its output only when it ends. A kind whose command reports while
-it runs needs events. An example is a turn of the assistant on pi, where Designer shows the turn's text as it comes
-([altinn-studio#21855](https://github.com/Altinn/altinn-studio/issues/21855)). Events fit without a change to what
-exists:
-
-- The command declares that it writes events, as it declares its report file. The operator runner numbers the events,
-  keeps them until it exits, and serves those after a number that the client gives.
-- The operator reads the events from the operator runner, as it reads the result, so the sandbox needs no route to the
-  cluster. It passes them on unread at `GET /api/v1/runs/{id}/events`.
-- The events do not go through the engine. Each callback carries the workflow's state, so events there would make
-  every callback larger.
-- After a rollout of the operator, the caller asks again from its last event. This works because the operator runner
-  keeps the events, not the operator.
-
-Two chat threads on the same commit each need their own run, so a kind for a turn has a label for the thread.
-
-## Later: Maskinporten clients
-
-Maskinporten client provisioning can move here from the runtime operator without new plumbing:
-
-- The callback router groups its handlers by domain (`run.*` now, `maskinporten.*` later), and the configuration
-  turns groups on. So the same binary can run as a second Deployment with its own ServiceAccount and workload
-  identity, and the Maskinporten supplier key stays out of the pod that creates Jobs.
-- Each domain has its own engine namespaces, so the engine's failure-storm throttling can protect the Maskinporten API.
-- A Maskinporten API adds `/api/v1/maskinporten-clients` beside `/api/v1/runs`.
-
-This sketch is input for the ADR that decides it. The operator stays out of the domain: Designer maps an app to a
-client, and the operator sees only opaque keys, scopes and a place to put the key.
-
-- Designer owns the intent: the clients, their scopes, and where each private key goes. When it deploys an app, it
-  calls `PUT /api/v1/maskinporten-clients/{clientKey}` with the scopes and the delivery target. It calls `DELETE` when
-  it removes the app.
-- The operator enqueues a workflow in the namespace `maskinporten-<caller>`, keyed on the client key and a hash of the
-  request, so a repeated deploy with the same scopes changes nothing. The steps:
-  - `maskinporten.ensure-client` finds or creates the client, and sets its scopes.
-  - `maskinporten.ensure-key` makes a key pair and uploads the public key.
-  - `maskinporten.deliver-key` writes the private key to the delivery target, such as a Key Vault secret that the
-    runtime operator syncs into the app.
-  - `maskinporten.prune-keys` removes keys that are no longer in use.
-- A sweep in the operator enqueues a rotation workflow for each key at its rotation age, because the engine has no
-  recurring workflows yet.
-- The crypto code, the self-service API client and the planner move from the runtime operator into `src/common/go`.
-  Designer sends the names of the existing clients as their keys, so the operator adopts them, and the runtime
-  operator stops managing them one ring at a time.
-- The ADR must decide how a key reaches a runtime cluster, who owns the supplier client, and how app pods restart
-  after a rotation.
