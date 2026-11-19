@@ -40,8 +40,8 @@ type Options struct {
 }
 
 type Cluster struct {
-	mgr  ctrl.Manager
-	pods corev1client.PodsGetter
+	manager ctrl.Manager
+	pods    corev1client.PodsGetter
 }
 
 // Runnable is work that starts with the cluster and stops when its context ends. A Runnable with a method
@@ -82,7 +82,7 @@ func New(opts Options) (*Cluster, error) {
 		byObject[&corev1.ResourceQuota{}] = cache.ByObject{Namespaces: namespaces}
 	}
 
-	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
+	manager, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme:                  scheme,
 		Metrics:                 metricsserver.Options{BindAddress: "0"},
 		HealthProbeBindAddress:  opts.ProbeAddress,
@@ -92,37 +92,37 @@ func New(opts Options) (*Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create the manager: %w", err)
 	}
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+	if err := manager.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		return nil, fmt.Errorf("add health check: %w", err)
 	}
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+	if err := manager.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		return nil, fmt.Errorf("add ready check: %w", err)
 	}
 	pods, podsErr := corev1client.NewForConfig(restConfig)
 	if podsErr != nil {
 		return nil, fmt.Errorf("create the client for pod logs: %w", podsErr)
 	}
-	return &Cluster{mgr: mgr, pods: pods}, nil
+	return &Cluster{manager: manager, pods: pods}, nil
 }
 
 func (c *Cluster) Add(r Runnable) error {
-	if err := c.mgr.Add(r); err != nil {
+	if err := c.manager.Add(r); err != nil {
 		return fmt.Errorf("add to the manager: %w", err)
 	}
 	return nil
 }
 
 func (c *Cluster) Start(ctx context.Context) error {
-	if err := c.mgr.Start(ctx); err != nil {
+	if err := c.manager.Start(ctx); err != nil {
 		return fmt.Errorf("run the manager: %w", err)
 	}
 	return nil
 }
 
 func (c *Cluster) Sandbox() *Sandbox {
-	return &Sandbox{Client: c.mgr.GetClient(), Reader: c.mgr.GetAPIReader(), Pods: c.pods}
+	return &Sandbox{Client: c.manager.GetClient(), Reader: c.manager.GetAPIReader(), Pods: c.pods}
 }
 
 func (c *Cluster) TokenReviewer() TokenReviewer {
-	return TokenReviewer{Client: c.mgr.GetClient()}
+	return TokenReviewer{Client: c.manager.GetClient()}
 }

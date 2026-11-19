@@ -15,6 +15,7 @@ import (
 	"altinn.studio/core-operator/internal/logging"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/sandbox"
+	"altinn.studio/core-operator/internal/telemetry"
 )
 
 var (
@@ -78,7 +79,6 @@ func NewService(
 type Kind struct {
 	Name                 string   `json:"name"`
 	Labels               []string `json:"labels"`
-	RequiresArchive      bool     `json:"requiresArchive"`
 	QueueTimeoutSeconds  int      `json:"queueTimeoutSeconds"`
 	UploadTimeoutSeconds int      `json:"uploadTimeoutSeconds"`
 	RunTimeoutSeconds    int      `json:"runTimeoutSeconds"`
@@ -92,17 +92,12 @@ func (s *Service) Kinds(caller string) []Kind {
 	for _, name := range names {
 		kind := s.cfg.Kinds[name]
 		spec := specOf(kind, s.cfg.TimeScale)
-		uploadTimeout := scaled(config.UploadTimeout, spec.TimeScale)
-		if !spec.RequiresArchive {
-			uploadTimeout = 0
-		}
 		kinds = append(kinds, Kind{
 			Name: name,
 			// An empty list, not null, for a kind without labels.
 			Labels:               append([]string{}, kind.Labels...),
-			RequiresArchive:      spec.RequiresArchive,
 			QueueTimeoutSeconds:  int(kind.QueueTimeout / time.Second),
-			UploadTimeoutSeconds: int(uploadTimeout / time.Second),
+			UploadTimeoutSeconds: int(scaled(config.UploadTimeout, spec.TimeScale) / time.Second),
 			RunTimeoutSeconds:    int(kind.RunTimeout / time.Second),
 			ResultTimeoutSeconds: int(scaled(config.ResultTimeout, spec.TimeScale) / time.Second),
 			MaxDurationSeconds:   int(maxDuration(spec) / time.Second),
@@ -147,7 +142,7 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 
 	namespace := EngineNamespace(caller)
 	labels := maps.Clone(request.Labels)
-	labels[workflowLabelKind] = request.Kind
+	labels[config.LabelKind] = request.Kind
 	workflows, err := s.engine.FindByLabels(ctx, namespace, labels, maxFound)
 	if err != nil {
 		return nil, false, fmt.Errorf("%w: %w", ErrUnavailable, err)
@@ -197,7 +192,8 @@ func (s *Service) Create(ctx context.Context, caller string, request CreateReque
 	if err != nil {
 		// The engine has the run, and a second create finds it. A workflow that the engine stored a moment ago is
 		// queued.
-		logging.FromContext(ctx).Info("Read a new run failed", "runId", run.ID, "error", err.Error())
+		logging.FromContext(ctx).Info("Read a new run failed",
+			string(telemetry.AttrSubjectID), run.ID, "error", err.Error())
 		created = &Run{
 			ID: run.ID, Kind: run.Kind, Labels: run.Labels, Status: StatusQueued, CreatedAt: s.clock.Now().UTC(),
 		}
@@ -231,7 +227,7 @@ func locate(ctx context.Context, client *engine.Client, caller, runID string) (*
 	if !ValidRunID(runID) || caller == "" {
 		return nil, ErrNotFound
 	}
-	labels := map[string]string{workflowLabelRunID: runID}
+	labels := map[string]string{config.LabelRunID: runID}
 	workflows, err := client.FindByLabels(ctx, EngineNamespace(caller), labels, 1)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrUnavailable, err)
@@ -243,13 +239,13 @@ func locate(ctx context.Context, client *engine.Client, caller, runID string) (*
 }
 
 func (s *Service) read(workflow *engine.Workflow) *record {
-	rec := readRun(workflow)
-	if rec.Status == StatusQueued {
-		if position, ok := s.queue.Position(rec.ID); ok {
-			rec.QueuePosition = &position
+	found := readRun(workflow)
+	if found.Status == StatusQueued {
+		if position, ok := s.queue.Position(found.ID); ok {
+			found.QueuePosition = &position
 		}
 	}
-	return rec
+	return found
 }
 
 // Get returns a run. With wait, it waits up to MaxWait for the status or the queue position to change.
@@ -289,7 +285,7 @@ func (s *Service) poll(ctx context.Context, workflow *engine.Workflow) *engine.W
 	next, err := s.engine.Get(ctx, workflow.Namespace, workflow.DatabaseID)
 	if err != nil {
 		logging.FromContext(ctx).V(1).Info("Read run during a long poll failed",
-			"runId", workflow.Labels[workflowLabelRunID], "error", err.Error())
+			string(telemetry.AttrSubjectID), workflow.Labels[config.LabelRunID], "error", err.Error())
 		return nil
 	}
 	return next
@@ -309,21 +305,21 @@ func (s *Service) Upload(ctx context.Context, caller, runID string, archive io.R
 	if err != nil {
 		return nil, err
 	}
-	rec := s.read(workflow)
-	if rec.Status != StatusAwaitingArchive {
-		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, rec.Status)
+	run := s.read(workflow)
+	if run.Status != StatusAwaitingArchive {
+		return nil, fmt.Errorf("%w: the run is %s", ErrNotAwaiting, run.Status)
 	}
 
-	if rec.state.UploadBy != nil {
+	if run.state.UploadBy != nil {
 		// An archive that arrives after run.await-archive stops its wait starts the command of a failed run.
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, rec.state.UploadBy.Sub(s.clock.Now()))
+		ctx, cancel = context.WithTimeout(ctx, run.state.UploadBy.Sub(s.clock.Now()))
 		defer cancel()
 	}
-	err = s.host.Start(ctx, rec.state.pod(runID), rec.state.Spec.Command, rec.state.Spec.RunTimeout, archive, size)
+	err = s.host.Start(ctx, run.state.pod(runID), run.state.Spec.Command, run.state.Spec.RunTimeout, archive, size)
 	switch {
 	case err == nil:
-		return &rec.Run, nil
+		return &run.Run, nil
 	case errors.Is(err, context.DeadlineExceeded):
 		return nil, fmt.Errorf("%w: the upload timeout ran out", ErrNotAwaiting)
 	case errors.Is(err, runner.ErrRejected):
@@ -343,22 +339,22 @@ func (s *Service) Result(ctx context.Context, caller, runID string) (io.ReadClos
 	if err != nil {
 		return nil, 0, err
 	}
-	rec := readRun(workflow)
+	run := readRun(workflow)
 	switch {
-	case !rec.Status.Final():
+	case !run.Status.Final():
 		return nil, 0, ErrNotFinished
-	case rec.Status != StatusCompleted:
-		detail := string(rec.Status)
-		if rec.Error != nil {
-			detail += ": " + rec.Error.Detail
+	case run.Status != StatusCompleted:
+		detail := string(run.Status)
+		if run.Error != nil {
+			detail += ": " + run.Error.Detail
 		}
 		return nil, 0, fmt.Errorf("%w: the run is %s", ErrNoResult, detail)
-	case !rec.keepsResult():
+	case !run.keepsResult():
 		// run.cleanup deleted the Job.
 		return nil, 0, ErrExpired
 	}
 
-	body, size, err := s.host.OpenResult(ctx, rec.state.pod(runID))
+	body, size, err := s.host.OpenResult(ctx, run.state.pod(runID))
 	switch {
 	case err == nil:
 		return body, size, nil
@@ -376,9 +372,9 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 	if err != nil {
 		return nil, false, err
 	}
-	rec := s.read(workflow)
-	if rec.Status.Final() {
-		return &rec.Run, false, nil
+	found := s.read(workflow)
+	if found.Status.Final() {
+		return &found.Run, false, nil
 	}
 
 	err = s.engine.Cancel(ctx, workflow.Namespace, workflow.DatabaseID)
@@ -394,8 +390,9 @@ func (s *Service) Cancel(ctx context.Context, caller, runID string) (*Run, bool,
 
 	// The engine stops its calls to the steps of the run, but the Job continues its command to the end. If this release
 	// fails, the garbage collector deletes the Job.
-	if err := release(ctx, s.queue, s.sandbox, rec.state.Spec.Namespace, runID); err != nil {
-		logging.Warn(logging.FromContext(ctx), "Could not release a canceled run", "runId", runID, "error", err.Error())
+	if err := release(ctx, s.queue, s.sandbox, found.state.Spec.Namespace, runID); err != nil {
+		logging.Warn(logging.FromContext(ctx), "Could not release a canceled run",
+			string(telemetry.AttrSubjectID), runID, "error", err.Error())
 	}
 	// The engine stored the cancel, so the run reads as canceled, or as running until its command ends.
 	run, getErr := s.Get(ctx, caller, runID, 0)

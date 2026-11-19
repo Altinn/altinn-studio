@@ -49,14 +49,6 @@ func EngineNamespace(caller string) string {
 	return "runs-" + caller
 }
 
-// The operator puts these labels on each run workflow in the engine, in addition to the labels of the run. They are
-// config.ReservedLabels, so a kind must not have them.
-const (
-	workflowLabelRunID  = "runId"
-	workflowLabelKind   = "kind"
-	workflowLabelCaller = "caller"
-)
-
 // Domain is the domain of run workflows in the workflow context.
 const Domain = "runs"
 

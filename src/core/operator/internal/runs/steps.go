@@ -1,9 +1,6 @@
 package runs
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -25,7 +22,7 @@ const (
 	archiveRecheck = 2 * time.Second
 	resultRecheck  = time.Second
 	cleanupRecheck = 5 * time.Second
-	// resultWait is the operator runner's long poll. It is much shorter than the execution time of run.await-result.
+	// resultWait is the operator runner's long poll, half the execution time of run.await-result.
 	resultWait = 20 * time.Second
 )
 
@@ -57,10 +54,13 @@ func NewSteps(queue *Queue, box sandbox.Sandbox, host *runner.Client) *Steps {
 	return &Steps{queue: queue, sandbox: box, host: host}
 }
 
+// step is a step of the run workflow, with the run that Group loaded from the payload.
+type step func(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error)
+
 // Group is the handler group for runs. The steps of a starting run hold its place in the queue until its Job holds it.
 // This also works in a queue that restarted. A step that ends its run releases the run at once.
 func (s *Steps) Group() callbacks.Group {
-	group := callbacks.Group{
+	steps := map[string]step{
 		StepAdmit:        s.admit,
 		StepCreateJob:    s.createJob,
 		StepAwaitPod:     s.awaitPod,
@@ -68,7 +68,8 @@ func (s *Steps) Group() callbacks.Group {
 		StepAwaitResult:  s.awaitResult,
 		StepCleanup:      s.cleanup,
 	}
-	for key, handler := range group {
+	group := callbacks.Group{}
+	for key, handler := range steps {
 		group[key] = func(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
 			run, err := s.load(ctx, payload)
 			if err != nil {
@@ -77,7 +78,7 @@ func (s *Steps) Group() callbacks.Group {
 			if stepMeanings[key].status == StatusStarting {
 				s.queue.Hold(Work{ID: run.id, Kind: run.state.Kind, Caller: run.caller})
 			}
-			response, err := handler(ctx, payload)
+			response, err := handler(ctx, run, payload)
 			if _, ok := errors.AsType[*callbacks.End](err); ok {
 				if failed := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); failed != nil {
 					logger := logging.FromContext(ctx)
@@ -129,11 +130,7 @@ func (s *Steps) load(ctx context.Context, payload *callbacks.Payload) (*stepRun,
 
 // admit admits the run if it is among the oldest runs that fit in the limits of its kind. A queued run defers. It fails
 // the step on the final check of the engine, after the queue timeout of the kind.
-func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return callbacks.Response{}, err
-	}
+func (s *Steps) admit(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
 	// The engine sends the time it created the step, which stays the same across restarts.
 	work := Work{ID: run.id, Kind: run.state.Kind, Caller: run.caller}
 	admission, err := s.queue.Admit(ctx, work, payload.ExecutionReferenceTime)
@@ -153,12 +150,8 @@ func (s *Steps) admit(ctx context.Context, payload *callbacks.Payload) (callback
 }
 
 // createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full.
-func (s *Steps) createJob(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return callbacks.Response{}, err
-	}
-	err = s.sandbox.CreateJob(ctx, jobOf(run))
+func (s *Steps) createJob(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
+	err := s.sandbox.CreateJob(ctx, jobOf(run))
 	switch {
 	case err == nil:
 		return callbacks.Done(payload.State), nil
@@ -187,13 +180,8 @@ func jobOf(run *stepRun) sandbox.Job {
 	}
 }
 
-// awaitPod waits until the Job's pod is ready, and gives its IP to the next steps. For a kind that requires no archive,
-// it then starts the command.
-func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return callbacks.Response{}, err
-	}
+// awaitPod waits until the Job's pod is ready, and gives its IP to the next steps.
+func (s *Steps) awaitPod(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
 	pod, err := s.sandbox.Pod(ctx, run.state.Spec.Namespace, run.id)
 	if err != nil {
 		return callbacks.Response{}, fmt.Errorf("read the pod: %w", err)
@@ -209,14 +197,7 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 		return callbacks.Response{}, ends(ReasonStartFailed, "The pod stopped before it was ready: "+pod.Detail, nil)
 	case sandbox.PodReady:
 		run.state.PodIP = pod.IP
-		if run.state.Spec.RequiresArchive {
-			run.state.UploadBy = new(s.queue.clock.Now().Add(scaled(config.UploadTimeout, run.state.Spec.TimeScale)))
-			return run.done()
-		}
-		if err = s.startWithoutArchive(ctx, run); err != nil {
-			return callbacks.Response{}, err
-		}
-		run.state.StartedAt = new(s.queue.clock.Now().UTC())
+		run.state.UploadBy = new(s.queue.clock.Now().Add(scaled(config.UploadTimeout, run.state.Spec.TimeScale)))
 		return run.done()
 	case sandbox.PodUnschedulable:
 		waiting = "Waiting for a sandbox node."
@@ -232,13 +213,12 @@ func (s *Steps) awaitPod(ctx context.Context, payload *callbacks.Payload) (callb
 
 // awaitArchive waits until the caller's archive reaches the operator runner, which then starts the command. Only the
 // operator runner knows when the archive arrives, so the step asks it.
-func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return callbacks.Response{}, err
-	}
-
-	_, err = s.host.Status(ctx, run.state.pod(run.id), 0)
+func (s *Steps) awaitArchive(
+	ctx context.Context,
+	run *stepRun,
+	payload *callbacks.Payload,
+) (callbacks.Response, error) {
+	_, err := s.host.Status(ctx, run.state.pod(run.id), 0)
 	switch {
 	case err == nil:
 		run.state.StartedAt = new(s.queue.clock.Now().UTC())
@@ -253,42 +233,9 @@ func (s *Steps) awaitArchive(ctx context.Context, payload *callbacks.Payload) (c
 	}
 }
 
-// startWithoutArchive starts the command of a kind that requires no archive. The operator runner's protocol starts a
-// run with an archive, so the operator sends an empty one. A start that comes again for the same run gets the same
-// answer, so run.await-pod can repeat it.
-func (s *Steps) startWithoutArchive(ctx context.Context, run *stepRun) error {
-	archive, err := emptyArchive()
-	if err != nil {
-		return err
-	}
-	body := bytes.NewReader(archive)
-	err = s.host.Start(ctx, run.state.pod(run.id), run.state.Spec.Command, run.state.Spec.RunTimeout, body, body.Size())
-	if err != nil {
-		return runnerError(ReasonStartFailed, err)
-	}
-	return nil
-}
-
-func emptyArchive() ([]byte, error) {
-	var buffer bytes.Buffer
-	compressed := gzip.NewWriter(&buffer)
-	if err := tar.NewWriter(compressed).Close(); err != nil {
-		return nil, fmt.Errorf("write an empty archive: %w", err)
-	}
-	if err := compressed.Close(); err != nil {
-		return nil, fmt.Errorf("write an empty archive: %w", err)
-	}
-	return buffer.Bytes(), nil
-}
-
 // awaitResult long-polls the operator runner until the command finishes, and keeps its outcome in the state. The status
 // that it reads does not count as a fetch, so the operator runner keeps the result for the caller.
-func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return callbacks.Response{}, err
-	}
-
+func (s *Steps) awaitResult(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
 	status, err := s.host.Status(ctx, run.state.pod(run.id), scaled(resultWait, run.state.Spec.TimeScale))
 	if err != nil {
 		return callbacks.Response{}, runnerError(ReasonRunFailed, err)
@@ -296,8 +243,6 @@ func (s *Steps) awaitResult(ctx context.Context, payload *callbacks.Payload) (ca
 	if status.Status == runner.StatusRunning {
 		return run.wait(payload, resultRecheck, "The command is running."), nil
 	}
-	logging.FromContext(ctx).Info("Run finished", "outcome", status.Status, "exitCode", status.ExitCode,
-		"timedOut", status.TimedOut)
 	run.state.Outcome, run.state.Error = status.Status, status.Error
 	run.state.FinishedAt = new(s.queue.clock.Now().UTC())
 	return run.done()
@@ -317,11 +262,7 @@ func runnerError(reason string, err error) error {
 
 // cleanup deletes the Job after the operator runner of a completed run exits. The operator runner exits after the fetch
 // and its grace time, or at the result timeout. So the result is available while the Job exists.
-func (s *Steps) cleanup(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
-	run, err := s.load(ctx, payload)
-	if err != nil {
-		return callbacks.Response{}, err
-	}
+func (s *Steps) cleanup(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
 	if run.state.Outcome == runner.StatusCompleted && !payload.IsFinalWaitCheck {
 		gone, err := s.sandbox.PodGone(ctx, run.state.Spec.Namespace, run.id, run.state.PodIP)
 		if err != nil {

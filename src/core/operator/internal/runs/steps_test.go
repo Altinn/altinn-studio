@@ -1,11 +1,6 @@
 package runs
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
-	"errors"
-	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -380,29 +375,4 @@ func TestCreateJobRetriesWhenTheAdmissionPolicyRefuses(t *testing.T) {
 	run := h.create(t, "assistant", "key")
 	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
 	Expect(h.call(t, run.ID, StepCreateJob).status).To(Equal(http.StatusServiceUnavailable))
-}
-
-func TestAwaitPodStartsTheCommandOfAKindWithoutArchive(t *testing.T) {
-	RegisterTestingT(t)
-	h := newHarness(t)
-
-	run, created, err := h.service.Create(t.Context(), "assistant", CreateRequest{
-		Kind: noArchiveKind, Labels: testLabels("app"),
-	})
-	Expect(err).NotTo(HaveOccurred())
-	Expect(created).To(BeTrue())
-	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
-	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
-	h.readyPod(run.ID)
-	Expect(h.call(t, run.ID, StepAwaitPod).done()).To(BeTrue())
-	Expect(parseState(h.states[run.ID])).To(HaveField("StartedAt", HaveValue(BeTemporally("==", h.clock.Now()))))
-
-	runID, command, archive, starts := h.host.Snapshot()
-	Expect(runID).To(Equal(run.ID))
-	Expect(command).To(Equal("upgrade-v9"))
-	Expect(starts).To(Equal(1))
-	reader, err := gzip.NewReader(bytes.NewReader(archive))
-	Expect(err).NotTo(HaveOccurred())
-	_, err = tar.NewReader(reader).Next()
-	Expect(errors.Is(err, io.EOF)).To(BeTrue(), "the archive has no files")
 }

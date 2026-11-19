@@ -49,7 +49,7 @@ func newAPI(t *testing.T) *apiHarness {
 	t.Cleanup(host.Close)
 	_, port := host.Address()
 	kindConfig := config.Kind{
-		Namespace: "core-operator-runners", PodTemplate: "operator-runner", Command: kind, RequiresArchive: true,
+		Namespace: "core-operator-runners", PodTemplate: "operator-runner", Command: kind,
 		Labels:             []string{"org", "repoOwner", "repo", "commit"},
 		MaxActivePerCaller: 1, MaxQueuedPerCaller: 2,
 		QueueTimeout: 15 * time.Minute, RunTimeout: 660 * time.Second,
@@ -75,7 +75,7 @@ func newAPI(t *testing.T) *apiHarness {
 		host:    host,
 		box:     box,
 		steps:   callbacks.NewRouter(clk, runs.NewSteps(queue, box, hostClient).Group()),
-		handler: New(service).Handler(),
+		handler: New(service).Routes(),
 	}
 }
 
@@ -444,7 +444,7 @@ func TestListKinds(t *testing.T) {
 	res := h.request(t, "assistant", http.MethodGet, "/api/v1/kinds", "", nil)
 	Expect(res.Code).To(Equal(http.StatusOK))
 	Expect(res.Body.String()).To(MatchJSON(`{"kinds":[
-		{"name":"upgrade-v9","labels":["org","repoOwner","repo","commit"],"requiresArchive":true,
+		{"name":"upgrade-v9","labels":["org","repoOwner","repo","commit"],
 			"queueTimeoutSeconds":900,"uploadTimeoutSeconds":300,"runTimeoutSeconds":660,"resultTimeoutSeconds":300,
 			"maxDurationSeconds":4380}
 	]}`))

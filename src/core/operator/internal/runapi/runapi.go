@@ -41,8 +41,8 @@ func New(service *runs.Service) *API {
 	return &API{service: service}
 }
 
-// Handler routes the run API. The caller must already be in the request context, as auth.RequireCaller puts it.
-func (a *API) Handler() http.Handler {
+// Routes routes the run API. The caller must already be in the request context, as auth.RequireCaller puts it.
+func (a *API) Routes() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/kinds", a.listKinds)
 	mux.HandleFunc("GET /api/v1/runs", a.findRuns)
@@ -129,7 +129,8 @@ func (a *API) getRun(w http.ResponseWriter, r *http.Request) {
 	if text := r.URL.Query().Get("wait"); text != "" {
 		seconds, err := strconv.Atoi(text)
 		if err != nil || seconds < 0 {
-			problem.Write(w, r, http.StatusBadRequest, "wait must be a whole number of seconds from 0 to 30.")
+			detail := fmt.Sprintf("wait must be a whole number of seconds from 0 to %d.", int(runs.MaxWait.Seconds()))
+			problem.Write(w, r, http.StatusBadRequest, detail)
 			return
 		}
 		wait = min(time.Duration(seconds)*time.Second, runs.MaxWait)

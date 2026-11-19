@@ -48,6 +48,8 @@ const (
 	// ResultGrace is how long the operator runner keeps the result after the first fetch, for an interrupted fetch. The
 	// kube tests compare these three times with the PodTemplate of the operator runner.
 	ResultGrace = 30 * time.Second
+	// engineSlack is the time that the engine can take between the steps of a run.
+	engineSlack = time.Minute
 	// MaxLabels is the maximum number of labels for a kind, and so for a caller to send.
 	MaxLabels = 16
 	// MaxNameLength makes sure that a kind name is a valid Kubernetes label value.
@@ -55,17 +57,11 @@ const (
 )
 
 // JobDeadline is the deadline of the Job of a run. It adds the times to start the pod, to receive the archive, to run
-// the command and to keep the result. It also adds one minute for the engine between the steps. Kubernetes stops a Job
-// at its deadline. The deadline must not come before the operator runner gives the result.
+// the command and to keep the result, and the engine's time between the steps. Kubernetes stops a Job at its deadline.
+// The deadline must not come before the operator runner gives the result.
 func JobDeadline(runTimeout time.Duration) time.Duration {
-	return PodBudget + UploadTimeout + runTimeout + ResultTimeout + ResultGrace + time.Minute
+	return PodBudget + UploadTimeout + runTimeout + ResultTimeout + ResultGrace + engineSlack
 }
-
-// GroupRuns is the handler group for sandbox runs. It has the run API, the run.* callbacks and the garbage collector.
-const GroupRuns = "runs"
-
-// knownGroups are the handler groups that handlerGroups can enable.
-var knownGroups = []string{GroupRuns}
 
 var (
 	errInvalid = errors.New("invalid configuration")
@@ -75,8 +71,15 @@ var (
 	labelKeyPattern = regexp.MustCompile(`^[a-z][A-Za-z0-9]*$`)
 )
 
-// ReservedLabels are the labels that the operator itself puts on the workflow of each run. A kind must not have them.
-var ReservedLabels = []string{"runId", "kind", "caller"}
+// The labels that the operator itself puts on the workflow of each run, beside the labels of the run.
+const (
+	LabelRunID  = "runId"
+	LabelKind   = "kind"
+	LabelCaller = "caller"
+)
+
+// ReservedLabels are the labels that the operator sets. A kind must not have them.
+var ReservedLabels = []string{LabelRunID, LabelKind, LabelCaller}
 
 type Config struct {
 	Callers              map[string]Caller `koanf:"callers"`
@@ -87,7 +90,6 @@ type Config struct {
 	APIAddress           string            `koanf:"apiAddress"`
 	CallbackAddress      string            `koanf:"callbackAddress"`
 	ProbeAddress         string            `koanf:"probeAddress"`
-	HandlerGroups        []string          `koanf:"handlerGroups"`
 	// TimeScale shortens the waits and budgets of the operator by this factor, so that a run takes seconds. Only the
 	// integration test in cmd/ sets it. A configuration file cannot set it. Zero does not change them.
 	TimeScale float64 `koanf:"-"`
@@ -106,7 +108,7 @@ type Kind struct {
 	// Namespace holds the PodTemplate and the run Jobs.
 	Namespace   string `koanf:"namespace"`
 	PodTemplate string `koanf:"podTemplate"`
-	// Command is the operator runner's id of the command that a run of this kind runs.
+	// Command is the operator runner's id of the command that a run of this kind runs on the caller's archive.
 	Command string `koanf:"command"`
 	// Labels are the label keys of each run of this kind. The caller sends a value for each and no other key.
 	Labels []string `koanf:"labels"`
@@ -116,9 +118,6 @@ type Kind struct {
 	QueueTimeout       time.Duration `koanf:"queueTimeout"`
 	// RunTimeout is how long the operator runner lets the command run.
 	RunTimeout time.Duration `koanf:"runTimeout"`
-	// RequiresArchive tells if the command runs on the archive of the caller. If false, the operator starts the command
-	// when the pod is ready.
-	RequiresArchive bool `koanf:"requiresArchive"`
 }
 
 // Load reads the configuration from the folder that DirEnv names. A missing folder gives the defaults. A local run
@@ -174,9 +173,6 @@ func (c *Config) applyDefaults() {
 	setDefault(&c.APIAddress, defaultAPIAddress)
 	setDefault(&c.CallbackAddress, defaultCallbackAddress)
 	setDefault(&c.ProbeAddress, defaultProbeAddress)
-	if c.HandlerGroups == nil {
-		c.HandlerGroups = []string{GroupRuns}
-	}
 	for name, kind := range c.Kinds {
 		if kind.MaxQueuedPerCaller == 0 {
 			kind.MaxQueuedPerCaller = defaultMaxQueuedPerCaller
@@ -200,14 +196,6 @@ func (c *Config) Validate() error {
 	var problems []string
 	if u, err := url.Parse(c.EngineURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 		problems = append(problems, fmt.Sprintf("engineURL %q is not an http(s) URL", c.EngineURL))
-	}
-	if len(c.HandlerGroups) == 0 {
-		problems = append(problems, "handlerGroups is empty, so the process would serve nothing")
-	}
-	for _, group := range c.HandlerGroups {
-		if !slices.Contains(knownGroups, group) {
-			problems = append(problems, fmt.Sprintf("handlerGroups has the unknown group %q", group))
-		}
 	}
 	problems = append(problems, c.callerProblems()...)
 	namespaces := map[string]string{}
@@ -343,8 +331,4 @@ func (c *Config) KindNamespaces() []string {
 	}
 	slices.Sort(namespaces)
 	return namespaces
-}
-
-func (c *Config) HandlerGroupEnabled(group string) bool {
-	return slices.Contains(c.HandlerGroups, group)
 }

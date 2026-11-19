@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	. "github.com/onsi/gomega"
 
-	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine"
 )
 
@@ -35,7 +34,7 @@ func TestCreateKeyDependsOnTheKindTheLabelsAndTheRunBefore(t *testing.T) {
 
 	key := createKey(testKind, testLabels("app"), "")
 	Expect(createKey(testKind, testLabels("app"), "")).To(Equal(key))
-	Expect(createKey(noArchiveKind, testLabels("app"), "")).NotTo(Equal(key))
+	Expect(createKey("other-kind", testLabels("app"), "")).NotTo(Equal(key))
 	Expect(createKey(testKind, testLabels("other"), "")).NotTo(Equal(key))
 	Expect(createKey(testKind, testLabels("app"), RunID("assistant", key))).NotTo(Equal(key))
 	moved := testLabels("app")
@@ -73,21 +72,16 @@ func TestEnqueueRequestIsTheSameForTheSameRun(t *testing.T) {
 	Expect(string(first.Context)).To(MatchJSON(`{"domain":"runs","caller":"assistant","subjectId":"` + id + `"}`))
 }
 
-// The engine calls the operator for each step in the order of the run. The run's status reads what each step means. A
-// kind without an archive has no step that waits for one.
+// The engine calls the operator for each step in the order of the run. The run's status reads what each step means.
 func TestARunHasItsStepsInOrder(t *testing.T) {
 	RegisterTestingT(t)
 
-	for kind, keys := range map[string][]string{
-		testKind:      {StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive, StepAwaitResult, StepCleanup},
-		noArchiveKind: {StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitResult, StepCleanup},
-	} {
-		steps := runSteps(specOf(testConfig().Kinds[kind], 0))
-		Expect(steps).To(HaveLen(len(keys)), kind)
-		for i, step := range steps {
-			Expect(step.Key).To(Equal(keys[i]), kind)
-			Expect(stepMeanings).To(HaveKey(step.Key), "a run's status reads what the step means")
-		}
+	keys := []string{StepAdmit, StepCreateJob, StepAwaitPod, StepAwaitArchive, StepAwaitResult, StepCleanup}
+	steps := runSteps(specOf(testConfig().Kinds[testKind], 0))
+	Expect(steps).To(HaveLen(len(keys)))
+	for i, step := range steps {
+		Expect(step.Key).To(Equal(keys[i]))
+		Expect(stepMeanings).To(HaveKey(step.Key), "a run's status reads what the step means")
 	}
 }
 
@@ -106,14 +100,4 @@ func must(data []byte, err error) []byte {
 		panic(err)
 	}
 	return data
-}
-
-// The maximum duration of a run includes the archive step only for a kind that waits for an archive.
-func TestMaxDurationCountsTheArchiveStep(t *testing.T) {
-	RegisterTestingT(t)
-
-	spec := specOf(testConfig().Kinds[noArchiveKind], 0)
-	withArchive := specOf(testConfig().Kinds[testKind], 0)
-	archiveStep := 2*(retryMaxDuration+retryMaxDelay+engineLatency+10*time.Second) + config.UploadTimeout
-	Expect(maxDuration(withArchive) - maxDuration(spec)).To(Equal(archiveStep))
 }

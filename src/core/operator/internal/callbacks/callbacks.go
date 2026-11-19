@@ -34,6 +34,9 @@ const (
 	deadlineMargin = 2 * time.Second
 )
 
+// stepErrorType gives the error.type of a failed step: its command key in snake_case, such as run_await_archive.
+var stepErrorType = strings.NewReplacer(".", "_", "-", "_")
+
 // commandType is the type of the engine command that calls the operator. operator-workflow-engine registers its
 // OperatorCommand under it.
 const commandType = "operator"
@@ -271,8 +274,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		ctx, cancel = context.WithTimeout(ctx, payload.ExecutionDeadline.Sub(r.clock.Now())-deadlineMargin)
 		defer cancel()
 	}
-	logger := logging.FromContext(ctx).WithValues("commandKey", key, "subjectId", payload.Context.SubjectID,
-		"workflowId", payload.WorkflowID)
+	logger := logging.FromContext(ctx).WithValues(string(telemetry.AttrCommandKey), key,
+		string(
+			telemetry.AttrSubjectID,
+		), payload.Context.SubjectID, string(telemetry.AttrWorkflowID), payload.WorkflowID)
 	ctx = logging.IntoContext(ctx, logger)
 
 	response, err := handler(ctx, &payload)
@@ -284,8 +289,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if end.Expected {
 			logger.Info("Callback ended the workflow", "reason", end.Reason, "error", err.Error())
 		} else {
-			// The workflow fails, so the error gets an exported log record.
-			commontelemetry.SetError(span, "permanent", err)
+			commontelemetry.SetError(span, stepErrorType.Replace(key), err)
 			logger.Error(err, "Callback failed the workflow", "reason", end.Reason)
 		}
 		// The engine does not retry a 422. It keeps the answer as the error of the step, for Ended.
@@ -294,8 +298,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		})
 	default:
 		// The engine retries a 503, and fails the step itself when its retry strategy runs out.
-		commontelemetry.SetError(span, "retryable", err)
-		logger.Info("Callback failed, the engine retries it", "error", err.Error())
+		commontelemetry.SetError(span, stepErrorType.Replace(key), err)
+		logger.Error(err, "Callback failed, the engine retries it")
 		problem.Write(w, req, http.StatusServiceUnavailable, err.Error())
 	}
 }

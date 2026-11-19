@@ -28,9 +28,16 @@ const (
 	AttrCommandKey = attribute.Key("altinn.core_operator.command_key")
 )
 
-// AttrSubjectID is what a workflow works on, for example a run id. Only spans use it. operator-workflow-engine puts it,
-// the domain, the caller and the command key on its spans of the workflow. So a search finds both sides.
-const AttrSubjectID = attribute.Key("altinn.core_operator.subject_id")
+// Attributes with many distinct values, which only spans and logs use.
+const (
+	// AttrSubjectID is what a workflow works on, for example a run id. operator-workflow-engine puts it, the domain, the
+	// caller and the command key on its spans of the workflow. So a search finds both sides.
+	AttrSubjectID = attribute.Key("altinn.core_operator.subject_id")
+	// AttrWorkflowID is the engine's id of a workflow, with the engine's name for it.
+	AttrWorkflowID = attribute.Key("altinn.workflow_engine.workflow.id")
+	// AttrRunnerMessage is the message of a record that the operator relays from the log of an operator runner.
+	AttrRunnerMessage = attribute.Key("altinn.core_operator.runner_message")
+)
 
 // serviceVersion is the version of the build, the commit that the deploy workflow builds. The Dockerfile sets it with
 // go build -ldflags "-X altinn.studio/core-operator/internal/telemetry.serviceVersion=...".

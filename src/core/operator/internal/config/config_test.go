@@ -27,7 +27,6 @@ kinds:
     namespace: core-operator-runners
     podTemplate: operator-runner
     command: upgrade-v9
-    requiresArchive: true
     runTimeout: 660s
 `
 
@@ -80,22 +79,10 @@ func TestLoadGivesAKindTheDefaultsThatItLeavesOut(t *testing.T) {
 		Namespace:          "core-operator-runners",
 		PodTemplate:        "operator-runner",
 		Command:            "upgrade-v9",
-		RequiresArchive:    true,
 		RunTimeout:         660 * time.Second,
 		MaxQueuedPerCaller: defaultMaxQueuedPerCaller,
 		QueueTimeout:       15 * time.Minute,
 	}}))
-}
-
-func TestLoadReadsWhetherAKindRequiresAnArchive(t *testing.T) {
-	RegisterTestingT(t)
-
-	Expect(loadValid(t).Kinds["upgrade-v9"].RequiresArchive).To(BeTrue())
-
-	without := strings.Replace(kindsFile, "    requiresArchive: true\n", "", 1)
-	cfg, err := LoadFrom(writeFiles(t, map[string]string{"config.yaml": baseFile, "kinds.yaml": without}))
-	Expect(err).NotTo(HaveOccurred())
-	Expect(cfg.Kinds["upgrade-v9"].RequiresArchive).To(BeFalse())
 }
 
 func TestLoadReadsTheLabelsOfAKind(t *testing.T) {
@@ -115,7 +102,6 @@ func TestLoadRefusesInvalidConfiguration(t *testing.T) {
 		{`kinds: {upgrade-v9: {command: ""}}`, "needs namespace, podTemplate and command"},
 		{"kinds: {upgrade-v9: {maxActivePerCaller: -1}}", "needs a maxActivePerCaller of 0 or more"},
 		{"kinds: {upgrade-v9: {maxQueuedPerCaller: -1}}", "needs a maxQueuedPerCaller of at least 1"},
-		{"kinds: {upgrade-v9: {requiresArchive: maybe}}", "requiresArchive' cannot parse value as 'bool'"},
 		{"kinds: {upgrade-v9: {labels: [repo-owner]}}", `label "repo-owner", which is not a camelCase name`},
 		{"kinds: {upgrade-v9: {labels: [org, caller]}}", `label "caller", which is not a camelCase name`},
 		{"kinds: {upgrade-v9: {labels: [org, org]}}", "the label org twice"},
@@ -127,8 +113,6 @@ func TestLoadRefusesInvalidConfiguration(t *testing.T) {
 		{"callers: {" + longID + ": {serviceAccount: system:serviceaccount:default:a}}", `caller id "` + longID + `"`},
 		{"engineAddress: http://typo", "has invalid keys: engineAddress"},
 		{"engineURL: operator-workflow-engine:9090", `engineURL "operator-workflow-engine:9090" is not an http(s) URL`},
-		{"handlerGroups: [runs, maskinporten]", `handlerGroups has the unknown group "maskinporten"`},
-		{"handlerGroups: []", "handlerGroups is empty"},
 		// Only the integration test sets the time scale, in code.
 		{"timeScale: 0.01", "has invalid keys: timeScale"},
 	}

@@ -21,9 +21,7 @@ import (
 )
 
 const (
-	testKind = "upgrade-v9"
-	// noArchiveKind is testKind for a command that requires no archive.
-	noArchiveKind = "no-archive"
+	testKind      = "upgrade-v9"
 	testNamespace = "core-operator-runners"
 	podIP         = "127.0.0.1"
 	testCommit    = "0123456789abcdef0123456789abcdef01234567"
@@ -41,23 +39,19 @@ func testConfig() *config.Config {
 		Namespace:          testNamespace,
 		PodTemplate:        "operator-runner",
 		Command:            "upgrade-v9",
-		RequiresArchive:    true,
 		Labels:             appLabels,
 		MaxActivePerCaller: 1,
 		MaxQueuedPerCaller: 2,
 		QueueTimeout:       15 * time.Minute,
 		RunTimeout:         660 * time.Second,
 	}
-	noArchive := kind
-	noArchive.RequiresArchive = false
 	return &config.Config{
-		HandlerGroups: []string{config.GroupRuns},
 		Callers: map[string]config.Caller{
-			"assistant": {ServiceAccount: "sa-assistant", Kinds: []string{testKind, noArchiveKind}},
+			"assistant": {ServiceAccount: "sa-assistant", Kinds: []string{testKind}},
 			"designer":  {ServiceAccount: "sa-designer"},
 			"other":     {ServiceAccount: "sa-other", Kinds: []string{testKind}},
 		},
-		Kinds: map[string]config.Kind{testKind: kind, noArchiveKind: noArchive},
+		Kinds: map[string]config.Kind{testKind: kind},
 	}
 }
 
@@ -146,7 +140,7 @@ func (h *harness) upload(t *testing.T, runID, content string) {
 func (h *harness) workflowID(t *testing.T, runID string) string {
 	t.Helper()
 	for _, workflow := range h.engine.Workflows() {
-		if workflow.State.Labels[workflowLabelRunID] == runID {
+		if workflow.State.Labels[config.LabelRunID] == runID {
 			return workflow.State.DatabaseID
 		}
 	}
@@ -202,11 +196,11 @@ func (h *harness) call(t *testing.T, runID, key string, changes ...func(*callbac
 		t.Fatal(err)
 	}
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, callbacks.PathPrefix+key, bytes.NewReader(body))
-	rec := httptest.NewRecorder()
-	h.router.ServeHTTP(rec, req)
-	result := stepResult{status: rec.Code, body: rec.Body.String()}
-	if rec.Code == http.StatusOK {
-		if err := json.Unmarshal(rec.Body.Bytes(), &result.response); err != nil {
+	recorder := httptest.NewRecorder()
+	h.router.ServeHTTP(recorder, req)
+	result := stepResult{status: recorder.Code, body: recorder.Body.String()}
+	if recorder.Code == http.StatusOK {
+		if err := json.Unmarshal(recorder.Body.Bytes(), &result.response); err != nil {
 			t.Fatal(err)
 		}
 		h.states[runID] = result.response.State

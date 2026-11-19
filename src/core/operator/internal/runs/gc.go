@@ -3,11 +3,10 @@ package runs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
-	"github.com/go-logr/logr"
-	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
+	commontelemetry "altinn.studio/common/telemetry"
 
 	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/clock"
@@ -56,25 +55,39 @@ func (c *Collector) Start(ctx context.Context) error {
 
 // Collect makes one pass. It deletes the Jobs of runs that ended or that the engine does not know. It keeps a Job if it
 // cannot decide, for example if the engine does not answer. The cache holds Jobs only in the namespaces of the
-// configured kinds.
+// configured kinds. A pass logs one record for its failures, so that an engine that is down does not log one per Job.
 func (c *Collector) Collect(ctx context.Context) {
 	ctx, span := telemetry.Tracer().Start(ctx, "gc.collect")
 	defer span.End()
-	logger := logging.FromContext(ctx).WithName("gc")
+	var failed failures
 	for _, namespace := range c.cfg.KindNamespaces() {
-		if failed := c.collectJobs(ctx, logger, namespace); failed != "" {
-			span.SetStatus(codes.Error, failed+" failed")
-			span.SetAttributes(semconv.ErrorTypeKey.String(failed))
-		}
+		c.collectJobs(ctx, namespace, &failed)
+	}
+	if failed.count > 0 {
+		commontelemetry.SetError(span, failed.step, failed.first)
+		logging.FromContext(ctx).WithName("gc").Error(failed.first, "Collect run Jobs failed", "failures", failed.count)
 	}
 }
 
-// collectJobs returns the step that failed, or "" when none did.
-func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespace string) (failed string) {
+// failures counts the failures of a pass, and keeps the first with the step that failed.
+type failures struct {
+	first error
+	step  string
+	count int
+}
+
+func (f *failures) add(step string, err error) {
+	if f.count == 0 {
+		f.first, f.step = err, step
+	}
+	f.count++
+}
+
+func (c *Collector) collectJobs(ctx context.Context, namespace string, failed *failures) {
 	jobs, err := c.sandbox.Jobs(ctx, namespace)
 	if err != nil {
-		logger.Error(err, "List run Jobs failed", "namespace", namespace)
-		return "list_jobs"
+		failed.add("list_jobs", fmt.Errorf("list the run Jobs in %s: %w", namespace, err))
+		return
 	}
 	for _, job := range jobs {
 		workflow, err := locate(ctx, c.engine, job.Caller, job.RunID)
@@ -82,18 +95,16 @@ func (c *Collector) collectJobs(ctx context.Context, logger logr.Logger, namespa
 		case errors.Is(err, ErrNotFound):
 			// The engine has no workflow for the Job, so nothing else will delete it.
 		case err != nil:
-			logging.Warn(logger, "Could not find the workflow of a run Job", "runId", job.RunID, "error", err.Error())
-			failed = "locate_workflow"
+			failed.add("locate_workflow", fmt.Errorf("find the workflow of run %s: %w", job.RunID, err))
 			continue
 		case !callbacks.Read(workflow).Settled:
 			continue
 		}
 		if err := deleteJob(ctx, c.sandbox, namespace, job.RunID); err != nil {
-			logger.Error(err, "Delete run Job failed", "runId", job.RunID)
-			failed = "delete_job"
+			failed.add("delete_job", fmt.Errorf("delete the Job of run %s: %w", job.RunID, err))
 			continue
 		}
-		logger.Info("Deleted the Job of a finished run", "runId", job.RunID)
+		logger := logging.FromContext(ctx).WithName("gc")
+		logger.Info("Deleted the Job of a finished run", string(telemetry.AttrSubjectID), job.RunID)
 	}
-	return failed
 }

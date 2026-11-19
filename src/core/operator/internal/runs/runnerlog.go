@@ -10,17 +10,22 @@ import (
 
 	"altinn.studio/core-operator/internal/logging"
 	"altinn.studio/core-operator/internal/sandbox"
+	"altinn.studio/core-operator/internal/telemetry"
 )
 
-// maxRelayed is how many warnings and errors of one operator runner the operator logs. One more record counts the rest.
-const maxRelayed = 20
+const (
+	// maxRelayed is how many warnings and errors of one operator runner the operator logs. One more record counts the
+	// rest.
+	maxRelayed = 20
+	// logReadTimeout keeps a log read that stalls from taking the time to delete the Job.
+	logReadTimeout = 5 * time.Second
+)
 
 // deleteJob deletes the Job of a run. The log of the operator runner goes away with the pod. The log pipeline collects
 // no container logs, so the operator first logs the warnings and errors of the operator runner.
 func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string) error {
-	logger := logging.FromContext(ctx).WithName("operator-runner").WithValues("runId", runID)
-	// A log read that stalls must leave time to delete the Job.
-	logCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	logger := logging.FromContext(ctx).WithName("operator-runner").WithValues(string(telemetry.AttrSubjectID), runID)
+	logCtx, cancel := context.WithTimeout(ctx, logReadTimeout)
 	defer cancel()
 	log, err := box.Log(logCtx, namespace, runID)
 	if err != nil {
@@ -28,7 +33,7 @@ func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string
 	}
 	relayed := 0
 	for line := range bytes.Lines(log) {
-		level, message, keysAndValues := parseRunnerLine(bytes.TrimSpace(line))
+		level, keysAndValues := parseRunnerLine(bytes.TrimSpace(line))
 		if level != "WARN" && level != "ERROR" {
 			continue
 		}
@@ -36,9 +41,9 @@ func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string
 			continue
 		}
 		if level == "ERROR" {
-			logger.Error(nil, message, keysAndValues...)
+			logger.Error(nil, "The operator runner logged an error", keysAndValues...)
 		} else {
-			logging.Warn(logger, message, keysAndValues...)
+			logging.Warn(logger, "The operator runner logged a warning", keysAndValues...)
 		}
 	}
 	if relayed > maxRelayed {
@@ -47,27 +52,26 @@ func deleteJob(ctx context.Context, box sandbox.Sandbox, namespace, runID string
 	return box.DeleteJob(ctx, namespace, runID) //nolint:wrapcheck // The sandbox says which Job.
 }
 
-// parseRunnerLine reads a line of the operator runner's log, a record in tracing-subscriber's JSON format. A line that
-// is not a record, for example a panic, is a warning. An empty line has no level.
-func parseRunnerLine(line []byte) (level, message string, keysAndValues []any) {
+// parseRunnerLine reads a line of the operator runner's log, a record in tracing-subscriber's JSON format, as its level
+// and its fields. The message is in AttrRunnerMessage. A line that is not a record, for example a panic, is a warning
+// with the line as its message. An empty line has no level.
+func parseRunnerLine(line []byte) (level string, keysAndValues []any) {
 	if len(line) == 0 {
-		return "", "", nil
+		return "", nil
 	}
 	var record struct {
 		Fields map[string]any `json:"fields"`
 		Level  string         `json:"level"`
 	}
 	if json.Unmarshal(line, &record) != nil {
-		return "WARN", "A line that is not a record", []any{"line", string(line)}
-	}
-	message, ok := record.Fields["message"].(string)
-	if !ok {
-		message = "A record without a message"
+		return "WARN", []any{string(telemetry.AttrRunnerMessage), string(line)}
 	}
 	for _, key := range slices.Sorted(maps.Keys(record.Fields)) {
-		if key != "message" {
-			keysAndValues = append(keysAndValues, key, record.Fields[key])
+		name := key
+		if key == "message" {
+			name = string(telemetry.AttrRunnerMessage)
 		}
+		keysAndValues = append(keysAndValues, name, record.Fields[key])
 	}
-	return record.Level, message, keysAndValues
+	return record.Level, keysAndValues
 }

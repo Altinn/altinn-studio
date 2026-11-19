@@ -99,10 +99,10 @@ func (r *record) keepsResult() bool {
 }
 
 func readRun(workflow *engine.Workflow) *record {
-	rec := describe(callbacks.Read(workflow))
-	rec.ID, rec.Kind = workflow.Labels[workflowLabelRunID], workflow.Labels[workflowLabelKind]
-	rec.Labels, rec.CreatedAt = labelsOf(workflow.Labels), workflow.CreatedAt
-	return rec
+	run := describe(callbacks.Read(workflow))
+	run.ID, run.Kind = workflow.Labels[config.LabelRunID], workflow.Labels[config.LabelKind]
+	run.Labels, run.CreatedAt = labelsOf(workflow.Labels), workflow.CreatedAt
+	return run
 }
 
 // describe finds the status, error and times of the run. It uses the outcome if the run has one, and otherwise the

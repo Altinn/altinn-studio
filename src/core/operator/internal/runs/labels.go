@@ -52,7 +52,9 @@ func checkLabels(kindName string, kind config.Kind, labels map[string]string) er
 	return nil
 }
 
-const labelKeyRule = "A label key must be a camelCase name of at most 63 characters, other than runId, kind and caller."
+// labelKeyRule says which keys config.ValidLabelKey accepts.
+var labelKeyRule = fmt.Sprintf("A label key must be a camelCase name of at most %d characters, other than %s.",
+	config.MaxNameLength, strings.Join(config.ReservedLabels, ", "))
 
 func checkLabelValue(key, value string) error {
 	if len(value) > maxLabelValue || !labelValuePattern.MatchString(value) {
@@ -95,7 +97,7 @@ func (f Filter) labels() (map[string]string, error) {
 		}
 	}
 	if f.Kind != "" {
-		labels[workflowLabelKind] = f.Kind
+		labels[config.LabelKind] = f.Kind
 	}
 	if len(labels) == 0 {
 		return nil, &RequestError{Message: "Find runs by at least one label or by their kind."}

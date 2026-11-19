@@ -55,6 +55,7 @@ func TestCollectorDeletesTheJobOfARunWhoseKindIsGone(t *testing.T) {
 	run := h.create(t, "assistant", "key")
 	Expect(h.call(t, run.ID, StepAdmit).done()).To(BeTrue())
 	Expect(h.call(t, run.ID, StepCreateJob).done()).To(BeTrue())
+	h.cfg.Kinds["other-kind"] = h.cfg.Kinds[testKind]
 	delete(h.cfg.Kinds, testKind)
 	h.engine.Update(h.workflowID(t, run.ID), func(w *engine.Workflow) { w.OverallStatus = engine.StatusFailed })
 

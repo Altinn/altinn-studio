@@ -1,6 +1,4 @@
 # internal/config/config.go has the defaults. The overlays add the kinds in kinds.yaml.
-handlerGroups:
-  - runs
 # The services that may use the run API, by the user name of their projected ServiceAccount token.
 callers:
   assistant:

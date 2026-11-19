@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
-	"slices"
 	"time"
 
 	"altinn.studio/core-operator/internal/callbacks"
@@ -26,32 +25,37 @@ const (
 	// retryMaxDelay limits the engine's backoff between retries of a step. It is also how long the engine can take to
 	// call again after the operator was down.
 	retryMaxDelay = 30 * time.Second
+	// quickStepTime limits a step that makes one short call to the queue, the sandbox or the operator runner.
+	quickStepTime = 10 * time.Second
+	// jobStepTime limits a step that creates or deletes the Job. A delete first reads the operator runner's log.
+	jobStepTime = 30 * time.Second
+	// awaitResultTime gives run.await-result the operator runner's long poll, and as long again for the rest of the step.
+	awaitResultTime = 2 * resultWait
+	// createJobBudget is how long run.create-job can wait for room in the sandbox quota.
+	createJobBudget = 5 * time.Minute
 )
 
 // KindSpec is the part of its kind that a run uses. A run keeps it from its create to its end. So a change to the
 // catalog applies only to new runs, and the Job's deadline fits the budgets of the run's workflow.
 type KindSpec struct {
 	// Namespace holds the PodTemplate and the run's Job.
-	Namespace   string `json:"namespace"`
-	PodTemplate string `json:"podTemplate"`
-	Command     string `json:"command"`
-	// RequiresArchive is whether the run waits for the caller's archive. When false, run.await-pod starts the command.
-	RequiresArchive bool          `json:"requiresArchive"`
-	QueueTimeout    time.Duration `json:"queueTimeout"`
-	RunTimeout      time.Duration `json:"runTimeout"`
+	Namespace    string        `json:"namespace"`
+	PodTemplate  string        `json:"podTemplate"`
+	Command      string        `json:"command"`
+	QueueTimeout time.Duration `json:"queueTimeout"`
+	RunTimeout   time.Duration `json:"runTimeout"`
 	// TimeScale is the operator's timeScale at the create, which shortens the run's other waits and budgets.
 	TimeScale float64 `json:"timeScale,omitempty"`
 }
 
 func specOf(kind config.Kind, timeScale float64) KindSpec {
 	return KindSpec{
-		Namespace:       kind.Namespace,
-		PodTemplate:     kind.PodTemplate,
-		Command:         kind.Command,
-		RequiresArchive: kind.RequiresArchive,
-		QueueTimeout:    kind.QueueTimeout,
-		RunTimeout:      kind.RunTimeout,
-		TimeScale:       timeScale,
+		Namespace:    kind.Namespace,
+		PodTemplate:  kind.PodTemplate,
+		Command:      kind.Command,
+		QueueTimeout: kind.QueueTimeout,
+		RunTimeout:   kind.RunTimeout,
+		TimeScale:    timeScale,
 	}
 }
 
@@ -112,22 +116,18 @@ func parseState(text *string) (*runState, error) {
 // runSteps lists the steps of a run of the kind. The time scale shortens the budgets that the kind does not set.
 func runSteps(spec KindSpec) []callbacks.Step {
 	scale := func(d time.Duration) time.Duration { return scaled(d, spec.TimeScale) }
-	steps := []callbacks.Step{
-		{Key: StepAdmit, MaxExecutionTime: 10 * time.Second, WaitBudget: spec.QueueTimeout},
-		{Key: StepCreateJob, MaxExecutionTime: 30 * time.Second, WaitBudget: scale(5 * time.Minute)},
-		{Key: StepAwaitPod, MaxExecutionTime: 10 * time.Second, WaitBudget: scale(config.PodBudget)},
-		{Key: StepAwaitArchive, MaxExecutionTime: 10 * time.Second, WaitBudget: scale(config.UploadTimeout)},
-		{Key: StepAwaitResult, MaxExecutionTime: 40 * time.Second, WaitBudget: spec.RunTimeout + scale(runResultSlack)},
+	return []callbacks.Step{
+		{Key: StepAdmit, MaxExecutionTime: quickStepTime, WaitBudget: spec.QueueTimeout},
+		{Key: StepCreateJob, MaxExecutionTime: jobStepTime, WaitBudget: scale(createJobBudget)},
+		{Key: StepAwaitPod, MaxExecutionTime: quickStepTime, WaitBudget: scale(config.PodBudget)},
+		{Key: StepAwaitArchive, MaxExecutionTime: quickStepTime, WaitBudget: scale(config.UploadTimeout)},
+		{Key: StepAwaitResult, MaxExecutionTime: awaitResultTime, WaitBudget: spec.RunTimeout + scale(runResultSlack)},
 		{
 			Key:              StepCleanup,
-			MaxExecutionTime: 30 * time.Second,
+			MaxExecutionTime: jobStepTime,
 			WaitBudget:       scale(config.ResultTimeout + config.ResultGrace + cleanupSlack),
 		},
 	}
-	if !spec.RequiresArchive {
-		steps = slices.DeleteFunc(steps, func(step callbacks.Step) bool { return step.Key == StepAwaitArchive })
-	}
-	return steps
 }
 
 // stepMeanings tell what each step means for its run. status is the run's status while the step is the current step of
@@ -185,9 +185,9 @@ func BuildEnqueueRequest(run newRun) (engine.EnqueueRequest, error) {
 		labels = map[string]string{}
 	}
 	maps.Copy(labels, map[string]string{
-		workflowLabelRunID:  run.ID,
-		workflowLabelKind:   run.Kind,
-		workflowLabelCaller: run.Caller,
+		config.LabelRunID:  run.ID,
+		config.LabelKind:   run.Kind,
+		config.LabelCaller: run.Caller,
 	})
 	workflow := callbacks.Workflow{
 		Labels:  labels,

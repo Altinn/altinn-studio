@@ -34,6 +34,9 @@ const (
 
 	// jobTTLAfterFinished lets Kubernetes delete a Job that the operator did not.
 	jobTTLAfterFinished = int32(300)
+	// runnerLogLines is how much of the operator runner's log the operator reads before it deletes the Job. The warnings
+	// and errors of a run are near its end.
+	runnerLogLines = int64(1000)
 )
 
 // kvmQuota is the quota of the KVM devices that sandbox-node offers, one for each run's pod.
@@ -231,7 +234,7 @@ func (s *Sandbox) Log(ctx context.Context, namespace, runID string) ([]byte, err
 		return nil, err
 	}
 	// The PodTemplate names the operator runner's container as the app.
-	options := &corev1.PodLogOptions{Container: runnerName, TailLines: new(int64(1000))}
+	options := &corev1.PodLogOptions{Container: runnerName, TailLines: new(runnerLogLines)}
 	log, err := s.Pods.Pods(namespace).GetLogs(pods[0].Name, options).DoRaw(ctx)
 	switch {
 	case err == nil:

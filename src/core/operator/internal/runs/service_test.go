@@ -373,18 +373,11 @@ func TestKindsListsWhatTheCallerMayRun(t *testing.T) {
 	h := newHarness(t)
 
 	upgrade := Kind{
-		Name: testKind, Labels: appLabels, RequiresArchive: true, QueueTimeoutSeconds: 900,
+		Name: testKind, Labels: appLabels, QueueTimeoutSeconds: 900,
 		UploadTimeoutSeconds: 300,
 		RunTimeoutSeconds:    660, ResultTimeoutSeconds: 300, MaxDurationSeconds: 4380,
 	}
-	// A kind without an archive waits for no upload. So its maximum duration is shorter by the budget and retries of
-	// run.await-archive.
-	noArchive := upgrade
-	noArchive.Name = noArchiveKind
-	noArchive.RequiresArchive = false
-	noArchive.UploadTimeoutSeconds = 0
-	noArchive.MaxDurationSeconds = 3740
-	Expect(h.service.Kinds("assistant")).To(Equal([]Kind{noArchive, upgrade}))
+	Expect(h.service.Kinds("assistant")).To(Equal([]Kind{upgrade}))
 	Expect(h.service.Kinds("other")).To(Equal([]Kind{upgrade}))
 	Expect(h.service.Kinds("designer")).To(BeEmpty())
 	Expect(h.service.Kinds("nobody")).To(BeEmpty())

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -66,8 +65,7 @@ func run() int {
 		setupLog.Error(err, "unable to load the configuration")
 		return 1
 	}
-	setupLog.Info("configuration loaded", "handlerGroups", cfg.HandlerGroups, "kinds", len(cfg.Kinds),
-		"callers", len(cfg.Callers))
+	setupLog.Info("configuration loaded", "kinds", len(cfg.Kinds), "callers", len(cfg.Callers))
 
 	cluster, err := newCluster(cfg, kube.Options{})
 	if err != nil {
@@ -112,7 +110,7 @@ func newCluster(cfg *config.Config, opts kube.Options) (*kube.Cluster, error) {
 	return cluster, nil
 }
 
-// setup adds the servers and the garbage collector of the enabled handler groups to the cluster.
+// setup adds the servers and the garbage collector to the cluster.
 func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock, box sandbox.Sandbox, host *runner.Client) error {
 	authenticator := auth.NewAuthenticator(
 		cluster.TokenReviewer(),
@@ -120,23 +118,16 @@ func setup(cluster *kube.Cluster, cfg *config.Config, clk clock.Clock, box sandb
 		cfg.Audience,
 		auth.Identities{Callers: cfg.CallerByServiceAccount, Engine: cfg.EngineServiceAccount},
 	)
-
-	var groups []callbacks.Group
-	var onServe []func()
-	if cfg.HandlerGroupEnabled(config.GroupRuns) {
-		group, queue, err := setupRuns(cluster, cfg, clk, authenticator, box, host)
-		if err != nil {
-			return err
-		}
-		groups = append(groups, group)
-		onServe = append(onServe, queue.Open)
+	group, queue, err := setupRuns(cluster, cfg, clk, authenticator, box, host)
+	if err != nil {
+		return err
 	}
 
-	router := callbacks.NewRouter(clk, groups...)
 	callbackMux := http.NewServeMux()
-	callbackMux.Handle("POST "+callbacks.PathPrefix, authenticator.RequireEngine(router))
-	callbackServer := newServer("callbacks", cfg.CallbackAddress, callbackMux)
-	callbackServer.onServe = onServe
+	callbackMux.Handle("POST "+callbacks.PathPrefix+"{commandKey}",
+		authenticator.RequireEngine(callbacks.NewRouter(clk, group)))
+	callbackServer := newServer("callbacks", cfg.CallbackAddress, callbackMux, callbackMux)
+	callbackServer.onServe = []func(){queue.Open}
 	if err := cluster.Add(callbackServer); err != nil {
 		return fmt.Errorf("add the callback server: %w", err)
 	}
@@ -161,8 +152,8 @@ func setupRuns(
 	}
 
 	service := runs.NewService(cfg, queue, engineClient, hostClient, box, clk)
-	api := runapi.New(service)
-	if err := cluster.Add(newServer("api", cfg.APIAddress, authenticator.RequireCaller(api.Handler()))); err != nil {
+	routes := runapi.New(service).Routes()
+	if err := cluster.Add(newServer("api", cfg.APIAddress, routes, authenticator.RequireCaller(routes))); err != nil {
 		return callbacks.Group{}, nil, fmt.Errorf("add the run API server: %w", err)
 	}
 	if err := cluster.Add(runs.NewCollector(cfg, engineClient, box, clk)); err != nil {
@@ -180,9 +171,10 @@ type server struct {
 	onServe []func()
 }
 
-func newServer(name, address string, handler http.Handler) *server {
+// newServer serves handler, which routes requests with routes.
+func newServer(name, address string, routes *http.ServeMux, handler http.Handler) *server {
 	traced := otelhttp.NewHandler(handler, name, otelhttp.WithSpanNameFormatter(
-		func(_ string, r *http.Request) string { return spanName(r.Method, r.URL.Path) },
+		func(_ string, r *http.Request) string { return spanName(routes, r) },
 	))
 	return &server{name: name, address: address, handler: traced}
 }
@@ -225,37 +217,19 @@ func (s *server) Start(ctx context.Context) error {
 	}
 }
 
-// spanName names a request span from the method and the route, as the semantic conventions do. It uses "HTTP" for a
-// method that HTTP does not define, so that a client cannot put its own value in a span name.
-func spanName(method, path string) string {
-	switch method {
+// spanName names a request span by the route that serves it, which has no run ids or command keys. A request that no
+// route serves gets only its method, and "HTTP" for a method that HTTP does not define, so that a client cannot put
+// its own value in a span name.
+func spanName(routes *http.ServeMux, r *http.Request) string {
+	if _, pattern := routes.Handler(r); pattern != "" {
+		return pattern
+	}
+	switch r.Method {
 	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete,
 		http.MethodConnect, http.MethodOptions, http.MethodTrace:
-	default:
-		method = "HTTP"
+		return r.Method
 	}
-	return strings.TrimSpace(method + " " + route(path))
-}
-
-// route gives the route of a path for span names, without run ids and command keys. A path that no route serves gets an
-// empty name, so that no part of it gets into a span name.
-func route(path string) string {
-	if path == "/api/v1/kinds" || path == "/api/v1/runs" {
-		return path
-	}
-	if run, ok := strings.CutPrefix(path, "/api/v1/runs/"); ok {
-		switch _, tail, _ := strings.Cut(run, "/"); tail {
-		case "":
-			return "/api/v1/runs/{runId}"
-		case "archive", "result", "cancel":
-			return "/api/v1/runs/{runId}/" + tail
-		}
-		return ""
-	}
-	if strings.HasPrefix(path, callbacks.PathPrefix) {
-		return callbacks.PathPrefix + "{commandKey}"
-	}
-	return ""
+	return "HTTP"
 }
 
 // withoutQuery keeps the query string out of url.full on the client span. otelhttp sets url.full before it calls this

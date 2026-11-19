@@ -29,6 +29,9 @@ const maxStatusBytes = 64 << 10
 // connection.
 const maxDrainBytes = 1 << 20
 
+// maxSnippetBytes limits the part of an unexpected answer that goes into an error.
+const maxSnippetBytes = 1 << 10
+
 var (
 	// ErrUnreachable means that the request got no answer, but the pod is there. A repeat can get an answer.
 	ErrUnreachable = errors.New("the operator runner did not answer")
@@ -222,7 +225,7 @@ func isPermanent(status int) bool {
 }
 
 func readSnippet(res *http.Response) string {
-	data, err := io.ReadAll(io.LimitReader(res.Body, 1024))
+	data, err := io.ReadAll(io.LimitReader(res.Body, maxSnippetBytes))
 	if err != nil {
 		return "(the body could not be read: " + err.Error() + ")"
 	}

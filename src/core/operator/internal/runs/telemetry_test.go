@@ -17,6 +17,7 @@ import (
 
 	"altinn.studio/core-operator/internal/logging"
 	"altinn.studio/core-operator/internal/sandbox/sandboxtest"
+	"altinn.studio/core-operator/internal/telemetry"
 )
 
 // recordMetrics makes the histogram of admissions record to the returned reader for the rest of the test.
@@ -82,12 +83,17 @@ func TestDeleteJobFirstRelaysTheRunnersWarningsAndErrors(t *testing.T) {
 
 	entries := logs.All()
 	Expect(entries).To(HaveLen(maxRelayed + 1))
+	message := string(telemetry.AttrRunnerMessage)
 	Expect(entries[0].Level).To(Equal(zapcore.WarnLevel))
-	Expect(entries[0].Message).To(Equal("the command wrote no report"))
-	Expect(entries[0].ContextMap()).To(And(HaveKeyWithValue("runId", "run"), HaveKeyWithValue("error", "not found")))
+	Expect(entries[0].Message).To(Equal("The operator runner logged a warning"))
+	Expect(entries[0].ContextMap()).To(And(
+		HaveKeyWithValue(string(telemetry.AttrSubjectID), "run"),
+		HaveKeyWithValue(message, "the command wrote no report"),
+		HaveKeyWithValue("error", "not found"),
+	))
 	Expect(entries[1].Level).To(Equal(zapcore.ErrorLevel))
-	Expect(entries[1].Message).To(Equal("could not delete the VM"))
-	Expect(entries[2].ContextMap()).To(HaveKeyWithValue("line", "thread 'main' panicked at src/host.rs:1:1"))
+	Expect(entries[1].ContextMap()).To(HaveKeyWithValue(message, "could not delete the VM"))
+	Expect(entries[2].ContextMap()).To(HaveKeyWithValue(message, "thread 'main' panicked at src/host.rs:1:1"))
 	Expect(entries[maxRelayed].Message).To(Equal("The operator runner logged more warnings and errors"))
 	Expect(entries[maxRelayed].ContextMap()).To(HaveKeyWithValue("count", int64(3)))
 }

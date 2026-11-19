@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,30 +25,22 @@ import (
 	"altinn.studio/core-operator/internal/config"
 	"altinn.studio/core-operator/internal/engine/enginetest"
 	"altinn.studio/core-operator/internal/kube"
+	"altinn.studio/core-operator/internal/runapi"
 	"altinn.studio/core-operator/internal/runner"
 )
 
-func TestRouteLeavesOutIDs(t *testing.T) {
-	cases := map[string]string{
-		"/api/v1/kinds": "/api/v1/kinds",
-		"/api/v1/runs":  "/api/v1/runs",
-		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b":          "/api/v1/runs/{runId}",
-		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b/cancel":   "/api/v1/runs/{runId}/cancel",
-		"/workflow-engine-callbacks/run.admit":                       "/workflow-engine-callbacks/{commandKey}",
-		"/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b/result/x": "",
-		"/private/value": "",
-	}
-	for path, want := range cases {
-		if got := route(path); got != want {
-			t.Errorf("route(%q) = %q, want %q", path, got, want)
-		}
-	}
-}
-
-func TestSpanNameLeavesOutUnknownMethods(t *testing.T) {
-	for method, want := range map[string]string{"GET": "GET /api/v1/kinds", "X-RUN-ID": "HTTP /api/v1/kinds"} {
-		if got := spanName(method, "/api/v1/kinds"); got != want {
-			t.Errorf("spanName(%q) = %q, want %q", method, got, want)
+func TestSpanNameIsTheRouteWithoutIDs(t *testing.T) {
+	routes := runapi.New(nil).Routes()
+	run := "/api/v1/runs/0b6f5a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b"
+	for request, want := range map[string]string{
+		"GET /api/v1/kinds":          "GET /api/v1/kinds",
+		"POST " + run + "/cancel":    "POST /api/v1/runs/{runId}/cancel",
+		"GET " + run + "/result/x":   "GET",
+		"X-RUN-ID " + run + "/value": "HTTP",
+	} {
+		method, target, _ := strings.Cut(request, " ")
+		if got := spanName(routes, httptest.NewRequestWithContext(t.Context(), method, target, nil)); got != want {
+			t.Errorf("spanName(%q) = %q, want %q", request, got, want)
 		}
 	}
 }
@@ -184,7 +177,7 @@ func serveOperator(t *testing.T) *servedOperator {
 		"assistant": {ServiceAccount: "system:serviceaccount:default:altinn-altinity-agents-sa", Kinds: []string{"x"}},
 	}
 	cfg.Kinds = map[string]config.Kind{"x": {
-		Namespace: "core-operator-runners", PodTemplate: "operator-runner", Command: "x", RequiresArchive: true,
+		Namespace: "core-operator-runners", PodTemplate: "operator-runner", Command: "x",
 		MaxActivePerCaller: 1, MaxQueuedPerCaller: 1, QueueTimeout: time.Minute, RunTimeout: time.Minute,
 	}}
 
@@ -237,7 +230,7 @@ func TestTheOperatorServesItsAPIs(t *testing.T) {
 		RegisterTestingT(t)
 		status, body := call(t, http.MethodGet, operator.runAPI+"/kinds", operator.assistant, nil)
 		Expect(status).To(Equal(http.StatusOK))
-		Expect(body).To(MatchJSON(`{"kinds":[{"name":"x","labels":[],"requiresArchive":true,"queueTimeoutSeconds":60,` +
+		Expect(body).To(MatchJSON(`{"kinds":[{"name":"x","labels":[],"queueTimeoutSeconds":60,` +
 			`"uploadTimeoutSeconds":300,"runTimeoutSeconds":60,"resultTimeoutSeconds":300,"maxDurationSeconds":2940}]}`))
 	})
 	t.Run("the run API refuses every token but a caller's", func(t *testing.T) {
