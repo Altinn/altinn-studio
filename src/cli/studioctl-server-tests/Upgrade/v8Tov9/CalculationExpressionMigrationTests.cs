@@ -863,10 +863,18 @@ public sealed class CalculationExpressionMigrationTests
             "fo-rm"
         );
         app.CommitEverything();
-        await RunUpgrade(app);
+        var report = new UpgradeReport();
+        var exit = await RunUpgrade(app, report);
         var file = Path.Combine(app.Root, "App/logic/ConvertedLegacyRules/FormDataProcessor.cs");
         if (bothNeedProcessor)
         {
+            Assert.Equal(3, exit);
+            Assert.Contains(
+                report.Steps.SelectMany(step => step.Messages),
+                message =>
+                    message.Status == UpgradeMessageStatus.Todo
+                    && message.Text.Contains("processor name collides", StringComparison.Ordinal)
+            );
             Assert.False(File.Exists(file));
             Assert.Equal(
                 2,
@@ -897,7 +905,15 @@ public sealed class CalculationExpressionMigrationTests
         app.Write("logic/ConvertedLegacyRules/FormDataProcessor.cs", original);
         WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
         app.CommitEverything();
-        await RunUpgrade(app);
+        var report = new UpgradeReport();
+        var exit = await RunUpgrade(app, report);
+        Assert.Equal(3, exit);
+        Assert.Contains(
+            report.Steps.SelectMany(step => step.Messages),
+            message =>
+                message.Status == UpgradeMessageStatus.Todo
+                && message.Text.Contains("processor name collides", StringComparison.Ordinal)
+        );
         Assert.Equal(original, app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs"));
         Assert.Single(
             Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
@@ -1280,7 +1296,7 @@ public sealed class CalculationExpressionMigrationTests
         Assert.False(File.Exists(CalculationPath(app)));
     }
 
-    private static Task<int> RunUpgrade(TempAppFolder app) =>
+    private static Task<int> RunUpgrade(TempAppFolder app, UpgradeReport? report = null) =>
         V8Tov9Upgrade.RunAsync(
             new(
                 app.Root,
@@ -1290,7 +1306,7 @@ public sealed class CalculationExpressionMigrationTests
                 true,
                 false,
                 null,
-                new UpgradeReport(),
+                report ?? new UpgradeReport(),
                 new StringWriter(),
                 TestContext.Current.CancellationToken,
                 SkipSemanticAnalysis: true
