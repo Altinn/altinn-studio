@@ -3,9 +3,7 @@ FROM mcr.microsoft.com/dotnet/sdk:11.0-resolute@sha256:65f3c7c6a25a239ab3e6719f2
 WORKDIR /build
 
 COPY common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj common/dotnet/Altinn.Studio.Common/
-COPY common/dotnet/Altinn.Studio.Common/.editorconfig common/dotnet/Altinn.Studio.Common/
 COPY common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj common/dotnet/Altinn.Studio.Common.Telemetry/
-COPY common/dotnet/Altinn.Studio.Common.Telemetry/.editorconfig common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY core/preview/Directory.Packages.props core/preview/
 COPY core/preview/src/Altinn.Studio.Preview/Altinn.Studio.Preview.csproj core/preview/src/Altinn.Studio.Preview/
 
@@ -21,6 +19,7 @@ RUN dotnet publish core/preview/src/Altinn.Studio.Preview/Altinn.Studio.Preview.
     -c Release \
     -o /app/publish \
     --no-restore \
+    /p:RunAnalyzers=false \
     /p:InformationalVersion=$BUILD_VERSION
 
 FROM mcr.microsoft.com/dotnet/aspnet:11.0-resolute-chiseled@sha256:fc0ee12f9ea79bde6cda88c7a34e5467fe383dbb62276be0ec13e5e9cc1654ac AS final
