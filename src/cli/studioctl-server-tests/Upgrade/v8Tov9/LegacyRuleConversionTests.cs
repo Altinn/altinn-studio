@@ -273,7 +273,7 @@ public sealed class LegacyRuleConversionTests
     public async Task Rules_ReadTheSameSnapshotBeforeAnyOfTheirWrites()
     {
         var actual = await Execute("return obj.a + 1;", new() { ["a"] = 1d }, secondBody: "return obj.a + 1;");
-        Assert.Equal(20d, actual); // The previous result is 19, rather than the first rule's new result of 2.
+        Assert.Equal([2d, 20d], Assert.IsType<object?[]>(actual));
     }
 
     [Fact]
@@ -396,7 +396,7 @@ public sealed class LegacyRuleConversionTests
                 {
                     SelectedFunction = "second",
                     InputParams = new() { ["a"] = "result" },
-                    OutParams = new() { ["outParam0"] = "result" },
+                    OutParams = new() { ["outParam0"] = "other" },
                 }
             );
         var generated = new CSharpCodeGenerator(
@@ -477,8 +477,13 @@ public sealed class LegacyRuleConversionTests
         }
         public class Store(Dictionary<string, object?> inputs) : Altinn.App.Core.Internal.Data.IFormDataWrapper {
             public object? Result = 19d;
+            public object? OtherResult;
             public object? Get(ReadOnlySpan<char> path) => path.ToString() == "result" ? Result : inputs.GetValueOrDefault(path.ToString());
-            public bool Set(ReadOnlySpan<char> path, ExpressionValue value) { Result = value.Value; return true; }
+            public bool Set(ReadOnlySpan<char> path, ExpressionValue value) {
+                if (path.SequenceEqual("other")) OtherResult = value.Value;
+                else Result = value.Value;
+                return true;
+            }
             public Altinn.App.Core.Internal.Data.IFormDataWrapper Copy() => new Store(new(inputs)) { Result = Result };
         }
         public static class Entry {
@@ -489,7 +494,7 @@ public sealed class LegacyRuleConversionTests
                 await new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor(
                     Microsoft.Extensions.Logging.Abstractions.NullLogger<Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor>.Instance
                 ).ProcessDataWrite(null!, "task", changes, null);
-                return store.Result;
+                return store.OtherResult is null ? store.Result : new object?[] { store.Result, store.OtherResult };
             }
         }
         """;
