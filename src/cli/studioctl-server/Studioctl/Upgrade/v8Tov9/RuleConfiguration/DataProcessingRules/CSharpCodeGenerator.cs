@@ -100,7 +100,7 @@ internal sealed class CSharpCodeGenerator(
         code.AppendLine("#nullable enable");
         code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
         // IDataProcessor runs before the app's own processors, which may use the calculated values.
-        code.AppendLine($"public class {className}(ILogger<{className}> logger) : IDataProcessor");
+        code.AppendLine($"public class {className}(ILogger<{className}> logger) : IDataProcessor, IDataWriteProcessor");
         code.OpenBrace();
         code.AppendLine(
             "public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language)"
@@ -113,6 +113,16 @@ internal sealed class CSharpCodeGenerator(
         code.AppendLine(
             "public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language) => Task.CompletedTask;"
         );
+        // IDataProcessor handles updates. This hook covers form data created with the instance.
+        code.AppendLine(
+            "public Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)"
+        );
+        code.OpenBrace();
+        code.AppendLine("foreach (var change in changes.FormDataChanges)");
+        code.AppendLine($"    if (change.Type == ChangeType.Created && change.CurrentFormData is {model} model)");
+        code.AppendLine("        Calculate(model);");
+        code.AppendLine("return Task.CompletedTask;");
+        code.CloseBrace();
         AppendRules(code, model, methods, usesToNumber);
         code.CloseBrace();
         result.GeneratedCode = code.ToString();

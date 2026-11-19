@@ -47,18 +47,21 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
         var statements = body.Statements;
         var generated = statements.Where(IsGeneratedRegistration).ToList();
         if (
-            generated.Count == 1
+            generated.Count == 2
             && generated[0] == statements[0]
+            && generated[1] == statements[1]
             && RegistrationTypes(generated[0]) is { } existing
             && TypeName(existing[0]) == "IDataProcessor"
+            && RegistrationTypes(generated[1]) is { } createRegistration
+            && TypeName(createRegistration[0]) == "IDataWriteProcessor"
         )
         {
             _registrationAdded = true;
             return node;
         }
 
-        // A resumed upgrade may have registered this class as an IDataWriteProcessor. Replace that
-        // registration rather than running the same calculation through both interfaces.
+        // Replace registrations from earlier upgrades. Updates run through IDataProcessor;
+        // the IDataWriteProcessor overload handles creation and skips updates to avoid running twice.
         foreach (var statement in generated)
             statements = statements.Remove(statement);
 
@@ -72,12 +75,18 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
                     .LastOrDefault(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                     .ToString()
                 : "    ";
-        var newRegistration = CreateRegistrationStatement(_className)
+        var newRegistration = CreateRegistrationStatement("IDataProcessor", _className)
             .WithLeadingTrivia(SyntaxFactory.Whitespace(indentation))
             .WithTrailingTrivia(SyntaxFactory.LineFeed);
         if (generated.Count > 0)
             newRegistration = newRegistration.WithTriviaFrom(generated[0]);
         statements = statements.Insert(0, newRegistration);
+        statements = statements.Insert(
+            1,
+            CreateRegistrationStatement("IDataWriteProcessor", _className)
+                .WithLeadingTrivia(SyntaxFactory.Whitespace(indentation))
+                .WithTrailingTrivia(SyntaxFactory.LineFeed)
+        );
         _registrationAdded = true;
         return withBody(node, body.WithStatements(statements));
     }
@@ -115,10 +124,10 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
             _ => type.ToString(),
         };
 
-    private static ExpressionStatementSyntax CreateRegistrationStatement(string className)
+    private static ExpressionStatementSyntax CreateRegistrationStatement(string interfaceName, string className)
     {
         // Create: services.AddTransient<IDataProcessor, ClassName>();
-        var statement = SyntaxFactory.ParseStatement($"services.AddTransient<IDataProcessor, {className}>();");
+        var statement = SyntaxFactory.ParseStatement($"services.AddTransient<{interfaceName}, {className}>();");
 
         if (statement is ExpressionStatementSyntax expressionStatement)
         {

@@ -50,6 +50,9 @@ internal sealed class ProgramCsUpdater
         {
             UpgradeConsole.WriteLine($"Warning: Could not find RegisterCustomAppServices method in {programCsPath}");
             UpgradeConsole.WriteLine($"Please manually add: services.AddTransient<IDataProcessor, {className}>();");
+            UpgradeConsole.WriteLine(
+                $"Please manually add: services.AddTransient<IDataWriteProcessor, {className}>();"
+            );
             return false;
         }
 

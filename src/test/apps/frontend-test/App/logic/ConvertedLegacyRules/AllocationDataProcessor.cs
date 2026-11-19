@@ -1,10 +1,18 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 #nullable enable
 namespace Altinn.App.Logic.ConvertedLegacyRules;
-public class AllocationDataProcessor : IDataProcessor
+public class AllocationDataProcessor : IDataProcessor, IDataWriteProcessor
 {
+    public async Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)
+    {
+        // IDataProcessor handles updates before the app's other processors. This hook covers creation only.
+        foreach (var change in changes.FormDataChanges)
+            if (change.Type == ChangeType.Created)
+                await ProcessDataWrite(instanceDataMutator.Instance, null, change.CurrentFormData, null, language);
+    }
     public Task ProcessDataRead(Instance instance, Guid? dataId, object data, string? language) => Task.CompletedTask;
     public async Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language)
     {
@@ -20,18 +28,18 @@ public class AllocationDataProcessor : IDataProcessor
     // Input Feed = FeedAllocation
     // Input Compost = CompostAllocation
     // Output outParam0 = AllocationHelper
-    // (function (obj) {
+    // (function(obj) {
     //     if (!obj.categories) return '100|false';
     //     var selected = obj.categories.split(',');
     //     var sum = 0;
     //     var complete = selected.length > 0;
-    //     selected.forEach(function (category) {
-    //       var value = obj[category];
-    //       sum += +value;
-    //       if (value == null) complete = false;
+    //     selected.forEach(function(category) {
+    //         var value = obj[category];
+    //         sum += +value;
+    //         if (value == null) complete = false;
     //     });
     //     return `${100 - sum}|${complete && sum !== 100}`;
-    //   })
+    // })
     private Task Rule_0(IFormDataWrapper wrapper, IFormDataWrapper inputs)
     {
         var obj = new Dictionary<string, object?>
@@ -44,7 +52,8 @@ public class AllocationDataProcessor : IDataProcessor
         var result = Calculate_0(obj);
         // JSON serialization sent non-finite JS numbers as null.
         if (result is double number && !double.IsFinite(number)) result = null;
-        wrapper.Set("AllocationHelper", ExpressionValue.FromObject(result is JsUndefined ? null : result));
+        if (!wrapper.Set("AllocationHelper", ExpressionValue.FromObject(result is JsUndefined ? null : result)))
+            Console.Error.WriteLine("Could not set migrated calculation value for field " + "AllocationHelper");
         return Task.CompletedTask;
     }
     private static object? Calculate_0(Dictionary<string, object?> obj)
@@ -59,10 +68,11 @@ public class AllocationDataProcessor : IDataProcessor
         local_0 = JsSplit(JsGet(obj, "categories"), ",", false);
         local_1 = 0d;
         local_2 = (JsCompare(JsLength(local_0, false), 0d) > 0);
-        foreach (var item_18 in JsItems(local_0))
+        foreach (var item_19 in JsItems(local_0))
         {
+            object? local_3 = item_19;
             object? local_4 = Undefined;
-            local_4 = JsGet(obj, JsString(item_18));
+            local_4 = JsGet(obj, JsString(local_3));
             local_1 = JsAdd(local_1, JsNumber(local_4));
             if (JsTruthy(JsEquals(local_4, null)))
             {
@@ -89,6 +99,8 @@ public class AllocationDataProcessor : IDataProcessor
     private static object? JsAnd(object? left, Func<object?> right) => JsTruthy(left) ? right() : left;
     private static object? JsOr(object? left, Func<object?> right) => JsTruthy(left) ? left : right();
     private static object? JsCoalesce(object? left, Func<object?> right) => left is null or JsUndefined ? right() : left;
+    private static object? JsOptional(object? receiver, Func<object, object?> invoke) =>
+        receiver is null or JsUndefined ? Undefined : invoke(receiver);
     private static bool JsTruthy(object? value) => value switch
     {
         null or JsUndefined => false,
@@ -132,12 +144,14 @@ public class AllocationDataProcessor : IDataProcessor
             int digit = character is >= '0' and <= '9' ? character - '0' :
                 character is >= 'a' and <= 'z' ? character - 'a' + 10 :
                 character is >= 'A' and <= 'Z' ? character - 'A' + 10 : -1;
-            if (digit < 0 || digit >= radix) return prefix && count > 0 ? (double)value : double.NaN;
+            if (digit < 0 || digit >= radix) return prefix && count > 0 ? JsRadixNumber(value) : double.NaN;
             value = value * radix + digit;
             count++;
         }
-        return count == 0 ? double.NaN : (double)value;
+        return count == 0 ? double.NaN : JsRadixNumber(value);
     }
+    private static double JsRadixNumber(System.Numerics.BigInteger value) => double.Parse(
+        value.ToString(System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture);
     private static double JsParseInt(object? value)
     {
         var text = JsTrimText(JsString(value));
@@ -198,8 +212,9 @@ public class AllocationDataProcessor : IDataProcessor
     private static object? JsIncludes(object? value, object? search, bool optional) => value switch
     {
         string text => text.Contains(JsString(search), StringComparison.Ordinal),
+        string[] items => search is string item && items.Contains(item, StringComparer.Ordinal),
         null or JsUndefined when optional => Undefined,
-        _ => throw new InvalidOperationException("includes requires a string."),
+        _ => throw new InvalidOperationException("includes requires a string or split list."),
     };
     private static object JsSplit(object? value, object? separator, bool optional)
     {
