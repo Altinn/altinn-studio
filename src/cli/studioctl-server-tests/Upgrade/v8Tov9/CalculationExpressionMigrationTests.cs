@@ -129,6 +129,8 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData("return parseFloat(obj.a);")]
     [InlineData("return obj.a / obj.b;")]
     [InlineData("return obj.b ? (obj.a / obj.b) * obj.b : 0;")]
+    [InlineData("return obj.a / 2;")]
+    [InlineData("return obj.b ? 1e-28 / obj.b : 0;")]
     [InlineData("return obj.a > obj.b * 1.4 ? 1 : 0;")]
     [InlineData("return obj.a > obj.b * 24000 ? 1 : 0;")]
     [InlineData("return obj.a + obj.b === 0.3 ? 1 : 0;")]
