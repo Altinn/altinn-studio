@@ -30,37 +30,17 @@ tests and the operator's client tests both check [`examples/protocol.json`](exam
 both sides. They deploy separately, so a change must also work with the previous version of the other side. A run
 survives a restart of the operator, which follows it with status reads and relays its caller's fetch of the result.
 
-### Start a run
+[`src/routes.rs`](src/routes.rs) has the routes and their limits, and [`src/protocol.rs`](src/protocol.rs) has the
+answers and their fields.
 
-`PUT /runs/{runId}?command={command}&timeout={seconds}` with the app as the body: an `application/gzip` tar, without
-`.git`. The client chooses `runId`, a UUID, and names a command from [`src/run.rs`](src/run.rs), not a command line.
-The command stops a minute before the end of `timeout`, to leave time for the report and the patch. The operator
-runner then deletes the VM, so the result can come up to about a minute after `timeout`.
-
-The operator runner answers 202 as soon as it has the whole body, and then starts the VM. The first run id that sends a
-whole body claims the operator runner, so a client can send the archive again after an upload that broke off. A repeat
-of that run id answers 202 with the current status, and the operator runner discards the body. Another run id gets 409,
-because each run needs a new Job. Errors have a `reason` for the client from [`src/protocol.rs`](src/protocol.rs), and
-[`src/routes.rs`](src/routes.rs) has the limits of the upload.
-
-### Read the run
-
-`GET /runs/{runId}/result` answers with the result of the run, and `GET /runs/{runId}` with its status: the result
-without `stdout`, `stderr`, `report` and `patch`, and with at most 10 KiB of `error`. Both wait up to `wait` seconds,
-from 0 to 30, for the end of the run. Both answer 404 for a run id that has not claimed the operator runner. `status` is
-`running`, `failed` with an `error` that says why the operator runner could not run the command, or `completed`:
-
-- `exitCode` is the exit code of the command, also when it failed. It is `null` when the command timed out, and
-  `timedOut` is then `true`.
-- `report` is the JSON object that the command wrote to its report file, such as the
-  [report of studioctl](examples/upgrade-v9-report.json). It is `null` when the command wrote none, and the output then
-  says why.
-- `patch` is the changes of the command to the app, as base64, because a patch can have bytes that are not UTF-8. It is
-  `null` when the command changed nothing or timed out. The operator runner [checks the patch](#the-patch) first.
-
-A status read does not count as the fetch. The first result that is `completed` or `failed` does, and starts the
-[exit of the operator runner](#when-the-operator-runner-exits). Until then, a later request gets the same answer.
-`GET /health` answers 200 for the readiness probe.
+- The client chooses the run id. The first run id that sends a whole archive claims the operator runner, so a client
+  can send the archive again after an upload that broke off. A repeat of that run id gets the status of the run.
+  Another run id gets 409, because each run needs a new Job.
+- The client names a command from [`src/run.rs`](src/run.rs), not a command line, and sends the timeout of the run. The
+  command stops a minute before the end of the timeout, to leave time for the report and the patch. The operator
+  runner then deletes the VM, so the result can come up to about a minute after the timeout.
+- A status read does not count as the fetch, so the operator can follow the run. The first result with the end of the
+  run counts, and starts the [exit of the operator runner](#when-the-operator-runner-exits).
 
 ## How a run runs
 
@@ -78,14 +58,11 @@ patch with `git apply`, which also refuses paths outside the repository and in `
 
 ## When the operator runner exits
 
-The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets the times. The operator runner exits with:
-
-- 0 `RESULT_GRACE_SECONDS` after the first fetch, so that a caller whose answer did not arrive can fetch it again.
-- 0 when no caller fetched the result within `RESULT_RETENTION_SECONDS` after the run ended.
-- 0 when no run claimed it within `REQUEST_TIMEOUT_SECONDS` after it was ready.
-- 143 on SIGTERM or SIGINT, such as when the operator deletes the Job. It stops the command and deletes the VM first.
-- 1 on an error, or when it could not delete the VM. Kubernetes never restarts a Job pod, so the operator runner clears
-  the Provider home of the pod first.
+The operator runner exits with 0 when a client fetched the result and the grace passed, when no client fetched the
+result in time, or when no run claimed it in time. The [PodTemplate](infra/kustomize/base/podtemplate.yaml) sets these
+times. A signal, such as when the operator deletes the Job, stops the command, and the operator runner deletes the VM
+before it exits. Kubernetes never restarts a Job pod, so the operator runner clears the Provider home of the pod when
+it starts.
 
 ## Add a command
 
