@@ -144,6 +144,7 @@ describe('Expression calculations stored in the data model', () => {
     setNumber('Annual work', '0.38');
     cy.findByLabelText(/^Calculated annual work/).should('have.text', '0.38');
     cy.gotoNavPage('summary');
+    cy.reload();
     cy.gotoNavPage('calculations');
     cy.findByLabelText(/^Calculated annual work/).should('have.text', '0.38');
 
