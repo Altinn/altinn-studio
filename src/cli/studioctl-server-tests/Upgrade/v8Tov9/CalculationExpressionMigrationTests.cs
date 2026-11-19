@@ -38,8 +38,18 @@ public sealed class CalculationExpressionMigrationTests
         "{\"a\":10,\"b\":2}",
         10
     )]
-    [InlineData(Normalize + "if (obj.a > 0 && obj.b > 0) return obj.a / obj.b; return 0;", "{\"a\":6,\"b\":2}", 3)]
-    [InlineData(Normalize + "if (obj.a > 0 && obj.b > 0) return obj.a / obj.b; return 0;", "{\"a\":6,\"b\":0}", 0)]
+    [InlineData(
+        Normalize + "if (obj.a > 0 && obj.b > 0) return obj.a / obj.b; return 0;",
+        "{\"a\":6,\"b\":2}",
+        3,
+        true
+    )]
+    [InlineData(
+        Normalize + "if (obj.a > 0 && obj.b > 0) return obj.a / obj.b; return 0;",
+        "{\"a\":6,\"b\":0}",
+        0,
+        true
+    )]
     [InlineData("return obj.b ? +obj.b / +obj.b : 0;", "{}", 0)]
     [InlineData("return obj.b ? +obj.b / +obj.b : 0;", "{\"b\":null}", 0)]
     [InlineData(
@@ -61,8 +71,8 @@ public sealed class CalculationExpressionMigrationTests
         10
     )]
     [InlineData("if (obj.a) total = 7; else total = 3; return total;", "{}", 3)]
-    [InlineData("if (!+obj.a || !+obj.b) return 0; return obj.a / obj.b;", "{\"a\":6,\"b\":2}", 3)]
-    [InlineData("if (!+obj.a || !+obj.b) return 0; return obj.a / obj.b;", "{}", 0)]
+    [InlineData("if (!+obj.a || !+obj.b) return 0; return obj.a / obj.b;", "{\"a\":6,\"b\":2}", 3, true)]
+    [InlineData("if (!+obj.a || !+obj.b) return 0; return obj.a / obj.b;", "{}", 0, true)]
     [InlineData(
         "const toNumber = value => { const num = Number(value); return isNaN(num) ? 0 : num; }; return toNumber(obj.a) + toNumber(obj.b);",
         "{\"a\":7}",
@@ -71,9 +81,10 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData(
         Normalize + "if (obj.b == 0) return 0; return Number((obj.a / obj.b).toFixed(1));",
         "{\"a\":100,\"b\":3}",
-        33.3
+        33.3,
+        true
     )]
-    [InlineData(Normalize + "if (obj.b == 0) return 0; return Number((obj.a / obj.b).toFixed(1));", "{}", 0)]
+    [InlineData(Normalize + "if (obj.b == 0) return 0; return Number((obj.a / obj.b).toFixed(1));", "{}", 0, true)]
     [InlineData(Normalize + "obj.extra = obj.extra ? +obj.extra : 0; return obj.a + obj.extra;", "{\"a\":2}", 2)]
     [InlineData(
         "if (obj.a === undefined || obj.b === undefined) return ''; return Number(obj.a) + Number(obj.b);",
@@ -92,10 +103,11 @@ public sealed class CalculationExpressionMigrationTests
     public void ConvertedCalculations_PreserveAssignmentsBranchesAndMissingInputs(
         string body,
         string inputs,
-        double expected
+        double expected,
+        bool integerInputs = false
     )
     {
-        using var app = CreateApp();
+        using var app = CreateApp(integerInputs);
         var expression = Convert(app, body, Rule("calculate", "result"));
         var model = JsonNode.Parse(inputs)?.AsObject() ?? throw new InvalidOperationException();
         Assert.Equal(expected, Evaluate(expression, model));
@@ -116,6 +128,7 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData("return obj.a.toFixed(2);")]
     [InlineData("return parseFloat(obj.a);")]
     [InlineData("return obj.a / obj.b;")]
+    [InlineData("return obj.b ? (obj.a / obj.b) * obj.b : 0;")]
     [InlineData("return obj.a > obj.b * 1.4 ? 1 : 0;")]
     [InlineData("return obj.a > obj.b * 24000 ? 1 : 0;")]
     [InlineData("return obj.a + obj.b === 0.3 ? 1 : 0;")]
@@ -157,7 +170,9 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Theory]
-    [InlineData("decimal", true)]
+    [InlineData("decimal", false)]
+    [InlineData("int", true)]
+    [InlineData("long", true)]
     [InlineData("double", false)]
     [InlineData("float", false)]
     public void Division_UsesTheModelsNumericDomain(string type, bool converts)
@@ -177,7 +192,7 @@ public sealed class CalculationExpressionMigrationTests
         if (converts)
         {
             var expression = Convert(app, body, Rule("calculate", "result"));
-            Assert.Equal(1d, Evaluate(expression, new() { ["a"] = 1e-28, ["b"] = 1e-28 }));
+            Assert.Equal(3d, Evaluate(expression, new() { ["a"] = 6, ["b"] = 2 }));
         }
         else
             Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
@@ -192,6 +207,14 @@ public sealed class CalculationExpressionMigrationTests
         WriteRules(app, new() { ["calculate"] = Rule("calculate", "result") }, "calculate: " + function);
         Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
         Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void SmallDecimalSelfDivision_UsesTheKnownQuotient()
+    {
+        using var app = CreateApp();
+        var expression = Convert(app, "return obj.b ? obj.b / obj.b : 0;", Rule("calculate", "result"));
+        Assert.Equal(1d, Evaluate(expression, new() { ["b"] = 1e-28 }));
     }
 
     [Fact]
@@ -1252,7 +1275,7 @@ public sealed class CalculationExpressionMigrationTests
             )
         );
 
-    internal static TempAppFolder CreateApp()
+    internal static TempAppFolder CreateApp(bool integerInputs = false)
     {
         var app = new TempAppFolder();
         app.Write(
@@ -1275,6 +1298,8 @@ public sealed class CalculationExpressionMigrationTests
         app.Write(
             "models/Root.cs",
             "namespace TestModels { public class Root { public decimal? a { get; set; } public decimal? b { get; set; } public decimal? result { get; set; } public decimal? other { get; set; } public string? text { get; set; } public System.Collections.Generic.List<decimal> numbers { get; set; } = []; public System.Collections.Generic.List<Root> rows { get; set; } = []; } }"
+                .Replace("decimal? a", integerInputs ? "int? a" : "decimal? a", StringComparison.Ordinal)
+                .Replace("decimal? b", integerInputs ? "int? b" : "decimal? b", StringComparison.Ordinal)
         );
         return app;
     }
