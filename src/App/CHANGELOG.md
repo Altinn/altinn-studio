@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- On phones and tablets, List shows each row's columns stacked in one cell, also when read-only and in Summary2, instead of a table that is cut off. `tableHeadersMobile` chooses which columns it shows. Sorting controls remain in the desktop view. ([#22000](https://github.com/Altinn/altinn-studio/pull/22000))
+
 ### Fixed
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
@@ -26,7 +30,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: Async methods, local functions and lambdas in the app that return `void`, such as `items.ForEach(async x => ...)`, now fail the build with error `ALTINNAPP0502`. Return `Task` and await it instead. `studioctl app upgrade` does not make this change for you. ([ALTINNAPP0502](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0502), [#19788](https://github.com/Altinn/altinn-studio/issues/19788))
 - Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
-- On phones and tablets, List shows each row's columns stacked in one cell, also when read-only and in Summary2, instead of a table that is cut off. `tableHeadersMobile` chooses which columns it shows. ([#22000](https://github.com/Altinn/altinn-studio/pull/22000))
 - The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
 
 ### Fixed
