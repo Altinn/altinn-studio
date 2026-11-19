@@ -573,6 +573,42 @@ internal sealed class StorageCallRewriter(
                 ArgumentList.Arguments.Count: 0,
             };
 
+    /// <summary>
+    /// In code <c>IInstantiationProcessor.DataCreation</c> runs, which also saves outside the transition with the
+    /// caller's token, a call made as the service owner overrides the data type's authentication once, before its first
+    /// rewritten call.
+    /// </summary>
+    private static void OverrideAuthentication(
+        MethodRewrite rewrite,
+        StorageClientCall call,
+        StatementSyntax statement,
+        Piece dataType,
+        string dataTypeKey
+    )
+    {
+        if (
+            !rewrite.InDataCreation
+            || StorageClientCall.Expression(call.Written("authenticationMethod")) is not { } method
+            || !IsServiceOwner(method)
+            || !rewrite.OverriddenDataTypes.Add(dataTypeKey)
+        )
+        {
+            return;
+        }
+
+        // Copies: the call they come from is rewritten before the statement is inserted.
+        var mutator = Piece.Fixed(rewrite.MutatorExpression());
+        rewrite.InsertBefore(
+            statement,
+            Piece.Statement(
+                "$0.OverrideAuthenticationMethod($0.GetDataType($1), $2);",
+                mutator,
+                dataType.Copy(),
+                Piece.Fixed(method)
+            )
+        );
+    }
+
     /// <param name="removed">Gets the write back that reading the model the transition saves makes unnecessary.</param>
     private void FormRead(
         MethodRewrite rewrite,
@@ -601,6 +637,15 @@ internal sealed class StorageCallRewriter(
         var mutator = Piece.Fixed(rewrite.MutatorExpression());
         rewrite.Replace(call.Use.Call, Piece.Expression($"$0.GetFormData{generic}($1)", mutator, id));
         rewrite.MovedReads.Add(call);
+        if (call.Use.Statement is { } statement)
+        {
+            var key = id.Uses.Count > 0 ? id.Uses[0].ToString() : "";
+            OverrideAuthentication(rewrite, call, statement, id, key);
+            if (decision.WriteBack is { } writeBack)
+            {
+                OverrideAuthentication(rewrite, writeBack, statement, id, key);
+            }
+        }
 
         if (decision.WriteBack is { } write && write.Use.Statement is { } writeStatement)
         {
@@ -679,6 +724,10 @@ internal sealed class StorageCallRewriter(
         }
 
         var mutator = Piece.Fixed(rewrite.MutatorExpression());
+        if (call.Use.Statement is { } statement)
+        {
+            OverrideAuthentication(rewrite, call, statement, id, id.Uses.Count > 0 ? id.Uses[0].ToString() : "");
+        }
 
         var replacement =
             call.Name == "GetDataBytes"
@@ -795,6 +844,7 @@ internal sealed class StorageCallRewriter(
                 bytes,
                 Piece.Of(generated)
             );
+        OverrideAuthentication(rewrite, call, statement, Piece.Of(dataType), dataType.ToString());
         added(add);
     }
 
@@ -1071,10 +1121,12 @@ internal sealed class StorageCallRewriter(
             or CallUseKind.Discard when statement is not null && (use.Awaited || rewrite.IsAsync):
             case CallUseKind.Assignment when statement is not null && IsElementArgument(call, use.Target):
                 rewrite.ReplaceStatement(statement, awaited);
+                OverrideFor(rewrite, call, statement, id);
                 return true;
             case CallUseKind.Statement or CallUseKind.Discard when statement is not null:
                 // v8 did not wait for the write; the mutator stages it only when it completes, before the step saves.
                 rewrite.ReplaceStatement(statement, Piece.Statement("$0.GetAwaiter().GetResult();", staged));
+                OverrideFor(rewrite, call, statement, id);
                 return true;
             case CallUseKind.Declaration
             or CallUseKind.Assignment when statement is not null && use.Awaited && use.Target is { } target:
@@ -1088,6 +1140,7 @@ internal sealed class StorageCallRewriter(
                             element
                         );
                 rewrite.ReplaceStatement(statement, awaited, assign);
+                OverrideFor(rewrite, call, statement, id);
                 return true;
             case CallUseKind.Return
                 when statement is ReturnStatementSyntax && !rewrite.IsAsync && ReturnsPlainTask(rewrite):
@@ -1114,6 +1167,20 @@ internal sealed class StorageCallRewriter(
                 return false;
         }
     }
+
+    private static void OverrideFor(
+        MethodRewrite rewrite,
+        StorageClientCall call,
+        StatementSyntax statement,
+        Piece id
+    ) =>
+        OverrideAuthentication(
+            rewrite,
+            call,
+            statement,
+            id,
+            string.Join(",", id.Uses.Select(static use => use.ToString()))
+        );
 
     /// <summary>The rewritten method, when the call is its expression body.</summary>
     private static MethodDeclarationSyntax? ArrowBodied(MethodRewrite rewrite, StorageClientCall call) =>
@@ -1271,6 +1338,7 @@ internal sealed class StorageCallRewriter(
         );
         if (statement is not null)
         {
+            OverrideFor(rewrite, call, statement, id);
             HandEditsAfterDelete(rewrite, call, statement);
         }
     }
@@ -1348,6 +1416,8 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
+        var statement = call.Use.Statement;
+
         if (AddedElement(rewrite, call) is not null)
         {
             return;
@@ -1408,6 +1478,11 @@ internal sealed class StorageCallRewriter(
         if (!Staged(rewrite, call, [update], null, target => SymbolEqualityComparer.Default.Equals(target, element)))
         {
             return;
+        }
+
+        if (statement is not null)
+        {
+            OverrideFor(rewrite, call, statement, Piece.Of(elementExpression));
         }
 
         rewrite.MovedWrites.Add(call);
