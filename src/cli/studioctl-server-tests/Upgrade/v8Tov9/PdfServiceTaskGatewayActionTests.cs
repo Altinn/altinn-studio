@@ -114,6 +114,29 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
     }
 
     [Fact]
+    public async Task SignBranchFlowIdCollision_SkipsTheTask_AndReportsNoPlacement()
+    {
+        WriteMetadata();
+        _app.Write(
+            "config/process/process.bpmn",
+            Process([.. Elements(), Flow("Flow_PdfTask_Task_2_to_EndEvent_1", "Task_1", "EndEvent_1")])
+        );
+
+        var result = await Migrate();
+
+        Assert.Equal("EndEvent_1", TargetOf(ProcessAfter(), "Flow_sign"));
+        Assert.Contains(
+            result.Warnings,
+            w =>
+                w.StartsWith(
+                    "A sequence flow id 'Flow_PdfTask_Task_2_to_EndEvent_1' already exists.",
+                    StringComparison.Ordinal
+                )
+        );
+        Assert.DoesNotContain(result.Messages, m => m.Status == UpgradeMessageStatus.Info);
+    }
+
+    [Fact]
     public async Task SignAndRejectConditions_AreComparedAsJson()
     {
         WriteMetadata();

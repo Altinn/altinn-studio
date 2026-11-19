@@ -226,15 +226,11 @@ internal sealed class PdfProcessRewriter
 
         // The flow the pdf task goes on: the task's own, or the sign branch of the gateway after a signing task.
         var flow = taskFlow;
-        switch (FindGatewayActionRouting(process, task, taskFlow))
+        var routing = FindGatewayActionRouting(process, task, taskFlow);
+        switch (routing)
         {
             case GatewayActionRouting.SignBranch signBranch:
                 flow = signBranch.SignFlow;
-                _infos.Add(
-                    $"Put PDF service task '{pdfTaskId}' on the sign branch of gateway '{signBranch.GatewayId}', which "
-                        + $"routes on gatewayAction after signing task '{taskId}'. As in v8, signing makes the PDF and "
-                        + "rejecting does not."
-                );
                 break;
             case GatewayActionRouting.Unsupported unsupported:
                 _warnings.Add(
@@ -266,6 +262,15 @@ internal sealed class PdfProcessRewriter
             );
             _skippedTasks.Add(taskId);
             return;
+        }
+
+        if (routing is GatewayActionRouting.SignBranch { GatewayId: var signGatewayId })
+        {
+            _infos.Add(
+                $"Put PDF service task '{pdfTaskId}' on the sign branch of gateway '{signGatewayId}', which "
+                    + $"routes on gatewayAction after signing task '{taskId}'. As in v8, signing makes the PDF and "
+                    + "rejecting does not."
+            );
         }
 
         // 1) Redirect the flow to the new pdf task.
