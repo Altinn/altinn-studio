@@ -12,7 +12,12 @@ import { Lang } from 'src/features/language/Lang';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { getSelectionMode, ListComponent, ListMobileRowContent } from 'src/layout/List/ListComponent';
+import {
+  getMobileTableHeaders,
+  getSelectionMode,
+  ListComponent,
+  ListMobileRowContent,
+} from 'src/layout/List/ListComponent';
 import classes from 'src/layout/List/ListComponent.module.css';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
@@ -54,6 +59,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const errors = validationsOfSeverity(validations, 'error');
   const config = useComponentConfig(targetBaseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'List');
+  const mobileHeaders = getMobileTableHeaders(config.tableHeaders, config.tableHeadersMobile);
   const required = useEvalExpression(config.required, Expressions.List.required);
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
@@ -134,8 +140,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                     {mobileView ? (
                       <BaseTable.Cell align='left'>
                         <ListMobileRowContent
-                          tableHeaders={config.tableHeaders}
-                          tableHeadersMobile={config.tableHeadersMobile}
+                          headers={mobileHeaders}
                           renderValue={getValue}
                         />
                       </BaseTable.Cell>

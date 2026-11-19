@@ -162,12 +162,12 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     }
   };
   const columnKeys = Object.keys(config.tableHeaders);
-  const mobileColumnKeys = getMobileColumnKeys(config.tableHeaders, config.tableHeadersMobile);
+  const mobileHeaders = getMobileTableHeaders(config.tableHeaders, config.tableHeadersMobile);
   const renderValue = (value: Row[string] | undefined) => (typeof value === 'string' ? lang(value) : value);
   const indexedId = useIndexedId(baseComponentId);
   const componentId = isSummary ? `${indexedId}-summary` : indexedId;
   const getRowLabel = (row: Row): string =>
-    (mobileView ? mobileColumnKeys : Object.keys(row))
+    (mobileView ? Object.keys(mobileHeaders) : Object.keys(row))
       .map((key) => {
         const headerId = config.tableHeaders[key];
         if (!headerId) {
@@ -300,8 +300,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
               {mobileView ? (
                 <BaseTable.Cell className={cn({ [classes.selectedRowCell]: isRowSelected(row) && !readOnly })}>
                   <ListMobileRowContent
-                    tableHeaders={config.tableHeaders}
-                    tableHeadersMobile={config.tableHeadersMobile}
+                    headers={mobileHeaders}
                     renderValue={(key) => renderValue(row[key])}
                   />
                 </BaseTable.Cell>
@@ -337,44 +336,41 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
 };
 
 type ListMobileRowContentProps = {
-  tableHeaders: Record<string, string | undefined>;
-  tableHeadersMobile: string[] | undefined;
+  headers: Record<string, string | undefined>;
   renderValue: (key: string) => React.ReactNode;
 };
 
 /**
  * On small screens, each row shows its columns as stacked 'Header: value' lines in a single cell, in the same way as
- * RepeatingGroup does. Only the columns in tableHeadersMobile are shown, if set.
+ * RepeatingGroup does.
  */
-export function ListMobileRowContent({ tableHeaders, tableHeadersMobile, renderValue }: ListMobileRowContentProps) {
+export function ListMobileRowContent({ headers, renderValue }: ListMobileRowContentProps) {
   const { langAsString } = useLanguage();
-  const keys = getMobileColumnKeys(tableHeaders, tableHeadersMobile);
   return (
     <div className={classes.mobileRowContent}>
-      {keys.map((key) => {
-        const header = tableHeaders[key];
-        return (
-          <div key={key}>
-            {header && langAsString(header) && (
-              <>
-                <strong>
-                  <Lang id={header} />:
-                </strong>{' '}
-              </>
-            )}
-            {renderValue(key)}
-          </div>
-        );
-      })}
+      {Object.entries(headers).map(([key, header]) => (
+        <div key={key}>
+          {header && langAsString(header) && (
+            <>
+              <strong>
+                <Lang id={header} />:
+              </strong>{' '}
+            </>
+          )}
+          {renderValue(key)}
+        </div>
+      ))}
     </div>
   );
 }
 
-function getMobileColumnKeys(
+export function getMobileTableHeaders(
   tableHeaders: Record<string, string | undefined>,
   tableHeadersMobile: string[] | undefined,
 ) {
-  return Object.keys(tableHeaders).filter((key) => !tableHeadersMobile || tableHeadersMobile.includes(key));
+  return Object.fromEntries(
+    Object.entries(tableHeaders).filter(([key]) => !tableHeadersMobile || tableHeadersMobile.includes(key)),
+  );
 }
 
 function ListStructure({ baseComponentId, isSummary, children }: PropsWithChildren<ListComponentProps>) {
