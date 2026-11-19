@@ -84,21 +84,6 @@ internal sealed class StorageCallRewriter(
             }
         }
 
-        // C-WB2: a read whose bytes only rename the element goes with the rename.
-        foreach (
-            var call in calls.Where(call =>
-                call.Name == "UpdateBinaryData"
-                && targets[call].Kind == TargetKind.Current
-                && !refused.ContainsKey(call)
-            )
-        )
-        {
-            if (call.Written("stream") is { } stream && OwnBytes(call, calls, stream) is { Carriers.Count: > 0 } own)
-            {
-                removed.UnionWith(calls.Where(read => read.Syntax == own.BytesRead.Syntax));
-            }
-        }
-
         foreach (var call in calls)
         {
             if (removed.Contains(call) || kept.Contains(call))
@@ -424,14 +409,14 @@ internal sealed class StorageCallRewriter(
                 return;
         }
 
-        var member = call.Name switch
+        var instead = call.Name switch
         {
-            "InsertFormData" => "AddFormDataElement",
-            "InsertBinaryData" => "AddBinaryDataElement",
-            "UpdateData" or "UpdateFormData" => "ReplaceFormData",
-            "UpdateBinaryData" => "UpdateBinaryDataElement",
-            "DeleteData" or "DeleteBinaryData" => "RemoveDataElement",
-            "Update" => "UpdateDataElementMetadata",
+            "InsertFormData" => $"{rewrite.Mutator}.AddFormDataElement",
+            "InsertBinaryData" => $"{rewrite.Mutator}.AddBinaryDataElement",
+            "UpdateData" or "UpdateFormData" => $"{rewrite.Mutator}.ReplaceFormData",
+            "UpdateBinaryData" => $"{rewrite.Mutator}.UpdateBinaryDataElement",
+            "DeleteData" or "DeleteBinaryData" => $"{rewrite.Mutator}.RemoveDataElement",
+            "Update" => "IDataClient.Update outside the transition (the mutator cannot save element metadata)",
             _ => null,
         };
         if (call.Name is "LockDataElement" or "UnlockDataElement")
@@ -444,7 +429,7 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
-        if (member is null || !Write(rewrite, call, target, $"{rewrite.Mutator}.{member}"))
+        if (instead is null || !Write(rewrite, call, target, instead))
         {
             return;
         }
@@ -800,7 +785,7 @@ internal sealed class StorageCallRewriter(
 
     /// <summary>
     /// How an add is moved, given the mutator call that adds: its result unused, or held in a local used only to add
-    /// it to <c>instance.Data</c> (removed), to set its metadata and save it with <c>Update</c> (C-WA3); <c>null</c>
+    /// it to <c>instance.Data</c> (removed), to lock it and save it with <c>Update</c> (C-WA3); <c>null</c>
     /// with a to-do when the result is used otherwise, such as its id (C-WA4).
     /// </summary>
     private Action<Piece>? Added(
@@ -844,8 +829,8 @@ internal sealed class StorageCallRewriter(
 
     /// <summary>
     /// The plan for the uses of an added element's local, or <c>null</c> (with a to-do) when one is not handled:
-    /// <c>instance.Data.Add(r)</c> goes, property sets go into one <c>UpdateDataElementMetadata</c> where
-    /// <c>Update(instance, r)</c> was, a <c>Locked = true</c> goes with a warning.
+    /// <c>instance.Data.Add(r)</c> goes, a <c>Locked = true</c> goes with a warning, and so does the <c>Update(instance, r)</c>
+    /// that saved it; other property sets are a to-do, since the mutator cannot set an added element's metadata.
     /// </summary>
     private Action<MethodRewrite>? AddedUses(
         MethodRewrite rewrite,
@@ -924,6 +909,12 @@ internal sealed class StorageCallRewriter(
             return null;
         }
 
+        if (sets.Any(static set => set.Property != "Locked"))
+        {
+            Unported(rewrite, call, "the mutator has no member that sets the metadata of an element it adds");
+            return null;
+        }
+
         return target =>
         {
             foreach (var statement in dataAdds)
@@ -944,34 +935,10 @@ internal sealed class StorageCallRewriter(
                 }
             }
 
-            if (updates is not [var update] || update.Use.Statement is not { } updateStatement)
-            {
-                return;
-            }
-
-            var properties = sets.Where(static set => set.Property != "Locked").ToList();
-            if (properties.Count == 0)
+            if (updates is [var update] && update.Use.Statement is { } updateStatement)
             {
                 target.Edits.Remove(updateStatement);
-                return;
             }
-
-            var mutator = Piece.Fixed(target.MutatorExpression());
-            var assignments = properties
-                .Select(set => Piece.Expression($"{set.Property} = $0", Piece.Of(set.Value.Syntax)))
-                .ToList();
-            var (initializer, holes) = Piece.Joined(assignments, ", ", 1);
-            target.ReplaceStatement(
-                updateStatement,
-                Piece.Statement(
-                    $"$0.UpdateDataElementMetadata({local.Name}.DataElementIdentifier, new() {{ {initializer} }});",
-                    [mutator, .. holes]
-                )
-            );
-            target.Moved(
-                update.Syntax,
-                $"IDataClient.Update now sets the new element's metadata with {target.Mutator}.UpdateDataElementMetadata."
-            );
         };
     }
 
@@ -1338,11 +1305,11 @@ internal sealed class StorageCallRewriter(
         }
     }
 
-    /// <summary>C-MM1 and C-MM2: <c>Update</c> sets the element's lists that the method changed, or goes when nothing changed.</summary>
+    /// <summary>C-MM2: <c>Update</c> goes when nothing changed; otherwise it stays with a to-do (C-MM1).</summary>
     private void MetadataWrite(MethodRewrite rewrite, StorageClientCall call)
     {
         var elementArgument = call.Argument("dataElement");
-        if (elementArgument is null || StorageClientCall.Expression(elementArgument) is not { } elementExpression)
+        if (elementArgument is null || StorageClientCall.Expression(elementArgument) is null)
         {
             Unported(rewrite, call, "the upgrade did not recognize the element it updates");
             return;
@@ -1374,47 +1341,7 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
-        foreach (var (property, node) in changes.Dropped)
-        {
-            if (property == "Locked")
-            {
-                rewrite.Edits.Remove(node);
-                rewrite.Moved(
-                    node,
-                    "dropped the Locked change: v9 unlocks a task's data when the task starts and locks it after the "
-                        + "task-end handlers."
-                );
-            }
-            else
-            {
-                rewrite.Moved(
-                    node,
-                    $"the {property} change is not saved: v8's PUT ignored it, and so does the mutator."
-                );
-            }
-        }
-
-        var properties =
-            changes.Properties.Count > 0 ? changes.Properties : ["Tags", "Metadata", "UserDefinedMetadata", "Refs"];
-        var mutator = Piece.Fixed(rewrite.MutatorExpression());
-        var assignments = properties
-            .Select(property => Piece.Expression($"{property} = $0.{property}", Piece.Of(elementExpression)))
-            .ToList();
-        var (initializer, holes) = Piece.Joined(assignments, ", ", 2);
-        var update = Piece.Statement(
-            $"$0.UpdateDataElementMetadata($1, new() {{ {initializer} }});",
-            [mutator, Piece.Of(elementExpression), .. holes]
-        );
-        if (!Staged(rewrite, call, [update], null, target => SymbolEqualityComparer.Default.Equals(target, element)))
-        {
-            return;
-        }
-
-        rewrite.MovedWrites.Add(call);
-        rewrite.Moved(
-            call.Syntax,
-            $"{call.DisplayName} now sets {string.Join(", ", properties)} with {rewrite.Mutator}.UpdateDataElementMetadata."
-        );
+        Unported(rewrite, call, "the mutator has no member that updates an element's metadata");
     }
 
     private sealed record ElementChanges(
@@ -1656,7 +1583,7 @@ internal sealed class StorageCallRewriter(
         };
     }
 
-    /// <summary>C-WB1 and C-WB2: new content, or only a new filename when the bytes are the element's own.</summary>
+    /// <summary>C-WB1: new content; only a new filename, when the bytes are the element's own, is a to-do (C-WB2).</summary>
     private void BinaryWrite(MethodRewrite rewrite, StorageClientCall call, IReadOnlyList<StorageClientCall> calls)
     {
         var contentType = StorageClientCall.Expression(call.Written("contentType"));
@@ -1680,33 +1607,24 @@ internal sealed class StorageCallRewriter(
             return;
         }
 
+        if (OwnBytes(call, calls, stream) is not null)
+        {
+            Unported(rewrite, call, "it only renames the element, and the mutator has no member that renames one");
+            return;
+        }
+
+        if (!filename.IsKind(SyntaxKind.NullLiteralExpression) && !IsOwnFilename(call))
+        {
+            Unported(rewrite, call, "it also sets the filename, and the mutator has no member that renames an element");
+            return;
+        }
+
         if (Staging(rewrite, call, null, static _ => true) is not { } stage)
         {
             return;
         }
 
         var mutator = Piece.Fixed(rewrite.MutatorExpression());
-        var rename = Piece.Statement(
-            "$0.UpdateDataElementMetadata($1, new() { Filename = $2 });",
-            mutator,
-            id,
-            Piece.Of(filename)
-        );
-        if (OwnBytes(call, calls, stream) is { } own)
-        {
-            stage([rename]);
-            foreach (var carrier in own.Carriers)
-            {
-                rewrite.Edits.Remove(carrier);
-            }
-
-            rewrite.MovedWrites.Add(call);
-            rewrite.Moved(
-                call.Syntax,
-                $"{call.DisplayName} only renamed the element, so it now sets the filename with {rewrite.Mutator}.UpdateDataElementMetadata."
-            );
-            return;
-        }
 
         if (Bytes(rewrite, stream, statement) is not { } bytes)
         {
@@ -1723,16 +1641,7 @@ internal sealed class StorageCallRewriter(
         {
             type = Piece.Expression("$0 ?? $1.GetDataElement($2).ContentType", Piece.Of(contentType), mutator, id);
         }
-        var statements = new List<Piece>
-        {
-            Piece.Statement("$0.UpdateBinaryDataElement($1, $2, $3);", mutator, id, type, bytes),
-        };
-        if (!filename.IsKind(SyntaxKind.NullLiteralExpression))
-        {
-            statements.Add(rename);
-        }
-
-        stage(statements);
+        stage([Piece.Statement("$0.UpdateBinaryDataElement($1, $2, $3);", mutator, id, type, bytes)]);
         rewrite.MovedWrites.Add(call);
         rewrite.Moved(
             call.Syntax,
@@ -1746,6 +1655,10 @@ internal sealed class StorageCallRewriter(
             );
         }
     }
+
+    private static bool IsOwnFilename(StorageClientCall call) =>
+        call.Written("filename")?.Value is IPropertyReferenceOperation { Property.Name: "Filename" } property
+        && property.Instance?.Type?.ToDisplayString() == DataElementType;
 
     private static bool IsOwnContentType(StorageClientCall call) =>
         call.Written("contentType")?.Value is IPropertyReferenceOperation { Property.Name: "ContentType" } property

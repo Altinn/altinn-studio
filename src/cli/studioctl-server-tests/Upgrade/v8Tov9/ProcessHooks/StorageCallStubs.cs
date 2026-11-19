@@ -324,7 +324,6 @@ internal static class StorageCallStubs
                 BinaryDataChange UpdateBinaryDataElement(DataElementIdentifier dataElementIdentifier, string contentType, ReadOnlyMemory<byte> bytes);
                 void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
                 Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model) where T : notnull;
-                void UpdateDataElementMetadata(DataElementIdentifier dataElementIdentifier, DataElementMetadataUpdate update);
                 void SetDataValue(string key, string? value);
                 void SetPresentationText(string key, string? value);
             }
@@ -348,15 +347,6 @@ internal static class StorageCallStubs
             public sealed class BinaryDataChange
             {
                 public DataElementIdentifier DataElementIdentifier { get; }
-            }
-
-            public sealed record DataElementMetadataUpdate
-            {
-                public IReadOnlyList<string>? Tags { get; init; }
-                public IReadOnlyList<KeyValueEntry>? Metadata { get; init; }
-                public IReadOnlyList<KeyValueEntry>? UserDefinedMetadata { get; init; }
-                public IReadOnlyList<Guid>? Refs { get; init; }
-                public string? Filename { get; init; }
             }
         }
 
