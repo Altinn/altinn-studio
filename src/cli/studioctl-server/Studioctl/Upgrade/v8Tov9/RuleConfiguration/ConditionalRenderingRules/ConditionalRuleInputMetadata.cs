@@ -144,8 +144,9 @@ internal sealed class ConditionalRuleInputMetadata
             return JsonNode.Parse(File.ReadAllText(file), documentOptions: new() { AllowDuplicateProperties = false })
                 as JsonArray;
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
+            UpgradeConsole.WriteLine($"Could not read optional options file '{file}': {exception.Message}");
             return null;
         }
     }

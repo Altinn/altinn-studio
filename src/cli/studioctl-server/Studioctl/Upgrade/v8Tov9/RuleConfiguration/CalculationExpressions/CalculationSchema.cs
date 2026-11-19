@@ -83,7 +83,7 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
             if (AcceptsNull(schema))
                 continue;
             // References and enum/composition constraints must stay on the non-null branch.
-            // oneOf also lets the frontend resolve the original scalar type for numeric results.
+            // anyOf keeps null valid even when the original schema already accepts it implicitly.
             var wrap =
                 schema.ContainsKey("$ref")
                 || schema.ContainsKey("enum")
@@ -99,7 +99,7 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
             else
                 property.Properties[property.Name] = new JsonObject
                 {
-                    ["oneOf"] = new JsonArray(schema.DeepClone(), new JsonObject { ["type"] = "null" }),
+                    ["anyOf"] = new JsonArray(schema.DeepClone(), new JsonObject { ["type"] = "null" }),
                 };
             changed = true;
         }

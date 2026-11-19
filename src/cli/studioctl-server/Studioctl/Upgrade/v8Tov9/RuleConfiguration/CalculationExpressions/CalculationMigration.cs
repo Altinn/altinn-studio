@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -98,7 +99,6 @@ internal static partial class CalculationMigration
                         OutParams = new() { ["outParam0"] = candidate.Target },
                         InputParams = new(),
                     };
-                    candidate.Paths = normalized;
                     foreach (var (name, input) in rule.InputParams ?? [])
                     {
                         if (string.IsNullOrEmpty(input))
@@ -109,6 +109,11 @@ internal static partial class CalculationMigration
                             );
                         normalized.InputParams[name] = NormalizePath(input);
                     }
+                    candidate.Paths = normalized;
+                    if (normalized.InputParams.Count == 0)
+                        throw new NotSupportedException(
+                            "No mapped inputs; the legacy frontend did not execute this rule."
+                        );
                     var function =
                         rule.SelectedFunction == null ? null : handler.GetDataProcessingFunction(rule.SelectedFunction);
                     if (function == null)
@@ -180,34 +185,37 @@ internal static partial class CalculationMigration
                     if (!duplicate && !dependency && !backwards)
                         continue;
                     Connect(current, other);
-                    if (duplicate || backwards || current.Layout != other.Layout)
+                    if (duplicate || dependency || backwards || current.Layout != other.Layout)
                         current.Reason = duplicate
                             ? "Multiple calculations write overlapping outputs."
-                            : "Calculation dependency crosses layout sets or requires a different execution order.";
+                            : "Connected calculations require the legacy input snapshot before any rule writes.";
                 }
             }
 
             var filePath = Path.Combine(projectFolder, "App", "models", group.Key + ".calculation.json");
+            var originalContent = File.Exists(filePath) ? File.ReadAllText(filePath) : null;
             JsonObject document;
             try
             {
-                document = File.Exists(filePath)
-                    ? JsonNode.Parse(
-                        File.ReadAllText(filePath),
-                        documentOptions: new()
-                        {
-                            CommentHandling = JsonCommentHandling.Skip,
-                            AllowTrailingCommas = true,
-                        }
-                    ) as JsonObject
-                        ?? throw new JsonException("Expected a calculation object.")
-                    : new JsonObject { ["calculations"] = new JsonArray() };
+                document =
+                    originalContent != null
+                        ? JsonNode.Parse(
+                            originalContent,
+                            documentOptions: new()
+                            {
+                                CommentHandling = JsonCommentHandling.Skip,
+                                AllowTrailingCommas = true,
+                                AllowDuplicateProperties = false,
+                            }
+                        ) as JsonObject
+                            ?? throw new JsonException("Expected a calculation object.")
+                        : new JsonObject { ["calculations"] = new JsonArray() };
                 if (
-                    document["calculations"] is not JsonArray items
+                    Property(document, "calculations") is not JsonArray items
                     || items.Any(item =>
                         item is not JsonObject definition
                         || string.IsNullOrWhiteSpace(Field(definition))
-                        || !definition.ContainsKey("expression")
+                        || PropertyName(definition, "expression") == null
                     )
                 )
                     throw new JsonException("Expected a list of field and expression items.");
@@ -221,13 +229,17 @@ internal static partial class CalculationMigration
                 }
                 continue;
             }
-            var calculations = document["calculations"] as JsonArray ?? throw new InvalidOperationException();
+            var calculations = Property(document, "calculations") as JsonArray ?? throw new InvalidOperationException();
             var alreadyConverted = rules
                 .Where(rule =>
                     rule.Reason == null
                     && rule.Target != null
                     && calculations.Count(item => Field(item) == rule.Target) == 1
-                    && calculations.Any(item => JsonNode.DeepEquals(item, Definition(rule.Target, rule.Expression)))
+                    && calculations.Any(item =>
+                        Field(item) == rule.Target
+                        && item is JsonObject definition
+                        && JsonNode.DeepEquals(Property(definition, "expression"), rule.Expression)
+                    )
                 )
                 .Select(rule => rule.Target)
                 .ToHashSet(StringComparer.Ordinal);
@@ -235,17 +247,12 @@ internal static partial class CalculationMigration
             {
                 if (rule.Target == null)
                     continue;
-                var processorName = new string(rule.Layout.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
-                if (processorName.Length > 0)
-                    processorName =
-                        char.ToUpper(processorName[0], System.Globalization.CultureInfo.InvariantCulture)
-                        + processorName[1..];
                 var processorPath = Path.Combine(
                     projectFolder,
                     "App",
                     "logic",
                     "ConvertedLegacyRules",
-                    processorName + "DataProcessor.cs"
+                    CSharpCodeGenerator.ProcessorClassName(rule.Layout) + ".cs"
                 );
                 if (File.Exists(processorPath))
                 {
@@ -317,11 +324,19 @@ internal static partial class CalculationMigration
             if (schemaContent != null)
                 WriteCalculationFile(schema.FilePath, schemaContent);
             var targets = calculations.Select(Field).ToHashSet(StringComparer.Ordinal);
+            var appended = new List<JsonObject>();
             foreach (var rule in accepted)
                 if (rule.Target is { } target && targets.Add(target))
-                    calculations.Add(Definition(target, rule.Expression));
+                {
+                    var definition = Definition(target, rule.Expression);
+                    calculations.Add(definition);
+                    appended.Add(definition);
+                }
             Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException());
-            var content = document.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n";
+            var content =
+                originalContent == null
+                    ? document.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n"
+                    : AppendDefinitions(originalContent, appended);
             // Don't rewrite an existing file on resumed upgrades unless it actually gained entries.
             if (
                 !File.Exists(filePath)
@@ -386,6 +401,23 @@ internal static partial class CalculationMigration
                     indices.Select(matches => matches[index].Value).Distinct(StringComparer.Ordinal).Count() > 1
                 )
                 .ToHashSet();
+            // Keep deliberate gaps and diagonal selections fixed. A full rectangular set of
+            // equivalent rows is the legacy workaround that can become a repeating calculation.
+            var dimensions = varyingIndices
+                .Select(index =>
+                    indices
+                        .Select(matches => int.TryParse(matches[index].Value[1..^1], out var value) ? value : -1)
+                        .Distinct()
+                        .Order()
+                        .ToArray()
+                )
+                .ToArray();
+            if (
+                dimensions.Any(values => !values.SequenceEqual(Enumerable.Range(0, values.Length)))
+                || dimensions.Aggregate(1L, (count, values) => count > rows.Length ? count : count * values.Length)
+                    != rows.Length
+            )
+                continue;
             var expressions = rows.Select(row => RebaseReferences(row.Expression, row.Target ?? "", varyingIndices))
                 .ToArray();
             if (expressions.Skip(1).Any(expression => !JsonNode.DeepEquals(expression, expressions[0])))
@@ -474,9 +506,71 @@ internal static partial class CalculationMigration
     }
 
     private static string? Field(JsonNode? definition) =>
-        definition is JsonObject item && item["field"] is JsonValue field && field.TryGetValue<string>(out var name)
+        definition is JsonObject item
+        && Property(item, "field") is JsonValue field
+        && field.TryGetValue<string>(out var name)
             ? name
             : null;
+
+    private static string? PropertyName(JsonObject value, string name)
+    {
+        var matches = value
+            .Select(item => item.Key)
+            .Where(key => key.Equals(name, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matches.Length > 1)
+            throw new JsonException($"Ambiguous calculation property '{name}'.");
+        return matches.SingleOrDefault();
+    }
+
+    private static JsonNode? Property(JsonObject value, string name) =>
+        PropertyName(value, name) is { } key ? value[key] : null;
+
+    private static string AppendDefinitions(string source, IReadOnlyList<JsonObject> definitions)
+    {
+        if (definitions.Count == 0)
+            return source;
+        var bytes = Encoding.UTF8.GetBytes(source);
+        var reader = new Utf8JsonReader(
+            bytes,
+            new JsonReaderOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+        );
+        reader.Read();
+        while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
+        {
+            var name = reader.GetString();
+            reader.Read();
+            if (!string.Equals(name, "calculations", StringComparison.OrdinalIgnoreCase))
+            {
+                reader.Skip();
+                continue;
+            }
+            var lastValueEnd = reader.BytesConsumed;
+            var hasItems = false;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                reader.Skip();
+                lastValueEnd = reader.BytesConsumed;
+                hasItems = true;
+            }
+            var close = Encoding.UTF8.GetCharCount(bytes.AsSpan(0, checked((int)reader.TokenStartIndex)));
+            var last = Encoding.UTF8.GetCharCount(bytes.AsSpan(0, checked((int)lastValueEnd)));
+            // The tail contains only whitespace, comments and an optional trailing comma.
+            var tail = Regex.Replace(source[last..close], @"//[^\r\n]*|/\*.*?\*/", "", RegexOptions.Singleline);
+            if (hasItems && !tail.Contains(','))
+            {
+                source = source.Insert(last, ",");
+                close++;
+            }
+            var entries = definitions.Select(definition =>
+                definition
+                    .ToJsonString(new JsonSerializerOptions { WriteIndented = true })
+                    .Replace("\n", "\n    ", StringComparison.Ordinal)
+            );
+            return source.Insert(close, "\n    " + string.Join(",\n    ", entries) + "\n  ");
+        }
+        throw new JsonException("Could not locate the calculation list.");
+    }
 
     private static JsonObject Definition(string field, JsonNode? expression) =>
         new() { ["field"] = field, ["expression"] = expression?.DeepClone() };

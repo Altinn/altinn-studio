@@ -39,7 +39,7 @@ internal sealed class CSharpCodeGenerator(
             result.Errors.Add("Data model information not available. Cannot determine data type for layout set.");
             return result;
         }
-        var className = ClassName(layoutSetName) + "DataProcessor";
+        var className = ProcessorClassName(layoutSetName);
         result.ClassName = className;
         var methods =
             new List<(
@@ -151,8 +151,14 @@ internal sealed class CSharpCodeGenerator(
             code.AppendLine($"var result = Calculate_{index}(obj);");
             code.AppendLine("// JSON serialization sent non-finite JS numbers as null.");
             code.AppendLine("if (result is double number && !double.IsFinite(number)) result = null;");
+            var target = PrimitiveRuleConverter.Quote(
+                (method.Rule.OutParams ?? throw new InvalidOperationException())["outParam0"]
+            );
             code.AppendLine(
-                $"wrapper.Set({PrimitiveRuleConverter.Quote((method.Rule.OutParams ?? throw new InvalidOperationException())["outParam0"])}, ExpressionValue.FromObject(result is JsUndefined ? null : result));"
+                $"if (!wrapper.Set({target}, ExpressionValue.FromObject(result is JsUndefined ? null : result)))"
+            );
+            code.AppendLine(
+                $"    Console.Error.WriteLine(\"Could not set migrated calculation value for field \" + {target});"
             );
             code.AppendLine("return Task.CompletedTask;");
             code.CloseBrace();
@@ -173,14 +179,24 @@ internal sealed class CSharpCodeGenerator(
 
     private static void Comment(IndentedStringBuilder code, string value)
     {
-        foreach (var line in value.Replace("\r", "", StringComparison.Ordinal).Split('\n'))
+        foreach (
+            var line in value
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
+                .Replace('\r', '\n')
+                .Replace('\u0085', '\n')
+                .Replace('\u2028', '\n')
+                .Replace('\u2029', '\n')
+                .Split('\n')
+        )
             code.AppendLine("// " + line);
     }
 
+    internal static string ProcessorClassName(string name) => ClassName(name) + "DataProcessor";
+
     private static string ClassName(string name)
     {
-        var identifier = new string(name.Where(c => char.IsAsciiLetterOrDigit(c) || c == '_').ToArray());
-        if (identifier.Length > 0 && char.IsAsciiDigit(identifier[0]))
+        var identifier = new string(name.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
+        if (identifier.Length > 0 && char.IsDigit(identifier[0]))
             identifier = "Layout" + identifier;
         return identifier.Length == 0 ? "Legacy" : char.ToUpperInvariant(identifier[0]) + identifier[1..];
     }

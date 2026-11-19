@@ -1694,6 +1694,14 @@ internal static class V8Tov9Upgrade
                 UpgradeConsole.WriteLine($"[Expression conversion skipped] {reason}");
 
             var layoutSetDirectories = Directory.GetDirectories(uiPath);
+            var collidingProcessorNames = layoutSetDirectories
+                .GroupBy(
+                    directory => CSharpCodeGenerator.ProcessorClassName(Path.GetFileName(directory)),
+                    StringComparer.OrdinalIgnoreCase
+                )
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var totalProcessed = 0;
             var generationFailed = false;
             var messages = new List<UpgradeMessage>();
@@ -1772,6 +1780,14 @@ internal static class V8Tov9Upgrade
                 var typeResolverLoaded = typeResolver.LoadDataModelType(dataModelInfo);
 
                 // Generate C# code
+                if (collidingProcessorNames.Contains(CSharpCodeGenerator.ProcessorClassName(layoutSetName)))
+                {
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': generated processor name collides with another layout set. Keep its calculation rules for manual conversion."
+                    );
+                    layoutSetsToKeep.Add(layoutSetName);
+                    continue;
+                }
                 var generator = new CSharpCodeGenerator(
                     layoutSetName,
                     dataModelInfo,
