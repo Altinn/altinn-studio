@@ -795,6 +795,71 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ProcessorNameCollisions_ConsiderOnlyLayoutsThatNeedCSharp(bool bothNeedProcessor)
+    {
+        using var app = CreateApp();
+        app.Write(
+            "ui/layout-sets.json",
+            """
+            {"sets":[{"id":"form","dataType":"model","tasks":["Task_1"]},
+                     {"id":"fo-rm","dataType":"model","tasks":["Task_2"]}]}
+            """
+        );
+        app.Write("ui/fo-rm/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        // An unrelated layout with no rules must not stop processor generation either.
+        app.Write("ui/unrelated/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
+        WriteRules(
+            app,
+            new() { ["other"] = Rule("other", "other") },
+            "other: obj => { " + (bothNeedProcessor ? "return Math.floor(obj.a);" : Sum) + " }",
+            "fo-rm"
+        );
+        app.CommitEverything();
+        await RunUpgrade(app);
+        var file = Path.Combine(app.Root, "App/logic/ConvertedLegacyRules/FormDataProcessor.cs");
+        if (bothNeedProcessor)
+        {
+            Assert.False(File.Exists(file));
+            Assert.Equal(
+                2,
+                Directory
+                    .GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+                    .Length
+            );
+        }
+        else
+        {
+            Assert.Contains(
+                "wrapper.Set(\"result\"",
+                await File.ReadAllTextAsync(file, TestContext.Current.CancellationToken)
+            );
+            Assert.Equal(5d, Evaluate(Calculations(app)["other"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+            Assert.Empty(
+                Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+            );
+        }
+    }
+
+    [Fact]
+    public async Task AmbiguousExistingProcessor_IsNotOverwrittenWhenTheOtherLayoutHasNoRules()
+    {
+        using var app = CreateApp();
+        app.Write("ui/fo-rm/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        const string original = "public class FormDataProcessor { }";
+        app.Write("logic/ConvertedLegacyRules/FormDataProcessor.cs", original);
+        WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
+        app.CommitEverything();
+        await RunUpgrade(app);
+        Assert.Equal(original, app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs"));
+        Assert.Single(
+            Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+        );
+    }
+
+    [Theory]
     [InlineData("duplicate")]
     [InlineData("self")]
     [InlineData("backwards")]
