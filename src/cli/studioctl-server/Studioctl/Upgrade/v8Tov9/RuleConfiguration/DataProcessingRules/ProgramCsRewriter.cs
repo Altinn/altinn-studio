@@ -94,7 +94,12 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
     private bool IsGeneratedRegistration(StatementSyntax statement) =>
         RegistrationTypes(statement) is { Count: 2 } types
         && TypeName(types[0]) is "IDataProcessor" or "IDataWriteProcessor"
-        && TypeName(types[1]) == _className;
+        && IsGeneratedClass(types[1]);
+
+    private bool IsGeneratedClass(TypeSyntax type) =>
+        type.ToString() == _className
+        || type.ToString() == "Altinn.App.Logic.ConvertedLegacyRules." + _className
+        || type.ToString() == "global::Altinn.App.Logic.ConvertedLegacyRules." + _className;
 
     private static SeparatedSyntaxList<TypeSyntax>? RegistrationTypes(StatementSyntax statement) =>
         statement
