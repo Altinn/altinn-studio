@@ -3,7 +3,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
@@ -13,16 +12,13 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class HomeControllerTest_AppFrontendAssetBaseUrl : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
 
-    public HomeControllerTest_AppFrontendAssetBaseUrl(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper)
+    public HomeControllerTest_AppFrontendAssetBaseUrl(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideEnvironment = Environments.Development;
         SendAsync = _ =>

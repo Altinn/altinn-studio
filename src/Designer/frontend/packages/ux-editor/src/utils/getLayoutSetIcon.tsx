@@ -7,10 +7,10 @@ import {
   ReceiptIcon,
   SignTaskIcon,
   UserControlledSigningIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 import type { BpmnTaskType } from 'app-shared/types/BpmnTaskType';
-import type { StudioIconCardIconColors } from '@studio/components';
+import type { StudioIconCardIconColors } from '@designer/components';
 
 type BpmnTaskTypeIcon = BpmnTaskType & { userControlledSigning: string };
 

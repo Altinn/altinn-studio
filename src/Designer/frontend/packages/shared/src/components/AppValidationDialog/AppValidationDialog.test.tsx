@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { AppValidationDialog } from './AppValidationDialog';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock, queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { appValidationAreaId } from '@studio/testing/testids';
+import { appValidationAreaId } from '@designer/testing/testids';
 import type { AppValidationArea } from 'app-shared/utils/appValidationUtils';
 
 const org = 'test-org';

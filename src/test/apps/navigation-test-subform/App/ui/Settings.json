@@ -10,5 +10,6 @@
     {
       "type": "receipt"
     }
-  ]
+  ],
+  "validationOnNavigation": { "page": "current", "show": ["Invalid"] }
 }

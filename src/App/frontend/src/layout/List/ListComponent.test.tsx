@@ -4,15 +4,16 @@ import * as useDeviceWidths from '@app/form-component';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { JSONSchema7 } from 'json-schema';
+import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
-import { doPatchMultipleFormData } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import type { AppMutations } from 'src/core/queries/types';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -86,7 +87,6 @@ function RenderCounter({ baseComponentId }: { baseComponentId: string }) {
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'List'>> = {}) =>
   await renderGenericComponentTest({
-    ...rest,
     type: 'List',
     renderer: (props) => (
       <>
@@ -112,11 +112,14 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       dataListId: 'countries',
       ...component,
     },
+    ...rest,
     queries: {
+      ...rest.queries,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.dataModels[defaultDataTypeMock].schema = countrySchema;
         }),
+      ...rest.queries,
       fetchDataList: async () => ({
         listItems: countries,
         _metaData: {
@@ -148,6 +151,38 @@ describe('ListComponent', () => {
   it('should render columns as markup', async () => {
     await render();
     expect(await screen.findByRole('link', { name: /Norwegian flag/ })).toBeInTheDocument();
+  });
+
+  it('updates readonly resource cells when their data-model variables change', async () => {
+    window.altinnAppGlobalData.textResources!.resources = [
+      {
+        id: 'list.country',
+        value: 'Current country: {0}',
+        variables: [{ key: 'CountryName', dataSource: 'dataModel.default' }],
+      },
+    ];
+    const { formDataMethods } = await render({
+      component: { dataModelBindings: undefined, tableHeaders: { Name: 'Name' } },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = countrySchema;
+            obj.dataModels[defaultDataTypeMock].initialData = { CountryName: 'Norway' };
+          }),
+        fetchDataList: async () => ({
+          listItems: [{ Name: 'list.country' }],
+          _metaData: { page: 0, pageCount: 1, pageSize: 1, totaltItemsCount: 1, links: [] },
+        }),
+      },
+    });
+    expect(await screen.findByText('Current country: Norway')).toBeInTheDocument();
+    act(() => {
+      formDataMethods.setLeafValue({
+        reference: { dataType: defaultDataTypeMock, field: 'CountryName' },
+        newValue: 'Sweden',
+      });
+    });
+    await waitFor(() => expect(screen.getByText('Current country: Sweden')).toBeInTheDocument());
   });
 
   it('should save all field values in dataModelBindings atomically', async () => {
@@ -194,7 +229,7 @@ describe('ListComponent', () => {
     await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
     const mockedArgs = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0] as unknown as Parameters<
-      typeof doPatchMultipleFormData
+      AppMutations['doPatchMultipleFormData']
     >;
     const patch: JsonPatch = mockedArgs[1].patches[0].patch;
     expect(patch).toEqual([
@@ -235,12 +270,8 @@ describe('ListComponent', () => {
   describe("on a service task's page", () => {
     const renderOnServiceTaskPage = () =>
       render({
-        apis: {
-          instanceApi: {
-            getInstance: async () => getInstanceAtServiceTaskMock(),
-          },
-        },
         queries: {
+          getInstance: async () => getInstanceAtServiceTaskMock(),
           fetchFormBootstrapForInstance: async () =>
             getFormBootstrapMock((obj) => {
               obj.dataModels[defaultDataTypeMock].schema = countrySchema;
@@ -346,4 +377,3 @@ describe('ListComponent', () => {
     });
   });
 });
-import type { Mock } from 'vitest';

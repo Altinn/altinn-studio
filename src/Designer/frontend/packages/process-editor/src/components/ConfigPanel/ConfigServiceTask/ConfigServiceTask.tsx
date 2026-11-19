@@ -8,7 +8,7 @@ import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
 import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
 import { FiksArkivProcessShapeAlert } from './FiksArkivProcessShapeAlert';
 import { EditTaskId } from '../ConfigContent/EditTaskId/EditTaskId';
-import { StudioDetails } from '@studio/components';
+import { StudioDetails } from '@designer/components';
 import { EditTaskName } from '../ConfigContent/EditTaskName';
 import { EditActions } from '../ConfigContent/EditActions';
 import { EditPolicy } from '../ConfigContent/EditPolicy';

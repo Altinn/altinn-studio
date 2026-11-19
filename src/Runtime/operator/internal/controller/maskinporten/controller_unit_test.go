@@ -2,14 +2,18 @@ package maskinporten
 
 import (
 	"context"
+	"fmt"
 	"math/rand/v2"
 	"testing"
 	"time"
 
+	"github.com/go-logr/zapr"
 	. "github.com/onsi/gomega"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -17,6 +21,8 @@ import (
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	opclock "altinn.studio/operator/internal/clock"
@@ -520,4 +526,38 @@ func (r rotationRolloutTestRuntime) Tracer() trace.Tracer {
 
 func (r rotationRolloutTestRuntime) Meter() metric.Meter {
 	return nil
+}
+
+func TestProcessPendingMaskinportenRotationRollouts_StopsOnCancellation(t *testing.T) {
+	g := NewWithT(t)
+	core, logs := observer.New(zap.InfoLevel)
+	ctx, stop := context.WithCancel(log.IntoContext(context.Background(), zapr.NewLogger(zap.New(core))))
+	defer stop()
+	reconciler := newFakeReconcilerForRotationRollout(t)
+	var deploymentLists int
+	reconciler.Client = fake.NewClientBuilder().WithInterceptorFuncs(interceptor.Funcs{
+		List: func(_ context.Context, _ client.WithWatch, list client.ObjectList, _ ...client.ListOption) error {
+			switch list := list.(type) {
+			case *resourcesv1alpha1.MaskinportenClientList:
+				list.Items = []resourcesv1alpha1.MaskinportenClient{
+					*rotationRolloutClient("ttd-first", testRotationFingerprint),
+					*rotationRolloutClient("ttd-second", testRotationFingerprint),
+				}
+				return nil
+			case *appsv1.DeploymentList:
+				deploymentLists++
+				stop()
+				return fmt.Errorf("list deployments: %w", context.Canceled)
+			default:
+				t.Fatalf("unexpected list %T", list)
+				return nil
+			}
+		},
+	}).Build()
+
+	err := reconciler.processPendingMaskinportenRotationRollouts(ctx, time.Now())
+	g.Expect(err).To(MatchError(context.Canceled))
+	g.Expect(deploymentLists).To(Equal(1))
+	g.Expect(logs.FilterLevelExact(zap.ErrorLevel).Len()).To(BeZero())
+	g.Expect(logs.FilterMessage("Controller run canceled").Len()).To(Equal(1))
 }

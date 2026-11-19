@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { userEvent } from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { render, screen, waitFor } from '@testing-library/react';
 import { PredefinedActions } from './PredefinedActions';
 import { useActionHandler } from '../hooks/useOnActionChange';

@@ -86,9 +86,7 @@ describe('MultipleSelect', () => {
           metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
         },
       },
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

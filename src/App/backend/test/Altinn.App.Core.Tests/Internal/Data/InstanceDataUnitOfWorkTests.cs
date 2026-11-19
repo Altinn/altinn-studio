@@ -318,7 +318,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
                     MaxCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -893,7 +893,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -1151,7 +1151,7 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_CommitsDataAndProcessStateWithWorkflowPreconditions()
+    public async Task SaveWorkflowOwnedAggregate_CommitsDataWithWorkflowPreconditions()
     {
         byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
         byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"workflow-updated"}""");
@@ -1165,18 +1165,9 @@ public sealed class InstanceDataUnitOfWorkTests
         setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
 
         setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
-        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        var processStateChange = new ProcessStateChange
-        {
-            OldProcessState = setup.DataMutator.Instance.Process,
-            NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            Events = [new InstanceEvent { EventType = "process_StartTask" }],
-        };
-        setup.DataMutator.UpdateProcessState(processStateChange);
-        setup.DataMutator.ReleaseProcessingStatus();
 
         WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
-            changes,
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
             "workflow-save-key",
             CancellationToken.None
         );
@@ -1191,24 +1182,14 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.Equal("7", mutationRequest.RequestHeaders.GetValues("If-Instance-Version-Match").Single());
         Assert.Equal("3", mutationRequest.RequestHeaders.GetValues("If-Process-State-Version-Match").Single());
         Assert.Equal("workflow-save-key", mutationRequest.RequestHeaders.GetValues("Idempotency-Key").Single());
-        Assert.Contains("\"processState\"", mutationRequest.RequestBody, StringComparison.Ordinal);
         StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
-        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Equal(ProcessStatus.Idle, mutation.ProcessState?.State?.Status);
         Assert.Equal(BlobVersion(1), Assert.Single(mutation.UpdateDataElements).ExpectedCurrentBlobVersion);
         Assert.DoesNotContain(
             setup.Services.Storage.RequestsResponses,
             request => request.RequestMethod == HttpMethod.Get && request.RequestHeaders.IfMatch.Count > 0
         );
-        Assert.Equal("Task_2", setup.DataMutator.Instance.Process.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Idle, setup.DataMutator.Instance.Process.Status);
 
-        (var storedInstance, var storedData) = setup.Services.Storage.GetInstanceAndData(
-            setup.InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        Assert.Equal("Task_2", storedInstance.Process?.CurrentTask?.ElementId);
-        Assert.Equal(ProcessStatus.Idle, storedInstance.Process?.Status);
+        (_, var storedData) = setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid);
         Assert.True(storedData[setup.DataElement.Id].AsSpan().SequenceEqual(updatedBytes));
     }
 
@@ -1646,14 +1627,6 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.InstanceGuid
         );
         storedInstance.Process!.Status = ProcessStatus.Processing;
-        setup.DataMutator.UpdateProcessState(
-            new ProcessStateChange
-            {
-                OldProcessState = setup.DataMutator.Instance.Process,
-                NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-                Events = [new InstanceEvent { EventType = "process_StartTask" }],
-            }
-        );
         setup.DataMutator.UpdateBinaryDataElement(
             setup.DataElement,
             setup.DataElement.ContentType!,
@@ -1666,6 +1639,14 @@ public sealed class InstanceDataUnitOfWorkTests
             CancellationToken.None
         );
 
+        setup.DataMutator.UpdateProcessState(
+            new ProcessStateChange
+            {
+                OldProcessState = setup.DataMutator.Instance.Process,
+                NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+                Events = [new InstanceEvent { EventType = "process_StartTask" }],
+            }
+        );
         setup.DataMutator.ReleaseProcessingStatus();
 
         await setup.DataMutator.SaveWorkflowOwnedAggregate(
@@ -1995,137 +1976,6 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_CommitsStagedProcessStateAndLockStatus()
-    {
-        const int instanceOwnerPartyId = 1337;
-        Guid instanceGuid = Guid.NewGuid();
-        Guid dataElementId = Guid.NewGuid();
-        var dataElement = new DataElement
-        {
-            Id = dataElementId.ToString(),
-            InstanceGuid = instanceGuid.ToString(),
-            DataType = "task-data",
-            ContentType = "application/json",
-        };
-        var instance = new Instance
-        {
-            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-            AppId = "ttd/test-app",
-            Org = "ttd",
-            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
-            Data = [dataElement],
-        };
-        var versions = new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8);
-        var committedVersions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 5);
-        var appMetadata = new ApplicationMetadata(instance.AppId)
-        {
-            DataTypes = [new DataType { Id = "task-data", TaskId = "Task_1" }],
-        };
-        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
-        StorageInstanceMutationRequest? capturedMutation = null;
-        StorageWritePreconditions? capturedPreconditions = null;
-        Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
-        mutationClientMock
-            .Setup(x =>
-                x.CommitInstanceMutationWithStorageMetadata(
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    It.IsAny<StorageInstanceMutationRequest>(),
-                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<StorageWritePreconditions?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                (
-                    int _,
-                    Guid _,
-                    StorageInstanceMutationRequest mutation,
-                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
-                    StorageAuthenticationMethod? _,
-                    StorageWritePreconditions? preconditions,
-                    CancellationToken _
-                ) =>
-                {
-                    capturedMutation = mutation;
-                    capturedPreconditions = preconditions;
-                    return new InstanceMutationWithStorageMetadata(
-                        new Instance
-                        {
-                            Id = instance.Id,
-                            AppId = instance.AppId,
-                            Org = instance.Org,
-                            InstanceOwner = instance.InstanceOwner,
-                            Process = mutation.ProcessState?.State,
-                            Data =
-                            [
-                                new DataElement
-                                {
-                                    Id = dataElement.Id,
-                                    InstanceGuid = dataElement.InstanceGuid,
-                                    DataType = dataElement.DataType,
-                                    ContentType = dataElement.ContentType,
-                                    Locked = true,
-                                },
-                            ],
-                        },
-                        committedVersions
-                    );
-                }
-            );
-        var unitOfWork = new InstanceDataUnitOfWork(
-            instance,
-            versions,
-            dataClientMock.Object,
-            mutationClientMock.Object,
-            Mock.Of<IInstanceClientWithStorageMetadata>(),
-            appMetadata,
-            Mock.Of<ITranslationService>(),
-            new ModelSerializationService(null!),
-            Mock.Of<IAppResources>(),
-            Options.Create(new FrontEndSettings()),
-            taskId: "Task_1",
-            language: null
-        );
-        var processStateChange = new ProcessStateChange
-        {
-            OldProcessState = instance.Process,
-            NewProcessState = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
-            Events = [new InstanceEvent { EventType = "process_StartTask" }],
-        };
-
-        unitOfWork.LockDataElementsForDataType("task-data");
-        unitOfWork.UpdateProcessState(processStateChange);
-        DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
-
-        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
-            changes,
-            "callback-step-id",
-            CancellationToken.None
-        );
-
-        Assert.Equal("Task_2", capturedMutation?.ProcessState?.State?.CurrentTask?.ElementId);
-        Assert.Single(capturedMutation?.ProcessState?.Events ?? []);
-        StorageInstanceMutationUpdateDataElement update = Assert.Single(capturedMutation?.UpdateDataElements ?? []);
-        Assert.Equal(dataElementId, update.DataElementId);
-        Assert.True(update.Locked);
-        Assert.Equal(12, capturedPreconditions?.InstanceVersion);
-        Assert.Equal(8, capturedPreconditions?.ProcessStateVersion);
-        Assert.Equal("callback-step-id", capturedPreconditions?.IdempotencyKey);
-        Assert.Equal(9, unitOfWork.StorageVersions.InstanceVersion);
-        Assert.Equal(5, unitOfWork.StorageVersions.ProcessStateVersion);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        WorkflowAggregateSaveOutcome secondOutcome = await unitOfWork.SaveWorkflowOwnedAggregate(
-            unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
-            "callback-step-id-after-save",
-            CancellationToken.None
-        );
-        Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
-    }
-
-    [Fact]
     public async Task SaveWorkflowOwnedAggregate_CommitsDataOnlyMutationWithoutStagedProcessState()
     {
         const int instanceOwnerPartyId = 1337;
@@ -2158,7 +2008,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "task-data",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -2377,7 +2227,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "payment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -2485,13 +2335,7 @@ public sealed class InstanceDataUnitOfWorkTests
             Encoding.UTF8.GetBytes("""{"status":"attempt-two"}""")
         );
         Guid stagedDataElementId = createdChange.DataElementIdentifier.Guid;
-        var processStateChange = new ProcessStateChange
-        {
-            OldProcessState = instance.Process,
-            NewProcessState = authoritativeInstance.Process,
-            Events = [new InstanceEvent { EventType = "process_StartTask" }],
-        };
-        unitOfWork.UpdateProcessState(processStateChange);
+        unitOfWork.UpdateInstanceDataValue("attempt", "two");
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
 
         await Assert.ThrowsAsync<InstanceMutationReplayedException>(() =>
@@ -3601,7 +3445,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = dataElement.DataType,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = [dataElement.ContentType],
                 },
             ],
@@ -3722,7 +3566,7 @@ public sealed class InstanceDataUnitOfWorkTests
         new()
         {
             Id = id,
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AllowedContentTypes = ["application/json"],
         };
 
@@ -4015,7 +3859,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -4125,7 +3969,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = dataTypeId,
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
             services.AddDataType(
@@ -4134,7 +3978,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "receipt",
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
 

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	selfcmd "altinn.studio/studioctl/internal/cmd/self"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 func TestExistingInstallDirUsesPath(t *testing.T) {
@@ -64,6 +65,34 @@ func TestLocationInPathFallsBackToEnvironment(t *testing.T) {
 
 	if !selfcmd.LocationInPath(dir, nil) {
 		t.Fatal("LocationInPath() = false, want true")
+	}
+}
+
+func TestLocationInPathIgnoresCaseOnWindows(t *testing.T) {
+	if runtime.GOOS != osutil.OSWindows {
+		t.Skip("only Windows compares paths without regard to case")
+	}
+
+	t.Setenv("PATH", `c:\users\me\appdata\local\programs\studioctl\`)
+
+	if !selfcmd.LocationInPath(`C:\Users\me\AppData\Local\Programs\studioctl`, nil) {
+		t.Fatal("LocationInPath() = false, want true")
+	}
+}
+
+func TestIsCandidateLocation(t *testing.T) {
+	t.Parallel()
+
+	own := filepath.Join(t.TempDir(), "Programs", "studioctl")
+	candidates := []selfcmd.Candidate{
+		{Path: own, InPath: false, Writable: true, NeedsSudo: false, Recommended: true},
+	}
+
+	if !selfcmd.IsCandidateLocation(own+string(filepath.Separator), candidates) {
+		t.Fatal("IsCandidateLocation(candidate) = false, want true")
+	}
+	if selfcmd.IsCandidateLocation(filepath.Join(t.TempDir(), "tools"), candidates) {
+		t.Fatal("IsCandidateLocation(directory reused from PATH) = true, want false")
 	}
 }
 

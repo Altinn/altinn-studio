@@ -117,7 +117,8 @@ Langfuse cannot aggregate it across runs.
 The `.env` file in this directory (or the exported environment) has these values:
 
 ```
-LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is also accepted for the host
+LANGFUSE_PUBLIC_KEY=…
+LANGFUSE_SECRET_KEY=…
 AGENT_DESIGNER_API_KEY=…            # X-Api-Key for the agent API and the Gitea proxy
 AGENT_BASE_URL=http://localhost:8071
 BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
@@ -134,8 +135,7 @@ with the userinfo endpoint of Designer. Thus, a Gitea personal access token does
 key with `bootstrap_api_key` (prerequisite 4).
 
 The dataset items refer to attachments in `metadata.attachments`. These files are in
-`benchmarks/assets/`. Git ignores this directory, because binary test fixtures must not be in the
-repository. To use a different directory, use `--assets-dir`.
+`benchmarks/assets/`. To use a different directory, use `--assets-dir`.
 
 ```bash
 # One time: make the bench_* score configs in Langfuse
@@ -239,8 +239,10 @@ fail.
 The agent can use the same engine as the `preview_render_check` loop tool. Thus, a run can verify
 its own work after `commit_session_branch`. The tool is off unless `PREVIEW_CHECK_ENABLED=true` is
 set **in the environment of the agent container**. Set it in `.env.docker`, then run
-`docker compose up -d altinity-agents`. It has no effect in `benchmarks/.env`, because the tool
-runs in the agent, not in the runner.
+`docker compose up -d altinity-agents`. When it is off, the agent does not register the tool, and
+its system prompt does not mention the check. Do not set it in `benchmarks/.env`. The runner
+computes the `actor_prompt` and `tools` digests in its own environment, so the flag there gives
+digests that are not equal to the digests in `BASELINE.json`.
 
 This setting changes what the benchmark measures. `bench_pages_render` gives a score to the app
 in the state that the agent left it. When the tool is on, the agent can see its render failures

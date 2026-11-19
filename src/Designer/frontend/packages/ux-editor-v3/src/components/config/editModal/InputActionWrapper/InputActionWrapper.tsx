@@ -1,8 +1,8 @@
 import React, { useEffect, useState, type JSX } from 'react';
-import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@studio/icons';
+import { CheckmarkIcon, TrashIcon, PencilWritingIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './InputActionWrapper.module.css';
-import { StudioButton, type StudioButtonProps } from '@studio/components';
+import { StudioButton, type StudioButtonProps } from '@designer/components';
 
 type AvailableAction = 'edit' | 'save' | 'delete';
 export type ActionGroup = 'editMode' | 'hoverMode' | 'standBy';

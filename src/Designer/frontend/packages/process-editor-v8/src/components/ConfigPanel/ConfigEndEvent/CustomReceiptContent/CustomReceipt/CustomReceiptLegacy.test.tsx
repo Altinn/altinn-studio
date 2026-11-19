@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CustomReceiptLegacy } from './CustomReceiptLegacy';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -12,7 +12,7 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

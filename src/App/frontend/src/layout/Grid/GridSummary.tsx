@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
-import { useIsMobile } from '@app/form-component';
+import { BaseTable, useIsMobile } from '@app/form-component';
 import { CompCategory } from '@app/layout-contract';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Table } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
   GridCell,
@@ -56,6 +56,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import { getLabelSettings, useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { CompTypes } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -86,7 +87,7 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
       // If there are accumulated body rows, push them into a tbody
       if (currentBodyRows.length > 0) {
         tableSections.push(
-          <Table.Body key={`tbody-${index}`}>
+          <BaseTable.Body key={`tbody-${index}`}>
             {currentBodyRows.map((bodyRow, bodyIndex) => (
               <EmptyChildrenBoundary
                 key={bodyIndex}
@@ -99,13 +100,13 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
                 />
               </EmptyChildrenBoundary>
             ))}
-          </Table.Body>,
+          </BaseTable.Body>,
         );
         currentBodyRows = [];
       }
       // Add the header row
       tableSections.push(
-        <Table.Head key={`thead-${index}`}>
+        <BaseTable.Head key={`thead-${index}`}>
           <EmptyChildrenBoundary
             key={index}
             reportSelf={false}
@@ -117,7 +118,7 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
               headerRow={currentHeaderRow}
             />
           </EmptyChildrenBoundary>
-        </Table.Head>,
+        </BaseTable.Head>,
       );
       currentHeaderRow = row;
     } else {
@@ -150,8 +151,13 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
       hideWhen={hideEmptyFields}
       targetBaseId={targetBaseComponentId}
     >
-      <Table
+      <BaseTable
         id={indexedId}
+        headerFontWeight='medium'
+        headerDivider='strong'
+        rowDivider='dashed'
+        lookReachesNestedTables='all'
+        stackedRows={isSmall ? 'divided' : undefined}
         className={cn(classes.table, { [classes.responsiveTable]: isSmall })}
         data-testid={`summary-${indexedId}`}
       >
@@ -170,7 +176,7 @@ export const GridSummary = ({ targetBaseComponentId }: Summary2Props) => {
           />
         )}
         {tableSections}
-      </Table>
+      </BaseTable>
     </SummaryFlexForContainer>
   );
 };
@@ -212,7 +218,7 @@ function SummaryGridRowRenderer(props: GridRowProps) {
     <HideWhenAllChildrenEmpty
       hideWhen={hideEmptyRows}
       render={(className) => (
-        <Table.Row className={cn(className, extraClassName)}>
+        <BaseTable.Row className={cn(className, extraClassName)}>
           {row.cells.map((cell, cellIdx) => (
             <SummaryCell
               key={cellIdx}
@@ -223,18 +229,18 @@ function SummaryGridRowRenderer(props: GridRowProps) {
             />
           ))}
           {!pdfModeActive && row.header && !isSmall && (
-            <Table.HeaderCell>
+            <BaseTable.HeaderCell>
               <span className={utilClasses.visuallyHidden}>
                 <Lang id='general.edit' />
               </span>
-            </Table.HeaderCell>
+            </BaseTable.HeaderCell>
           )}
           {!pdfModeActive && !row.header && !isSmall && (
-            <Table.Cell align='right'>
+            <BaseTable.Cell align='right'>
               {firstComponentId && !row.readOnly && <EditButton targetBaseComponentId={firstComponentId} />}
-            </Table.Cell>
+            </BaseTable.Cell>
           )}
-        </Table.Row>
+        </BaseTable.Row>
       )}
     />
   );
@@ -297,13 +303,12 @@ function SummaryCellInnerWithLabel(props: CellProps & { labelFrom: string }) {
   );
 
   const required = useComponentIsRequired(config);
-  const showOptionalMarking =
-    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const showOptionalMarking = useShowOptionalIndicator(getLabelSettings(config));
 
   // The mobile pseudo-header is plain text (rendered through a data attribute), so the indicator tag is
   // reduced to its text here.
   let indicator = '';
-  if (required) {
+  if (required && !readOnly) {
     indicator = ` ${langAsNonProcessedString('form_filler.required_label')}`;
   } else if (required === false && showOptionalMarking && !readOnly) {
     indicator = ` ${langAsString('general.optional')}`;
@@ -327,7 +332,7 @@ function SummaryCellInner({
   isSmall,
 }: CellProps & { headerTitle: string }) {
   if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/immutability
     mutableColumnSettings[idx] = cell.columnOptions;
   }
 
@@ -382,7 +387,7 @@ function SummaryCellInner({
     );
   }
 
-  const CellComponent = row.header ? Table.HeaderCell : Table.Cell;
+  const CellComponent = row.header ? BaseTable.HeaderCell : BaseTable.Cell;
   return <CellComponent />;
 }
 
@@ -409,7 +414,7 @@ interface CellWithLabelProps extends BaseCellProps {
 function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
   const canRender = useHasCapability('renderInTable');
   if (!props.cell.component || !canRender(props.cell.component)) {
-    return <Table.Cell />;
+    return <BaseTable.Cell />;
   }
 
   return (
@@ -427,7 +432,7 @@ function SummaryCellWithComponent(props: CellWithComponentProps & { baseComponen
 
 function HiddenSummaryCell({ isHeader }: { isHeader?: boolean }) {
   useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
   return <CellComponent />;
 }
 
@@ -439,7 +444,7 @@ function VisibleSummaryCellWithComponent({
   headerTitle,
   isSmall,
 }: CellWithComponentProps & { baseComponentId: string }) {
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
   const displayData = useDisplayData(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
@@ -462,6 +467,7 @@ function VisibleSummaryCellWithComponent({
 
   return (
     <CellComponent
+      columnWidth
       className={classes.tableCellFormatting}
       style={columnStyles}
       data-header-title={isSmall ? headerTitle : ''}
@@ -494,10 +500,11 @@ function SummaryCellWithText({
   isSmall,
 }: CellWithTextProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
 
   return (
     <CellComponent
+      columnWidth
       className={classes.tableCellFormatting}
       style={columnStyles}
       data-header-title={isSmall ? headerTitle : ''}
@@ -529,14 +536,15 @@ function SummaryCellWithLabel({
   );
   const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const required = useComponentIsRequired(config);
-  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = getLabelSettings(config);
 
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
 
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
 
   return (
     <CellComponent
+      columnWidth
       className={classes.tableCellFormatting}
       style={columnStyles}
       data-header-title={isSmall ? headerTitle : ''}

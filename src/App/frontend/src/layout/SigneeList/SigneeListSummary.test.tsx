@@ -2,21 +2,24 @@ import React from 'react';
 import { useLocation, useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
+import { act, render as renderRtl } from '@testing-library/react';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { NotificationStatus, SigneeState } from 'src/core/queries/signeeList';
 import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { CompExternal } from 'src/layout/layout';
-import { NotificationStatus, SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import { queryPromiseMock } from 'src/test/renderWithProviders';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { ExprResolved } from 'src/features/expressions/types';
 
-vi.mock('src/layout/SigneeList/api');
+let queryTest: ReturnType<typeof createQueryTestWrapper>;
+
 vi.mock('react-router');
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({
@@ -33,7 +36,6 @@ vi.mock('src/utils/layout/hidden');
 vi.mock('src/core/contexts/TaskOverrides');
 
 describe('SigneeListSummary', () => {
-  const mockedUseSigneeList = vi.mocked(useSigneeList);
   const mockedUseLayoutLookups = vi.mocked(FormStore.bootstrap.useLayoutLookups);
   const mockedUseTaskOverrides = vi.mocked(useTaskOverrides);
   const mockedUseConfig = vi.mocked(useComponentConfig);
@@ -82,6 +84,7 @@ describe('SigneeListSummary', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    queryTest = createQueryTestWrapper();
 
     vi.mocked(useLocation).mockReturnValue({
       pathname: '/',
@@ -104,15 +107,11 @@ describe('SigneeListSummary', () => {
     mockedUseTaskOverrides.mockReturnValue({});
   });
 
-  it('should render loading state', () => {
-    mockedUseSigneeList.mockReturnValue({
-      date: undefined,
-      isLoading: true,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render loading state', async () => {
+    queryTest.queries.fetchSigneeList.mockImplementation(queryPromiseMock('fetchSigneeList').mock);
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={null}
         targetBaseComponentId={mockedItem.id}
@@ -120,19 +119,15 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
+
     screen.getByText('signee_list_summary.loading');
   });
 
-  it('should render error state', () => {
-    mockedUseSigneeList.mockReturnValue({
-      date: undefined,
-      isLoading: false,
-      error: new Error('error'),
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render error state', async () => {
+    queryTest.queries.fetchSigneeList.mockRejectedValue(new Error('error'));
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={null}
         targetBaseComponentId={mockedItem.id}
@@ -140,19 +135,15 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
-    screen.getByText('signee_list_summary.error');
+
+    await screen.findByText('signee_list_summary.error');
   });
 
-  it('should render no signatures state when loading is false, error is null and data is undefined', () => {
-    mockedUseSigneeList.mockReturnValue({
-      date: undefined,
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render no signatures without instance parameters', async () => {
+    vi.mocked(useParams).mockReturnValue({});
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={null}
         targetBaseComponentId={mockedItem.id}
@@ -160,19 +151,15 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
-    screen.getByText('signee_list_summary.no_signatures');
+
+    await screen.findByText('signee_list_summary.no_signatures');
   });
 
-  it('should render no signatures state when loading is false, error is null and data is an empty array', () => {
-    mockedUseSigneeList.mockReturnValue({
-      date: [],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render no signatures state when loading is false, error is null and data is an empty array', async () => {
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={null}
         targetBaseComponentId={mockedItem.id}
@@ -180,50 +167,46 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
-    screen.getByText('signee_list_summary.no_signatures');
+
+    await screen.findByText('signee_list_summary.no_signatures');
   });
 
-  it('should render signatures for only signed signee', () => {
+  it('should render signatures for only signed signee', async () => {
     const signedTime1 = new Date().toISOString();
     const signedTime2 = new Date().toISOString();
 
-    mockedUseSigneeList.mockReturnValue({
-      data: [
-        {
-          name: 'Signee 1',
-          organization: null,
-          partyId: 1,
-          delegationSuccessful: true,
-          notificationStatus: NotificationStatus.NotSent,
-          signedTime: signedTime1,
-          hasSigned: true,
-        },
-        {
-          name: 'Signee 2',
-          organization: "Signee 2's organization",
-          partyId: 2,
-          delegationSuccessful: true,
-          notificationStatus: NotificationStatus.Sent,
-          signedTime: signedTime2,
-          hasSigned: true,
-        },
-        {
-          name: 'Signee 3',
-          organization: "Signee 3's organization",
-          partyId: 3,
-          delegationSuccessful: true,
-          notificationStatus: NotificationStatus.Failed,
-          signedTime: null,
-          hasSigned: false,
-        },
-      ] satisfies SigneeState[],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([
+      {
+        name: 'Signee 1',
+        organization: null,
+        partyId: 1,
+        delegationSuccessful: true,
+        notificationStatus: NotificationStatus.NotSent,
+        signedTime: signedTime1,
+        hasSigned: true,
+      },
+      {
+        name: 'Signee 2',
+        organization: "Signee 2's organization",
+        partyId: 2,
+        delegationSuccessful: true,
+        notificationStatus: NotificationStatus.Sent,
+        signedTime: signedTime2,
+        hasSigned: true,
+      },
+      {
+        name: 'Signee 3',
+        organization: "Signee 3's organization",
+        partyId: 3,
+        delegationSuccessful: true,
+        notificationStatus: NotificationStatus.Failed,
+        signedTime: null,
+        hasSigned: false,
+      },
+    ] satisfies SigneeState[]);
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={undefined}
         targetBaseComponentId={mockedItem.id}
@@ -231,24 +214,20 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
+
     screen.getByText('title');
-    screen.getByText('Signee 1');
+    await screen.findByText('Signee 1');
     screen.getByText("Signee 2, signee_list_summary.on_behalf_of Signee 2's organization");
     expect(screen.queryByText(/Signee 3/i)).not.toBeInTheDocument();
   });
 
-  it('should render original title if summary override title is undefined', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: [] satisfies SigneeState[],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should render original title if summary override title is undefined', async () => {
+    queryTest.queries.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
 
     mockNodeItem({ textResourceBindings: { title: 'originalTitle' } });
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={undefined}
         targetBaseComponentId={mockedItem.id}
@@ -256,21 +235,17 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
+
     screen.getByText('originalTitle');
   });
 
-  it('should not render title if originalTitle and overrideTitle are not set', () => {
-    mockedUseSigneeList.mockReturnValue({
-      data: [] satisfies SigneeState[],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it('should not render title if originalTitle and overrideTitle are not set', async () => {
+    queryTest.queries.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
 
     mockNodeItem({ textResourceBindings: {} });
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={undefined}
         targetBaseComponentId={mockedItem.id}
@@ -278,42 +253,37 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
-    screen.getByText('signee_list_summary.no_signatures');
+
+    await screen.findByText('signee_list_summary.no_signatures');
     expect(screen.queryByText('title')).not.toBeInTheDocument();
   });
 
-  it.each([null, ''])('should not render title if summary title override is null or empty string', (titleOverride) => {
-    mockedUseSigneeList.mockReturnValue({
-      data: [] satisfies SigneeState[],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+  it.each([null, ''])(
+    'should not render title if summary title override is null or empty string',
+    async (titleOverride) => {
+      queryTest.queries.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
 
-    // Test case
-    render(
-      <SigneeListSummary
-        titleOverride={titleOverride}
-        targetBaseComponentId={mockedItem.id}
-      />,
-    );
+      // Test case
+      await render(
+        <SigneeListSummary
+          titleOverride={titleOverride}
+          targetBaseComponentId={mockedItem.id}
+        />,
+      );
 
-    // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledTimes(1);
-    screen.getByText('signee_list_summary.no_signatures');
-    expect(screen.queryByText('title')).not.toBeInTheDocument();
-  });
+      // Assertion
 
-  it('should use taskId from TaskOverrides when available', () => {
+      await screen.findByText('signee_list_summary.no_signatures');
+      expect(screen.queryByText('title')).not.toBeInTheDocument();
+    },
+  );
+
+  it('should use taskId from TaskOverrides when available', async () => {
     mockedUseTaskOverrides.mockReturnValue({ taskId: 'overrideTaskId' });
-    mockedUseSigneeList.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={null}
         targetBaseComponentId={mockedItem.id}
@@ -321,19 +291,19 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledWith('instanceOwnerPartyId', 'instanceGuid', 'overrideTaskId');
+    expect(queryTest.queries.fetchSigneeList).toHaveBeenCalledWith(
+      'instanceOwnerPartyId',
+      'instanceGuid',
+      'overrideTaskId',
+    );
   });
 
-  it('should fall back to taskId from URL params when TaskOverrides is empty', () => {
+  it('should fall back to taskId from URL params when TaskOverrides is empty', async () => {
     mockedUseTaskOverrides.mockReturnValue({});
-    mockedUseSigneeList.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useSigneeList>);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
     // Test case
-    render(
+    await render(
       <SigneeListSummary
         titleOverride={null}
         targetBaseComponentId={mockedItem.id}
@@ -341,6 +311,10 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(mockedUseSigneeList).toHaveBeenCalledWith('instanceOwnerPartyId', 'instanceGuid', 'taskId');
+    expect(queryTest.queries.fetchSigneeList).toHaveBeenCalledWith('instanceOwnerPartyId', 'instanceGuid', 'taskId');
   });
 });
+
+function render(ui: React.ReactNode) {
+  return act(async () => renderRtl(ui, { wrapper: queryTest.wrapper }));
+}

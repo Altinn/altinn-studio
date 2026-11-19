@@ -7,7 +7,7 @@ import {
   StudioParagraph,
   StudioRadio,
   StudioRadioGroup,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './LoginGuide.module.css';
 
 const SKIP_GUIDE_KEY = 'altinn-studio-skip-login-guide';

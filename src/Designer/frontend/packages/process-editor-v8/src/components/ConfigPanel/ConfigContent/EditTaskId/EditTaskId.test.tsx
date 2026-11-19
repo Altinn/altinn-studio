@@ -3,7 +3,7 @@ import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditTaskId } from './EditTaskId';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useBpmnConfigPanelFormContext } from '../../../../contexts/BpmnConfigPanelContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
 import { mockModelerRef } from '../../../../../test/mocks/bpmnModelerMock';

@@ -6,7 +6,7 @@ import { ConsentProvider, CONSENT_COOKIE_KEY, CONSENT_COOKIE_EXPIRY_DAYS } from 
 import { useConsent, useConsentMutation } from '.';
 import type { AnalyticsProvider } from './analyticsProvider';
 import type { ConsentProviderProps } from './ConsentProvider';
-import { CookieStorage } from '@studio/browser-storage';
+import { CookieStorage } from '@designer/browser-storage';
 
 vi.mock('@posthog/react', () => ({
   usePostHog: vi.fn(() => ({
@@ -18,7 +18,7 @@ vi.mock('@posthog/react', () => ({
   })),
 }));
 
-vi.mock('@studio/browser-storage', () => ({
+vi.mock('@designer/browser-storage', () => ({
   CookieStorage: {
     getItem: vi.fn(),
     setItem: vi.fn(),

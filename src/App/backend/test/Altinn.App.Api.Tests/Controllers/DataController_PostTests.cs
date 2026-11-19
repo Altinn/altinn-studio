@@ -16,7 +16,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -24,7 +23,7 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_PostTests : ApiTestBase
 {
     private static readonly string _org = "tdd";
     private static readonly string _app = "contributer-restriction";
@@ -35,8 +34,8 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
     private readonly Mock<IDataProcessor> _dataProcessor = new(MockBehavior.Strict);
     private readonly Mock<IDataWriteProcessor> _dataWriteProcessor = new(MockBehavior.Strict);
 
-    public DataController_PostTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public DataController_PostTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         TestData.PrepareInstance(_org, _app, _instanceOwnerPartyId, _instanceGuid);
         OverrideServicesForAllTests = (services) =>
@@ -93,7 +92,9 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
                 postedSkjema.Melding.Name = "FromDataProcessor";
                 var originalData = await instanceDataMutator.GetFormData(originalDataElement);
                 var skjema = originalData.Should().BeOfType<Skjema>().Which;
-                skjema.Melding.Should().BeNull();
+                // default.calculation.json has run on the original element too, with no name to concatenate
+                skjema.Melding!.Name.Should().BeNull();
+                skjema.Melding.CalculatedFixedValue.Should().Be("Hello ");
                 skjema.Melding = new() { Name = "FromDataWriteProcessor" };
             },
             Times.Once()

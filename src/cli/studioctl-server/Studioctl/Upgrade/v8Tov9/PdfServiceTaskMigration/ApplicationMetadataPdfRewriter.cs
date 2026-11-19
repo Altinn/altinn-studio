@@ -10,7 +10,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// that had <c>appLogic.classRef</c> set, <c>enablePdfCreation == true</c>, and were bound to that
 /// task via <c>taskId</c>. Exactly one PDF was produced per task-end regardless of how many datamodels
 /// qualified. The flag on attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a
-/// no-op. We therefore group qualifying datamodels by taskId; each distinct task gets one pdf task.
+/// no-op. We therefore group qualifying datamodels by taskId; each distinct task gets one pdf task. The
+/// task binding is read with <see cref="DataTypeTaskIdsMigration.BoundTasks"/>, so a dataType already
+/// moved to <c>taskIds</c> counts for each task it lists.
 ///
 /// v8 also counted a missing flag as true, but this migration deliberately does not: only an explicit
 /// <c>true</c> gets a pdf task. It removes <c>false</c> too, so on a re-run of the upgrade a missing flag
@@ -82,12 +84,11 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            if (
-                !dataType.TryGetProperty("taskId", out var taskId)
-                || taskId.ValueKind != JsonValueKind.String
-                || taskId.GetString() is not { } task
-                || string.IsNullOrWhiteSpace(task)
-            )
+            var boundTasks = DataTypeTaskIdsMigration
+                .BoundTasks(dataType)
+                .Where(task => !string.IsNullOrWhiteSpace(task))
+                .ToList();
+            if (boundTasks.Count == 0)
             {
                 // Legacy no-op: without a taskId (e.g. stateless data) there is no task-end to trigger on.
                 _warnings.Add(
@@ -97,7 +98,7 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            if (!tasks.Exists(t => t.TaskId == task))
+            foreach (var task in boundTasks.Where(task => !tasks.Exists(t => t.TaskId == task)))
                 tasks.Add((task, dataTypeId));
         }
 

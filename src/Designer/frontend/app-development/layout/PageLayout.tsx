@@ -3,13 +3,13 @@ import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@designer/components';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
 import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';
-import { type AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
@@ -84,7 +84,7 @@ const AppPageLayout = ({ org, app }: AppPageLayoutProps): React.ReactNode => {
 };
 
 type PagesToRenderProps = {
-  repoStatusError: AxiosError;
+  repoStatusError: HttpError;
   repoStatus: RepoStatus;
 };
 const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {

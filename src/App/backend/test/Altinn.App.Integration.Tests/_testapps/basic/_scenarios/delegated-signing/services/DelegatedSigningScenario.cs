@@ -19,11 +19,14 @@ using TestApp.Shared;
 namespace Altinn.App.Integration.Tests.Scenarios.DelegatedSigning;
 
 /// <summary>
-/// Which external call to break, and how, for the next signing transition. A signee is numbered by the order the
-/// signee provider returns them, starting at 1.
+/// Who the signees are, and which external call to break, and how, for the next signing transition. A signee is
+/// numbered by the order the signee provider returns them, starting at 1.
 /// </summary>
-public sealed record SigningFaults
+public sealed record SigningSetup
 {
+    /// <summary>When set, the only signee is this organization, instead of the persons in <see cref="SigningProbe.Signees"/>.</summary>
+    public string? OrganizationSignee { get; init; }
+
     /// <summary>The signee whose first delegation Access Management refuses with 503.</summary>
     public int? FailDelegationToSignee { get; init; }
 
@@ -48,7 +51,7 @@ public sealed record CorrespondenceAttempt(
 
 /// <summary>
 /// Records every call signee initialization makes to the signee provider, Access Management and Correspondence,
-/// and breaks the ones <see cref="SigningFaults"/> names. The calls themselves still reach Localtest.
+/// and breaks the ones <see cref="SigningSetup"/> names. The calls themselves still reach Localtest.
 /// </summary>
 internal sealed class SigningProbe : IEndpointConfigurator
 {
@@ -56,7 +59,7 @@ internal sealed class SigningProbe : IEndpointConfigurator
     public static readonly string[] Signees = ["01899699552", "17858296439"];
 
     private readonly object _gate = new();
-    private SigningFaults _faults = new();
+    private SigningSetup _setup = new();
     private int _providerCalls;
     private readonly List<DelegationAttempt> _delegations = [];
     private readonly List<RevocationAttempt> _revocations = [];
@@ -68,11 +71,11 @@ internal sealed class SigningProbe : IEndpointConfigurator
     {
         app.MapPost(
             "/test/delegated-signing/reset",
-            (SigningFaults faults) =>
+            (SigningSetup setup) =>
             {
                 lock (_gate)
                 {
-                    _faults = faults;
+                    _setup = setup;
                     _providerCalls = 0;
                     _delegations.Clear();
                     _revocations.Clear();
@@ -102,6 +105,15 @@ internal sealed class SigningProbe : IEndpointConfigurator
         );
     }
 
+    public string? OrganizationSignee
+    {
+        get
+        {
+            lock (_gate)
+                return _setup.OrganizationSignee;
+        }
+    }
+
     public void RecordProviderCall()
     {
         lock (_gate)
@@ -115,9 +127,9 @@ internal sealed class SigningProbe : IEndpointConfigurator
         {
             if (!_delegationRecipients.Contains(recipient))
                 _delegationRecipients.Add(recipient);
-            if (_faults.FailDelegationToSignee != _delegationRecipients.IndexOf(recipient) + 1)
+            if (_setup.FailDelegationToSignee != _delegationRecipients.IndexOf(recipient) + 1)
                 return false;
-            _faults = _faults with { FailDelegationToSignee = null };
+            _setup = _setup with { FailDelegationToSignee = null };
             return true;
         }
     }
@@ -129,9 +141,9 @@ internal sealed class SigningProbe : IEndpointConfigurator
         {
             if (!_notificationRecipients.Contains(recipient))
                 _notificationRecipients.Add(recipient);
-            if (_faults.LoseNotificationResponseForSignee != _notificationRecipients.IndexOf(recipient) + 1)
+            if (_setup.LoseNotificationResponseForSignee != _notificationRecipients.IndexOf(recipient) + 1)
                 return false;
-            _faults = _faults with { LoseNotificationResponseForSignee = null };
+            _setup = _setup with { LoseNotificationResponseForSignee = null };
             return true;
         }
     }
@@ -169,6 +181,23 @@ internal sealed class IntegrationSigneeProvider(SigningProbe probe) : ISigneePro
     public Task<SigneeProviderResult> GetSignees(GetSigneesParameters parameters)
     {
         probe.RecordProviderCall();
+        if (probe.OrganizationSignee is { } organizationNumber)
+        {
+            return Task.FromResult(
+                new SigneeProviderResult
+                {
+                    Signees =
+                    [
+                        new ProvidedOrganization
+                        {
+                            OrganizationNumber = organizationNumber,
+                            Name = "Integration organization signee",
+                        },
+                    ],
+                }
+            );
+        }
+
         return Task.FromResult(
             new SigneeProviderResult
             {

@@ -33,10 +33,7 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
-using Json.Patch;
-using Json.Pointer;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -46,7 +43,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class ProcessControllerTests : ApiTestBase
 {
     // Define constants
     private const string Org = "tdd";
@@ -68,8 +65,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict);
 
     // Constructor with common setup
-    public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public ProcessControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         _formDataValidatorMock.SetupGet(v => v.NoIncrementalValidation).Returns(false);
         _formDataValidatorMock.SetupGet(v => v.ShouldRunAfterRemovingHiddenData).Returns(false);
@@ -721,23 +718,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest()
             {
-                Patch = new JsonPatch(
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hidden"),
-                        JsonNode.Parse("\"value that is hidden\"")
-                    ),
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hiddenNotRemove"),
-                        JsonNode.Parse("\"value that is not removed\"")
-                    ),
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hiddenPage"),
-                        JsonNode.Parse("\"HiddenPage to be removed\"")
-                    ),
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "hiddenPageNotRemove"),
-                        JsonNode.Parse("\"HiddenPageNotRemove to not be removed\"")
-                    )
+                Patch = JsonPatchOperation.ParseList(
+                    """
+                    [
+                        { "op": "add", "path": "/melding/hidden", "value": "value that is hidden" },
+                        { "op": "add", "path": "/melding/hiddenNotRemove", "value": "value that is not removed" },
+                        { "op": "add", "path": "/melding/hiddenPage", "value": "HiddenPage to be removed" },
+                        { "op": "add", "path": "/melding/hiddenPageNotRemove", "value": "HiddenPageNotRemove to not be removed" }
+                    ]
+                    """
                 ),
                 IgnoredValidators = [],
             },
@@ -819,9 +808,13 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest()
             {
-                Patch = new JsonPatch(
-                    PatchOperation.Replace(JsonPointer.Create("melding", "toggle"), JsonNode.Parse("true")),
-                    PatchOperation.Add(JsonPointer.Create("melding", "hiddenRange"), JsonNode.Parse("999"))
+                Patch = JsonPatchOperation.ParseList(
+                    """
+                    [
+                        { "op": "replace", "path": "/melding/toggle", "value": true },
+                        { "op": "add", "path": "/melding/hiddenRange", "value": 999 }
+                    ]
+                    """
                 ),
                 IgnoredValidators = [],
             },
@@ -916,7 +909,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                             new DataType()
                             {
                                 Id = saveToDataType,
-                                TaskId = "Task_1",
+                                TaskIds = ["Task_1"],
                                 AppLogic = new() { ClassRef = defaultDataType.AppLogic.ClassRef },
                             }
                         );
@@ -944,11 +937,12 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest()
             {
-                Patch = new JsonPatch(
-                    PatchOperation.Add(
-                        JsonPointer.Create("melding", "SF_test"),
-                        JsonNode.Parse("\"value that is in shadow field\"")
-                    )
+                Patch = JsonPatchOperation.ParseList(
+                    """
+                    [
+                        { "op": "add", "path": "/melding/SF_test", "value": "value that is in shadow field" }
+                    ]
+                    """
                 ),
                 IgnoredValidators = [],
             },

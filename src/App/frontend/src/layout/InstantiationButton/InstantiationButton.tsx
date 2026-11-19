@@ -9,12 +9,11 @@ import {
   ErrorListFromInstantiation,
   ErrorReport,
 } from 'src/components/message/ErrorReport';
-import { parseInstanceId } from 'src/core/queries/instance';
+import { parseInstanceId, useInstantiation } from 'src/core/queries/instance';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
 import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
-import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { buildInstanceUrl } from 'src/routesBuilder';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';

@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import classes from './BuildSource.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioCard, StudioHeading, StudioLink, StudioTag } from '@studio/components';
-import { DateUtils } from '@studio/pure-functions';
+import { StudioCard, StudioHeading, StudioLink, StudioTag } from '@designer/components';
+import { DateUtils } from '@designer/pure-functions';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';

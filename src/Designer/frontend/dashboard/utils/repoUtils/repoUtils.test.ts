@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { getReposLabel, validateRepoName } from './repoUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { Organization } from 'app-shared/types/Organization';
 
 const t = textMock;

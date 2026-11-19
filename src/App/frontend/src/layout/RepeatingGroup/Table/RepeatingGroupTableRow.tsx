@@ -1,9 +1,8 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Button, Flex, useIsMobile } from '@app/form-component';
+import { BaseTable, Button, Flex, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
@@ -162,9 +161,10 @@ export function RepeatingGroupTableRow({
 
   return (
     <>
-      <Table.Row
+      <BaseTable.Row
         ref={(node) => refSetter(index, 'row', node)}
-        className={cn({ [classes.tableRowError]: rowHasErrors, [classes.mobileRow]: mobileView }, className)}
+        error={rowHasErrors}
+        className={cn({ [classes.mobileRow]: mobileView }, className)}
         data-row-num={index}
         data-row-uuid={uuid}
       >
@@ -189,7 +189,7 @@ export function RepeatingGroupTableRow({
             ),
           )
         ) : mobileTableItems.length > 0 ? (
-          <Table.Cell className={classes.mobileTableCell}>
+          <BaseTable.Cell className={classes.mobileTableCell}>
             <Flex
               container
               spacing={6}
@@ -230,14 +230,16 @@ export function RepeatingGroupTableRow({
                 ),
               )}
             </Flex>
-          </Table.Cell>
+          </BaseTable.Cell>
         ) : null}
         {mobileView || useVerticalButtonLayout ? (
-          <Table.Cell
-            className={cn(classes.buttonCell, { [classes.mobileTableCell]: mobileView })}
+          <BaseTable.ButtonCell
+            className={cn({ [classes.mobileTableCell]: mobileView })}
             style={mobileView ? { verticalAlign: 'top' } : undefined}
           >
-            <div className={classes.buttonInCellWrapper}>
+            <div
+              className={cn(classes.rowActions, { [classes.verticalActions]: useVerticalButtonLayout && !mobileView })}
+            >
               {validationIndicator}
               {editElement}
               {deleteButton !== false && displayDeleteColumn && (
@@ -253,20 +255,20 @@ export function RepeatingGroupTableRow({
                 </DeleteElement>
               )}
             </div>
-          </Table.Cell>
+          </BaseTable.ButtonCell>
         ) : (
           <>
             {displayEditColumn && (
-              <Table.Cell className={classes.buttonCell}>
-                <div className={cn(classes.buttonInCellWrapper, classes.rowActions)}>
+              <BaseTable.ButtonCell>
+                <div className={classes.rowActions}>
                   {validationIndicator}
                   {editElement}
                 </div>
-              </Table.Cell>
+              </BaseTable.ButtonCell>
             )}
             {displayDeleteColumn && (
-              <Table.Cell className={classes.buttonCell}>
-                <div className={cn(classes.buttonInCellWrapper, classes.rowActions)}>
+              <BaseTable.ButtonCell>
+                <div className={classes.rowActions}>
                   {!displayEditColumn && validationIndicator}
                   {deleteButton !== false && (
                     <DeleteElement
@@ -281,14 +283,14 @@ export function RepeatingGroupTableRow({
                     </DeleteElement>
                   )}
                 </div>
-              </Table.Cell>
+              </BaseTable.ButtonCell>
             )}
             {!displayEditColumn && !displayDeleteColumn && (
-              <Table.Cell className={classes.buttonCell}>{validationIndicator}</Table.Cell>
+              <BaseTable.ButtonCell>{validationIndicator}</BaseTable.ButtonCell>
             )}
           </>
         )}
-      </Table.Row>
+      </BaseTable.Row>
       <RepeatingGroupTableMessages
         validations={inlineValidations}
         columnSpan={mobileView ? 2 : tableItems.length + columnCount}
@@ -442,7 +444,7 @@ function EditableCell({
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
 
   return (
-    <Table.Cell className={classes.tableCell}>
+    <BaseTable.Cell className={classes.tableCell}>
       <div
         className={cn(classes.contentFormatting, classes.contentFormattingEditable)}
         style={style}
@@ -453,7 +455,7 @@ function EditableCell({
           panelSeverity={panelSeverity}
         />
       </div>
-    </Table.Cell>
+    </BaseTable.Cell>
   );
 }
 
@@ -470,14 +472,14 @@ function NonEditableCell({
   const isEditingRow = RepGroupContext.useIsEditingRow(rowUuid);
 
   return (
-    <Table.Cell className={classes.tableCell}>
+    <BaseTable.Cell className={classes.tableCell}>
       <span
         className={cn(classes.contentFormatting, classes.cellContentFormatting)}
         style={style}
       >
         {isEditingRow ? null : <DisplayData baseComponentId={baseComponentId} />}
       </span>
-    </Table.Cell>
+    </BaseTable.Cell>
   );
 }
 

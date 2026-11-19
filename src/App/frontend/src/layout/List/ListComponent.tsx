@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { AriaAttributes, PropsWithChildren } from 'react';
 
 import {
+  BaseTable,
   Description,
   getLabelId,
   OptionalIndicator,
@@ -10,21 +11,13 @@ import {
   useIsMobile,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import {
-  Checkbox,
-  Fieldset,
-  Heading,
-  Radio,
-  Table,
-  useCheckboxGroup,
-  useRadioGroup,
-} from '@digdir/designsystemet-react';
+import { Checkbox, Fieldset, Heading, Radio, useCheckboxGroup, useRadioGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { RadioButton } from 'src/components/form/RadioButton';
-import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
+import { useDataListQuery } from 'src/core/queries/dataLists';
 import { FormStore } from 'src/features/form/FormContext';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -38,7 +31,8 @@ import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
-import type { Filter } from 'src/features/dataLists/useDataListQuery';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
+import type { Filter } from 'src/core/queries/dataLists';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type Row = Record<string, string | number | boolean>;
@@ -59,7 +53,7 @@ type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponent
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
   const isMobile = useIsMobile();
-  const { langAsString } = useLanguage();
+  const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
   const required = useEvalExpression(config.required, Expressions.List.required);
@@ -77,7 +71,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   );
   const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.List.textResourceBindings.help);
 
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const [pageSize, setPageSize] = useState<number>(config.pagination?.default ?? 0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -106,9 +100,10 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const tableHeadersToShowInMobile = Object.keys(config.tableHeaders).filter(
     (key) => !config.tableHeadersMobile || config.tableHeadersMobile.includes(key),
   );
-  const selectedRow = !isMultipleSelection
-    ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
-    : '';
+  const selectedRow =
+    !readOnly && !isMultipleSelection
+      ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
+      : '';
   function handleSelectedRadioRow({ selectedValue }: { selectedValue: Row }) {
     if (instanceLocked) {
       return;
@@ -120,6 +115,9 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     setValues(next);
   }
   function isRowSelected(row: Row): boolean {
+    if (readOnly) {
+      return false;
+    }
     if (isMultipleSelection) {
       return isChecked(row);
     }
@@ -132,11 +130,14 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       data-size='sm'
     >
       <Lang id={title} />
-      <RequiredIndicator required={required} />
+      <RequiredIndicator
+        required={required}
+        readOnly={readOnly}
+      />
       <OptionalIndicator
         required={required}
         readOnly={readOnly}
-        showOptionalMarking={labelSettings?.optionalIndicator !== false}
+        showOptionalMarking={showOptionalMarking}
       />
     </Heading>
   ) : undefined;
@@ -170,7 +171,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
         <strong>
           <Lang id={tableHeaders[key]} />
         </strong>
-        <span>{typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}</span>
+        <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
@@ -217,11 +218,14 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 data-size='sm'
               >
                 <Lang id={title} />
-                <RequiredIndicator required={required} />
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               </Heading>
             </Fieldset.Legend>
@@ -248,11 +252,14 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 data-size='sm'
               >
                 <Lang id={title} />
-                <RequiredIndicator required={required} />
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               </Heading>
             </Fieldset.Legend>
@@ -292,7 +299,16 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       baseComponentId={baseComponentId}
       isSummary={isSummary}
     >
-      <Table className={classes.listTable}>
+      <BaseTable
+        headerBackground='tinted'
+        rowHeight='large'
+        cellFontSize='large'
+        lookReachesNestedTables='all'
+        className={cn(classes.listTable, {
+          [classes.configuredColumns]: !!config.tableColumns,
+          [classes.readOnly]: readOnly,
+        })}
+      >
         {isSummary ? (
           (title || description || help) && (
             <Caption
@@ -314,14 +330,25 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             )}
           </caption>
         ) : null}
-        <Table.Head>
-          <Table.Row>
+        {config.tableColumns && (
+          <colgroup>
+            {!readOnly && <col className={classes.selectionColumn} />}
+            {Object.keys(config.tableHeaders).map((key) => (
+              <col
+                key={key}
+                style={{ width: config.tableColumns?.[key]?.width }}
+              />
+            ))}
+          </colgroup>
+        )}
+        <BaseTable.Head>
+          <BaseTable.Row>
             {!readOnly && (
-              <Table.HeaderCell>
+              <BaseTable.HeaderCell>
                 <span className={utilClasses.visuallyHidden}>
                   <Lang id='list_component.controlsHeader' />
                 </span>
-              </Table.HeaderCell>
+              </BaseTable.HeaderCell>
             )}
             {Object.entries(config.tableHeaders).map(([key, value]) => {
               const isSortable = config.sortableColumns?.includes(key);
@@ -330,25 +357,25 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 sort = sortColumn === key ? sortDirection : 'none';
               }
               return (
-                <Table.HeaderCell
+                <BaseTable.HeaderCell
                   key={key}
                   sort={sort}
                   onClick={isSortable ? () => handleSort(key) : undefined}
                 >
                   <Lang id={value} />
-                </Table.HeaderCell>
+                </BaseTable.HeaderCell>
               );
             })}
-          </Table.Row>
-        </Table.Head>
-        <Table.Body>
+          </BaseTable.Row>
+        </BaseTable.Head>
+        <BaseTable.Body>
           {data?.listItems.map((row) => (
-            <Table.Row
+            <BaseTable.Row
               key={JSON.stringify(row)}
               onClick={!readOnly ? () => handleRowClick(row) : undefined}
             >
               {!readOnly && (
-                <Table.Cell
+                <BaseTable.Cell
                   className={cn({
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
@@ -377,22 +404,22 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                       readOnly={instanceLocked}
                     />
                   )}
-                </Table.Cell>
+                </BaseTable.Cell>
               )}
               {Object.keys(config.tableHeaders).map((key) => (
-                <Table.Cell
+                <BaseTable.Cell
                   key={key}
                   className={cn({
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
                 >
-                  {typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}
-                </Table.Cell>
+                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
+                </BaseTable.Cell>
               ))}
-            </Table.Row>
+            </BaseTable.Row>
           ))}
-        </Table.Body>
-      </Table>
+        </BaseTable.Body>
+      </BaseTable>
       {config.pagination && (
         <Pagination
           id={componentId}
@@ -443,7 +470,7 @@ function Pagination({
     setPageSize(newSize);
   }
   return (
-    <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'ds-table__header__cell')}>
+    <BaseTable.Pager centered={isMobile}>
       <CustomPagination
         id={id}
         nextLabel={langAsString('list_component.nextPage')}
@@ -459,6 +486,6 @@ function Pagination({
         onPageSizeChange={(value) => handlePageSizeChange(+value)}
         rowsPerPageOptions={rowsPerPageOptions}
       />
-    </div>
+    </BaseTable.Pager>
   );
 }

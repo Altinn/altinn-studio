@@ -6,6 +6,7 @@ import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type {
   DataModelMetadataJson,
@@ -70,6 +71,7 @@ import {
   resource,
   resourceVersionStatus,
   ruleConfig,
+  runningApp,
   searchRepositoryResponse,
   textResourcesWithLanguage,
   user,
@@ -243,6 +245,9 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
+  getResourceEnvironments: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<string[]>(['tt02', 'prod'])),
   getAltinn2ResourcePolicies: vi
     .fn()
     .mockImplementation(() =>
@@ -386,6 +391,7 @@ export const queriesMock: ServicesContextProps = {
     return Promise.resolve<ITextResourcesWithLanguage>(emptyTextResourceListMock(language));
   }),
   undeployAppFromEnv: vi.fn().mockImplementation(() => Promise.resolve()),
+  restartApp: vi.fn().mockImplementation(() => Promise.resolve<RunningApp>(runningApp)),
   deletePage: vi.fn().mockImplementation(() => Promise.resolve()),
   modifyPage: vi.fn().mockImplementation(() => Promise.resolve()),
   createPage: vi.fn().mockImplementation(() => Promise.resolve()),
@@ -428,6 +434,9 @@ export const queriesMock: ServicesContextProps = {
   deleteChatMessage: vi.fn().mockImplementation(() => Promise.resolve()),
   sendChatFeedback: vi.fn().mockImplementation(() => Promise.resolve()),
   clearChatFeedback: vi.fn().mockImplementation(() => Promise.resolve()),
+  startAssistantWorkflow: vi.fn().mockImplementation(() => Promise.resolve()),
+  cancelAssistantWorkflow: vi.fn().mockImplementation(() => Promise.resolve()),
+  respondToAssistantPermission: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
   addContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),

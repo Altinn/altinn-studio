@@ -47,8 +47,8 @@ async function renderPdfTask(query: string) {
             },
           };
         }),
+      getInstance: async () => instance,
     },
-    apis: { instanceApi: { getInstance: async () => instance } },
   });
 }
 

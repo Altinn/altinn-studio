@@ -51,9 +51,7 @@ internal static class V8Tov9Upgrade
     // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
     private const string FeaturesNamespace = "Altinn.App.Core.Features";
 
-    // Keep the release floor aligned with the app template. This release carries the .NET 11
-    // arithmetic fixes and compatible OpenAPI dependencies; earlier v9 packages cannot be retargeted alone.
-    private const string MinimumPackageVersion = "9.0.0-preview.8";
+    private const string MinimumPackageVersion = "9.0.0-preview.10";
 
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
@@ -234,6 +232,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveEnforceDataTypeTaskIdSetting(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -295,6 +296,12 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await CheckNavigationValidation(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -318,6 +325,9 @@ internal static class V8Tov9Upgrade
         // After the PDF service task migration, so the PDF service tasks it adds are included.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateGeneratedFileContentTypes(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSchemaRefs(projectFolder, appPackageVersion));
@@ -527,10 +537,7 @@ internal static class V8Tov9Upgrade
             string? targetVersion = null;
             if (options.ConvertPackageReferences)
                 sourceRoot = ValidateConversionRoot(options.ProjectFolder, options.StudioRoot);
-            else if (
-                !projectChecks.HasAltinnProjectReferences()
-                && !projectChecks.HasPackageVersionsAtLeast(MinimumPackageVersion)
-            )
+            else if (!projectChecks.HasAltinnProjectReferences())
             {
                 targetVersion = await V9PackageVersionResolver.ResolveLatestTargetVersion(
                     options.ProjectFolder,
@@ -1356,6 +1363,29 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes AppSettings:EnforceDataTypeTaskId from the appsettings files: v9 always refuses changes through the app
+    /// APIs to a data type's data outside the tasks it is bound to.
+    /// </summary>
+    static async Task<int> RemoveEnforceDataTypeTaskIdSetting(string projectFile)
+    {
+        UpgradeConsole.BeginStep("EnforceDataTypeTaskId setting");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await EnforceDataTypeTaskIdMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No AppSettings:EnforceDataTypeTaskId in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing AppSettings:EnforceDataTypeTaskId from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
     /// names case-sensitively on every operating system.
     /// </summary>
@@ -1976,6 +2006,27 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Replaces the taskId of the data types in applicationmetadata.json with taskIds, the only task binding v9 reads.
+    /// </summary>
+    static async Task<int> MigrateDataTypeTaskIds(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Data type taskIds");
+        try
+        {
+            var result = await DataTypeTaskIdsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No data type has a taskId",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error replacing taskId with taskIds in applicationmetadata.json", ex);
+        }
+    }
+
+    /// <summary>
     /// Job 8: Migrate the deprecated enablePdfCreation flag to 'pdf' service tasks
     /// </summary>
     static async Task<int> MigratePdfServiceTasks(string projectFolder)
@@ -2084,6 +2135,24 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    private static async Task<int> CheckNavigationValidation(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Navigation validation");
+        try
+        {
+            var result = await new NavigationValidationAdvisor(projectFolder).Analyze();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No navigation validation changes need review",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception exception)
+        {
+            return Fail("Error checking navigation validation", exception);
+        }
+    }
+
     /// <summary>
     /// Job 13: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
     /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
@@ -2150,6 +2219,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error adding content types for generated files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 16: convert calculations keyed by field in models/*.calculation.json to the list v9 reads. A file whose
+    /// conversion would not load in v9 is left as written and reported as a to-do.
+    /// </summary>
+    static async Task<int> MigrateCalculationLists(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Calculations");
+        try
+        {
+            var result = await CalculationListMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No calculations keyed by field",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error converting calculations to a list", ex);
         }
     }
 

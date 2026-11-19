@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioError } from '@studio/components';
-import { isAxiosError } from 'axios';
+import { StudioAlert, StudioError } from '@designer/components';
+import { isHttpError } from 'app-shared/utils/networking';
 import { useTranslation } from 'react-i18next';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';
 import { useEnvironmentTitle } from 'admin/features/apps/hooks/useEnvironmentTitle';
@@ -31,7 +31,7 @@ export const WorkflowEngineError = ({
       <StudioAlert data-color='info'>{t('admin.workflows.unavailable', { envTitle })}</StudioAlert>
     );
   }
-  if (isAxiosError(error) && error.response?.status === 403) {
+  if (isHttpError(error) && error.response?.status === 403) {
     return (
       <StudioAlert data-color='info'>
         {t('admin.instances.missing_rights', { envTitle, orgName })}

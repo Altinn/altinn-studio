@@ -716,4 +716,48 @@ public class SigningDelegationServiceTests
         Assert.Equal("sign", capturedRequest.Rights[1].Action!.Value);
         Assert.Equal("reject", capturedRequest.Rights[2].Action!.Value);
     }
+
+    [Fact]
+    public async Task RevokeSigneeRights_WhenSigneeHasNoPartyUuid_RecordsFailureWithoutCallingAccessManagement()
+    {
+        // Arrange
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        var service = new SigningDelegationService(
+            accessManagementClient.Object,
+            new Mock<ILogger<SigningDelegationService>>().Object
+        );
+        List<SigneeContext> signeeContexts =
+        [
+            new()
+            {
+                TaskId = "taskId",
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+                Signee = new PersonSignee
+                {
+                    FullName = "Testperson 2",
+                    SocialSecurityNumber = "123456678234",
+                    Party = new Party(),
+                },
+            },
+        ];
+
+        // Act
+        (_, bool success) = await service.RevokeSigneeRights(
+            "taskId",
+            "instanceOwnerPartyId/" + Guid.NewGuid(),
+            Guid.NewGuid(),
+            new AppIdentifier("testOrg", "testApp"),
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.False(success);
+        Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.Contains("Failed to revoke signee rights", signeeContexts[0].SigneeState.DelegationFailedReason);
+        accessManagementClient.Verify(
+            x => x.RevokeRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
 }

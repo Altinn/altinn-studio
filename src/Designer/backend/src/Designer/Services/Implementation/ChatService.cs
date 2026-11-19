@@ -102,7 +102,25 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
         if (thread is null)
             return null;
 
-        var message = new ChatMessageEntity
+        return await repository.CreateMessageAsync(BuildMessage(threadId, request), cancellationToken);
+    }
+
+    public async Task<ChatMessageEntity?> CreateMessageInDeveloperThreadAsync(
+        Guid threadId,
+        string developer,
+        CreateChatMessageRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ChatThreadEntity? thread = await repository.GetDeveloperThreadAsync(threadId, developer, cancellationToken);
+        if (thread is null)
+            return null;
+
+        return await repository.CreateMessageAsync(BuildMessage(threadId, request), cancellationToken);
+    }
+
+    private static ChatMessageEntity BuildMessage(Guid threadId, CreateChatMessageRequest request) =>
+        new()
         {
             Id = Guid.CreateVersion7(),
             ThreadId = threadId,
@@ -117,9 +135,6 @@ public class ChatService(IChatRepository repository, TimeProvider timeProvider, 
             TraceId = request.TraceId,
             EventId = request.EventId,
         };
-
-        return await repository.CreateMessageAsync(message, cancellationToken);
-    }
 
     public async Task DeleteMessageAsync(
         Guid threadId,

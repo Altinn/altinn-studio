@@ -13,11 +13,11 @@ and [in-flight workflows](workflow-engine-integration.md#in-flight-workflows). P
 3. Register the command with `services.AddTransient<IWorkflowEngineCommand, MyCommand>()` in
    `AddWorkflowEngineIntegration`, in `DependencyInjection/ServiceCollectionExtensions.cs`.
 4. Add a step that runs the command to the right list in `WorkflowStepSet.cs`:
-    - `AddStep` for a task-end, abandon or task-start step.
-    - `AddPrimaryPostCommitStep` for work after the commit and the task start that the transition waits for, such
-      as the process-end steps.
-    - `AddAuxiliaryStep` for work in an [auxiliary workflow](workflow-engine-integration.md#auxiliary-workflows),
-      which never holds up the transition.
+   - `AddStep` for a task-end, abandon or task-start step.
+   - `AddPrimaryPostCommitStep` for work after the commit and the task start that the transition waits for, such
+     as the process-end steps.
+   - `AddAuxiliaryStep` for work in an [auxiliary workflow](workflow-engine-integration.md#auxiliary-workflows),
+     which never holds up the transition.
 5. If the command adds a branch to `WorkflowStepSet`, extend the plan shapes in
    [`WorkflowEngineCommandRegistrationTests`](../test/Altinn.App.Core.Tests/Internal/WorkflowEngine/DependencyInjection/WorkflowEngineCommandRegistrationTests.cs).
    The test fails when a plan can name a command that is not registered.

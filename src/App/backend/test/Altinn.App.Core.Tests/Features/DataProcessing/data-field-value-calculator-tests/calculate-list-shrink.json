@@ -1,0 +1,99 @@
+{
+    "name": "Should remove the rows a shorter list result does not have, keep the ids of the rows merged into, and let copied rows bring their ids",
+    "expects": [
+        {
+            "field": "form.children",
+            "result": [
+                {
+                    "altinnRowId": "row-1",
+                    "price": 1,
+                    "quantity": 10
+                },
+                {
+                    "altinnRowId": "row-2",
+                    "price": 2,
+                    "quantity": 20
+                }
+            ]
+        },
+        {
+            "field": "form.copies",
+            "result": [
+                {
+                    "altinnRowId": "row-1",
+                    "price": 1,
+                    "quantity": 10
+                },
+                {
+                    "altinnRowId": "row-2",
+                    "price": 2,
+                    "quantity": 20
+                }
+            ]
+        }
+    ],
+    "calculationConfig": {
+        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calculation.schema.v1.json",
+        "calculations": [
+            {
+                "field": "form.children",
+                "expression": [
+                    "list",
+                    [
+                        "object",
+                        "quantity",
+                        10
+                    ],
+                    [
+                        "object",
+                        "quantity",
+                        20
+                    ]
+                ]
+            },
+            {
+                "field": "form.copies",
+                "expression": [
+                    "dataModel",
+                    "form.children"
+                ]
+            }
+        ]
+    },
+    "formData": {
+        "form": {
+            "children": [
+                {
+                    "altinnRowId": "row-1",
+                    "price": 1,
+                    "quantity": 0
+                },
+                {
+                    "altinnRowId": "row-2",
+                    "price": 2,
+                    "quantity": 0
+                },
+                {
+                    "altinnRowId": "row-3",
+                    "price": 3,
+                    "quantity": 0
+                }
+            ],
+            "copies": [
+                {
+                    "altinnRowId": "copy-1",
+                    "price": 0,
+                    "quantity": 0
+                }
+            ]
+        }
+    },
+    "layouts": {
+        "Page": {
+            "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+            "data": {
+                "layout": []
+            }
+        }
+    }
+}

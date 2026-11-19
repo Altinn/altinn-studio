@@ -6,6 +6,7 @@ import {
   buildsRoute,
   runtimeGatewayDeploymentsRoute,
   runtimeGatewayDeploymentDetailsRoute,
+  runtimeGatewayRestartAppRoute,
   runtimeGatewayRunningAppRoute,
 } from './routes/builds.js';
 import { authenticationRoute } from './routes/authentication.js';
@@ -56,6 +57,10 @@ app.get(
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/running',
   runtimeGatewayRunningAppRoute,
+);
+app.post(
+  '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/restart',
+  runtimeGatewayRestartAppRoute,
 );
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',

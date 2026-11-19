@@ -4,7 +4,7 @@ import classes from './News.module.css';
 import { gitHubRoadMapUrl } from 'app-shared/ext-urls';
 import newsData from './NewsContent/news.nb.json';
 import { NEWS_EXPIRATION_TIME_IN_DAYS } from 'app-shared/constants';
-import { StudioCard, StudioLink, StudioParagraph, StudioHeading } from '@studio/components';
+import { StudioCard, StudioLink, StudioParagraph, StudioHeading } from '@designer/components';
 
 export const News = () => {
   const { t } = useTranslation();

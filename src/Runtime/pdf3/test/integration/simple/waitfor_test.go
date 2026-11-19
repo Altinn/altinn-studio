@@ -3,6 +3,7 @@ package simple
 import (
 	"testing"
 
+	"altinn.studio/common/snapshot"
 	"altinn.studio/pdf3/internal/types"
 	"altinn.studio/pdf3/test/harness"
 )
@@ -33,7 +34,7 @@ func Test_WaitForVisible(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -65,7 +66,7 @@ func Test_WaitForHidden(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -145,7 +146,7 @@ func Test_WaitForNoVisibilityCheck(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -177,7 +178,7 @@ func Test_WaitForAlreadyVisible(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -209,7 +210,7 @@ func Test_WaitForAlreadyHidden(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -242,7 +243,7 @@ func Test_WaitForClassSelector(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -275,7 +276,7 @@ func Test_WaitForVisibleViaClassRemoval(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -308,7 +309,7 @@ func Test_WaitForHiddenViaClassAddition(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))

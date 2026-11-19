@@ -7,9 +7,9 @@ import (
 	"testing/cryptotest"
 	"time"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	. "github.com/onsi/gomega"
 
+	"altinn.studio/common/snapshot"
 	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/testutils"
 )
@@ -92,7 +92,7 @@ func TestCreateJwks(t *testing.T) {
 
 	jsonData, err := jwksToSnapshotJSON(jwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, jsonData)
+	snapshot.MatchJSON(t, jsonData, "")
 }
 
 func TestRotateJwks(t *testing.T) {
@@ -126,11 +126,11 @@ func TestRotateJwks(t *testing.T) {
 	// Serialize the JWKS for snapshot testing
 	newJson, err := jwksToSnapshotJSON(newJwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, newJson)
+	snapshot.MatchJSON(t, newJson, "rotated")
 
 	newerJson, err := jwksToSnapshotJSON(newerJwks)
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, newerJson)
+	snapshot.MatchJSON(t, newerJson, "rotated_again")
 }
 
 func TestFindActiveKey(t *testing.T) {
@@ -191,7 +191,7 @@ func TestGenerateCertSerialNumber(t *testing.T) {
 	g.Expect(serial.Sign()).ToNot(Equal(-1))
 	g.Expect(serial.Bytes()).To(HaveLen(16))
 
-	snaps.MatchSnapshot(t, serial.String())
+	snapshot.Match(t, []byte(serial.String()+"\n"), "", "txt")
 }
 
 func TestPublicJwksConversion(t *testing.T) {
@@ -213,7 +213,7 @@ func TestPublicJwksConversion(t *testing.T) {
 	jsonPayload, err := json.Marshal(publicJwks)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jsonPayload).NotTo(BeNil())
-	snaps.MatchJSON(t, jsonPayload)
+	snapshot.MatchJSON(t, jsonPayload, "jwks")
 
 	jwk := jwks.Keys[0]
 	publicJwk := jwk.Public()
@@ -223,7 +223,7 @@ func TestPublicJwksConversion(t *testing.T) {
 	jsonPayload, err = json.Marshal(publicJwk)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(jsonPayload).NotTo(BeNil())
-	snaps.MatchJSON(t, jsonPayload)
+	snapshot.MatchJSON(t, jsonPayload, "jwk")
 }
 
 func createService() (*CryptoService, *opclock.FakeClock) {

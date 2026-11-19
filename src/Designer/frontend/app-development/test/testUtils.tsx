@@ -8,7 +8,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider, type FeatureFlag } from '@designer/feature-flags';
 import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {

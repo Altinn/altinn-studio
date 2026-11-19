@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
@@ -9,20 +10,19 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_PutTests : ApiTestBase
 {
     private readonly Mock<IDataProcessor> _dataProcessor = new(MockBehavior.Strict);
     private readonly Mock<IDataWriteProcessor> _dataWriteProcessor = new(MockBehavior.Strict);
 
-    public DataController_PutTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public DataController_PutTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {
@@ -95,8 +95,16 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
             updateDataElementContent
         );
-        OutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        // default.calculation.json sets melding.calculated-fixed-value, so the response lists the changed fields
+        var changes = await VerifyStatusAndDeserialize<CalculationResult>(response, HttpStatusCode.OK);
+        changes
+            .ChangedFields.Should()
+            .ContainKey("melding.calculated-fixed-value")
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which.GetString()
+            .Should()
+            .Be("Hello Ola Olsen");
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
@@ -105,6 +113,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             HttpStatusCode.OK
         );
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
+        readDataElementResponseParsed.Melding.CalculatedFixedValue.Should().Be("Hello Ola Olsen");
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
 
@@ -208,7 +217,11 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             firstReadDataElementResponse,
             HttpStatusCode.OK
         );
-        firstReadDataElementResponseParsed.Melding.Should().BeNull();
+        // Task start calculated the element it created, and the custom data processors have not run yet
+        firstReadDataElementResponseParsed.Melding.Should().NotBeNull();
+        firstReadDataElementResponseParsed.Melding!.CalculatedFixedValue.Should().Be("Hello ");
+        firstReadDataElementResponseParsed.Melding.Name.Should().BeNull();
+        firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
 
         // Update data element
         using var updateDataElementContent = new StringContent(

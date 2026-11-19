@@ -1,8 +1,8 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
+import type { ActionResult } from 'src/core/api-client/actions.api';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
-import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 
 const appFrontend = new AppFrontend();
 const variants = ['default', 'mixed', 'table'] as const;

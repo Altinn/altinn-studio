@@ -4,8 +4,8 @@ import { getActionOptions, getUpdatedRules } from '../../../../utils/PolicyRuleU
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import { useTranslation } from 'react-i18next';
-import { StudioSuggestion } from '@studio/components';
-import type { StudioSuggestionItem } from '@studio/components';
+import { StudioSuggestion } from '@designer/components';
+import type { StudioSuggestionItem } from '@designer/components';
 import type { PolicyAction } from '../../../../types';
 
 const wellKnownActionsIds: string[] = [

@@ -53,6 +53,14 @@
       "matchStrings": ["ARG GO_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "description": "Update versions that Go code pins below a renovate comment, as customManagers:makefileVersions does for Makefiles",
+      "managerFilePatterns": ["/\\.go$/"],
+      "matchStrings": [
+        "// renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)\\s+\\w+\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ]
     }
   ],
   "separateMultipleMajor": true,
@@ -74,19 +82,14 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "description": "Require explicit approval for Helm Go dependency updates because even patch releases can change Kubernetes client minor versions",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": ["helm.sh/helm/v3"],
-      "dependencyDashboardApproval": true
-    },
-    {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
       "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
         "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
-        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+        "/^github\\.com\\/fluxcd\\/(.*-controller\\/api|pkg\\/.*)$/",
+        "fluxcd/flux2"
       ],
       "matchUpdateTypes": ["patch"],
       "groupName": "Kubernetes, Flux, and cluster tooling Go dependency patches",
@@ -99,7 +102,8 @@
         "/^k8s\\.io\\//",
         "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
-        "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
+        "/^github\\.com\\/fluxcd\\/(.*-controller\\/api|pkg\\/.*)$/",
+        "fluxcd/flux2"
       ],
       "matchUpdateTypes": ["minor", "major"],
       "dependencyDashboardApproval": true
@@ -171,7 +175,7 @@
     {
       "description": "Move uv in the Studio Assistant CI and image, the Agent images, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
       "matchFileNames": [
-        ".github/workflows/altinity-build-test.yaml",
+        ".github/workflows/assistant-build-test.yaml",
         ".github/workflows/assistant-evals.yaml",
         ".github/workflows/assistant-prompts.yaml",
         "agents/Dockerfile",
@@ -243,6 +247,13 @@
       "matchManagers": ["dockerfile"],
       "matchFileNames": ["src/App/template/*/src/Dockerfile"],
       "pinDigests": false
+    },
+    {
+      "description": "The Agent images build on the agentctl base image of an agentctl release, such as ubuntu-26.04-v0.1.0-preview.14. Docker versioning would read the preview as a compatibility suffix and never update it, so the preview number is the build. A new release is not automerged: its release notes can ask for changes to the manifests in agents/",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["ghcr.io/digdir/agentctl-base"],
+      "versioning": "regex:^ubuntu-26\\.04-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-preview\\.(?<build>\\d+)$"
     },
     {
       "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with and is tested where it is built, and the image build, agent-image-check and smoke test gate the update",

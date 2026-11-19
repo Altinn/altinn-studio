@@ -2,6 +2,7 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import appWorkflowLabels from './appWorkflowLabels.json';
 import { orderedSteps } from './workflowTriage';
 
 /**
@@ -50,9 +51,9 @@ export function parseTransition(workflow: WorkflowStatus): Transition | undefine
  * The step label the app runtime puts on every step of a task's lifecycle: the id of the BPMN
  * element the step runs for — the task being left, the task being entered, or the end event the
  * process ends at. The steps of the transition itself, a service task's work and the auxiliary
- * workflows carry none: they belong to no element.
+ * workflows carry none: they belong to no element. The name is in `appWorkflowLabels.json`.
  */
-export const PROCESS_ELEMENT_LABEL = 'processNextElement';
+export const PROCESS_ELEMENT_LABEL = appWorkflowLabels.element;
 
 export type StepGroup = {
   /**

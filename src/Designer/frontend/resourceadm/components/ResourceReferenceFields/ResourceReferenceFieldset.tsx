@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioFieldset, StudioTextfield, StudioSelect } from '@studio/components';
+import { StudioFieldset, StudioTextfield, StudioSelect } from '@designer/components';
 import type {
   ResourceFormError,
   ResourceReference,

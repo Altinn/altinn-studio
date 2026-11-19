@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import date
 
+import pytest
+
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import SessionContext, build_system_prompt
 
@@ -183,3 +185,42 @@ class TestFinalAnswerContract:
         assert "Tables are NOT" in prompt or "tables are not" in prompt.lower()
         # And it should give an example of the preferred shape.
         assert "bullet list" in prompt.lower()
+
+    @pytest.mark.parametrize("allow_app_changes", [True, False])
+    def test_reports_errors_from_before_the_session_without_fixing_them(self, allow_app_changes: bool):
+        """`verify_changes` does not stop for old errors, so only the final message tells the user about them.
+
+        A read-only session that gets permission keeps the read-only contract, so the two contracts have the rule.
+        """
+        prompt = build_system_prompt(_base_ctx(allow_app_changes=allow_app_changes))
+
+        assert "listed `old_errors`" in prompt
+        assert "name them after the files and offer to fix them" in prompt
+        assert "Don't fix them unasked" in prompt
+
+
+class TestPreviewRenderCheck:
+    """The model hears about the render check only where the check is registered.
+    A model that is told to run a check that cannot run tells the user about it."""
+
+    @pytest.mark.parametrize("enabled", [True, False])
+    def test_the_prompt_names_the_check_only_when_the_registry_has_it(self, monkeypatch, enabled: bool):
+        from agents.graph.nodes.agentic_loop_node import _build_registry
+        from shared.config.base_config import BaseConfig
+
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", enabled)
+
+        for allow_app_changes in (True, False):
+            prompt = build_system_prompt(_base_ctx(allow_app_changes=allow_app_changes))
+            assert ("preview_render_check" in prompt) is enabled
+        assert ("preview_render_check" in _build_registry([])) is enabled
+
+    def test_the_check_comes_after_the_tool_use_section(self, monkeypatch):
+        from shared.config.base_config import BaseConfig
+
+        monkeypatch.setattr(BaseConfig, "PREVIEW_CHECK_ENABLED", True)
+
+        prompt = build_system_prompt(_base_ctx())
+
+        assert prompt.index("Working with tools") < prompt.index("Render check before you finish")
+        assert prompt.index("Render check before you finish") < prompt.index("## Session")

@@ -61,7 +61,8 @@ metadata:
   name: pdf3-relay-allow-ingress-from-apps
   namespace: runtime-pdf3
 spec:
-  # The same callers as the proxy's: apps, and the Azure Monitor Agent
+  # The same callers as the proxy's: apps, and the Azure Monitor Agent. The gateway checks pdf3 for the
+  # runtime cluster's health.
   podSelector:
     matchLabels:
       app: pdf3-relay
@@ -75,10 +76,14 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
+          kubernetes.io/metadata.name: runtime-gateway
+  - from:
+    - namespaceSelector:
+        matchLabels:
           kubernetes.io/metadata.name: kube-system # Azure Monitor Agent (envs)
 ---
 # Forwards apps' PDF requests to the shared pdf3 in DIS Core, see the pdf3 README. It runs the
-# proxy image's relay binary. The environment overlays set PDF3_UPSTREAM_URL.
+# proxy image's relay binary. The environment overlays set PDF3_UPSTREAM_BASE_URL.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

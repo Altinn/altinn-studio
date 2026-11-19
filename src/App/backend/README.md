@@ -8,7 +8,7 @@ process, and call the Altinn platform services on the app's behalf. Apps add the
 interfaces in `Altinn.App.Core`.
 
 [docs.altinn.studio](https://docs.altinn.studio) documents how to develop apps. The
-[changelog](https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/CHANGELOG.md) lists the changes in each
+[changelog](https://github.com/Altinn/altinn-studio/blob/main/src/App/CHANGELOG.md) lists the changes in each
 release.
 
 ## How it fits

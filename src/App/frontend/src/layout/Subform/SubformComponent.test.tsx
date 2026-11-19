@@ -22,14 +22,12 @@ const render = async ({ component, onServiceTaskPage = false }: RenderProps = {}
       textResourceBindings: { title: 'The subform title' },
       ...component,
     },
-    queries: { fetchFormData: async () => ({}) },
-    apis: {
-      instanceApi: {
-        getInstance: async () => {
-          const instance = onServiceTaskPage ? getInstanceAtServiceTaskMock() : getInstanceWithProcessMock();
-          instance.data.push({ ...instance.data[0], id: 'subform-entry', dataType: 'subform-data' });
-          return instance;
-        },
+    queries: {
+      fetchFormData: async () => ({}),
+      getInstance: async () => {
+        const instance = onServiceTaskPage ? getInstanceAtServiceTaskMock() : getInstanceWithProcessMock();
+        instance.data.push({ ...instance.data[0], id: 'subform-entry', dataType: 'subform-data' });
+        return instance;
       },
     },
   });

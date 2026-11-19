@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Table } from '@digdir/designsystemet-react';
+import { BaseTable } from '@app/form-component';
 import cn from 'classnames';
 
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -82,14 +82,15 @@ export function RepeatingGroupTableMessages({
   }
 
   return (
-    <Table.Row
+    <BaseTable.Row
       className={cn(classes.messageRow, className)}
       data-for-row={index}
       data-testid='table-row-validation-messages'
     >
-      <Table.Cell
+      <BaseTable.Cell
         colSpan={columnSpan}
         className={classes.messageCell}
+        style={{ paddingBlockStart: 'var(--ds-size-2)', paddingBlockEnd: 'var(--ds-size-4)' }}
       >
         <ul
           className={classes.messages}
@@ -101,7 +102,7 @@ export function RepeatingGroupTableMessages({
             </li>
           ))}
         </ul>
-      </Table.Cell>
-    </Table.Row>
+      </BaseTable.Cell>
+    </BaseTable.Row>
   );
 }

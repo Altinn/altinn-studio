@@ -995,7 +995,7 @@ func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 			rotateAnnotationPredicate{},
 		)).
 		WithOptions(controller.Options{MaxConcurrentReconciles: goruntime.NumCPU() * 4}).
-		Complete(r); err != nil {
+		Complete(telemetry.QuietOnCancel(r)); err != nil {
 		return fmt.Errorf("complete Maskinporten controller builder: %w", err)
 	}
 	if err := mgr.Add(newRotationRolloutProcessor(r)); err != nil {

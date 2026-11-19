@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 
 import { queryOptions, replaceEqualDeep, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { parseInstanceId } from 'src/core/queries/instance';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
+import type { CachedInstanceQueries } from 'src/core/queries/instance';
 import type { IInstance } from 'src/types/shared';
 
 type InstantiationArgs = number | Instantiation;
@@ -16,12 +18,12 @@ interface InstanceQueryKeys {
 }
 
 interface InstanceQueryParams extends InstanceQueryKeys {
-  instanceApi: InstanceApi;
+  instanceApi: Pick<InstanceApi, 'getInstance'>;
 }
 
 interface ActiveInstancesQueryParams {
   partyId: string;
-  instanceApi: InstanceApi;
+  instanceApi: Pick<InstanceApi, 'getActiveInstances'>;
 }
 
 export const instanceQueryKeys = {
@@ -89,14 +91,14 @@ export function useGetCachedInstanceData() {
 
 export function useCreateInstance(language: string) {
   const queryClient = useQueryClient();
-  const instanceApi = useInstanceApi();
+  const instanceApi = useAppMutations();
 
   return useMutation({
     mutationKey: ['instantiate'],
     mutationFn: (args: InstantiationArgs) =>
       typeof args === 'number'
-        ? instanceApi.create({ instanceOwnerPartyId: args, language })
-        : instanceApi.createWithPrefill({ data: args, language }),
+        ? instanceApi.createInstance({ instanceOwnerPartyId: args, language })
+        : instanceApi.createInstanceWithPrefill({ data: args, language }),
     onError: async (error) => {
       window.logError('Instantiation failed:\n', error);
 
@@ -110,4 +112,22 @@ export function useCreateInstance(language: string) {
       queryClient.setQueryData(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }), data);
     },
   });
+}
+
+export function createCachedInstanceQueries(queryClient: QueryClient): CachedInstanceQueries {
+  return {
+    countDataElements: (instanceId, dataType) => {
+      const data = getCachedInstance(queryClient, instanceId)?.data;
+      return data ? data.filter((element) => element.dataType === dataType).length : 0;
+    },
+    getCachedInstance: (instanceId) => getCachedInstance(queryClient, instanceId),
+  };
+}
+
+function getCachedInstance(queryClient: QueryClient, instanceId: string | undefined): IInstance | undefined {
+  if (!instanceId) {
+    return undefined;
+  }
+  const [instanceOwnerPartyId, instanceGuid] = instanceId.split('/');
+  return queryClient.getQueryData<IInstance>(instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }));
 }

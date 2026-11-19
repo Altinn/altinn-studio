@@ -5,7 +5,7 @@ import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -57,7 +57,7 @@ describe('ServicesContext', () => {
     });
   });
 
-  it('logs non-Axios errors to the console', async () => {
+  it('logs errors that are not HTTP errors to the console', async () => {
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderHook(
       () =>
@@ -243,9 +243,7 @@ describe('ServicesContext', () => {
   });
 
   it('does not display error toast when request is cancelled', async () => {
-    const cancelledError = new Error('Request cancelled');
-    cancelledError.name = 'CanceledError';
-    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+    const cancelledError = new DOMException('Request cancelled', 'AbortError');
 
     const { result } = renderHook(
       () =>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioBadge, StudioPopover } from '@studio/components';
-import { UploadIcon } from '@studio/icons';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioBadge, StudioPopover } from '@designer/components';
+import { UploadIcon } from '@designer/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';

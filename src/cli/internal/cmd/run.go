@@ -25,6 +25,7 @@ import (
 	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	appsupport "altinn.studio/studioctl/internal/cmd/apps"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
@@ -357,7 +358,10 @@ func (c *RunCommand) runTarget(
 	dotnetArgs []string,
 	flags runFlags,
 ) error {
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	topology, err := envlocaltest.RecordedTopology(c.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest port: %w", err)
+	}
 	switch flags.mode {
 	case runModeProcess:
 		return c.runDotnet(ctx, target, dotnetArgs, topology, flags)

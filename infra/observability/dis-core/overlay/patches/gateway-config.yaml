@@ -1,0 +1,64 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-gateway
+spec:
+  config:
+    extensions:
+      # The token comes from the Vault (secrets.yaml), read from its mounted Secret
+      # (patches/gateway-victoria-volumes.yaml) and re-read when the kubelet updates it, so a
+      # rotation needs no restart. With retry_on_failure, a token missing at startup is looked for
+      # in the background until it appears.
+      bearertokenauth/victoria:
+        filename: /var/run/observability-ingest-token/token
+        retry_on_failure:
+          enabled: true
+          max_retries: 0
+          interval: 30s
+      file_storage/victoria:
+        directory: /var/lib/otelcol/victoria-queue
+        compaction:
+          on_rebound: true
+          directory: /var/lib/otelcol/victoria-queue
+
+    exporters:
+      # The Victoria backend in Studio prod, through its public endpoint. The settings are the
+      # runtime gateway's (infra/observability/runtime), which explains them.
+      otlp_http/victoria:
+        endpoint: https://altinn.studio/internal/observability/otlp
+        auth:
+          authenticator: bearertokenauth/victoria
+        http2_read_idle_timeout: 10s
+        http2_ping_timeout: 10s
+        retry_on_failure:
+          max_elapsed_time: 0
+        sending_queue:
+          enabled: true
+          storage: file_storage/victoria
+          sizer: bytes
+          queue_size: 268435456
+
+    service:
+      # The list replaces base's, so it repeats health_check, which the probes need.
+      extensions: [health_check, bearertokenauth/victoria, file_storage/victoria]
+      telemetry:
+        resource:
+          k8s.pod.name: $${env:POD_NAME}
+          k8s.namespace.name: $${env:POD_NAMESPACE}
+          k8s.node.name: $${env:NODE_NAME}
+          k8s.deployment.name: otel-gateway-collector
+      # Everything goes to Victoria. The router sends the services that also report to the
+      # platform's Azure Monitor there itself, unsampled (router-config.yaml).
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [tail_sampling, batch]
+          exporters: [otlp_http/victoria]
+        metrics:
+          receivers: [otlp]
+          processors: [filter/metrics_allowlist, batch]
+          exporters: [otlp_http/victoria]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp_http/victoria]

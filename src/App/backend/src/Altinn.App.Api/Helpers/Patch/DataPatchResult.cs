@@ -7,7 +7,7 @@ namespace Altinn.App.Api.Helpers.Patch;
 /// <summary>
 /// Result of a data patch operation in the <see cref="InternalPatchService"/>.
 /// </summary>
-public class DataPatchResult
+internal class DataPatchResult
 {
     /// <summary>
     /// The updated instance after the patch and dataProcessing operations.

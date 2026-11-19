@@ -129,17 +129,65 @@ public sealed class AppFilesLoaderTests : IDisposable
     {
         WriteStandardApp();
         WriteFile("ui/a/layouts/page1.json", """{ "data": { "layout": [ } }""");
-        WriteFile("config/texts/resource.en.json", "not json");
+        WriteFile("config/texts/resource.en.json", "{\n// accepted comment\n\"language\": invalid\n}");
         WriteFile("models/model.xsd", "<not-json-so-not-validated");
 
         var exception = Assert.Throws<ApplicationConfigException>(() => Load());
 
         Assert.Contains("config/texts/resource.en.json", exception.Message);
+        Assert.Contains("LineNumber: 2", exception.Message);
         Assert.Contains("ui/a/layouts/page1.json", exception.Message);
         Assert.DoesNotContain("model.xsd", exception.Message);
         Assert.DoesNotContain("page2.json", exception.Message);
         // Only files the app reads are loaded, so an unrelated broken file does not stop the app
         Assert.DoesNotContain("unrelated.json", exception.Message);
+    }
+
+    [Fact]
+    public void Loading_reports_a_calculation_file_in_the_v8_format()
+    {
+        WriteStandardApp();
+        WriteFile(
+            "models/model.calculation.json",
+            """{ "calculations": { "skjema.name": { "expression": "fixed" } } }"""
+        );
+
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
+
+        Assert.Contains(" - models/model.calculation.json: ", exception.Message);
+        Assert.Contains("v8 format", exception.Message);
+        Assert.Contains("studioctl app upgrade v9", exception.Message);
+    }
+
+    [Fact]
+    public void Loading_reports_a_calculation_without_an_expression()
+    {
+        WriteStandardApp();
+        WriteFile("models/model.calculation.json", """{ "calculations": [{ "field": "skjema.name" }] }""");
+
+        var exception = Assert.Throws<ApplicationConfigException>(() => Load());
+
+        Assert.Contains(" - models/model.calculation.json: ", exception.Message);
+        Assert.Contains("expression", exception.Message);
+    }
+
+    [Fact]
+    public void A_calculation_file_with_comments_and_trailing_commas_is_loaded()
+    {
+        WriteStandardApp();
+        const string calculation = """
+            {
+                // The app file grammar allows comments and trailing commas
+                "calculations": [
+                    { "field": "skjema.name", "expression": "fixed", },
+                ],
+            }
+            """;
+        WriteFile("models/model.calculation.json", calculation);
+
+        var files = Load();
+
+        Assert.Equal(calculation, AsString(files.GetModelFiles("model")!.CalculationConfiguration));
     }
 
     // The scanner lists the folders and matches names ordinally, so wrongly cased names are not found even

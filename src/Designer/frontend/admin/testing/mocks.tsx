@@ -8,7 +8,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsProvider } from '@designer/feature-flags';
 
 type ProviderData = {
   queries?: Partial<ServicesContextProps>;

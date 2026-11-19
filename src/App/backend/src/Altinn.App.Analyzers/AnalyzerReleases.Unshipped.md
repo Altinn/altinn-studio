@@ -9,9 +9,12 @@ ALTINNAPP0001 | General | Warning | Project not found
 ALTINNAPP0002 | Metadata | Warning | Error in applicationmetadata.json
 ALTINNAPP9999 | General | Warning | Unknown error
 ALTINNAPP0500 | CodeSmells | Warning | CodeSmells
+ALTINNAPP0502 | CodeSmells | Error | Async method returns void
 ALTINNAPP0600 | Deprecation | Error | enablePdfCreation is not supported
 ALTINNAPP0601 | Deprecation | Error | Legacy eFormidling config is not supported
 ALTINNAPP0602 | Deprecation | Error | subformComponentId and subformDataTypeId are not supported
+ALTINNAPP0603 | Deprecation | Error | taskId is not supported
+ALTINNAPP0604 | Deprecation | Warning | taskId next to taskIds is ignored
 ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded
 ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
@@ -45,3 +48,4 @@ ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the 
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
 ALTINNAPP1024 | Process | Error | Subform PDF service task names a UI folder it cannot render
 ALTINNAPP1026 | Process | Error | PDF service task's pdfLayoutName names a layout that does not exist
+ALTINNAPP1030 | Process | Error | Exclusive gateway routes on gatewayAction right after a service task that returns no action

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { MockedFunction } from 'vitest';
 
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -11,7 +12,7 @@ import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { AppQueries } from 'src/queries/types';
+import type { AppQueries } from 'src/core/queries/types';
 
 vi.mock('src/core/routing/useIsReceiptPage', () => ({
   useIsReceiptPage: vi.fn(),
@@ -125,9 +126,6 @@ const render = async (props: Partial<IPresentationProvidedProps> = {}, queries: 
   await renderWithInstanceAndLayout({
     renderer: () => <PresentationComponent {...allProps} />,
     taskId: 'Task_1',
-    queries: {
-      ...queries,
-    },
+    queries: { ...queries },
   });
 };
-import type { MockedFunction } from 'vitest';

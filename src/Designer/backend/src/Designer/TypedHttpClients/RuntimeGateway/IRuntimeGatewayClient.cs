@@ -34,6 +34,16 @@ public interface IRuntimeGatewayClient
         AltinnEnvironment environment,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Restarts the app in the environment's cluster by replacing its instances with new ones of the same version.
+    /// </summary>
+    Task<GatewayAppRestart> RestartApp(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
     Task<IEnumerable<AlertRule>> GetAlertRulesAsync(
         string org,
         AltinnEnvironment environment,

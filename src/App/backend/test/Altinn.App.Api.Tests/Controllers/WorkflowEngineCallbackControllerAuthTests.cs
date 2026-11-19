@@ -12,24 +12,20 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
     private const string SomeCommand = "some-command";
 
-    public WorkflowEngineCallbackControllerAuthTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public WorkflowEngineCallbackControllerAuthTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     private static StringContent EmptyPayload() => new("{}", Encoding.UTF8, "application/json");
 

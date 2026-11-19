@@ -1,7 +1,8 @@
 import React from 'react';
 
+import { BaseTable } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Table } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
 
 import { Caption } from 'src/components/form/caption/Caption';
@@ -86,7 +87,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
               targetBaseComponentId={targetBaseComponentId}
             />
           </div>
-          <Table>
+          <BaseTable>
             {(title || captionProps.description || captionProps.helpText) && (
               <Caption
                 {...captionProps}
@@ -103,38 +104,53 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                 }
               />
             )}
-            <Table.Head>
-              <Table.Row>
-                {Object.entries(config.tableHeaders).map(([key, value]) => (
-                  <Table.HeaderCell key={key}>
-                    <Lang id={value} />
-                  </Table.HeaderCell>
+            {config.tableColumns && (
+              <colgroup>
+                {Object.keys(config.tableHeaders).map((key) => (
+                  <col
+                    key={key}
+                    style={{ width: config.tableColumns?.[key]?.width }}
+                  />
                 ))}
-              </Table.Row>
-            </Table.Head>
-            <Table.Body>
+              </colgroup>
+            )}
+            <BaseTable.Head>
+              <BaseTable.Row>
+                {Object.entries(config.tableHeaders).map(([key, value]) => (
+                  <BaseTable.HeaderCell key={key}>
+                    <Lang id={value} />
+                  </BaseTable.HeaderCell>
+                ))}
+              </BaseTable.Row>
+            </BaseTable.Head>
+            <BaseTable.Body>
               {displayRows?.map((row, rowIndex) => (
-                <Table.Row key={rowIndex}>
+                <BaseTable.Row key={rowIndex}>
                   {Object.entries(config.tableHeaders).map(([key]) => {
                     const binding = dataModelBindings?.[key];
                     if (!binding || !dataModelBindings?.group) {
-                      return null;
+                      return (
+                        <BaseTable.Cell
+                          key={key}
+                          align='left'
+                        />
+                      );
                     }
                     const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
                     const data = dot.pick(relativePath, row);
                     return (
-                      <Table.Cell
+                      <BaseTable.Cell
                         key={key}
                         align='left'
                       >
                         {data}
-                      </Table.Cell>
+                      </BaseTable.Cell>
                     );
                   })}
-                </Table.Row>
+                </BaseTable.Row>
               ))}
-            </Table.Body>
-          </Table>
+            </BaseTable.Body>
+          </BaseTable>
         </div>
       </SummaryFlex>
     );

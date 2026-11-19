@@ -10,8 +10,6 @@ from typing import Any, NamedTuple
 
 from langfuse import get_client
 
-from agents.services.llm.llm_client import build_intent_parse_message
-from agents.services.llm.scope_checker import build_scope_check_message
 from benchmarks import registry
 from benchmarks.lf_api import LangfuseApi
 
@@ -59,26 +57,6 @@ def load_datasets() -> Iterator[Dataset]:
         )
 
 
-MESSAGE_BUILDERS = {
-    "scope_check": lambda item: build_scope_check_message(item["input"]["goal"], item["input"].get("conversation")),
-    "intent_check": lambda item: build_intent_parse_message(
-        item["input"]["goal"], item["input"].get("attachments"), item["input"].get("conversation")
-    ),
-}
-
-
-def render_input(dataset: Dataset, item: dict[str, Any]) -> dict[str, Any]:
-    """The item input as uploaded."""
-    if dataset.kind in ("planner", "generation"):
-        return item["input"]
-    if dataset.kind == "prompt" and item["input"].get("user_message"):
-        return item["input"]
-    if dataset.prompt is None:
-        raise ValueError(f"{dataset.name}: items without a user_message need a prompt to build one")
-    build = MESSAGE_BUILDERS[dataset.prompt]
-    return {**item["input"], "user_message": build(item)}
-
-
 def validate(dataset: Dataset) -> list[str]:
     problems = []
     shaped = []
@@ -88,16 +66,11 @@ def validate(dataset: Dataset) -> list[str]:
             problems.append(f"{dataset.path.name}: item is missing {sorted(missing)}")
             continue
         shaped.append(item)
-    if (
-        dataset.kind == "prompt"
-        and dataset.prompt not in MESSAGE_BUILDERS
-        and not all(item["input"].get("user_message") for item in shaped)
-    ):
-        problems.append(
-            f"{dataset.path.name}: no message builder for '{dataset.prompt}' and not every item carries a user_message"
-        )
+    if dataset.kind == "prompt" and not all(item["input"].get("user_message") for item in shaped):
+        problems.append(f"{dataset.path.name}: not every item carries a user_message")
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
+    problems.extend(missing_assets(dataset._replace(items=shaped)))
     seen: set[str] = set()
     for item in shaped:
         if item["id"] in seen:
@@ -112,7 +85,7 @@ def validate(dataset: Dataset) -> list[str]:
 
 
 def missing_assets(dataset: Dataset) -> list[str]:
-    """Attachments a planner item names that are not on this machine."""
+    """Attachments a planner item names that are not in assets/."""
     if dataset.kind != "planner":
         return []
     from .planner import ASSETS_DIR
@@ -172,9 +145,6 @@ def main() -> int:
         print(f"  INVALID: {problem}")
     if problems:
         return 1
-    for dataset in datasets:
-        for absent in missing_assets(dataset):
-            print(f"  LOCAL: {absent}")
 
     if args.check:
         for dataset in datasets:
@@ -195,7 +165,7 @@ def main() -> int:
             lf.upsert_dataset_item(
                 dataset_name=dataset.name,
                 item_id=item["id"],
-                input=render_input(dataset, item),
+                input=item["input"],
                 expected_output=item["expectedOutput"],
                 metadata={**item["metadata"], "prompt": dataset.prompt, "kind": dataset.kind},
             )

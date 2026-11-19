@@ -6,7 +6,7 @@ import { renderWithProviders, renderHookWithProviders } from '../../../../testin
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const handleComponentChangeMock = vi.fn();
 
