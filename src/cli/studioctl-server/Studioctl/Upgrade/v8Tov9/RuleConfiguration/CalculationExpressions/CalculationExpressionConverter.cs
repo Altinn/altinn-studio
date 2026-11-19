@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Nodes;
 using Acornima.Ast;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
@@ -497,7 +498,7 @@ internal sealed partial class CalculationExpressionConverter
             )
         )
             throw new NotSupportedException(
-                "Division can overflow backend decimal arithmetic; keep this calculation in C#."
+                "Division operands cannot be proven safe in backend decimal arithmetic; keep this calculation in C#."
             );
         // Expression arguments are eager. An unreachable branch must remain safe to evaluate.
         var denominator =
@@ -529,7 +530,7 @@ internal sealed partial class CalculationExpressionConverter
         if (expression == null)
             return 0;
         if (expression is JsonValue literal && literal.TryGetValue<double>(out var number))
-            return Math.Abs(number);
+            return DecimalLiteralMagnitude(number);
         if (expression is not JsonArray { Count: > 0 } call)
             return null;
         var operation = call[0]?.GetValue<string>();
@@ -557,7 +558,7 @@ internal sealed partial class CalculationExpressionConverter
     private double? MinimumMagnitude(JsonNode? expression)
     {
         if (expression is JsonValue literal && literal.TryGetValue<double>(out var number))
-            return number == 0 ? null : Math.Abs(number);
+            return DecimalLiteralMagnitude(number) is > 0 and var magnitude ? magnitude : null;
         if (IntegerBound(expression).HasValue)
             return 1;
         if (expression is not JsonArray { Count: > 0 } call)
@@ -573,6 +574,23 @@ internal sealed partial class CalculationExpressionConverter
                 return MinimumMagnitude(operands[0]);
         }
         return null;
+    }
+
+    private static double? DecimalLiteralMagnitude(double number)
+    {
+        // Even a literal operand can round to zero or another value in backend arithmetic.
+        if (
+            !decimal.TryParse(
+                number.ToString("R", CultureInfo.InvariantCulture),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var value
+            )
+            || double.Parse(value.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture)
+                .CompareTo(number) != 0
+        )
+            return null;
+        return Math.Abs(number);
     }
 
     private static bool TryNumericLiteral(Value value, out Value number)
