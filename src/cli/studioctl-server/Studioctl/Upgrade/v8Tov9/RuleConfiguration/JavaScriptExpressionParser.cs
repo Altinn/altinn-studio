@@ -8,6 +8,12 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 /// </summary>
 public class JavaScriptExpressionParser
 {
+    /// <summary>
+    /// Lowers supported synchronous conditional rules while preserving local assignments and return paths.
+    /// Unsupported effects or scopes produce an unsuccessful result instead of a partial expression.
+    /// </summary>
+    /// <param name="functionCode">A function expression, including its parameters and body.</param>
+    /// <returns>The lowered expression and evaluated initializers, or a failure with its reason.</returns>
     public ParseResult ParseFunction(string functionCode)
     {
         try
