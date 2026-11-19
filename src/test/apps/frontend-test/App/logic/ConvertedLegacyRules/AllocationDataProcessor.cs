@@ -2,9 +2,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
+using Microsoft.Extensions.Logging;
 #nullable enable
 namespace Altinn.App.Logic.ConvertedLegacyRules;
-public class AllocationDataProcessor : IDataProcessor, IDataWriteProcessor
+public class AllocationDataProcessor(ILogger<AllocationDataProcessor> logger) : IDataProcessor, IDataWriteProcessor
 {
     public async Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)
     {
@@ -53,7 +54,7 @@ public class AllocationDataProcessor : IDataProcessor, IDataWriteProcessor
         // JSON serialization sent non-finite JS numbers as null.
         if (result is double number && !double.IsFinite(number)) result = null;
         if (!wrapper.Set("AllocationHelper", ExpressionValue.FromObject(result is JsUndefined ? null : result)))
-            Console.Error.WriteLine("Could not set migrated calculation value for field " + "AllocationHelper");
+            logger.LogWarning("Could not set migrated calculation value for field {Field}", "AllocationHelper");
         return Task.CompletedTask;
     }
     private static object? Calculate_0(Dictionary<string, object?> obj)
@@ -169,6 +170,7 @@ public class AllocationDataProcessor : IDataProcessor, IDataWriteProcessor
         null => "null",
         bool boolean => boolean ? "true" : "false",
         double number => JsNumberString(number),
+        string[] items => string.Join(",", items),
         _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
     };
     private static string JsNumberString(double number)
