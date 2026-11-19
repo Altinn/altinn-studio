@@ -21,6 +21,9 @@ public sealed class HealthTests
     public async Task Ready_AnswersBeforeTheProbeTimesOut_WhenTheSessionStoreHangs()
     {
         using var factory = new PreviewApplicationFactory(new HangingCache());
+        // Starts the app first, so that the time is the readiness check's alone.
+        using HttpResponseMessage started = await GetHealth(factory, "/health/live");
+        Assert.Equal(HttpStatusCode.OK, started.StatusCode);
         var stopwatch = Stopwatch.StartNew();
 
         using HttpResponseMessage response = await GetHealth(factory, "/health/ready");
