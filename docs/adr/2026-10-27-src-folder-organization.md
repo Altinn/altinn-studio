@@ -49,7 +49,7 @@ altinn-studio/
     │   ├── load-balancer/             ← src/load-balancer
     │   ├── observability-proxy/       ← src/observability-proxy
     │   ├── operator/                  + new project
-    │   ├── operator-workflows/        + new project
+    │   ├── operator-workflow-engine/  + new project
     │   └── ci/
     │       ├── github-runner/         ← src/ci/github-runner
     │       ├── sandbox-node/          ← src/ci/sandbox-node

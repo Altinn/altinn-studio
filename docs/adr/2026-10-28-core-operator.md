@@ -117,8 +117,9 @@ different quota.
 - Good, because the operator is Go with controller-runtime, the stack of the runtime operator. The engine host
   composes the workflow engine that the runtime clusters use. The team knows both stacks (D7).
 - Bad, because the operator and the engine host are two deployments that the team must build, operate and monitor.
-  The engine host needs a Postgres server and an identity in `altinn-studio-infra`. The server continues to exist
-  after a revert. The operator is also a second controller-runtime code base next to the runtime operator (D7).
+  The engine host needs a database on the Studio Postgres server and an identity in `altinn-studio-infra`. The
+  database continues to exist after a revert. The operator is also a second controller-runtime code base next to the
+  runtime operator (D7).
 - Bad, because the operator does not control the sandbox capacity. The KEDA runner Jobs use the same KVM slots.
   Thus the quotas of the operator cannot make sure that a run starts (D2).
 - Bad, because if the operator does the work of `runner-org-sync`, the Gitea admin token is in the pod that creates
@@ -207,8 +208,8 @@ flowchart LR
 
 The workflow engine is a .NET library. A host composes it and adds its commands. The engine host of the operator
 is such a host, in the Studio cluster. It has one command, which calls the operator back for each step of a
-workflow. The host knows no domain. The steps are in the operator, in Go. The src folder ADR names this project
-`operator-workflows`.
+workflow. The host knows no domain. The steps are in the operator, in Go. Its project is
+`src/core/operator-workflow-engine`.
 
 A new domain, for example app deployments, is a new group of steps in the operator and a new namespace in the engine.
 
