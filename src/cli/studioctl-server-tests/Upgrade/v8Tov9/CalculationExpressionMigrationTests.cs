@@ -219,6 +219,28 @@ public sealed class CalculationExpressionMigrationTests
         Assert.Equal(1d, Evaluate(expression, new() { ["b"] = 1e-28 }));
     }
 
+    [Theory]
+    [InlineData("return 0.1 / 1e-29;")]
+    [InlineData("return 0.1 / 6e-29;")]
+    [InlineData("return 0.1 / 1.1e-28;")]
+    [InlineData("return 1e-29 / 1e-28;")]
+    [InlineData("return (1e-29 * 1e10) / 0.1;")]
+    public void Division_WithLossyDecimalLiterals_RequiresFallback(string body)
+    {
+        using var app = CreateApp();
+        Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
+    }
+
+    [Theory]
+    [InlineData("0.1", 10d)]
+    [InlineData("1e-28", 1e28)]
+    public void Division_WithRepresentableDecimalLiteralDenominator_Converts(string denominator, double expected)
+    {
+        using var app = CreateApp();
+        var expression = Convert(app, "return 1 / " + denominator + ";", Rule("calculate", "result"));
+        Assert.Equal(expected, Evaluate(expression, new JsonObject()));
+    }
+
     [Fact]
     public void ConstantStringConcatenation_PreservesTheStringResult()
     {

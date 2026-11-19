@@ -1,10 +1,47 @@
 using System.Text.Json;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.ExpressionEvaluatorTests;
 
 public class ExpressionTests
 {
+    [Fact]
+    public async Task Division_OverflowsBeforeMultiplicationCanReduceTheResult()
+    {
+        // JavaScript returns 10, but the intermediate quotient exceeds decimal.MaxValue.
+        // The upgrader must keep this calculation in C# rather than emit this expression.
+        var expression = JsonSerializer.Deserialize<Expression>("""["multiply", ["divide", 10, 1e-28], 1e-28]""");
+
+        var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
+            ExpressionEvaluator.EvaluateExpression(null!, expression, null!)
+        );
+
+        Assert.StartsWith("Arithmetic overflow:", exception.Message);
+    }
+
+    [Fact]
+    public async Task Division_WithLiteralBelowDecimalPrecision_Throws()
+    {
+        var expression = JsonSerializer.Deserialize<Expression>("""["divide", 0.1, 1e-29]""");
+
+        var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
+            ExpressionEvaluator.EvaluateExpression(null!, expression, null!)
+        );
+
+        Assert.Contains("cannot divide by 0", exception.Message);
+    }
+
+    [Fact]
+    public async Task Division_OfSmallRepresentableDecimals_ReturnsOne()
+    {
+        var expression = JsonSerializer.Deserialize<Expression>("""["divide", 1e-28, 1e-28]""");
+
+        var result = await ExpressionEvaluator.EvaluateExpression(null!, expression, null!);
+
+        Assert.Equal(1d, Assert.IsType<double>(result));
+    }
+
     [Fact()]
     public void TestExpressionEquality()
     {
