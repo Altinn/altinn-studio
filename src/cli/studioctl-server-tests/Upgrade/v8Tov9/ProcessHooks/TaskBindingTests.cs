@@ -432,47 +432,6 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
-    // A DataCreation that adds a form, as dat/asbest-melding App/logic/InstantiationProcessor.cs adds its own.
-    private const string ReceiptCreation = """
-        public class Kvittering { }
-
-        public class InstantiationProcessor(IDataClient dataClient) : IInstantiationProcessor
-        {
-            public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
-            {
-                var kvittering = new Kvittering();
-                await dataClient.InsertFormData(instance, "kvittering", kvittering);
-            }
-        }
-        """;
-
-    private const string ReceiptCreationRewritten = $$"""
-        public class Kvittering { }
-
-        public class InstantiationProcessor : IInstantiationProcessor
-        {
-            public async Task DataCreation({{IInstanceDataMutator}} dataMutator, object data, Dictionary<string, string>? prefill)
-            {
-                var kvittering = new Kvittering();
-                dataMutator.AddFormDataElement("kvittering", kvittering);
-            }
-        }
-        """;
-
-    private const string ReceiptCreationKept = $$"""
-        public class Kvittering { }
-
-        public class InstantiationProcessor(IDataClient dataClient) : IInstantiationProcessor
-        {
-            public async Task DataCreation({{IInstanceDataMutator}} dataMutator, object data, Dictionary<string, string>? prefill)
-            {
-                Instance instance = dataMutator.Instance;
-                var kvittering = new Kvittering();
-                await dataClient.InsertFormData(instance, "kvittering", kvittering);
-            }
-        }
-        """;
-
     // A helper that two branches of a task end call, one for each task.
     private const string ReceiptHook = """
         public class Kvittering { public string? A { get; set; } }
@@ -934,65 +893,6 @@ public sealed class TaskBindingTests : IDisposable
         }
         """;
 
-    // A helper that DataCreation and a task end share, in an app without autoCreate data types.
-    private const string ReceiptReceipts = """
-        public class Kvittering { }
-
-        public class Receipts(IDataClient dataClient) : IInstantiationProcessor, IProcessTaskEnd
-        {
-            public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
-            {
-                await Add(instance);
-            }
-
-            public async Task End(string taskId, Instance instance)
-            {
-                if (taskId == "Task_2")
-                {
-                    await Add(instance);
-                }
-            }
-
-            private async Task Add(Instance instance)
-            {
-                var kvittering = new Kvittering();
-                await dataClient.InsertFormData(instance, "kvittering", kvittering);
-            }
-        }
-        """;
-
-    private const string ReceiptReceiptsRewritten = $$"""
-        public class Kvittering { }
-
-        public class Receipts : IInstantiationProcessor, {{IOnTaskEndingHandler}}
-        {
-            public async Task DataCreation({{IInstanceDataMutator}} dataMutator, object data, Dictionary<string, string>? prefill)
-            {
-                Instance instance = dataMutator.Instance;
-                await Add(dataMutator);
-            }
-
-            public bool ShouldRunForTask(string taskId) => taskId == "Task_2";
-
-            public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-            {
-                string taskId = context.TaskId;
-                {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                if (taskId == "Task_2")
-                {
-                    await Add(dataMutator);
-                }
-                return {{HandlerResult}}.Success();
-            }
-
-            private async Task Add({{IInstanceDataMutator}} dataMutator)
-            {
-                var kvittering = new Kvittering();
-                dataMutator.AddFormDataElement("kvittering", kvittering);
-            }
-        }
-        """;
-
     // brg/rrh-innrapportering App/logic/Process/CustomTaskEndProcessor.cs:125-139: the PDF element of an earlier task
     // is unlocked and deleted, found with Equals.
     private const string PdfCleanupHook = """
@@ -1126,34 +1026,6 @@ public sealed class TaskBindingTests : IDisposable
                 ["Task_1"],
                 CleanupHookRewritten
             },
-            {
-                "a form DataCreation adds, bound to the task of an autoCreate type",
-                ReceiptCreation,
-                Metadata(
-                    Form("model", "App.Logic.Model", "\"taskId\": \"Task_1\"", "\"autoCreate\": true"),
-                    Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_1\"")
-                ),
-                ["Task_1", "Task_2"],
-                ReceiptCreationRewritten
-            },
-            {
-                "a form DataCreation adds, bound to a later task that has an autoCreate type too",
-                ReceiptCreation,
-                Metadata(
-                    Form("model", "App.Logic.Model", "\"taskId\": \"Task_1\"", "\"autoCreate\": true"),
-                    Form("svar", "App.Logic.Svar", "\"taskId\": \"Task_2\"", "\"autoCreate\": true"),
-                    Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_2\"")
-                ),
-                ["Task_1", "Task_2"],
-                ReceiptCreationRewritten
-            },
-            {
-                "a helper that a task end and DataCreation without an autoCreate type call",
-                ReceiptReceipts,
-                Metadata(Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_1\"")),
-                ["Task_1", "Task_2"],
-                ReceiptReceiptsRewritten
-            },
         };
 
     [Theory]
@@ -1282,22 +1154,6 @@ public sealed class TaskBindingTests : IDisposable
                 "IDataClient.DeleteData deletes Fast_Statistikk_AppOwned at process end, when there is no current task; v9 "
                     + "refuses that for a type bound to Task_1. Set autoDeleteOnProcessEnd on Fast_Statistikk_AppOwned so that "
                     + "v9 deletes it when the process ends instead."
-            },
-            {
-                "DataCreation adds a form bound to a later task",
-                ReceiptCreation,
-                Metadata(
-                    Form("model", "App.Logic.Model", "\"taskId\": \"Task_1\"", "\"autoCreate\": true"),
-                    Form("kvittering", "App.Logic.Kvittering", "\"taskId\": \"Task_2\"")
-                ),
-                ["Task_1", "Task_2"],
-                ReceiptCreationKept,
-                "await dataClient.InsertFormData(",
-                "IDataClient.InsertFormData writes kvittering, which is bound to Task_2, while Task_1 is the current task. v9 "
-                    + "refuses data element writes outside the type's tasks, in process transitions too. Make the write in a "
-                    + "hook of Task_2, move the value to a data type bound to Task_1 (or one with no taskIds), or add Task_1 to "
-                    + "kvittering's taskIds. That last option lets users edit it in Task_1, validates it at the end of Task_1 "
-                    + "and adds it to that task's PDF."
             },
             {
                 "a task end of a PDF service task writes the form of another task",

@@ -6,9 +6,8 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 
 /// <summary>
-/// Moves the Storage calls of the code the v9 process transition runs to the instance data mutator: the ported hooks,
-/// <c>IInstantiationProcessor.DataCreation</c> and v8 service tasks, and the app's methods only they call, which get
-/// the mutator as a parameter. Planned in full before anything is written; a hook's rewritten body then goes through
+/// Moves the Storage calls of the code the v9 process transition runs to the instance data mutator: the ported hooks and
+/// v8 service tasks, and the app's methods only they call, which get the mutator as a parameter. Planned in full before anything is written; a hook's rewritten body then goes through
 /// the hook port.
 /// </summary>
 internal sealed class StorageCallPort
@@ -60,14 +59,6 @@ internal sealed class StorageCallPort
         var reports = new List<PortReport>();
 
         var tooDeep = new List<CallSite>();
-        foreach (var dataCreation in dataCreations)
-        {
-            if (reach.Reach(dataCreation, []).Any(method => reach.StorageCalls(method.Method).Any()))
-            {
-                entries.Add(dataCreation);
-            }
-        }
-
         entries.AddRange(serviceTasks);
         var reached = new Dictionary<IMethodSymbol, List<ReachedMethod>>(SymbolEqualityComparer.Default);
         foreach (var entry in entries)
@@ -138,15 +129,6 @@ internal sealed class StorageCallPort
 
         var interfaceEdits = new List<(IMethodSymbol Member, Threading Threading)>();
         var threaded = Thread(reach, rewrites, entryMethods, windowOnly, flow, interfaceEdits);
-        foreach (var dataCreation in entries.Where(static entry => entry.Kind == WindowEntryKind.DataCreation))
-        {
-            if (rewrites.TryGetValue(dataCreation.Method, out var rewrite))
-            {
-                MutatorThreading.Signature(rewrite, new Threading(dataCreation.Instance?.Ordinal, []));
-                rewrite.UsesMutator = true;
-            }
-        }
-
         foreach (var rewrite in rewrites.Values)
         {
             OtherElementWrites.Plan(rewrite, rewrites);
@@ -171,14 +153,15 @@ internal sealed class StorageCallPort
             )
         );
         reports.AddRange(WindowReports.Unseen(reach, reached, tooDeep));
-        // A DataCreation that reaches no Storage call in app code is not moved, but what it reaches in packages and
-        // the caller identity it reads are reported like the moved entries'.
-        var unmoved = dataCreations.Where(dataCreation => !entries.Contains(dataCreation)).ToList();
+        // DataCreation is not moved to the overload that gets the mutator: the app libraries still call the v8 overload
+        // when an instance is copied, and it has no default body. What it reaches in packages, the caller identity it
+        // reads, and its writes when v9 runs it in the transition are reported.
         var reachedUnmoved = new Dictionary<IMethodSymbol, List<ReachedMethod>>(
             reached,
             SymbolEqualityComparer.Default
         );
-        foreach (var dataCreation in unmoved)
+        var seenWrites = new HashSet<(string, int)>();
+        foreach (var dataCreation in dataCreations)
         {
             foreach (var method in reach.Reach(dataCreation, []))
             {
@@ -193,6 +176,10 @@ internal sealed class StorageCallPort
                     var probe = new MethodRewrite(method.Method, body, [dataCreation]);
                     WindowReports.Plan(probe, flow);
                     reports.AddRange(probe.Reports);
+                    if (dataCreation.InCallback)
+                    {
+                        reports.AddRange(DataCreationWrites(dataCreation, body, reach, seenWrites));
+                    }
                 }
             }
         }
@@ -204,7 +191,6 @@ internal sealed class StorageCallPort
         reports.AddRange(
             WindowReports.NotMoved(files, reach, reached.Keys.ToHashSet<IMethodSymbol>(SymbolEqualityComparer.Default))
         );
-        reports.AddRange(DataCreationReports(rewrites, entries));
         return new StorageCallPort(rewrites, threaded, reports, interfaceEdits, files) { _unused = unused };
     }
 
@@ -251,7 +237,7 @@ internal sealed class StorageCallPort
             }
 
             var threading = _threaded.GetValueOrDefault(rewrite.Method);
-            if (rewrite.Edits.IsEmpty && threading is null && entry?.Kind != WindowEntryKind.DataCreation)
+            if (rewrite.Edits.IsEmpty && threading is null)
             {
                 continue;
             }
@@ -261,7 +247,7 @@ internal sealed class StorageCallPort
                 continue;
             }
 
-            var ordinal = entry?.Kind == WindowEntryKind.DataCreation ? entry.Instance?.Ordinal : threading?.Instance;
+            var ordinal = threading?.Instance;
             var instance = ordinal is { } position ? rewrite.Method.Parameters[position] : null;
             var keepsInstance = ordinal is { } kept && MutatorThreading.StillUsed(rewrite, kept);
             var rewritten = rewrite.Edits.Apply(declaration, rewrite.LineEnding);
@@ -656,24 +642,32 @@ internal sealed class StorageCallPort
 
     private static string Name(IMethodSymbol method) => $"{method.ContainingType.Name}.{method.Name}";
 
-    private static IEnumerable<PortReport> DataCreationReports(
-        Dictionary<IMethodSymbol, MethodRewrite> rewrites,
-        IReadOnlyList<WindowEntry> entries
+    /// <summary>
+    /// The Storage writes in a method <paramref name="dataCreation"/> reaches, which v9 refuses when it runs
+    /// DataCreation in the transition, as a task with an <c>autoCreate</c> data type starts.
+    /// </summary>
+    private static IEnumerable<PortReport> DataCreationWrites(
+        WindowEntry dataCreation,
+        MemberBody body,
+        WindowReach reach,
+        HashSet<(string, int)> seen
     )
     {
-        foreach (var entry in entries.Where(static entry => entry.Kind == WindowEntryKind.DataCreation))
+        foreach (var call in reach.StorageCalls(body.Method))
         {
-            if (!rewrites.ContainsKey(entry.Method))
+            if (!WindowReports.IsWrite(call) || !seen.Add((body.File.RelativePath, call.Syntax.SpanStart)))
             {
                 continue;
             }
 
             yield return PortReport.Located(
-                entry.File,
-                entry.Declaration,
-                UpgradeMessageStatus.Warning,
-                $"{entry.Name} now takes IInstanceDataMutator, the overload v9 calls; the data it changes through the "
-                    + "mutator is saved with the new data element."
+                body.File,
+                call.Syntax,
+                UpgradeMessageStatus.Todo,
+                $"{call.DisplayName} writes to Storage in {dataCreation.Name}, which v9 also runs in the process "
+                    + "transition when a task with an autoCreate data type starts. Storage refuses direct writes to the "
+                    + "instance there. Implement DataCreation(IInstanceDataMutator, object, Dictionary<string, string>?), "
+                    + "the overload v9 calls there, and make the change through the mutator."
             );
         }
     }
