@@ -53,7 +53,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             var formData = await dataMutator.GetFormData<Model>(element);
                             var regnskapsaar = formData?.Skjemainnhold?.regnskapsaar;
                             if (regnskapsaar is null) return {{HandlerResult}}.Success();
-                            dataMutator.SetDataValue("regnskapsaar", regnskapsaar);
+                            (dataMutator.Instance.DataValues ??= new())["regnskapsaar"] = regnskapsaar;
                             return {{HandlerResult}}.Success();
                         }
                     }

@@ -38,7 +38,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                         public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -69,7 +69,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             Instance instance = dataMutator.Instance;
                             var guid = Guid.Parse(instance.Id.Split("/")[1]);
                             var party = int.Parse(instance.Id.Split("/")[0]);
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -102,7 +102,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             var parts = instance.Id.Split('/');
                             Guid.TryParse(parts[1], out var guid);
                             int.TryParse(parts[0], out var party);
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -133,7 +133,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             Instance instance = dataMutator.Instance;
                             var party = Convert.ToInt32(instance.InstanceOwner.PartyId);
                             var guid = new Guid(instance.Id.Split("/")[1]);
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -162,7 +162,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             var iId = new InstanceIdentifier(instance.Id);
-                            dataMutator.SetDataValue("status", "sendt");
+                            (dataMutator.Instance.DataValues ??= new())["status"] = "sendt";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -193,7 +193,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             Instance instance = dataMutator.Instance;
                             var element = instance.Data.Find(d => d.DataType == "x")!;
                             var party = int.Parse(instance.InstanceOwner.PartyId);
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -233,7 +233,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             else
                                 party = new InstanceIdentifier(instance).InstanceOwnerPartyId;
                             var guid = new InstanceIdentifier(instance).InstanceGuid;
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -272,7 +272,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             (int party, Guid guid) = InstanceHelper.GetInstanceIds(instance);
-                            dataMutator.SetDataValue("status", "sendt");
+                            (dataMutator.Instance.DataValues ??= new())["status"] = "sendt";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -313,7 +313,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                             Instance instance = dataMutator.Instance;
                             var guid = instance.GetGuid();
                             var party = int.Parse(instance.InstanceOwner.PartyId);
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -349,7 +349,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
 
                         private async Task Save({{IInstanceDataMutator}} dataMutator, int partyId, Guid instanceGuid)
                         {
-                            dataMutator.SetDataValue("k", "v");
+                            (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                         }
                     }
                     """
@@ -408,7 +408,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValues(party, Holder.Guid, new DataValues { Values = new() { { \"k\", \"v\" } } });",
-                "IInstanceClient.UpdateDataValues still writes to Storage directly in Hook.End: the upgrade could not tell which instance Holder.Guid refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValues still writes to Storage directly in Hook.End: the upgrade could not tell which instance Holder.Guid refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a field set to the instance in its constructor that another class can set",
@@ -438,7 +438,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(holder.Instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a field set to the instance in its constructor that another class sets by deconstruction",
@@ -468,7 +468,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(holder.Instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a field set to the instance in its constructor that another class sets with ??=",
@@ -498,7 +498,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(holder.Instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a field set to the instance in its constructor that another class passes by ref",
@@ -528,7 +528,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(holder.Instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a constructor parameter that a chained constructor passes another instance",
@@ -556,7 +556,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(holder.Instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a constructor parameter that a derived type's primary constructor passes another instance",
@@ -584,7 +584,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(holder.Instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance holder.Instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: a primary-constructor parameter that a member of the type reassigns",
@@ -606,7 +606,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "public Task Save() => instanceClient.UpdateDataValue(instance, \"k\", \"v\");",
-                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance instance refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValue still writes to Storage directly in Hook.End: the upgrade could not tell which instance instance refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
             {
                 "unknown: an app helper that reassigns the instance parameter it is passed",
@@ -632,7 +632,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValues(party, InstanceHelper.GetGuid(instance), new DataValues { Values = new() { { \"k\", \"v\" } } });",
-                "IInstanceClient.UpdateDataValues still writes to Storage directly in Hook.End: the upgrade could not tell which instance InstanceHelper.GetGuid(instance) refers to. If it is this instance, use dataMutator.SetDataValue, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
+                "IInstanceClient.UpdateDataValues still writes to Storage directly in Hook.End: the upgrade could not tell which instance InstanceHelper.GetGuid(instance) refers to. If it is this instance, use dataMutator.Instance.DataValues, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition."
             },
         };
 
@@ -675,7 +675,7 @@ public sealed class CurrentInstanceFlowTests : IDisposable
                     public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                     {
                         {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                        dataMutator.SetDataValue("k", "v");
+                        (dataMutator.Instance.DataValues ??= new())["k"] = "v";
                         return {{HandlerResult}}.Success();
                     }
                 }
