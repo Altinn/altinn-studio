@@ -1,4 +1,4 @@
-.PHONY: help build clean fmt lint lint-fix test deps deps-check check
+.PHONY: help build clean fmt lint lint-fix test test-microvm deps deps-check check
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -36,6 +36,9 @@ test: ## Run all tests
 	@echo "Testing operator runner..."
 	@cargo test -p operator-runner --all-targets --locked
 	@echo "✓ Tests passed"
+
+test-microvm: ## Test the images and the operator runner in a real microVM. Needs Docker, /dev/kvm and sudo
+	@./test-microvm.sh
 
 deps: ## Print the dependency graph
 	@cargo tree -p operator-runner --locked

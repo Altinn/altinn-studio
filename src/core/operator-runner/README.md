@@ -76,9 +76,10 @@ it starts.
 
 ## Develop and deploy
 
-`make check` runs the unit tests, which use a fake in place of the VM and need no KVM. The workflow
-[`core-operator-runner-build-test.yaml`](../../../.github/workflows/core-operator-runner-build-test.yaml) runs one
-upgrade in a real microVM on a GitHub runner with KVM, and its steps show how to start and call the operator runner.
+`make check` runs the unit tests, which use a fake in place of the VM and need no KVM. `make test-microvm` runs one
+upgrade in a real microVM, with the restrictions of the pod, and shows how to start and call the operator runner. The
+workflow [`core-operator-runner-build-test.yaml`](../../../.github/workflows/core-operator-runner-build-test.yaml) runs
+it on a GitHub runner with KVM.
 The shared [`sandbox-hosting`](../../ci/sandbox-hosting/README.md) crate has the Provider and the image checks.
 
 [`deploy-core-operator-runner.yaml`](../../../.github/workflows/deploy-core-operator-runner.yaml) builds the images for
