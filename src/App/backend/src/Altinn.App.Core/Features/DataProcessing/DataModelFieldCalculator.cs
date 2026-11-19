@@ -1,7 +1,5 @@
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -408,15 +406,16 @@ internal sealed class DataModelFieldCalculator
 
     private void SetLeaf(IFormDataWrapper formDataWrapper, DataReference field, string path, ExpressionValue value)
     {
-        if (formDataWrapper.Set(path, value))
+        if (!formDataWrapper.Set(path, value))
         {
+            LogSetFailed(field, path);
             return;
         }
 
-        if (value.ValueKind == JsonValueKind.Null && GetDefaultOfValueType(formDataWrapper, path) is { } defaultValue)
+        if (value.ValueKind is JsonValueKind.Null && formDataWrapper.Get(path) is { } defaultValue)
         {
-            // A non-nullable value type cannot hold null. It gets the value it has in a new object, as when data
-            // without the property is deserialized. The frontend keeps the value it has until it gets this one.
+            // A non-nullable value type cannot hold null, so Set gives it the value it has in a new object. The
+            // frontend keeps the value it has until it gets this one.
             _logger.LogWarning(
                 "Could not calculate null into the non-nullable field {Field} in data element {DataElementId}. "
                     + "The field is set to its default value {DefaultValue}.",
@@ -424,45 +423,7 @@ internal sealed class DataModelFieldCalculator
                 field.DataElementIdentifier.Id,
                 defaultValue
             );
-            if (formDataWrapper.Set(path, ExpressionValue.FromObject(defaultValue)))
-            {
-                return;
-            }
         }
-
-        LogSetFailed(field, path);
-    }
-
-    /// <summary>
-    /// The value a property of a non-nullable value type has in a new instance of its class, such as the value of a
-    /// property initializer, or null when the path is not such a property
-    /// </summary>
-    private static object? GetDefaultOfValueType(IFormDataWrapper formDataWrapper, string path)
-    {
-        var lastDot = path.LastIndexOf('.');
-        var name = path[(lastDot + 1)..];
-        if (name.EndsWith(']'))
-        {
-            return null;
-        }
-
-        var parent = lastDot < 0 ? formDataWrapper.BackingData<object>() : formDataWrapper.Get(path.AsSpan(0, lastDot));
-        var property = parent
-            ?.GetType()
-            .GetProperties()
-            .FirstOrDefault(p => (p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? p.Name) == name);
-        if (
-            parent is null
-            || property is null
-            || !property.PropertyType.IsValueType
-            || Nullable.GetUnderlyingType(property.PropertyType) is not null
-        )
-        {
-            return null;
-        }
-
-        var newParent = parent.GetType().GetConstructor(Type.EmptyTypes)?.Invoke(null);
-        return newParent is null ? Activator.CreateInstance(property.PropertyType) : property.GetValue(newParent);
     }
 
     private void LogSetFailed(DataReference field, string path)

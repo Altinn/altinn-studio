@@ -192,19 +192,47 @@ internal static class SetterGenerator
             else if (child.Properties.Count == 0)
             {
                 var resultName = $"result_{child.CSharpName}";
-                // Simple property - direct set
-                builder.Append(
-                    $$"""
-                                case "{{child.JsonName}}" when nextOffset is -1 && literalIndex is -1:
-                                    if (value.TryDeserialize<{{child.TypeNameWithNullable}}>(out var {{resultName}}))
+                if (child.IsNonNullableValueType)
+                {
+                    // A field that cannot hold null is set to the value it has in a new object, as RemoveField does.
+                    // The block lets csharpier-ignore apply, as type names can be longer than the line width.
+                    builder.Append(
+                        $$"""
+                                    case "{{child.JsonName}}" when nextOffset is -1 && literalIndex is -1:
                                     {
-                                        model.{{child.CSharpName}} = {{resultName}};
-                                        return true;
+                                        // csharpier-ignore
+                                        if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                                        {
+                                            model.{{child.CSharpName}} = {{modelPathNode.DefaultValueOf(child)}};
+                                            return true;
+                                        }
+                                        if (value.TryDeserialize<{{child.TypeNameWithNullable}}>(out var {{resultName}}))
+                                        {
+                                            model.{{child.CSharpName}} = {{resultName}};
+                                            return true;
+                                        }
+                                        return false;
                                     }
-                                    return false;
 
-                    """
-                );
+                        """
+                    );
+                }
+                else
+                {
+                    // Simple property - direct set
+                    builder.Append(
+                        $$"""
+                                    case "{{child.JsonName}}" when nextOffset is -1 && literalIndex is -1:
+                                        if (value.TryDeserialize<{{child.TypeNameWithNullable}}>(out var {{resultName}}))
+                                        {
+                                            model.{{child.CSharpName}} = {{resultName}};
+                                            return true;
+                                        }
+                                        return false;
+
+                        """
+                    );
+                }
             }
             else
             {

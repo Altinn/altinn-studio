@@ -464,12 +464,20 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "altinnRowId" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold().AltinnRowId;
+                    return true;
+                }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
                 {
                     model.AltinnRowId = result_AltinnRowId;
                     return true;
                 }
                 return false;
+            }
             case "navn" when nextOffset is -1 && literalIndex is -1:
                 if (value.TryDeserialize<string?>(out var result_Navn))
                 {
@@ -492,12 +500,20 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 }
                 return false;
             case "nonNullableInt" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.NonNullableInt = new global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold().NonNullableInt;
+                    return true;
+                }
                 if (value.TryDeserialize<int>(out var result_NonNullableInt))
                 {
                     model.NonNullableInt = result_NonNullableInt;
                     return true;
                 }
                 return false;
+            }
             case "adresse" when nextOffset is -1 && literalIndex is -1:
             {
                 // csharpier-ignore
@@ -796,12 +812,20 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "altinnRowId" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Tests.Adresse().AltinnRowId;
+                    return true;
+                }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
                 {
                     model.AltinnRowId = result_AltinnRowId;
                     return true;
                 }
                 return false;
+            }
             case "gate" when nextOffset is -1 && literalIndex is -1:
                 if (value.TryDeserialize<string?>(out var result_Gate))
                 {
@@ -2319,8 +2343,11 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 model.Deltar = default;
                 break;
             case "nonNullableInt" when (nextOffset is -1) && (literalIndex is -1):
-                model.NonNullableInt = default;
+            {
+                // csharpier-ignore
+                model.NonNullableInt = new global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold().NonNullableInt;
                 break;
+            }
             case "adresse" when (nextOffset is -1) && (literalIndex is -1):
                 model.Adresse = default;
                 break;

@@ -137,7 +137,8 @@ public static class FormDataWrapperUtils
             "",
             propertyTypeInfo.PropertyTypeString,
             propertyTypeInfo.IsNullable,
-            GetNodeProperties(rootSymbol, compilation, diagnostics, collectionTypeSymbols, depth: 1)
+            GetNodeProperties(rootSymbol, compilation, diagnostics, collectionTypeSymbols, depth: 1),
+            canBeCreated: CanBeCreated(rootSymbol, compilation)
         );
     }
 
@@ -207,11 +208,47 @@ public static class FormDataWrapperUtils
                     subProperties,
                     propertyTypeInfo.PropertyCollectionTypeString,
                     propertyTypeInfo.IsNullableCollection,
-                    propertyTypeInfo.IsIndexableCollection
+                    propertyTypeInfo.IsIndexableCollection,
+                    isNonNullableValueType: propertyTypeInfo.PropertyCollectionType is null
+                        && propertyTypeInfo.PropertyType.IsValueType
+                        && !propertyTypeInfo.IsNullable,
+                    canBeCreated: CanBeCreated(propertyTypeInfo.PropertyType, compilation)
                 )
             );
         }
         return nodeProperties.ToArray();
+    }
+
+    /// <summary>
+    /// Generated code can write <c>new T()</c>: a class that is not abstract, has a parameterless constructor it can
+    /// access, and no required members
+    /// </summary>
+    private static bool CanBeCreated(ITypeSymbol typeSymbol, Compilation compilation)
+    {
+        if (typeSymbol is not INamedTypeSymbol { TypeKind: TypeKind.Class, IsAbstract: false } namedTypeSymbol)
+        {
+            return false;
+        }
+        if (
+            !namedTypeSymbol.InstanceConstructors.Any(constructor =>
+                constructor.Parameters.Length == 0
+                && compilation.IsSymbolAccessibleWithin(constructor, compilation.Assembly)
+            )
+        )
+        {
+            return false;
+        }
+        for (INamedTypeSymbol? type = namedTypeSymbol; type is not null; type = type.BaseType)
+        {
+            if (
+                type.GetMembers()
+                    .Any(member => member is IPropertySymbol { IsRequired: true } or IFieldSymbol { IsRequired: true })
+            )
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>

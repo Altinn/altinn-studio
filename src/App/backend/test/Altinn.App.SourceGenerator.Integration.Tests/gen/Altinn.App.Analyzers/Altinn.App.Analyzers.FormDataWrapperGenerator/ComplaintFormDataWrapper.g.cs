@@ -308,12 +308,20 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
                 }
                 return false;
             case "altinnRowId" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant().AltinnRowId;
+                    return true;
+                }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
                 {
                     model.AltinnRowId = result_AltinnRowId;
                     return true;
                 }
                 return false;
+            }
             case "name" when nextOffset is -1 && literalIndex is -1:
                 if (value.TryDeserialize<string?>(out var result_Name))
                 {
@@ -395,12 +403,20 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "altinnRowId" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.Agent().AltinnRowId;
+                    return true;
+                }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
                 {
                     model.AltinnRowId = result_AltinnRowId;
                     return true;
                 }
                 return false;
+            }
             case "name" when nextOffset is -1 && literalIndex is -1:
                 if (value.TryDeserialize<string?>(out var result_Name))
                 {

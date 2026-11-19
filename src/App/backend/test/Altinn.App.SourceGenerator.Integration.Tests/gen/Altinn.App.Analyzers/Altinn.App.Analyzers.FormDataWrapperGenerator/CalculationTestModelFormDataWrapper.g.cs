@@ -690,33 +690,65 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "decimal" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.Decimal = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().Decimal;
+                    return true;
+                }
                 if (value.TryDeserialize<decimal>(out var result_Decimal))
                 {
                     model.Decimal = result_Decimal;
                     return true;
                 }
                 return false;
+            }
             case "integer" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.Integer = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().Integer;
+                    return true;
+                }
                 if (value.TryDeserialize<int>(out var result_Integer))
                 {
                     model.Integer = result_Integer;
                     return true;
                 }
                 return false;
+            }
             case "boolean" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.Boolean = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().Boolean;
+                    return true;
+                }
                 if (value.TryDeserialize<bool>(out var result_Boolean))
                 {
                     model.Boolean = result_Boolean;
                     return true;
                 }
                 return false;
+            }
             case "numberDefaultFive" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.NumberDefaultFive = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().NumberDefaultFive;
+                    return true;
+                }
                 if (value.TryDeserialize<int>(out var result_NumberDefaultFive))
                 {
                     model.NumberDefaultFive = result_NumberDefaultFive;
                     return true;
                 }
                 return false;
+            }
             default:
                 return false;
         }
@@ -861,12 +893,20 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "altinnRowId" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestRow().AltinnRowId;
+                    return true;
+                }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
                 {
                     model.AltinnRowId = result_AltinnRowId;
                     return true;
                 }
                 return false;
+            }
             case "text" when nextOffset is -1 && literalIndex is -1:
                 if (value.TryDeserialize<string?>(out var result_Text))
                 {
@@ -968,12 +1008,20 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "altinnRowId" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
+                {
+                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestChild().AltinnRowId;
+                    return true;
+                }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
                 {
                     model.AltinnRowId = result_AltinnRowId;
                     return true;
                 }
                 return false;
+            }
             case "text" when nextOffset is -1 && literalIndex is -1:
                 if (value.TryDeserialize<string?>(out var result_Text))
                 {
@@ -2293,17 +2341,29 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
             case "decimal" when (nextOffset is -1) && (literalIndex is -1):
-                model.Decimal = default;
+            {
+                // csharpier-ignore
+                model.Decimal = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().Decimal;
                 break;
+            }
             case "integer" when (nextOffset is -1) && (literalIndex is -1):
-                model.Integer = default;
+            {
+                // csharpier-ignore
+                model.Integer = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().Integer;
                 break;
+            }
             case "boolean" when (nextOffset is -1) && (literalIndex is -1):
-                model.Boolean = default;
+            {
+                // csharpier-ignore
+                model.Boolean = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().Boolean;
                 break;
+            }
             case "numberDefaultFive" when (nextOffset is -1) && (literalIndex is -1):
-                model.NumberDefaultFive = default;
+            {
+                // csharpier-ignore
+                model.NumberDefaultFive = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestValueTypes().NumberDefaultFive;
                 break;
+            }
             default:
                 // throw new ArgumentException("{path} is not a valid path.");
                 return;
