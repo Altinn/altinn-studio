@@ -497,6 +497,32 @@ public sealed class ConditionalExpressionConversionTests
         Assert.Equal(keepGlobal, parser.GetGlobalConstants().ContainsKey("flag"));
     }
 
+    [Fact(Timeout = 20000)]
+    public void RepeatedHelperExpansion_HasOneBudgetAcrossTheRule()
+    {
+        using var app = new TempAppFolder();
+        var helpers = new List<string> { "h0: values => values.answer === 'yes'" };
+        for (var index = 1; index <= 26; index++)
+            helpers.Add(
+                $"h{index}: function(values) {{ if (conditionalRuleHandlerObject.h{index - 1}(values) || conditionalRuleHandlerObject.h{index - 1}(values)) return true; return false; }}"
+            );
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var conditionalRuleHandlerObject = { " + string.Join(",", helpers) + " };"
+            )
+        );
+        parser.Parse();
+        var converter = new ExpressionConverter(parser.GetGlobalConstants(), parser.GetAllConditionalFunctions());
+        var result = converter.Convert(
+            "function(values) { return conditionalRuleHandlerObject.h26(values); }",
+            new() { ["answer"] = "choice" },
+            "Hide"
+        );
+        Assert.Equal(ConversionStatus.Failed, result.Status);
+        Assert.Contains("size limit", result.FailureReason);
+    }
+
     private static ConversionResult Convert(string function, string action = "Hide") =>
         new ExpressionConverter().Convert(
             function,

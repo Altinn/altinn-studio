@@ -79,4 +79,18 @@ public sealed class ExpressionSimplifierTests
         Assert.True(JsonNode.DeepEquals(expression, ExpressionSimplifier.Simplify(expression)));
     }
 
+    [Fact(Timeout = 10000)]
+    public void DistinctConditions_DoNotExpandTheSimplificationWorkExponentially()
+    {
+        JsonNode? expression = JsonValue.Create(-1);
+        for (var index = 0; index < 25; index++)
+            expression = new JsonArray(
+                "if",
+                new JsonArray("equals", new JsonArray("dataModel", "a"), index),
+                index,
+                "else",
+                expression
+            );
+        Assert.True(JsonNode.DeepEquals(expression, ExpressionSimplifier.Simplify(expression)));
+    }
 }
