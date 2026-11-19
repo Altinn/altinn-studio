@@ -228,6 +228,7 @@ describe('PDF', () => {
       snapshotName: 'group',
       enableResponseFuzzing: true,
       callback: () => {
+        cy.findByText('Calculation examples').should('not.exist');
         cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
 
         cy.getSummary('Group summary title').should('contain.text', 'Endre fraNOK 1');
