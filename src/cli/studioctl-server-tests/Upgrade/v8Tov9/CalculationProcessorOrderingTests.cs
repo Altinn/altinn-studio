@@ -123,6 +123,33 @@ public sealed class CalculationProcessorOrderingTests
     }
 
     [Theory]
+    [InlineData(
+        "services.AddTransient<IDataProcessor, Existing>().AddTransient<IDataWriteProcessor, FormDataProcessor>();"
+    )]
+    [InlineData(
+        "services.AddTransient<IDataWriteProcessor, FormDataProcessor>().AddTransient<IDataProcessor, Existing>();"
+    )]
+    [InlineData(
+        "services.AddTransient<IDataProcessor, FormDataProcessor>().AddTransient<IDataProcessor, Existing>().AddTransient<IDataWriteProcessor, FormDataProcessor>();"
+    )]
+    public void ChainedGeneratedRegistrations_PreserveAppProcessorsWithoutDuplicates(string registrations)
+    {
+        using var output = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
+        using var app = new TempAppFolder();
+        app.Write("Program.cs", AppSource(registrations));
+        var updater = new ProgramCsUpdater(app.Root);
+
+        Assert.True(updater.RegisterDataProcessor("FormDataProcessor"));
+        var first = app.Read("Program.cs");
+        var actual = RegisteredProcessors(first);
+        Assert.Equal(["FormDataProcessor", "Existing"], actual.Updates);
+        Assert.Equal(["FormDataProcessor"], actual.Writes);
+
+        Assert.True(updater.RegisterDataProcessor("FormDataProcessor"));
+        Assert.Equal(first, app.Read("Program.cs"));
+    }
+
+    [Theory]
     [InlineData("IDataWriteProcessor", "FormDataProcessor")]
     [InlineData("IDataProcessor", "FormDataProcessor")]
     [InlineData("IDataWriteProcessor", "Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor")]
