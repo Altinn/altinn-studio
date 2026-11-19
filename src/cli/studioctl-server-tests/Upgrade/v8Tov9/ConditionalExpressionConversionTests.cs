@@ -403,6 +403,12 @@ public sealed class ConditionalExpressionConversionTests
     [InlineData("values.a + values.b == '0.3'")]
     [InlineData("0.1 + 0.2 - 0.3 ? true : false")]
     [InlineData("1e20 * 1e10 > 0")]
+    [InlineData("1e-30 * 1 > 0")]
+    [InlineData("1e-30 / 1 > 0")]
+    [InlineData("1e-30 + 0 > 0")]
+    [InlineData("1e-30 - 0 > 0")]
+    [InlineData("+1e-30 > 0")]
+    [InlineData("1.1e-28 * 1 > 1e-28")]
     public void FractionalArithmeticDecisions_RequireManualConversion(string predicate)
     {
         var result = new ExpressionConverter().Convert(
@@ -413,6 +419,15 @@ public sealed class ConditionalExpressionConversionTests
         );
         Assert.Equal(ConversionStatus.Failed, result.Status);
         Assert.Contains("boundary decisions", result.FailureReason);
+    }
+
+    [Theory]
+    [InlineData("0.1 * 1 > 0")]
+    [InlineData("1e-28 * 1 > 0")]
+    public void RepresentableLiteralIdentities_RemainConvertible(string predicate)
+    {
+        var result = new ExpressionConverter().Convert("function(values) { return " + predicate + "; }", new(), "Hide");
+        Assert.Equal(ConversionStatus.Success, result.Status);
     }
 
     [Fact]
