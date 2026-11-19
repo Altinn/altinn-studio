@@ -50,13 +50,7 @@ type TokenStatus struct {
 	Authenticated bool
 }
 
-// Principal is the sender of a request, either the engine or a caller id.
-type Principal struct {
-	Caller string
-	Engine bool
-}
-
-// Identities maps reviewed user names to principals.
+// Identities maps reviewed user names to callers and the engine.
 type Identities struct {
 	// Callers returns the caller id of a user name.
 	Callers func(username string) (string, bool)
@@ -88,26 +82,32 @@ func NewAuthenticator(reviewer Reviewer, clk clock.Clock, audience string, ident
 	}
 }
 
-// Authenticate returns the principal of a bearer token. It returns ErrUnauthenticated for a token the API server does
-// not accept for the audience, and ErrForbidden for a valid token of an unknown identity.
-func (a *Authenticator) Authenticate(ctx context.Context, token string) (Principal, error) {
-	if token == "" {
-		return Principal{}, ErrUnauthenticated
-	}
+// Caller returns the caller id of a bearer token. It returns ErrUnauthenticated for a token the API server does not
+// accept for the audience, and ErrForbidden for a valid token of another identity, such as the engine.
+func (a *Authenticator) Caller(ctx context.Context, token string) (string, error) {
 	username, err := a.username(ctx, token)
 	if err != nil {
-		return Principal{}, err
-	}
-	if username == a.identities.Engine {
-		return Principal{Engine: true}, nil
+		return "", err
 	}
 	if caller, ok := a.identities.Callers(username); ok {
-		return Principal{Caller: caller}, nil
+		return caller, nil
 	}
-	return Principal{}, fmt.Errorf("%w: %s", ErrForbidden, username)
+	return "", fmt.Errorf("%w: %s", ErrForbidden, username)
+}
+
+// Engine checks that a bearer token is the engine's, with the errors of Caller.
+func (a *Authenticator) Engine(ctx context.Context, token string) error {
+	username, err := a.username(ctx, token)
+	if err == nil && username != a.identities.Engine {
+		err = fmt.Errorf("%w: %s", ErrForbidden, username)
+	}
+	return err
 }
 
 func (a *Authenticator) username(ctx context.Context, token string) (string, error) {
+	if token == "" {
+		return "", ErrUnauthenticated
+	}
 	// The cache uses a hash as key, so the process keeps no token that someone can read from a heap dump.
 	key := sha256.Sum256([]byte(token))
 	now := a.clock.Now()
@@ -197,50 +197,45 @@ func WithCaller(ctx context.Context, caller string) context.Context {
 // RequireCaller accepts only requests from callers in the configuration, and it puts the caller id in the context.
 func (a *Authenticator) RequireCaller(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		principal, ok := a.authenticate(w, r)
-		if !ok {
+		caller, err := a.Caller(r.Context(), bearerToken(r))
+		if !a.accepted(w, r, err, "The ServiceAccount is not a caller of the core operator.") {
 			return
 		}
-		if principal.Engine {
-			problem.Write(w, r, http.StatusForbidden, "The engine may use only the callback API.")
-			return
-		}
-		next.ServeHTTP(w, r.WithContext(WithCaller(r.Context(), principal.Caller)))
+		next.ServeHTTP(w, r.WithContext(WithCaller(r.Context(), caller)))
 	})
 }
 
 // RequireEngine accepts only requests from the engine.
 func (a *Authenticator) RequireEngine(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		principal, ok := a.authenticate(w, r)
-		if !ok {
-			return
+		if a.accepted(w, r, a.Engine(r.Context(), bearerToken(r)), "Only the engine may use the callback API.") {
+			next.ServeHTTP(w, r)
 		}
-		if !principal.Engine {
-			problem.Write(w, r, http.StatusForbidden, "Only the engine may use the callback API.")
-			return
-		}
-		next.ServeHTTP(w, r)
 	})
 }
 
-func (a *Authenticator) authenticate(w http.ResponseWriter, r *http.Request) (Principal, bool) {
-	token, found := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-	if !found {
-		token = ""
-	}
-	principal, err := a.Authenticate(r.Context(), strings.TrimSpace(token))
+// accepted answers a request whose token err refuses, and reports whether the token passed. forbidden tells a valid
+// token of another identity who may use the API.
+func (a *Authenticator) accepted(w http.ResponseWriter, r *http.Request, err error, forbidden string) bool {
 	switch {
 	case err == nil:
-		return principal, true
+		return true
 	case errors.Is(err, ErrUnauthenticated):
 		w.Header().Set("WWW-Authenticate", `Bearer realm="`+a.audience+`"`)
 		problem.Write(w, r, http.StatusUnauthorized, "Send a ServiceAccount token with the audience "+a.audience+".")
 	case errors.Is(err, ErrForbidden):
-		problem.Write(w, r, http.StatusForbidden, "The ServiceAccount is not a caller of the core operator.")
+		problem.Write(w, r, http.StatusForbidden, forbidden)
 	default:
 		logging.FromContext(r.Context()).Error(err, "Token review failed")
 		problem.Write(w, r, http.StatusServiceUnavailable, "The operator could not check the token.")
 	}
-	return Principal{}, false
+	return false
+}
+
+func bearerToken(r *http.Request) string {
+	token, found := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	if !found {
+		return ""
+	}
+	return strings.TrimSpace(token)
 }

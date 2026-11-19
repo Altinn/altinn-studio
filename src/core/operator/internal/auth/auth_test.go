@@ -90,28 +90,29 @@ func TestAuthenticateMapsServiceAccounts(t *testing.T) {
 	authenticator := newTestAuthenticator(reviewer, clock.NewFakeClock())
 	ctx := context.Background()
 
-	principal, err := authenticator.Authenticate(ctx, "assistant-token")
+	caller, err := authenticator.Caller(ctx, "assistant-token")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(principal).To(Equal(Principal{Caller: "assistant"}))
+	Expect(caller).To(Equal("assistant"))
 
-	principal, err = authenticator.Authenticate(ctx, "designer-token")
+	caller, err = authenticator.Caller(ctx, "designer-token")
 	Expect(err).NotTo(HaveOccurred())
-	Expect(principal).To(Equal(Principal{Caller: "designer"}))
+	Expect(caller).To(Equal("designer"))
 
-	principal, err = authenticator.Authenticate(ctx, "engine-token")
-	Expect(err).NotTo(HaveOccurred())
-	Expect(principal).To(Equal(Principal{Engine: true}))
+	Expect(authenticator.Engine(ctx, "engine-token")).To(Succeed())
+	_, err = authenticator.Caller(ctx, "engine-token")
+	Expect(err).To(MatchError(ErrForbidden), "the engine is no caller")
+	Expect(authenticator.Engine(ctx, "assistant-token")).To(MatchError(ErrForbidden), "a caller is not the engine")
 
-	_, err = authenticator.Authenticate(ctx, "other-token")
+	_, err = authenticator.Caller(ctx, "other-token")
 	Expect(err).To(MatchError(ErrForbidden))
 
-	_, err = authenticator.Authenticate(ctx, "unknown-token")
+	_, err = authenticator.Caller(ctx, "unknown-token")
 	Expect(err).To(MatchError(ErrUnauthenticated))
 
-	_, err = authenticator.Authenticate(ctx, "apiserver-token")
+	_, err = authenticator.Caller(ctx, "apiserver-token")
 	Expect(err).To(MatchError(ErrUnauthenticated), "a token for another audience")
 
-	_, err = authenticator.Authenticate(ctx, "")
+	_, err = authenticator.Caller(ctx, "")
 	Expect(err).To(MatchError(ErrUnauthenticated))
 }
 
@@ -124,24 +125,24 @@ func TestAuthenticateCachesReviewsForAMinute(t *testing.T) {
 	ctx := context.Background()
 
 	for range 3 {
-		_, err := authenticator.Authenticate(ctx, "assistant-token")
+		_, err := authenticator.Caller(ctx, "assistant-token")
 		Expect(err).NotTo(HaveOccurred())
 	}
 	Expect(reviewer.callCount()).To(Equal(1))
 
 	clk.Advance(59 * time.Second)
-	_, err := authenticator.Authenticate(ctx, "assistant-token")
+	_, err := authenticator.Caller(ctx, "assistant-token")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(reviewer.callCount()).To(Equal(1))
 
 	clk.Advance(2 * time.Second)
-	_, err = authenticator.Authenticate(ctx, "assistant-token")
+	_, err = authenticator.Caller(ctx, "assistant-token")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(reviewer.callCount()).To(Equal(2))
 
 	// The authenticator reviews a refused token each time, so that a token that becomes valid works at once.
 	for range 2 {
-		_, err = authenticator.Authenticate(ctx, "unknown-token")
+		_, err = authenticator.Caller(ctx, "unknown-token")
 		Expect(err).To(MatchError(ErrUnauthenticated))
 	}
 	Expect(reviewer.callCount()).To(Equal(4))
@@ -157,7 +158,7 @@ func TestCacheStaysBounded(t *testing.T) {
 	reviewer := &fakeReviewer{tokens: tokens}
 	authenticator := newTestAuthenticator(reviewer, clock.NewFakeClock())
 	for token := range tokens {
-		_, err := authenticator.Authenticate(context.Background(), token)
+		_, err := authenticator.Caller(context.Background(), token)
 		Expect(err).NotTo(HaveOccurred())
 	}
 	Expect(len(authenticator.cache)).To(BeNumerically("<=", cacheSize))
@@ -255,16 +256,16 @@ func TestAuthenticateCachesNoLongerThanTheTokenLives(t *testing.T) {
 	authenticator := newTestAuthenticator(reviewer, clk)
 
 	for _, token := range []string{short, long} {
-		_, err := authenticator.Authenticate(t.Context(), token)
+		_, err := authenticator.Caller(t.Context(), token)
 		Expect(err).NotTo(HaveOccurred())
 	}
 	Expect(reviewer.callCount()).To(Equal(2))
 
 	clk.Advance(11 * time.Second)
 	delete(reviewer.tokens, short)
-	_, err := authenticator.Authenticate(t.Context(), short)
+	_, err := authenticator.Caller(t.Context(), short)
 	Expect(err).To(MatchError(ErrUnauthenticated))
-	_, err = authenticator.Authenticate(t.Context(), long)
+	_, err = authenticator.Caller(t.Context(), long)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(reviewer.callCount()).To(Equal(3), "the long-lived token is still cached")
 }
