@@ -484,19 +484,7 @@ internal sealed partial class CalculationExpressionConverter
             throw new NotSupportedException(
                 "Floating-point model inputs can underflow the backend's decimal division; keep this calculation in C#."
             );
-        if (
-            op == "Division"
-            && (
-                MaximumMagnitude(a.Expression) is not { } numeratorBound
-                || MaximumMagnitude(b.Expression) is not { } denominatorUpperBound
-                || MinimumMagnitude(b.Expression) is not { } denominatorBound
-                || !double.IsFinite(numeratorBound)
-                // decimal.MaxValue rounds up when represented as a double.
-                || numeratorBound >= (double)decimal.MaxValue
-                || denominatorUpperBound >= (double)decimal.MaxValue
-                || numeratorBound / denominatorBound > (double)decimal.MaxValue
-            )
-        )
+        if (op == "Division" && !DivisionStaysInDecimalRange(a.Expression, b.Expression))
             throw new NotSupportedException(
                 "Division operands cannot be proven safe in backend decimal arithmetic; keep this calculation in C#."
             );
@@ -524,6 +512,31 @@ internal sealed partial class CalculationExpressionConverter
                 && _floatingPointInputs.Contains(call[1]?.GetValue<string>() ?? "")
             ) || call.Skip(1).Any(HasFloatingPointInput)
         );
+
+    private bool DivisionStaysInDecimalRange(JsonNode? numerator, JsonNode? denominator)
+    {
+        if (
+            MaximumMagnitude(numerator) is not { } numeratorMaximum
+            || MaximumMagnitude(denominator) is not { } denominatorMaximum
+            || MinimumMagnitude(denominator) is not { } denominatorMinimum
+            || !double.IsFinite(numeratorMaximum)
+            // decimal.MaxValue rounds up when represented as a double.
+            || numeratorMaximum >= (double)decimal.MaxValue
+            || denominatorMaximum >= (double)decimal.MaxValue
+            || numeratorMaximum / denominatorMinimum >= (double)decimal.MaxValue
+        )
+            return false;
+        if (numeratorMaximum == 0)
+            return true;
+        // Bounds describe nonzero magnitudes. A possible zero numerator is harmless,
+        // but a nonzero quotient must not disappear at the backend's decimal precision.
+        if (MinimumMagnitude(numerator) is not { } numeratorMinimum || numeratorMinimum / denominatorMaximum < 1e-28)
+            return false;
+        // Small constant quotients can also round to a different nonzero value.
+        return numerator is not JsonValue
+            || denominator is not JsonValue
+            || DecimalLiteralMagnitude(numeratorMaximum / denominatorMinimum).HasValue;
+    }
 
     private double? MaximumMagnitude(JsonNode? expression)
     {
