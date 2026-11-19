@@ -614,7 +614,10 @@ public class StorageClientInterceptor : HttpMessageHandler
                 ContentType = create.ContentType ?? part.ContentType,
                 Filename = create.Filename ?? part.Filename,
                 Size = part.Bytes.Length,
-                Metadata = create.Metadata,
+                Metadata = create.Metadata?.ToList(),
+                UserDefinedMetadata = create.UserDefinedMetadata?.ToList(),
+                Tags = create.Tags?.ToList() ?? [],
+                Refs = create.Refs?.ToList(),
                 Locked = create.Locked ?? false,
             };
             instance.Data.Add(dataElement);
@@ -637,10 +640,29 @@ public class StorageClientInterceptor : HttpMessageHandler
 
                 dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
             }
+            else if (update.Filename is not null)
+            {
+                dataElement.Filename = update.Filename;
+            }
 
             if (update.Metadata is not null)
             {
-                dataElement.Metadata = update.Metadata;
+                dataElement.Metadata = [.. update.Metadata];
+            }
+
+            if (update.UserDefinedMetadata is not null)
+            {
+                dataElement.UserDefinedMetadata = [.. update.UserDefinedMetadata];
+            }
+
+            if (update.Tags is not null)
+            {
+                dataElement.Tags = [.. update.Tags];
+            }
+
+            if (update.Refs is not null)
+            {
+                dataElement.Refs = [.. update.Refs];
             }
 
             if (update.Locked is not null)

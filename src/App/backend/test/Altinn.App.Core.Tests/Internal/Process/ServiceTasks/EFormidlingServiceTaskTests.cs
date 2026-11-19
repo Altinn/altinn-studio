@@ -414,7 +414,7 @@ public class EFormidlingServiceTaskTests
         Assert.IsType<CompletedStageResult>(result);
         Assert.Equal(
             _workflowId.ToString(),
-            unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey]
+            unitOfWork.Instance.DataValues![EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey]
         );
     }
 
@@ -440,7 +440,7 @@ public class EFormidlingServiceTaskTests
 
         await Assert.ThrowsAsync<Exception>(() => SendShipment(_serviceTask, parameters));
 
-        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.Empty(unitOfWork.Instance.DataValues ?? []);
     }
 
     [Fact]
@@ -554,7 +554,7 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("Manual follow-up is required", failed.ErrorMessage);
 
         // Nothing was sent, so nothing is claimed.
-        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.Empty(unitOfWork.Instance.DataValues ?? []);
     }
 
     [Theory]
@@ -665,7 +665,7 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("sendt", deferred.Reason);
 
         // A deferring attempt records nothing - the wait is not what makes the shipment durable.
-        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.Empty(unitOfWork.Instance.DataValues ?? []);
         Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
@@ -714,10 +714,7 @@ public class EFormidlingServiceTaskTests
         // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
         Assert.IsType<SuccessfulServiceTaskResult>(result);
-        Assert.Equal(
-            reportedStatus,
-            unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
-        );
+        Assert.Equal(reportedStatus, unitOfWork.Instance.DataValues![EformidlingConstants.ShipmentStatusDataValueKey]);
 
         // Staged, not written: the confirmation commits with the callback's version-fenced save.
         Assert.True(unitOfWork.StagedCompleteConfirmation);
@@ -739,7 +736,7 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("feil", failed.ErrorMessage);
         Assert.Contains("Mottaker er ikke registrert", failed.ErrorMessage);
-        Assert.Equal("feil", unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
+        Assert.Equal("feil", unitOfWork.Instance.DataValues![EformidlingConstants.ShipmentStatusDataValueKey]);
 
         // A failed shipment is not something the service owner has harvested.
         Assert.False(unitOfWork.StagedCompleteConfirmation);
@@ -772,7 +769,7 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("did not confirm delivery", failed.ErrorMessage);
         Assert.Contains("sendt", failed.ErrorMessage);
-        Assert.Equal("sendt", unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
+        Assert.Equal("sendt", unitOfWork.Instance.DataValues![EformidlingConstants.ShipmentStatusDataValueKey]);
     }
 
     [Fact]
@@ -801,7 +798,7 @@ public class EFormidlingServiceTaskTests
         Assert.Contains("may still be delivered", failed.ErrorMessage);
 
         // No verdict was read, so none is recorded and nothing is confirmed.
-        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.Empty(unitOfWork.Instance.DataValues ?? []);
         Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 
@@ -815,7 +812,7 @@ public class EFormidlingServiceTaskTests
         );
 
         await Assert.ThrowsAsync<PlatformHttpException>(() => AwaitDelivery(_serviceTask, CreateContext(unitOfWork)));
-        Assert.Empty(unitOfWork.StagedInstanceDataValues);
+        Assert.Empty(unitOfWork.Instance.DataValues ?? []);
         Assert.False(unitOfWork.StagedCompleteConfirmation);
     }
 

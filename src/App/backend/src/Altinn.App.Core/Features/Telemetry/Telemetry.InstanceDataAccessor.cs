@@ -8,9 +8,9 @@ partial class Telemetry
 {
     private const string ActivityName = "Telemetry.InstanceDataAccessor";
 
-    internal Activity? StartVerifyDataElementsUnchangedSincePreviousChanges()
+    internal Activity? StartVerifyUnchangedSincePreviousChanges()
     {
-        var activity = ActivitySource.StartActivity($"{ActivityName}.VerifyDataElementsUnchangedSincePreviousChanges");
+        var activity = ActivitySource.StartActivity($"{ActivityName}.VerifyUnchangedSincePreviousChanges");
         return activity;
     }
 
