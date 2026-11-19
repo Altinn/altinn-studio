@@ -7,8 +7,10 @@ Components that run in a Studio cluster, the control plane of Altinn Studio. The
   a sandbox, as durable workflows.
 - [operator-runner](operator-runner/README.md) runs one command in a new microVM in the pod of each run's Job.
 
-A name keeps the prefix `core-` where another operator, such as the runtime operator, can be beside it. So the Go
-module, the image, the workflows, the syncroot entry, the operator's namespace and the telemetry use `core-operator`.
-The names inside the operator's namespace and its token audience use `operator`. The parts of the operator follow the
-same rule: in the Studio cluster they are `operator-runner` and `operator-workflow-engine`, and in the registry and the
-telemetry they keep `core-`.
+## Names of the operator
+
+The operator's names keep the prefix `core-` where another operator, such as the runtime operator, can be beside
+them. The prefix tells the two operators apart. It does not come from the name of this folder. So the operator's Go
+module, image, workflows, syncroot entry, namespace and telemetry use `core-operator`. The names inside its namespace
+and its token audience use `operator`. The parts of the operator follow the same rule: in the Studio cluster they are
+`operator-runner` and `operator-workflow-engine`, and in the registry and the telemetry they keep `core-`.
