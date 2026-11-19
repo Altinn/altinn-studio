@@ -92,6 +92,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private bool _stagedCompleteConfirmation;
     private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
 
+    // The data values and presentation texts as Storage last returned them. A save sends what the app has changed on
+    // Instance since then.
+    private Dictionary<string, string?> _savedDataValues;
+    private Dictionary<string, string?> _savedPresentationTexts;
+
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
     );
@@ -122,6 +127,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         _instance = instance;
+        _savedDataValues = CopyStringDictionary(instance.DataValues);
+        _savedPresentationTexts = CopyStringDictionary(instance.PresentationTexts);
         _storageVersions = storageVersionMetadata;
         _dataTypes = appMetadata.DataTypes;
         _dataClient = dataClient;
@@ -873,6 +880,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ApplyStagedProcessState(mutationPlan.Request);
         ApplyStagedInstanceDeletion(mutationPlan.Request);
         ApplyStagedCompleteConfirmation(mutationPlan.Request);
+        ApplyInstanceFieldChanges(mutationPlan.Request);
         ApplyStagedInstanceDataValues(mutationPlan.Request);
         if (!mutationPlan.HasMutations)
         {
@@ -1168,6 +1176,101 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private void ApplyStagedCompleteConfirmation(StorageInstanceMutationRequest request)
     {
         request.AddCompleteConfirmation = _stagedCompleteConfirmation;
+    }
+
+    private void ApplyInstanceFieldChanges(StorageInstanceMutationRequest request)
+    {
+        var (dataValues, presentationTexts) = GetInstanceFieldChanges();
+        foreach (var (key, value) in dataValues)
+        {
+            request.DataValues[key] = value;
+        }
+
+        foreach (var (key, value) in presentationTexts)
+        {
+            request.PresentationTexts[key] = value;
+        }
+    }
+
+    /// <summary>
+    /// Compares <see cref="Instance"/> with the data values and presentation texts Storage last returned, and finds
+    /// the keys the app has changed. A null value removes the key.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// when the app changed a key derived from <c>dataFields</c> or <c>presentationFields</c>, which the save would
+    /// overwrite
+    /// </exception>
+    private (
+        Dictionary<string, string?> DataValues,
+        Dictionary<string, string?> PresentationTexts
+    ) GetInstanceFieldChanges()
+    {
+        var dataValues = GetChangedEntries(_savedDataValues, _instance.DataValues);
+        ThrowIfDerived(dataValues, _appMetadata.DataFields, "Data value", "DataValues", "dataFields");
+        var presentationTexts = GetChangedEntries(_savedPresentationTexts, _instance.PresentationTexts);
+        ThrowIfDerived(
+            presentationTexts,
+            _appMetadata.PresentationFields,
+            "Presentation text",
+            "PresentationTexts",
+            "presentationFields"
+        );
+
+        return (dataValues, presentationTexts);
+    }
+
+    internal bool HasInstanceFieldChanges()
+    {
+        var (dataValues, presentationTexts) = GetInstanceFieldChanges();
+        return dataValues.Count > 0 || presentationTexts.Count > 0;
+    }
+
+    private static Dictionary<string, string?> GetChangedEntries(
+        Dictionary<string, string?> previous,
+        Dictionary<string, string?>? current
+    )
+    {
+        // Storage removes a key sent as null or empty, so an empty value is sent as a removal.
+        var changes = new Dictionary<string, string?>(StringComparer.Ordinal);
+        foreach (var (key, value) in current ?? [])
+        {
+            string? currentValue = string.IsNullOrEmpty(value) ? null : value;
+            string? previousValue = previous.GetValueOrDefault(key) is { Length: > 0 } stored ? stored : null;
+            if (currentValue != previousValue)
+            {
+                changes[key] = currentValue;
+            }
+        }
+
+        foreach (string key in previous.Keys)
+        {
+            if (current?.ContainsKey(key) is not true)
+            {
+                changes[key] = null;
+            }
+        }
+
+        return changes;
+    }
+
+    private static void ThrowIfDerived(
+        Dictionary<string, string?> changes,
+        List<DataField>? derivedFields,
+        string description,
+        string instanceProperty,
+        string metadataProperty
+    )
+    {
+        foreach (var (key, value) in changes)
+        {
+            if (derivedFields?.Exists(field => field.Id == key) is true)
+            {
+                string change = value is null ? "removed from" : "set in";
+                throw new InvalidOperationException(
+                    $"{description} '{key}' was {change} Instance.{instanceProperty}, but it is derived from {metadataProperty} in applicationmetadata.json, and the save would overwrite it; remove it from {metadataProperty} or set the model field it is derived from."
+                );
+            }
+        }
     }
 
     private void ApplyStagedInstanceDataValues(StorageInstanceMutationRequest request)
@@ -1502,6 +1605,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 property.SetValue(Instance, property.GetValue(updatedInstance));
             }
         }
+
+        _savedDataValues = CopyStringDictionary(Instance.DataValues);
+        _savedPresentationTexts = CopyStringDictionary(Instance.PresentationTexts);
     }
 
     private static StorageAuthenticationMethod ResolveAggregateAuthenticationMethod(
@@ -1762,6 +1868,22 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     $"Data element {previousChange.DataType.Id} with id {previousChange.DataElement?.Id} has been changed by validators"
                 );
             }
+        }
+
+        // The save took a new copy of the data values and presentation texts, so a difference now was made by validators.
+        var (dataValues, presentationTexts) = GetInstanceFieldChanges();
+        if (dataValues.Count > 0 || presentationTexts.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "The instance has been changed by validators: "
+                    + string.Join(
+                        ", ",
+                        [
+                            .. dataValues.Keys.Select(key => $"data value '{key}'"),
+                            .. presentationTexts.Keys.Select(key => $"presentation text '{key}'"),
+                        ]
+                    )
+            );
         }
     }
 }

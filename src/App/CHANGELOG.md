@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Build check `ALTINNAPP1030` (error) reports an exclusive gateway that routes on `gatewayAction` right after a `pdf`, `subformPdf` or `eFormidling` task. These tasks return no action, so the gateway never sees one, such as `reject`, and cannot route on it. ([#21997](https://github.com/Altinn/altinn-studio/pull/21997))
+- Data processors, process hooks, service tasks and `IInstantiationProcessor` can set and remove keys in `Instance.DataValues` and `Instance.PresentationTexts` on the `IInstanceDataMutator` they get, such as `(mutator.Instance.DataValues ??= [])["caseNumber"] = "2026-1"`. The keys they change are saved with the user's save, the process transition or the instantiation, without calling `IInstanceClient.UpdateDataValues` or `UpdatePresentationTexts`. Changing a key that `dataFields` or `presentationFields` derives fails the save. ([#PR](https://github.com/Altinn/altinn-studio/pull/PR))
 
 ### Fixed
 

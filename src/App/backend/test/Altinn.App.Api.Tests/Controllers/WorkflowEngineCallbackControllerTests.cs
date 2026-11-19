@@ -1170,6 +1170,61 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
     }
 
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterAddingADataElement_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(mutator =>
+            mutator.AddBinaryDataElement(DataTypeId, ContentType, "added.json", "{}"u8.ToArray())
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingADataValue_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(mutator =>
+            (mutator.Instance.DataValues ??= [])["status"] = "sent"
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingAPresentationText_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(mutator =>
+            (mutator.Instance.PresentationTexts ??= [])["status"] = "Sent"
+        );
+
+    private static async Task AssertDeferralAfterStagingReturnsNonRetryableProblem(
+        Action<IInstanceDataMutator> stageChange
+    )
+    {
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(new DeferringServiceTask(stageChange));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = DeferringServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        string payload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(DeferringServiceTask.ServiceTaskType, ItemIndex: 0)
+        )!;
+
+        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal("Deferral With Data Changes", problem.Title);
+        Assert.Equal(true, problem.Extensions["nonRetryable"]);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
         CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
 
@@ -1379,6 +1434,21 @@ public class WorkflowEngineCallbackControllerTests
                 "{}"u8.ToArray()
             );
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
+        }
+    }
+
+    private sealed class DeferringServiceTask(Action<IInstanceDataMutator> stageChange) : IServiceTask
+    {
+        public const string ServiceTaskType = "DeferAfterChangeForCallbackTest";
+
+        public string Type => ServiceTaskType;
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
+        {
+            stageChange(context.InstanceDataMutator);
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)));
         }
     }
 
