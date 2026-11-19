@@ -136,7 +136,7 @@ describe('calculations in the form store', () => {
       },
       { enabled: true },
     );
-    expect(store.getState().data.models[defaultDataTypeMock].currentData.wrappedNullableNumber).toBe(1);
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toMatchObject({ wrappedNullableNumber: 1 });
 
     act(() => {
       store
@@ -145,7 +145,8 @@ describe('calculations in the form store', () => {
       store.getState().data.debounce('forced');
     });
 
-    expect(store.getState().data.models[defaultDataTypeMock].currentData.wrappedNullableNumber ?? null).toBeNull();
+    const data = store.getState().data.models[defaultDataTypeMock].currentData;
+    expect('wrappedNullableNumber' in data ? data.wrappedNullableNumber : null).toBeNull();
   });
 
   it('preserves stored values when a PDF previews another task with calculations', async () => {
