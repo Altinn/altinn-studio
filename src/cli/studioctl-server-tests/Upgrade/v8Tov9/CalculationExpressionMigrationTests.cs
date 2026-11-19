@@ -1114,7 +1114,7 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Fact]
-    public void ExistingCalculations_KeepTheirCasingAndCommentsWhenAppending()
+    public void ExistingCalculations_CanonicalizeKeysAndKeepCommentsWhenAppending()
     {
         using var app = CreateApp();
         app.Write(
@@ -1130,7 +1130,9 @@ public sealed class CalculationExpressionMigrationTests
         var first = File.ReadAllText(CalculationPath(app));
         Assert.Contains("// Keep this calculation's explanation.", first);
         var parsed = JsonNode.Parse(first, documentOptions: new() { CommentHandling = JsonCommentHandling.Skip });
-        Assert.Equal(2, parsed?["Calculations"]?.AsArray().Count);
+        Assert.Equal(2, parsed?["calculations"]?.AsArray().Count);
+        Assert.Equal("other", parsed?["calculations"]?[0]?["field"]?.GetValue<string>());
+        Assert.Equal(7, parsed?["calculations"]?[0]?["expression"]?.GetValue<int>());
         CalculationMigration.Migrate(app.Root);
         Assert.Equal(first, File.ReadAllText(CalculationPath(app)));
     }
