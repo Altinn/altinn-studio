@@ -74,7 +74,6 @@ async fn serve_one_run(
     let routes = Rc::new(Routes::new(host.clone()));
     let listener = TcpListener::bind(listen_address).await?;
     let mut signals = ShutdownSignals::new()?;
-    tracing::info!(%listen_address, ?timeouts, "the operator runner is ready for one run");
     http::serve(listener, routes, host.serve_until_stop(timeouts, signals.receive())).await
 }
 

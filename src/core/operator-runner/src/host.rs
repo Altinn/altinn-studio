@@ -200,7 +200,6 @@ impl Host {
         }
         self.state
             .send_modify(|state| state.phase = Phase::Running(run_id.clone()));
-        tracing::info!(%run_id, command = command.name(), archive_bytes = archive.len(), "the run starts");
         let run = Run {
             command,
             archive,
@@ -261,8 +260,6 @@ impl Host {
         self.stop();
         if stop == Stop::Expired {
             tracing::warn!("no client fetched the result in time, so the operator runner stops");
-        } else {
-            tracing::info!(?stop, "the operator runner stops");
         }
         // The run deletes its VM when the command ends. The operator runner deletes the VM again here, because a signal
         // stops the run before that, and because that delete can fail.
@@ -342,9 +339,6 @@ impl Host {
             }
             Phase::Ended(ended) if &ended.run_id == run_id => {
                 answer = Some(Answer::Ended(ended.reply.clone()));
-                if !ended.fetched {
-                    tracing::info!(%run_id, "a client fetched the result");
-                }
                 !mem::replace(&mut ended.fetched, true)
             }
             _ => false,
@@ -375,12 +369,8 @@ impl Host {
     }
 
     fn end(&self, run_id: &RunId, reply: Reply) {
-        match &reply {
-            Reply::Completed(outcome) => {
-                tracing::info!(%run_id, exit_code = ?outcome.exit_code, timed_out = outcome.timed_out, "the run ended");
-            }
-            Reply::Failed { reason, .. } => tracing::error!(%run_id, reason, "the run failed"),
-            Reply::Running => {}
+        if let Reply::Failed { reason, .. } = &reply {
+            tracing::error!(%run_id, reason, "the run failed");
         }
         let reply = Rc::new(reply);
         self.state.send_modify(|state| {
