@@ -40,6 +40,7 @@ internal sealed partial class CalculationExpressionConverter
     private readonly HashSet<string> _integerInputs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _integerBounds = new(StringComparer.Ordinal);
     private readonly HashSet<string> _floatingPointInputs = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _decimalInputs = new(StringComparer.Ordinal);
     public bool MayReturnNull { get; private set; }
 
     public JsonNode? Convert(
@@ -64,6 +65,7 @@ internal sealed partial class CalculationExpressionConverter
         _integerInputs.Clear();
         _integerBounds.Clear();
         _floatingPointInputs.Clear();
+        _decimalInputs.Clear();
         _selectionOptions = selectionOptions ?? new Dictionary<string, IReadOnlyList<string>>();
         foreach (var statement in body.Body)
             ValidateDeclarations(statement, 0);
@@ -75,6 +77,8 @@ internal sealed partial class CalculationExpressionConverter
             var type = types.ResolveType(path);
             if (type?.TrimEnd('?') is "double" or "float")
                 _floatingPointInputs.Add(path);
+            if (type?.TrimEnd('?') == "decimal")
+                _decimalInputs.Add(path);
             if (type?.TrimEnd('?') is "int" or "long")
             {
                 _integerInputs.Add(path);
@@ -473,9 +477,24 @@ internal sealed partial class CalculationExpressionConverter
         };
         if (op == "Division" && !b.NonZero)
             throw new NotSupportedException("Division is not guarded against a zero denominator.");
+        if (op == "Division" && JsonNode.DeepEquals(a.Expression, b.Expression))
+            return new(JsonValue.Create(1), Kind.Number, NonZero: true);
         if (op == "Division" && (HasFloatingPointInput(a.Expression) || HasFloatingPointInput(b.Expression)))
             throw new NotSupportedException(
                 "Floating-point model inputs can underflow the backend's decimal division; keep this calculation in C#."
+            );
+        if (
+            op == "Division"
+            && (
+                MaximumMagnitude(a.Expression) is not { } numeratorBound
+                || MinimumMagnitude(b.Expression) is not { } denominatorBound
+                || !double.IsFinite(numeratorBound)
+                || numeratorBound > (double)decimal.MaxValue
+                || numeratorBound / denominatorBound > (double)decimal.MaxValue
+            )
+        )
+            throw new NotSupportedException(
+                "Division can overflow backend decimal arithmetic; keep this calculation in C#."
             );
         // Expression arguments are eager. An unreachable branch must remain safe to evaluate.
         var denominator =
@@ -501,6 +520,57 @@ internal sealed partial class CalculationExpressionConverter
                 && _floatingPointInputs.Contains(call[1]?.GetValue<string>() ?? "")
             ) || call.Skip(1).Any(HasFloatingPointInput)
         );
+
+    private double? MaximumMagnitude(JsonNode? expression)
+    {
+        if (expression == null)
+            return 0;
+        if (expression is JsonValue literal && literal.TryGetValue<double>(out var number))
+            return Math.Abs(number);
+        if (expression is not JsonArray { Count: > 0 } call)
+            return null;
+        var operation = call[0]?.GetValue<string>();
+        if (operation == "dataModel")
+        {
+            var path = call[1]?.GetValue<string>() ?? "";
+            if (_integerBounds.TryGetValue(path, out var bound))
+                return bound;
+            return _decimalInputs.Contains(path) ? (double)decimal.MaxValue : null;
+        }
+        var operands = operation == "if" && call.Count == 5 ? new[] { call[2], call[4] } : call.Skip(1).ToArray();
+        var bounds = operands.Select(MaximumMagnitude).ToArray();
+        if (bounds.Any(bound => !bound.HasValue))
+            return null;
+        return operation switch
+        {
+            "plus" or "minus" => bounds.Sum(bound => bound ?? 0),
+            "multiply" => bounds.Aggregate(1d, (product, bound) => product * (bound ?? 0)),
+            "if" => bounds.Max(),
+            "divide" when call.Count == 3 && MinimumMagnitude(call[2]) is { } divisor => bounds[0] / divisor,
+            _ => null,
+        };
+    }
+
+    private double? MinimumMagnitude(JsonNode? expression)
+    {
+        if (expression is JsonValue literal && literal.TryGetValue<double>(out var number))
+            return number == 0 ? null : Math.Abs(number);
+        if (IntegerBound(expression).HasValue)
+            return 1;
+        if (expression is not JsonArray { Count: > 0 } call)
+            return null;
+        if (call[0]?.GetValue<string>() == "dataModel")
+            return _decimalInputs.Contains(call[1]?.GetValue<string>() ?? "") ? 1e-28 : null;
+        if (call[0]?.GetValue<string>() == "plus")
+        {
+            var operands = call.Skip(1)
+                .Where(item => item is not JsonValue value || !value.TryGetValue<double>(out var scalar) || scalar != 0)
+                .ToArray();
+            if (operands.Length == 1)
+                return MinimumMagnitude(operands[0]);
+        }
+        return null;
+    }
 
     private static bool TryNumericLiteral(Value value, out Value number)
     {
