@@ -24,6 +24,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
+- `Datepicker` in time zones other than UTC: ([#22012](https://github.com/Altinn/altinn-studio/pull/22012))
+  - The calendar no longer marks the day before the chosen date for users west of UTC, such as in the Americas.
+  - Without `minDate` or `maxDate`, the allowed dates no longer start on 31 December 1899 west of UTC or end on 2 January 2100 east of it.
 
 ## [9.0.0-preview.12] - 2026-11-17
 
