@@ -85,9 +85,10 @@ the user full control without code, the builder should cover prefill, simple cal
 The builder already has Input, TextArea, Checkboxes, RadioButtons, Dropdown, Datepicker, Heading and Paragraph.
 To build a basic app it also needs:
 
-1. **Pages.** Add, rename, reorder and delete pages, with Next/Back added on every page so the user never places
-   NavigationButtons by hand.
-2. **Summary and submit.** A last page with a summary of every page and a submit button, created by default.
+1. **Pages.** Add, rename, reorder and delete pages, with Next/Back on every page so the user never places
+   NavigationButtons by hand. Pages the builder adds get them, and a page without them offers to add them.
+2. **Summary and submit.** A last page with a summary of every page and a submit button, which the user adds with
+   one click. An app without a summary page can have a submit button on a form page instead.
 3. **File upload.** The component and its attachment data type, with file types, size and count.
 4. **Field settings.** Label, description, help text, required, read-only, width (full or half), max length.
    Input as a number, amount, email or phone, which sets formatting, `autocomplete` and a schema pattern together.
