@@ -197,6 +197,8 @@ internal static partial class CalculationMigration
             JsonObject document;
             try
             {
+                if (originalContent != null)
+                    originalContent = CanonicalizeKeys(originalContent);
                 document =
                     originalContent != null
                         ? JsonNode.Parse(
@@ -525,6 +527,48 @@ internal static partial class CalculationMigration
 
     private static JsonNode? Property(JsonObject value, string name) =>
         PropertyName(value, name) is { } key ? value[key] : null;
+
+    private static string CanonicalizeKeys(string source)
+    {
+        var bytes = Encoding.UTF8.GetBytes(source);
+        var reader = new Utf8JsonReader(
+            bytes,
+            new JsonReaderOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+        );
+        var replacements = new List<(int Start, int Length, string Name)>();
+        var inCalculations = false;
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndArray && reader.CurrentDepth == 1)
+                inCalculations = false;
+            if (reader.TokenType != JsonTokenType.PropertyName)
+                continue;
+            var name = reader.GetString() ?? "";
+            string? canonical = null;
+            if (reader.CurrentDepth == 1 && name.Equals("calculations", StringComparison.OrdinalIgnoreCase))
+            {
+                canonical = "calculations";
+                inCalculations = true;
+            }
+            else if (inCalculations && reader.CurrentDepth == 3)
+                canonical = name.ToLowerInvariant() switch
+                {
+                    "field" => "field",
+                    "expression" => "expression",
+                    _ => null,
+                };
+            if (canonical != null && name != canonical)
+                replacements.Add((checked((int)reader.TokenStartIndex), reader.ValueSpan.Length + 2, canonical));
+        }
+        // Replace only key tokens; comments, Unicode text and expression literals stay intact.
+        foreach (var (start, length, name) in replacements.AsEnumerable().Reverse())
+        {
+            var offset = Encoding.UTF8.GetCharCount(bytes.AsSpan(0, start));
+            var count = Encoding.UTF8.GetCharCount(bytes.AsSpan(start, length));
+            source = source.Remove(offset, count).Insert(offset, JsonSerializer.Serialize(name));
+        }
+        return source;
+    }
 
     private static string AppendDefinitions(string source, IReadOnlyList<JsonObject> definitions)
     {
