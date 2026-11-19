@@ -487,9 +487,12 @@ internal sealed partial class CalculationExpressionConverter
             op == "Division"
             && (
                 MaximumMagnitude(a.Expression) is not { } numeratorBound
+                || MaximumMagnitude(b.Expression) is not { } denominatorUpperBound
                 || MinimumMagnitude(b.Expression) is not { } denominatorBound
                 || !double.IsFinite(numeratorBound)
-                || numeratorBound > (double)decimal.MaxValue
+                // decimal.MaxValue rounds up when represented as a double.
+                || numeratorBound >= (double)decimal.MaxValue
+                || denominatorUpperBound >= (double)decimal.MaxValue
                 || numeratorBound / denominatorBound > (double)decimal.MaxValue
             )
         )
