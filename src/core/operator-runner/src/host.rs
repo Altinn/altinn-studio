@@ -112,14 +112,6 @@ struct Ended {
 }
 
 impl Phase {
-    fn status_of(&self, run_id: &RunId) -> Option<Status> {
-        match self {
-            Self::Running(claimed) if claimed == run_id => Some(Status::Running),
-            Self::Ended(ended) if &ended.run_id == run_id => Some(ended.reply.status()),
-            _ => None,
-        }
-    }
-
     fn answer_of(&self, run_id: &RunId) -> Option<Answer> {
         match self {
             Self::Running(claimed) if claimed == run_id => Some(Answer::Running),
@@ -176,7 +168,11 @@ impl Host {
 
     /// Returns the status of the run, or `None` if this run id did not claim the operator runner.
     fn status_of(&self, run_id: &RunId) -> Option<Status> {
-        self.state.borrow().phase.status_of(run_id)
+        let answer = self.state.borrow().phase.answer_of(run_id)?;
+        Some(match answer {
+            Answer::Running => Status::Running,
+            Answer::Ended(reply) => reply.status(),
+        })
     }
 
     /// Returns what a start of this run gets instead of a claim, or `None` if the run can claim the operator runner.
@@ -331,19 +327,12 @@ impl Host {
     }
 
     fn fetch(&self, run_id: &RunId) -> Option<Answer> {
-        let mut answer = None;
+        let answer = self.state.borrow().phase.answer_of(run_id)?;
         self.state.send_if_modified(|state| match &mut state.phase {
-            Phase::Running(claimed) if claimed == run_id => {
-                answer = Some(Answer::Running);
-                false
-            }
-            Phase::Ended(ended) if &ended.run_id == run_id => {
-                answer = Some(Answer::Ended(ended.reply.clone()));
-                !mem::replace(&mut ended.fetched, true)
-            }
+            Phase::Ended(ended) => !mem::replace(&mut ended.fetched, true),
             _ => false,
         });
-        answer
+        Some(answer)
     }
 
     /// Runs the command, deletes the VM and keeps the result. When the operator runner stops during the run,
