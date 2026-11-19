@@ -135,7 +135,13 @@ describe('List component', () => {
 
     // Single selection: one stacked value cell next to the radio. Mobile sorting is a separate follow-up.
     cy.get(dataListPage.listComponent).find('th').should('not.exist');
-    cy.get(dataListPage.tableBody).find('input[type=radio]').first().should('have.attr', 'required');
+    cy.get(dataListPage.tableBody)
+      .find('tr')
+      .first()
+      .find('td')
+      .first()
+      .find('input[type=radio]')
+      .should('have.attr', 'required');
     cy.get(dataListPage.tableBody).find('tr').first().find('td').should('have.length', 2);
     cy.get(dataListPage.tableBody)
       .find('tr')
@@ -156,6 +162,13 @@ describe('List component', () => {
 
     // Multiple selection uses the same value/control cell split
     cy.get(dataListPage.checkboxesTableBody).find('tr').first().find('td').should('have.length', 2);
+    cy.get(dataListPage.checkboxesTableBody)
+      .find('tr')
+      .first()
+      .find('td')
+      .first()
+      .find('input[type=checkbox]')
+      .should('exist');
     cy.get(dataListPage.checkboxesTableBody)
       .find('tr')
       .first()
