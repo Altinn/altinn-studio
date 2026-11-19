@@ -6,7 +6,7 @@ using WorkflowEngine.Operator.Tests.Fixtures;
 
 namespace WorkflowEngine.Operator.Tests.Commands.OperatorCommand;
 
-public class OperatorCommandExecutionTests
+public sealed class OperatorCommandExecutionTests
 {
     [Fact]
     public async Task Execute_PostsToCommandKeyUnderCallbackRouter()
@@ -164,7 +164,7 @@ public class OperatorCommandExecutionTests
 
         // Assert
         Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("client error", result.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("refused", result.Message, StringComparison.Ordinal);
         Assert.Equal((int)statusCode, result.HttpStatusCode);
     }
 

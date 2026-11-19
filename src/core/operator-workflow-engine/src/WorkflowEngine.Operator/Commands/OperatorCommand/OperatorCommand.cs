@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -38,11 +39,8 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         _logger = logger;
     }
 
-    public static CommandDefinition Create(
-        OperatorCommandData data,
-        TimeSpan? maxExecutionTime = null,
-        TimeSpan? waitBudget = null
-    ) => CommandDefinition.Create(CommandTypeId, data, maxExecutionTime, waitBudget);
+    /// <summary>Creates the definition of a step that calls the operator with <paramref name="data"/>.</summary>
+    public static CommandDefinition Create(OperatorCommandData data) => CommandDefinition.Create(CommandTypeId, data);
 
     /// <inheritdoc/>
     protected override CommandValidationResult Validate(
@@ -118,6 +116,7 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
                 // Without a token, the operator refuses the callback and fails the step permanently. The fault is
                 // this pod's, not the step's, so the step retries.
                 _logger.TokenUnavailable(_settings.TokenPath, ex);
+                activity?.Errored(ex);
                 return ExecutionResult.RetryableError(
                     $"OperatorCommand could not read the ServiceAccount token at '{_settings.TokenPath}': {ex.Message}",
                     ex
@@ -145,16 +144,6 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
         };
 
         var endpoint = new Uri(Uri.EscapeDataString(commandData.CommandKey), UriKind.Relative);
-
-        _logger.SendingOperatorCommand(
-            commandData.CommandKey,
-            endpoint,
-            context.Workflow.DatabaseId,
-            workflowContext.Domain,
-            workflowContext.Caller,
-            workflowContext.SubjectId
-        );
-
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = JsonContent.Create(payload),
@@ -181,40 +170,34 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
             }
             catch (JsonException ex)
             {
+                activity?.Errored(ex);
                 return ExecutionResult.CriticalError($"Operator returned invalid response body: {ex.Message}", ex);
             }
 
             if (callbackResponse?.Defer is { } deferral)
-            {
-                _logger.OperatorCommandDeferred(commandData.CommandKey, context.Workflow.DatabaseId, deferral.Delay);
                 return ExecutionResult.Defer(deferral.Delay, deferral.Reason, callbackResponse.State);
-            }
 
             return ExecutionResult.Success(callbackResponse?.State);
         }
 
         var statusCode = (int)response.StatusCode;
-        var errorBody = await response.GetContentOrDefault("<no body content>", cancellationToken);
+        activity?.Errored(errorType: statusCode.ToString(CultureInfo.InvariantCulture));
 
         // The operator ends a step with a 422 problem, such as src/core/operator/testdata/callbacks/response-end.json.
-        // The step keeps the problem unchanged as its error, and the operator reads it back.
+        // The step keeps the problem unchanged as its error, and the operator reads it back. The engine logs a step's
+        // error, so other answers keep only their status code, not the body.
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-            return ExecutionResult.CriticalError(errorBody, httpStatusCode: statusCode);
+        {
+            var problem = await response.GetContentOrDefault("<no body content>", cancellationToken);
+            return ExecutionResult.CriticalError(problem, httpStatusCode: statusCode);
+        }
 
         IReadOnlyList<int> nonRetryable =
             context.Step.RetryStrategy?.NonRetryableHttpStatusCodes ?? RetryStrategy.DefaultNonRetryableHttpStatusCodes;
         if (nonRetryable.Contains(statusCode))
-        {
-            return ExecutionResult.CriticalError(
-                $"OperatorCommand failed with client error {response.StatusCode}: {errorBody}",
-                httpStatusCode: statusCode
-            );
-        }
+            return ExecutionResult.CriticalError($"The operator answered {statusCode}", httpStatusCode: statusCode);
 
-        return ExecutionResult.RetryableError(
-            $"OperatorCommand execution failed with status code {response.StatusCode}: {errorBody}",
-            httpStatusCode: statusCode
-        );
+        return ExecutionResult.RetryableError($"The operator answered {statusCode}", httpStatusCode: statusCode);
     }
 
     // The kubelet rotates the token before it expires, so the command reads the file for every callback.
@@ -248,33 +231,6 @@ internal sealed partial class OperatorCommand : Command<OperatorCommandData, Ope
 
 internal static partial class OperatorCommandLogs
 {
-    // Log routing fields only. The state is the operator's own data, which the engine stores but does not read.
-    [LoggerMessage(
-        LogLevel.Information,
-        "Sending OperatorCommand '{CommandKey}' to {Endpoint} (workflowId: {WorkflowId}, domain: {Domain}, caller: {Caller}, subject: {SubjectId})"
-    )]
-    internal static partial void SendingOperatorCommand(
-        this ILogger<OperatorCommand> logger,
-        string commandKey,
-        Uri endpoint,
-        Guid workflowId,
-        string domain,
-        string caller,
-        string subjectId
-    );
-
-    // The engine logs the operator's reason with the deferral.
-    [LoggerMessage(
-        LogLevel.Information,
-        "OperatorCommand '{CommandKey}' deferred (workflowId: {WorkflowId}); re-checking in {Delay}"
-    )]
-    internal static partial void OperatorCommandDeferred(
-        this ILogger<OperatorCommand> logger,
-        string commandKey,
-        Guid workflowId,
-        TimeSpan delay
-    );
-
     [LoggerMessage(LogLevel.Error, "Could not read the ServiceAccount token at {TokenPath}")]
     internal static partial void TokenUnavailable(
         this ILogger<OperatorCommand> logger,
