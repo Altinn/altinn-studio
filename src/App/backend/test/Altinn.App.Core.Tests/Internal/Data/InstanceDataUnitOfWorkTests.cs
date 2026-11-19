@@ -1256,7 +1256,7 @@ public sealed class InstanceDataUnitOfWorkTests
             setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { ["derived"] = "set" };
         }
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        var exception = await Assert.ThrowsAsync<InstanceChangeNotSavableException>(() =>
             setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false))
         );
 

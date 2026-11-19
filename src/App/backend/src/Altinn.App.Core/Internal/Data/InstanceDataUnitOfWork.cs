@@ -1195,7 +1195,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// Compares <see cref="Instance"/> with the data values and presentation texts Storage last returned, and finds
     /// the keys the app has changed. A null value removes the key.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
+    /// <exception cref="InstanceChangeNotSavableException">
     /// when the app changed a key derived from <c>dataFields</c> or <c>presentationFields</c>, which the save would
     /// overwrite
     /// </exception>
@@ -1270,7 +1270,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             if (derivedFields?.Exists(field => field.Id == key) is true)
             {
                 string change = value is null ? "removed from" : "set in";
-                throw new InvalidOperationException(
+                throw new InstanceChangeNotSavableException(
                     $"{description} '{key}' was {change} Instance.{instanceProperty}, but it is derived from {metadataProperty} in applicationmetadata.json, and the save would overwrite it; remove it from {metadataProperty} or set the model field it is derived from."
                 );
             }
@@ -1874,7 +1874,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         // The save took a new snapshot of the instance, so a difference now was made by validators.
-        var (dataValues, presentationTexts) = GetInstanceFieldChanges();
+        Dictionary<string, string?> dataValues;
+        Dictionary<string, string?> presentationTexts;
+        try
+        {
+            (dataValues, presentationTexts) = GetInstanceFieldChanges();
+        }
+        catch (InstanceChangeNotSavableException exception)
+        {
+            throw new InvalidOperationException("The instance has been changed by validators", exception);
+        }
+
         if (dataValues.Count > 0 || presentationTexts.Count > 0)
         {
             throw new InvalidOperationException(

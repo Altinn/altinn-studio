@@ -1031,6 +1031,52 @@ public class FormBootstrapServiceTests
         );
     }
 
+    [Theory]
+    // The data values are saved even when the element is locked, as they are not part of it.
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetInstanceFormBootstrap_PersistsReadHookInstanceChanges_WithoutAFormDataChange(bool locked)
+    {
+        var instance = CreateTestInstance("Task_1", locked: locked);
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook(hookInstance => hookInstance.DataValues = new() { ["read"] = "yes" });
+        StorageInstanceMutationRequest? request = null;
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest committed,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
+                    CancellationToken _
+                ) => request = committed
+            )
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = CreateService();
+
+        await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.NotNull(request);
+        Assert.Equal(new Dictionary<string, string?> { ["read"] = "yes" }, request.DataValues);
+        Assert.Empty(request.UpdateDataElements);
+    }
+
     [Fact]
     public async Task GetInstanceFormBootstrap_WhenAcquireWinsReadHookPersistenceRace_IgnoresTypedStatusConflict()
     {
@@ -1187,7 +1233,7 @@ public class FormBootstrapServiceTests
         );
     }
 
-    private void SetupMutatingReadHook()
+    private void SetupMutatingReadHook(Action<Instance>? changeInstance = null)
     {
         _formDataReader
             .Setup(x =>
@@ -1203,7 +1249,7 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync(
                 (
-                    Instance _,
+                    Instance instance,
                     DataElement _,
                     object appModel,
                     bool _,
@@ -1212,7 +1258,14 @@ public class FormBootstrapServiceTests
                     CancellationToken _
                 ) =>
                 {
-                    ((DummyModel)appModel).Name = "changed";
+                    if (changeInstance is null)
+                    {
+                        ((DummyModel)appModel).Name = "changed";
+                    }
+                    else
+                    {
+                        changeInstance(instance);
+                    }
                     return appModel;
                 }
             );
