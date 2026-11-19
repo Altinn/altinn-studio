@@ -1472,8 +1472,9 @@ public sealed class TaskBindingTests : IDisposable
             ProcessHookStubs.Todo(
                 $"{HookPath}:{LineOf(source, "public class MetadataGenerator")}: MetadataGenerator derives from Ft.Datafangst.Utils 2.1.4 XsdMetadataGenerator, which sets element "
                     + "metadata with IDataClient.Update, and v9 refuses that while the process is transitioning. The "
-                    + "package owner must set the metadata with dataMutator.UpdateDataElementMetadata in an "
-                    + "IOnTaskEndingHandler of the forms' task; until then this class fails in v9. "
+                    + "package owner must set the metadata outside the process transition, such as in a data processor of "
+                    + "the forms' task, since the instance data mutator cannot save element metadata; until then this "
+                    + "class fails in v9. "
                     + "XsdMetadataGenerator.End updates model at process end, when there is no current task; v9 refuses "
                     + "that for a type bound to Task_1. Set the metadata at the end of Task_1 instead."
             ),

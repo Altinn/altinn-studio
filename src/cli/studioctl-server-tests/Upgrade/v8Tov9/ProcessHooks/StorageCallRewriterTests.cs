@@ -258,122 +258,6 @@ public sealed class StorageCallRewriterTests : IDisposable
                     """
             },
             {
-                // brg/aarsregnskap-bank-202404 App/logic/DataProcessing/ProcessTaskEnd.cs:88-91,136.
-                "Update after changing the tags: only the tags",
-                """
-                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            foreach (var dataElement in instance.Data)
-                            {
-                                await AddTag(instance, dataElement);
-                            }
-                        }
-
-                        private async Task AddTag(Instance instance, DataElement dataElement)
-                        {
-                            if (!dataElement.Tags.Contains("hoved"))
-                                dataElement.Tags.Add("hoved");
-                            await dataClient.Update(instance, dataElement);
-                        }
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            foreach (var dataElement in instance.Data)
-                            {
-                                await AddTag(dataMutator, dataElement);
-                            }
-                            return {{HandlerResult}}.Success();
-                        }
-
-                        private async Task AddTag({{IInstanceDataMutator}} dataMutator, DataElement dataElement)
-                        {
-                            if (!dataElement.Tags.Contains("hoved"))
-                                dataElement.Tags.Add("hoved");
-                            dataMutator.UpdateDataElementMetadata(dataElement, new() { Tags = dataElement.Tags });
-                        }
-                    }
-                    """
-            },
-            {
-                // dat/bilpleie-soknad App/logic/DataProcessing/ProcessTaskEnd.cs:182-196.
-                "Update after an upsert of user-defined metadata",
-                """
-                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var element = instance.Data.First();
-                            element.UserDefinedMetadata ??= [];
-                            element.UserDefinedMetadata.RemoveAll(entry => entry.Key == "kategori");
-                            element.UserDefinedMetadata.Add(new KeyValueEntry { Key = "kategori", Value = "vedlegg" });
-                            await dataClient.Update(instance, element);
-                        }
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var element = instance.Data.First();
-                            element.UserDefinedMetadata ??= [];
-                            element.UserDefinedMetadata.RemoveAll(entry => entry.Key == "kategori");
-                            element.UserDefinedMetadata.Add(new KeyValueEntry { Key = "kategori", Value = "vedlegg" });
-                            dataMutator.UpdateDataElementMetadata(element, new() { UserDefinedMetadata = element.UserDefinedMetadata });
-                            return {{HandlerResult}}.Success();
-                        }
-                    }
-                    """
-            },
-            {
-                // dibk/nabovarsel-svar-v5 App/logic/ProcessTaskEnd.cs:44 (null lists stage nothing).
-                "Update of an element changed elsewhere: all four lists, which may be null",
-                """
-                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            await Save(instance, instance.Data.First());
-                        }
-
-                        private async Task Save(Instance instance, DataElement element) => await dataClient.Update(instance, element);
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            await Save(dataMutator, instance.Data.First());
-                            return {{HandlerResult}}.Success();
-                        }
-
-                        private async Task Save({{IInstanceDataMutator}} dataMutator, DataElement element)
-                        {
-                            dataMutator.UpdateDataElementMetadata(element, new() { Tags = element.Tags, Metadata = element.Metadata, UserDefinedMetadata = element.UserDefinedMetadata, Refs = element.Refs });
-                        }
-                    }
-                    """
-            },
-            {
                 // pat/patent App/logic/TaskProcessor/ProcessTaskEnd.cs:132-134.
                 "unlock, write, lock: the write alone (C-ML1)",
                 """
@@ -409,44 +293,6 @@ public sealed class StorageCallRewriterTests : IDisposable
                             var modelDataId = Guid.Parse(modelData.Id);
                             var model = new AllocatedCaseNumber { CaseNumber = "1" };
                             await dataMutator.ReplaceFormData(new {{DataElementIdentifier}}(modelDataId), model);
-                            return {{HandlerResult}}.Success();
-                        }
-                    }
-                    """
-            },
-            {
-                // dibk/ig-v3 App/logic/TaskEnd/ProcessTaskEnd.cs:149-169.
-                "InsertBinaryData whose element gets metadata and Update (C-WA3)",
-                """
-                    public class ProcessTaskEnd(IDataClient data) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var dataElement = instance.Data.First();
-                            var stream = new MemoryStream(new byte[] { 1 });
-                            var signedPdfDataElement = await data.InsertBinaryData(instance.Id, "pdf", "application/pdf", "pdf.pdf", stream);
-                            var metadataReferanseXml = new KeyValueEntry { Key = "ReferanseXml", Value = dataElement.Id };
-                            signedPdfDataElement.Metadata = [metadataReferanseXml];
-                            signedPdfDataElement.Locked = true;
-                            signedPdfDataElement.Refs = [Guid.Parse(dataElement.Id)];
-                            await data.Update(instance, signedPdfDataElement);
-                        }
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var dataElement = instance.Data.First();
-                            var stream = new MemoryStream(new byte[] { 1 });
-                            var signedPdfDataElement = dataMutator.AddBinaryDataElement("pdf", "application/pdf", "pdf.pdf", stream.ToArray());
-                            var metadataReferanseXml = new KeyValueEntry { Key = "ReferanseXml", Value = dataElement.Id };
-                            dataMutator.UpdateDataElementMetadata(signedPdfDataElement.DataElementIdentifier, new() { Metadata = [metadataReferanseXml], Refs = [Guid.Parse(dataElement.Id)] });
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -515,18 +361,16 @@ public sealed class StorageCallRewriterTests : IDisposable
                     """
             },
             {
-                // hdir/innsending-virksomheter-helfo App/logic/DataProcessing/ProcessTaskEnd.cs:360-378.
-                "UpdateBinaryData with the element's own bytes: only the filename (C-WB2)",
+                // skd (stand-in) App/logic/TaskProcessing/Steg/OpprettLoggfil.cs:121.
+                "UpdateBinaryData with new bytes (C-WB1)",
                 """
                     public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
                     {
                         public async Task End(string taskId, Instance instance)
                         {
-                            var dataElement = instance.Data.First();
-                            var instanceIdentifier = new InstanceIdentifier(instance);
-                            var fileContent = await dataClient.GetDataBytes(instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, new Guid(dataElement.Id));
-                            using var fileStream = new MemoryStream(fileContent);
-                            await dataClient.UpdateBinaryData(instanceIdentifier, dataElement.ContentType, "nytt-navn.pdf", new Guid(dataElement.Id), fileStream);
+                            var logg = instance.Data.First(d => d.DataType == "logg");
+                            var bytes = Encoding.UTF8.GetBytes("logg");
+                            await dataClient.UpdateBinaryData(new InstanceIdentifier(instance), "text/plain", null, Guid.Parse(logg.Id), new MemoryStream(bytes));
                         }
                     }
                     """,
@@ -539,17 +383,16 @@ public sealed class StorageCallRewriterTests : IDisposable
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
-                            var dataElement = instance.Data.First();
-                            var instanceIdentifier = new InstanceIdentifier(instance);
-                            dataMutator.UpdateDataElementMetadata(dataElement, new() { Filename = "nytt-navn.pdf" });
+                            var logg = instance.Data.First(d => d.DataType == "logg");
+                            var bytes = Encoding.UTF8.GetBytes("logg");
+                            dataMutator.UpdateBinaryDataElement(logg, "text/plain", bytes);
                             return {{HandlerResult}}.Success();
                         }
                     }
                     """
             },
             {
-                // skd (stand-in) App/logic/TaskProcessing/Steg/OpprettLoggfil.cs:121.
-                "UpdateBinaryData with new bytes (C-WB1)",
+                "UpdateBinaryData with new bytes and the element's own filename (C-WB1)",
                 """
                     public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
                     {
@@ -557,7 +400,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                         {
                             var logg = instance.Data.First(d => d.DataType == "logg");
                             var bytes = Encoding.UTF8.GetBytes("logg");
-                            await dataClient.UpdateBinaryData(new InstanceIdentifier(instance), "text/plain", null, Guid.Parse(logg.Id), new MemoryStream(bytes));
+                            await dataClient.UpdateBinaryData(new InstanceIdentifier(instance), "text/plain", logg.Filename, Guid.Parse(logg.Id), new MemoryStream(bytes));
                         }
                     }
                     """,
@@ -748,88 +591,6 @@ public sealed class StorageCallRewriterTests : IDisposable
                     """
             },
             {
-                "Update of an element passed elsewhere first: all four lists",
-                """
-                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var el = instance.Data.First(d => d.DataType == "vedlegg");
-                            AddTag(el);
-                            el.Metadata = new List<KeyValueEntry> { new KeyValueEntry { Key = "k", Value = "v" } };
-                            await dataClient.Update(instance, el);
-                        }
-
-                        private static void AddTag(DataElement el) => el.Tags.Add("t");
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var el = instance.Data.First(d => d.DataType == "vedlegg");
-                            AddTag(el);
-                            el.Metadata = new List<KeyValueEntry> { new KeyValueEntry { Key = "k", Value = "v" } };
-                            dataMutator.UpdateDataElementMetadata(el, new() { Tags = el.Tags, Metadata = el.Metadata, UserDefinedMetadata = el.UserDefinedMetadata, Refs = el.Refs });
-                            return {{HandlerResult}}.Success();
-                        }
-
-                        private static void AddTag(DataElement el) => el.Tags.Add("t");
-                    }
-                    """
-            },
-            {
-                "Update of an element parameter: also the lists its caller changed before the call",
-                """
-                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            foreach (var element in instance.Data)
-                            {
-                                element.Tags.Add("seen");
-                                await Save(instance, element);
-                            }
-                        }
-
-                        private async Task Save(Instance instance, DataElement element)
-                        {
-                            element.Metadata = [new KeyValueEntry { Key = "k", Value = "v" }];
-                            await dataClient.Update(instance, element);
-                        }
-                    }
-                    """,
-                $$"""
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            foreach (var element in instance.Data)
-                            {
-                                element.Tags.Add("seen");
-                                await Save(dataMutator, element);
-                            }
-                            return {{HandlerResult}}.Success();
-                        }
-
-                        private async Task Save({{IInstanceDataMutator}} dataMutator, DataElement element)
-                        {
-                            element.Metadata = [new KeyValueEntry { Key = "k", Value = "v" }];
-                            dataMutator.UpdateDataElementMetadata(element, new() { Metadata = element.Metadata, Tags = element.Tags });
-                        }
-                    }
-                    """
-            },
-            {
                 "a form write whose result a method that is not async waits for",
                 """
                     public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
@@ -904,6 +665,77 @@ public sealed class StorageCallRewriterTests : IDisposable
     public static TheoryData<string, string, string, string> Todos =>
         new()
         {
+            {
+                // brg/aarsregnskap-bank-202404 App/logic/DataProcessing/ProcessTaskEnd.cs:88-91,136.
+                "Update after changing the tags, which the mutator cannot save (C-MM1)",
+                """
+                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var dataElement = instance.Data.First();
+                            dataElement.Tags.Add("hoved");
+                            await dataClient.Update(instance, dataElement);
+                        }
+                    }
+                    """,
+                "await dataClient.Update(instance, dataElement);",
+                "IDataClient.Update still writes to Storage directly in ProcessTaskEnd.End, which v9 refuses while the process is transitioning: the mutator has no member that updates an element's metadata."
+            },
+            {
+                // dibk/ig-v3 App/logic/TaskEnd/ProcessTaskEnd.cs:149-169.
+                "InsertBinaryData whose element gets metadata and Update (C-WA3)",
+                """
+                    public class ProcessTaskEnd(IDataClient data) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var dataElement = instance.Data.First();
+                            var stream = new MemoryStream(new byte[] { 1 });
+                            var signedPdfDataElement = await data.InsertBinaryData(instance.Id, "pdf", "application/pdf", "pdf.pdf", stream);
+                            signedPdfDataElement.Refs = [Guid.Parse(dataElement.Id)];
+                            await data.Update(instance, signedPdfDataElement);
+                        }
+                    }
+                    """,
+                "await data.InsertBinaryData(instance.Id, \"pdf\", \"application/pdf\", \"pdf.pdf\", stream)",
+                "IDataClient.InsertBinaryData still writes to Storage directly in ProcessTaskEnd.End, which v9 refuses while the process is transitioning: the mutator has no member that sets the metadata of an element it adds."
+            },
+            {
+                // hdir/innsending-virksomheter-helfo App/logic/DataProcessing/ProcessTaskEnd.cs:360-378.
+                "UpdateBinaryData with the element's own bytes, which only renames it (C-WB2)",
+                """
+                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var dataElement = instance.Data.First();
+                            var instanceIdentifier = new InstanceIdentifier(instance);
+                            var fileContent = await dataClient.GetDataBytes(instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid, new Guid(dataElement.Id));
+                            using var fileStream = new MemoryStream(fileContent);
+                            await dataClient.UpdateBinaryData(instanceIdentifier, dataElement.ContentType, "nytt-navn.pdf", new Guid(dataElement.Id), fileStream);
+                        }
+                    }
+                    """,
+                "await dataClient.UpdateBinaryData(instanceIdentifier, dataElement.ContentType, \"nytt-navn.pdf\", new Guid(dataElement.Id), fileStream);",
+                "IDataClient.UpdateBinaryData still writes to Storage directly in ProcessTaskEnd.End, which v9 refuses while the process is transitioning: it only renames the element, and the mutator has no member that renames one."
+            },
+            {
+                "UpdateBinaryData with new bytes and a new filename (C-WB1)",
+                """
+                    public class ProcessTaskEnd(IDataClient dataClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var logg = instance.Data.First(d => d.DataType == "logg");
+                            var bytes = Encoding.UTF8.GetBytes("logg");
+                            await dataClient.UpdateBinaryData(new InstanceIdentifier(instance), "text/plain", "logg.txt", Guid.Parse(logg.Id), new MemoryStream(bytes));
+                        }
+                    }
+                    """,
+                "await dataClient.UpdateBinaryData(new InstanceIdentifier(instance), \"text/plain\", \"logg.txt\", Guid.Parse(logg.Id), new MemoryStream(bytes));",
+                "IDataClient.UpdateBinaryData still writes to Storage directly in ProcessTaskEnd.End, which v9 refuses while the process is transitioning: it also sets the filename, and the mutator has no member that renames an element."
+            },
             {
                 // digdir/regvil-2025-initiell App/logic/instantiation/InstantiationProcessor.cs:59-70, here in a task hook.
                 "UpdateSubstatus, which the mutator has no member for",
