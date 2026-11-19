@@ -70,7 +70,8 @@ impl Routes {
         };
         let timeout = query_value(request.uri(), "timeout").and_then(|seconds| seconds.parse().ok());
         let Some(timeout) = timeout.filter(|seconds| (1..=MAX_TIMEOUT_SECONDS).contains(seconds)) else {
-            return invalid(StatusCode::BAD_REQUEST, "The timeout must be from 1 to 1800 seconds.");
+            let detail = format!("The timeout must be from 1 to {MAX_TIMEOUT_SECONDS} seconds.");
+            return invalid(StatusCode::BAD_REQUEST, &detail);
         };
         if let Some(refused) = self.host.refusal(&run_id) {
             self.discard(request.into_body()).await;
