@@ -1,5 +1,7 @@
 using Altinn.Studio.Common;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using WorkflowEngine.Core.Extensions;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Operator.Commands.OperatorCommand;
 using WorkflowEngine.Operator.Extensions;
@@ -26,6 +28,9 @@ builder.Services.AddGracefulShutdown(
 );
 
 builder.Services.ConfigureOperatorCommand();
+
+// AddWorkflowEngine also registers the library's built-in commands, and the core operator ADR gives this host one.
+builder.Services.RemoveAll<ICommand>();
 builder.Services.AddCommand<OperatorCommand>();
 
 var app = builder.Build();
