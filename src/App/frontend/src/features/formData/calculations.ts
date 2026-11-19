@@ -174,6 +174,10 @@ function convertCalculationResult(
   if (Array.isArray(result) && hasType(schema, 'array')) {
     const values: FDValue[] = [];
     for (const [index, item] of result.entries()) {
+      if (item === null && isNonNullableValueType(`${target}[${index}]`, lookupTool)) {
+        // The backend cannot deserialize the list, so it keeps the list as it is
+        return { error: true };
+      }
       const converted = convertCalculationResult(item, `${target}[${index}]`, lookupTool);
       if (converted.error) {
         return converted;
@@ -189,16 +193,20 @@ function convertCalculationResult(
 }
 
 /**
- * A number or boolean that its object requires, and that cannot be null, is a non-nullable value type in the C# model.
- * Studio generates a nullable type for the others.
+ * A number or boolean that cannot be null is a non-nullable value type in the C# model when its object requires it, or
+ * when it is an item in a list. Studio generates a nullable type for the others.
  */
 function isNonNullableValueType(target: string, lookupTool: SchemaLookupTool): boolean {
-  const lastDot = target.lastIndexOf('.');
-  const name = target.slice(lastDot + 1);
   const [schema] = lookupTool.getSchemaForPath(target, true);
-  const [parentSchema] = lookupTool.getSchemaForPath(lastDot < 0 ? '' : target.slice(0, lastDot));
-  if (!schema || !parentSchema || name.endsWith(']') || !parentSchema.required?.includes(name)) {
+  if (!schema) {
     return false;
+  }
+  if (!target.endsWith(']')) {
+    const lastDot = target.lastIndexOf('.');
+    const [parentSchema] = lookupTool.getSchemaForPath(lastDot < 0 ? '' : target.slice(0, lastDot));
+    if (!parentSchema?.required?.includes(target.slice(lastDot + 1))) {
+      return false;
+    }
   }
   const types = schemaTypes(schema);
   return !types.includes('null') && types.some((type) => type === 'number' || type === 'integer' || type === 'boolean');
@@ -242,9 +250,23 @@ function writeCalculationResult(target: string, result: unknown, { dataType, mod
   // Keep explicit nulls stable across saves. Deleting them makes every nullable value returned by
   // the backend look like another local change and can trigger an endless series of saves.
   if (!deepEqual(dot.pick(target, model.currentData), converted.value)) {
-    dot.str(target, converted.value, model.currentData);
+    setValue(target, converted.value, model.currentData);
   }
   dot.delete(target, model.invalidCurrentData);
+}
+
+/**
+ * dot.str, except that an item in a list at the top level, such as numbers[1], is set in the list. dot-object only
+ * reads the brackets in a path with a dot, and writes a property named numbers[1] instead.
+ */
+function setValue(path: string, value: unknown, data: object) {
+  const topLevelItem = /^([^.[\]]+)\[(\d+)]$/.exec(path);
+  const list = topLevelItem ? (data as Record<string, unknown>)[topLevelItem[1]] : undefined;
+  if (topLevelItem && Array.isArray(list)) {
+    list[Number(topLevelItem[2])] = value;
+    return;
+  }
+  dot.str(path, value, data);
 }
 
 function mergeObject(target: string, result: Record<string, unknown>, context: CalculationTarget) {

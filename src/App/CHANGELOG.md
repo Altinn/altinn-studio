@@ -12,23 +12,31 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; rows in a list of objects that bring an `altinnRowId`, as rows copied from another group do, merge into the rows with those ids, and rows without one merge by position. A list where only some rows have an id, two rows with the same id or a row that is not an object is logged as an error, and the list is left as it is. The rows end up in the order of the result, and rows the result leaves out are removed. Calculations also run on the data elements an instance is created with, so a new instance stores the same values the form calculates when it loads. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+- Calculations in `models/<dataType>.calculation.json` can set a list or object field, such as `["dataModel", "some.list"]`: ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [#22001](https://github.com/Altinn/altinn-studio/pull/22001), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+  - an object sets only the properties it contains
+  - rows merge by `altinnRowId`, as copied rows have, or else by position
+  - a list with duplicate or only some row ids is logged as an error and not written
+  - calculations also run when an instance is created
 
 ### Changed
 
-- Breaking: a number, boolean or other value type that the data model cannot hold empty is set to the value it has in a new object, which includes the value of its property initializer, when it is removed, as when hidden data is removed, and when `IFormDataWrapper.Set` gets null. Before, removing it set `0` or `false` while the same data without the property deserialized to the initializer, and `Set` with null failed. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- Breaking: `calculations` in `models/<dataType>.calculation.json` is now a list of `{"field": ..., "expression": ...}` items, run in list order. An app with a file in the old object format does not start; the message says to run `studioctl app upgrade v9`. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
-- Expressions read text with spaces around a number, such as `" 12 "`, as that number, in the form and on the server. A comma is still not a decimal separator, and the error now says so. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- Expressions on the server read text as a boolean only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- A calculated value is converted to the type of its field with the same rules as expressions use for their arguments, in the form and on the server. A number field does not take `true`; a boolean field takes `true`, `false`, `1` and `0`, also as text, and nothing else; a text field takes the text of a number or a boolean; a whole-number field does not take a fraction, which the server rounded before. A result that does not fit keeps the previous value and logs a warning. `null` clears a field, except a required number or boolean, which the data model cannot hold empty: the server sets it to the value it has in a new object, such as the value of a property initializer, and logs a warning, and the form keeps its value until the save returns that default. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- `["dataModel", ...]` in the form gives an object, or the rows of a list, with every property the data model has, as `null` where the data has no value, as on the server. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- A calculation that fails to evaluate on the server, such as `["if", "yes", 1]` on text that is not a boolean, no longer fails the save: the error is logged, the field keeps its value and the other calculations run. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- Breaking: a number or boolean the data model cannot hold empty gets its property initializer, or `0` or `false` without one, when it is removed, such as hidden data, or set to null with `IFormDataWrapper.Set`. Removing it gave `0` or `false` before, and `Set` with null failed. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Breaking: `calculations` in `models/<dataType>.calculation.json` is now a list of `{"field": ..., "expression": ...}` items, run in list order. An app with a file in the old object format does not start; the message says to run `studioctl app upgrade v9`. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [#22001](https://github.com/Altinn/altinn-studio/pull/22001), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+- Expressions read text with spaces around a number, such as `" 12 "`, as that number, in the form and on the server. A comma is still not a decimal separator, and the error now says so. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Expressions on the server read text as a boolean only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- The form and server convert calculated values to the field's type as they convert expression arguments: ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+  - a value that does not fit, such as `true` in a number field, is not written
+  - `null` in a required number or boolean gives its property initializer, or `0`, on the server
+  - a list of numbers with a `null` item is not written
+- `["dataModel", ...]` in the form gives an object, or the rows of a list, with every property the data model has, as `null` where the data has no value, as on the server. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A calculation that fails to evaluate on the server, such as `["if", "yes", 1]` on text that is not a boolean, no longer fails the save: the error is logged, the field keeps its value and the other calculations run. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 
 ### Fixed
 
-- A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
-- A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A calculation for an item in a list at the top of the data model, such as `numbers[1]`, sets that item in the form. It made a separate field named `numbers[1]` before. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 
 ### Removed
