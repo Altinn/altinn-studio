@@ -32,6 +32,28 @@ public sealed class LegacyRuleConversionTests
     [InlineData("return Math.round(obj.a);", "{\"a\":-2.5}", "-2")]
     [InlineData("return Math.round(obj.a);", "{\"a\":2.5}", "3")]
     [InlineData("return obj.a == 1 ? 10 : 20;", "{\"a\":\"1\"}", "10")]
+    [InlineData("return obj.a.split(',').includes('yes');", "{\"a\":\"no,yes\"}", "true")]
+    [InlineData("return obj.a.split(',').includes('yes');", "{\"a\":\"yesterday,no\"}", "false")]
+    [InlineData("return obj.a.split(',').includes(1);", "{\"a\":\"1,2\"}", "false")]
+    [InlineData("return obj.a.includes('yes');", "{\"a\":\"yesterday\"}", "true")]
+    [InlineData("return obj.a?.includes(obj.b.trim()) ? 1 : 0;", "{\"a\":null,\"b\":null}", "0")]
+    [InlineData("total = obj.a; var total; return total / obj.b;", "{\"a\":6,\"b\":2}", "3")]
+    [InlineData(
+        "var total = 0; obj.a.split(',').forEach(part => { if (part) { const amount = +part; total += amount; } }); return total;",
+        "{\"a\":\"1,,2\"}",
+        "3"
+    )]
+    [InlineData(
+        "var total = 0; obj.a.split(',').forEach(part => { part = part.trim(); total += +part; }); return total;",
+        "{\"a\":\" 1 ,2\"}",
+        "3"
+    )]
+    [InlineData(
+        "var total = 0; obj.a.split(',').forEach(part => { amount = +part; var amount; total += amount; }); return total;",
+        "{\"a\":\"1,2\"}",
+        "3"
+    )]
+    [InlineData("return Number('0x20000000000003') === 9007199254740996 ? 1 : 0;", "{\"a\":0}", "1")]
     [InlineData("var $sum = obj.a + obj.b; return $sum;", "{\"a\":1,\"b\":2}", "3")]
     [InlineData("return obj.a < obj.b ? 1 : 0;", "{\"a\":\"10\",\"b\":\"2\"}", "1")]
     [InlineData("if (obj.a > 0) { var result = 12; } else { result = 7; } return result;", "{\"a\":1}", "12")]
@@ -264,6 +286,10 @@ public sealed class LegacyRuleConversionTests
     [InlineData("return value; let value = 1;")]
     [InlineData("value = 1; let value;")]
     [InlineData("const value = 1; value = 2; return value;")]
+    [InlineData(
+        "var total = 0; obj.a.split(',').forEach(part => { if (part === '') return; total += +part; }); return total;"
+    )]
+    [InlineData("let total = 0; const add = n => { total = n; return n; }; add(obj.a); return total;")]
     public void UnsupportedAssignmentsAndHelperScopes_AreRejectedByPrimitiveConverter(string body)
     {
         using var app = new TempAppFolder();
@@ -279,18 +305,34 @@ public sealed class LegacyRuleConversionTests
         Assert.Throws<NotSupportedException>(() => new PrimitiveRuleConverter("obj").Convert(ast));
     }
 
+    [Fact]
+    public async Task NumberInputParameter_ShadowsTheGlobalNumberObject()
+    {
+        Assert.Equal(
+            4d,
+            await Execute(
+                "return Number.MAX_SAFE_INTEGER / Number.divisor;",
+                new() { ["MAX_SAFE_INTEGER"] = 12d, ["divisor"] = 3d },
+                parameterName: "Number"
+            )
+        );
+    }
+
     private static async Task<object?> Execute(
         string body,
         Dictionary<string, object?> inputs,
         bool shared = false,
         string? secondBody = null,
-        bool unsupported = false
+        bool unsupported = false,
+        string parameterName = "obj"
     )
     {
         using var app = new TempAppFolder();
         var path = app.Write(
             "ui/form/RuleHandler.js",
-            "var ruleHandlerObject = { calculate: function(obj) { "
+            "var ruleHandlerObject = { calculate: function("
+                + parameterName
+                + ") { "
                 + body
                 + " }, second: function(obj) { "
                 + (secondBody ?? body)
