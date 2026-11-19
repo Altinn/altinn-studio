@@ -1,3 +1,5 @@
+import { breakpoints } from '@app/form-component';
+
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
@@ -196,6 +198,46 @@ describe('List component', () => {
     cy.document().should((doc) => {
       expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth);
     });
+  });
+
+  it('omits unbound mobile summary columns while respecting tableHeadersMobile', () => {
+    cy.interceptLayout(
+      'Task_5',
+      (component) => {
+        if (component.type === 'List' && component.id === 'listCheckboxes') {
+          delete component.dataModelBindings?.age;
+          component.tableHeadersMobile = ['name', 'age'];
+        }
+      },
+      (layouts) => {
+        layouts.summary2!.data.layout = [
+          { id: 'summary-checkboxes', type: 'Summary2', target: { type: 'component', id: 'listCheckboxes' } },
+        ];
+      },
+    );
+    cy.viewport('samsung-s10');
+    cy.goto('datalist');
+    cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
+    cy.get(dataListPage.checkboxesTableBody).contains('Kåre').closest('tr').click();
+    cy.findAllByRole('button', { name: 'Neste' }).last().click();
+    cy.findByRole('heading', { name: 'Oppsummering' }).should('be.visible');
+    cy.findAllByRole('button', { name: 'Neste' }).last().click();
+
+    const table = () => cy.findByRole('table', { name: 'Hvem skal få kopi av saken?' });
+    table().find('tbody td').should('have.length', 1).and('have.text', 'Navn: Kåre');
+    cy.viewport(breakpoints.md - 5, 1024);
+    table().find('tbody td').should('have.length', 1).and('have.text', 'Navn: Kåre');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'List' && component.id === 'listCheckboxes') {
+        delete component.tableHeadersMobile;
+      }
+    });
+    table().should('contain.text', 'Yrke: Sykepleier').and('not.contain.text', 'Alder');
+
+    cy.viewport(breakpoints.md, 768);
+    table().findByRole('columnheader', { name: 'Alder' }).should('be.visible');
+    table().find('tbody td').should('have.length', 3).eq(1).should('be.empty');
   });
 
   it('keeps descriptions and mobile selection labels while preserving all columns in PDF', { retries: 0 }, () => {
