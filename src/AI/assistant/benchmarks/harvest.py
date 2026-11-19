@@ -10,6 +10,8 @@ from typing import Any
 
 import httpx
 
+from shared.config import get_config
+
 LOOP_CALL_NAME = "agentic_loop_llm_call"
 # One entry per trace.
 SYSTEM_PROMPTS_FILE = "loop_traces.prompts.json"
@@ -342,14 +344,13 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    host = os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
     public_key = os.environ.get("LANGFUSE_PUBLIC_KEY")
     secret_key = os.environ.get("LANGFUSE_SECRET_KEY")
-    if not (host and public_key and secret_key):
-        raise SystemExit("Set LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY")
+    if not (public_key and secret_key):
+        raise SystemExit("Set LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY")
     auth = (public_key, secret_key)
 
-    with httpx.Client(base_url=host.rstrip("/"), auth=auth, timeout=240) as client:
+    with httpx.Client(base_url=get_config().LANGFUSE_HOST, auth=auth, timeout=240) as client:
         reader = TraceReader(client)
 
         if args.list:

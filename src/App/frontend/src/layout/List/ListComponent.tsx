@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { AriaAttributes, PropsWithChildren } from 'react';
 
 import {
+  BaseTable,
   Description,
   getLabelId,
   OptionalIndicator,
@@ -10,15 +11,7 @@ import {
   useIsMobile,
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import {
-  Checkbox,
-  Fieldset,
-  Heading,
-  Radio,
-  Table,
-  useCheckboxGroup,
-  useRadioGroup,
-} from '@digdir/designsystemet-react';
+import { Checkbox, Fieldset, Heading, Radio, useCheckboxGroup, useRadioGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
@@ -306,7 +299,11 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       baseComponentId={baseComponentId}
       isSummary={isSummary}
     >
-      <Table
+      <BaseTable
+        headerBackground='tinted'
+        rowHeight='large'
+        cellFontSize='large'
+        lookReachesNestedTables='all'
         className={cn(classes.listTable, {
           [classes.configuredColumns]: !!config.tableColumns,
           [classes.readOnly]: readOnly,
@@ -344,14 +341,14 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             ))}
           </colgroup>
         )}
-        <Table.Head>
-          <Table.Row>
+        <BaseTable.Head>
+          <BaseTable.Row>
             {!readOnly && (
-              <Table.HeaderCell>
+              <BaseTable.HeaderCell>
                 <span className={utilClasses.visuallyHidden}>
                   <Lang id='list_component.controlsHeader' />
                 </span>
-              </Table.HeaderCell>
+              </BaseTable.HeaderCell>
             )}
             {Object.entries(config.tableHeaders).map(([key, value]) => {
               const isSortable = config.sortableColumns?.includes(key);
@@ -360,25 +357,25 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 sort = sortColumn === key ? sortDirection : 'none';
               }
               return (
-                <Table.HeaderCell
+                <BaseTable.HeaderCell
                   key={key}
                   sort={sort}
                   onClick={isSortable ? () => handleSort(key) : undefined}
                 >
                   <Lang id={value} />
-                </Table.HeaderCell>
+                </BaseTable.HeaderCell>
               );
             })}
-          </Table.Row>
-        </Table.Head>
-        <Table.Body>
+          </BaseTable.Row>
+        </BaseTable.Head>
+        <BaseTable.Body>
           {data?.listItems.map((row) => (
-            <Table.Row
+            <BaseTable.Row
               key={JSON.stringify(row)}
               onClick={!readOnly ? () => handleRowClick(row) : undefined}
             >
               {!readOnly && (
-                <Table.Cell
+                <BaseTable.Cell
                   className={cn({
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
@@ -407,22 +404,22 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                       readOnly={instanceLocked}
                     />
                   )}
-                </Table.Cell>
+                </BaseTable.Cell>
               )}
               {Object.keys(config.tableHeaders).map((key) => (
-                <Table.Cell
+                <BaseTable.Cell
                   key={key}
                   className={cn({
                     [classes.selectedRowCell]: isRowSelected(row) && !readOnly,
                   })}
                 >
                   {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
-                </Table.Cell>
+                </BaseTable.Cell>
               ))}
-            </Table.Row>
+            </BaseTable.Row>
           ))}
-        </Table.Body>
-      </Table>
+        </BaseTable.Body>
+      </BaseTable>
       {config.pagination && (
         <Pagination
           id={componentId}
@@ -473,7 +470,7 @@ function Pagination({
     setPageSize(newSize);
   }
   return (
-    <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'ds-table__header__cell')}>
+    <BaseTable.Pager centered={isMobile}>
       <CustomPagination
         id={id}
         nextLabel={langAsString('list_component.nextPage')}
@@ -489,6 +486,6 @@ function Pagination({
         onPageSizeChange={(value) => handlePageSizeChange(+value)}
         rowsPerPageOptions={rowsPerPageOptions}
       />
-    </div>
+    </BaseTable.Pager>
   );
 }

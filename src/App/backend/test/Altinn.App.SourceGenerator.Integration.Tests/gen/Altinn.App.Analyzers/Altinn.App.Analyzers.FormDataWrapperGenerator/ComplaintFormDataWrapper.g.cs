@@ -186,6 +186,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
 
         switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
         {
+            case "claimants" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant>?>(out var result_Claimants))
+                {
+                    model.Claimants = result_Claimants;
+                    return true;
+                }
+                return false;
+            }
             case "claimants":
                 return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Complaint_Claimants(
                     model,
@@ -194,6 +204,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
                     nextOffset,
                     value
                 );
+            case "agent" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Agent?>(out var result_Agent))
+                {
+                    model.Agent = result_Agent;
+                    return true;
+                }
+                return false;
+            }
             case "agent" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Complaint_Agent(
                     model,
@@ -252,6 +272,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
         {
             return false;
         }
+        if (offset == -1)
+        {
+            // csharpier-ignore
+            if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant>(out var result))
+            {
+                model[literalIndex] = result!;
+                return true;
+            }
+            return false;
+        }
         var item = model[literalIndex];
         return SetRecursive(item, path, offset, value);
     }
@@ -291,6 +321,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
                     return true;
                 }
                 return false;
+            case "contact" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Contact?>(out var result_Contact))
+                {
+                    model.Contact = result_Contact;
+                    return true;
+                }
+                return false;
+            }
             case "contact" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Claimant_Contact(
                     model,
@@ -368,6 +408,16 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
                     return true;
                 }
                 return false;
+            case "contact" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Contact?>(out var result_Contact))
+                {
+                    model.Contact = result_Contact;
+                    return true;
+                }
+                return false;
+            }
             case "contact" when literalIndex is -1:
                 return SetRecursive_WithObjectCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_Agent_Contact(
                     model,
@@ -392,6 +442,141 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
     }
 
     #endregion Setters
+    #region AddRow
+
+    /// <inheritdoc />
+    public bool AddRow(
+        global::System.ReadOnlySpan<char> path,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+
+        return AddRowRecursive(_dataModel, path, 0, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "claimants" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant>(out var result_Claimants))
+                {
+                    model.Claimants ??= new();
+                    model.Claimants.Add(result_Claimants!);
+                    return true;
+                }
+                return false;
+            }
+            case "claimants" when literalIndex is not -1:
+                return AddRowRecursive(model.Claimants, path, literalIndex, nextOffset, value);
+            case "agent" when literalIndex is -1 && nextOffset is not -1:
+                model.Agent ??= new();
+                return AddRowRecursive(model.Agent, path, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::System.Collections.Generic.List<global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0 || offset == -1)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        var item = model[literalIndex];
+        return AddRowRecursive(item, path, offset, value);
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "contact" when literalIndex is -1 && nextOffset is not -1:
+                model.Contact ??= new();
+                return AddRowRecursive(model.Contact, path, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Contact? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            default:
+                return false;
+        }
+    }
+
+    private static bool AddRowRecursive(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.Agent? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || offset == -1)
+        {
+            return false;
+        }
+
+        switch (ParseSegment(path, offset, out int nextOffset, out int literalIndex))
+        {
+            case "contact" when literalIndex is -1 && nextOffset is not -1:
+                model.Contact ??= new();
+                return AddRowRecursive(model.Contact, path, nextOffset, value);
+            default:
+                return false;
+        }
+    }
+
+    #endregion AddRow
     #region AddIndexToPath
 
     /// <inheritdoc />

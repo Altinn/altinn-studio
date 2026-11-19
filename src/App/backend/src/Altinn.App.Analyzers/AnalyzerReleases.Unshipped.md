@@ -48,3 +48,4 @@ ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the 
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
 ALTINNAPP1024 | Process | Error | Subform PDF service task names a UI folder it cannot render
 ALTINNAPP1026 | Process | Error | PDF service task's pdfLayoutName names a layout that does not exist
+ALTINNAPP1030 | Process | Error | Exclusive gateway routes on gatewayAction right after a service task that returns no action
