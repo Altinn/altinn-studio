@@ -35,6 +35,7 @@
       ]
     },
     "SelectedPerson": {
+      "type": "object",
       "properties": {
         "Name": {
           "type": "string"
