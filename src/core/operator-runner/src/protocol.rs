@@ -33,7 +33,6 @@ pub enum Status {
 #[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(tag = "status", rename_all = "lowercase")]
 pub enum Reply {
-    Running,
     Completed(Outcome),
     Failed {
         /// Logs carry this reason and not the error, because the error can contain text from the app and the VM.
@@ -47,7 +46,6 @@ impl Reply {
     #[must_use]
     pub const fn status(&self) -> Status {
         match self {
-            Self::Running => Status::Running,
             Self::Completed(_) => Status::Completed,
             Self::Failed { .. } => Status::Failed,
         }
@@ -86,7 +84,6 @@ enum Summary<'a> {
 impl<'a> From<&'a Reply> for Summary<'a> {
     fn from(reply: &'a Reply) -> Self {
         match reply {
-            Reply::Running => Self::Running,
             Reply::Completed(outcome) => Self::Completed {
                 exit_code: outcome.exit_code,
                 timed_out: outcome.timed_out,
@@ -139,7 +136,7 @@ pub fn started(run_id: &RunId, start: Start) -> Response<Body> {
 #[must_use]
 pub fn read(answer: Option<Answer>, read: Read) -> Response<Body> {
     match (answer, read) {
-        (Some(Answer::Running), _) => json(StatusCode::OK, &Reply::Running),
+        (Some(Answer::Running), _) => json(StatusCode::OK, &Summary::Running),
         (Some(Answer::Ended(reply)), Read::Status) => json(StatusCode::OK, &Summary::from(&*reply)),
         (Some(Answer::Ended(reply)), Read::Result) => json(StatusCode::OK, &*reply),
         (None, _) => {
