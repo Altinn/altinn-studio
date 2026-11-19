@@ -11,6 +11,22 @@ namespace WorkflowEngine.Integration.Tests;
 public partial class EngineTests
 {
     [Fact]
+    public async Task GetCollection_KeyWithAnEncodedSlash_FindsTheCollection()
+    {
+        await _client.Enqueue(
+            _testHelpers.CreateEnqueueRequest(
+                _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
+            ),
+            collectionKey: "process/1"
+        );
+
+        // The API client encodes the slash in the route as %2F.
+        var collection = await _client.GetCollection("process/1");
+
+        Assert.Equal("process/1", collection?.Key);
+    }
+
+    [Fact]
     public async Task ListCollections_ReturnsCollectionsForNamespace()
     {
         // Arrange — two batches under distinct collection keys materialize two collection rows.
