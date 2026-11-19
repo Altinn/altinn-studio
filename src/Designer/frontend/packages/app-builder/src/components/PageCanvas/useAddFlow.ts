@@ -11,6 +11,7 @@ import {
   createNewComponent,
   generateComponentId,
   getSchemaFieldForType,
+  hasOptions,
   isQuestionType,
   savesToDataModel,
 } from '../../utils/newComponentUtils';
@@ -32,7 +33,7 @@ export type AddFlow = {
 /**
  * Adds what the user chooses in the add box. Texts and groups are added straight away with a
  * default text the user changes in place. Questions first ask for a label, since the label names
- * the data model field the answer is saved in.
+ * the data model field the answer is saved in, and for an optional description and the options.
  */
 export const useAddFlow = (): AddFlow => {
   const { t } = useTranslation();
@@ -76,14 +77,20 @@ export const useAddFlow = (): AddFlow => {
       componentId,
       pageName,
       text: t(`app_builder.default_text.${type}`),
-      optionTexts: defaultOptionTexts,
     });
     if (await add({ component, texts, placement })) setAddedComponentId(componentId);
   };
 
-  const addQuestion = async ({ label, fieldName, required }: NewComponentValues): Promise<void> => {
+  const addQuestion = async ({
+    label,
+    description,
+    options,
+    fieldName,
+    required,
+  }: NewComponentValues): Promise<void> => {
     if (!newQuestion) return;
     const { type, placement } = newQuestion;
+    const optionTexts = getOptionTexts(type, options);
     const componentId = generateComponentId(type, layouts);
     const binding =
       dataModel && fieldName ? { field: fieldName, dataType: dataModel.dataType } : undefined;
@@ -92,7 +99,8 @@ export const useAddFlow = (): AddFlow => {
       componentId,
       pageName,
       text: label,
-      optionTexts: defaultOptionTexts,
+      description,
+      optionTexts,
       binding,
     });
     const component = setRequiredValue(created.component, required);
@@ -104,7 +112,7 @@ export const useAddFlow = (): AddFlow => {
         binding && savesToDataModel(type)
           ? { name: fieldName, schema: getSchemaFieldForType(type), dataModel }
           : undefined,
-      newCodeList: needsYesNoList(type)
+      newCodeList: needsYesNoList(type, optionTexts)
         ? { id: YES_NO_CODE_LIST_ID, options: yesNoOptions }
         : undefined,
       newAttachmentDataType:
@@ -112,8 +120,21 @@ export const useAddFlow = (): AddFlow => {
     });
   };
 
-  const needsYesNoList = (type: QuestionComponentType): boolean =>
-    type === ComponentType.RadioButtons && !hasCodeList(codeLists, YES_NO_CODE_LIST_ID);
+  // A radio button question without its own options asks yes or no. A checkbox list or dropdown
+  // whose options were left empty gets example options, which the user renames in place.
+  const getOptionTexts = (
+    type: QuestionComponentType,
+    options: string[] | undefined,
+  ): string[] | undefined => {
+    if (!hasOptions(type)) return undefined;
+    if (options?.length) return options;
+    return type === ComponentType.RadioButtons && !options ? undefined : defaultOptionTexts;
+  };
+
+  const needsYesNoList = (type: QuestionComponentType, optionTexts?: string[]): boolean =>
+    type === ComponentType.RadioButtons &&
+    !optionTexts &&
+    !hasCodeList(codeLists, YES_NO_CODE_LIST_ID);
 
   return {
     isSaving,

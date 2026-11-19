@@ -63,8 +63,13 @@ export type NewComponentInput = {
   pageName: string;
   /** The text shown as the heading, paragraph, alert, group title or label. */
   text: string;
-  /** Texts for the example options of a checkbox list or dropdown. */
-  optionTexts: string[];
+  /**
+   * Texts for the options of a question with options. A radio button question without them asks yes
+   * or no, from the shared code list.
+   */
+  optionTexts?: string[];
+  /** The description below the label of a question. */
+  description?: string;
   required?: boolean;
   binding?: DataModelBinding;
 };
@@ -86,6 +91,7 @@ export function createNewComponent({
   pageName,
   text,
   optionTexts,
+  description,
   required,
   binding,
 }: NewComponentInput): NewComponent {
@@ -103,7 +109,17 @@ export function createNewComponent({
   if (required) component.required = true;
   if (binding) component.dataModelBindings = { simpleBinding: binding };
 
-  if (type === ComponentType.Checkboxes || type === ComponentType.Dropdown) {
+  if (description) {
+    const descriptionKey = textKey('description');
+    texts[descriptionKey] = description;
+    component.textResourceBindings = {
+      ...component.textResourceBindings,
+      description: descriptionKey,
+    };
+  }
+
+  if (hasOptions(type) && optionTexts) {
+    delete component.optionsId;
     component.options = optionTexts.map((optionText, index) => {
       const optionKey = textKey(`option${index + 1}`);
       texts[optionKey] = optionText;

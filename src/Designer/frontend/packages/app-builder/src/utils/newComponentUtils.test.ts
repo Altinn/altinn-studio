@@ -70,6 +70,37 @@ describe('createNewComponent', () => {
     ]);
     expect(texts['Side1.Checkboxes-abc123.option2']).toBe('Alternativ 2');
   });
+
+  it('gives radio buttons their own options instead of yes or no, when they are given', () => {
+    const { component, texts } = createNewComponent({
+      type: ComponentType.RadioButtons,
+      componentId: 'RadioButtons-abc123',
+      pageName,
+      text: 'Hva søker du om?',
+      optionTexts: ['Ny tillatelse', 'Fornyelse'],
+    });
+    expect(component).not.toHaveProperty('optionsId');
+    expect(component.options).toEqual([
+      { value: '1', label: 'Side1.RadioButtons-abc123.option1' },
+      { value: '2', label: 'Side1.RadioButtons-abc123.option2' },
+    ]);
+    expect(texts['Side1.RadioButtons-abc123.option1']).toBe('Ny tillatelse');
+  });
+
+  it('creates a question with a description', () => {
+    const { component, texts } = createNewComponent({
+      type: ComponentType.Input,
+      componentId: 'Input-abc123',
+      pageName,
+      text: 'Registreringsnummer',
+      description: 'For eksempel AB 12345',
+    });
+    expect(component.textResourceBindings).toEqual({
+      title: 'Side1.Input-abc123.title',
+      description: 'Side1.Input-abc123.description',
+    });
+    expect(texts['Side1.Input-abc123.description']).toBe('For eksempel AB 12345');
+  });
 });
 
 describe('generateComponentId', () => {
@@ -105,7 +136,6 @@ describe('createNewComponent, type defaults', () => {
       componentId: 'id',
       pageName,
       text: 'Tekst',
-      optionTexts: ['A', 'B'],
     });
 
   it('puts the text of an alert in its body', () => {

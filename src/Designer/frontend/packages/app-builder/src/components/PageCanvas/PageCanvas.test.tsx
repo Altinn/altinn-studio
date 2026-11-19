@@ -357,6 +357,41 @@ describe('PageCanvas, adding components', () => {
     });
   });
 
+  it('asks for the label when the user adds a question without one', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn();
+    renderPageCanvas({}, { saveFormLayout });
+
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Input'));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.new_component.add') }),
+    );
+
+    expect(
+      screen.getByText(textMock('app_builder.new_component.label_missing')),
+    ).toBeInTheDocument();
+    expect(getLabelField()).toHaveFocus();
+    expect(saveFormLayout).not.toHaveBeenCalled();
+  });
+
+  it('names the field the answer is saved in after the label, once there is one', async () => {
+    const user = userEvent.setup();
+    renderPageCanvas();
+
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Input'));
+    const savedAs = (fieldName: string): string =>
+      textMock('app_builder.new_component.saved_as', { fieldName });
+    expect(screen.queryByText(savedAs('input'))).not.toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('app_builder.new_component.saved_as_pending')),
+    ).toBeInTheDocument();
+
+    await user.type(getLabelField(), 'Etternavn');
+    expect(screen.getByText(savedAs('etternavn'))).toBeInTheDocument();
+  });
+
   it('does not save the layout when the data model cannot be saved', async () => {
     const user = userEvent.setup();
     const saveDataModel = vi.fn().mockImplementation(() => Promise.reject(new Error('failed')));
@@ -383,6 +418,72 @@ describe('PageCanvas, adding components', () => {
 
     expect(updateOptionList).toHaveBeenCalledWith(org, app, 'janei', expect.any(Array));
     expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({ optionsId: 'janei' });
+  });
+
+  it('adds radio buttons with the options typed in the add box, one after the other', async () => {
+    const user = userEvent.setup();
+    const updateOptionList = vi.fn();
+    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve({}));
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { updateOptionList, upsertTextResources, saveFormLayout });
+
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('RadioButtons'));
+    await user.type(getLabelField(), 'Hva gjelder søknaden?');
+    await user.click(
+      screen.getByRole('radio', { name: textMock('app_builder.new_component.options_own') }),
+    );
+    for (const [index, option] of ['Ny tillatelse', 'Fornyelse', 'Flytting'].entries()) {
+      const field = getNewOptionField(index + 1);
+      expect(field).toHaveFocus();
+      await user.type(field, option);
+      await user.keyboard('{Enter}');
+    }
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.new_component.add') }),
+    );
+    await screen.findByText('Hva gjelder søknaden?', { selector: '[role="textbox"]' });
+
+    expect(updateOptionList).not.toHaveBeenCalled();
+    const radioButtons = getSavedComponents(saveFormLayout).at(-1);
+    expect(radioButtons).not.toHaveProperty('optionsId');
+    expect(radioButtons.options).toHaveLength(3);
+    expect(upsertTextResources).toHaveBeenCalledWith(
+      org,
+      app,
+      'nb',
+      expect.objectContaining({ [radioButtons.options[2].label]: 'Flytting' }),
+    );
+  });
+
+  it('adds a question with the description written in the add box', async () => {
+    const user = userEvent.setup();
+    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve({}));
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { upsertTextResources, saveFormLayout });
+
+    await user.click(getAddComponentButton());
+    await user.click(getComponentTypeButton('Input'));
+    await user.type(getLabelField(), 'Registreringsnummer');
+    await user.type(
+      // The name ends with the tag that marks the field as optional.
+      screen.getByRole('textbox', {
+        name: (name) => name.startsWith(textMock('app_builder.new_component.description')),
+      }),
+      'For eksempel AB 12345',
+    );
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.new_component.add') }),
+    );
+
+    const descriptionKey =
+      getSavedComponents(saveFormLayout).at(-1).textResourceBindings.description;
+    expect(upsertTextResources).toHaveBeenCalledWith(
+      org,
+      app,
+      'nb',
+      expect.objectContaining({ [descriptionKey]: 'For eksempel AB 12345' }),
+    );
   });
 
   it('creates the attachment data type of a new file upload', async () => {
@@ -650,8 +751,14 @@ const getAddComponentButton = (): HTMLElement =>
 const getComponentTypeButton = (type: string): HTMLElement =>
   screen.getByRole('button', { name: textMock(`app_builder.component_type.${type}`) });
 
+// The name ends with the tag that marks the label as required.
 const getLabelField = (): HTMLElement =>
-  screen.getByRole('textbox', { name: textMock('app_builder.new_component.label') });
+  screen.getByRole('textbox', {
+    name: (name) => name.startsWith(textMock('app_builder.new_component.label')),
+  });
+
+const getNewOptionField = (number: number): HTMLElement =>
+  screen.getByRole('textbox', { name: textMock('app_builder.new_component.option', { number }) });
 
 const getSavedComponents = (saveFormLayout: ReturnType<typeof vi.fn>): LayoutComponent[] =>
   saveFormLayout.mock.calls.at(-1)[4].layout.data.layout;
