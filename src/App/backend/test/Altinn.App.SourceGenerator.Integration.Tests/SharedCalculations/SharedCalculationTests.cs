@@ -108,13 +108,14 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
                 _ => throw new ArgumentOutOfRangeException(nameof(wrapper)),
             }
         );
+        // Keyed by data element, since an instance can have more than one data element of a data type
         var models = new Dictionary<string, CalculationTestModel>();
         var inputRowIds = new Dictionary<string, List<string>>();
         foreach (var dataModel in dataModels)
         {
             dataAccessor.Add(dataModel.DataElement.ToDataElement(), dataModel.Data);
-            models.Add(dataModel.DataElement.DataType, dataModel.Data);
-            inputRowIds.Add(dataModel.DataElement.DataType, CollectRowIds(dataModel.Data));
+            models.Add(dataModel.DataElement.Id, dataModel.Data);
+            inputRowIds.Add(dataModel.DataElement.Id, CollectRowIds(dataModel.Data));
         }
 
         Exception? exception = null;
@@ -164,19 +165,19 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         var serializer = new ModelSerializationService(Mock.Of<IAppModel>());
         foreach (var dataModel in dataModels)
         {
-            var dataType = dataModel.DataElement.DataType;
-            // Row ids are given to new rows when the changes are collected after data processing, before the data
-            // is saved and returned to the frontend
+            var (id, dataType) = (dataModel.DataElement.Id, dataModel.DataElement.DataType);
+            // Rows without an id, such as rows in the input data without one, get one when the changes are collected
+            // after data processing, before the data is saved and returned to the frontend
             var formDataWrapper = await dataAccessor.GetFormDataWrapper(dataModel.DataElement.ToDataElement());
             formDataWrapper.InitializeAltinnRowIds();
-            var actual = JsonNode.Parse(serializer.SerializeToJson(models[dataType]).Span);
-            var expected = expects[dataType];
+            var actual = JsonNode.Parse(serializer.SerializeToJson(models[id]).Span);
+            var expected = expects[id];
             output.WriteLine($"{dataType} expected: {expected?.ToJsonString()}");
             output.WriteLine($"{dataType} actual:   {actual?.ToJsonString()}");
 
             var errors = new List<string>();
-            var actualRowIds = CollectRowIds(actual);
-            Compare(expected, actual, dataType, errors, inputRowIds[dataType], actualRowIds);
+            var newRowIds = new NewRowIds(inputRowIds[id], CollectRowIds(actual), expected);
+            Compare(expected, actual, dataType, errors, newRowIds);
             Assert.True(errors.Count == 0, string.Join(Environment.NewLine, errors));
         }
         AssertLogs("warning", testCase.ExpectsWarnings, logs.Where(log => log.Level == LogLevel.Warning).ToList());
@@ -317,7 +318,14 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         }
         if (expected == "array")
         {
-            CompareProperty(type.GetGenericArguments()[0], schema.GetProperty("items"), root, $"{path}[]", errors);
+            var itemType = type.GetGenericArguments()[0];
+            CompareProperty(
+                Nullable.GetUnderlyingType(itemType) ?? itemType,
+                schema.GetProperty("items"),
+                root,
+                $"{path}[]",
+                errors
+            );
         }
         else if (expected == "object")
         {
@@ -381,15 +389,19 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         );
         if (testCase.DataModels is null)
         {
-            return new() { [dataModels[0].DataElement.DataType] = expects };
+            return new() { [dataModels[0].DataElement.Id] = expects };
         }
-        var byDataType = expects?.AsObject() ?? throw new InvalidOperationException("expects is null");
+        // Keyed by data type, or by data element id when there is more than one data element of a data type
+        var byKey = expects?.AsObject() ?? throw new InvalidOperationException("expects is null");
         return dataModels.ToDictionary(
-            d => d.DataElement.DataType,
+            d => d.DataElement.Id,
             d =>
-                byDataType.TryGetPropertyValue(d.DataElement.DataType, out var data)
+                byKey.TryGetPropertyValue(d.DataElement.Id, out var data)
+                || byKey.TryGetPropertyValue(d.DataElement.DataType, out data)
                     ? data
-                    : throw new InvalidOperationException($"expects has no {d.DataElement.DataType}")
+                    : throw new InvalidOperationException(
+                        $"expects has neither {d.DataElement.Id} nor {d.DataElement.DataType}"
+                    )
         );
     }
 
@@ -479,8 +491,7 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
 
     /// <summary>
     /// Compares the data the backend calculated with the expected data. Values compare exactly, numbers by value,
-    /// and <c>"&lt;new&gt;"</c> as an <c>altinnRowId</c> matches an id that is not in the input data and that no
-    /// other row in the result has. A C# model
+    /// and a placeholder as an <c>altinnRowId</c> matches a new row id, see <see cref="NewRowIds"/>. A C# model
     /// cannot leave a property out, so a property the expected data leaves out must be null.
     /// </summary>
     private static void Compare(
@@ -488,8 +499,7 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
         JsonNode? actual,
         string path,
         List<string> errors,
-        List<string> inputRowIds,
-        List<string> actualRowIds
+        NewRowIds newRowIds
     )
     {
         switch (expected)
@@ -513,22 +523,16 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
                         errors.Add($"{path}.{key}: expected {value?.ToJsonString() ?? "null"}, but it is missing");
                         continue;
                     }
-                    if (key == AltinnRowId && value is JsonValue v && v.TryGetValue(out string? id) && id == NewRowId)
+                    if (key == AltinnRowId && value is JsonValue v && v.TryGetValue(out string? id) && IsNewRowId(id))
                     {
                         var actualId = actualValue is JsonValue a && a.TryGetValue(out string? s) ? s : null;
-                        if (
-                            string.IsNullOrEmpty(actualId)
-                            || inputRowIds.Contains(actualId)
-                            || actualRowIds.Count(rowId => rowId == actualId) != 1
-                        )
+                        if (newRowIds.Check(id, actualId) is { } error)
                         {
-                            errors.Add(
-                                $"{path}.{key}: expected a new, unique row id, got {actualValue?.ToJsonString()}"
-                            );
+                            errors.Add($"{path}.{key}: expected {error}, got {actualValue?.ToJsonString()}");
                         }
                         continue;
                     }
-                    Compare(value, actualValue, $"{path}.{key}", errors, inputRowIds, actualRowIds);
+                    Compare(value, actualValue, $"{path}.{key}", errors, newRowIds);
                 }
                 foreach (var (key, value) in actualObject)
                 {
@@ -551,14 +555,7 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
                 }
                 for (var index = 0; index < expectedArray.Count; index++)
                 {
-                    Compare(
-                        expectedArray[index],
-                        actualArray[index],
-                        $"{path}[{index}]",
-                        errors,
-                        inputRowIds,
-                        actualRowIds
-                    );
+                    Compare(expectedArray[index], actualArray[index], $"{path}[{index}]", errors, newRowIds);
                 }
                 return;
             case JsonValue expectedValue:
@@ -584,4 +581,78 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
 
     private static decimal ParseNumber(JsonValue value) =>
         decimal.Parse(value.ToJsonString(), NumberStyles.Float, CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// <c>"&lt;new&gt;"</c> or a labelled <c>"&lt;new:label&gt;"</c> as an <c>altinnRowId</c> in the expected data
+    /// </summary>
+    private static bool IsNewRowId(string? id) =>
+        id is not null && (id == NewRowId || (id.StartsWith("<new:", StringComparison.Ordinal) && id.EndsWith('>')));
+
+    /// <summary>
+    /// Checks the row ids that placeholders in the expected data match. An id matched by a placeholder is not in the
+    /// input data. <c>"&lt;new&gt;"</c> matches an id no other row in the result has, and every
+    /// <c>"&lt;new:label&gt;"</c> with the same label matches one id, which the rows with that label have and no
+    /// other row has, such as a new row and its copy.
+    /// </summary>
+    private sealed class NewRowIds(List<string> inputRowIds, List<string> actualRowIds, JsonNode? expected)
+    {
+        private readonly Dictionary<string, int> _placeholderCounts = CountPlaceholders(expected, []);
+        private readonly Dictionary<string, string> _idsByPlaceholder = [];
+
+        /// <returns>What was expected when the id does not match, or null when it does</returns>
+        public string? Check(string placeholder, string? actualId)
+        {
+            if (string.IsNullOrEmpty(actualId) || inputRowIds.Contains(actualId))
+            {
+                return $"a new row id for {placeholder}";
+            }
+            var count = placeholder == NewRowId ? 1 : _placeholderCounts[placeholder];
+            if (actualRowIds.Count(rowId => rowId == actualId) != count)
+            {
+                return $"a row id that {count} row(s) have for {placeholder}";
+            }
+            if (
+                placeholder != NewRowId
+                && _idsByPlaceholder.TryGetValue(placeholder, out var matched)
+                && matched != actualId
+            )
+            {
+                return $"the same row id as the other {placeholder}, {matched}";
+            }
+            _idsByPlaceholder[placeholder] = actualId;
+            return null;
+        }
+
+        private static Dictionary<string, int> CountPlaceholders(JsonNode? node, Dictionary<string, int> counts)
+        {
+            switch (node)
+            {
+                case JsonArray array:
+                    foreach (var item in array)
+                    {
+                        CountPlaceholders(item, counts);
+                    }
+                    break;
+                case JsonObject obj:
+                    foreach (var (key, value) in obj)
+                    {
+                        if (
+                            key == AltinnRowId
+                            && value is JsonValue v
+                            && v.TryGetValue(out string? id)
+                            && IsNewRowId(id)
+                        )
+                        {
+                            counts[id] = counts.GetValueOrDefault(id) + 1;
+                        }
+                        else
+                        {
+                            CountPlaceholders(value, counts);
+                        }
+                    }
+                    break;
+            }
+            return counts;
+        }
+    }
 }

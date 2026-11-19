@@ -44,6 +44,9 @@ public class CalculationTestModel
     [JsonPropertyName("numbers")]
     public List<decimal>? Numbers { get; set; }
 
+    [JsonPropertyName("nullableNumbers")]
+    public List<decimal?>? NullableNumbers { get; set; }
+
     [JsonPropertyName("texts")]
     public List<string>? Texts { get; set; }
 

@@ -12,6 +12,7 @@
     "boolean": { "type": "boolean" },
     "nullableBoolean": { "type": ["boolean", "null"] },
     "numbers": { "type": "array", "items": { "type": "number" } },
+    "nullableNumbers": { "type": "array", "items": { "type": ["number", "null"] } },
     "texts": { "type": "array", "items": { "type": "string" } },
     "valueTypes": { "$ref": "#/definitions/ValueTypes" },
     "object": { "$ref": "#/definitions/Object" },

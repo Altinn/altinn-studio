@@ -73,6 +73,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             "boolean" when nextOffset is -1 && literalIndex is -1 => model.Boolean,
             "nullableBoolean" when nextOffset is -1 && literalIndex is -1 => model.NullableBoolean,
             "numbers" => GetRecursive(model.Numbers, path, literalIndex, nextOffset),
+            "nullableNumbers" => GetRecursive(model.NullableNumbers, path, literalIndex, nextOffset),
             "texts" => GetRecursive(model.Texts, path, literalIndex, nextOffset),
             "valueTypes" when literalIndex is -1 => GetRecursive(model.ValueTypes, path, nextOffset),
             "object" when literalIndex is -1 => GetRecursive(model.Object, path, nextOffset),
@@ -85,6 +86,26 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
 
     private static object? GetRecursive(
         global::System.Collections.Generic.List<decimal>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset
+    )
+    {
+        if (literalIndex == -1)
+        {
+            return model;
+        }
+
+        if (model is null || literalIndex < 0 || literalIndex >= model.Count)
+        {
+            return null;
+        }
+
+        return model[literalIndex];
+    }
+
+    private static object? GetRecursive(
+        global::System.Collections.Generic.List<decimal?>? model,
         global::System.ReadOnlySpan<char> path,
         int literalIndex,
         int offset
@@ -376,6 +397,24 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
                     nextOffset,
                     value
                 );
+            case "nullableNumbers" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<global::System.Collections.Generic.List<decimal?>?>(out var result_NullableNumbers))
+                {
+                    model.NullableNumbers = result_NullableNumbers;
+                    return true;
+                }
+                return false;
+            }
+            case "nullableNumbers":
+                return SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_CalculationTestModel_NullableNumbers(
+                    model,
+                    path,
+                    literalIndex,
+                    nextOffset,
+                    value
+                );
             case "texts" when nextOffset is -1 && literalIndex is -1:
             {
                 // csharpier-ignore
@@ -481,6 +520,18 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         return SetRecursive(model.Numbers, path, literalIndex, nextOffset, value);
     }
 
+    private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_CalculationTestModel_NullableNumbers(
+        global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int nextOffset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        model.NullableNumbers ??= new();
+        return SetRecursive(model.NullableNumbers, path, literalIndex, nextOffset, value);
+    }
+
     private static bool SetRecursive_WithListCreation_Altinn_App_SourceGenerator_Integration_Tests_Models_CalculationTestModel_Texts(
         global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel model,
         global::System.ReadOnlySpan<char> path,
@@ -560,6 +611,34 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             return false;
         }
         if (value.TryDeserialize<decimal>(out var result))
+        {
+            model[literalIndex] = result;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool SetRecursive(
+        global::System.Collections.Generic.List<decimal?>? model,
+        global::System.ReadOnlySpan<char> path,
+        int literalIndex,
+        int offset,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    )
+    {
+        if (model is null || literalIndex < 0)
+        {
+            return false;
+        }
+        if (model.Count <= literalIndex)
+        {
+            return false;
+        }
+        if (offset != -1)
+        {
+            return false;
+        }
+        if (value.TryDeserialize<decimal?>(out var result))
         {
             model[literalIndex] = result;
             return true;
@@ -948,6 +1027,17 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
                 }
                 return false;
             }
+            case "nullableNumbers" when nextOffset is -1 && literalIndex is -1:
+            {
+                // csharpier-ignore
+                if (value.TryDeserialize<decimal?>(out var result_NullableNumbers))
+                {
+                    model.NullableNumbers ??= new();
+                    model.NullableNumbers.Add(result_NullableNumbers);
+                    return true;
+                }
+                return false;
+            }
             case "texts" when nextOffset is -1 && literalIndex is -1:
             {
                 // csharpier-ignore
@@ -1226,6 +1316,53 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             case "numbers":
                 segment.CopyTo(buffer.Slice(bufferOffset));
                 bufferOffset += 7;
+
+                if (literalIndex != -1)
+                {
+                    // Copy index from path to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!literalIndex.TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = default;
+                }
+                else if (rowIndexes.Length >= 1)
+                {
+                    // Write index from rowIndexes to buffer
+                    buffer[bufferOffset++] = '[';
+                    if (!rowIndexes[0].TryFormat(buffer[bufferOffset..], out int charsWritten))
+                    {
+                        throw new global::System.ArgumentException(
+                            $"Buffer too small to write index for {path}."
+                        );
+                    }
+                    bufferOffset += charsWritten;
+                    buffer[bufferOffset++] = ']';
+                    rowIndexes = rowIndexes.Slice(1);
+                }
+                else if (pathOffset == -1)
+                {
+                    // No more segments in the path, and the last part is valid in a list
+                    // without index (e.g. "model.listProperty" is valid, but "model.listProperty.val" needs an index)
+                    return;
+                }
+                else
+                {
+                    // No index to write, but there are more segments in the path
+                    // thus the path is not valid
+                    bufferOffset = 0;
+                    return;
+                }
+                return;
+            case "nullableNumbers":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 15;
 
                 if (literalIndex != -1)
                 {
@@ -1732,6 +1869,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             Boolean = data.Boolean,
             NullableBoolean = data.NullableBoolean,
             Numbers = CopyRecursive(data.Numbers),
+            NullableNumbers = CopyRecursive(data.NullableNumbers),
             Texts = CopyRecursive(data.Texts),
             ValueTypes = CopyRecursive(data.ValueTypes),
             Object = CopyRecursive(data.Object),
@@ -1751,6 +1889,26 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
         }
         // csharpier-ignore
         global::System.Collections.Generic.List<decimal> result = new (list.Count);
+
+        foreach (var item in list)
+        {
+            result.Add(item);
+        }
+
+        return result;
+    }
+
+    [return: global::System.Diagnostics.CodeAnalysis.NotNullIfNotNull("list")]
+    private static global::System.Collections.Generic.List<decimal?>? CopyRecursive(
+        global::System.Collections.Generic.List<decimal?>? list
+    )
+    {
+        if (list is null)
+        {
+            return null!;
+        }
+        // csharpier-ignore
+        global::System.Collections.Generic.List<decimal?> result = new (list.Count);
 
         foreach (var item in list)
         {
@@ -1976,6 +2134,12 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             case "numbers":
                 RemoveRecursive(model.Numbers, path, nextOffset, literalIndex, rowRemovalOption);
                 break;
+            case "nullableNumbers" when (nextOffset is -1) && (literalIndex is -1):
+                model.NullableNumbers = default;
+                break;
+            case "nullableNumbers":
+                RemoveRecursive(model.NullableNumbers, path, nextOffset, literalIndex, rowRemovalOption);
+                break;
             case "texts" when (nextOffset is -1) && (literalIndex is -1):
                 model.Texts = default;
                 break;
@@ -2014,6 +2178,36 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
 
     private static void RemoveRecursive(
         global::System.Collections.Generic.List<decimal>? model,
+        global::System.ReadOnlySpan<char> path,
+        int offset,
+        int index,
+        global::Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption
+    )
+    {
+        if (model is null)
+        {
+            return;
+        }
+        if (index < 0 || index >= model.Count)
+        {
+            return;
+        }
+        if (offset == -1)
+        {
+            switch (rowRemovalOption)
+            {
+                case global::Altinn.App.Core.Helpers.RowRemovalOption.DeleteRow:
+                    model.RemoveAt(index);
+                    break;
+                case global::Altinn.App.Core.Helpers.RowRemovalOption.SetToNull:
+                    model[index] = default!;
+                    break;
+            }
+        }
+    }
+
+    private static void RemoveRecursive(
+        global::System.Collections.Generic.List<decimal?>? model,
         global::System.ReadOnlySpan<char> path,
         int offset,
         int index,
@@ -2535,6 +2729,14 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
 //       "TypeName": "decimal",
 //       "IsJsonValueType": true,
 //       "ListType": "global::System.Collections.Generic.List<decimal>",
+//     },
+//     {
+//       "JsonName": "nullableNumbers",
+//       "CSharpName": "NullableNumbers",
+//       "IsNullable": true,
+//       "TypeName": "decimal",
+//       "IsJsonValueType": true,
+//       "ListType": "global::System.Collections.Generic.List<decimal?>",
 //     },
 //     {
 //       "JsonName": "texts",

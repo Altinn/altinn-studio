@@ -60,13 +60,16 @@ are in `valueTypes`, which is required in the schema. Rows in `rows`, `copies` a
 ```
 
 - `dataModel` is the data of the data type `default`. With more than one data type, use `dataModels`, a list of
-  `{ "dataElement": { "id", "dataType" }, "data" }`, and key `calculations` and `expects` by data type. The frontend
-  calculates the data types that have calculations.
+  `{ "dataElement": { "id", "dataType" }, "data" }`, and key `calculations` and `expects` by data type. With more
+  than one data element of a data type, key `expects` by data element id instead. The frontend has one data element
+  for each data type, so such a test is `disabledFrontend`. The frontend calculates the data types that have
+  calculations.
 - `calculations` is the list in `models/{dataType}.calculation.json`. Both sides read it the way they read the file,
   so an invalid calculation is a test too.
 - `expects` is the whole data model after the calculations, so a write anywhere else shows up.
 - `expectsFailure` is a part of the error message instead. The backend matches it against the exception the
-  calculation throws, the frontend against the error it logs or throws.
+  calculation throws, the frontend against the error it logs or throws. Most errors in a calculation are logged and
+  leave the data as it was, which is `expects` with `expectsErrors`.
 - `expectsFailureBackend` is a part of the message the backend fails with. It replaces `expectsFailure` on the
   backend, or stands next to `expects` and `expectsWarnings` when only the backend fails: the backend fails with this
   message, and the frontend gets that result.
@@ -91,9 +94,10 @@ the frontend only passes when the property is there with `null`. Write the data 
 in `valueTypes` are set before the calculations run, since the backend always serializes them, as `0` and `false` when
 nothing set them. Numbers are compared by value.
 
-The backend gives new rows their ids when the changes are collected, after data processing, so its runner does the same
-before it compares. An `altinnRowId` of `"<new>"` matches an id that is not in the data before the calculations and
-that no other row has. Any other id must match exactly.
+Both sides give a new row its id when the row is added. An `altinnRowId` of `"<new>"` matches an id that is not in the
+data before the calculations and that no other row has. A labelled `"<new:label>"` matches such an id too, and every
+row with the same label must have the same id, which no other row has, such as a new row and a copy of it. Any other
+id must match exactly.
 
 ### Disabled tests
 

@@ -1,16 +1,47 @@
 {
   "name": "A list of objects for a list of primitives is not written",
-  "dataModel": {
-    "numbers": [2, 3]
-  },
   "calculations": [
     {
       "field": "numbers",
-      "expression": ["list", ["object", "v", 1]]
+      "expression": ["list", ["object", "v", 1], ["object", "v", 2]]
     }
   ],
-  "expects": {
-    "numbers": [2, 3]
-  },
-  "expectsWarnings": ["numbers"]
+  "testCases": [
+    {
+      "name": "numbers",
+      "dataModel": {
+        "numbers": [2, 3]
+      },
+      "expects": {
+        "numbers": [2, 3]
+      },
+      "expectsWarnings": ["numbers"]
+    },
+    {
+      "name": "an empty list",
+      "dataModel": {
+        "numbers": []
+      },
+      "expects": {
+        "numbers": []
+      },
+      "expectsWarnings": ["numbers"]
+    },
+    {
+      "name": "a list with a null item first",
+      "dataModel": {
+        "nullableNumbers": [null, 3]
+      },
+      "calculations": [
+        {
+          "field": "nullableNumbers",
+          "expression": ["list", ["object", "v", 1]]
+        }
+      ],
+      "expects": {
+        "nullableNumbers": [null, 3]
+      },
+      "expectsWarnings": ["nullableNumbers"]
+    }
+  ]
 }

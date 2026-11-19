@@ -77,37 +77,72 @@ function collectRowIds(value: unknown, ids: string[] = []): string[] {
   return ids;
 }
 
+/** '<new>' or a labelled '<new:label>' as an altinnRowId in the expected data */
+function isNewRowId(value: unknown): value is string {
+  return typeof value === 'string' && (value === NEW_ROW_ID || (value.startsWith('<new:') && value.endsWith('>')));
+}
+
+function countPlaceholders(value: unknown, counts = new Map<string, number>()): Map<string, number> {
+  if (Array.isArray(value)) {
+    value.forEach((item) => countPlaceholders(item, counts));
+  } else if (value && typeof value === 'object') {
+    for (const [key, child] of Object.entries(value)) {
+      if (key === ALTINN_ROW_ID && isNewRowId(child)) {
+        counts.set(child, (counts.get(child) ?? 0) + 1);
+      } else {
+        countPlaceholders(child, counts);
+      }
+    }
+  }
+  return counts;
+}
+
 /**
- * Replaces each '<new>' row id in the expected data with the id at the same place in the actual data, when that id
- * is not in the input data and no other row in the result has it. Otherwise the placeholder stays, and the
+ * Replaces each placeholder row id in the expected data with the id at the same place in the actual data when it
+ * matches, so the comparison passes there. An id matched by a placeholder is not in the input data. '<new>' matches
+ * an id no other row in the result has, and every '<new:label>' with the same label matches one id, which the rows
+ * with that label have and no other row has, such as a new row and its copy. Otherwise the placeholder stays, and the
  * comparison fails at that row.
  */
 function resolveNewRowIds(expected: unknown, actual: unknown, inputIds: string[], actualIds: string[]): unknown {
-  if (Array.isArray(expected)) {
-    return expected.map((item, index) =>
-      resolveNewRowIds(item, Array.isArray(actual) ? actual[index] : undefined, inputIds, actualIds),
-    );
+  const counts = countPlaceholders(expected);
+  const idsByPlaceholder = new Map<string, string>();
+  function matches(placeholder: string, actualId: unknown): actualId is string {
+    if (typeof actualId !== 'string' || actualId.length === 0 || inputIds.includes(actualId)) {
+      return false;
+    }
+    const count = placeholder === NEW_ROW_ID ? 1 : (counts.get(placeholder) ?? 0);
+    if (actualIds.filter((id) => id === actualId).length !== count) {
+      return false;
+    }
+    if (placeholder !== NEW_ROW_ID && (idsByPlaceholder.get(placeholder) ?? actualId) !== actualId) {
+      return false;
+    }
+    idsByPlaceholder.set(placeholder, actualId);
+    return true;
   }
-  if (expected && typeof expected === 'object') {
-    const actualObject = actual && typeof actual === 'object' ? (actual as Record<string, unknown>) : {};
-    return Object.fromEntries(
-      Object.entries(expected).map(([key, value]) => {
-        const actualValue = actualObject[key];
-        if (
-          key === ALTINN_ROW_ID &&
-          value === NEW_ROW_ID &&
-          typeof actualValue === 'string' &&
-          actualValue.length > 0 &&
-          !inputIds.includes(actualValue) &&
-          actualIds.filter((id) => id === actualValue).length === 1
-        ) {
-          return [key, actualValue];
-        }
-        return [key, resolveNewRowIds(value, actualValue, inputIds, actualIds)];
-      }),
-    );
+  function resolve(expectedValue: unknown, actualValue: unknown): unknown {
+    if (Array.isArray(expectedValue)) {
+      return expectedValue.map((item, index) =>
+        resolve(item, Array.isArray(actualValue) ? actualValue[index] : undefined),
+      );
+    }
+    if (expectedValue && typeof expectedValue === 'object') {
+      const actualObject =
+        actualValue && typeof actualValue === 'object' ? (actualValue as Record<string, unknown>) : {};
+      return Object.fromEntries(
+        Object.entries(expectedValue).map(([key, value]) => {
+          const actualChild = actualObject[key];
+          if (key === ALTINN_ROW_ID && isNewRowId(value) && matches(value, actualChild)) {
+            return [key, actualChild];
+          }
+          return [key, resolve(value, actualChild)];
+        }),
+      );
+    }
+    return expectedValue;
   }
-  return expected;
+  return resolve(expected, actual);
 }
 
 function messagesOf(mock: Mock): string[] {
