@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -92,10 +93,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private bool _stagedCompleteConfirmation;
     private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
 
-    // The data values and presentation texts as Storage last returned them. A save sends what the app has changed on
-    // Instance since then.
-    private Dictionary<string, string?> _savedDataValues;
-    private Dictionary<string, string?> _savedPresentationTexts;
+    // The instance as Storage last returned it. A save sends the data values and presentation texts the app has
+    // changed on Instance since then.
+    private byte[] _instanceSnapshot;
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
@@ -127,8 +127,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
 
         _instance = instance;
-        _savedDataValues = CopyStringDictionary(instance.DataValues);
-        _savedPresentationTexts = CopyStringDictionary(instance.PresentationTexts);
+        _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(instance);
         _storageVersions = storageVersionMetadata;
         _dataTypes = appMetadata.DataTypes;
         _dataClient = dataClient;
@@ -1205,9 +1204,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         Dictionary<string, string?> PresentationTexts
     ) GetInstanceFieldChanges()
     {
-        var dataValues = GetChangedEntries(_savedDataValues, _instance.DataValues);
+        Instance previous = ReadInstanceSnapshot();
+        var dataValues = GetChangedEntries(previous.DataValues, _instance.DataValues);
         ThrowIfDerived(dataValues, _appMetadata.DataFields, "Data value", "DataValues", "dataFields");
-        var presentationTexts = GetChangedEntries(_savedPresentationTexts, _instance.PresentationTexts);
+        var presentationTexts = GetChangedEntries(previous.PresentationTexts, _instance.PresentationTexts);
         ThrowIfDerived(
             presentationTexts,
             _appMetadata.PresentationFields,
@@ -1219,6 +1219,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         return (dataValues, presentationTexts);
     }
 
+    private Instance ReadInstanceSnapshot() =>
+        JsonSerializer.Deserialize<Instance>(_instanceSnapshot)
+        ?? throw new InvalidOperationException("Failed to read the instance snapshot");
+
     internal bool HasInstanceFieldChanges()
     {
         var (dataValues, presentationTexts) = GetInstanceFieldChanges();
@@ -1226,7 +1230,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     private static Dictionary<string, string?> GetChangedEntries(
-        Dictionary<string, string?> previous,
+        Dictionary<string, string?>? previous,
         Dictionary<string, string?>? current
     )
     {
@@ -1235,14 +1239,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         foreach (var (key, value) in current ?? [])
         {
             string? currentValue = string.IsNullOrEmpty(value) ? null : value;
-            string? previousValue = previous.GetValueOrDefault(key) is { Length: > 0 } stored ? stored : null;
+            string? previousValue = previous?.GetValueOrDefault(key) is { Length: > 0 } stored ? stored : null;
             if (currentValue != previousValue)
             {
                 changes[key] = currentValue;
             }
         }
 
-        foreach (string key in previous.Keys)
+        foreach (string key in previous?.Keys ?? Enumerable.Empty<string>())
         {
             if (current?.ContainsKey(key) is not true)
             {
@@ -1606,8 +1610,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
-        _savedDataValues = CopyStringDictionary(Instance.DataValues);
-        _savedPresentationTexts = CopyStringDictionary(Instance.PresentationTexts);
+        _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(Instance);
     }
 
     private static StorageAuthenticationMethod ResolveAggregateAuthenticationMethod(
@@ -1870,7 +1873,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
-        // The save took a new copy of the data values and presentation texts, so a difference now was made by validators.
+        // The save took a new snapshot of the instance, so a difference now was made by validators.
         var (dataValues, presentationTexts) = GetInstanceFieldChanges();
         if (dataValues.Count > 0 || presentationTexts.Count > 0)
         {
