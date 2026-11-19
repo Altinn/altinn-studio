@@ -21,7 +21,7 @@ namespace Altinn.App.logic.DataProcessing
                 // Existing app logic consumes the helper produced by the migrated legacy calculation.
                 if (model.AllocationHelper?.Split('|') is [var remaining, var incomplete])
                 {
-                    model.RemainingAllocation = decimal.Parse(remaining, System.Globalization.CultureInfo.InvariantCulture);
+                    model.RemainingAllocation = decimal.Parse(remaining, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture);
                     model.IncompleteAllocation = bool.Parse(incomplete);
                 }
 
