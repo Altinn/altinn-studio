@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
-- The `Datepicker` calendar marks the chosen date for users in time zones west of UTC, such as the Americas, instead of the day before.
+- The `Datepicker` calendar marks the chosen date for users in time zones west of UTC, such as the Americas, instead of the day before. ([#22012](https://github.com/Altinn/altinn-studio/pull/22012))
 
 ## [9.0.0-preview.12] - 2026-11-17
 
