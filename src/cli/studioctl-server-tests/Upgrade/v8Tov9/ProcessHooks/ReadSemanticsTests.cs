@@ -95,7 +95,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             var dataElement = instance.Data.Find(d => d.DataType == "datamodel")!;
                             var form = await GetForm(dataMutator, instanceOwnerPartyId, dataElement);
                             form.Name = "x";
-                            await dataMutator.ReplaceFormData(dataElement, form);
+                            (await dataMutator.GetFormDataWrapper(dataElement)).ReplaceBackingData(form);
                             return {{HandlerResult}}.Success();
                         }
 
@@ -229,7 +229,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             if (taskId == "Task_1")
                             {
                                 dataModel.B = "b";
-                                await dataMutator.ReplaceFormData(dataElement, dataModel);
+                                (await dataMutator.GetFormDataWrapper(dataElement)).ReplaceBackingData(dataModel);
                             }
                             return {{HandlerResult}}.Success();
                         }
@@ -272,7 +272,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             form.A = "a";
                             if (taskId != "Task_1")
                                 return {{HandlerResult}}.Success();
-                            await dataMutator.ReplaceFormData(dataElement, form);
+                            (await dataMutator.GetFormDataWrapper(dataElement)).ReplaceBackingData(form);
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -328,7 +328,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             {
                                 s.A = "x";
                                 Validate(s);
-                                await dataMutator.ReplaceFormData(el, s);
+                                (await dataMutator.GetFormDataWrapper(el)).ReplaceBackingData(s);
                             }
                             catch (InvalidOperationException)
                             {
