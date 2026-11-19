@@ -106,7 +106,7 @@ public sealed class OtherElementWritesTests : IDisposable
                 source,
                 write,
                 UpgradeMessageStatus.Todo,
-                "schema is read from datamodel, changed and written to copy. v8 saved the changes in copy only; v9 saves them in datamodel too, since dataMutator.GetFormData returns the model the transition saves. To keep datamodel as it was, write schema to copy before changing it, and change the object ReplaceFormData returns."
+                "schema is read from datamodel, changed and written to copy. v8 saved the changes in copy only; v9 saves them in datamodel too, since dataMutator.GetFormData returns the model the transition saves. To keep datamodel as it was, change a copy of schema."
             ),
             result.Messages
         );
@@ -195,7 +195,7 @@ public sealed class OtherElementWritesTests : IDisposable
     }
 
     [Fact]
-    public void AFormWriteThatStays_SaysWhatReplaceFormDataCopies()
+    public void AFormWriteThatStays_IsATodo_ThatSaysWhenToRemoveIt()
     {
         var source = Hook(
             """
@@ -211,8 +211,8 @@ public sealed class OtherElementWritesTests : IDisposable
             At(
                 source,
                 "await dataClient.UpdateFormData(instance, schema, main);",
-                UpgradeMessageStatus.Warning,
-                "IDataClient.UpdateFormData now replaces the form with dataMutator.ReplaceFormData, which copies schema as it is here into the element's form, as v8 saved it. If schema is the object dataMutator.GetFormData returned for this element, later changes to it are saved too."
+                UpgradeMessageStatus.Todo,
+                "IDataClient.UpdateFormData still writes to Storage directly in ProcessTaskEnd.End, which v9 refuses while the process is transitioning: the mutator has no member that replaces a form. If schema is the object dataMutator.GetFormData returned for this element, remove the call, since the transition saves its changes; otherwise copy the values into that object."
             ),
             result.Messages
         );

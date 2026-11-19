@@ -103,50 +103,48 @@ public sealed class MutatorThreadingTests : IDisposable
                     """
             },
             {
-                // dihe/motorferdsel App/logic/Services/DataModelService.cs:15-45.
+                // dihe/motorferdsel App/logic/Services/DataModelService.cs:15-45, with a delete.
                 "an app interface and its implementation change together",
                 """
                     public interface IDataModelService
                     {
-                        Task UpdateDataModel<T>(T dataModel, string dataModelName, Instance instance);
+                        Task DeleteDataModel(string dataModelName, Instance instance);
                     }
 
                     public class DataModelService(IDataClient dataClient) : IDataModelService
                     {
-                        public async Task UpdateDataModel<T>(T dataModel, string dataModelName, Instance instance)
+                        public async Task DeleteDataModel(string dataModelName, Instance instance)
                         {
+                            var identifier = new InstanceIdentifier(instance);
                             var dataElement = instance.Data.First(data => data.DataType == dataModelName);
-                            await dataClient.UpdateFormData(instance, dataModel!, dataElement);
+                            await dataClient.DeleteData(identifier.InstanceOwnerPartyId, identifier.InstanceGuid, Guid.Parse(dataElement.Id), false);
                         }
                     }
-
-                    public class Model { }
 
                     public class ProcessTaskEnd(IDataModelService dataModelService) : IProcessTaskEnd
                     {
                         public async Task End(string taskId, Instance instance)
                         {
-                            await dataModelService.UpdateDataModel(new Model(), "model", instance);
+                            await dataModelService.DeleteDataModel("model", instance);
                         }
                     }
                     """,
                 $$"""
                     public interface IDataModelService
                     {
-                        Task UpdateDataModel<T>(T dataModel, string dataModelName, {{IInstanceDataMutator}} dataMutator);
+                        Task DeleteDataModel(string dataModelName, {{IInstanceDataMutator}} dataMutator);
                     }
 
                     public class DataModelService : IDataModelService
                     {
-                        public async Task UpdateDataModel<T>(T dataModel, string dataModelName, {{IInstanceDataMutator}} dataMutator)
+                        public async Task DeleteDataModel(string dataModelName, {{IInstanceDataMutator}} dataMutator)
                         {
                             Instance instance = dataMutator.Instance;
+                            var identifier = new InstanceIdentifier(instance);
                             var dataElement = instance.Data.First(data => data.DataType == dataModelName);
-                            await dataMutator.ReplaceFormData(dataElement, dataModel!);
+                            dataMutator.RemoveDataElement(dataElement);
                         }
                     }
-
-                    public class Model { }
 
                     public class ProcessTaskEnd(IDataModelService dataModelService) : {{IOnTaskEndingHandler}}
                     {
@@ -155,7 +153,7 @@ public sealed class MutatorThreadingTests : IDisposable
                         public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            await dataModelService.UpdateDataModel(new Model(), "model", dataMutator);
+                            await dataModelService.DeleteDataModel("model", dataMutator);
                             return {{HandlerResult}}.Success();
                         }
                     }

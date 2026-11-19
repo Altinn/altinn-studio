@@ -60,51 +60,6 @@ public sealed class ReadSemanticsTests : IDisposable
                     """
             },
             {
-                // dsb/elvirksomhet App/logic/TaskProcessing/ProcessTaskEnd.cs:27-43.
-                "a read that is changed and written with the obsolete overloads: the write stays",
-                """
-                    public class Form { public string? Name { get; set; } }
-
-                    public class ProcessTaskEnd(IDataClient iData) : IProcessTaskEnd
-                    {
-                        public async Task End(string taskId, Instance instance)
-                        {
-                            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-                            var dataElement = instance.Data.Find(d => d.DataType == "datamodel")!;
-                            var form = await GetForm(instanceOwnerPartyId, dataElement);
-                            form.Name = "x";
-                            await iData.UpdateData(form, new Guid(dataElement.InstanceGuid), typeof(Form), instance.Org, instance.AppId, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
-                        }
-
-                        private async Task<Form> GetForm(int partyId, DataElement dataElement) =>
-                            (Form)await iData.GetFormData(new Guid(dataElement.InstanceGuid), typeof(Form), "org", "app", partyId, Guid.Parse(dataElement.Id));
-                    }
-                    """,
-                $$"""
-                    public class Form { public string? Name { get; set; } }
-
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
-                    {
-                        public bool ShouldRunForTask(string taskId) => true;
-
-                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
-                        {
-                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            Instance instance = dataMutator.Instance;
-                            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-                            var dataElement = instance.Data.Find(d => d.DataType == "datamodel")!;
-                            var form = await GetForm(dataMutator, instanceOwnerPartyId, dataElement);
-                            form.Name = "x";
-                            await dataMutator.ReplaceFormData(dataElement, form);
-                            return {{HandlerResult}}.Success();
-                        }
-
-                        private async Task<Form> GetForm({{IInstanceDataMutator}} dataMutator, int partyId, DataElement dataElement) =>
-                            (Form)await dataMutator.GetFormData(dataElement);
-                    }
-                    """
-            },
-            {
                 // dmf/maling-rapportering App/logic/ArkivMetadataPopulationOnTaskEnd.cs:25-32.
                 "read, change and write back, with a return before the change (W4)",
                 """
@@ -190,6 +145,71 @@ public sealed class ReadSemanticsTests : IDisposable
                     }
                     """
             },
+        };
+
+    [Theory]
+    [MemberData(nameof(Rewrites))]
+    public void TheRead_ReadsTheModelTheTransitionSaves(string label, string before, string after)
+    {
+        _ = label;
+        _app.Write(HookPath, InApp(before));
+
+        var result = Port(AppFolder);
+
+        Assert.Equal(InApp(after), _app.Read(HookPath));
+        Assert.Empty(result.Todos);
+        AssertCompilesAgainstV9(AppFolder);
+    }
+
+    /// <summary>A write that the read does not make redundant stays, since the mutator cannot replace a form.</summary>
+    public static TheoryData<string, string, string> WritesThatStay =>
+        new()
+        {
+            {
+                // dsb/elvirksomhet App/logic/TaskProcessing/ProcessTaskEnd.cs:27-43.
+                "a read that is changed and written with the obsolete overloads: the write stays",
+                """
+                    public class Form { public string? Name { get; set; } }
+
+                    public class ProcessTaskEnd(IDataClient iData) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+                            var dataElement = instance.Data.Find(d => d.DataType == "datamodel")!;
+                            var form = await GetForm(instanceOwnerPartyId, dataElement);
+                            form.Name = "x";
+                            await iData.UpdateData(form, new Guid(dataElement.InstanceGuid), typeof(Form), instance.Org, instance.AppId, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
+                        }
+
+                        private async Task<Form> GetForm(int partyId, DataElement dataElement) =>
+                            (Form)await iData.GetFormData(new Guid(dataElement.InstanceGuid), typeof(Form), "org", "app", partyId, Guid.Parse(dataElement.Id));
+                    }
+                    """,
+                $$"""
+                    public class Form { public string? Name { get; set; } }
+
+                    public class ProcessTaskEnd(IDataClient iData) : {{IOnTaskEndingHandler}}
+                    {
+                        public bool ShouldRunForTask(string taskId) => true;
+
+                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+                        {
+                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                            Instance instance = dataMutator.Instance;
+                            var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+                            var dataElement = instance.Data.Find(d => d.DataType == "datamodel")!;
+                            var form = await GetForm(dataMutator, instanceOwnerPartyId, dataElement);
+                            form.Name = "x";
+                            await iData.UpdateData(form, new Guid(dataElement.InstanceGuid), typeof(Form), instance.Org, instance.AppId, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
+                            return {{HandlerResult}}.Success();
+                        }
+
+                        private async Task<Form> GetForm({{IInstanceDataMutator}} dataMutator, int partyId, DataElement dataElement) =>
+                            (Form)await dataMutator.GetFormData(dataElement);
+                    }
+                    """
+            },
             {
                 // krt/krt-3010a-1 App/logic/ProcessTaskEnd.cs:43-51.
                 "a change outside the block of the write: the write stays",
@@ -214,7 +234,7 @@ public sealed class ReadSemanticsTests : IDisposable
                 $$"""
                     public class Model { public string? A { get; set; } public string? B { get; set; } }
 
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+                    public class ProcessTaskEnd(IDataClient dataClient) : {{IOnTaskEndingHandler}}
                     {
                         public bool ShouldRunForTask(string taskId) => true;
 
@@ -229,7 +249,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             if (taskId == "Task_1")
                             {
                                 dataModel.B = "b";
-                                await dataMutator.ReplaceFormData(dataElement, dataModel);
+                                await dataClient.UpdateFormData(instance, dataModel, dataElement);
                             }
                             return {{HandlerResult}}.Success();
                         }
@@ -258,7 +278,7 @@ public sealed class ReadSemanticsTests : IDisposable
                 $$"""
                     public class Form { public string? A { get; set; } }
 
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+                    public class ProcessTaskEnd(IDataClient dataClient) : {{IOnTaskEndingHandler}}
                     {
                         public bool ShouldRunForTask(string taskId) => true;
 
@@ -272,7 +292,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             form.A = "a";
                             if (taskId != "Task_1")
                                 return {{HandlerResult}}.Success();
-                            await dataMutator.ReplaceFormData(dataElement, form);
+                            await dataClient.UpdateFormData(instance, form, dataElement);
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -312,7 +332,7 @@ public sealed class ReadSemanticsTests : IDisposable
                 $$"""
                     public class Skjema { public string? A { get; set; } }
 
-                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+                    public class ProcessTaskEnd(IDataClient dataClient) : {{IOnTaskEndingHandler}}
                     {
                         public bool ShouldRunForTask(string taskId) => true;
 
@@ -328,7 +348,7 @@ public sealed class ReadSemanticsTests : IDisposable
                             {
                                 s.A = "x";
                                 Validate(s);
-                                await dataMutator.ReplaceFormData(el, s);
+                                await dataClient.UpdateFormData(instance, s, el);
                             }
                             catch (InvalidOperationException)
                             {
@@ -346,8 +366,12 @@ public sealed class ReadSemanticsTests : IDisposable
         };
 
     [Theory]
-    [MemberData(nameof(Rewrites))]
-    public void TheRead_ReadsTheModelTheTransitionSaves(string label, string before, string after)
+    [MemberData(nameof(WritesThatStay))]
+    public void AWriteThatStays_IsATodo_AndTheReadReadsTheModelTheTransitionSaves(
+        string label,
+        string before,
+        string after
+    )
     {
         _ = label;
         _app.Write(HookPath, InApp(before));
@@ -355,7 +379,8 @@ public sealed class ReadSemanticsTests : IDisposable
         var result = Port(AppFolder);
 
         Assert.Equal(InApp(after), _app.Read(HookPath));
-        Assert.Empty(result.Todos);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains(NoReplaceFormData, todo, StringComparison.Ordinal);
         AssertCompilesAgainstV9(AppFolder);
     }
 
@@ -392,7 +417,8 @@ public sealed class ReadSemanticsTests : IDisposable
             ),
             result.Messages
         );
-        Assert.Empty(result.Todos);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains(NoReplaceFormData, todo, StringComparison.Ordinal);
         AssertCompilesAgainstV9(AppFolder);
     }
 
