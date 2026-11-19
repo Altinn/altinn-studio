@@ -111,8 +111,7 @@ internal static class OtherElementWrites
                 $"{write.Model.Name} is read from {read.DataType}, changed and written to {write.DataType}. v8 saved the "
                     + $"changes in {write.DataType} only; v9 saves them in {read.DataType} too, since "
                     + $"{rewrite.Mutator}.GetFormData returns the model the transition saves. To keep {read.DataType} as it "
-                    + $"was, write {write.Model.Name} to {write.DataType} before changing it, and change the object "
-                    + "ReplaceFormData returns."
+                    + $"was, change a copy of {write.Model.Name}."
             );
         }
     }
@@ -154,7 +153,14 @@ internal static class OtherElementWrites
     private static (IParameterSymbol Model, IParameterSymbol DataType)? WriteParameters(MethodRewrite helper)
     {
         if (
-            helper.MovedWrites.Where(IsFormWrite).ToList() is [var write]
+            helper
+                .Body.Operation.DescendantsAndSelf()
+                .OfType<IInvocationOperation>()
+                .Select(StorageClientCall.From)
+                .OfType<StorageClientCall>()
+                .Where(IsFormWrite)
+                .ToList()
+                is [var write]
             && ReadSemantics.Model(write) is { } model
             && ReadSemantics.Unwrapped(model) is IParameterReferenceOperation written
             && DataTypeOperand(write) is IParameterReferenceOperation dataType

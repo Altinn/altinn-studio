@@ -18,10 +18,8 @@ public sealed class ServiceTaskBodiesTests : IDisposable
     [Fact]
     public void AServiceTask_WritesThroughItsContextsMutator_AndAWriteBeforeAFailureIsWarnedAbout()
     {
-        // krt/krt-1026a-1 App/logic/SfagAPI/SfagApiServiceTask.cs:51-62.
+        // krt/krt-1026a-1 App/logic/SfagAPI/SfagApiServiceTask.cs:51-62, with a binary write.
         var source = """
-            public class Model { public string? Error { get; set; } }
-
             public class SfagApiServiceTask(IDataClient dataClient) : Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.IServiceTask
             {
                 public string Type => "SfagApiServiceTask";
@@ -32,27 +30,20 @@ public sealed class ServiceTaskBodiesTests : IDisposable
                     var dataElement = instance.Data.Find(x => x.DataType == "model")!;
                     var instanceIdentifier = new InstanceIdentifier(instance);
                     var guid = new Guid(dataElement.Id);
-                    dataElement = await dataClient.UnlockDataElement(instanceIdentifier, guid);
-                    dataElement = await dataClient.UpdateFormData(instance, new Model { Error = "e" }, dataElement);
-                    dataElement = await dataClient.Update(instance, dataElement);
-                    dataElement = await dataClient.LockDataElement(instanceIdentifier, guid);
+                    var bytes = Encoding.UTF8.GetBytes("e");
+                    await dataClient.UpdateBinaryData(instanceIdentifier, "text/plain", null, guid, new MemoryStream(bytes));
                     return Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult.FailedContinueProcessNext();
                 }
             }
             """;
         _app.Write(HookPath, InApp(source));
-        _app.Write(
-            MetadataPath,
-            """{ "id": "org/app", "dataTypes": [ { "id": "model", "appLogic": { "classRef": "App.Logic.Model" } } ] }"""
-        );
+        _app.Write(MetadataPath, """{ "id": "org/app", "dataTypes": [ { "id": "model" } ] }""");
 
         var result = Port(AppFolder);
 
         Assert.Equal(
             InApp(
                 """
-                public class Model { public string? Error { get; set; } }
-
                 public class SfagApiServiceTask : Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.IServiceTask
                 {
                     public string Type => "SfagApiServiceTask";
@@ -63,7 +54,8 @@ public sealed class ServiceTaskBodiesTests : IDisposable
                         var dataElement = instance.Data.Find(x => x.DataType == "model")!;
                         var instanceIdentifier = new InstanceIdentifier(instance);
                         var guid = new Guid(dataElement.Id);
-                        await context.InstanceDataMutator.ReplaceFormData(dataElement, new Model { Error = "e" });
+                        var bytes = Encoding.UTF8.GetBytes("e");
+                        context.InstanceDataMutator.UpdateBinaryDataElement(new global::Altinn.App.Core.Models.DataElementIdentifier(guid), "text/plain", bytes);
                         return Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.ServiceTaskResult.FailedContinueProcessNext();
                     }
                 }
@@ -74,9 +66,9 @@ public sealed class ServiceTaskBodiesTests : IDisposable
         Assert.Contains(
             At(
                 source,
-                "dataElement = await dataClient.UpdateFormData(instance, new Model { Error = \"e\" }, dataElement);",
+                "await dataClient.UpdateBinaryData(instanceIdentifier, \"text/plain\", null, guid, new MemoryStream(bytes));",
                 UpgradeMessageStatus.Warning,
-                "IDataClient.UpdateFormData is saved only if the service task succeeds: v9 keeps nothing from an attempt that returns a failure. If it must be stored, return ServiceTaskResult.Success with the action the failure leads to."
+                "IDataClient.UpdateBinaryData is saved only if the service task succeeds: v9 keeps nothing from an attempt that returns a failure. If it must be stored, return ServiceTaskResult.Success with the action the failure leads to."
             ),
             result.Messages
         );
