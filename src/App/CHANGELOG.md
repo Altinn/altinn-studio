@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Build check `ALTINNAPP1030` (error) reports an exclusive gateway that routes on `gatewayAction` right after a `pdf`, `subformPdf` or `eFormidling` task. These tasks return no action, so the gateway never sees one, such as `reject`, and cannot route on it. ([#21997](https://github.com/Altinn/altinn-studio/pull/21997))
 
+### Changed
+
+- Repeating groups keep their configured edit-button text and show separate validation indicators. Users can open row messages to navigate to affected fields; editable table rows show their messages together below the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853), [#19946](https://github.com/Altinn/altinn-studio/issues/19946))
+
 ### Fixed
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
