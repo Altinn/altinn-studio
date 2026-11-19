@@ -258,34 +258,41 @@ function asRowId(value: unknown): string | undefined {
 /**
  * Merges a list of objects into the rows of a list, the same way the backend does. When every result row has an id,
  * each merges into the row with that id, wherever it is, or becomes a new row with that id. When none has, each merges
- * into the row at its position. A result where only some rows have an id fails, since it is not clear which rule was
- * meant. The rows end up in the order of the result, and rows it does not name are removed.
+ * into the row at its position. A result where only some rows have an id is logged and leaves the list as it is, since
+ * it is not clear which rule was meant. The rows end up in the order of the result, and rows it does not name are
+ * removed.
  */
 function mergeRows(target: string, rows: unknown[], context: CalculationTarget) {
   const { dataType, model, lookupTool } = context;
-  // Check the result before anything is written, so a result that fails leaves the list as it is
+  // Check the result before anything is written. Bad data can give a result like this, so it is logged and the list
+  // is left as it is, as when an expression fails to evaluate.
   const resultRowIds: (string | undefined)[] = [];
   const seenRowIds = new Set<string>();
   for (const [index, row] of rows.entries()) {
     if (!isObject(row)) {
-      // A row that is not an object cannot be shown, so the calculation fails instead
-      throw new Error(`The calculation for ${dataType}.${target} gives a list where row ${index} is not an object`);
+      // A row that is not an object cannot be shown, so the list is left as it is
+      window.logErrorOnce(`The calculation for ${dataType}.${target} gives a list where row ${index} is not an object`);
+      return;
     }
     const rowId = asRowId(row[ALTINN_ROW_ID]);
     if (rowId !== undefined) {
       if (seenRowIds.has(rowId)) {
-        // Rows are matched by id, so the calculation fails rather than produce a list that cannot be told apart
-        throw new Error(`The calculation for ${dataType}.${target} gives more than one row the altinnRowId ${rowId}`);
+        // Rows are matched by id, so a list that cannot be told apart is left as it is
+        window.logErrorOnce(
+          `The calculation for ${dataType}.${target} gives more than one row the altinnRowId ${rowId}`,
+        );
+        return;
       }
       seenRowIds.add(rowId);
     }
     resultRowIds.push(rowId);
   }
   if (seenRowIds.size > 0 && seenRowIds.size < rows.length) {
-    throw new Error(
+    window.logErrorOnce(
       `The calculation for ${dataType}.${target} gives a list where some rows have an altinnRowId and some do not. ` +
         'Rows are merged by id when all of them have one, and by position when none has.',
     );
+    return;
   }
   const [schema] = lookupTool.getSchemaForPath(target);
   const [itemSchema] = lookupTool.getSchemaForPath(`${target}[0]`);

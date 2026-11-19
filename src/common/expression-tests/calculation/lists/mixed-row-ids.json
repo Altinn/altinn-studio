@@ -1,10 +1,16 @@
 {
-  "name": "A list where only some rows have an id fails, and nothing is written",
+  "name": "A list where only some rows have an id is logged and leaves the list as it is",
   "comment": "Rows are merged by id when every row has one, and by position when none has. With both, it is not clear which was meant.",
   "dataModel": {
     "rows": [
-      { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1 },
-      { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 2 }
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 2
+      }
     ]
   },
   "testCases": [
@@ -20,7 +26,19 @@
           ]
         }
       ],
-      "expectsFailure": "have an altinnRowId and some do not"
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 2
+          }
+        ]
+      },
+      "expectsErrors": ["have an altinnRowId and some do not"]
     },
     {
       "name": "a row whose id is not a GUID next to a row with one",
@@ -34,7 +52,19 @@
           ]
         }
       ],
-      "expectsFailure": "have an altinnRowId and some do not"
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 2
+          }
+        ]
+      },
+      "expectsErrors": ["have an altinnRowId and some do not"]
     }
   ]
 }

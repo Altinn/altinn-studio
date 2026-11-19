@@ -225,12 +225,14 @@ internal sealed class DataModelFieldCalculator
     /// <summary>
     /// Merges a list of objects into the rows of a list, the same way the frontend does. When every result row has an
     /// id, each merges into the row with that id, wherever it is, or becomes a new row with that id. When none has,
-    /// each merges into the row at its position. A result where only some rows have an id fails, since it is not
-    /// clear which rule was meant. The rows end up in the order of the result, and rows it does not name are removed.
+    /// each merges into the row at its position. A result where only some rows have an id is logged and leaves the
+    /// list as it is, since it is not clear which rule was meant. The rows end up in the order of the result, and
+    /// rows it does not name are removed.
     /// </summary>
     private void MergeRows(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement rows)
     {
-        // Check the result before anything is written, so a result that fails leaves the list as it is
+        // Check the result before anything is written. Bad data can give a result like this, so it is logged and the
+        // list is left as it is, as when an expression fails to evaluate.
         var resultRows = rows.EnumerateArray().ToList();
         var resultRowIds = new Guid?[resultRows.Count];
         var seenRowIds = new HashSet<Guid>();
@@ -238,10 +240,15 @@ internal sealed class DataModelFieldCalculator
         {
             if (resultRows[index].ValueKind != JsonValueKind.Object)
             {
-                // The frontend cannot show a row that is not an object, so the calculation fails instead
-                throw new InvalidOperationException(
-                    $"The calculation for {field.Field} gives a list where row {index} in {path} is {resultRows[index].ValueKind}, not an object"
+                // The frontend cannot show a row that is not an object, so the list is left as it is
+                _logger.LogError(
+                    "The calculation for {Field} gives a list where row {Index} in {Path} is {ValueKind}, not an object",
+                    field.Field,
+                    index,
+                    path,
+                    resultRows[index].ValueKind
                 );
+                return;
             }
 
             resultRowIds[index] = resultRows[index].TryGetProperty(AltinnRowIdJsonName, out var rowId)
@@ -249,18 +256,26 @@ internal sealed class DataModelFieldCalculator
                 : null;
             if (resultRowIds[index] is { } id && !seenRowIds.Add(id))
             {
-                // Rows are matched by id, so the calculation fails rather than save a list it cannot tell apart
-                throw new InvalidOperationException(
-                    $"The calculation for {field.Field} gives more than one row in {path} the altinnRowId {id}"
+                // Rows are matched by id, so a list that cannot be told apart is left as it is
+                _logger.LogError(
+                    "The calculation for {Field} gives more than one row in {Path} the altinnRowId {RowId}",
+                    field.Field,
+                    path,
+                    id
                 );
+                return;
             }
         }
 
         if (seenRowIds.Count > 0 && seenRowIds.Count < resultRows.Count)
         {
-            throw new InvalidOperationException(
-                $"The calculation for {field.Field} gives a list where some rows in {path} have an altinnRowId and some do not. Rows are merged by id when all of them have one, and by position when none has."
+            _logger.LogError(
+                "The calculation for {Field} gives a list where some rows in {Path} have an altinnRowId and some do not. "
+                    + "Rows are merged by id when all of them have one, and by position when none has.",
+                field.Field,
+                path
             );
+            return;
         }
 
         var currentRowCount = formDataWrapper.GetRowCount(path, rowIndexes: default) ?? 0;

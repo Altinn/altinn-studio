@@ -559,33 +559,37 @@ describe('calculations in the form store', () => {
     expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('copies[0].children'));
   });
 
-  it('fails when a row in a list result is not an object', async () => {
-    await expect(
-      renderCalculations(
-        { calculations: [{ field: 'rows', expression: ['list', ['object', 'price', 1], null] }] },
-        { rows: [] },
-      ),
-    ).rejects.toThrow('row 1 is not an object');
+  it('logs and leaves the list alone when a row in a list result is not an object', async () => {
+    const logError = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => undefined);
+    const rows = [{ altinnRowId: rowIdA, price: 10 }];
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'rows', expression: ['list', ['object', 'price', 1], null] }] },
+      { rows },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ rows });
+    expect(logError).toHaveBeenCalledWith(expect.stringContaining('row 1 is not an object'));
   });
 
-  it('fails when two rows in a list result have the same id', async () => {
-    await expect(
-      renderCalculations(
-        {
-          calculations: [
-            {
-              field: 'rows',
-              expression: [
-                'list',
-                ['object', 'altinnRowId', rowIdA, 'price', 1],
-                ['object', 'altinnRowId', rowIdA, 'price', 2],
-              ],
-            },
-          ],
-        },
-        { rows: [] },
-      ),
-    ).rejects.toThrow(`altinnRowId ${rowIdA}`);
+  it('logs and leaves the list alone when two rows in a list result have the same id', async () => {
+    const logError = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => undefined);
+    const rows = [{ altinnRowId: rowIdA, price: 10 }];
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          {
+            field: 'rows',
+            expression: [
+              'list',
+              ['object', 'altinnRowId', rowIdA, 'price', 1],
+              ['object', 'altinnRowId', rowIdA, 'price', 2],
+            ],
+          },
+        ],
+      },
+      { rows },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ rows });
+    expect(logError).toHaveBeenCalledWith(expect.stringContaining(`altinnRowId ${rowIdA}`));
   });
 
   it('leaves a list of primitives alone when the result is a list of objects', async () => {

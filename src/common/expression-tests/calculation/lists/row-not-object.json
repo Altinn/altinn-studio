@@ -1,5 +1,5 @@
 {
-  "name": "A list of objects with a row that is not an object fails the calculation",
+  "name": "A list of objects with a row that is not an object is logged and leaves the list as it is",
   "dataModel": {
     "rows": [
       {
@@ -17,7 +17,15 @@
           "expression": ["list", ["object", "total", 1], null]
         }
       ],
-      "expectsFailure": "not an object"
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1
+          }
+        ]
+      },
+      "expectsErrors": ["not an object"]
     },
     {
       "name": "number row",
@@ -27,7 +35,15 @@
           "expression": ["list", 3, ["object", "total", 1]]
         }
       ],
-      "expectsFailure": "not an object"
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1
+          }
+        ]
+      },
+      "expectsErrors": ["not an object"]
     }
   ]
 }
