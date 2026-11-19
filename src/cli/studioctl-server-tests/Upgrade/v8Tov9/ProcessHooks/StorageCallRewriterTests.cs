@@ -38,7 +38,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                         public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            dataMutator.SetDataValue("Fagsystem", "hego");
+                            (dataMutator.Instance.DataValues ??= new())["Fagsystem"] = "hego";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -67,8 +67,8 @@ public sealed class StorageCallRewriterTests : IDisposable
                         public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            dataMutator.SetDataValue("instantiatedVersion", "1.2");
-                            dataMutator.SetDataValue("env", "prod");
+                            (dataMutator.Instance.DataValues ??= new())["instantiatedVersion"] = "1.2";
+                            (dataMutator.Instance.DataValues ??= new())["env"] = "prod";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -111,8 +111,37 @@ public sealed class StorageCallRewriterTests : IDisposable
                         private async Task OppdaterDataValues({{IInstanceDataMutator}} dataMutator)
                         {
                             var currentVersion = "1.0";
-                            dataMutator.SetDataValue("validatedVersion", currentVersion);
-                            dataMutator.SetDataValue("env", "prod");
+                            (dataMutator.Instance.DataValues ??= new())["validatedVersion"] = currentVersion;
+                            (dataMutator.Instance.DataValues ??= new())["env"] = "prod";
+                        }
+                    }
+                    """
+            },
+            {
+                "UpdateDataValues of instance.DataValues after Add and Remove",
+                """
+                    public class ProcessTaskEnd(IInstanceClient instanceClient) : IProcessTaskEnd
+                    {
+                        public async Task End(string taskId, Instance instance)
+                        {
+                            instance.DataValues ??= new();
+                            instance.DataValues.Add("submitted", "true");
+                            instance.DataValues.Remove("draft");
+                            await instanceClient.UpdateDataValues(instance, instance.DataValues);
+                        }
+                    }
+                    """,
+                $$"""
+                    public class ProcessTaskEnd : {{IOnTaskEndingHandler}}
+                    {
+                        public bool ShouldRunForTask(string taskId) => true;
+
+                        public async Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
+                        {
+                            {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                            (dataMutator.Instance.DataValues ??= new())["submitted"] = "true";
+                            dataMutator.Instance.DataValues?.Remove("draft");
+                            return {{HandlerResult}}.Success();
                         }
                     }
                     """
@@ -140,7 +169,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             Instance instance = dataMutator.Instance;
                             var id = new InstanceIdentifier(instance);
-                            dataMutator.SetDataValue("status", "sendt");
+                            (dataMutator.Instance.DataValues ??= new())["status"] = "sendt";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -179,7 +208,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                                 dataValues[element.DataType] = element.Id;
                             }
 
-                            foreach (var (key, value) in dataValues) { dataMutator.SetDataValue(key, value); }
+                            foreach (var (key, value) in dataValues) { (dataMutator.Instance.DataValues ??= new())[key] = value; }
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -214,7 +243,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                             Instance instance = dataMutator.Instance;
                             var instanceIdentifier = new InstanceIdentifier(instance);
 
-                            dataMutator.SetPresentationText("CaseNumber", "123");
+                            (dataMutator.Instance.PresentationTexts ??= new())["CaseNumber"] = "123";
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -466,7 +495,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             var language = dataMutator.Language ?? "nb";
-                            dataMutator.SetDataValue("language", language);
+                            (dataMutator.Instance.DataValues ??= new())["language"] = language;
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -524,7 +553,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                         public Task<{{HandlerResult}}> Execute({{OnTaskEndingContext}} context)
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
-                            dataMutator.SetDataValue("a", "b");
+                            (dataMutator.Instance.DataValues ??= new())["a"] = "b";
                             return Task.FromResult<{{HandlerResult}}>({{HandlerResult}}.Success());
                         }
                     }
@@ -580,7 +609,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                         {
                             {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                             var language = dataMutator.Language;
-                            dataMutator.SetDataValue("language", language);
+                            (dataMutator.Instance.DataValues ??= new())["language"] = language;
                             return {{HandlerResult}}.Success();
                         }
                     }
@@ -1079,7 +1108,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValues(instance, instance.DataValues);",
-                "IInstanceClient.UpdateDataValues now sets each value with dataMutator.SetDataValue."
+                "IInstanceClient.UpdateDataValues now sets each value on dataMutator.Instance.DataValues, and the step saves the keys that changed."
             },
         };
 
@@ -1457,7 +1486,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                         {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
                         Instance instance = dataMutator.Instance;
                         var values = instance.Data.ToDictionary(d => d.DataType, d => (string?)d.Id);
-                        foreach (var (key, value) in values) { dataMutator.SetDataValue(key, value); }
+                        foreach (var (key, value) in values) { (dataMutator.Instance.DataValues ??= new())[key] = value; }
                         return {{HandlerResult}}.Success();
                     }
                 }
@@ -1470,7 +1499,7 @@ public sealed class StorageCallRewriterTests : IDisposable
                 source,
                 "await instanceClient.UpdateDataValues(instance, values);",
                 UpgradeMessageStatus.Warning,
-                "the keys set here are known only at run time; SetDataValue throws for a key that dataFields in applicationmetadata.json derives (sum), which fails the step."
+                "the keys set here are known only at run time; the save fails the step when one of them is a key that dataFields in applicationmetadata.json derives (sum)."
             ),
             result.Messages
         );
