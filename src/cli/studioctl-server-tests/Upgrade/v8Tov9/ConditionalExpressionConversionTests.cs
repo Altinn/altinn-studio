@@ -92,6 +92,11 @@ public sealed class ConditionalExpressionConversionTests
     [InlineData("function(values) { const flag = false; if (values.answer === 'yes') flag = true; return flag; }")]
     [InlineData("function(values) { { let flag = true; } return flag; }")]
     [InlineData("function(values) { const unused = delete values.answer; return values.answer === 'yes'; }")]
+    [InlineData("function(values) { hidden = true; let hidden; return hidden; }")]
+    [InlineData("function(undefined) { return undefined; }")]
+    [InlineData(
+        "function(values) { if (typeof ((delete values.answer) === true) === 'boolean') return values.answer === undefined; return false; }"
+    )]
     public void UnsupportedEffectsOrControlFlow_DoNotBecomeSuccessfulConversions(string function)
     {
         Assert.Equal(ConversionStatus.Failed, Convert(function).Status);
@@ -482,6 +487,8 @@ public sealed class ConditionalExpressionConversionTests
     [InlineData("flag = false; var flag;", true)]
     [InlineData("{ let flag = false; flag = true; } flag = false;", false)]
     [InlineData("flag = false;", false)]
+    [InlineData("try { throw 0; } catch (flag) { flag = false; }", true)]
+    [InlineData("try { throw 0; } catch (flag) { flag = false; } flag = false;", false)]
     public void GlobalConstants_IgnoreOnlyWritesToShadowingBindings(string body, bool keepGlobal)
     {
         using var app = new TempAppFolder();
@@ -521,6 +528,81 @@ public sealed class ConditionalExpressionConversionTests
         );
         Assert.Equal(ConversionStatus.Failed, result.Status);
         Assert.Contains("size limit", result.FailureReason);
+    }
+
+    [Fact]
+    public void InitializedLet_CanBeAssignedAfterItsDeclaration()
+    {
+        AssertExpression("true", Convert("function(values) { let hidden; hidden = true; return hidden; }"));
+    }
+
+    [Fact]
+    public void NumericStringCoercion_DoesNotAcceptTrailingNullCharacters()
+    {
+        var result = new ExpressionConverter().Convert(
+            "function(values) { return values.amount == '1\\u0000'; }",
+            new() { ["amount"] = "amount" },
+            "Hide",
+            new Dictionary<string, string> { ["amount"] = "number" }
+        );
+        Assert.True(result.Status == ConversionStatus.Failed || JsonSerializer.Serialize(result.Expression) == "false");
+    }
+
+    [Fact]
+    public void GuardImplication_UsesTheSameWhitespaceAsNumericEquality()
+    {
+        var converter = new ExpressionConverter();
+        var types = new Dictionary<string, string> { ["amount"] = "number" };
+        var plain = converter.Convert(
+            "function(values) { return values.amount && values.amount == '0'; }",
+            new() { ["amount"] = "amount" },
+            "Hide",
+            types
+        );
+        var bom = converter.Convert(
+            "function(values) { return values.amount && values.amount == '\\uFEFF0'; }",
+            new() { ["amount"] = "amount" },
+            "Hide",
+            types
+        );
+        AssertExpression(JsonSerializer.Serialize(plain.Expression), bom);
+    }
+
+    [Fact]
+    public void DifferentlyTypedInputs_CanBothBeNullInAStrictComparison()
+    {
+        var result = new ExpressionConverter().Convert(
+            "function(values) { return values.amount === values.flag; }",
+            new() { ["amount"] = "amount", ["flag"] = "flag" },
+            "Hide",
+            new Dictionary<string, string> { ["amount"] = "number", ["flag"] = "boolean" }
+        );
+        AssertExpression(
+            "[\"and\",[\"equals\",[\"dataModel\",\"amount\"],null],[\"equals\",[\"dataModel\",\"flag\"],null]]",
+            result
+        );
+    }
+
+    [Theory]
+    [InlineData("", true)]
+    [InlineData("conditionalRuleHandlerObject.check = () => false;", false)]
+    [InlineData("conditionalRuleHandlerObject = { check: () => false };", false)]
+    public void HelperInlining_RequiresAStableHandlerDefinition(string mutation, bool succeeds)
+    {
+        using var app = new TempAppFolder();
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var conditionalRuleHandlerObject = { check: values => true };" + mutation
+            )
+        );
+        parser.Parse();
+        var result = new ExpressionConverter(parser.GetGlobalConstants(), parser.GetAllConditionalFunctions()).Convert(
+            "function(values) { return conditionalRuleHandlerObject.check(values); }",
+            new() { ["answer"] = "choice" },
+            "Hide"
+        );
+        Assert.Equal(succeeds ? ConversionStatus.Success : ConversionStatus.Failed, result.Status);
     }
 
     private static ConversionResult Convert(string function, string action = "Hide") =>
