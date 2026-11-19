@@ -12,85 +12,97 @@ internal static class ExpressionSimplifier
             return expression?.DeepClone();
         var arguments = call.Select(Simplify).ToArray();
         var name = Text(arguments[0]);
-        if (name == "not" && arguments.Length == 2)
+        return name switch
         {
-            if (Boolean(arguments[1]) is { } boolean)
-                return JsonValue.Create(!boolean);
-            if (
-                arguments[1] is JsonArray nested
-                && Text(nested[0]) == "not"
-                && nested.Count == 2
-                && IsBoolean(nested[1])
-            )
-                return nested[1]?.DeepClone();
-        }
-        if (name is "and" or "or")
+            "not" when arguments.Length == 2 => SimplifyNot(arguments),
+            "and" or "or" => SimplifyBoolean(name, arguments),
+            "if" when arguments.Length == 5 && Text(arguments[3]) == "else" => SimplifyConditional(arguments),
+            "plus" => SimplifyAddition(arguments),
+            _ => SimplifyComparison(name, arguments),
+        };
+    }
+
+    private static JsonNode? SimplifyNot(JsonNode?[] arguments)
+    {
+        if (Boolean(arguments[1]) is { } boolean)
+            return JsonValue.Create(!boolean);
+        if (arguments[1] is JsonArray nested && Text(nested[0]) == "not" && nested.Count == 2 && IsBoolean(nested[1]))
+            return nested[1]?.DeepClone();
+        return new JsonArray(arguments);
+    }
+
+    private static JsonNode? SimplifyBoolean(string name, JsonNode?[] arguments)
+    {
+        var terms = new List<JsonNode?>();
+        foreach (var argument in arguments.Skip(1))
         {
-            var terms = new List<JsonNode?>();
-            foreach (var argument in arguments.Skip(1))
+            if (Boolean(argument) is { } boolean)
             {
-                if (Boolean(argument) is { } boolean)
-                {
-                    if (boolean == (name == "or"))
-                        return JsonValue.Create(boolean);
-                    continue;
-                }
-                var children =
-                    argument is JsonArray nested && Text(nested[0]) == name ? nested.Skip(1) : new[] { argument };
-                foreach (var child in children)
-                    if (!terms.Any(term => JsonNode.DeepEquals(term, child)))
-                        terms.Add(child?.DeepClone());
+                if (boolean == (name == "or"))
+                    return JsonValue.Create(boolean);
+                continue;
             }
-            if (terms.Count == 0)
-                return JsonValue.Create(name == "and");
-            if (terms.Count == 1 && IsBoolean(terms[0]))
-                return terms[0];
-            return Call(name, terms.ToArray());
+            var children =
+                argument is JsonArray nested && Text(nested[0]) == name ? nested.Skip(1) : new[] { argument };
+            foreach (var child in children)
+                if (!terms.Any(term => JsonNode.DeepEquals(term, child)))
+                    terms.Add(child?.DeepClone());
         }
-        if (name == "if" && arguments.Length == 5 && Text(arguments[3]) == "else")
-        {
-            var condition = arguments[1];
-            var yes = WithCondition(arguments[2], condition, true);
-            var no = WithCondition(arguments[4], condition, false);
-            if (Boolean(condition) is { } boolean)
-                return (boolean ? yes : no)?.DeepClone();
-            if (JsonNode.DeepEquals(yes, no))
-                return yes?.DeepClone();
-            if (Boolean(yes) == true && Boolean(no) == false && IsBoolean(condition))
-                return condition?.DeepClone();
-            if (Boolean(yes) == false && Boolean(no) == true)
-                return Simplify(Call("not", condition));
-            if (condition is JsonArray negation && Text(negation[0]) == "not" && negation.Count == 2)
-                return Simplify(Call("if", negation[1], no, JsonValue.Create("else"), yes));
-            return Call("if", condition, yes, JsonValue.Create("else"), no);
-        }
-        if (name == "plus")
-        {
-            var terms = arguments.Skip(1).ToList();
-            // The outer sum already gives a missing numeric operand the same zero default.
-            for (var index = 0; index < terms.Count; index++)
-                if (
-                    terms[index] is JsonArray inner
-                    && Text(inner[0]) == "plus"
-                    && (inner.Count == 2 || (inner.Count == 3 && IsZero(inner[2])))
-                )
-                    terms[index] = inner[1]?.DeepClone();
-            // A nested sum rounds back to double before its parent runs. Flattening it can change that value.
-            // Keep one explicit numeric operation, including its missing-value default.
-            if (terms.Count > 1)
-                terms.RemoveAll(IsZero);
-            if (terms.Count == 0)
-                return JsonValue.Create(0);
+        if (terms.Count == 0)
+            return JsonValue.Create(name == "and");
+        if (terms.Count == 1 && IsBoolean(terms[0]))
+            return terms[0];
+        return Call(name, terms.ToArray());
+    }
+
+    private static JsonNode? SimplifyConditional(JsonNode?[] arguments)
+    {
+        var condition = arguments[1];
+        var yes = WithCondition(arguments[2], condition, true);
+        var no = WithCondition(arguments[4], condition, false);
+        if (Boolean(condition) is { } boolean)
+            return (boolean ? yes : no)?.DeepClone();
+        if (JsonNode.DeepEquals(yes, no))
+            return yes?.DeepClone();
+        if (Boolean(yes) == true && Boolean(no) == false && IsBoolean(condition))
+            return condition?.DeepClone();
+        if (Boolean(yes) == false && Boolean(no) == true)
+            return Simplify(Call("not", condition));
+        if (condition is JsonArray negation && Text(negation[0]) == "not" && negation.Count == 2)
+            return Simplify(Call("if", negation[1], no, JsonValue.Create("else"), yes));
+        return Call("if", condition, yes, JsonValue.Create("else"), no);
+    }
+
+    private static JsonNode? SimplifyAddition(JsonNode?[] arguments)
+    {
+        var terms = arguments.Skip(1).ToList();
+        // The outer sum already gives a missing numeric operand the same zero default.
+        for (var index = 0; index < terms.Count; index++)
             if (
-                terms.All(term =>
-                    Number(term) is { } number
-                    && number.CompareTo(Math.Truncate(number)) == 0
-                    && Math.Abs(number) <= 1000000
-                )
+                terms[index] is JsonArray inner
+                && Text(inner[0]) == "plus"
+                && (inner.Count == 2 || (inner.Count == 3 && IsZero(inner[2])))
             )
-                return JsonValue.Create(terms.Sum(term => Number(term) ?? 0));
-            return Call("plus", terms.ToArray());
-        }
+                terms[index] = inner[1]?.DeepClone();
+        // A nested sum rounds back to double before its parent runs. Flattening it can change that value.
+        // Keep one explicit numeric operation, including its missing-value default.
+        if (terms.Count > 1)
+            terms.RemoveAll(IsZero);
+        if (terms.Count == 0)
+            return JsonValue.Create(0);
+        if (
+            terms.All(term =>
+                Number(term) is { } number
+                && number.CompareTo(Math.Truncate(number)) == 0
+                && Math.Abs(number) <= 1000000
+            )
+        )
+            return JsonValue.Create(terms.Sum(term => Number(term) ?? 0));
+        return Call("plus", terms.ToArray());
+    }
+
+    private static JsonNode? SimplifyComparison(string? name, JsonNode?[] arguments)
+    {
         if (
             name is "greaterThan" or "greaterThanEq" or "lessThan" or "lessThanEq"
             && arguments.Length == 3
