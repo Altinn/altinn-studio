@@ -206,6 +206,7 @@
         "PetsUseOptionComponent": {
           "type": "boolean"
         },
+        "CalculationExamples": {"type": "string"},
         "CalculateAnnualWork": {"type": "boolean"},
         "Persons": {"type": ["number", "null"]},
         "AnnualWork": {"type": ["number", "null"]},

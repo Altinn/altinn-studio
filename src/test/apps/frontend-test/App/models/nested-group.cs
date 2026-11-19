@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 namespace Altinn.App.Models
 {
   public class NestedGroup{
+    [JsonPropertyName("CalculationExamples")]
+    public string? CalculationExamples { get; set; }
     [JsonPropertyName("CalculateAnnualWork")]
     public bool CalculateAnnualWork { get; set; }
     [JsonPropertyName("Persons")]
