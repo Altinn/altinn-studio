@@ -161,10 +161,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       setSortDirection(sortColumn === key && sortDirection === 'descending' ? 'ascending' : 'descending');
     }
   };
-  // On small screens the header row only keeps the sortable columns, so that sorting is still possible
-  const headerKeys = Object.keys(config.tableHeaders).filter(
-    (key) => !mobileView || config.sortableColumns?.includes(key),
-  );
+  const columnKeys = Object.keys(config.tableHeaders);
   const mobileColumnKeys = getMobileColumnKeys(config.tableHeaders, config.tableHeadersMobile);
   const renderValue = (value: Row[string] | undefined) => (typeof value === 'string' ? lang(value) : value);
   const indexedId = useIndexedId(baseComponentId);
@@ -223,7 +220,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
         {config.tableColumns && !mobileView && (
           <colgroup>
             {!readOnly && <col className={classes.selectionColumn} />}
-            {Object.keys(config.tableHeaders).map((key) => (
+            {columnKeys.map((key) => (
               <col
                 key={key}
                 style={{ width: config.tableColumns?.[key]?.width }}
@@ -231,7 +228,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
             ))}
           </colgroup>
         )}
-        {headerKeys.length > 0 && (
+        {!mobileView && columnKeys.length > 0 && (
           <BaseTable.Head>
             <BaseTable.Row>
               {!readOnly && (
@@ -241,7 +238,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                   </span>
                 </BaseTable.HeaderCell>
               )}
-              {headerKeys.map((key) => {
+              {columnKeys.map((key) => {
                 const isSortable = !pdfModeActive && config.sortableColumns?.includes(key);
                 let sort: AriaAttributes['aria-sort'] = undefined;
                 if (isSortable) {
@@ -301,10 +298,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 </BaseTable.Cell>
               )}
               {mobileView ? (
-                <BaseTable.Cell
-                  colSpan={headerKeys.length > 1 ? headerKeys.length : undefined}
-                  className={cn({ [classes.selectedRowCell]: isRowSelected(row) && !readOnly })}
-                >
+                <BaseTable.Cell className={cn({ [classes.selectedRowCell]: isRowSelected(row) && !readOnly })}>
                   <ListMobileRowContent
                     tableHeaders={config.tableHeaders}
                     tableHeadersMobile={config.tableHeadersMobile}
@@ -312,7 +306,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                   />
                 </BaseTable.Cell>
               ) : (
-                Object.keys(config.tableHeaders).map((key) => (
+                columnKeys.map((key) => (
                   <BaseTable.Cell
                     key={key}
                     className={cn({
