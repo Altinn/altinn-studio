@@ -48,9 +48,42 @@ public sealed class CalculationProcessorOrderingTests
     }
 
     [Theory]
-    [InlineData("IDataWriteProcessor")]
-    [InlineData("IDataProcessor")]
-    public void ExistingGeneratedRegistration_IsMovedAndReplacedWithoutRunningTwice(string oldInterface)
+    [InlineData("MyApp.FormDataProcessor")]
+    [InlineData("global::MyApp.FormDataProcessor")]
+    public void QualifiedAppProcessor_WithGeneratedShortName_IsPreserved(string appProcessor)
+    {
+        using var output = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
+        using var app = new TempAppFolder();
+        app.Write(
+            "Program.cs",
+            $$"""
+            void RegisterCustomAppServices(IServiceCollection services) {
+                services.AddTransient<IDataProcessor, {{appProcessor}}>();
+            }
+            """
+        );
+
+        var updater = new ProgramCsUpdater(app.Root);
+        Assert.True(updater.RegisterDataProcessor("FormDataProcessor"));
+        var source = app.Read("Program.cs");
+        Assert.Contains($"services.AddTransient<IDataProcessor, {appProcessor}>();", source);
+        Assert.Contains("services.AddTransient<IDataProcessor, FormDataProcessor>();", source);
+        Assert.Contains("services.AddTransient<IDataWriteProcessor, FormDataProcessor>();", source);
+        Assert.True(updater.RegisterDataProcessor("FormDataProcessor"));
+        Assert.Equal(source, app.Read("Program.cs"));
+    }
+
+    [Theory]
+    [InlineData("IDataWriteProcessor", "FormDataProcessor")]
+    [InlineData("IDataProcessor", "FormDataProcessor")]
+    [InlineData("IDataWriteProcessor", "Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor")]
+    [InlineData("IDataProcessor", "Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor")]
+    [InlineData("IDataWriteProcessor", "global::Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor")]
+    [InlineData("IDataProcessor", "global::Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor")]
+    public void ExistingGeneratedRegistration_IsMovedAndReplacedWithoutRunningTwice(
+        string oldInterface,
+        string oldClass
+    )
     {
         using var output = UpgradeConsole.Use(TextWriter.Null, TextWriter.Null);
         using var app = new TempAppFolder();
@@ -60,7 +93,7 @@ public sealed class CalculationProcessorOrderingTests
             class Program {
                 static void RegisterCustomAppServices(IServiceCollection services) {
                     services.AddTransient<IDataProcessor, Existing>();
-                    services.AddTransient<{{oldInterface}}, FormDataProcessor>();
+                    services.AddTransient<{{oldInterface}}, {{oldClass}}>();
                 }
             }
             """
