@@ -147,6 +147,15 @@ public sealed class CalculationExpressionMigrationTests
         Assert.Throws<NotSupportedException>(() => Convert(app, body, rule));
     }
 
+    [Fact]
+    public void ExponentialLocalExpansion_StopsBeforeAllocatingTheFullTree()
+    {
+        using var app = CreateApp();
+        var body =
+            "var total = obj.a || 0;" + string.Concat(Enumerable.Repeat("total += total;", 30)) + "return total;";
+        Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
+    }
+
     [Theory]
     [InlineData("decimal", true)]
     [InlineData("double", false)]

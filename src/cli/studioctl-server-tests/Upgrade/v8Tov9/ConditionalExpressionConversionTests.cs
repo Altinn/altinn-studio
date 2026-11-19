@@ -605,6 +605,30 @@ public sealed class ConditionalExpressionConversionTests
         Assert.Equal(succeeds ? ConversionStatus.Success : ConversionStatus.Failed, result.Status);
     }
 
+    [Theory]
+    [InlineData(4, true)]
+    [InlineData(70, false)]
+    public void HelperNesting_RejectsOnlyTheUnrepresentableRule(int depth, bool succeeds)
+    {
+        using var app = new TempAppFolder();
+        var helpers = new List<string> { "h0: values => values.answer === 'yes'" };
+        for (var i = 1; i <= depth; i++)
+            helpers.Add($"h{i}: values => !conditionalRuleHandlerObject.h{i - 1}(values)");
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var conditionalRuleHandlerObject = { " + string.Join(",", helpers) + " };"
+            )
+        );
+        parser.Parse();
+        var result = new ExpressionConverter(parser.GetGlobalConstants(), parser.GetAllConditionalFunctions()).Convert(
+            $"function(values) {{ return conditionalRuleHandlerObject.h{depth}(values); }}",
+            new() { ["answer"] = "choice" },
+            "Hide"
+        );
+        Assert.Equal(succeeds ? ConversionStatus.Success : ConversionStatus.Failed, result.Status);
+    }
+
     private static ConversionResult Convert(string function, string action = "Hide") =>
         new ExpressionConverter().Convert(
             function,
