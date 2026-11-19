@@ -648,8 +648,58 @@ public sealed class CalculationExpressionMigrationTests
         var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
         Assert.Equal(
             "[\"number\",\"null\"]",
-            schema?["$defs"]?["row"]?["properties"]?["result"]?["type"]?.ToJsonString()
+            schema?["properties"]?["rows"]?["items"]?["properties"]?["result"]?["type"]?.ToJsonString()
         );
+        Assert.Equal("number", schema?["$defs"]?["row"]?["properties"]?["result"]?["type"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public void NullableRowOutput_DoesNotWidenOtherUsesOfTheSameDefinition()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.schema.json",
+            """
+            {"$defs":{"row":{"properties":{"result":{"type":"number"}}}},"properties":{
+              "rows":{"type":"array","items":{"$ref":"#/$defs/row"}},
+              "archivedRows":{"type":"array","items":{"$ref":"#/$defs/row"}}}}
+            """
+        );
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "rows[{0}].result") },
+            "optional: obj => { return null; }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
+        Assert.Equal(
+            "[\"number\",\"null\"]",
+            schema?["properties"]?["rows"]?["items"]?["properties"]?["result"]?["type"]?.ToJsonString()
+        );
+        Assert.Equal("#/$defs/row", schema?["properties"]?["archivedRows"]?["items"]?["$ref"]?.GetValue<string>());
+        Assert.Equal("number", schema?["$defs"]?["row"]?["properties"]?["result"]?["type"]?.GetValue<string>());
+    }
+
+    [Theory]
+    [InlineData("{\"type\":[\"number\"],\"enum\":[0,1]}")]
+    [InlineData("{\"type\":[\"number\",\"null\"],\"enum\":[0,1]}")]
+    [InlineData("{\"type\":[\"number\",\"null\"],\"const\":0}")]
+    [InlineData("{\"anyOf\":[{\"type\":\"null\"},{\"type\":\"number\"}],\"not\":{\"type\":\"null\"}}")]
+    [InlineData("{\"type\":[\"number\",\"null\"],\"allOf\":[{\"type\":\"number\"}]}")]
+    [InlineData("{\"oneOf\":[{\"type\":\"null\"},{\"type\":[\"number\",\"null\"]}]}")]
+    public void NullableOutput_AccountsForEveryConstraint(string property)
+    {
+        using var app = CreateApp();
+        app.Write("models/model.schema.json", "{\"properties\":{\"result\":" + property + "}}");
+        WriteRules(app, new() { ["optional"] = Rule("optional", "result") }, "optional: obj => { return null; }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var result = JsonNode.Parse(app.Read("models/model.schema.json"))?["properties"]?["result"];
+        Assert.Equal("null", result?["anyOf"]?[1]?["type"]?.GetValue<string>());
+        if (property.StartsWith("{\"type\":[", StringComparison.Ordinal))
+            Assert.Equal("number", result?["anyOf"]?[0]?["type"]?.GetValue<string>());
+        var before = app.Read("models/model.schema.json");
+        CalculationMigration.Migrate(app.Root);
+        Assert.Equal(before, app.Read("models/model.schema.json"));
     }
 
     [Fact]
@@ -716,6 +766,32 @@ public sealed class CalculationExpressionMigrationTests
         );
         Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
         Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void UnreadableSchema_DoesNotAbortCalculationFallback()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Skip("Requires Unix file permissions.");
+            return;
+        }
+        using var app = CreateApp();
+        var path = app.Write("models/model.schema.json", "{\"properties\":{\"result\":{\"type\":\"number\"}}}");
+        WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
+        var mode = File.GetUnixFileMode(path);
+        try
+        {
+            File.SetUnixFileMode(path, UnixFileMode.None);
+            var result = CalculationMigration.Migrate(app.Root);
+            Assert.Empty(result.ConvertedRules);
+            Assert.Single(result.FallbackReasons);
+            Assert.Empty(result.ManualRules);
+        }
+        finally
+        {
+            File.SetUnixFileMode(path, mode);
+        }
     }
 
     [Theory]
