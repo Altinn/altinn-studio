@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
 using WorkflowEngine.Core.Utils;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -283,6 +285,35 @@ internal static class EngineEndpoints
                 path and stays cheap. For per-collection health use the collection list endpoint's
                 workflowCounts rollup; to enumerate a collection's failures use the workflow list
                 endpoint with collectionKey, status and role filters.
+                """
+            );
+
+        collectionGroup
+            .MapGet("/{key}/events", EngineRequestHandlers.StreamCollectionEvents)
+            .WithName("StreamCollectionEvents")
+            .WithSummary("Stream collection events")
+            .WithDescription(
+                """
+                Streams a workflow collection as Server-Sent Events. Each event's data is the body Get collection
+                returns: a full snapshot, never a delta. The first event follows as soon as the engine has read the
+                collection after the request arrived. Another follows whenever a workflow in the collection leaves
+                Processing (it settles, parks, is requeued or is canceled) or is resumed, failed, abandoned or
+                released by a mailbox, and at a fixed interval in any case, which also keeps the stream alive. Step
+                progress within a running workflow shows only with the next of those events. An event says that
+                something in the collection changed and shows its heads; a client that needs more lists the
+                collection's workflows when an event arrives.
+
+                A snapshot can repeat the previous one, and the stream carries no event ids: a client that
+                reconnects, to this replica or another, starts from a fresh snapshot.
+
+                With until=Settled (case-insensitive) the engine ends the stream after the first snapshot in which the
+                collection has a head and every head is terminal; Waiting and Held are not. A collection that is
+                settled already gives one event. Without until, the stream ends only when the client closes it, the
+                collection is deleted or the engine shuts down.
+
+                400 Bad Request for any other until value, and 404 Not Found when the namespace has no collection
+                with that key, both before any event. 429 Too Many Requests when the replica already serves its
+                maximum number of streams.
                 """
             );
 
@@ -1011,6 +1042,81 @@ internal static class EngineRequestHandlers
 
         return TypedResults.Ok(collection);
     }
+
+    public static async Task<
+        Results<ServerSentEventsResult<WorkflowCollectionDetailResponse>, NotFound, ProblemHttpResult>
+    > StreamCollectionEvents(
+        [FromRoute(Name = "namespace")] string ns,
+        [FromRoute] string key,
+        [FromQuery] string? until,
+        [FromServices] CollectionEventHub collectionEvents,
+        [FromServices] IHostApplicationLifetime lifetime,
+        HttpContext httpContext
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "collection_events"));
+
+        CollectionEventsUntil? streamUntil = null;
+        if (until is not null)
+        {
+            if (!EnumNames.TryParse(until, out CollectionEventsUntil parsedUntil))
+                return TypedResults.Problem(
+                    detail: $"'{until}' is not a valid until value. Valid values (case-insensitive): {string.Join(", ", EnumNames.Of<CollectionEventsUntil>())}.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            streamUntil = parsedUntil;
+        }
+
+        ns = NormalizeNamespace(ns);
+
+        var subscription = collectionEvents.TrySubscribe(new CollectionId(ns, key));
+        if (subscription is null)
+            return TypedResults.Problem(
+                detail: "This engine instance serves its maximum number of collection event streams. Retry later.",
+                statusCode: StatusCodes.Status429TooManyRequests
+            );
+        httpContext.Response.RegisterForDispose(subscription);
+
+        // ServerSentEventsResult does not pass the request's abort on to the enumerator, which would see a closed
+        // client only at its next write, by an exception. Ending the subscription ends the stream at once and quietly,
+        // and on shutdown too rather than holding it up.
+        subscription.EndWhen(httpContext.RequestAborted, lifetime.ApplicationStopping);
+
+        var first = await subscription.Next(CancellationToken.None);
+        if (first is null && lifetime.ApplicationStopping.IsCancellationRequested)
+            return TypedResults.Problem(
+                detail: "The engine instance is shutting down.",
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+
+        if (first is null)
+            return TypedResults.NotFound();
+
+        return TypedResults.ServerSentEvents(StreamSnapshots(subscription, first, streamUntil));
+    }
+
+    private static async IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamSnapshots(
+        CollectionEventSubscription subscription,
+        WorkflowCollectionDetailResponse first,
+        CollectionEventsUntil? until
+    )
+    {
+        using (subscription)
+        {
+            for (var snapshot = first; snapshot is not null; snapshot = await subscription.Next(CancellationToken.None))
+            {
+                yield return snapshot;
+
+                if (until == CollectionEventsUntil.Settled && IsSettled(snapshot))
+                    yield break;
+            }
+        }
+    }
+
+    private static bool IsSettled(WorkflowCollectionDetailResponse collection) =>
+        collection.Heads.Count > 0
+        && !collection.Heads.Any(head => PersistentItemStatusMap.Incomplete.Contains(head.Status));
 
     public static async Task<Results<Ok<IReadOnlyList<NamespaceThrottleResponse>>, NoContent>> ListThrottles(
         [FromServices] IEngineRepository repository,

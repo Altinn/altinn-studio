@@ -73,6 +73,12 @@ internal static class Defaults
                 FlushConcurrency = 2,
             },
         },
+        CollectionEvents = new CollectionEventSettings
+        {
+            MaxBatchSize = 100,
+            SweepInterval = TimeSpan.FromSeconds(5),
+            MaxStreams = 5_000,
+        },
         Retention = new RetentionSettings
         {
             RetentionPeriod = TimeSpan.FromDays(90),

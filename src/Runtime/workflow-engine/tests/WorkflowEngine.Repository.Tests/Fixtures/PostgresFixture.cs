@@ -126,6 +126,26 @@ public sealed class PostgresFixture : IAsyncLifetime
         );
     }
 
+    /// <summary>A repository on connections of the caller's own, such as ones with different session settings.</summary>
+    internal static EngineRepository CreateRepository(
+        NpgsqlDataSource dataSource,
+        IConcurrencyLimiter limiter,
+        IOptions<EngineSettings> settings
+    )
+    {
+        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(dataSource).Options;
+        var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        return new EngineRepository(
+            dataSource,
+            factory,
+            settings,
+            limiter,
+            new SqlBulkInserter(factory),
+            TimeProvider.System,
+            NullLogger<EngineRepository>.Instance
+        );
+    }
+
     internal EngineRepository CreateRepositoryWithInterceptor(
         Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor interceptor,
         IOptions<EngineSettings>? settings = null,

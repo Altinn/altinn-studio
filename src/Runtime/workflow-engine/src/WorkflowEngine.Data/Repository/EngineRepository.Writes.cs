@@ -262,6 +262,9 @@ internal sealed partial class EngineRepository
 
             await WriteMailboxReceivers(conn, receiverPlan, cancellationToken);
 
+            // No NOTIFY: these flushes commit in parallel, and a NOTIFY would queue every commit on PostgreSQL's
+            // database-wide notification lock. A collection's event streams hear of an enqueue with its next
+            // write-back.
             await tx.CommitAsync(cancellationToken);
 
             receiverPlan.EnqueueOutcomes.Record();
@@ -1852,14 +1855,23 @@ internal sealed partial class EngineRepository
                         await cmd.ExecuteNonQueryAsync(ct);
                     }
 
-                    // NOTIFY inside the tx: PG queues it until commit and drops it on rollback,
-                    // so it's safe to run before CommitAsync. Running after commit would allow a
-                    // transient NOTIFY failure to re-enter the retry, whose CAS would then see
-                    // LeaseToken already cleared and classify every workflow as lease-lost.
-                    await using (var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx))
-                    {
-                        await notifyCmd.ExecuteNonQueryAsync(ct);
-                    }
+                    // Inside the tx, not after the commit: a failed notification would otherwise re-enter the
+                    // retry, whose CAS would then see LeaseToken already cleared and classify every workflow as
+                    // lease-lost. A collection hears only of workflows leaving Processing, which is when one settles,
+                    // parks or is requeued; the step progress of a running workflow would cost a read per step.
+                    await NotifyChanged(
+                        conn,
+                        tx,
+                        sorted
+                            .Select(u => u.Workflow)
+                            .Where(w =>
+                                acceptedIds.Contains(w.DatabaseId) && w.Status != PersistentItemStatus.Processing
+                            )
+                            .Select(w =>
+                                w.CollectionKey is { } key ? new CollectionId(w.Namespace, key) : (CollectionId?)null
+                            ),
+                        ct
+                    );
 
                     // Known gap: an ambiguous CommitAsync failure (server committed, client saw a
                     // transient ack error) triggers a retry whose CAS sees LeaseToken already
@@ -1918,10 +1930,12 @@ internal sealed partial class EngineRepository
         try
         {
             List<Guid> resumedIds = [];
+            List<CollectionId?> resumedCollections = [];
             await ExecuteWithRetry(
                 async ct =>
                 {
                     resumedIds.Clear();
+                    resumedCollections.Clear();
 
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
                     await using var tx = await conn.BeginTransactionAsync(ct);
@@ -1944,7 +1958,7 @@ internal sealed partial class EngineRepository
                         WHERE id = @id
                           AND namespace = @ns
                           AND status IN (@failed, @canceled, @depFailed, @requeued, @abandoned, @waiting)
-                        RETURNING id
+                        RETURNING id, namespace, collection_key
                         """;
                     await using (var cmd = new NpgsqlCommand(resetPrimarySql, conn, tx))
                     {
@@ -1963,7 +1977,10 @@ internal sealed partial class EngineRepository
 
                         await using var reader = await cmd.ExecuteReaderAsync(ct);
                         if (await reader.ReadAsync(ct))
+                        {
                             resumedIds.Add(reader.GetGuid(0));
+                            resumedCollections.Add(await ReadCollectionId(reader, 1, ct));
+                        }
                     }
 
                     if (resumedIds.Count == 0)
@@ -2002,7 +2019,7 @@ internal sealed partial class EngineRepository
                                 updated_at = @now
                             FROM dependents d
                             WHERE w.id = d.id
-                            RETURNING w.id
+                            RETURNING w.id, w.namespace, w.collection_key
                             """;
                         await using var cmd = new NpgsqlCommand(cascadeSql, conn, tx);
                         cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
@@ -2014,7 +2031,10 @@ internal sealed partial class EngineRepository
 
                         await using var reader = await cmd.ExecuteReaderAsync(ct);
                         while (await reader.ReadAsync(ct))
+                        {
                             resumedIds.Add(reader.GetGuid(0));
+                            resumedCollections.Add(await ReadCollectionId(reader, 1, ct));
+                        }
                     }
 
                     // Reset non-completed steps for all resumed workflows
@@ -2041,10 +2061,8 @@ internal sealed partial class EngineRepository
                         await cmd.ExecuteNonQueryAsync(ct);
                     }
 
+                    await NotifyChanged(conn, tx, resumedCollections, ct);
                     await tx.CommitAsync(ct);
-
-                    await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
-                    await notifyCmd.ExecuteNonQueryAsync(ct);
                 },
                 cancellationToken
             );
@@ -2094,6 +2112,7 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", timeProvider.GetUtcNow()));
                     rowsAffected = await cmd.ExecuteNonQueryAsync(ct);
 
+                    // No collection_changed: nothing GetCollection returns depends on either stamp
                     if (rowsAffected > 0)
                     {
                         await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
@@ -2140,7 +2159,11 @@ internal sealed partial class EngineRepository
             await ExecuteWithRetry(
                 async ct =>
                 {
+                    // Decided by the attempt that commits: an earlier attempt's row may have rolled back
+                    failed = null;
+
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    await using var tx = await conn.BeginTransactionAsync(ct);
 
                     // Compare-and-set from the two parked states — the set the nudge acts on. A parked
                     // row holds no lease, so a fetch that claims it first moves it to Processing and this
@@ -2158,7 +2181,7 @@ internal sealed partial class EngineRepository
                             WHERE id = @id
                               AND namespace = @ns
                               AND status IN (@requeued, @waiting)
-                            RETURNING id, is_head
+                            RETURNING id, is_head, namespace, collection_key
                         ),
                         failed_steps AS (
                             UPDATE engine.steps s
@@ -2172,9 +2195,9 @@ internal sealed partial class EngineRepository
                             WHERE s.job_id = f.id
                               AND s.status IN (@requeued, @waiting)
                         )
-                        SELECT id, is_head FROM failed
+                        SELECT id, is_head, namespace, collection_key FROM failed
                         """;
-                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    await using var cmd = new NpgsqlCommand(sql, conn, tx);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("failed", (int)PersistentItemStatus.Failed));
@@ -2183,6 +2206,7 @@ internal sealed partial class EngineRepository
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", failedAt));
                     cmd.Parameters.Add(new NpgsqlParameter("error_entry", NpgsqlDbType.Jsonb) { Value = errorEntry });
 
+                    CollectionId? collection = null;
                     await using (var reader = await cmd.ExecuteReaderAsync(ct))
                     {
                         if (await reader.ReadAsync(ct))
@@ -2191,14 +2215,14 @@ internal sealed partial class EngineRepository
                                 reader.GetGuid(0),
                                 await reader.IsDBNullAsync(1, ct) ? null : reader.GetBoolean(1)
                             );
+                            collection = await ReadCollectionId(reader, 2, ct);
                         }
                     }
 
                     if (failed is not null)
-                    {
-                        await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
-                        await notifyCmd.ExecuteNonQueryAsync(ct);
-                    }
+                        await NotifyChanged(conn, tx, [collection], ct);
+
+                    await tx.CommitAsync(ct);
                 },
                 cancellationToken
             );
@@ -2230,11 +2254,12 @@ internal sealed partial class EngineRepository
 
         try
         {
-            int rowsAffected = 0;
+            bool abandoned = false;
             await ExecuteWithRetry(
                 async ct =>
                 {
                     await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    await using var tx = await conn.BeginTransactionAsync(ct);
 
                     // Compare-and-set from the unsuccessful terminal states only. A concurrent resume
                     // moves the row out of the source set and this becomes a no-op — the caller must
@@ -2256,7 +2281,7 @@ internal sealed partial class EngineRepository
                             WHERE id = @id
                               AND namespace = @ns
                               AND status IN (@failed, @canceled, @depFailed)
-                            RETURNING id, namespace
+                            RETURNING id, namespace, collection_key
                         ),
                         released_keys AS (
                             DELETE FROM engine.idempotency_keys ik
@@ -2264,9 +2289,9 @@ internal sealed partial class EngineRepository
                             WHERE ik.namespace = a.namespace
                               AND ik.workflow_ids @> ARRAY[a.id]
                         )
-                        SELECT count(*)::int FROM abandoned
+                        SELECT namespace, collection_key FROM abandoned
                         """;
-                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    await using var cmd = new NpgsqlCommand(sql, conn, tx);
                     cmd.Parameters.Add(new NpgsqlParameter<Guid>("id", workflowId));
                     cmd.Parameters.Add(new NpgsqlParameter<string>("ns", ns));
                     cmd.Parameters.Add(new NpgsqlParameter<int>("abandoned", (int)PersistentItemStatus.Abandoned));
@@ -2276,18 +2301,23 @@ internal sealed partial class EngineRepository
                         new NpgsqlParameter<int>("depFailed", (int)PersistentItemStatus.DependencyFailed)
                     );
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", abandonedAt));
-                    rowsAffected = (int)(await cmd.ExecuteScalarAsync(ct) ?? 0);
-
-                    if (rowsAffected > 0)
+                    CollectionId? collection = null;
+                    await using (var reader = await cmd.ExecuteReaderAsync(ct))
                     {
-                        await using var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn);
-                        await notifyCmd.ExecuteNonQueryAsync(ct);
+                        abandoned = await reader.ReadAsync(ct);
+                        if (abandoned)
+                            collection = await ReadCollectionId(reader, 0, ct);
                     }
+
+                    if (abandoned)
+                        await NotifyChanged(conn, tx, [collection], ct);
+
+                    await tx.CommitAsync(ct);
                 },
                 cancellationToken
             );
 
-            return rowsAffected > 0;
+            return abandoned;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
