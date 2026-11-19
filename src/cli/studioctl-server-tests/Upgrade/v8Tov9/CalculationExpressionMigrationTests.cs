@@ -720,6 +720,14 @@ public sealed class CalculationExpressionMigrationTests
         Assert.Equal("null", result?["anyOf"]?[1]?["type"]?.GetValue<string>());
         if (property.StartsWith("{\"type\":[", StringComparison.Ordinal))
             Assert.Equal("number", result?["anyOf"]?[0]?["type"]?.GetValue<string>());
+        var original = Assert.IsType<JsonObject>(JsonNode.Parse(property));
+        if (original["type"] is JsonArray types)
+        {
+            var nonNull = types.Where(type => type?.GetValue<string>() != "null").ToArray();
+            if (nonNull.Length == 1)
+                original["type"] = nonNull[0]?.DeepClone();
+        }
+        Assert.True(JsonNode.DeepEquals(original, result?["anyOf"]?[0]), "Non-null constraints must be retained.");
         var before = app.Read("models/model.schema.json");
         CalculationMigration.Migrate(app.Root);
         Assert.Equal(before, app.Read("models/model.schema.json"));
