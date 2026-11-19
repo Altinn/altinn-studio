@@ -17,6 +17,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Build check `ALTINNAPP1030` (error) reports an exclusive gateway that routes on `gatewayAction` right after a `pdf`, `subformPdf` or `eFormidling` task. These tasks return no action, so the gateway never sees one, such as `reject`, and cannot route on it. ([#21997](https://github.com/Altinn/altinn-studio/pull/21997))
 - Data processors, process hooks, service tasks and `IInstantiationProcessor` can set and remove keys in `Instance.DataValues` and `Instance.PresentationTexts` on the `IInstanceDataMutator` they get, such as `(mutator.Instance.DataValues ??= [])["caseNumber"] = "2026-1"`. The keys they change are saved with the user's save, the process transition or the instantiation, without calling `IInstanceClient.UpdateDataValues` or `UpdatePresentationTexts`. Changing a key that `dataFields` or `presentationFields` derives fails the save. ([#22009](https://github.com/Altinn/altinn-studio/pull/22009))
 
+### Changed
+
+- Breaking: “Back to summary” and “Back to page” now follow “Next” validation by default. Set `validateOnBackToSummary` to `{ "page": "current", "show": [] }` to skip return validation. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#returknapper-følger-valideringen-for-neste), [Altinn/app-frontend-react#1862](https://github.com/Altinn/app-frontend-react/issues/1862))
+
 ### Fixed
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))

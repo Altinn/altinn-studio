@@ -1,12 +1,20 @@
 {
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
   "data": {
+    "hidden": ["commaContains", ["dataModel", "extra"], "info1"],
     "layout": [
       {
         "id": "Paragraph-K6c91n",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "info1.Paragraph-K6c91n.title"
+        }
+      },
+      {
+        "id": "view-summary-from-info-link",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": ["linkToPage", "Se oppsummering med retur til generell info", "summary", true]
         }
       },
       {
