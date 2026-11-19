@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
@@ -231,6 +233,20 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         };
 
         return Task.FromResult<WorkflowCollectionDetailResponse?>(collection);
+    }
+
+    /// <summary>
+    /// Sends the current snapshot and ends, as the engine does once the collection has settled: the workflows run
+    /// during the enqueue here, so that snapshot is settled already.
+    /// </summary>
+    public async IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+        string ns,
+        string key,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        yield return await GetCollection(ns, key, cancellationToken)
+            ?? throw new HttpRequestException("Not found", null, HttpStatusCode.NotFound);
     }
 
     public Task<WorkflowStatusResponse?> GetWorkflow(

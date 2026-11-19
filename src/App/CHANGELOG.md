@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Moving the process to the next task, instantiating and resuming a failed task respond as soon as the work behind them has finished, also when that work takes more than a few seconds.
+
 ## [9.0.0-preview.12] - 2026-11-17
 
 ### Added

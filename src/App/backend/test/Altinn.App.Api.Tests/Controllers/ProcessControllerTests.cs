@@ -1203,12 +1203,14 @@ public class ProcessControllerTests : ApiTestBase
                     new ProcessNextWorkflowResult(
                         instance,
                         versions,
-                        new Altinn.App.Core.Models.Process.WorkflowFailure
-                        {
-                            Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.DependencyFailed,
-                            WorkflowId = Guid.NewGuid(),
-                        },
-                        ProcessStateCommitted: false
+                        new ProcessNextWorkflowFailure(
+                            new Altinn.App.Core.Models.Process.WorkflowFailure
+                            {
+                                Kind = Altinn.App.Core.Models.Process.WorkflowFailureKind.DependencyFailed,
+                                WorkflowId = Guid.NewGuid(),
+                            },
+                            ProcessStateCommitted: false
+                        )
                     )
             );
         OverrideServicesForThisTest = services =>
@@ -1256,13 +1258,7 @@ public class ProcessControllerTests : ApiTestBase
                     ProcessStateChange _,
                     string? _,
                     CancellationToken _
-                ) =>
-                    new ProcessNextWorkflowResult(
-                        instance,
-                        versions,
-                        WorkflowFailure: null,
-                        ProcessStateCommitted: false
-                    )
+                ) => new ProcessNextWorkflowResult(instance, versions, Failure: null)
             );
         OverrideServicesForThisTest = services =>
         {

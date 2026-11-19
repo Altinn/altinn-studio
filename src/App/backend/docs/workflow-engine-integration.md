@@ -168,14 +168,35 @@ and the [ADR](../../../../docs/adr/2026-07-10-workflow-engine-noncritical-side-e
 
 ## Waiting and failures
 
-A request that enqueues a transition polls the collection until its chain settles, and then reads the instance from
-Storage. The chain is the workflow it enqueued and every later primary workflow.
+A request that enqueues a transition waits until its chain settles, and then reads the instance from Storage. The
+chain is the workflow it enqueued and every later primary workflow. The wait follows the collection's
+[event stream](../../../Runtime/workflow-engine/docs/technical-guide.md#collection-events) until the collection has
+settled, and never polls. When every head in a snapshot has completed, the transition has succeeded, and the wait
+reads only the instance. That holds because every workflow that carries a transition on is enqueued from inside a
+step of the one before it, before that step settles, so a chain never shows every head completed while work
+remains. An enqueue from outside a step would break it. When every head is terminal but one did not complete, the
+wait lists the chain to report the failure. A chain that the list shows active again, after a resume for example,
+keeps the wait going.
 
 - The wait answers 504 after a fixed time.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
-  returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
+  returns on the first snapshot that shows it. The transition has committed by then, and the task goes on without the
   request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
+  The heads alone cannot show this, since a receive workflow heads the chain from its enqueue while the segment
+  before it still runs, so the wait lists the chain when a head is parked.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
+
+When the stream is refused, cannot be opened, breaks, ends before the wait is decided or stays silent too long (5
+seconds for the first event, 15 between events, which leaves room for missed sweeps), the wait opens it again, all
+within the same time limit:
+
+- Every failure is retried, including a 404, since during a rolling engine deploy the next attempt can reach an
+  instance that serves the stream. A refused attempt costs the engine no database work.
+- The delay before the next attempt doubles from 100 ms to 2 seconds, and a random part of up to half is taken off,
+  so that waits refused together do not come back together. It starts over once a stream has sent a snapshot, so a
+  stream that breaks because its engine instance went away is opened again within 100 ms.
+- A wait with failed attempts logs one line with their number of each kind: as information when the wait was still
+  decided, and as a warning when it ran out of time. Each attempt is logged at debug.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind
 and the workflow ID as a support reference. A deferred step also reports the task's reason for waiting. A read fails

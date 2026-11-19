@@ -236,6 +236,62 @@ public class WorkflowEngineClientTests
         );
     }
 
+    [Fact]
+    public async Task StreamCollectionEvents_RequestsTheStreamUntilSettled_AndYieldsEachSnapshot()
+    {
+        // Arrange
+        WorkflowCollectionDetailResponse[] sent =
+        [
+            CreateCollectionSnapshot(PersistentItemStatus.Processing),
+            CreateCollectionSnapshot(PersistentItemStatus.Completed),
+        ];
+        HttpRequestMessage? sentRequest = null;
+        var client = CreateClient(request =>
+        {
+            sentRequest = request;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    string.Concat(sent.Select(snapshot => $"data: {JsonSerializer.Serialize(snapshot)}\n\n")),
+                    Encoding.UTF8,
+                    "text/event-stream"
+                ),
+            };
+        });
+
+        // Act
+        var received = new List<WorkflowCollectionDetailResponse>();
+        await foreach (var snapshot in client.StreamCollectionEvents("ttd/app", "collection:key"))
+            received.Add(snapshot);
+
+        // Assert
+        Assert.Equal(
+            [PersistentItemStatus.Processing, PersistentItemStatus.Completed],
+            received.Select(snapshot => Assert.Single(snapshot.Heads).Status)
+        );
+        Assert.Equal(
+            "http://workflow-engine/api/v1/ttd%2Fapp/collections/collection%3Akey/events?until=Settled",
+            sentRequest!.RequestUri!.ToString()
+        );
+        Assert.Equal("text/event-stream", Assert.Single(sentRequest.Headers.Accept).MediaType);
+    }
+
+    [Fact]
+    public async Task StreamCollectionEvents_UnsuccessfulStatus_ThrowsCarryingIt()
+    {
+        // Arrange
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.TooManyRequests));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+        {
+            await foreach (var _ in client.StreamCollectionEvents("ttd/app", "key")) { }
+        });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.TooManyRequests, exception.StatusCode);
+    }
+
     [Theory]
     [InlineData(false, "false")]
     [InlineData(true, "true")]
@@ -725,6 +781,35 @@ public class WorkflowEngineClientTests
 
         Assert.Equal(512, result.ErrorDetail!.Length);
     }
+
+    private static WorkflowEngineClient CreateClient(Func<HttpRequestMessage, HttpResponseMessage> respond)
+    {
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Returns<HttpRequestMessage, CancellationToken>((request, _) => Task.FromResult(respond(request)));
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        return new WorkflowEngineClient(
+            new HttpClient(handlerMock.Object),
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+    }
+
+    private static WorkflowCollectionDetailResponse CreateCollectionSnapshot(PersistentItemStatus headStatus) =>
+        new()
+        {
+            Key = "collection:key",
+            Namespace = "ttd/app",
+            Heads = [new CollectionHeadStatus { DatabaseId = Guid.NewGuid(), Status = headStatus }],
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
 
     private static HttpResponseMessage CreateJsonResponse<T>(T body) =>
         new()

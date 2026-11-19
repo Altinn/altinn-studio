@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Models;
@@ -1975,6 +1976,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
             CancellationToken cancellationToken = default
         ) => Task.FromResult<WorkflowCollectionDetailResponse?>(null);
 
+        public IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+            string ns,
+            string key,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
             string? collectionKey = null,
@@ -2068,6 +2075,15 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
                     UpdatedAt = DateTimeOffset.UtcNow,
                 }
             );
+
+        public async IAsyncEnumerable<WorkflowCollectionDetailResponse> StreamCollectionEvents(
+            string ns,
+            string key,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default
+        )
+        {
+            yield return (await GetCollection(ns, key, cancellationToken))!;
+        }
 
         public Task<IReadOnlyList<WorkflowStatusResponse>> ListWorkflows(
             string ns,
