@@ -26,7 +26,7 @@ public static class SourceTextGenerator
             public sealed class {{className}}
                 : global::Altinn.App.Core.Internal.Data.IFormDataWrapper
             {
-                private readonly {{rootNode.TypeName}} _dataModel;
+                private {{rootNode.TypeName}} _dataModel;
 
                 public global::System.Type BackingDataType => typeof({{rootNode.TypeName}});
 
@@ -40,6 +40,15 @@ public static class SourceTextGenerator
                     return _dataModel as T
                         ?? throw new global::System.InvalidCastException(
                             $"Attempted to cast data model of type {{rootNode.FullName}} to {typeof(T).FullName}"
+                        );
+                }
+
+                public void ReplaceBackingData(object dataModel)
+                {
+                    _dataModel =
+                        dataModel as {{rootNode.TypeName}}
+                        ?? throw new global::System.ArgumentException(
+                            $"Data model must be of type {{rootNode.FullName}}, (was {dataModel?.GetType().FullName ?? "null"})"
                         );
                 }
 

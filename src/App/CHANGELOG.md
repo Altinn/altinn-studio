@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Data processors, process hooks and service tasks can replace a form's whole data model with `(await dataMutator.GetFormDataWrapper(element)).ReplaceBackingData(model)`. Later reads and data processors see the new object.
+
 ## [9.0.0-preview.13] - 2026-11-19
 
 ### Added

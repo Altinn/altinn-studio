@@ -6,7 +6,7 @@
 public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_ComplaintFormDataWrapper
     : global::Altinn.App.Core.Internal.Data.IFormDataWrapper
 {
-    private readonly global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint _dataModel;
+    private global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint _dataModel;
 
     public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint);
 
@@ -20,6 +20,15 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
         return _dataModel as T
             ?? throw new global::System.InvalidCastException(
                 $"Attempted to cast data model of type Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint to {typeof(T).FullName}"
+            );
+    }
+
+    public void ReplaceBackingData(object dataModel)
+    {
+        _dataModel =
+            dataModel as global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint
+            ?? throw new global::System.ArgumentException(
+                $"Data model must be of type Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint, (was {dataModel?.GetType().FullName ?? "null"})"
             );
     }
 

@@ -43,9 +43,12 @@ public interface IInstanceDataAccessor
     /// <summary>
     /// Get the actual data represented in the data element wrapped in an <see cref="IFormDataWrapper"/>.
     /// </summary>
+    /// <remarks>
+    /// On an <see cref="IInstanceDataMutator"/>, <see cref="IFormDataWrapper.ReplaceBackingData"/> replaces the form data of the element.
+    /// </remarks>
     /// <returns>The deserialized data model for this data element</returns>
     /// <exception cref="InvalidOperationException">when identifier does not exist in instance.Data with an applogic data type</exception>
-    internal Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier);
+    Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
     /// Get a <see cref="IInstanceDataAccessor"/> that provides access to the cleaned data (where all fields marked as "hidden" are removed).
