@@ -45,51 +45,57 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
         where T : SyntaxNode
     {
         var statements = body.Statements;
-        var generated = statements.Where(IsGeneratedRegistration).ToList();
+        var insertions = SyntaxFactory.List<StatementSyntax>();
         if (
-            generated.Count == 2
-            && generated[0] == statements[0]
-            && generated[1] == statements[1]
-            && RegistrationTypes(generated[0]) is { } existing
-            && TypeName(existing[0]) == "IDataProcessor"
-            && RegistrationTypes(generated[1]) is { } createRegistration
-            && TypeName(createRegistration[0]) == "IDataWriteProcessor"
+            statements is [TryStatementSyntax { Catches.Count: 0, Finally: { Block: var final } } guarded]
+            && final.Statements.All(IsProcessorInsertion)
+        )
+        {
+            statements = guarded.Block.Statements;
+            insertions = final.Statements;
+        }
+        var update = CreateRegistrationStatement(0, "IDataProcessor", _className);
+        var create = CreateRegistrationStatement(1, "IDataWriteProcessor", _className);
+        if (
+            !statements.Any(IsGeneratedRegistration)
+            && insertions.Count(IsGeneratedRegistration) == 2
+            && insertions[^2].IsEquivalentTo(update)
+            && insertions[^1].IsEquivalentTo(create)
         )
         {
             _registrationAdded = true;
             return node;
         }
 
-        // Replace registrations from earlier upgrades. Updates run through IDataProcessor;
-        // the IDataWriteProcessor overload handles creation and skips updates to avoid running twice.
-        foreach (var statement in generated)
-            statements = statements.Remove(statement);
-
-        // Legacy frontend calculations ran before saving. Register their replacements first so app
-        // processors consume fresh results, including processors registered through app helper methods.
-        // All existing registrations keep their relative order.
-        var indentation =
-            statements.Count > 0
-                ? statements[0]
-                    .GetLeadingTrivia()
-                    .LastOrDefault(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                    .ToString()
-                : "    ";
-        var newRegistration = CreateRegistrationStatement("IDataProcessor", _className)
-            .WithLeadingTrivia(SyntaxFactory.Whitespace(indentation))
-            .WithTrailingTrivia(SyntaxFactory.LineFeed);
-        if (generated.Count > 0)
-            newRegistration = newRegistration.WithTriviaFrom(generated[0]);
-        statements = statements.Insert(0, newRegistration);
-        statements = statements.Insert(
-            1,
-            CreateRegistrationStatement("IDataWriteProcessor", _className)
-                .WithLeadingTrivia(SyntaxFactory.Whitespace(indentation))
-                .WithTrailingTrivia(SyntaxFactory.LineFeed)
+        statements = SyntaxFactory.List(statements.Where(statement => !IsGeneratedRegistration(statement)));
+        insertions = SyntaxFactory.List(insertions.Where(statement => !IsGeneratedRegistration(statement)));
+        // Let app registrations, including TryAdd calls in helpers, run before adding our descriptors.
+        // Finally also covers an early return from the app's registration method.
+        var wrapper = SyntaxFactory.TryStatement(
+            SyntaxFactory.Block(statements),
+            default,
+            SyntaxFactory.FinallyClause(SyntaxFactory.Block(insertions.Add(update).Add(create)))
         );
         _registrationAdded = true;
-        return withBody(node, body.WithStatements(statements));
+        return withBody(
+            node,
+            body.WithStatements(SyntaxFactory.SingletonList<StatementSyntax>(wrapper))
+                .NormalizeWhitespace()
+                .WithTriviaFrom(body)
+        );
     }
+
+    private static bool IsProcessorInsertion(StatementSyntax statement) =>
+        RegistrationTypes(statement) is { Count: 2 } types
+        && TypeName(types[0]) is "IDataProcessor" or "IDataWriteProcessor"
+        && statement
+            is ExpressionStatementSyntax
+            {
+                Expression: InvocationExpressionSyntax
+                {
+                    Expression: MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Insert" }
+                }
+            };
 
     private bool IsGeneratedRegistration(StatementSyntax statement) =>
         RegistrationTypes(statement) is { Count: 2 } types
@@ -101,24 +107,39 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
         || type.ToString() == "Altinn.App.Logic.ConvertedLegacyRules." + _className
         || type.ToString() == "global::Altinn.App.Logic.ConvertedLegacyRules." + _className;
 
-    private static SeparatedSyntaxList<TypeSyntax>? RegistrationTypes(StatementSyntax statement) =>
-        statement
-            is ExpressionStatementSyntax
-            {
-                Expression: InvocationExpressionSyntax
+    private static SeparatedSyntaxList<TypeSyntax>? RegistrationTypes(StatementSyntax statement)
+    {
+        if (statement is not ExpressionStatementSyntax { Expression: InvocationExpressionSyntax invocation })
+            return null;
+        if (
+            invocation.Expression is MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Insert" }
+            && invocation.ArgumentList.Arguments is [_, { Expression: InvocationExpressionSyntax descriptor }]
+            && descriptor.Expression
+                is MemberAccessExpressionSyntax
                 {
-                    Expression: MemberAccessExpressionSyntax
+                    Expression: var factory,
+                    Name: GenericNameSyntax
                     {
-                        Name: GenericNameSyntax
-                        {
-                            Identifier.ValueText: "AddTransient" or "AddScoped" or "AddSingleton",
-                            TypeArgumentList.Arguments: var types
-                        }
+                        Identifier.ValueText: "Transient",
+                        TypeArgumentList.Arguments: var inserted
                     }
                 }
-            }
+            && factory.ToString() == "global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor"
+        )
+            return inserted;
+        return
+            invocation.Expression
+                is MemberAccessExpressionSyntax
+                {
+                    Name: GenericNameSyntax
+                    {
+                        Identifier.ValueText: "AddTransient" or "AddScoped" or "AddSingleton",
+                        TypeArgumentList.Arguments: var types
+                    }
+                }
             ? types
             : null;
+    }
 
     private static string TypeName(TypeSyntax type) =>
         type switch
@@ -129,10 +150,15 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
             _ => type.ToString(),
         };
 
-    private static ExpressionStatementSyntax CreateRegistrationStatement(string interfaceName, string className)
+    private static ExpressionStatementSyntax CreateRegistrationStatement(
+        int index,
+        string interfaceName,
+        string className
+    )
     {
-        // Create: services.AddTransient<IDataProcessor, ClassName>();
-        var statement = SyntaxFactory.ParseStatement($"services.AddTransient<{interfaceName}, {className}>();");
+        var statement = SyntaxFactory.ParseStatement(
+            $"services.Insert({index}, global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Transient<{interfaceName}, {className}>());"
+        );
 
         if (statement is ExpressionStatementSyntax expressionStatement)
         {
