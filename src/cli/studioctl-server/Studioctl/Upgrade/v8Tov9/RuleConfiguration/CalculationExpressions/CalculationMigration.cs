@@ -154,7 +154,8 @@ internal static partial class CalculationMigration
             var schema = CalculationSchema.Load(projectFolder, group.Key);
             foreach (var rule in rules)
                 if (rule.NeedsNullableSchema && rule.Target is { } target && !schema.CanAllowNull(target))
-                    rule.Reason = "Nullable calculation output could not be resolved in the model schema.";
+                    rule.Reason =
+                        $"Nullable calculation output could not be resolved in the model schema '{Path.GetRelativePath(projectFolder, schema.FilePath)}'.";
             for (var i = 0; i < rules.Length; i++)
             {
                 var current = rules[i];
