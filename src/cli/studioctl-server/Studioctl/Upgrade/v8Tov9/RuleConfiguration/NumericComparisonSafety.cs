@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
@@ -28,6 +29,10 @@ internal static class NumericComparisonSafety
             "divide" => arguments.Length == 2 && (IsConstant(arguments[1], 1) || IsConstant(arguments[1], -1)),
             _ => false,
         };
+        // An identity still executes decimal arithmetic in the backend. A literal
+        // outside that precision can change a comparison even when multiplied by one.
+        if (arithmetic && identity && arguments.Any(ChangesWhenConvertedToDecimal))
+            return true;
         if (arithmetic && !identity && (operation == "divide" || !arguments.All(IsInteger)))
             return true;
         if (
@@ -79,4 +84,18 @@ internal static class NumericComparisonSafety
 
     private static bool IsConstant(JsonNode? node, double expected) =>
         node is JsonValue literal && literal.TryGetValue<double>(out var value) && value.CompareTo(expected) == 0;
+
+    private static bool ChangesWhenConvertedToDecimal(JsonNode? node) =>
+        node is JsonValue literal
+        && literal.TryGetValue<double>(out var number)
+        && (
+            !decimal.TryParse(
+                number.ToString("R", CultureInfo.InvariantCulture),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var value
+            )
+            || double.Parse(value.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture)
+                .CompareTo(number) != 0
+        );
 }
