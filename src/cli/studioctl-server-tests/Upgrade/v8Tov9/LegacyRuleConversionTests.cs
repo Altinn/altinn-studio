@@ -318,13 +318,35 @@ public sealed class LegacyRuleConversionTests
         );
     }
 
+    [Theory]
+    [InlineData("\u0085")]
+    [InlineData("\u2028")]
+    [InlineData("\u2029")]
+    public async Task RetainedSourceComments_CannotEndAtUnicodeLineSeparators(string separator)
+    {
+        Assert.Equal(
+            4d,
+            await Execute("return obj.a + 1;", new() { ["a"] = 3d }, ruleId: "first" + separator + "not C# code")
+        );
+    }
+
+    [Fact]
+    public void UnicodeLayoutNames_DoNotOverwriteAnAsciiLayoutProcessor()
+    {
+        Assert.NotEqual(
+            CSharpCodeGenerator.ProcessorClassName("skjema"),
+            CSharpCodeGenerator.ProcessorClassName("skjema-ø")
+        );
+    }
+
     private static async Task<object?> Execute(
         string body,
         Dictionary<string, object?> inputs,
         bool shared = false,
         string? secondBody = null,
         bool unsupported = false,
-        string parameterName = "obj"
+        string parameterName = "obj",
+        string ruleId = "first"
     )
     {
         using var app = new TempAppFolder();
@@ -357,7 +379,7 @@ public sealed class LegacyRuleConversionTests
                     OutParams = rule.OutParams,
                 }
             );
-        rules.Add("first", rule);
+        rules.Add(ruleId, rule);
         if (shared)
             rules.Add("second", rule);
         if (secondBody != null)

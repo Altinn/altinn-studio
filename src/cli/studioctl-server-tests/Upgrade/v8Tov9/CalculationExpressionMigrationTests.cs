@@ -261,7 +261,7 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Fact]
-    public void ChainedCalculations_KeepExecutionOrderAndResumeWithoutChanges()
+    public void ChainedCalculations_KeepTheLegacyInputSnapshotInCSharp()
     {
         using var app = CreateApp();
         var dependent = Rule("sum", "other");
@@ -271,15 +271,11 @@ public sealed class CalculationExpressionMigrationTests
             new() { ["first"] = Rule("sum", "result"), ["second"] = dependent },
             "sum: function(obj) { " + Sum + " }"
         );
-        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
-        var first = File.ReadAllBytes(CalculationPath(app));
-        var data = JsonNode.Parse("{\"a\":2,\"b\":3}")?.AsObject() ?? throw new InvalidOperationException();
-        foreach (var (path, calculation) in Calculations(app))
-            data[path] = JsonSerializer.SerializeToNode(Evaluate(calculation?["expression"], data));
-        Assert.Equal(5, data["result"]?.GetValue<double>());
-        Assert.Equal(8, data["other"]?.GetValue<double>());
-        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
-        Assert.Equal(first, File.ReadAllBytes(CalculationPath(app)));
+        var result = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(result.ConvertedRules);
+        Assert.Equal(2, result.FallbackReasons.Count);
+        Assert.Contains(result.FallbackReasons, reason => reason.Contains("input snapshot", StringComparison.Ordinal));
+        Assert.False(File.Exists(CalculationPath(app)));
     }
 
     [Theory]
@@ -331,7 +327,6 @@ public sealed class CalculationExpressionMigrationTests
 
     [Theory]
     [InlineData("rows[0].rows[1].result", "rows[1].rows[1].result", "rows.rows[1].result")]
-    [InlineData("rows[0].rows[0].result", "rows[1].rows[1].result", "rows.rows.result")]
     public void NestedFixedRows_OnlyGeneralizeVaryingIndices(
         string firstTarget,
         string secondTarget,
@@ -589,7 +584,7 @@ public sealed class CalculationExpressionMigrationTests
         );
         Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
         var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
-        Assert.Equal("null", schema?["properties"]?["result"]?["oneOf"]?[1]?["type"]?.GetValue<string>());
+        Assert.Equal("null", schema?["properties"]?["result"]?["anyOf"]?[1]?["type"]?.GetValue<string>());
         Assert.Equal("number", schema?["$defs"]?["amount"]?["type"]?.GetValue<string>());
         Assert.Equal("#/$defs/amount", schema?["properties"]?["other"]?["$ref"]?.GetValue<string>());
     }
@@ -627,8 +622,8 @@ public sealed class CalculationExpressionMigrationTests
         );
         Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
         var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
-        Assert.Equal("[0,1]", schema?["properties"]?["result"]?["oneOf"]?[0]?["enum"]?.ToJsonString());
-        Assert.Equal("null", schema?["properties"]?["result"]?["oneOf"]?[1]?["type"]?.GetValue<string>());
+        Assert.Equal("[0,1]", schema?["properties"]?["result"]?["anyOf"]?[0]?["enum"]?.ToJsonString());
+        Assert.Equal("null", schema?["properties"]?["result"]?["anyOf"]?[1]?["type"]?.GetValue<string>());
         var before = app.Read("models/model.schema.json");
         CalculationMigration.Migrate(app.Root);
         Assert.Equal(before, app.Read("models/model.schema.json"));
@@ -951,6 +946,106 @@ public sealed class CalculationExpressionMigrationTests
         Assert.DoesNotContain("wrapper.Set(\"result\"", processor);
     }
 
+    [Theory]
+    [InlineData("rows[0].result", "rows[2].result")]
+    [InlineData("rows[0].rows[0].result", "rows[1].rows[1].result")]
+    public void SparseAndDiagonalTargets_KeepTheirOriginalRows(string firstTarget, string secondTarget)
+    {
+        using var app = CreateApp();
+        var first = Rule("sum", firstTarget);
+        first.InputParams = new() { ["a"] = firstTarget.Replace(".result", ".a", StringComparison.Ordinal) };
+        var second = Rule("sum", secondTarget);
+        second.InputParams = new() { ["a"] = secondTarget.Replace(".result", ".a", StringComparison.Ordinal) };
+        WriteRules(app, new() { ["first"] = first, ["second"] = second }, "sum: function(obj) { " + Sum + " }");
+
+        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        var calculations = Calculations(app);
+        Assert.Equal(2, calculations.Count);
+        Assert.True(calculations.ContainsKey(firstTarget));
+        Assert.True(calculations.ContainsKey(secondTarget));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RulesWithoutMappedInputs_RemainInactive(bool emptyBinding)
+    {
+        using var app = CreateApp();
+        var rule = Rule("constant", "result");
+        rule.InputParams = emptyBinding ? new() { ["a"] = "" } : new();
+        WriteRules(app, new() { ["constant"] = rule }, "constant: function(obj) { return 7; }");
+
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void RejectedRowMapping_DoesNotHideLaterDependencies()
+    {
+        using var app = CreateApp();
+        var dependent = Rule("sum", "other");
+        dependent.InputParams = new() { ["a"] = "rows[{0}].a", ["b"] = "result" };
+        WriteRules(
+            app,
+            new() { ["first"] = Rule("sum", "result"), ["second"] = dependent },
+            "sum: function(obj) { " + Sum + " }"
+        );
+
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void ExistingCalculations_KeepTheirCasingAndCommentsWhenAppending()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            """
+            {"Calculations":[{"Field":"other","Expression":7} // Keep this calculation's explanation.
+            ]}
+            """
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var first = File.ReadAllText(CalculationPath(app));
+        Assert.Contains("// Keep this calculation's explanation.", first);
+        var parsed = JsonNode.Parse(first, documentOptions: new() { CommentHandling = JsonCommentHandling.Skip });
+        Assert.Equal(2, parsed?["Calculations"]?.AsArray().Count);
+        CalculationMigration.Migrate(app.Root);
+        Assert.Equal(first, File.ReadAllText(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void AmbiguousCalculationPropertyCasing_IsLeftForManualResolution()
+    {
+        using var app = CreateApp();
+        const string original = "{\"calculations\":[],\"Calculations\":[]}";
+        app.Write("models/model.calculation.json", original);
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Single(migration.ManualRules["form"]);
+        Assert.Equal(original, File.ReadAllText(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void DigitPrefixedLayout_RecognizesItsExistingGeneratedProcessor()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "ui/layout-sets.json",
+            "{\"sets\":[{\"id\":\"1-form\",\"dataType\":\"model\",\"tasks\":[\"Task_1\"]}]}"
+        );
+        app.Write("logic/ConvertedLegacyRules/Layout1formDataProcessor.cs", "class Layout1formDataProcessor { }");
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }", "1-form");
+
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
     private static Task<int> RunUpgrade(TempAppFolder app) =>
         V8Tov9Upgrade.RunAsync(
             new(
@@ -1018,7 +1113,16 @@ public sealed class CalculationExpressionMigrationTests
     private static JsonObject Calculations(TempAppFolder app) =>
         new(
             (
-                JsonNode.Parse(File.ReadAllText(CalculationPath(app)))?["calculations"]?.AsArray()
+                JsonNode
+                    .Parse(
+                        File.ReadAllText(CalculationPath(app)),
+                        documentOptions: new()
+                        {
+                            CommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true,
+                        }
+                    )
+                    ?["calculations"]?.AsArray()
                 ?? throw new InvalidOperationException()
             ).Select(item => new KeyValuePair<string, JsonNode?>(
                 item?["field"]?.GetValue<string>() ?? throw new InvalidOperationException(),
