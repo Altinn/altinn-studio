@@ -60,6 +60,9 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const config = useComponentConfig(targetBaseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'List');
   const mobileHeaders = getMobileTableHeaders(config.tableHeaders, config.tableHeadersMobile);
+  const boundMobileHeaders = Object.fromEntries(
+    Object.entries(mobileHeaders).filter(([key]) => dataModelBindings?.[key]),
+  );
   const required = useEvalExpression(config.required, Expressions.List.required);
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
@@ -140,7 +143,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
                     {mobileView ? (
                       <BaseTable.Cell align='left'>
                         <ListMobileRowContent
-                          headers={mobileHeaders}
+                          headers={boundMobileHeaders}
                           renderValue={getValue}
                         />
                       </BaseTable.Cell>
