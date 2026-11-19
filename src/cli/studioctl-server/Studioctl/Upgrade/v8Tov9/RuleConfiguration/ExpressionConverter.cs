@@ -111,43 +111,45 @@ public class ExpressionConverter
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
         };
 
-        debugInfo.Add("=== Converting Return Expression ===");
-        // Validate evaluated initializers as well, including values that the final return does not use.
-        // Dropping an unsupported call here could hide side effects from the original rule.
-        var unsupportedEvaluation = parseResult.EvaluatedExpressions.Any(evaluated =>
-            !context.IsPureValue(evaluated) && context.ConvertExpression(evaluated, debugInfo) == null
-        );
-        var expression = unsupportedEvaluation ? null : context.ConvertBoolean(returnExpression, debugInfo);
-
-        if (expression == null)
-        {
-            return new ConversionResult
-            {
-                Status = ConversionStatus.Failed,
-                FailureReason = context.FailureReason ?? "Could not convert return expression to expression language",
-                DebugInfo = debugInfo,
-                Warnings = warnings,
-                OriginalJavaScript = functionBody,
-            };
-        }
-
-        // Step 3: Handle Show/Hide inversion
-        // When action is "Show", we need to invert the logic because the new API uses "hidden" property
-        // Hide rules: function returns true when component should be hidden → use as-is
-        // Show rules: function returns true when component should be shown → wrap in "not"
+        object? expression;
         bool shouldInvert = selectedAction.Equals("Show", StringComparison.OrdinalIgnoreCase);
-        if (shouldInvert)
-        {
-            debugInfo.Add("Action is 'Show' - inverting expression with 'not'");
-            expression = new object[] { "not", expression };
-        }
-        else
-        {
-            debugInfo.Add("Action is 'Hide' - using expression as-is");
-        }
-
         try
         {
+            debugInfo.Add("=== Converting Return Expression ===");
+            // Validate evaluated initializers as well, including values that the final return does not use.
+            // Dropping an unsupported call here could hide side effects from the original rule.
+            var unsupportedEvaluation = parseResult.EvaluatedExpressions.Any(evaluated =>
+                !context.IsPureValue(evaluated) && context.ConvertExpression(evaluated, debugInfo) == null
+            );
+            expression = unsupportedEvaluation ? null : context.ConvertBoolean(returnExpression, debugInfo);
+
+            if (expression == null)
+            {
+                return new ConversionResult
+                {
+                    Status = ConversionStatus.Failed,
+                    FailureReason =
+                        context.FailureReason ?? "Could not convert return expression to expression language",
+                    DebugInfo = debugInfo,
+                    Warnings = warnings,
+                    OriginalJavaScript = functionBody,
+                };
+            }
+
+            // Step 3: Handle Show/Hide inversion
+            // When action is "Show", we need to invert the logic because the new API uses "hidden" property
+            // Hide rules: function returns true when component should be hidden → use as-is
+            // Show rules: function returns true when component should be shown → wrap in "not"
+            if (shouldInvert)
+            {
+                debugInfo.Add("Action is 'Show' - inverting expression with 'not'");
+                expression = new object[] { "not", expression };
+            }
+            else
+            {
+                debugInfo.Add("Action is 'Hide' - using expression as-is");
+            }
+
             expression = ExpressionSimplifier.Simplify(JsonSerializer.SerializeToNode(expression));
         }
         catch (JsonException)
