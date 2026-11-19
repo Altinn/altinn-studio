@@ -128,7 +128,8 @@ internal static class ExpressionSimplifier
             && JsonNode.DeepEquals(discriminator.Subject, known.Subject)
         )
             return JsonValue.Create(discriminator.Value.CompareTo(known.Value) == 0);
-        return Simplify(new JsonArray(call.Select(argument => WithCondition(argument, condition, truthy)).ToArray()));
+        var substituted = new JsonArray(call.Select(argument => WithCondition(argument, condition, truthy)).ToArray());
+        return JsonNode.DeepEquals(call, substituted) ? substituted : Simplify(substituted);
     }
 
     private static (JsonNode? Subject, double Value)? NumericDiscriminator(JsonNode? expression)

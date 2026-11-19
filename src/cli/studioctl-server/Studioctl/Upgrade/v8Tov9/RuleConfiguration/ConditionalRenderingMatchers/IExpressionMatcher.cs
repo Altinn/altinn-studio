@@ -78,6 +78,14 @@ public partial class ConversionContext
 
     public Dictionary<string, JavaScriptFunction> FunctionDefinitions { get; set; } = new();
     public HashSet<string> ActiveFunctions { get; set; } = new(StringComparer.Ordinal);
+    internal ExpansionBudget Budget { get; set; } = new();
+    internal Dictionary<string, ParseResult> ParsedFunctions { get; set; } = new(StringComparer.Ordinal);
+
+    internal sealed class ExpansionBudget
+    {
+        public int Remaining { get; set; } = 8000;
+    }
+
     public IReadOnlyDictionary<string, string> InputTypes { get; set; } = new Dictionary<string, string>();
     public IReadOnlyDictionary<string, IReadOnlyList<string>> InputOptions { get; set; } =
         new Dictionary<string, IReadOnlyList<string>>();
@@ -190,6 +198,8 @@ public partial class ConversionContext
 
     public object? ConvertBoolean(Expression expression, List<string> debugInfo)
     {
+        if (--Budget.Remaining < 0)
+            return Reject("Expanded conditional expression exceeds the conversion size limit", debugInfo);
         if (
             expression is UnaryExpression numeric
             && numeric.Operator.ToString() is "UnaryPlus" or "+" or "UnaryNegation" or "-"
@@ -313,6 +323,8 @@ public partial class ConversionContext
     /// </summary>
     public object? ConvertExpression(Expression expression, List<string> debugInfo)
     {
+        if (--Budget.Remaining < 0)
+            return Reject("Expanded conditional expression exceeds the conversion size limit", debugInfo);
         foreach (var matcher in Matchers)
         {
             if (matcher.CanMatch(expression))

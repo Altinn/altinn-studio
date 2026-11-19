@@ -81,7 +81,11 @@ public class CallExpressionMatcher : IExpressionMatcher
         }
         try
         {
-            var parsed = new JavaScriptExpressionParser().ParseFunction(function.Implementation);
+            if (!context.ParsedFunctions.TryGetValue(method.Name, out var parsed))
+            {
+                parsed = new JavaScriptExpressionParser().ParseFunction(function.Implementation);
+                context.ParsedFunctions.Add(method.Name, parsed);
+            }
             if (!parsed.Success || parsed.ReturnExpression == null)
             {
                 return context.Reject(parsed.ErrorMessage ?? "Conditional helper could not be parsed", debugInfo);
@@ -103,6 +107,8 @@ public class CallExpressionMatcher : IExpressionMatcher
                 GlobalConstants = context.GlobalConstants,
                 FunctionDefinitions = context.FunctionDefinitions,
                 ActiveFunctions = context.ActiveFunctions,
+                Budget = context.Budget,
+                ParsedFunctions = context.ParsedFunctions,
                 KnownNonNullInputs = new(context.KnownNonNullInputs, StringComparer.Ordinal),
                 KnownNonZeroInputs = new(context.KnownNonZeroInputs, StringComparer.Ordinal),
             };
