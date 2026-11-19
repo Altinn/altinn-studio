@@ -57,7 +57,7 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
         var update = CreateRegistrationStatement(0, "IDataProcessor", _className);
         var create = CreateRegistrationStatement(1, "IDataWriteProcessor", _className);
         if (
-            !statements.Any(IsGeneratedRegistration)
+            !statements.Any(statement => !ReferenceEquals(statement, RemoveGeneratedRegistrations(statement)))
             && insertions.Count(IsGeneratedRegistration) == 2
             && insertions[^2].IsEquivalentTo(update)
             && insertions[^1].IsEquivalentTo(create)
@@ -67,8 +67,8 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        statements = SyntaxFactory.List(statements.Where(statement => !IsGeneratedRegistration(statement)));
-        insertions = SyntaxFactory.List(insertions.Where(statement => !IsGeneratedRegistration(statement)));
+        statements = SyntaxFactory.List(statements.Select(RemoveGeneratedRegistrations).OfType<StatementSyntax>());
+        insertions = SyntaxFactory.List(insertions.Select(RemoveGeneratedRegistrations).OfType<StatementSyntax>());
         // Let app registrations, including TryAdd calls in helpers, run before adding our descriptors.
         // Finally also covers an early return from the app's registration method.
         var wrapper = SyntaxFactory.TryStatement(
@@ -83,6 +83,29 @@ internal sealed class ProgramCsRewriter : CSharpSyntaxRewriter
                 .NormalizeWhitespace()
                 .WithTriviaFrom(body)
         );
+    }
+
+    private StatementSyntax? RemoveGeneratedRegistrations(StatementSyntax statement)
+    {
+        if (statement is not ExpressionStatementSyntax expressionStatement)
+            return statement;
+        var expression = RemoveGeneratedRegistrations(expressionStatement.Expression);
+        if (ReferenceEquals(expression, expressionStatement.Expression))
+            return statement;
+        // Keep app registrations and other calls in the receiver chain as executable statements.
+        return expression is InvocationExpressionSyntax ? expressionStatement.WithExpression(expression) : null;
+    }
+
+    private ExpressionSyntax RemoveGeneratedRegistrations(ExpressionSyntax expression)
+    {
+        if (expression is not InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax member } invocation)
+            return expression;
+        var receiver = RemoveGeneratedRegistrations(member.Expression);
+        if (IsGeneratedRegistration(SyntaxFactory.ExpressionStatement(invocation)))
+            return receiver;
+        return ReferenceEquals(receiver, member.Expression)
+            ? expression
+            : invocation.WithExpression(member.WithExpression(receiver));
     }
 
     private static bool IsProcessorInsertion(StatementSyntax statement) =>
