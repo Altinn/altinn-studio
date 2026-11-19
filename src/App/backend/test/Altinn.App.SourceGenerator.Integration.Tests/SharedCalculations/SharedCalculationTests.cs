@@ -220,6 +220,10 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
                     testCase.ExpectsErrors is null || testCase.Expects is not null,
                     $"{where} has expectsErrors without expects"
                 );
+                Assert.True(
+                    testCase.ExpectsBackend is null || testCase.Expects is not null,
+                    $"{where} has expectsBackend without expects"
+                );
                 Assert.False(testCase.DisabledFrontend && testCase.DisabledBackend, $"{where} runs on neither side");
                 Assert.True(
                     !(testCase.DisabledFrontend || testCase.DisabledBackend) || testCase.Comment is not null,
@@ -385,7 +389,8 @@ public sealed class SharedCalculationTests(ITestOutputHelper output)
     )
     {
         var expects = JsonNode.Parse(
-            testCase.Expects?.GetRawText() ?? throw new InvalidOperationException("The test has no expects")
+            (testCase.ExpectsBackend ?? testCase.Expects)?.GetRawText()
+                ?? throw new InvalidOperationException("The test has no expects")
         );
         if (testCase.DataModels is null)
         {

@@ -73,6 +73,9 @@ public class CalculationTestValueTypes
 
     [JsonPropertyName("boolean")]
     public bool Boolean { get; set; }
+
+    [JsonPropertyName("numberDefaultFive")]
+    public int NumberDefaultFive { get; set; } = 5;
 }
 
 public class CalculationTestObject

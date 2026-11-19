@@ -188,6 +188,22 @@ function convertCalculationResult(
   return { error: true };
 }
 
+/**
+ * A number or boolean that its object requires, and that cannot be null, is a non-nullable value type in the C# model.
+ * Studio generates a nullable type for the others.
+ */
+function isNonNullableValueType(target: string, lookupTool: SchemaLookupTool): boolean {
+  const lastDot = target.lastIndexOf('.');
+  const name = target.slice(lastDot + 1);
+  const [schema] = lookupTool.getSchemaForPath(target, true);
+  const [parentSchema] = lookupTool.getSchemaForPath(lastDot < 0 ? '' : target.slice(0, lastDot));
+  if (!schema || !parentSchema || name.endsWith(']') || !parentSchema.required?.includes(name)) {
+    return false;
+  }
+  const types = schemaTypes(schema);
+  return !types.includes('null') && types.some((type) => type === 'number' || type === 'integer' || type === 'boolean');
+}
+
 interface CalculationTarget {
   dataType: string;
   model: FormStoreState['data']['models'][string];
@@ -206,6 +222,11 @@ function writeCalculationResult(target: string, result: unknown, { dataType, mod
   }
   if (isListOfObjects(result)) {
     mergeRows(target, result, { dataType, model, lookupTool });
+    return;
+  }
+  if (result === null && isNonNullableValueType(target, lookupTool)) {
+    // The backend sets the default value of the field instead, which the frontend gets when the data is saved
+    window.logWarnOnce(`Could not calculate null into the non-nullable field ${dataType}.${target}`);
     return;
   }
   const converted = convertCalculationResult(result, target, lookupTool);

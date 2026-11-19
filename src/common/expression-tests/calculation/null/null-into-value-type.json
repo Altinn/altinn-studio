@@ -1,12 +1,12 @@
 {
-  "name": "A null result keeps the value of a non-nullable value type",
-  "comment": "The backend cannot set a non-nullable value type to null, so it keeps the previous value and logs a warning. The frontend accepts null for any field, since nothing is required before validation, and sets both fields to null.",
-  "disabledFrontend": true,
+  "name": "A null result for a non-nullable value type keeps the value on the frontend and sets the default on the backend",
+  "comment": "A required number or boolean is a non-nullable value type in the C# model, which cannot hold null. Both sides warn. The backend sets the value the property has in a new object, such as 5 from a property initializer, and the frontend keeps its value until the save returns the default. A calculation that gives null again then changes nothing, so the two settle on the default after one save.",
   "dataModel": {
     "valueTypes": {
       "decimal": 1,
       "integer": 2,
-      "boolean": true
+      "boolean": true,
+      "numberDefaultFive": 7
     }
   },
   "calculations": [
@@ -17,14 +17,27 @@
     {
       "field": "valueTypes.boolean",
       "expression": ["if", false, 1, "else", null]
+    },
+    {
+      "field": "valueTypes.numberDefaultFive",
+      "expression": ["if", false, 1, "else", null]
     }
   ],
   "expects": {
     "valueTypes": {
       "decimal": 1,
       "integer": 2,
-      "boolean": true
+      "boolean": true,
+      "numberDefaultFive": 7
     }
   },
-  "expectsWarnings": ["valueTypes.decimal", "valueTypes.boolean"]
+  "expectsBackend": {
+    "valueTypes": {
+      "decimal": 0,
+      "integer": 2,
+      "boolean": false,
+      "numberDefaultFive": 5
+    }
+  },
+  "expectsWarnings": ["valueTypes.decimal", "valueTypes.boolean", "valueTypes.numberDefaultFive"]
 }

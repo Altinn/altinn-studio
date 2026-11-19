@@ -48,6 +48,12 @@ public sealed class CalculationFixture
     [JsonPropertyName("expects")]
     public JsonElement? Expects { get; set; }
 
+    /// <summary>
+    /// The expected data on the backend, where it differs from <see cref="Expects"/> on the frontend
+    /// </summary>
+    [JsonPropertyName("expectsBackend")]
+    public JsonElement? ExpectsBackend { get; set; }
+
     [JsonPropertyName("expectsFailure")]
     public string? ExpectsFailure { get; set; }
 
@@ -93,6 +99,7 @@ public sealed class CalculationFixture
                     DataModels = hasOwnData ? testCase.DataModels : DataModels,
                     Calculations = testCase.Calculations ?? Calculations,
                     Expects = testCase.Expects,
+                    ExpectsBackend = testCase.ExpectsBackend,
                     ExpectsFailure = testCase.ExpectsFailure,
                     ExpectsFailureBackend = testCase.ExpectsFailureBackend,
                     ExpectsWarnings = testCase.ExpectsWarnings,

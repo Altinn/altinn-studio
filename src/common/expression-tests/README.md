@@ -67,6 +67,8 @@ are in `valueTypes`, which is required in the schema. Rows in `rows`, `copies` a
 - `calculations` is the list in `models/{dataType}.calculation.json`. Both sides read it the way they read the file,
   so an invalid calculation is a test too.
 - `expects` is the whole data model after the calculations, so a write anywhere else shows up.
+- `expectsBackend` is the whole data model the backend has after the calculations, where it is meant to differ from
+  `expects`, which the frontend then uses. It stands next to `expects`.
 - `expectsFailure` is a part of the error message instead. The backend matches it against the exception the
   calculation throws, the frontend against the error it logs or throws. Most errors in a calculation are logged and
   leave the data as it was, which is `expects` with `expectsErrors`.

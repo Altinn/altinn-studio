@@ -25,9 +25,10 @@
       "properties": {
         "decimal": { "type": "number" },
         "integer": { "type": "integer" },
-        "boolean": { "type": "boolean" }
+        "boolean": { "type": "boolean" },
+        "numberDefaultFive": { "type": "integer", "default": 5 }
       },
-      "required": ["decimal", "integer", "boolean"]
+      "required": ["decimal", "integer", "boolean", "numberDefaultFive"]
     },
     "Object": {
       "type": "object",

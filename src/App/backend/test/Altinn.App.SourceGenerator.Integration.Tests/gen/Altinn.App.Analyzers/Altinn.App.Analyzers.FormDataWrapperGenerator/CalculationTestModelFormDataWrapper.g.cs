@@ -160,6 +160,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             "decimal" when nextOffset is -1 && literalIndex is -1 => model.Decimal,
             "integer" when nextOffset is -1 && literalIndex is -1 => model.Integer,
             "boolean" when nextOffset is -1 && literalIndex is -1 => model.Boolean,
+            "numberDefaultFive" when nextOffset is -1 && literalIndex is -1 => model.NumberDefaultFive,
             // _ => throw new global::Altinn.App.Core.Helpers.DataModel.DataModelException($"{path} is not a valid path."),
             _ => null,
         };
@@ -706,6 +707,13 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
                 if (value.TryDeserialize<bool>(out var result_Boolean))
                 {
                     model.Boolean = result_Boolean;
+                    return true;
+                }
+                return false;
+            case "numberDefaultFive" when nextOffset is -1 && literalIndex is -1:
+                if (value.TryDeserialize<int>(out var result_NumberDefaultFive))
+                {
+                    model.NumberDefaultFive = result_NumberDefaultFive;
                     return true;
                 }
                 return false;
@@ -1629,6 +1637,10 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
                 segment.CopyTo(buffer.Slice(bufferOffset));
                 bufferOffset += 7;
                 return;
+            case "numberDefaultFive":
+                segment.CopyTo(buffer.Slice(bufferOffset));
+                bufferOffset += 17;
+                return;
             default:
                 bufferOffset = 0;
                 return;
@@ -1954,6 +1966,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             Decimal = data.Decimal,
             Integer = data.Integer,
             Boolean = data.Boolean,
+            NumberDefaultFive = data.NumberDefaultFive,
         };
     }
 
@@ -2287,6 +2300,9 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
                 break;
             case "boolean" when (nextOffset is -1) && (literalIndex is -1):
                 model.Boolean = default;
+                break;
+            case "numberDefaultFive" when (nextOffset is -1) && (literalIndex is -1):
+                model.NumberDefaultFive = default;
                 break;
             default:
                 // throw new ArgumentException("{path} is not a valid path.");
@@ -2772,6 +2788,13 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
 //           "CSharpName": "Boolean",
 //           "IsNullable": false,
 //           "TypeName": "bool",
+//           "IsJsonValueType": true,
+//         },
+//         {
+//           "JsonName": "numberDefaultFive",
+//           "CSharpName": "NumberDefaultFive",
+//           "IsNullable": false,
+//           "TypeName": "int",
 //           "IsJsonValueType": true,
 //         }
 //       ]

@@ -4,7 +4,8 @@
     "valueTypes": {
       "decimal": 1,
       "integer": 2,
-      "boolean": false
+      "boolean": false,
+      "numberDefaultFive": 5
     }
   },
   "calculations": [
@@ -21,7 +22,8 @@
     "valueTypes": {
       "decimal": 5,
       "integer": 2,
-      "boolean": true
+      "boolean": true,
+      "numberDefaultFive": 5
     }
   }
 }

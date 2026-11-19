@@ -264,6 +264,7 @@ describe('Shared calculation tests', () => {
       'dataModels',
       'calculations',
       'expects',
+      'expectsBackend',
       'expectsFailure',
       'expectsFailureBackend',
       'expectsWarnings',
@@ -281,6 +282,7 @@ describe('Shared calculation tests', () => {
       expect(testCase.expects === undefined || testCase.expectsFailure === undefined, testCase.name).toBe(true);
       expect(testCase.expects !== undefined || testCase.expectsFailure !== undefined, testCase.name).toBe(true);
       expect(testCase.expectsErrors === undefined || testCase.expects !== undefined, testCase.name).toBe(true);
+      expect(testCase.expectsBackend === undefined || testCase.expects !== undefined, testCase.name).toBe(true);
     }
   });
 

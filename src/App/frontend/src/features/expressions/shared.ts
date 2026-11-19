@@ -122,6 +122,8 @@ export interface CalculationTestCase {
   dataModels?: DataModelAndElement[];
   calculations?: unknown[] | Record<string, unknown[]>;
   expects?: object;
+  /** The expected data on the backend, where it differs from expects on the frontend */
+  expectsBackend?: object;
   expectsFailure?: string;
   expectsFailureBackend?: string;
   expectsWarnings?: string[];
@@ -181,6 +183,7 @@ export function getCalculationTestCases(test: CalculationTest): CalculationTestC
       dataModels: hasOwnData ? testCase.dataModels : test.dataModels,
       calculations: testCase.calculations ?? test.calculations,
       expects: testCase.expects,
+      expectsBackend: testCase.expectsBackend,
       expectsFailure: testCase.expectsFailure,
       expectsFailureBackend: testCase.expectsFailureBackend,
       expectsWarnings: testCase.expectsWarnings,
