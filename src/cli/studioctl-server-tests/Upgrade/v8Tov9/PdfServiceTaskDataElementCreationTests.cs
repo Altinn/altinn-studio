@@ -333,7 +333,7 @@ public sealed class PdfServiceTaskDataElementCreationTests : IDisposable
 
         string[] expected = dataType is null ? [] : [dataType];
         Assert.Equal(expected, creations.DataTypes);
-        Assert.Equal(unknown, creations.UnknownDataTypes.Count == 1);
+        Assert.Equal(unknown ? 1 : 0, creations.UnknownDataTypes.Count);
     }
 
     [Fact]

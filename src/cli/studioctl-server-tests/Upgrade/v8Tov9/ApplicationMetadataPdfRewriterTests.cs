@@ -231,10 +231,9 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
 
         var tasks = TasksRequiringPdf(file);
 
-        Assert.Equal(
-            [("Task_1", "first, third"), ("Task_2", "second")],
-            tasks.Select(t => (t.TaskId, string.Join(", ", t.DataTypeIds)))
-        );
+        Assert.Equal(["Task_1", "Task_2"], tasks.Select(t => t.TaskId));
+        Assert.Equal(["first", "third"], tasks[0].DataTypeIds);
+        Assert.Equal(["second"], tasks[1].DataTypeIds);
     }
 
     private static IReadOnlyList<TaskRequiringPdf> TasksRequiringPdf(string file)

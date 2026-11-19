@@ -50,16 +50,23 @@ internal static class BpmnBuilder
             """;
 
     /// <summary>A pdf service task as the migrator emits it (serviceTask carrying taskType `pdf`).</summary>
-    public static string PdfServiceTask(string id) =>
-        $"""
+    /// <param name="autoPdfTaskId">The task the pdf task renders in automatic mode; null leaves out pdfConfig.</param>
+    public static string PdfServiceTask(string id, string? autoPdfTaskId = null)
+    {
+        var pdfConfig = autoPdfTaskId is null
+            ? ""
+            : $"\n          <altinn:pdfConfig><altinn:autoPdfTaskIds><altinn:taskId>{autoPdfTaskId}</altinn:taskId></altinn:autoPdfTaskIds></altinn:pdfConfig>";
+
+        return $"""
                 <bpmn:serviceTask id="{id}" name="Lag PDF">
                   <bpmn:extensionElements>
                     <altinn:taskExtension>
-                      <altinn:taskType>pdf</altinn:taskType>
+                      <altinn:taskType>pdf</altinn:taskType>{pdfConfig}
                     </altinn:taskExtension>
                   </bpmn:extensionElements>
                 </bpmn:serviceTask>
             """;
+    }
 
     public static string StartEvent(string id) => $"    <bpmn:startEvent id=\"{id}\" />";
 

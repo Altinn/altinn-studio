@@ -312,13 +312,18 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
                             StringComparison.Ordinal
                         )
                     ),
-                PdfServiceTask("PdfTask_Task_2"),
+                PdfServiceTask("PdfTask_Task_2", autoPdfTaskId: "Task_2"),
                 Flow("Flow_pdf", "PdfTask_Task_2", "EndEvent_1"),
             ])
         );
+        var process = _app.Read("config/process/process.bpmn");
 
         var result = await Migrate();
 
+        Assert.Equal(process, _app.Read("config/process/process.bpmn"));
+        var pdfTask = ElementById(ProcessAfter(), "PdfTask_Task_2");
+        Assert.NotNull(pdfTask);
+        Assert.Equal("Task_2", pdfTask.Descendants().Single(e => e.Name.LocalName == "taskId").Value);
         Assert.Empty(result.Todos);
         Assert.DoesNotContain(
             "enablePdfCreation",

@@ -262,6 +262,8 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         var process = ProcessAfter();
 
         Assert.Equal("Gateway_1", ElementById(process, "Flow_to_gw")?.Attribute("targetRef")?.Value);
+        Assert.Equal("PdfTask_Task_1", ElementById(process, "Flow_sign")?.Attribute("targetRef")?.Value);
+        Assert.Equal("StartEvent_1", ElementById(process, "Flow_reject")?.Attribute("targetRef")?.Value);
         Assert.Equal("EFormidlingTask_Task_1", ElementById(process, "Flow_end")?.Attribute("targetRef")?.Value);
         Assert.Equal(
             "EndEvent_1",
