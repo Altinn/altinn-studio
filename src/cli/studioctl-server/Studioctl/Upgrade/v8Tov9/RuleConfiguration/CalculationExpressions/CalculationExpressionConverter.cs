@@ -708,6 +708,18 @@ internal sealed partial class CalculationExpressionConverter
 
     private static JsonArray Call(string name, params object?[] args)
     {
+        // Check the expanded tree before cloning: repeated self-assignment otherwise
+        // doubles the allocated JSON until the upgrader runs out of memory.
+        var pending = new Stack<(JsonNode Node, int Depth)>(args.OfType<JsonNode>().Select(node => (node, 1)));
+        var count = 1;
+        while (pending.TryPop(out var current))
+        {
+            if (++count > 8000 || current.Depth > 48)
+                throw new NotSupportedException("Expanded calculation exceeds the size limit.");
+            if (current.Node is JsonArray array)
+                foreach (var child in array.OfType<JsonNode>())
+                    pending.Push((child, current.Depth + 1));
+        }
         var result = new JsonArray(JsonValue.Create(name));
         for (var index = 0; index < args.Length; index++)
         {

@@ -146,7 +146,20 @@ public class ExpressionConverter
             debugInfo.Add("Action is 'Hide' - using expression as-is");
         }
 
-        expression = ExpressionSimplifier.Simplify(JsonSerializer.SerializeToNode(expression));
+        try
+        {
+            expression = ExpressionSimplifier.Simplify(JsonSerializer.SerializeToNode(expression));
+        }
+        catch (JsonException)
+        {
+            return new ConversionResult
+            {
+                Status = ConversionStatus.Failed,
+                FailureReason = "Expanded conditional expression exceeds the JSON depth limit",
+                DebugInfo = debugInfo,
+                OriginalJavaScript = functionBody,
+            };
+        }
 
         return new ConversionResult
         {
