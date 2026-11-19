@@ -28,6 +28,12 @@ public sealed class LegacyRuleConversionTests
     )]
     [InlineData("return parseFloat(obj.a.toFixed(2));", "{\"a\":2.675}", "2.67")]
     [InlineData("return parseFloat(obj.a.toFixed(2));", "{\"a\":0.125}", "0.13")]
+    [InlineData("return obj.a.split(',').toString();", "{\"a\":\"yes,no\"}", "\"yes,no\"")]
+    [InlineData(
+        "var total = 0; obj.a.split(',').forEach(part => { const twice = n => +n * 2; total += twice(part); }); return total;",
+        "{\"a\":\"1,2\"}",
+        "6"
+    )]
     [InlineData("return Math.round(obj.a);", "{\"a\":0.49999999999999994}", "0")]
     [InlineData("return Math.round(obj.a);", "{\"a\":-2.5}", "-2")]
     [InlineData("return Math.round(obj.a);", "{\"a\":2.5}", "3")]
