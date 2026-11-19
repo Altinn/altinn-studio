@@ -59,15 +59,15 @@ impl From<Result<Outcome, RunError>> for Reply {
         match ran {
             Ok(outcome) => Self::Completed(outcome),
             Err(RunError::InvalidArchive(detail)) => Self::Failed {
-                reason: "invalid-archive",
+                reason: "invalid_archive",
                 error: format!("The archive does not extract: {detail}"),
             },
             Err(RunError::RefusedPatch(refusal)) => Self::Failed {
-                reason: "refused-patch",
+                reason: "refused_patch",
                 error: format!("The operator runner refused the changes of the command: {refusal}"),
             },
             Err(RunError::Failed(error)) => Self::Failed {
-                reason: "vm-error",
+                reason: "vm_error",
                 error: error.to_string(),
             },
         }
@@ -208,7 +208,7 @@ mod tests {
     #[test]
     fn cuts_the_error_of_a_status_to_what_the_core_operator_reads() -> serde_json::Result<()> {
         let reply = Reply::Failed {
-            reason: "refused-patch",
+            reason: "refused_patch",
             error: "€\u{1}".repeat(64 * 1024),
         };
 
