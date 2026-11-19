@@ -309,7 +309,7 @@ internal sealed class EFormidlingProcessRewriter
 
     /// <summary>
     /// Whether <paramref name="flow"/> leads to the PDF service task: straight, or through the gateway whose sign
-    /// branch the PDF migration put it on.
+    /// branch the PDF migration put it on, which nothing else enters.
     /// </summary>
     private static bool LeadsToPdfTask(XElement process, XElement flow, string pdfTaskId)
     {
@@ -320,6 +320,9 @@ internal sealed class EFormidlingProcessRewriter
         var target = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == targetId);
         return target?.Name.LocalName == "exclusiveGateway"
             && targetId is not null
+            && process
+                .Elements()
+                .Count(e => e.Name.LocalName == "sequenceFlow" && e.Attribute("targetRef")?.Value == targetId) == 1
             && GetOutgoingFlows(process, targetId).Exists(f => f.Attribute("targetRef")?.Value == pdfTaskId);
     }
 
