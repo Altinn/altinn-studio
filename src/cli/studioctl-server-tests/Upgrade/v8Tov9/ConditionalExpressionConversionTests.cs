@@ -623,7 +623,8 @@ public sealed class ConditionalExpressionConversionTests
     [Theory]
     [InlineData(4, true)]
     [InlineData(70, false)]
-    public void HelperNesting_RejectsOnlyTheUnrepresentableRule(int depth, bool succeeds)
+    [InlineData(70, false, " === 1")]
+    public void HelperNesting_RejectsOnlyTheUnrepresentableRule(int depth, bool succeeds, string comparison = "")
     {
         using var app = new TempAppFolder();
         var helpers = new List<string> { "h0: values => values.answer === 'yes'" };
@@ -637,7 +638,7 @@ public sealed class ConditionalExpressionConversionTests
         );
         parser.Parse();
         var result = new ExpressionConverter(parser.GetGlobalConstants(), parser.GetAllConditionalFunctions()).Convert(
-            $"function(values) {{ return conditionalRuleHandlerObject.h{depth}(values); }}",
+            $"function(values) {{ return conditionalRuleHandlerObject.h{depth}(values){comparison}; }}",
             new() { ["answer"] = "choice" },
             "Hide"
         );
