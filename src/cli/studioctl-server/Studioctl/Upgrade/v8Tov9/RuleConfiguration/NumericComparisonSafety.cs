@@ -7,7 +7,11 @@ internal static class NumericComparisonSafety
     // Expressions use decimal arithmetic, while legacy JavaScript uses binary doubles.
     // A tiny difference in a total is different from choosing a different branch at a boundary.
     // Keep coercion and sign changes, but do not move fractional arithmetic into a decision.
-    public static bool MayChangeBoundary(JsonNode? expression, IReadOnlySet<string>? integerInputs = null)
+    public static bool MayChangeBoundary(
+        JsonNode? expression,
+        IReadOnlySet<string>? integerInputs = null,
+        Func<JsonNode?, double?>? integerBound = null
+    )
     {
         if (expression is not JsonArray { Count: > 0 } call)
             return false;
@@ -26,14 +30,38 @@ internal static class NumericComparisonSafety
         };
         if (arithmetic && !identity && (operation == "divide" || !arguments.All(IsInteger)))
             return true;
-        return arguments.Any(argument => MayChangeBoundary(argument, integerInputs));
+        if (
+            arithmetic
+            && !identity
+            && integerBound != null
+            && (integerBound(expression) is not { } bound || !double.IsFinite(bound) || bound > 9007199254740991d)
+        )
+            return true;
+        if (arithmetic && arguments.All(argument => argument is JsonValue number && number.TryGetValue<double>(out _)))
+        {
+            var values = arguments.OfType<JsonValue>().Select(argument => argument.GetValue<double>()).ToArray();
+            var result = operation switch
+            {
+                "plus" => values.Sum(),
+                "minus" => values[0] - values[1],
+                "multiply" => values.Aggregate(1d, (left, right) => left * right),
+                "divide" => values[0] / values[1],
+                _ => 0,
+            };
+            if (!double.IsFinite(result) || Math.Abs(result) > 9007199254740991d)
+                return true;
+        }
+        return arguments.Any(argument => MayChangeBoundary(argument, integerInputs, integerBound));
 
         bool IsInteger(JsonNode? node)
         {
             if (node == null)
                 return true; // Arithmetic coerces a bound null to zero.
             if (node is JsonValue literal)
-                return literal.TryGetValue<double>(out var value) && value.CompareTo(Math.Truncate(value)) == 0;
+                return literal.TryGetValue<double>(out var value)
+                    && double.IsFinite(value)
+                    && Math.Abs(value) <= 9007199254740991d
+                    && value.CompareTo(Math.Truncate(value)) == 0;
             if (node is not JsonArray { Count: > 0 } nested)
                 return false;
             return nested[0]?.GetValue<string>() switch

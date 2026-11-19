@@ -241,20 +241,11 @@ internal sealed partial class CalculationExpressionConverter
             case Identifier:
             case MemberExpression:
                 if (TryConstantMember(expression, values, out var constant))
-                    return constant;
+                    return CheckedInput(constant);
                 var key = Key(expression);
                 if (key != null && values.TryGetValue(key, out var value))
                 {
-                    if (
-                        value.Kind == Kind.String
-                        && value.MayBeMissing
-                        && !value.NumericString
-                        && !value.SelectionString
-                    )
-                        throw new NotSupportedException(
-                            "String inputs require JS semantics for numeric coercion and reserved expression strings."
-                        );
-                    return value;
+                    return CheckedInput(value);
                 }
                 if (key?.StartsWith("input:", StringComparison.Ordinal) == true)
                     return new(null, Kind.Undefined);
@@ -331,6 +322,15 @@ internal sealed partial class CalculationExpressionConverter
         }
     }
 
+    private static Value CheckedInput(Value value)
+    {
+        if (value.Kind == Kind.String && value.MayBeMissing && !value.NumericString && !value.SelectionString)
+            throw new NotSupportedException(
+                "String inputs require JS semantics for numeric coercion and reserved expression strings."
+            );
+        return value;
+    }
+
     private Value Binary(BinaryExpression binary, Value left, Value right)
     {
         var op = binary.Operator.ToString();
@@ -345,8 +345,8 @@ internal sealed partial class CalculationExpressionConverter
                     or "LessThan"
                     or "LessThanOrEqual"
             && (
-                NumericComparisonSafety.MayChangeBoundary(left.Expression, _integerInputs)
-                || NumericComparisonSafety.MayChangeBoundary(right.Expression, _integerInputs)
+                NumericComparisonSafety.MayChangeBoundary(left.Expression, _integerInputs, IntegerBound)
+                || NumericComparisonSafety.MayChangeBoundary(right.Expression, _integerInputs, IntegerBound)
             )
         )
             throw new NotSupportedException(

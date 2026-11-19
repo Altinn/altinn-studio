@@ -235,16 +235,50 @@ internal sealed class RuleHandlerParser
         }
     }
 
-    private static IEnumerable<string> AssignedNames(Node node)
+    private static IEnumerable<string> AssignedNames(Node node, HashSet<string>? shadowed = null)
     {
+        shadowed ??= new(StringComparer.Ordinal);
+        if (node is IFunction function)
+        {
+            shadowed = new(shadowed, StringComparer.Ordinal);
+            shadowed.UnionWith(function.Params.SelectMany(AssignmentNames));
+            shadowed.UnionWith(HoistedNames(function.Body));
+        }
+        if (node is BlockStatement block)
+        {
+            shadowed = new(shadowed, StringComparer.Ordinal);
+            shadowed.UnionWith(
+                block
+                    .Body.OfType<VariableDeclaration>()
+                    .Where(declaration => declaration.Kind.ToString() != "Var")
+                    .SelectMany(declaration =>
+                        declaration.Declarations.SelectMany(binding => AssignmentNames(binding.Id))
+                    )
+            );
+        }
         if (node is AssignmentExpression assignment)
             foreach (var name in AssignmentNames(assignment.Left))
-                yield return name;
-        if (node is UpdateExpression { Argument: Identifier identifier })
+                if (!shadowed.Contains(name))
+                    yield return name;
+        if (node is UpdateExpression { Argument: Identifier identifier } && !shadowed.Contains(identifier.Name))
             yield return identifier.Name;
         foreach (var child in node.ChildNodes)
         {
-            foreach (var name in AssignedNames(child))
+            foreach (var name in AssignedNames(child, shadowed))
+                yield return name;
+        }
+    }
+
+    private static IEnumerable<string> HoistedNames(Node node)
+    {
+        if (node is IFunction)
+            yield break;
+        if (node is VariableDeclaration declaration && declaration.Kind.ToString() == "Var")
+            foreach (var name in declaration.Declarations.SelectMany(binding => AssignmentNames(binding.Id)))
+                yield return name;
+        foreach (var child in node.ChildNodes)
+        {
+            foreach (var name in HoistedNames(child))
                 yield return name;
         }
     }
@@ -253,6 +287,16 @@ internal sealed class RuleHandlerParser
     {
         if (node is Identifier identifier)
             yield return identifier.Name;
+        else if (node is Property property)
+        {
+            foreach (var name in AssignmentNames(property.Value))
+                yield return name;
+        }
+        else if (node is AssignmentPattern assignment)
+        {
+            foreach (var name in AssignmentNames(assignment.Left))
+                yield return name;
+        }
         else if (node is not MemberExpression)
         {
             foreach (var child in node.ChildNodes)

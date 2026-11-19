@@ -91,7 +91,7 @@ public partial class ConversionContext
             Identifier id => id.Name == ObjectParameterName || GlobalConstants.ContainsKey(id.Name),
             MemberExpression member => TryGetInputName(member, out _),
             BinaryExpression binary => IsPureValue(binary.Left) && IsPureValue(binary.Right),
-            UnaryExpression unary => IsPureValue(unary.Argument),
+            UnaryExpression unary when unary.Operator.ToString() is not "Delete" => IsPureValue(unary.Argument),
             ConditionalExpression choice => IsPureValue(choice.Test)
                 && IsPureValue(choice.Consequent)
                 && IsPureValue(choice.Alternate),
@@ -119,6 +119,7 @@ public partial class ConversionContext
                 when TryGetInputName(member, out var name) && InputTypes.TryGetValue(name, out var type) => type,
             MemberExpression member when TryGetInputName(member, out var name) && !InputParams.ContainsKey(name) =>
                 "undefined",
+            MemberExpression member when TryGetInputName(member, out _) => null,
             MemberExpression { Computed: false, Property: Identifier { Name: "length" } } => "number",
             UnaryExpression unary when unary.Operator.ToString() is "LogicalNot" or "!" => "boolean",
             UnaryExpression unary when unary.Operator.ToString() is "UnaryPlus" or "+" or "UnaryNegation" or "-" =>
@@ -148,7 +149,7 @@ public partial class ConversionContext
             CallExpression
             {
                 Callee: MemberExpression { Computed: false, Property: Identifier { Name: "includes" or "endsWith" } }
-            } => "boolean",
+            } call when !CallExpressionMatcher.IsConditionalCall(call) => "boolean",
             ParenthesizedExpression parenthesized => GetValueType(parenthesized.Expression),
             _ => null,
         };
@@ -284,12 +285,16 @@ public partial class ConversionContext
                 ? new object[] { "equals", converted, true }
                 : converted;
         if (valueType == "number")
+        {
+            if (NumericComparisonSafety.MayChangeBoundary(System.Text.Json.JsonSerializer.SerializeToNode(converted)))
+                return Reject("Arithmetic truthiness can change JavaScript boundary decisions", debugInfo);
             return new object?[]
             {
                 "or",
                 new object[] { "greaterThan", converted, 0 },
                 new object[] { "lessThan", converted, 0 },
             };
+        }
         if (valueType == "string" && HasSafeStringDomain(expression))
             return new object?[]
             {

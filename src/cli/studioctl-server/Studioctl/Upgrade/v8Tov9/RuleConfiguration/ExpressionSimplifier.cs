@@ -75,12 +75,7 @@ internal static class ExpressionSimplifier
                     && (inner.Count == 2 || (inner.Count == 3 && IsZero(inner[2])))
                 )
                     terms[index] = inner[1]?.DeepClone();
-            // Flatten only the leftmost sum, preserving the order of all additions.
-            while (terms.FirstOrDefault() is JsonArray first && Text(first[0]) == "plus")
-            {
-                terms.RemoveAt(0);
-                terms.InsertRange(0, first.Skip(1).Select(term => term?.DeepClone()));
-            }
+            // A nested sum rounds back to double before its parent runs. Flattening it can change that value.
             // Keep one explicit numeric operation, including its missing-value default.
             if (terms.Count > 1)
                 terms.RemoveAll(IsZero);

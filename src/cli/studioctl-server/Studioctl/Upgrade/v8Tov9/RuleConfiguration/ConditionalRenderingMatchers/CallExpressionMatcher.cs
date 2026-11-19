@@ -29,7 +29,11 @@ public class CallExpressionMatcher : IExpressionMatcher
                 debugInfo
             );
         }
-        if (context.GetValueType(call.Arguments[0]) != "string" || !context.HasSafeStringDomain(call.Arguments[0]))
+        if (
+            context.GetValueType(call.Arguments[0]) != "string"
+            || !context.HasSafeStringDomain(call.Arguments[0])
+            || !context.IsDefinitelyNonNull(call.Arguments[0])
+        )
         {
             return context.Reject("String search text must preserve its type and reserved-value casing", debugInfo);
         }

@@ -28,6 +28,8 @@ internal sealed partial class CalculationExpressionConverter
             "MultiplicationAssignment" => "multiply",
             _ => throw new NotSupportedException("Unsupported compound assignment."),
         };
+        if (op == "AdditionAssignment" && (left.Kind == Kind.String || right.Kind == Kind.String))
+            throw new NotSupportedException("String addition concatenates values instead of adding numbers.");
         values[key] = new(Call(function, Numeric(left).Expression, Numeric(right).Expression), Kind.Number);
     }
 
@@ -335,11 +337,15 @@ internal sealed partial class CalculationExpressionConverter
     private static JsonNode? RoundedText(JsonNode? number, int precision) =>
         Call("stringReplace", Call("round", number, precision), ",", "");
 
+    private Dictionary<string, Value>? _helperScope;
+
     private Value ReadHelper(string name, IFunction helper, CallExpression call, Dictionary<string, Value> values)
     {
         // Arguments run in the caller before entering the helper. f(f(value)) is not
         // recursion, and both argument evaluation and parameter binding must follow JS order.
         var arguments = call.Arguments.Select(argument => Read(argument, values)).ToList();
+        if (_activeHelpers.Count == 0)
+            _helperScope = new(values, StringComparer.Ordinal);
         if (
             helper.Async
             || helper.Generator
@@ -349,7 +355,10 @@ internal sealed partial class CalculationExpressionConverter
             throw new NotSupportedException("Recursive, asynchronous, or mismatched helper call.");
         try
         {
-            var locals = new Dictionary<string, Value>(values, StringComparer.Ordinal);
+            var locals = new Dictionary<string, Value>(
+                _helperScope ?? throw new InvalidOperationException(),
+                StringComparer.Ordinal
+            );
             for (var index = 0; index < helper.Params.Count; index++)
             {
                 if (helper.Params[index] is not Identifier parameter || parameter.Name == _parameter)
@@ -379,6 +388,8 @@ internal sealed partial class CalculationExpressionConverter
         finally
         {
             _activeHelpers.Remove(name);
+            if (_activeHelpers.Count == 0)
+                _helperScope = null;
         }
     }
 
@@ -473,7 +484,7 @@ internal sealed partial class CalculationExpressionConverter
                 ),
                 Kind.String
             );
-        if (NumericComparisonSafety.MayChangeBoundary(value.Expression, _integerInputs))
+        if (NumericComparisonSafety.MayChangeBoundary(value.Expression, _integerInputs, IntegerBound))
             throw new NotSupportedException(
                 "Fractional arithmetic converted to text exposes JavaScript-specific floating-point digits."
             );

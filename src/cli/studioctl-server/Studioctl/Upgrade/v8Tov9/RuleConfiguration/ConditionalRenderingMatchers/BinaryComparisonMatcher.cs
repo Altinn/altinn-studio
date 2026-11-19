@@ -29,7 +29,7 @@ public class BinaryComparisonMatcher : IExpressionMatcher
         var leftType = context.GetValueType(binary.Left);
         var rightType = context.GetValueType(binary.Right);
         // Check the lowered operands too: locals and helper calls may contain the arithmetic.
-        if (leftType == "number" && rightType == "number")
+        if (leftType == "number" || rightType == "number")
             foreach (var operand in new[] { binary.Left, binary.Right })
             {
                 var value = context.ConvertExpression(operand, debugInfo);
@@ -321,8 +321,42 @@ public class BinaryComparisonMatcher : IExpressionMatcher
             return true;
         }
         if (expression is Literal { Value: string text })
-            return text.Trim().Length == 0
-                || double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        {
+            text = text.Trim(
+                '\u0009',
+                '\u000A',
+                '\u000B',
+                '\u000C',
+                '\u000D',
+                '\u0020',
+                '\u00A0',
+                '\u1680',
+                '\u2000',
+                '\u2001',
+                '\u2002',
+                '\u2003',
+                '\u2004',
+                '\u2005',
+                '\u2006',
+                '\u2007',
+                '\u2008',
+                '\u2009',
+                '\u200A',
+                '\u2028',
+                '\u2029',
+                '\u202F',
+                '\u205F',
+                '\u3000',
+                '\uFEFF'
+            );
+            return text.Length == 0
+                || double.TryParse(
+                    text,
+                    NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
+                    CultureInfo.InvariantCulture,
+                    out value
+                );
+        }
         if (expression is Literal { Value: bool boolean })
         {
             value = boolean ? 1 : 0;
@@ -373,6 +407,7 @@ public class BinaryComparisonMatcher : IExpressionMatcher
             || !context.HasSafeStringDomain(member.Object)
             || context.GetValueType(call.Arguments[0]) != "string"
             || !context.HasSafeStringDomain(call.Arguments[0])
+            || !context.IsDefinitelyNonNull(call.Arguments[0])
         )
             return context.Reject("String search text must preserve its type and reserved-value casing", debugInfo);
         var contains = new object[] { "contains", subject, search };

@@ -26,7 +26,7 @@ public class JavaScriptExpressionParser
                 throw new NotSupportedException("Expected a synchronous, non-generator function");
             if (function.Params.Count > 1 || (function.Params.Count == 1 && function.Params[0] is not Identifier))
                 throw new NotSupportedException("Only one plain object parameter is supported");
-            var parameter = function.Params.Count == 1 ? ((Identifier)function.Params[0]).Name : "obj";
+            var parameter = function.Params.Count == 1 ? ((Identifier)function.Params[0]).Name : "";
             var statements = function.Body switch
             {
                 BlockStatement block => block.Body.ToList(),
@@ -34,7 +34,8 @@ public class JavaScriptExpressionParser
                 _ => throw new NotSupportedException("Unsupported function body"),
             };
             var declarations = new HashSet<string>(StringComparer.Ordinal);
-            CollectDeclarations(statements, declarations, parameter);
+            var constants = new HashSet<string>(StringComparer.Ordinal);
+            CollectDeclarations(statements, declarations, constants, parameter);
             var evaluated = new List<Expression>();
             var loweredStatements = 0;
             var expressionResult = Lower(statements, new Dictionary<string, Expression>(StringComparer.Ordinal));
@@ -126,6 +127,7 @@ public class JavaScriptExpressionParser
                             var assignmentKey = AssignmentKey(assignment.Left, parameter);
                             if (
                                 assignmentKey == null
+                                || assignment.Left is Identifier && constants.Contains(assignmentKey)
                                 || (assignment.Left is Identifier && !declarations.Contains(assignmentKey))
                             )
                                 throw new NotSupportedException(
@@ -192,13 +194,21 @@ public class JavaScriptExpressionParser
         }
     }
 
-    private static void CollectDeclarations(IEnumerable<Statement> statements, HashSet<string> names, string parameter)
+    private static void CollectDeclarations(
+        IEnumerable<Statement> statements,
+        HashSet<string> names,
+        HashSet<string> constants,
+        string parameter,
+        bool nested = false
+    )
     {
         foreach (var statement in statements)
         {
             switch (statement)
             {
                 case VariableDeclaration declaration:
+                    if (nested && declaration.Kind.ToString() is "Let" or "Const")
+                        throw new NotSupportedException("Block-scoped conditional locals require manual conversion");
                     foreach (var binding in declaration.Declarations)
                     {
                         var locals = binding.Id switch
@@ -210,18 +220,22 @@ public class JavaScriptExpressionParser
                             _ => throw new NotSupportedException("Unsupported variable binding"),
                         };
                         foreach (var local in locals)
+                        {
                             if (local == null || local == parameter || !names.Add(local))
                                 throw new NotSupportedException(
                                     "Shadowed or repeated variable declarations require manual conversion"
                                 );
+                            if (declaration.Kind.ToString() == "Const")
+                                constants.Add(local);
+                        }
                     }
                     break;
                 case IfStatement branch:
-                    CollectDeclarations(BranchStatements(branch.Consequent), names, parameter);
-                    CollectDeclarations(BranchStatements(branch.Alternate), names, parameter);
+                    CollectDeclarations(BranchStatements(branch.Consequent), names, constants, parameter, nested: true);
+                    CollectDeclarations(BranchStatements(branch.Alternate), names, constants, parameter, nested: true);
                     break;
                 case BlockStatement block:
-                    CollectDeclarations(block.Body, names, parameter);
+                    CollectDeclarations(block.Body, names, constants, parameter, nested: true);
                     break;
             }
         }
