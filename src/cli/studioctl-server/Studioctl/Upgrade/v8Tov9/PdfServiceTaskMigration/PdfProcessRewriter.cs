@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 
@@ -233,10 +234,15 @@ internal sealed class PdfProcessRewriter
                 flow = signBranch.SignFlow;
                 break;
             case GatewayActionRouting.Unsupported unsupported:
+                // autoPdfTaskIds renders an automatic summary, not the custom PDF layout the task had.
+                var renders = hasOwnUiFolder
+                    ? $"with the layout set Altinn Studio uses for a custom PDF ({V9MigrationDocs.Pdf}), not "
+                        + "autoPdfTaskIds,"
+                    : $"with autoPdfTaskIds '{taskId}'";
                 _warnings.Add(
                     $"Gateway '{unsupported.GatewayId}' after task '{taskId}' routes on gatewayAction, which a PDF "
                         + "service task between them would replace with its own action. Skipped PDF service task "
-                        + $"insertion - add a 'pdf' service task '{pdfTaskId}' with autoPdfTaskIds '{taskId}' on the "
+                        + $"insertion - add a 'pdf' service task '{pdfTaskId}' {renders} on the "
                         + $"branch of '{unsupported.GatewayId}' that should produce the PDF."
                 );
                 _skippedTasks.Add(taskId);

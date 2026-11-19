@@ -269,6 +269,33 @@ public sealed class PdfServiceTaskGatewayActionTests : IDisposable
     }
 
     [Fact]
+    public async Task TaskWithCustomPdfLayout_WarningAsksForItsLayoutSet()
+    {
+        WriteMetadata();
+        _app.Write("config/process/process.bpmn", Process(Elements(taskType: "data")));
+        _app.Write(
+            "ui/Task_2/Settings.json",
+            """{ "pages": { "order": ["page1"], "pdfLayoutName": "pdf" }, "defaultDataType": "receipt" }"""
+        );
+        _app.Write("ui/Task_2/layouts/page1.json", """{ "data": { "layout": [] } }""");
+        _app.Write(
+            "ui/Task_2/layouts/pdf.json",
+            """{ "data": { "layout": [{ "id": "pdf-instance", "type": "InstanceInformation" }] } }"""
+        );
+
+        var result = await Migrate();
+
+        Assert.Contains(
+            "Gateway 'Gateway_1' after task 'Task_2' routes on gatewayAction, which a PDF service task between them "
+                + "would replace with its own action. Skipped PDF service task insertion - add a 'pdf' service task "
+                + "'PdfTask_Task_2' with the layout set Altinn Studio uses for a custom PDF "
+                + $"({V9MigrationDocs.Pdf}), not autoPdfTaskIds, on the branch of 'Gateway_1' that should produce the "
+                + "PDF.",
+            result.Warnings
+        );
+    }
+
+    [Fact]
     public async Task PdfTaskAddedAsTheTodoSays_IsMigratedOnTheNextRun()
     {
         WriteMetadata();
