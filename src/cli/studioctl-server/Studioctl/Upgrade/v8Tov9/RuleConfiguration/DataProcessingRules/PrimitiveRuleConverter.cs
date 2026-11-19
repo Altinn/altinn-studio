@@ -522,6 +522,7 @@ internal sealed class PrimitiveRuleConverter(
             );
         var source = Expression(member.Object);
         var previous = new Dictionary<string, string>(_locals, StringComparer.Ordinal);
+        var previousHelpers = _helpers.Keys.ToHashSet(StringComparer.Ordinal);
         var assigned = new HashSet<string>(_assigned, StringComparer.Ordinal);
         var iteration = "item_" + _steps;
         _locals.Add(parameter.Name, localPrefix + _locals.Count);
@@ -532,7 +533,11 @@ internal sealed class PrimitiveRuleConverter(
         code.AppendLine($"foreach (var {iteration} in JsItems({source}))");
         code.OpenBrace();
         code.AppendLine($"object? {Local(parameter.Name)} = {iteration};");
-        foreach (var name in _locals.Keys.Except(previous.Keys).Where(name => name != parameter.Name))
+        foreach (
+            var name in _locals
+                .Keys.Except(previous.Keys)
+                .Where(name => name != parameter.Name && !_helpers.ContainsKey(name))
+        )
             code.AppendLine($"object? {Local(name)} = Undefined;");
         Statements(block.Body, code);
         code.CloseBrace();
@@ -542,6 +547,8 @@ internal sealed class PrimitiveRuleConverter(
         foreach (var pair in previous)
             _locals.Add(pair.Key, pair.Value);
         _assigned = assigned;
+        foreach (var name in _helpers.Keys.Except(previousHelpers).ToArray())
+            _helpers.Remove(name);
     }
 
     private static bool HasCallbackReturn(Node node) =>
@@ -677,6 +684,7 @@ internal sealed class PrimitiveRuleConverter(
             null => "null",
             bool boolean => boolean ? "true" : "false",
             double number => JsNumberString(number),
+            string[] items => string.Join(",", items),
             _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? "",
         };
         private static string JsNumberString(double number)
