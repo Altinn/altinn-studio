@@ -312,7 +312,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
                 // csharpier-ignore
                 if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
                 {
-                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.Claimant().AltinnRowId;
+                    model.AltinnRowId = default;
                     return true;
                 }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
@@ -407,7 +407,7 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
                 // csharpier-ignore
                 if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
                 {
-                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Integration.Tests.Models.Agent().AltinnRowId;
+                    model.AltinnRowId = default;
                     return true;
                 }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))

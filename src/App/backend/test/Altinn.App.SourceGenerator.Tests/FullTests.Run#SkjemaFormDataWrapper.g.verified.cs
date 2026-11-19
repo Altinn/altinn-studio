@@ -468,7 +468,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 // csharpier-ignore
                 if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
                 {
-                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold().AltinnRowId;
+                    model.AltinnRowId = default;
                     return true;
                 }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
@@ -504,7 +504,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 // csharpier-ignore
                 if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
                 {
-                    model.NonNullableInt = new global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold().NonNullableInt;
+                    model.NonNullableInt = default;
                     return true;
                 }
                 if (value.TryDeserialize<int>(out var result_NonNullableInt))
@@ -816,7 +816,7 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 // csharpier-ignore
                 if (value.ValueKind is global::System.Text.Json.JsonValueKind.Null or global::System.Text.Json.JsonValueKind.Undefined)
                 {
-                    model.AltinnRowId = new global::Altinn.App.SourceGenerator.Tests.Adresse().AltinnRowId;
+                    model.AltinnRowId = default;
                     return true;
                 }
                 if (value.TryDeserialize<global::System.Guid>(out var result_AltinnRowId))
@@ -2343,11 +2343,8 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
                 model.Deltar = default;
                 break;
             case "nonNullableInt" when (nextOffset is -1) && (literalIndex is -1):
-            {
-                // csharpier-ignore
-                model.NonNullableInt = new global::Altinn.App.SourceGenerator.Tests.SkjemaInnhold().NonNullableInt;
+                model.NonNullableInt = default;
                 break;
-            }
             case "adresse" when (nextOffset is -1) && (literalIndex is -1):
                 model.Adresse = default;
                 break;
