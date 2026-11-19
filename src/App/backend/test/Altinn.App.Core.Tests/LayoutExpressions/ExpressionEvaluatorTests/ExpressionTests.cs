@@ -6,18 +6,33 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.ExpressionEvaluatorTests;
 
 public class ExpressionTests
 {
-    [Fact]
-    public async Task Division_OverflowsBeforeMultiplicationCanReduceTheResult()
+    [Theory]
+    [InlineData("""["multiply", ["divide", 10, 1e-28], 1e-28]""")]
+    [InlineData("""["multiply", ["divide", 7.922816251426434e27, 0.1], 0.1]""")]
+    public async Task Division_OverflowsBeforeMultiplicationCanReduceTheResult(string json)
     {
-        // JavaScript returns 10, but the intermediate quotient exceeds decimal.MaxValue.
+        // JavaScript's final result fits, but the intermediate quotient exceeds decimal.MaxValue.
         // The upgrader must keep this calculation in C# rather than emit this expression.
-        var expression = JsonSerializer.Deserialize<Expression>("""["multiply", ["divide", 10, 1e-28], 1e-28]""");
+        var expression = JsonSerializer.Deserialize<Expression>(json);
 
         var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
             ExpressionEvaluator.EvaluateExpression(null!, expression, null!)
         );
 
         Assert.StartsWith("Arithmetic overflow:", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("""["multiply", ["divide", 1e-28, 10], 1e28]""", 0d)]
+    [InlineData("""["multiply", ["divide", 3e-28, 2], 1e28]""", 2d)]
+    [InlineData("""["multiply", ["divide", 1e-28, 1], 1e28]""", 1d)]
+    public async Task Division_RoundsIntermediateResultsToDecimalPrecision(string json, double expected)
+    {
+        var expression = JsonSerializer.Deserialize<Expression>(json);
+
+        var result = await ExpressionEvaluator.EvaluateExpression(null!, expression, null!);
+
+        Assert.Equal(expected, Assert.IsType<double>(result));
     }
 
     [Fact]

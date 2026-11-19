@@ -13,6 +13,9 @@ public sealed class LegacyRuleConversionTests
     [Theory]
     [InlineData("return 100 - (obj.a + obj.b);", "{\"a\":20,\"b\":30}", "50")]
     [InlineData("return obj.b ? (obj.a / obj.b) * obj.b : 0;", "{\"a\":10,\"b\":1e-28}", "10")]
+    [InlineData("return (1e-28 / 10) * 1e28;", "{\"a\":0}", "0.09999999999999999")]
+    [InlineData("return (3e-28 / 2) * 1e28;", "{\"a\":0}", "1.5")]
+    [InlineData("return ((7.922816251426434e27 / 0.1) * 0.1) / 1e27;", "{\"a\":0}", "7.922816251426434")]
     [InlineData("return (0.1 / 1e-29) / 1e28;", "{\"a\":0}", "1.0000000000000002")]
     [InlineData(
         "return (obj.total + obj.extra) - (obj.a + obj.b);",

@@ -232,6 +232,21 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Theory]
+    [InlineData("return (1e-28 / 10) * 1e28;", false)]
+    [InlineData("return (3e-28 / 2) * 1e28;", false)]
+    [InlineData("return (7.922816251426434e27 / 0.1) * 0.1;", false)]
+    [InlineData("return (1e-28 / 1) * 1e28;", true)]
+    [InlineData("return 0 / 10;", true)]
+    public void Division_RequiresARepresentableQuotient(string body, bool converts)
+    {
+        using var app = CreateApp();
+        if (converts)
+            Assert.NotNull(Convert(app, body, Rule("calculate", "result")));
+        else
+            Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
+    }
+
+    [Theory]
     [InlineData("0.1", 10d)]
     [InlineData("1e-28", 1e28)]
     public void Division_WithRepresentableDecimalLiteralDenominator_Converts(string denominator, double expected)
