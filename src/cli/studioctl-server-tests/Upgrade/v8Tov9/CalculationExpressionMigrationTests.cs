@@ -808,15 +808,29 @@ public sealed class CalculationExpressionMigrationTests
             return;
         }
         using var app = CreateApp();
-        var path = app.Write("models/model.schema.json", "{\"properties\":{\"result\":{\"type\":\"number\"}}}");
-        WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
+        const string schema = "{\"properties\":{\"result\":{\"type\":\"number\"}}}";
+        var path = app.Write("models/model.schema.json", schema);
+        WriteRules(app, new() { ["optional"] = Rule("optional", "result") }, "optional: obj => { return null; }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        File.Delete(CalculationPath(app));
+        app.Write("models/model.schema.json", schema);
         var mode = File.GetUnixFileMode(path);
         try
         {
             File.SetUnixFileMode(path, UnixFileMode.None);
+            var denied = false;
+            try
+            {
+                File.ReadAllText(path);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                denied = true;
+            }
+            Assert.SkipWhen(!denied, "File permissions are not enforced for this process.");
             var result = CalculationMigration.Migrate(app.Root);
             Assert.Empty(result.ConvertedRules);
-            Assert.Single(result.FallbackReasons);
+            Assert.Contains("could not be resolved in the model schema", Assert.Single(result.FallbackReasons));
             Assert.Empty(result.ManualRules);
         }
         finally
