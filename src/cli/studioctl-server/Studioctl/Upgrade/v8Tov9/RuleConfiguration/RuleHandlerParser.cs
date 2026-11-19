@@ -276,16 +276,14 @@ internal sealed class RuleHandlerParser
             foreach (var name in AssignmentNames(assignment.Left))
                 if (!shadowed.Contains(name))
                     yield return name;
-            if (
-                assignment.Left is MemberExpression { Object: Identifier owner } member
-                && !shadowed.Contains(owner.Name)
-            )
-                yield return member switch
-                {
-                    { Computed: false, Property: Identifier property } => owner.Name + "." + property.Name,
-                    { Computed: true, Property: StringLiteral property } => owner.Name + "." + property.Value,
-                    _ => owner.Name,
-                };
+            foreach (var member in AssignedMembers(assignment.Left))
+                if (member.Object is Identifier owner && !shadowed.Contains(owner.Name))
+                    yield return member switch
+                    {
+                        { Computed: false, Property: Identifier property } => owner.Name + "." + property.Name,
+                        { Computed: true, Property: StringLiteral property } => owner.Name + "." + property.Value,
+                        _ => owner.Name,
+                    };
         }
         if (node is UpdateExpression { Argument: Identifier identifier } && !shadowed.Contains(identifier.Name))
             yield return identifier.Name;
@@ -293,6 +291,30 @@ internal sealed class RuleHandlerParser
         {
             foreach (var name in AssignedNames(child, shadowed))
                 yield return name;
+        }
+    }
+
+    private static IEnumerable<MemberExpression> AssignedMembers(Node node)
+    {
+        if (node is MemberExpression member)
+            yield return member;
+        else if (node is Property property)
+        {
+            foreach (var target in AssignedMembers(property.Value))
+                yield return target;
+        }
+        else if (node is AssignmentPattern assignment)
+        {
+            foreach (var target in AssignedMembers(assignment.Left))
+                yield return target;
+        }
+        else
+        {
+            foreach (var child in node.ChildNodes)
+            {
+                foreach (var target in AssignedMembers(child))
+                    yield return target;
+            }
         }
     }
 
