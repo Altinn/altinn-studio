@@ -24,14 +24,14 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
                 false
             );
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
             return new(path, null, false);
         }
     }
 
     public bool CanAllowNull(string field) =>
-        missing || (FindProperty(field) is { } property && Resolve(property.Schema) != null);
+        missing || (FindProperty(field, forWrite: true) is { } property && Resolve(property.Schema) != null);
 
     // Enum CLR names do not reveal their wire type. The schema can still establish a
     // scalar type, provided every non-null alternative agrees.
@@ -77,11 +77,12 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
         var changed = false;
         foreach (var field in fields.Distinct(StringComparer.Ordinal))
         {
-            if (FindProperty(field) is not { } property)
+            if (FindProperty(field, forWrite: true) is not { } property || AcceptsNull(property.Schema))
                 continue;
+            if (FindProperty(field, forWrite: true, isolate: true) is not { } writable)
+                continue;
+            property = writable;
             var schema = property.Schema;
-            if (AcceptsNull(schema))
-                continue;
             // References and enum/composition constraints must stay on the non-null branch.
             // anyOf keeps null valid even when the original schema already accepts it implicitly.
             var wrap =
@@ -97,24 +98,39 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
             else if (!wrap && schema["type"] is JsonArray types)
                 types.Add("null");
             else
+            {
+                var original = schema.DeepClone();
+                // The frontend supports a scalar type inside anyOf, not a singleton type array.
+                if (original["type"] is JsonArray branchTypes)
+                {
+                    var nonNull = branchTypes.Where(type => !IsNullType(type)).ToArray();
+                    if (nonNull.Length == 1)
+                        original["type"] = nonNull[0]?.DeepClone();
+                }
                 property.Properties[property.Name] = new JsonObject
                 {
-                    ["anyOf"] = new JsonArray(schema.DeepClone(), new JsonObject { ["type"] = "null" }),
+                    ["anyOf"] = new JsonArray(original, new JsonObject { ["type"] = "null" }),
                 };
+            }
             changed = true;
         }
         return changed ? document?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n" : null;
     }
 
-    private (JsonObject Properties, string Name, JsonObject Schema)? FindProperty(string field, JsonObject? root = null)
+    private (JsonObject Properties, string Name, JsonObject Schema)? FindProperty(
+        string field,
+        JsonObject? root = null,
+        bool forWrite = false,
+        bool isolate = false
+    )
     {
         JsonObject? node = root ?? document;
         var parts = field.Split('.');
         for (var index = 0; index < parts.Length; index++)
         {
-            node = Resolve(node);
+            node = ResolveAncestor(node, forWrite, isolate);
             if (node?["items"] is JsonObject items)
-                node = Resolve(items);
+                node = ResolveAncestor(items, forWrite, isolate);
             var key = RowIndex().Replace(parts[index], "");
             if (node?["properties"] is not JsonObject properties || properties[key] is not JsonObject property)
                 return null;
@@ -125,11 +141,31 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
         return null;
     }
 
-    private JsonObject? Resolve(JsonObject? node)
+    private JsonObject? ResolveAncestor(JsonObject? node, bool forWrite, bool isolate)
+    {
+        var resolved = Resolve(node, pureReferences: forWrite);
+        if (!forWrite || node == null || !node.ContainsKey("$ref"))
+            return resolved;
+        // Inline only this use of a shared definition, so other model paths stay unchanged.
+        // A reference with sibling constraints cannot be replaced by its target alone.
+        if (node.Count != 1 || resolved == null)
+            return null;
+        if (!isolate)
+            return resolved;
+        var copy = resolved.DeepClone().AsObject();
+        node.Clear();
+        foreach (var (key, value) in copy)
+            node[key] = value?.DeepClone();
+        return node;
+    }
+
+    private JsonObject? Resolve(JsonObject? node, bool pureReferences = false)
     {
         var visited = new HashSet<string>(StringComparer.Ordinal);
         while (node?["$ref"] is JsonValue value && value.TryGetValue<string>(out var reference))
         {
+            if (pureReferences && node.Count != 1)
+                return null;
             if (!reference.StartsWith("#/", StringComparison.Ordinal) || !visited.Add(reference))
                 return null;
             JsonNode? target = document;
@@ -142,18 +178,30 @@ internal sealed partial class CalculationSchema(string filePath, JsonObject? doc
         return node;
     }
 
-    private bool AcceptsNull(JsonObject schema)
+    private bool AcceptsNull(JsonNode? node, int depth = 0)
     {
-        var resolved = Resolve(schema);
-        return IsNullType(resolved?["type"])
-            || (resolved?["type"] is JsonArray types && types.Any(IsNullType))
-            || HasNullAlternative(resolved?["anyOf"])
-            || HasNullAlternative(resolved?["oneOf"]);
+        if (depth > 32)
+            return false;
+        if (node is JsonValue boolean && boolean.TryGetValue<bool>(out var accepts))
+            return accepts;
+        if (node is not JsonObject schema)
+            return false;
+        if (schema.ContainsKey("$ref") && !AcceptsNull(Resolve(schema), depth + 1))
+            return false;
+        if (schema["type"] is { } type && !IsNullType(type) && !(type is JsonArray types && types.Any(IsNullType)))
+            return false;
+        if (schema["enum"] is JsonArray choices && !choices.Any(value => value == null))
+            return false;
+        if (schema.ContainsKey("const") && schema["const"] != null)
+            return false;
+        if (schema["allOf"] is JsonArray all && !all.All(option => AcceptsNull(option, depth + 1)))
+            return false;
+        if (schema["anyOf"] is JsonArray any && !any.Any(option => AcceptsNull(option, depth + 1)))
+            return false;
+        if (schema["oneOf"] is JsonArray one && one.Count(option => AcceptsNull(option, depth + 1)) != 1)
+            return false;
+        return !schema.ContainsKey("not") || !AcceptsNull(schema["not"], depth + 1);
     }
-
-    private bool HasNullAlternative(JsonNode? node) =>
-        node is JsonArray alternatives
-        && alternatives.OfType<JsonObject>().Any(option => IsNullType(Resolve(option)?["type"]));
 
     private static bool IsNullType(JsonNode? node) =>
         node is JsonValue value && value.TryGetValue<string>(out var type) && type == "null";
