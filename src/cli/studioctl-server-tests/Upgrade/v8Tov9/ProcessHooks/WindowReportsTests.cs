@@ -23,7 +23,7 @@ public sealed class WindowReportsTests : IDisposable
                 "the caller's identity read in a hook (P-IDENTITY until B3)",
                 AuthenticationContextRead,
                 "logger.LogInformation(\"{Caller}\", authenticationContext.Current);",
-                "reads IAuthenticationContext.Current in Hook.End. In v9 the hook runs in the workflow engine's callback, where IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who moved the process on is not available. This is a gap in the v9 app libraries, not in your code; keep this code until a release closes it, then read who started the transition from the Actor on the context that v9 hooks, service tasks and IInstantiationProcessor.DataCreation(DataCreationContext) get."
+                "reads IAuthenticationContext.Current in Hook.End. In v9 the hook runs in the workflow engine's callback, where IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who moved the process on is not available. This is a gap in the v9 app libraries, not in your code; keep this code until a release closes it."
             },
             {
                 // dibk ×5 HttpContext.User.GetUserIdAsInt().
@@ -39,7 +39,7 @@ public sealed class WindowReportsTests : IDisposable
                     }
                     """,
                 "logger.LogInformation(\"{User}\", httpContextAccessor.HttpContext?.User.Identity?.Name);",
-                "reads HttpContext.User in Hook.End. In v9 the hook runs in the workflow engine's callback, where IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who moved the process on is not available. This is a gap in the v9 app libraries, not in your code; keep this code until a release closes it, then read who started the transition from the Actor on the context that v9 hooks, service tasks and IInstantiationProcessor.DataCreation(DataCreationContext) get."
+                "reads HttpContext.User in Hook.End. In v9 the hook runs in the workflow engine's callback, where IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who moved the process on is not available. This is a gap in the v9 app libraries, not in your code; keep this code until a release closes it."
             },
             {
                 // digdir/oed-declaration App/logic/CorrespondenceOnSubmission.cs:28,47.
@@ -64,7 +64,7 @@ public sealed class WindowReportsTests : IDisposable
                     }
                     """,
                 "_logger.LogInformation(\"{User}\", _httpContext.User.Identity?.Name);",
-                "reads _httpContext.User in Hook.End. In v9 the hook runs in the workflow engine's callback, where IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who moved the process on is not available. This is a gap in the v9 app libraries, not in your code; keep this code until a release closes it, then read who started the transition from the Actor on the context that v9 hooks, service tasks and IInstantiationProcessor.DataCreation(DataCreationContext) get."
+                "reads _httpContext.User in Hook.End. In v9 the hook runs in the workflow engine's callback, where IAuthenticationContext.Current is the app itself and the HTTP request is the engine's, so the user who moved the process on is not available. This is a gap in the v9 app libraries, not in your code; keep this code until a release closes it."
             },
             {
                 // dat TEST_FLAGG.
@@ -175,15 +175,6 @@ public sealed class WindowReportsTests : IDisposable
             }
         }
         """;
-
-    private static string ReadTheActor(string what) =>
-        $"reads {what} in Hook.End. v9 runs the hook in the workflow engine's callback, where "
-        + "IAuthenticationContext.Current is the app itself and the HTTP request is the engine's. Instead, read who "
-        + "started the transition from the Actor on the context that v9 hooks, service tasks and "
-        + "IInstantiationProcessor.DataCreation(DataCreationContext) get: UserId and NationalIdentityNumber for a user, "
-        + "OrgId for a service owner, SystemUserId for a system user, AuthenticationLevel for all three, and none of "
-        + "them for an organization's Maskinporten token. It does not say whether the user is in Altinn's portal, how "
-        + "they logged in, or their token, scopes and parties.";
 
     private static string RequestRead(string what) =>
         $"reads {what} in Hook.End. v9 runs the hook in the workflow engine's callback request, which has none of the "
@@ -332,46 +323,6 @@ public sealed class WindowReportsTests : IDisposable
                 : [],
             result.Messages.Where(static message => message.Text.Contains("AddSkjemaInfo", StringComparison.Ordinal))
         );
-    }
-
-    public static TheoryData<string, string, string, string> TodosOnceTheLibrariesDescribeTheActor =>
-        new()
-        {
-            {
-                "the authentication context, which stays the app",
-                AuthenticationContextRead,
-                "logger.LogInformation(\"{Caller}\", authenticationContext.Current);",
-                ReadTheActor("IAuthenticationContext.Current")
-            },
-            {
-                "the request's user, which stays the engine's",
-                RequestReads,
-                "logger.LogInformation(\"{User}\", httpContextAccessor.HttpContext?.User.Identity?.Name);",
-                ReadTheActor("HttpContext.User")
-            },
-            {
-                "a request header, which no release brings to the callback",
-                RequestReads,
-                "logger.LogInformation(\"{Flag}\", httpContextAccessor.HttpContext?.Request.Headers[\"TEST_FLAGG\"]);",
-                RequestRead("HttpContext.Request")
-            },
-        };
-
-    [Theory]
-    [MemberData(nameof(TodosOnceTheLibrariesDescribeTheActor))]
-    public void ACallerRead_OnceTheLibrariesDescribeTheActor_IsATodo(
-        string label,
-        string source,
-        string anchor,
-        string text
-    )
-    {
-        _ = label;
-        _app.Write(HookPath, InApp(source));
-
-        var result = PortWithCallbackActor(AppFolder);
-
-        Assert.Contains(At(source, anchor, UpgradeMessageStatus.Todo, text), result.Messages);
     }
 
     [Theory]
