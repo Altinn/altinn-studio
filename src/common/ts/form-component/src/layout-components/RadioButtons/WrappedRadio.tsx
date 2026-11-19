@@ -36,7 +36,7 @@ export function WrappedRadio({
   alertOnChange,
   alertMessage,
 }: WrappedRadioProps) {
-  const { lang, langAsString } = useTranslation();
+  const { lang, langAsString, optionLabel = langAsString } = useTranslation();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange(
@@ -49,7 +49,7 @@ export function WrappedRadio({
     <Radio
       label={
         <div className={`${hideLabel ? 'sr-only' : ''} ${classes.radioLabelContainer}`}>
-          {label}
+          {optionLabel(option.label)}
           {option.helpText ? (
             <HelpText title={langAsString(option.helpText)}>{lang(option.helpText)}</HelpText>
           ) : null}

@@ -1,8 +1,10 @@
-import type { ReactElement } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ReactElement, RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioButton } from '@designer/components';
 import { PlusIcon } from '@designer/icons';
+import { TEXT_KEY_ATTRIBUTE } from '../../constants';
 import type { LayoutComponent } from '../../types';
 import { getTextKey } from '../../utils/componentUtils';
 import { hasOptions, isQuestionType } from '../../utils/newComponentUtils';
@@ -16,11 +18,14 @@ export type InlineAddButtonsProps = {
 
 /**
  * Adds what the selected component can show but does not yet: a description, or another option.
- * The new text gets a default the user changes in place.
+ * The new text gets a default and focus, so the user types over it where it is.
  */
 export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactElement | null {
   const { t } = useTranslation();
   const { pageName, updateComponent, saveTexts } = usePageEditing();
+  const ref = useRef<HTMLDivElement>(null);
+  const [addedTextKey, setAddedTextKey] = useState<string>();
+  useFocusAddedText(ref, addedTextKey, () => setAddedTextKey(undefined));
   const textKey = (name: string): string => `${pageName}.${component.id}.${name}`;
   const canAddDescription = isQuestionType(component.type) && !getTextKey(component, 'description');
   // A dropdown's options are not shown on the canvas, so they are only added in the settings.
@@ -29,7 +34,7 @@ export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactEle
     component.type !== ComponentType.Dropdown &&
     getOptionSource(component) === 'inline';
 
-  if (!canAddDescription && !canAddOption) return null;
+  if (!canAddDescription && !canAddOption && !addedTextKey) return null;
 
   const addDescription = (): void => {
     const descriptionKey = textKey('description');
@@ -38,6 +43,7 @@ export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactEle
       ...current,
       textResourceBindings: { ...current.textResourceBindings, description: descriptionKey },
     }));
+    setAddedTextKey(descriptionKey);
   };
 
   const addOption = (): void => {
@@ -49,10 +55,11 @@ export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactEle
       ...current,
       options: [...getInlineOptions(current), { value, label: labelKey }],
     }));
+    setAddedTextKey(labelKey);
   };
 
   return (
-    <div className={classes.inlineAddButtons} data-size='sm'>
+    <div ref={ref} className={classes.inlineAddButtons} data-size='sm'>
       {canAddDescription && (
         <StudioButton
           variant='tertiary'
@@ -70,4 +77,21 @@ export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactEle
       )}
     </div>
   );
+}
+
+/** Focuses the added text in the component once it is shown, and selects it to be typed over. */
+function useFocusAddedText(
+  ref: RefObject<HTMLDivElement>,
+  textKey: string | undefined,
+  onFocused: () => void,
+): void {
+  useEffect(() => {
+    if (!textKey) return;
+    const component = ref.current?.closest('[data-component-id]');
+    const text = component?.querySelector<HTMLElement>(`[${TEXT_KEY_ATTRIBUTE}="${textKey}"]`);
+    if (!text) return;
+    text.focus();
+    text.ownerDocument.getSelection()?.selectAllChildren(text);
+    onFocused();
+  });
 }

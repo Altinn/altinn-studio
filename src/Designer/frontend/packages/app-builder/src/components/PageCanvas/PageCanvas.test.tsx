@@ -111,6 +111,37 @@ describe('PageCanvas', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('saves the label of an option edited in place', async () => {
+    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve({}));
+    renderPageCanvas({}, { upsertTextResources });
+
+    const optionText = getEditableText(nbTexts['choice.early']);
+    fireEvent.focusIn(optionText);
+    optionText.textContent = 'Skolestart før seks år';
+    fireEvent.focusOut(optionText);
+
+    await waitFor(() =>
+      expect(upsertTextResources).toHaveBeenCalledWith(org, app, 'nb', {
+        'choice.early': 'Skolestart før seks år',
+      }),
+    );
+  });
+
+  it('gives an added option focus, with its default text selected to be typed over', async () => {
+    const user = userEvent.setup();
+    renderPageCanvas();
+
+    await user.click(getSelectButton(nbTexts['choice.title']));
+    await user.click(screen.getByRole('button', { name: textMock('app_builder.add_option') }));
+
+    // The mocked save does not update the texts, so the new option shows its text key.
+    const optionText = await screen.findByText(new RegExp(`^${pageName}\\.choice\\.option`), {
+      selector: '[role="textbox"]',
+    });
+    await waitFor(() => expect(optionText).toHaveFocus());
+    expect(document.getSelection()?.toString()).toBe(optionText.textContent);
+  });
+
   it('shows the tools of a component when it is selected, and hides them on Escape', async () => {
     const user = userEvent.setup();
     renderPageCanvas();

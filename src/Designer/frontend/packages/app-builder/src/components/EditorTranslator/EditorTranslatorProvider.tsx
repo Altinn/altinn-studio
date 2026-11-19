@@ -18,7 +18,8 @@ export type EditorTranslatorProviderProps = PropsWithChildren<{
 /**
  * Translates text resource keys for the shared form components, like the app does, but returns the
  * app's own texts as editable text. Texts that are only used as strings, such as aria labels, stay
- * plain strings. Built-in texts from the app frontend, such as the required marker, are not editable.
+ * plain strings. The labels of options are editable as well, though the app shows them as strings.
+ * Built-in texts from the app frontend, such as the required marker, are not editable.
  */
 export function EditorTranslatorProvider({
   texts,
@@ -49,6 +50,7 @@ export function EditorTranslatorProvider({
         lang={lang}
         langAsString={langAsString}
         langAsNonProcessedString={langAsString}
+        optionLabel={lang}
         currentLanguage={EDITOR_LANGUAGE}
       >
         {children}

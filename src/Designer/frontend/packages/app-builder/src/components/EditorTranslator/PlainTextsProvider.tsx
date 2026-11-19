@@ -31,6 +31,7 @@ export function PlainTextsProvider({ texts, children }: PlainTextsProviderProps)
       lang={translate}
       langAsString={translateAsString}
       langAsNonProcessedString={translateAsString}
+      optionLabel={translate}
       currentLanguage={EDITOR_LANGUAGE}
     >
       {children}
