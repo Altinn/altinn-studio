@@ -1028,7 +1028,7 @@ public sealed class CalculationExpressionMigrationTests
         var processor = app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs");
         Assert.Contains("model.other = ", processor);
         Assert.DoesNotContain("model.result = ", processor);
-        Assert.Contains("AddTransient<IDataProcessor, FormDataProcessor>", app.Read("Program.cs"));
+        Assert.Contains("ServiceDescriptor.Transient<IDataProcessor, FormDataProcessor>", app.Read("Program.cs"));
         Assert.Empty(
             Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
         );
