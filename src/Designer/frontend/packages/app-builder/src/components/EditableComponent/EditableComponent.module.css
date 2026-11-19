@@ -50,6 +50,11 @@
   pointer-events: none;
 }
 
+/* A dropdown's list is a custom element that is not defined in the canvas frame, so it is never placed. */
+.preview :global(u-datalist) {
+  display: none;
+}
+
 .preview :global([data-indicator]) {
   pointer-events: auto;
   cursor: pointer;

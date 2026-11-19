@@ -212,21 +212,20 @@ function RadioButtonsPreview(props: PreviewProps): ReactElement {
   );
 }
 
+/**
+ * A closed dropdown, without its options: its list is a Designsystemet custom element, which is only
+ * defined in Studio's window and not in the canvas frame, so it would show unplaced. The options are
+ * edited in the settings.
+ */
 function DropdownPreview(props: PreviewProps): ReactElement {
-  const [value, setValue] = useState<string>('');
-  const labelProps = getLabelProps(props);
   return (
-    <OptionTexts component={props.component}>
-      {(options) => (
-        <Dropdown
-          componentId={props.component.id}
-          options={options}
-          value={value}
-          onChange={setValue}
-          {...labelProps}
-        />
-      )}
-    </OptionTexts>
+    <Dropdown
+      componentId={props.component.id}
+      options={[]}
+      value=''
+      onChange={() => {}}
+      {...getLabelProps(props)}
+    />
   );
 }
 

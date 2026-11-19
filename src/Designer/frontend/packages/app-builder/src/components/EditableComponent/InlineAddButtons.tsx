@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioButton } from '@designer/components';
 import { PlusIcon } from '@designer/icons';
 import type { LayoutComponent } from '../../types';
@@ -22,7 +23,11 @@ export function InlineAddButtons({ component }: InlineAddButtonsProps): ReactEle
   const { pageName, updateComponent, saveTexts } = usePageEditing();
   const textKey = (name: string): string => `${pageName}.${component.id}.${name}`;
   const canAddDescription = isQuestionType(component.type) && !getTextKey(component, 'description');
-  const canAddOption = hasOptions(component.type) && getOptionSource(component) === 'inline';
+  // A dropdown's options are not shown on the canvas, so they are only added in the settings.
+  const canAddOption =
+    hasOptions(component.type) &&
+    component.type !== ComponentType.Dropdown &&
+    getOptionSource(component) === 'inline';
 
   if (!canAddDescription && !canAddOption) return null;
 

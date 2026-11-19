@@ -99,6 +99,18 @@ describe('PageCanvas', () => {
     expect(screen.getByText(message)).toBeInTheDocument();
   });
 
+  it('shows a dropdown closed, and leaves adding its options to the settings', async () => {
+    const user = userEvent.setup();
+    const dropdown: LayoutComponent = { ...choice, id: 'school', type: ComponentType.Dropdown };
+    renderPageCanvas({ layouts: { [pageName]: createLayout([dropdown]) } });
+
+    await user.click(getSelectButton(nbTexts['choice.title']));
+    expect(screen.queryByText(nbTexts['choice.early'])).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('app_builder.add_option') }),
+    ).not.toBeInTheDocument();
+  });
+
   it('shows the tools of a component when it is selected, and hides them on Escape', async () => {
     const user = userEvent.setup();
     renderPageCanvas();
