@@ -15,6 +15,7 @@ namespace Altinn.App.Core.Internal.Data;
 internal class ReflectionFormDataWrapper : IFormDataWrapper
 {
     private object _dataModel;
+    private readonly Type _dataModelType;
 
     /// <summary>
     /// Constructor that wraps a POCO data model, and gives extra tools for working with the data in an object using json like keys and reflection
@@ -22,6 +23,7 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     public ReflectionFormDataWrapper(object dataModel, DataType dataType, DataElement? dataElement = null)
     {
         _dataModel = dataModel;
+        _dataModelType = dataModel.GetType();
         DataType = dataType;
         DataElement = dataElement;
     }
@@ -45,10 +47,10 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
     /// <inheritdoc />
     public void ReplaceBackingData(object dataModel)
     {
-        if (dataModel?.GetType() != _dataModel.GetType())
+        if (!_dataModelType.IsInstanceOfType(dataModel))
         {
             throw new ArgumentException(
-                $"Data model must be of type {_dataModel.GetType().FullName}, (was {dataModel?.GetType().FullName ?? "null"})"
+                $"Data model must be of type {_dataModelType.FullName}, (was {dataModel?.GetType().FullName ?? "null"})"
             );
         }
         _dataModel = dataModel;

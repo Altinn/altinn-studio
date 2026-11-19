@@ -47,8 +47,9 @@ public interface IFormDataWrapper
     /// </summary>
     /// <remarks>
     /// Like reassigning any other object in the data model: references to the previous model are no longer the form.
+    /// The model must be an instance of the type the wrapper was created for, or of a subtype of it.
     /// </remarks>
-    /// <exception cref="ArgumentException">If <paramref name="dataModel"/> is not of the type of the data model</exception>
+    /// <exception cref="ArgumentException">If <paramref name="dataModel"/> is null or not an instance of the type of the data model (subtypes are accepted)</exception>
     void ReplaceBackingData(object dataModel);
 
     /// <summary>
