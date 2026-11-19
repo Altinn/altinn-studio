@@ -24,8 +24,10 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
+	"altinn.studio/core-operator/internal/callbacks"
 	"altinn.studio/core-operator/internal/clock"
 	"altinn.studio/core-operator/internal/config"
+	"altinn.studio/core-operator/internal/engine"
 	"altinn.studio/core-operator/internal/kube"
 	"altinn.studio/core-operator/internal/runner"
 	"altinn.studio/core-operator/internal/runner/runnertest"
@@ -50,6 +52,7 @@ const (
 func TestRunsAgainstTheEngine(t *testing.T) {
 	it := newIntegration(t)
 	t.Run("only a caller's token opens the run API, and only the engine's token the callbacks", it.tokens)
+	t.Run("the engine host has only the operator's command", it.onlyOperatorCommands)
 	t.Run("a run completes with its Job and its result", it.runCompletes)
 	t.Run("run.cleanup deletes the Job, and a create then makes a new run", it.cleanupDeletesTheJob)
 	t.Run("a queued run expires", it.queuedRunExpires)
@@ -62,14 +65,14 @@ func TestRunsAgainstTheEngine(t *testing.T) {
 // integration is the operator under test, with envtest's API server, the engine host and an in-memory sandbox and
 // operator runners.
 type integration struct {
-	restConfig  *rest.Config
-	clientset   kubernetes.Interface
-	cfg         *config.Config
-	box         *sandboxtest.Sandbox
-	runners     *runners
-	hostClient  *runner.Client
-	stop        func()
-	engineToken string
+	restConfig   *rest.Config
+	clientset    kubernetes.Interface
+	cfg          *config.Config
+	box          *sandboxtest.Sandbox
+	runners      *runners
+	runnerClient *runner.Client
+	stop         func()
+	engineToken  string
 	// assistant calls the run API as the caller assistant.
 	assistant *client
 	archive   []byte
@@ -86,22 +89,20 @@ func newIntegration(t *testing.T) *integration {
 	}
 	it := &integration{cfg: testConfig(t), box: sandboxtest.New(), archive: gzipped(t, "app")}
 	it.restConfig, it.clientset = startAPIServer(t, assets)
-	engine := "operator-workflow-engine"
-	it.engineToken = tokenFor(t, it.clientset, engine, engine, "operator")
+	account := "operator-workflow-engine"
+	it.engineToken = tokenFor(t, it.clientset, account, account, "operator")
 	it.cfg.EngineURL = "http://" + startEngine(t, postgres, it.cfg.CallbackAddress, it.engineToken)
 	it.box.SlotCount = 10
-	it.runners, it.hostClient = startRunners(t, it.box)
-	it.stop = startOperator(t, it.restConfig, it.cfg, it.box, it.hostClient)
+	it.runners, it.runnerClient = startRunners(t, it.box)
+	it.startOperator(t)
 	t.Cleanup(func() { it.stop() })
 	it.assistant = &client{
-		api: "http://" + it.cfg.APIAddress, engine: it.cfg.EngineURL,
+		apiURL: "http://" + it.cfg.APIAddress, engineURL: it.cfg.EngineURL,
 		token: tokenFor(t, it.clientset, "default", "assistant", "operator"),
 	}
 	return it
 }
 
-// testConfig has the kind upgrade, the kind one-at-a-time with one active run and a short queue timeout, and the
-// caller assistant.
 func testConfig(t *testing.T) *config.Config {
 	t.Helper()
 	cfg, err := config.LoadFrom(t.TempDir())
@@ -141,16 +142,16 @@ func startAPIServer(t *testing.T, assets string) (*rest.Config, kubernetes.Inter
 // pod, until the test ends. It returns the client that reaches them.
 func startRunners(t *testing.T, box *sandboxtest.Sandbox) (*runners, *runner.Client) {
 	t.Helper()
-	hosts := &runners{byRun: map[string]*runnertest.Runner{}}
+	all := &runners{byRun: map[string]*runnertest.Runner{}}
 	mux := http.NewServeMux()
-	mux.Handle("/runs/{id}/", hosts)
-	mux.Handle("/runs/{id}", hosts)
+	mux.Handle("/runs/{id}/", all)
+	mux.Handle("/runs/{id}", all)
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
-	t.Cleanup(hosts.close)
+	t.Cleanup(all.close)
 	address, ok := server.Listener.Addr().(*net.TCPAddr)
 	Expect(ok).To(BeTrue())
-	return hosts, runner.NewClient(http.DefaultClient, address.Port, box)
+	return all, runner.NewClient(http.DefaultClient, address.Port, box)
 }
 
 func (it *integration) tokens(t *testing.T) {
@@ -161,12 +162,24 @@ func (it *integration) tokens(t *testing.T) {
 		tokenFor(t, it.clientset, "default", "someone-else", "operator"):                    http.StatusForbidden,
 		tokenFor(t, it.clientset, "default", "assistant", "https://kubernetes.default.svc"): http.StatusUnauthorized,
 	} {
-		Expect((&client{api: it.assistant.api, token: token}).call(http.MethodGet, "/api/v1/kinds", "", nil)).
+		Expect((&client{apiURL: it.assistant.apiURL, token: token}).call(http.MethodGet, "/api/v1/kinds", "", nil)).
 			To(Equal(want))
 	}
-	callbacks := &client{api: "http://" + it.cfg.CallbackAddress, token: it.assistant.token}
-	Expect(callbacks.call(http.MethodPost, "/workflow-engine-callbacks/run.admit", "", []byte(`{}`))).
+	router := &client{apiURL: "http://" + it.cfg.CallbackAddress, token: it.assistant.token}
+	Expect(router.call(http.MethodPost, callbacks.PathPrefix+"run.admit", "", []byte(`{}`))).
 		To(Equal(http.StatusForbidden), "a caller's token")
+}
+
+func (it *integration) onlyOperatorCommands(t *testing.T) {
+	RegisterTestingT(t)
+	webhook := engine.StepRequest{OperationID: "webhook", Command: engine.CommandDefinition{
+		Type: "webhook", Data: json.RawMessage(`{"uri":"http://localhost/"}`),
+	}}
+	request := engine.EnqueueRequest{
+		Workflows: []engine.WorkflowRequest{{OperationID: "webhook", Steps: []engine.StepRequest{webhook}}},
+	}
+	_, err := engine.NewClient(it.cfg.EngineURL, http.DefaultClient).Enqueue(t.Context(), "webhook", "webhook", request)
+	Expect(err).To(MatchError(engine.ErrInvalid))
 }
 
 func (it *integration) runCompletes(t *testing.T) {
@@ -286,7 +299,7 @@ func (it *integration) runOutlivesARestart(t *testing.T) {
 	it.ready(run.ID)
 	it.assistant.await(run.ID, runs.StatusAwaitingArchive)
 	it.stop()
-	it.stop = startOperator(t, it.restConfig, it.cfg, it.box, it.hostClient)
+	it.startOperator(t)
 	it.upload(run.ID)
 	it.finish(run.ID, `{}`)
 	it.assistant.await(run.ID, runs.StatusCompleted)
@@ -326,7 +339,7 @@ func startEngine(t *testing.T, postgres, callbackAddress, token string) string {
 		"ASPNETCORE_ENVIRONMENT=Development",
 		"ASPNETCORE_URLS=http://"+address,
 		"ConnectionStrings__WorkflowEngine="+postgres,
-		"OperatorCommandSettings__CommandEndpoint=http://"+callbackAddress+"/workflow-engine-callbacks/",
+		"OperatorCommandSettings__CommandEndpoint=http://"+callbackAddress+callbacks.PathPrefix,
 		"OperatorCommandSettings__TokenPath="+tokenFile,
 		// Let the engine run a deferred step as soon as the scaled rechecks ask.
 		"EngineSettings__MinStepDeferDelay=00:00:00.010",
@@ -369,27 +382,22 @@ func startEngine(t *testing.T, postgres, callbackAddress, token string) string {
 	return address
 }
 
-// startOperator runs the operator with its real wiring until stop or the end of the test.
-func startOperator(
-	t *testing.T,
-	restConfig *rest.Config,
-	cfg *config.Config,
-	box sandbox.Sandbox,
-	host *runner.Client,
-) (stop func()) {
+// startOperator runs the operator with its real wiring until it.stop or the end of the test.
+func (it *integration) startOperator(t *testing.T) {
 	t.Helper()
-	cluster, err := newCluster(cfg, kube.Options{RESTConfig: restConfig})
+	cluster, err := newCluster(it.cfg, kube.Options{RESTConfig: it.restConfig})
 	Expect(err).NotTo(HaveOccurred())
-	Expect(setup(cluster, cfg, clock.NewRealClock(), box, host)).To(Succeed())
+	Expect(setup(cluster, it.cfg, clock.NewRealClock(), it.box, it.runnerClient)).To(Succeed())
 	ctx, cancel := context.WithCancel(context.WithoutCancel(t.Context()))
 	stopped := make(chan error, 1)
 	go func() { stopped <- cluster.Start(ctx) }()
 	// The run API starts to listen after the cache syncs. The probes answer before that.
 	Eventually(func() int {
-		return status("http://" + cfg.APIAddress + "/api/v1/kinds")
+		return status("http://" + it.cfg.APIAddress + "/api/v1/kinds")
 	}, 10*time.Second, 50*time.Millisecond).Should(Equal(http.StatusUnauthorized))
+	Expect(status("http://" + it.cfg.ProbeAddress + "/readyz")).To(Equal(http.StatusOK))
 	var once sync.Once
-	return func() {
+	it.stop = func() {
 		once.Do(func() {
 			cancel()
 			Expect(<-stopped).To(Succeed())
@@ -426,21 +434,14 @@ func (r *runners) close() {
 
 // client calls the run API as a caller.
 type client struct {
-	api    string
-	engine string
-	token  string
+	apiURL    string
+	engineURL string
+	token     string
 }
 
-// do returns the status and the body of the answer. The request body is []byte or an io.Reader.
-func (c *client) do(method, path, contentType string, body any) (int, string) {
-	var reader io.Reader
-	switch value := body.(type) {
-	case []byte:
-		reader = bytes.NewReader(value)
-	case io.Reader:
-		reader = value
-	}
-	req, err := http.NewRequestWithContext(context.Background(), method, c.api+path, reader)
+// do returns the status and the body of the answer.
+func (c *client) do(method, path, contentType string, body []byte) (int, string) {
+	req, err := http.NewRequestWithContext(context.Background(), method, c.apiURL+path, bytes.NewReader(body))
 	Expect(err).NotTo(HaveOccurred())
 	req.Header.Set("Authorization", "Bearer "+c.token)
 	if contentType != "" {
@@ -454,7 +455,7 @@ func (c *client) do(method, path, contentType string, body any) (int, string) {
 	return res.StatusCode, string(data)
 }
 
-func (c *client) call(method, path, contentType string, body any) int {
+func (c *client) call(method, path, contentType string, body []byte) int {
 	status, _ := c.do(method, path, contentType, body)
 	return status
 }
@@ -495,8 +496,8 @@ func (c *client) await(runID string, status runs.Status) runs.Run {
 
 // workflow reads the run's workflow from the engine, for a test that fails.
 func (c *client) workflow(runID string) string {
-	engine := &client{api: c.engine}
-	_, body := engine.do(http.MethodGet, "/api/v1/runs-assistant/workflows?label=runId:"+runID, "", nil)
+	path := "/api/v1/" + runs.EngineNamespace("assistant") + "/workflows?label=runId:" + runID
+	_, body := (&client{apiURL: c.engineURL}).do(http.MethodGet, path, "", nil)
 	return "The run's workflow in the engine: " + body
 }
 
