@@ -13,8 +13,9 @@ as the user in Designer and Gitea, so the service runs on a domain of its own.
   preview domain's cookies would be third-party cookies in Studio's page, and Safari blocks those.
 - A session reads one developer's working copy of one app. The service reads the working copies from the share that
   Designer writes them to, so preview shows changes the developer has not pushed.
-- A session ends 30 minutes after its last request, and 24 hours after it started at the latest. The session ID is
-  in URLs and logs, so it must not stay valid long.
+- A session ends soon after its last request, and a while after it started however often it is used, as
+  [SessionLifetime](src/Altinn.Studio.Preview/Sessions/SessionLifetime.cs) sets. The session ID is in URLs and
+  logs, so it must not stay valid long.
 
 ## Security rules
 
