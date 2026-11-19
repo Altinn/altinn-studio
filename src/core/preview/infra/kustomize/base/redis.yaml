@@ -5,8 +5,8 @@
 # below keeps other pods out, and the password still stops them if the policy doesn't apply, as for a few seconds
 # after a pod starts.
 #
-# A session lasts a day at most and Studio starts a new one when its session ends, so Redis keeps nothing on disk. A
-# restart ends the sessions it had.
+# A session ends soon after its last use, and Studio starts a new one when its session ends, so Redis keeps nothing on
+# disk. A restart ends the sessions it had.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +14,10 @@ metadata:
 spec:
   replicas: 1
   revisionHistoryLimit: 5
+  # The old pod stops before the new one starts. Both would be behind the Service, so preview's pods could each
+  # reach a different Redis, and a session started through one pod would be missing in another.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       run: altinn-preview-redis
