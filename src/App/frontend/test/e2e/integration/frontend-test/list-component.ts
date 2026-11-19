@@ -1,4 +1,5 @@
 import { Datalist } from 'test/e2e/pageobjects/datalist';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const dataListPage = new Datalist();
 
@@ -116,7 +117,12 @@ describe('List component', () => {
     cy.findAllByRole('button', { name: 'Neste' }).last().click();
     cy.findByRole('heading', { name: 'Oppsummering' }).should('be.visible');
     cy.findAllByRole('button', { name: 'Neste' }).last().click();
-    cy.findByRole('table', { name: /Hvem skal få kopi av saken/ }).should('contain.text', 'Kari');
+    cy.findByRole('table', { name: /Hvem skal få kopi av saken/ })
+      .find<HTMLTableRowElement>('tbody tr')
+      .should('have.length', 2)
+      .and(($rows) => {
+        expect([...$rows].map((row) => row.cells[0].textContent)).to.have.members(['Kåre', 'Kari']);
+      });
     cy.findByRole('table', { name: /Personer i registeret/ }).should('contain.text', 'Mette');
 
     cy.visualTesting('list-component-summary2');
@@ -127,27 +133,36 @@ describe('List component', () => {
     cy.goto('datalist');
     cy.get('html.viewport-is-mobile').should('be.visible');
 
-    // Single selection: one stacked cell per row next to the radio, and the row selects. Only the sortable column
-    // keeps its header, so the list can still be sorted.
-    cy.get(dataListPage.listComponent).find('th').should('have.length', 2);
+    // Single selection: one stacked value cell next to the radio. Mobile sorting is a separate follow-up.
+    cy.get(dataListPage.listComponent).find('th').should('not.exist');
     cy.get(dataListPage.tableBody).find('input[type=radio]').first().should('have.attr', 'required');
-    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Caroline');
-    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Alder: 28');
+    cy.get(dataListPage.tableBody).find('tr').first().find('td').should('have.length', 2);
+    cy.get(dataListPage.tableBody)
+      .find('tr')
+      .first()
+      .find('td')
+      .last()
+      .should('contain.text', 'Navn: Caroline')
+      .and('contain.text', 'Alder: 28');
     cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
     cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').find('input').should('be.checked');
 
-    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).click();
-    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Hans');
-    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).click();
-    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Petter');
-    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).click();
-    cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Caroline');
+    cy.get(dataListPage.listComponent).findByRole('combobox').should('not.exist');
+    cy.get(dataListPage.listComponent).findByRole('button', { name: /alder/i }).should('not.exist');
 
     // Pagination still works
     cy.get(dataListPage.listComponent).findByRole('button', { name: 'Side 2' }).click();
     cy.get(dataListPage.tableBody).find('tr').first().should('contain.text', 'Navn: Hans');
 
-    // Multiple selection
+    // Multiple selection uses the same value/control cell split
+    cy.get(dataListPage.checkboxesTableBody).find('tr').first().find('td').should('have.length', 2);
+    cy.get(dataListPage.checkboxesTableBody)
+      .find('tr')
+      .first()
+      .find('td')
+      .last()
+      .should('contain.text', 'Navn: Caroline')
+      .and('contain.text', 'Alder: 28');
     cy.get(dataListPage.checkboxesTableBody).contains('Kåre').closest('tr').click();
     cy.get(dataListPage.checkboxesTableBody).contains('Kari').closest('tr').find('input').check();
     cy.get(dataListPage.checkboxesTableBody).find('input:checked').should('have.length', 2);
@@ -155,13 +170,77 @@ describe('List component', () => {
     // Read-only, with tableHeadersMobile showing only some of the columns
     cy.get('#form-content-listReadOnly').find('th').should('not.exist');
     cy.get(dataListPage.readOnlyTableBody).find('input').should('not.exist');
-    cy.get(dataListPage.readOnlyTableBody).find('tr').first().should('contain.text', 'Navn: Caroline');
+    cy.get(dataListPage.readOnlyTableBody)
+      .find('tr')
+      .first()
+      .find('td')
+      .should('have.length', 1)
+      .and('contain.text', 'Navn: Caroline');
     cy.get(dataListPage.readOnlyTableBody).find('tr').first().should('contain.text', 'Yrke: Utvikler');
     cy.get(dataListPage.readOnlyTableBody).find('tr').first().should('not.contain.text', 'Alder');
 
     // Nothing should be wider than the screen
     cy.document().should((doc) => {
       expect(doc.documentElement.scrollWidth).to.be.at.most(doc.documentElement.clientWidth);
+    });
+  });
+
+  it('keeps descriptions and mobile selection labels while preserving all columns in PDF', { retries: 0 }, () => {
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_5.pages.pdfLayoutName = 'summary2';
+    });
+    cy.interceptLayout(
+      'Task_5',
+      (component) => {
+        if (component.type === 'List' && component.id === 'listComponent') {
+          component.tableHeadersMobile = ['name'];
+          component.textResourceBindings = { description: 'Velg personen saken gjelder' };
+        }
+        if (component.type === 'List' && component.id === 'listCheckboxes') {
+          component.tableHeadersMobile = ['name'];
+          component.required = true;
+        }
+        if (component.type === 'List' && component.id === 'listReadOnly') {
+          component.sortableColumns = ['age'];
+        }
+      },
+      (layouts) => {
+        layouts.summary2!.data.layout = [
+          { id: 'summary-readonly', type: 'Summary2', target: { type: 'component', id: 'listReadOnly' } },
+          { id: 'summary-checkboxes', type: 'Summary2', target: { type: 'component', id: 'listCheckboxes' } },
+        ];
+      },
+      {},
+    );
+    cy.viewport('samsung-s10');
+    cy.goto('datalist');
+    cy.get(dataListPage.listComponent).should('contain.text', 'Velg personen saken gjelder');
+    cy.get(dataListPage.listComponent).findByRole('radio', { name: 'Navn: Caroline' }).check();
+    cy.get(dataListPage.checkboxesTableBody).findByRole('checkbox', { name: 'Navn: Kåre' }).check();
+    cy.get(dataListPage.tableBody)
+      .find('tr')
+      .first()
+      .find('td')
+      .last()
+      .should('contain.text', 'Navn: Caroline')
+      .and('not.contain.text', 'Alder');
+
+    cy.testPdf({
+      callback: () => {
+        cy.window().its('innerWidth').should('eq', 794);
+        const readonly = () => cy.findByRole('table', { name: /^Personer i registeret/ });
+        const selectable = () => cy.findByRole('table', { name: 'Hvem skal få kopi av saken?' });
+        readonly().findByRole('columnheader', { name: 'Alder' }).should('be.visible');
+        readonly().find('tbody tr').first().find('td').should('have.length', 3).eq(1).should('have.text', '28');
+        selectable().findByRole('columnheader', { name: 'Alder' }).should('be.visible');
+        selectable()
+          .find('tbody tr')
+          .should('have.length', 1)
+          .find('td')
+          .should('have.length', 3)
+          .eq(1)
+          .should('have.text', '37');
+      },
     });
   });
 

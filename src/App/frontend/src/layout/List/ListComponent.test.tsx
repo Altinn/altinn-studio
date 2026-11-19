@@ -1,7 +1,7 @@
 import React from 'react';
 
 import * as useDeviceWidths from '@app/form-component';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { JSONSchema7 } from 'json-schema';
 import type { Mock } from 'vitest';
@@ -365,7 +365,9 @@ describe('ListComponent', () => {
 
       // Only the columns in tableHeadersMobile are shown, stacked in one cell per row
       expect(screen.queryByRole('columnheader')).not.toBeInTheDocument();
-      expect(screen.getByRole('row', { name: /norway/i })).toHaveTextContent(/^Name: NorwayFlagLink: Norwegian flag$/);
+      const cells = within(screen.getByRole('row', { name: /norway/i })).getAllByRole('cell');
+      expect(cells).toHaveLength(1);
+      expect(cells[0]).toHaveTextContent(/^Name: NorwayFlagLink: Norwegian flag$/);
     });
 
     it('should still display table data when no dataModelBindings exist', async () => {
