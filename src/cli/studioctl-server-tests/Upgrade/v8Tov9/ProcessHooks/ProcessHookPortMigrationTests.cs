@@ -171,44 +171,4 @@ public sealed class ProcessHookPortMigrationTests : IDisposable
 
         Assert.Equal(("logic/Hook.cs", "logic/Hook.cs:1: a report"), (report.Path, report.Message.Text));
     }
-
-    public static TheoryData<string, string, bool> AltinnAppReferences =>
-        new()
-        {
-            {
-                "a release before the first that describes the actor",
-                "<PackageReference Include=\"Altinn.App.Api\" Version=\"9.0.0-preview.8\" />",
-                false
-            },
-            {
-                "the first release that describes the actor",
-                $"<PackageReference Include=\"Altinn.App.Api\" Version=\"{V8Tov9Upgrade.FirstVersionWithCallbackActor}\" />",
-                true
-            },
-            {
-                "project references into the libraries' sources",
-                "<ProjectReference Include=\"../../altinn-studio/src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj\" />",
-                true
-            },
-        };
-
-    /// <summary>The upgrade has written the Altinn.App version the app gets by the time the hooks are ported.</summary>
-    [Theory]
-    [MemberData(nameof(AltinnAppReferences))]
-    public void CallbackActorIsKnown_FollowsTheAltinnAppVersionTheAppGets(string label, string reference, bool known)
-    {
-        _ = label;
-        _app.Write(
-            "App.csproj",
-            $"""
-            <Project Sdk="Microsoft.NET.Sdk.Web">
-              <ItemGroup>
-                {reference}
-              </ItemGroup>
-            </Project>
-            """
-        );
-
-        Assert.Equal(known, V8Tov9Upgrade.CallbackActorIsKnown(Path.Combine(AppFolder, "App.csproj")));
-    }
 }

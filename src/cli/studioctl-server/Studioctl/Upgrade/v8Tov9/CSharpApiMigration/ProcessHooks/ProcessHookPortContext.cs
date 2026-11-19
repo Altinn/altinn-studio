@@ -73,12 +73,6 @@ internal sealed record ProcessHookPortContext(
     }
 
     /// <summary>
-    /// Whether the Altinn.App libraries the upgrade gives the app put the actor who started a transition on the
-    /// contexts of hooks, service tasks and <c>DataCreation</c>.
-    /// </summary>
-    public bool CallbackActorIsKnown { get; init; }
-
-    /// <summary>
     /// <paramref name="package"/> as the reports name it: with the version the app's project file references, or alone
     /// when it gives none, as for a package the app gets through another. Not the assembly version, which says nothing
     /// about the package's (Dibk.Ftpb.Common.AltinnApps 1.7.0 is assembly 0.0.1).
