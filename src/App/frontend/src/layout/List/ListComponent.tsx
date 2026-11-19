@@ -25,6 +25,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useSaveObjectToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/List/ListComponent.module.css';
@@ -53,7 +54,9 @@ export function getSelectionMode(bindings: IDataModelBindingsForList | undefined
 type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponentId'> & { isSummary?: boolean };
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
-  const mobileView = useIsMobileOrTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
+  const pdfModeActive = usePdfModeActive();
+  const mobileView = isMobileOrTablet && !pdfModeActive;
   const { lang, langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
@@ -238,7 +241,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 </BaseTable.HeaderCell>
               )}
               {headerKeys.map((key) => {
-                const isSortable = config.sortableColumns?.includes(key);
+                const isSortable = !pdfModeActive && config.sortableColumns?.includes(key);
                 let sort: AriaAttributes['aria-sort'] = undefined;
                 if (isSortable) {
                   sort = sortColumn === key ? sortDirection : 'none';

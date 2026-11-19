@@ -9,6 +9,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { getSelectionMode, ListComponent, ListMobileRowContent } from 'src/layout/List/ListComponent';
@@ -45,7 +46,9 @@ export const ListSummary = (props: Summary2Props) => {
 const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const emptyFieldText = useSummaryOverrides<'List'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
-  const mobileView = useIsMobileOrTablet();
+  const isMobileOrTablet = useIsMobileOrTablet();
+  const pdfModeActive = usePdfModeActive();
+  const mobileView = isMobileOrTablet && !pdfModeActive;
   const displayData = useDisplayData(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
