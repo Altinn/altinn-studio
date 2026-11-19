@@ -602,6 +602,12 @@ public sealed class ConditionalExpressionConversionTests
     [InlineData("", true)]
     [InlineData("conditionalRuleHandlerObject.check = () => false;", false)]
     [InlineData("conditionalRuleHandlerObject = { check: () => false };", false)]
+    [InlineData("({ replacement: conditionalRuleHandlerObject.check } = { replacement: () => false });", false)]
+    [InlineData("[conditionalRuleHandlerObject.check] = [() => false];", false)]
+    [InlineData(
+        "function local() { var conditionalRuleHandlerObject = {}; ({ replacement: conditionalRuleHandlerObject.check } = { replacement: () => false }); }",
+        true
+    )]
     public void HelperInlining_RequiresAStableHandlerDefinition(string mutation, bool succeeds)
     {
         using var app = new TempAppFolder();
