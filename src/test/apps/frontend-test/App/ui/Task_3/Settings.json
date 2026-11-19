@@ -16,7 +16,7 @@
     "showLanguageSelector": true
   },
   "components": {
-    "excludeFromPdf": []
+    "excludeFromPdf": ["show-calculations"]
   },
   "defaultDataType": "nested-group",
 }
