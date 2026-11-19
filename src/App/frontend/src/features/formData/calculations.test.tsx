@@ -35,9 +35,19 @@ const schema: JSONSchema7 = {
         },
       },
     },
+    copies: {
+      type: 'array',
+      items: { type: 'object', properties: { price: { type: 'number' }, quantity: { type: 'number' } } },
+    },
+    summary: {
+      type: 'object',
+      properties: { Total: { type: 'number' }, Rows: { type: 'integer' }, Label: { type: 'string' } },
+    },
     missingObject: { type: 'object', properties: { label: { type: 'string' } } },
   },
 };
+
+const isUuid = expect.stringMatching(/^[0-9a-f-]{36}$/);
 
 async function renderCalculations(
   config: CalculationConfig,
@@ -111,7 +121,7 @@ describe('calculations in the form store', () => {
   it('preserves stored values when a PDF previews another task with calculations', async () => {
     const initialData = { quantity: 4, total: 3 };
     const { store } = await renderCalculations(
-      { calculations: { total: { expression: ['multiply', ['dataModel', 'quantity'], 2] } } },
+      { calculations: [{ field: 'total', expression: ['multiply', ['dataModel', 'quantity'], 2] }] },
       initialData,
       false,
       true,
@@ -126,11 +136,11 @@ describe('calculations in the form store', () => {
   it('calculates initial data, converts scalar types, and runs dependent expressions in order', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['multiply', ['dataModel', 'quantity'], 2] },
-          label: { expression: ['dataModel', 'total'] },
-          enabled: { expression: ['greaterThan', ['dataModel', 'total'], 0] },
-        },
+        calculations: [
+          { field: 'total', expression: ['multiply', ['dataModel', 'quantity'], 2] },
+          { field: 'label', expression: ['dataModel', 'total'] },
+          { field: 'enabled', expression: ['greaterThan', ['dataModel', 'total'], 0] },
+        ],
       },
       { quantity: 4 },
     );
@@ -153,9 +163,7 @@ describe('calculations in the form store', () => {
   it('reads cross-model changes and recalculates when the backend changes an input', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['multiply', ['dataModel', 'quantity', 'other'], 2] },
-        },
+        calculations: [{ field: 'total', expression: ['multiply', ['dataModel', 'quantity', 'other'], 2] }],
       },
       {},
       true,
@@ -179,11 +187,14 @@ describe('calculations in the form store', () => {
   it('calculates relative to each nested row, supplies the target path, and updates totals after deleting rows', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          'rows.total': { expression: ['multiply', ['dataModel', 'rows.price'], ['dataModel', 'rows.quantity']] },
-          'rows.children.label': { expression: ['argv', 0] },
-          total: { expression: ['sum', ['jmespath', ['dataModel', 'rows'], '[].total']] },
-        },
+        calculations: [
+          {
+            field: 'rows.total',
+            expression: ['multiply', ['dataModel', 'rows.price'], ['dataModel', 'rows.quantity']],
+          },
+          { field: 'rows.children.label', expression: ['argv', 0] },
+          { field: 'total', expression: ['sum', ['jmespath', ['dataModel', 'rows'], '[].total']] },
+        ],
       },
       {
         rows: [
@@ -212,7 +223,7 @@ describe('calculations in the form store', () => {
 
   it.each(['index', 'value'] as const)('recalculates immediately after removing a list item by %s', async (method) => {
     const { store } = await renderCalculations(
-      { calculations: { total: { expression: ['sum', ['dataModel', 'numbers']] } } },
+      { calculations: [{ field: 'total', expression: ['sum', ['dataModel', 'numbers']] }] },
       { numbers: [2, 3] },
     );
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ numbers: [2, 3], total: 5 });
@@ -233,9 +244,7 @@ describe('calculations in the form store', () => {
   it('clears a previous value when an expression returns null', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          label: { expression: ['if', ['dataModel', 'enabled'], 'yes', 'else', null] },
-        },
+        calculations: [{ field: 'label', expression: ['if', ['dataModel', 'enabled'], 'yes', 'else', null] }],
       },
       { enabled: true },
     );
@@ -250,7 +259,7 @@ describe('calculations in the form store', () => {
 
   it('does not write in read-only forms', async () => {
     const { store } = await renderCalculations(
-      { calculations: { total: { expression: ['dataModel', 'quantity'] } } },
+      { calculations: [{ field: 'total', expression: ['dataModel', 'quantity'] }] },
       { quantity: 2 },
     );
     act(() => store.setState({ readOnly: true }));
@@ -266,10 +275,10 @@ describe('calculations in the form store', () => {
   it('clears nullable numeric and boolean targets without losing schema nullability', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          nullableNumber: { expression: ['if', ['dataModel', 'enabled'], 3, 'else', null] },
-          nullableBoolean: { expression: ['if', ['dataModel', 'enabled'], true, 'else', null] },
-        },
+        calculations: [
+          { field: 'nullableNumber', expression: ['if', ['dataModel', 'enabled'], 3, 'else', null] },
+          { field: 'nullableBoolean', expression: ['if', ['dataModel', 'enabled'], true, 'else', null] },
+        ],
       },
       { enabled: true },
     );
@@ -292,11 +301,11 @@ describe('calculations in the form store', () => {
     const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['divide', 1, 0] },
-          enabled: { expression: 'not a boolean' },
-          label: { expression: 'still calculated' },
-        },
+        calculations: [
+          { field: 'total', expression: ['divide', 1, 0] },
+          { field: 'enabled', expression: 'not a boolean' },
+          { field: 'label', expression: 'still calculated' },
+        ],
       },
       { total: 42, enabled: true },
     );
@@ -313,11 +322,11 @@ describe('calculations in the form store', () => {
     vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
     const { store } = await renderCalculations(
       {
-        calculations: {
-          numbers: { expression: ['dataModel', 'strings'] },
-          total: { expression: null },
-          label: { expression: ['sum', ['dataModel', 'numbers']] },
-        },
+        calculations: [
+          { field: 'numbers', expression: ['dataModel', 'strings'] },
+          { field: 'total', expression: null },
+          { field: 'label', expression: ['sum', ['dataModel', 'numbers']] },
+        ],
       },
       { strings: ['2', '3'], total: 42 },
     );
@@ -331,9 +340,7 @@ describe('calculations in the form store', () => {
   it('runs once per data change rather than again immediately before saving', async () => {
     const { store } = await renderCalculations(
       {
-        calculations: {
-          total: { expression: ['plus', ['dataModel', 'total'], 1] },
-        },
+        calculations: [{ field: 'total', expression: ['plus', ['dataModel', 'total'], 1] }],
       },
       { total: 2 },
     );
@@ -342,11 +349,207 @@ describe('calculations in the form store', () => {
     expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ total: 3 });
   });
 
+  it('sets the properties an object result contains, keeps the others, and clears a property set to null', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          {
+            field: 'summary',
+            expression: [
+              'object',
+              'Total',
+              ['dataModel', 'quantity'],
+              'Label',
+              ['if', ['greaterThan', ['dataModel', 'quantity'], 0], 'some', 'else', null],
+            ],
+          },
+        ],
+      },
+      { quantity: 1, summary: { Rows: 7, Label: 'old' } },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      quantity: 1,
+      summary: { Total: 1, Rows: 7, Label: 'some' },
+    });
+    act(() => {
+      store
+        .getState()
+        .data.setLeafValue({ reference: { dataType: defaultDataTypeMock, field: 'quantity' }, newValue: 0 });
+      store.getState().data.debounce('forced');
+    });
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      quantity: 0,
+      summary: { Total: 0, Rows: 7 },
+    });
+  });
+
+  it('merges a list of objects by position, keeping the ids and other properties of the rows it merges into', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          {
+            field: 'rows',
+            expression: ['list', ['object', 'total', 1], ['object', 'total', 2]],
+          },
+        ],
+      },
+      {
+        rows: [
+          { altinnRowId: 'a', price: 10, total: 0 },
+          { altinnRowId: 'b', price: 20, total: 0 },
+          { altinnRowId: 'c', price: 30, total: 0 },
+        ],
+      },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      rows: [
+        { altinnRowId: 'a', price: 10, total: 1 },
+        { altinnRowId: 'b', price: 20, total: 2 },
+      ],
+    });
+  });
+
+  it('appends rows with new ids, and copied rows keep the id of the row they are copied from', async () => {
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'copies', expression: ['dataModel', 'rows'] }] },
+      {
+        rows: [
+          { altinnRowId: 'a', price: 10, quantity: 1 },
+          { altinnRowId: 'b', price: 20, quantity: 2 },
+        ],
+        copies: [{ altinnRowId: 'copy-a', price: 0, quantity: 0 }],
+      },
+    );
+    const model = store.getState().data.models[defaultDataTypeMock];
+    expect(model.currentData).toEqual({
+      rows: [
+        { altinnRowId: 'a', price: 10, quantity: 1 },
+        { altinnRowId: 'b', price: 20, quantity: 2 },
+      ],
+      copies: [
+        { altinnRowId: 'a', price: 10, quantity: 1 },
+        { altinnRowId: 'b', price: 20, quantity: 2 },
+      ],
+    });
+
+    // Calculating again changes nothing, so the rows keep their ids and references
+    const previous = model.currentData;
+    act(() => store.getState().data.debounce('forced'));
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toBe(previous);
+  });
+
+  it('fails when a row in a list result is not an object', async () => {
+    await expect(
+      renderCalculations(
+        { calculations: [{ field: 'rows', expression: ['list', ['object', 'price', 1], null] }] },
+        { rows: [] },
+      ),
+    ).rejects.toThrow('row 1 is not an object');
+  });
+
+  it('fails when two rows in a list result have the same id', async () => {
+    await expect(
+      renderCalculations(
+        {
+          calculations: [
+            {
+              field: 'rows',
+              expression: [
+                'list',
+                ['object', 'altinnRowId', 'same', 'price', 1],
+                ['object', 'altinnRowId', 'same', 'price', 2],
+              ],
+            },
+          ],
+        },
+        { rows: [] },
+      ),
+    ).rejects.toThrow('altinnRowId same');
+  });
+
+  it('leaves a list of primitives alone when the result is a list of objects', async () => {
+    const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'numbers', expression: ['list', ['object', 'v', 1]] }] },
+      { numbers: [2, 3] },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ numbers: [2, 3] });
+    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('numbers'));
+  });
+
+  it('removes all rows when a list result is empty', async () => {
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'rows', expression: ['list'] }] },
+      { rows: [{ altinnRowId: 'a', price: 10 }] },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ rows: [] });
+  });
+
+  it('skips a key the data model does not have and sets the others', async () => {
+    const logWarn = vi.spyOn(window, 'logWarnOnce').mockImplementation(() => undefined);
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'summary', expression: ['object', 'Total', '12', 'Unknown', 1] }] },
+      { quantity: 1 },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      quantity: 1,
+      summary: { Total: 12 },
+    });
+    expect(logWarn).toHaveBeenCalledWith(expect.stringContaining('summary.Unknown'));
+  });
+
+  it('has nothing more to save when the backend fills in defaults and row ids the frontend did not set', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          { field: 'summary', expression: ['object', 'Total', ['dataModel', 'quantity']] },
+          { field: 'rows', expression: ['list', ['object', 'total', ['dataModel', 'quantity']]] },
+        ],
+      },
+      { quantity: 1 },
+    );
+    const before = store.getState().data.models[defaultDataTypeMock];
+    expect(before.currentData).toEqual({
+      quantity: 1,
+      summary: { Total: 1 },
+      rows: [{ altinnRowId: isUuid, total: 1 }],
+    });
+
+    // The backend serializes the non-nullable Rows property, and gives the row the id it stores
+    const fromBackend = {
+      quantity: 1,
+      summary: { Total: 1, Rows: 0 },
+      rows: [{ altinnRowId: 'from-backend', total: 1 }],
+    };
+    act(() => {
+      store.getState().data.saveFinished({
+        savedData: { [defaultDataTypeMock]: before.currentData },
+        newDataModels: [
+          { data: fromBackend, dataType: defaultDataTypeMock, dataElementId: before.dataElementId ?? undefined },
+        ],
+        validationIssues: undefined,
+      });
+    });
+    const after = store.getState().data.models[defaultDataTypeMock];
+    expect(after.currentData).toEqual(fromBackend);
+    expect(after.currentData).toBe(after.lastSavedData);
+    act(() => store.getState().data.debounce('forced'));
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toBe(after.lastSavedData);
+  });
+
   it('skips malformed definitions without losing valid calculations', () => {
     vi.spyOn(window, 'logWarn').mockImplementation(() => undefined);
-    expect(resolveCalculationConfig({ calculations: { total: {}, enabled: { expression: false } } })).toEqual({
-      calculations: { enabled: { expression: false } },
+    expect(
+      resolveCalculationConfig({
+        calculations: [{ field: 'total' }, { expression: true }, null, { field: 'enabled', expression: false }],
+      }),
+    ).toEqual({
+      calculations: [{ field: 'enabled', expression: false }],
     });
     expect(resolveCalculationConfig(null)).toBeNull();
+  });
+
+  it('ignores the old format where calculations were keyed by field', () => {
+    expect(resolveCalculationConfig({ calculations: { total: { expression: false } } })).toBeNull();
   });
 });

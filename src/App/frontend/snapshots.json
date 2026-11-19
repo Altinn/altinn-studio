@@ -335,7 +335,19 @@
       "NumPets": 0,
       "HiddenPets": null,
       "PetSortOrder": null,
-      "PetsUseOptionComponent": null
+      "PetsUseOptionComponent": null,
+      "ChangeList": [
+        1
+      ],
+      "ChangeSummary": {
+        "Total": 1,
+        "Rows": 1
+      },
+      "ChangeRows": [
+        {
+          "Change": 1
+        }
+      ]
     },
     "likert": {
       "Questions": [

@@ -70,13 +70,6 @@ internal static class SetterGenerator
 
                 """
             );
-            // Create list elements if index is out of bounds
-            // Activate if required
-            // if (model.Count == literalIndex)
-            // {
-            //    model.Add(new {{modelPathNode.TypeName}}());
-            // }
-
             builder.Append(
                 $$"""
                         if (model.Count <= literalIndex)
@@ -99,37 +92,31 @@ internal static class SetterGenerator
                         """
                     );
                 }
-                else if (modelPathNode.IsNullable || modelPathNode.IsCSharpValueType())
-                {
-                    builder.Append(
-                        $$"""
-                                if (value.TryDeserialize<{{modelPathNode.TypeNameWithNullable}}>(out var result))
-                                {
-                                    model[literalIndex] = result;
-                                    return true;
-                                }
-                                return false;
-
-                        """
-                    );
-                }
                 else
                 {
-                    builder.Append(
-                        $$"""
-                                if (value.TryDeserialize<{{modelPathNode.TypeNameWithNullable}}>(out var result) && result is not null)
-                                {
-                                    model[literalIndex] = result;
-                                    return true;
-                                }
-                                return false;
-
-                        """
-                    );
+                    AppendSetElement(builder, modelPathNode, indent: "        ");
                 }
             }
             else
             {
+                if (modelPathNode.IsIndexableList)
+                {
+                    // The path ends at the element, so replace the whole object
+                    builder.Append(
+                        """
+                                if (offset == -1)
+                                {
+
+                        """
+                    );
+                    AppendSetElement(builder, modelPathNode, indent: "            ");
+                    builder.Append(
+                        """
+                                }
+
+                        """
+                    );
+                }
                 var itemAccessor = CollectionAccessorGenerator.GenerateAccessor(modelPathNode, "model", "literalIndex");
                 builder.Append(
                     $$"""
@@ -176,7 +163,8 @@ internal static class SetterGenerator
         {
             if (child.ListType != null)
             {
-                // List property - need to ensure list is created and has elements
+                // List property - replace the whole list, or ensure list is created and has elements
+                AppendSetWholeValue(builder, child, child.ListTypeWithNullable, child.IsNullableList);
                 builder.Append(
                     $$"""
                                 case "{{child.JsonName}}":
@@ -210,7 +198,8 @@ internal static class SetterGenerator
             }
             else
             {
-                // Complex object property - need to ensure object is created
+                // Complex object property - replace the whole object, or ensure object is created
+                AppendSetWholeValue(builder, child, child.TypeNameWithNullable, child.IsNullable);
                 builder.Append(
                     $$"""
                                 case "{{child.JsonName}}" when literalIndex is -1:
@@ -298,4 +287,69 @@ internal static class SetterGenerator
             GenerateRecursive(builder, child, generatedTypes);
         }
     }
+
+    /// <summary>
+    /// A case for a path that ends at a list or object property, which deserializes the value into the whole property.
+    /// </summary>
+    private static void AppendSetWholeValue(
+        StringBuilder builder,
+        ModelPathNode child,
+        string? typeName,
+        bool isNullable
+    )
+    {
+        var resultName = $"result_{child.CSharpName}";
+        var nullForgiving = NullForgiving(isNullable, isValueType: false);
+        // The block lets csharpier-ignore apply, as type names can be longer than the line width
+        builder.Append(
+            $$"""
+                        case "{{child.JsonName}}" when nextOffset is -1 && literalIndex is -1:
+                        {
+                            // csharpier-ignore
+                            if (value.TryDeserialize<{{typeName}}>(out var {{resultName}}))
+                            {
+                                model.{{child.CSharpName}} = {{resultName}}{{nullForgiving}};
+                                return true;
+                            }
+                            return false;
+                        }
+
+            """
+        );
+    }
+
+    /// <summary>
+    /// Deserializes the value into the element at literalIndex of the list in "model".
+    /// </summary>
+    private static void AppendSetElement(StringBuilder builder, ModelPathNode element, string indent)
+    {
+        var nullForgiving = NullForgiving(element.IsNullable, element.IsCSharpValueType());
+        if (element.Properties.Count > 0)
+        {
+            // Type names of objects can be longer than the line width
+            builder.Append(
+                $$"""
+                {{indent}}// csharpier-ignore
+
+                """
+            );
+        }
+        builder.Append(
+            $$"""
+            {{indent}}if (value.TryDeserialize<{{element.TypeNameWithNullable}}>(out var result))
+            {{indent}}{
+            {{indent}}    model[literalIndex] = result{{nullForgiving}};
+            {{indent}}    return true;
+            {{indent}}}
+            {{indent}}return false;
+
+            """
+        );
+    }
+
+    /// <summary>
+    /// Null clears a reference type property or element, like it does in ReflectionFormDataWrapper, also when
+    /// the model does not annotate it as nullable (most models are compiled with nullable disabled).
+    /// </summary>
+    internal static string NullForgiving(bool isNullable, bool isValueType) => isNullable || isValueType ? "" : "!";
 }
