@@ -68,8 +68,9 @@ public sealed class CalculationProcessorOrderingTests
         var updater = new ProgramCsUpdater(app.Root);
         Assert.True(updater.RegisterDataProcessor("FormDataProcessor"));
         var source = app.Read("Program.cs");
-        Assert.DoesNotContain("IDataWriteProcessor, FormDataProcessor", source);
+        Assert.Equal(1, source.Split("IDataWriteProcessor, FormDataProcessor").Length - 1);
         Assert.Equal(1, source.Split("IDataProcessor, FormDataProcessor").Length - 1);
+        Assert.Equal(3, source.Split("services.AddTransient<").Length - 1);
         Assert.True(
             source.IndexOf("IDataProcessor, FormDataProcessor", StringComparison.Ordinal)
                 < source.IndexOf("IDataProcessor, Existing", StringComparison.Ordinal)
