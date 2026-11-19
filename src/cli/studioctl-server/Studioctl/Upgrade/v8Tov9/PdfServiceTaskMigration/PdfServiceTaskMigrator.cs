@@ -19,14 +19,25 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// copy of the whole folder with an empty <c>pages.order</c>, which renders the PDF as before, and a to-do
 /// asks for the rest of the conversion. Either way the task's own PDF layout is then unused, and is removed
 /// when nothing else needs it (see <see cref="SourcePdfLayoutRemoval"/>).
+///
+/// v8 made the PDF only when the instance had an element of one of the task's data types. A task gets no PDF
+/// service task when nothing creates one (see <see cref="DataElementCreators"/>), and a to-do when the app's code
+/// may create one.
 /// </summary>
 internal sealed class PdfServiceTaskMigrator
 {
     private readonly string _projectFolder;
+    private readonly CSharpSourceScanner _code;
 
-    public PdfServiceTaskMigrator(string projectFolder)
+    /// <param name="projectFolder">The app's folder.</param>
+    /// <param name="code">
+    /// The app's C# source, on the pristine view (<see cref="CSharpSourceScanner.PristineView"/>), which the v8
+    /// compilation binds before the other steps rewrite the code.
+    /// </param>
+    public PdfServiceTaskMigrator(string projectFolder, CSharpSourceScanner code)
     {
         _projectFolder = projectFolder;
+        _code = code;
     }
 
     /// <summary>
@@ -48,10 +59,12 @@ internal sealed class PdfServiceTaskMigrator
 
         var metadataRewriter = new ApplicationMetadataPdfRewriter(metadataFile);
 
-        IReadOnlyList<(string TaskId, string? DataTypeId)> tasks;
+        JsonDocument metadata;
+        IReadOnlyList<TaskRequiringPdf> tasksRequiringPdf;
         try
         {
-            tasks = metadataRewriter.GetTasksRequiringPdf();
+            metadata = metadataRewriter.Read();
+            tasksRequiringPdf = metadataRewriter.GetTasksRequiringPdf(metadata.RootElement);
         }
         catch (DecoderFallbackException)
         {
@@ -71,7 +84,8 @@ internal sealed class PdfServiceTaskMigrator
             return new MigrationResult(messages);
         }
 
-        if (tasks.Count > 0)
+        using var _ = metadata;
+        if (tasksRequiringPdf.Count > 0)
         {
             var processFile = AppFiles.Resolve(_projectFolder, "config/process/process.bpmn");
             if (processFile is null)
@@ -105,6 +119,19 @@ internal sealed class PdfServiceTaskMigrator
                 );
                 return new MigrationResult(messages);
             }
+
+            var creators = DataElementCreators.Find(
+                _projectFolder,
+                _code,
+                metadata.RootElement,
+                processRewriter.Document
+            );
+            var (tasks, uncertain) = PlanPdfTasks(
+                tasksRequiringPdf,
+                creators,
+                new TaskUiSettings(_projectFolder),
+                messages
+            );
 
             // Decide how each task's PDF must render before changing anything. A task whose legacy PDF
             // came from a custom layout gets a layout set of its own for its PDF service task.
@@ -164,7 +191,14 @@ internal sealed class PdfServiceTaskMigrator
             // satisfied must not reformat the file for nothing.
             if (processRewriter.HasChanges)
                 await processRewriter.Write();
+            foreach (var info in processRewriter.GetInfos())
+                messages.Info(info);
             messages.WarnRange(processRewriter.GetWarnings());
+            foreach (var taskId in processRewriter.GetInsertedTasks())
+            {
+                if (uncertain.TryGetValue(taskId, out var todo))
+                    messages.Todo(todo);
+            }
 
             // Only now that their PDF service tasks render the PDFs are the data tasks' own PDF layouts unused.
             foreach (var (taskId, source, ui) in written)
@@ -217,6 +251,83 @@ internal sealed class PdfServiceTaskMigrator
 
         return new MigrationResult(messages);
     }
+
+    /// <summary>
+    /// The tasks to add a PDF service task after, each with the data model a gateway after it read in v8: the one the
+    /// task's UI settings name, or else the first of its data types an instance may have. A task none of whose data
+    /// types anything creates gets none, with a message saying so.
+    /// </summary>
+    private static PdfTaskPlan PlanPdfTasks(
+        IReadOnlyList<TaskRequiringPdf> tasksRequiringPdf,
+        DataElementCreators creators,
+        TaskUiSettings taskUiSettings,
+        List<UpgradeMessage> messages
+    )
+    {
+        var tasks = new List<(string TaskId, string? DataTypeId)>();
+        var uncertain = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var task in tasksRequiringPdf)
+        {
+            // A data type without an id cannot be looked up, so it keeps its PDF.
+            var creations = task
+                .DataTypeIds.Select(id =>
+                    (Id: id, Creation: id is null ? DataElementCreation.Created : creators.Of(id))
+                )
+                .ToList();
+            var created = creations.Where(c => c.Creation == DataElementCreation.Created).ToList();
+            var unknown = creations.Where(c => c.Creation == DataElementCreation.Unknown).ToList();
+            if (created.Count == 0 && unknown.Count == 0)
+            {
+                messages.Info(NothingCreates(task.TaskId, [.. creations.Select(c => c.Id).OfType<string>()]));
+                continue;
+            }
+
+            if (created.Count == 0)
+            {
+                uncertain[task.TaskId] = MayBeUnwanted(
+                    task.TaskId,
+                    [.. unknown.Select(c => c.Id).OfType<string>()],
+                    creators.UnknownCreations
+                );
+            }
+            // SourceTaskPdfLayoutResolver reports an unreadable settings file and holds the task back.
+            var gatewayDataType =
+                taskUiSettings.FindDataTypeForTask(task.TaskId, _ => { })
+                ?? creations.First(c => c.Creation != DataElementCreation.None).Id;
+            tasks.Add((task.TaskId, gatewayDataType));
+        }
+
+        return new PdfTaskPlan(tasks, uncertain);
+    }
+
+    /// <summary>The tasks to add a PDF service task after, as <see cref="PlanPdfTasks"/> plans them.</summary>
+    /// <param name="Tasks">Each task, with the data model to pin on the gateways after it.</param>
+    /// <param name="Uncertain">
+    /// The to-do for each task whose data types only the app's code may create, should its PDF service task be added.
+    /// </param>
+    private sealed record PdfTaskPlan(
+        List<(string TaskId, string? DataTypeId)> Tasks,
+        Dictionary<string, string> Uncertain
+    );
+
+    private static string NothingCreates(string taskId, IReadOnlyList<string> dataTypes) =>
+        $"Skipped PDF service task insertion after task '{taskId}': v8 made its PDF only when the instance had "
+        + $"{ElementsOf(dataTypes)}, and nothing in the app creates one.";
+
+    private static string MayBeUnwanted(
+        string taskId,
+        IReadOnlyList<string> dataTypes,
+        IReadOnlyList<CSharpApiMatch> unknownCreations
+    ) =>
+        $"PDF service task '{PdfProcessRewriter.PdfTaskIdFor(taskId)}' may be unwanted: v8 made the PDF of task "
+        + $"'{taskId}' only when the instance had {ElementsOf(dataTypes)}, and only the app's code may create one, "
+        + "where it creates data elements of a data type that is not a constant: "
+        + $"{string.Join(", ", unknownCreations.Select(c => c.Location).Distinct())}. If nothing creates one, remove "
+        + "the PDF service task from the process.";
+
+    /// <summary>"a 'model' element", or "a 'model' or 'other' element".</summary>
+    private static string ElementsOf(IReadOnlyList<string> dataTypes) =>
+        $"a {string.Join(" or ", dataTypes.Select(dataType => $"'{dataType}'"))} element";
 
     /// <summary>
     /// Plans the UI folder of the PDF service task for <paramref name="taskId"/>, or says why it cannot be
