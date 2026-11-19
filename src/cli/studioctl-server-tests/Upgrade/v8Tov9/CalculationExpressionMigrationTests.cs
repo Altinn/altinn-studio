@@ -854,7 +854,9 @@ public sealed class CalculationExpressionMigrationTests
             Assert.SkipWhen(!denied, "File permissions are not enforced for this process.");
             var result = CalculationMigration.Migrate(app.Root);
             Assert.Empty(result.ConvertedRules);
-            Assert.Contains("could not be resolved in the model schema", Assert.Single(result.FallbackReasons));
+            var reason = Assert.Single(result.FallbackReasons);
+            Assert.Contains("could not be resolved in the model schema", reason);
+            Assert.Contains(Path.Combine("App", "models", "model.schema.json"), reason);
             Assert.Empty(result.ManualRules);
         }
         finally
