@@ -204,7 +204,12 @@ internal sealed partial class CalculationExpressionConverter
             )
             {
                 var value = Read(finite, values);
-                if (value.Kind == Kind.Number && !value.MayBeMissing)
+                if (
+                    value.Kind == Kind.Number
+                    && !value.MayBeMissing
+                    && IntegerBound(value.Expression) is { } bound
+                    && double.IsFinite(bound)
+                )
                     return new(JsonValue.Create(true), Kind.Boolean);
             }
         }
@@ -237,7 +242,8 @@ internal sealed partial class CalculationExpressionConverter
                     ? Call("if", Call("equals", receiver.Expression, null), null, contains)
                     : contains,
                 Kind.Boolean,
-                MayBeMissing: receiver.MayBeMissing
+                MayBeMissing: receiver.MayBeMissing,
+                MayBeUndefined: receiver.MayBeMissing
             );
         }
         throw new NotSupportedException($"Method '{method.Name}' requires C# conversion.");
@@ -397,7 +403,9 @@ internal sealed partial class CalculationExpressionConverter
         block.Body.All(statement =>
             statement switch
             {
-                VariableDeclaration declaration => declaration.Declarations.All(variable => variable.Id is Identifier),
+                VariableDeclaration declaration => declaration.Declarations.All(variable =>
+                    variable.Id is Identifier && variable.Init is not IFunction
+                ),
                 ReturnStatement or EmptyStatement => true,
                 _ => false,
             }

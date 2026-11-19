@@ -39,6 +39,7 @@ internal sealed partial class CalculationExpressionConverter
     private readonly Dictionary<string, Value> _selections = new(StringComparer.Ordinal);
     private readonly HashSet<string> _integerInputs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _integerBounds = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _floatingPointInputs = new(StringComparer.Ordinal);
     public bool MayReturnNull { get; private set; }
 
     public JsonNode? Convert(
@@ -62,6 +63,7 @@ internal sealed partial class CalculationExpressionConverter
         _selections.Clear();
         _integerInputs.Clear();
         _integerBounds.Clear();
+        _floatingPointInputs.Clear();
         _selectionOptions = selectionOptions ?? new Dictionary<string, IReadOnlyList<string>>();
         foreach (var statement in body.Body)
             ValidateDeclarations(statement, 0);
@@ -71,6 +73,8 @@ internal sealed partial class CalculationExpressionConverter
             if (string.IsNullOrEmpty(path))
                 continue;
             var type = types.ResolveType(path);
+            if (type?.TrimEnd('?') is "double" or "float")
+                _floatingPointInputs.Add(path);
             if (type?.TrimEnd('?') is "int" or "long")
             {
                 _integerInputs.Add(path);
@@ -469,6 +473,10 @@ internal sealed partial class CalculationExpressionConverter
         };
         if (op == "Division" && !b.NonZero)
             throw new NotSupportedException("Division is not guarded against a zero denominator.");
+        if (op == "Division" && (HasFloatingPointInput(a.Expression) || HasFloatingPointInput(b.Expression)))
+            throw new NotSupportedException(
+                "Floating-point model inputs can underflow the backend's decimal division; keep this calculation in C#."
+            );
         // Expression arguments are eager. An unreachable branch must remain safe to evaluate.
         var denominator =
             op == "Division"
@@ -484,6 +492,15 @@ internal sealed partial class CalculationExpressionConverter
             function is "greaterThan" or "greaterThanEq" or "lessThan" or "lessThanEq" ? Kind.Boolean : Kind.Number
         );
     }
+
+    private bool HasFloatingPointInput(JsonNode? node) =>
+        node is JsonArray { Count: > 0 } call
+        && (
+            (
+                call[0]?.GetValue<string>() == "dataModel"
+                && _floatingPointInputs.Contains(call[1]?.GetValue<string>() ?? "")
+            ) || call.Skip(1).Any(HasFloatingPointInput)
+        );
 
     private static bool TryNumericLiteral(Value value, out Value number)
     {
@@ -615,7 +632,10 @@ internal sealed partial class CalculationExpressionConverter
         )
         {
             var op = binary.Operator.ToString();
-            if (binary.Right is Literal { Value: null } || binary.Right is Identifier { Name: "undefined" })
+            if (
+                binary.Right is Literal { Value: null }
+                || (binary.Right is Identifier && Read(binary.Right, values).Kind == Kind.Undefined)
+            )
             {
                 if ((op == "Equality" && !truthy) || (op == "Inequality" && truthy))
                     values[inputKey] = input with { MayBeMissing = false };
