@@ -1042,7 +1042,9 @@ public sealed class CalculationExpressionMigrationTests
         Assert.Contains("wrapper.Set(\"other\"", processor);
         Assert.DoesNotContain("wrapper.Set(\"result\"", processor);
         Assert.Contains("AddTransient<IDataWriteProcessor, FormDataProcessor>", app.Read("Program.cs"));
-        Assert.False(File.Exists(Path.Combine(app.Root, "App/ui/form/RuleHandler.js")));
+        Assert.Empty(
+            Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+        );
     }
 
     [Fact]
@@ -1089,7 +1091,9 @@ public sealed class CalculationExpressionMigrationTests
         Assert.Equal(5d, Evaluate(Calculations(app)["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
         Assert.False(Directory.Exists(Path.Combine(app.Root, "App/logic/ConvertedLegacyRules")));
         Assert.DoesNotContain("IDataWriteProcessor", app.Read("Program.cs"));
-        Assert.False(File.Exists(Path.Combine(app.Root, "App/ui/form/RuleConfiguration.json")));
+        Assert.Empty(
+            Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleConfiguration.json", SearchOption.AllDirectories)
+        );
     }
 
     [Fact]
