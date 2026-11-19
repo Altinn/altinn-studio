@@ -635,6 +635,19 @@ internal static class StorageCallStubs
             ProcessHookPortContext.Read(appFolder)
         ).Migrate(TestContext.Current.CancellationToken);
 
+    /// <summary>
+    /// Runs the port as <see cref="Port"/> does, for an upgrade whose Altinn.App libraries describe the actor who started a
+    /// transition in callbacks.
+    /// </summary>
+    public static MigrationResult PortWithCallbackActor(string appFolder) =>
+        new ProcessHookPortMigration(
+            SemanticScannerFactory.CreateScanner(appFolder, V8),
+            ProcessHookPortContext.Read(appFolder) with
+            {
+                CallbackActorIsKnown = true,
+            }
+        ).Migrate(TestContext.Current.CancellationToken);
+
     /// <summary>Runs the port again on an app that was upgraded, which compiles against the v9 stub.</summary>
     public static MigrationResult PortAgain(string appFolder) =>
         new ProcessHookPortMigration(

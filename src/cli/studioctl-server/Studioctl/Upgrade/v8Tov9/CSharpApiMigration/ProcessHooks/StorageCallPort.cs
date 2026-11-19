@@ -133,7 +133,7 @@ internal sealed class StorageCallPort
                 rewriter.Plan(rewrite, calls);
             }
 
-            WindowReports.Plan(rewrite, flow);
+            WindowReports.Plan(rewrite, flow, context.CallbackActorIsKnown);
             rewrites[method] = rewrite;
         }
 
@@ -192,7 +192,7 @@ internal sealed class StorageCallPort
                 if (!reached.ContainsKey(method.Method) && reach.Body(method.Method) is { } body)
                 {
                     var probe = new MethodRewrite(method.Method, body, [dataCreation]);
-                    WindowReports.Plan(probe, flow);
+                    WindowReports.Plan(probe, flow, context.CallbackActorIsKnown);
                     reports.AddRange(probe.Reports);
                 }
             }
