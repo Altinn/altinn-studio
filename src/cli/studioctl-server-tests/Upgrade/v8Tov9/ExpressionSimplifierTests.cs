@@ -71,4 +71,12 @@ public sealed class ExpressionSimplifierTests
 
         Assert.True(JsonNode.DeepEquals(expression, ExpressionSimplifier.Simplify(expression)));
     }
+
+    [Fact]
+    public void Addition_PreservesTheIntermediateDoubleConversion()
+    {
+        var expression = JsonNode.Parse("[\"plus\", [\"plus\", 1e16, 1], -1e16]");
+        Assert.True(JsonNode.DeepEquals(expression, ExpressionSimplifier.Simplify(expression)));
+    }
+
 }

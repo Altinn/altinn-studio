@@ -87,6 +87,7 @@ public sealed class CalculationExpressionMigrationTests
     )]
     [InlineData("return obj.a === null ? 7 : obj.a;", "{}", 7)]
     [InlineData("const twice = n => n * 2; return twice(twice(3));", "{}", 12)]
+    [InlineData("let x = 1; const g = () => x; const f = x => g(); return f(5);", "{}", 1)]
     public void ConvertedCalculations_PreserveAssignmentsBranchesAndMissingInputs(
         string body,
         string inputs,
@@ -497,6 +498,7 @@ public sealed class CalculationExpressionMigrationTests
     [Theory]
     [InlineData("return obj.flag ? obj.flag + 1 : 0;")]
     [InlineData("return obj.flag ? obj.flag > '2' : false;")]
+    [InlineData("let sum = 0; if (obj.flag) sum += obj.flag; return sum;")]
     public void NumericOptionMetadata_DoesNotChangeStringAdditionOrOrdering(string body)
     {
         using var app = CreateApp();

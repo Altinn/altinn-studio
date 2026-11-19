@@ -89,6 +89,9 @@ public sealed class ConditionalExpressionConversionTests
     [InlineData("function(values) { return values[values.answer] === 'yes'; }")]
     [InlineData("async function(values) { return true; }")]
     [InlineData("function*(values) { return true; }")]
+    [InlineData("function(values) { const flag = false; if (values.answer === 'yes') flag = true; return flag; }")]
+    [InlineData("function(values) { { let flag = true; } return flag; }")]
+    [InlineData("function(values) { const unused = delete values.answer; return values.answer === 'yes'; }")]
     public void UnsupportedEffectsOrControlFlow_DoNotBecomeSuccessfulConversions(string function)
     {
         Assert.Equal(ConversionStatus.Failed, Convert(function).Status);
@@ -392,6 +395,9 @@ public sealed class ConditionalExpressionConversionTests
     [InlineData("values.a + values.b === 0.3")]
     [InlineData("values.a > values.b * 24000")]
     [InlineData("values.b && values.a / values.b < 0.4")]
+    [InlineData("values.a + values.b == '0.3'")]
+    [InlineData("0.1 + 0.2 - 0.3 ? true : false")]
+    [InlineData("1e20 * 1e10 > 0")]
     public void FractionalArithmeticDecisions_RequireManualConversion(string predicate)
     {
         var result = new ExpressionConverter().Convert(
@@ -402,6 +408,93 @@ public sealed class ConditionalExpressionConversionTests
         );
         Assert.Equal(ConversionStatus.Failed, result.Status);
         Assert.Contains("boundary decisions", result.FailureReason);
+    }
+
+    [Fact]
+    public void MissingIndexOfNeedle_DoesNotLoseJavaScriptNullCoercion()
+    {
+        var result = new ExpressionConverter().Convert(
+            "function(values) { return values.answer.indexOf(values.needle) > -1; }",
+            new() { ["answer"] = "choice", ["needle"] = "needle" },
+            "Hide",
+            new Dictionary<string, string> { ["answer"] = "string", ["needle"] = "string" },
+            new Dictionary<string, IReadOnlyList<string>> { ["answer"] = ["nullable"], ["needle"] = ["yes"] }
+        );
+        Assert.Equal(ConversionStatus.Failed, result.Status);
+    }
+
+    [Fact]
+    public void UnknownMappedLength_IsNotInferredAsAStringLength()
+    {
+        var result = new ExpressionConverter().Convert(
+            "function(values) { return values.length === 'long'; }",
+            new() { ["length"] = "choice" },
+            "Hide"
+        );
+        AssertExpression("[\"equals\",[\"dataModel\",\"choice\"],\"long\"]", result);
+    }
+
+    [Fact]
+    public void ZeroParameterHelper_ResolvesItsGlobalInsteadOfASyntheticInput()
+    {
+        using var app = new TempAppFolder();
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "const obj = false; var conditionalRuleHandlerObject = { check: () => obj };"
+            )
+        );
+        parser.Parse();
+        var converter = new ExpressionConverter(parser.GetGlobalConstants(), parser.GetAllConditionalFunctions());
+        AssertExpression(
+            "false",
+            converter.Convert(
+                "function(values) { return conditionalRuleHandlerObject.check(values); }",
+                new() { ["answer"] = "choice" },
+                "Hide"
+            )
+        );
+    }
+
+    [Fact]
+    public void HelperNamedIncludes_DoesNotBecomeABooleanTypeCheck()
+    {
+        using var app = new TempAppFolder();
+        var parser = new RuleHandlerParser(
+            app.Write("ui/form/RuleHandler.js", "var conditionalRuleHandlerObject = { includes: obj => 'yes' };")
+        );
+        parser.Parse();
+        var converter = new ExpressionConverter(parser.GetGlobalConstants(), parser.GetAllConditionalFunctions());
+        Assert.Equal(
+            ConversionStatus.Failed,
+            converter
+                .Convert(
+                    "function(values) { return typeof conditionalRuleHandlerObject.includes(values) === 'string'; }",
+                    new() { ["answer"] = "choice" },
+                    "Hide"
+                )
+                .Status
+        );
+    }
+
+    [Theory]
+    [InlineData("let flag = false; flag = true;", true)]
+    [InlineData("flag = false; var flag;", true)]
+    [InlineData("{ let flag = false; flag = true; } flag = false;", false)]
+    [InlineData("flag = false;", false)]
+    public void GlobalConstants_IgnoreOnlyWritesToShadowingBindings(string body, bool keepGlobal)
+    {
+        using var app = new TempAppFolder();
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var flag = true; var conditionalRuleHandlerObject = { original: obj => flag, other: function(obj) { "
+                    + body
+                    + " return flag; } };"
+            )
+        );
+        parser.Parse();
+        Assert.Equal(keepGlobal, parser.GetGlobalConstants().ContainsKey("flag"));
     }
 
     private static ConversionResult Convert(string function, string action = "Hide") =>
