@@ -165,12 +165,13 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const headerKeys = Object.keys(config.tableHeaders).filter(
     (key) => !mobileView || config.sortableColumns?.includes(key),
   );
+  const mobileColumnKeys = getMobileColumnKeys(config.tableHeaders, config.tableHeadersMobile);
   const renderValue = (value: Row[string] | undefined) => (typeof value === 'string' ? lang(value) : value);
   const indexedId = useIndexedId(baseComponentId);
   const componentId = isSummary ? `${indexedId}-summary` : indexedId;
   const getRowLabel = (row: Row): string =>
-    Object.entries(row)
-      .map(([key]) => {
+    (mobileView ? mobileColumnKeys : Object.keys(row))
+      .map((key) => {
         const headerId = config.tableHeaders[key];
         if (!headerId) {
           return '';
@@ -353,7 +354,7 @@ type ListMobileRowContentProps = {
  */
 export function ListMobileRowContent({ tableHeaders, tableHeadersMobile, renderValue }: ListMobileRowContentProps) {
   const { langAsString } = useLanguage();
-  const keys = Object.keys(tableHeaders).filter((key) => !tableHeadersMobile || tableHeadersMobile.includes(key));
+  const keys = getMobileColumnKeys(tableHeaders, tableHeadersMobile);
   return (
     <div className={classes.mobileRowContent}>
       {keys.map((key) => {
@@ -373,6 +374,13 @@ export function ListMobileRowContent({ tableHeaders, tableHeadersMobile, renderV
       })}
     </div>
   );
+}
+
+function getMobileColumnKeys(
+  tableHeaders: Record<string, string | undefined>,
+  tableHeadersMobile: string[] | undefined,
+) {
+  return Object.keys(tableHeaders).filter((key) => !tableHeadersMobile || tableHeadersMobile.includes(key));
 }
 
 function ListStructure({ baseComponentId, isSummary, children }: PropsWithChildren<ListComponentProps>) {
