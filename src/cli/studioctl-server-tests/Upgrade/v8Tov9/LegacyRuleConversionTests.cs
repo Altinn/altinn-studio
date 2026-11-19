@@ -479,7 +479,9 @@ public sealed class LegacyRuleConversionTests
                 var store = new Store(inputs);
                 var changes = new Altinn.App.Core.Models.DataElementChanges();
                 changes.FormDataChanges.Add(new() { CurrentFormDataWrapper = store });
-                await new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor().ProcessDataWrite(null!, "task", changes, null);
+                await new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor(
+                    Microsoft.Extensions.Logging.Abstractions.NullLogger<Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor>.Instance
+                ).ProcessDataWrite(null!, "task", changes, null);
                 return store.Result;
             }
         }

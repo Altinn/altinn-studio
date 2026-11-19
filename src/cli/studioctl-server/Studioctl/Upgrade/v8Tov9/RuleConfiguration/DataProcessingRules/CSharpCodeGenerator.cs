@@ -98,9 +98,11 @@ internal sealed class CSharpCodeGenerator(
         code.AppendLine("using Altinn.App.Core.Models;");
         code.AppendLine("using Altinn.App.Core.Internal.Data;");
         code.AppendLine("using Altinn.App.Core.Internal.Expressions;");
+        code.AppendLine("using Microsoft.Extensions.Logging;");
         code.AppendLine("#nullable enable");
         code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
-        code.AppendLine($"public class {className} : IDataWriteProcessor");
+        var constructor = result.SuccessfulConversions > 0 ? $"(ILogger<{className}> logger)" : "";
+        code.AppendLine($"public class {className}{constructor} : IDataWriteProcessor");
         code.OpenBrace();
         code.AppendLine(
             "public async Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)"
@@ -158,7 +160,7 @@ internal sealed class CSharpCodeGenerator(
                 $"if (!wrapper.Set({target}, ExpressionValue.FromObject(result is JsUndefined ? null : result)))"
             );
             code.AppendLine(
-                $"    Console.Error.WriteLine(\"Could not set migrated calculation value for field \" + {target});"
+                $"    logger.LogWarning(\"Could not set migrated calculation value for field {{Field}}\", {target});"
             );
             code.AppendLine("return Task.CompletedTask;");
             code.CloseBrace();
