@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
+import { BaseTable, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
@@ -41,9 +41,9 @@ import type { GridRowLayout } from 'src/layout/Grid/useGridRows';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {
-  const isMobileOrTablet = useIsMobileOrTablet();
+  const isMobile = useIsMobile();
   const pdfModeActive = usePdfModeActive();
-  const isSmall = isMobileOrTablet && !pdfModeActive;
+  const isSmall = isMobile && !pdfModeActive;
   const rows = RepGroupHooks.useVisibleRows(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
@@ -80,29 +80,27 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
         />
         <BaseTable.Body>
           {renderExtraRows(rowsBefore, 'before', showEditColumn)}
-          {!isSmall && (
-            <BaseTable.Row>
-              <DataModelLocationProvider
-                groupBinding={dataModelBindings.group}
-                rowIndex={0} // Force the header row to show texts as if it is in the first row
-              >
-                {columns.map((id) => (
-                  <HeaderCell
-                    key={id}
-                    baseComponentId={id}
-                    columnSettings={columnSettings}
-                  />
-                ))}
-              </DataModelLocationProvider>
-              {showEditColumn && (
-                <BaseTable.HeaderCell className={tableClasses.narrowLastColumn}>
-                  <span className={utilClasses.visuallyHidden}>
-                    <Lang id='general.edit' />
-                  </span>
-                </BaseTable.HeaderCell>
-              )}
-            </BaseTable.Row>
-          )}
+          <BaseTable.Row>
+            <DataModelLocationProvider
+              groupBinding={dataModelBindings.group}
+              rowIndex={0} // Force the header row to show texts as if it is in the first row
+            >
+              {columns.map((id) => (
+                <HeaderCell
+                  key={id}
+                  baseComponentId={id}
+                  columnSettings={columnSettings}
+                />
+              ))}
+            </DataModelLocationProvider>
+            {showEditColumn && (
+              <BaseTable.HeaderCell className={tableClasses.narrowLastColumn}>
+                <span className={utilClasses.visuallyHidden}>
+                  <Lang id='general.edit' />
+                </span>
+              </BaseTable.HeaderCell>
+            )}
+          </BaseTable.Row>
           {rows.map((row, index) => (
             <DataModelLocationProvider
               groupBinding={dataModelBindings.group}
