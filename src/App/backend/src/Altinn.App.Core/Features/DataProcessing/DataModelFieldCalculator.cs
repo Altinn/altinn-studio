@@ -223,10 +223,10 @@ internal sealed class DataModelFieldCalculator
     }
 
     /// <summary>
-    /// Merges a list of objects into the rows of a list, the same way the frontend does. A result row with an id
-    /// merges into the row with that id, wherever it is, or becomes a new row with that id. A result row without one
-    /// merges into the row at its position, unless another result row names that row by id, and becomes a new row
-    /// otherwise. The rows end up in the order of the result, and rows the result does not name are removed.
+    /// Merges a list of objects into the rows of a list, the same way the frontend does. When every result row has an
+    /// id, each merges into the row with that id, wherever it is, or becomes a new row with that id. When none has,
+    /// each merges into the row at its position. A result where only some rows have an id fails, since it is not
+    /// clear which rule was meant. The rows end up in the order of the result, and rows it does not name are removed.
     /// </summary>
     private void MergeRows(IFormDataWrapper formDataWrapper, DataReference field, string path, JsonElement rows)
     {
@@ -254,6 +254,13 @@ internal sealed class DataModelFieldCalculator
                     $"The calculation for {field.Field} gives more than one row in {path} the altinnRowId {id}"
                 );
             }
+        }
+
+        if (seenRowIds.Count > 0 && seenRowIds.Count < resultRows.Count)
+        {
+            throw new InvalidOperationException(
+                $"The calculation for {field.Field} gives a list where some rows in {path} have an altinnRowId and some do not. Rows are merged by id when all of them have one, and by position when none has."
+            );
         }
 
         var currentRowCount = formDataWrapper.GetRowCount(path, rowIndexes: default) ?? 0;
@@ -343,34 +350,20 @@ internal sealed class DataModelFieldCalculator
     }
 
     /// <summary>
-    /// Finds the current row each result row merges into, or <see cref="NewRow"/>. Ids are matched first, so a row
-    /// named by id is never taken by position.
+    /// Finds the current row each result row merges into, or <see cref="NewRow"/>: by id when the rows have one, and
+    /// by position when they do not
     /// </summary>
     private static int[] PlanRows(Guid?[] resultRowIds, object?[] currentRows, Dictionary<Guid, int> currentIndexById)
     {
         var sources = new int[resultRowIds.Length];
-        var namedById = new HashSet<int>();
         for (var index = 0; index < resultRowIds.Length; index++)
         {
-            sources[index] = NewRow;
-            if (resultRowIds[index] is { } id && currentIndexById.TryGetValue(id, out var currentIndex))
+            sources[index] = resultRowIds[index] switch
             {
-                sources[index] = currentIndex;
-                namedById.Add(currentIndex);
-            }
-        }
-
-        for (var index = 0; index < resultRowIds.Length; index++)
-        {
-            if (
-                resultRowIds[index] is null
-                && index < currentRows.Length
-                && currentRows[index] is not null
-                && !namedById.Contains(index)
-            )
-            {
-                sources[index] = index;
-            }
+                { } id => currentIndexById.GetValueOrDefault(id, NewRow),
+                null when index < currentRows.Length && currentRows[index] is not null => index,
+                null => NewRow,
+            };
         }
 
         return sources;

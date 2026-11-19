@@ -256,10 +256,10 @@ function asRowId(value: unknown): string | undefined {
 }
 
 /**
- * Merges a list of objects into the rows of a list, the same way the backend does. A result row with an id merges into
- * the row with that id, wherever it is, or becomes a new row with that id. A result row without one merges into the
- * row at its position, unless another result row names that row by id, and becomes a new row otherwise. The rows end
- * up in the order of the result, and rows the result does not name are removed.
+ * Merges a list of objects into the rows of a list, the same way the backend does. When every result row has an id,
+ * each merges into the row with that id, wherever it is, or becomes a new row with that id. When none has, each merges
+ * into the row at its position. A result where only some rows have an id fails, since it is not clear which rule was
+ * meant. The rows end up in the order of the result, and rows it does not name are removed.
  */
 function mergeRows(target: string, rows: unknown[], context: CalculationTarget) {
   const { dataType, model, lookupTool } = context;
@@ -280,6 +280,12 @@ function mergeRows(target: string, rows: unknown[], context: CalculationTarget) 
       seenRowIds.add(rowId);
     }
     resultRowIds.push(rowId);
+  }
+  if (seenRowIds.size > 0 && seenRowIds.size < rows.length) {
+    throw new Error(
+      `The calculation for ${dataType}.${target} gives a list where some rows have an altinnRowId and some do not. ` +
+        'Rows are merged by id when all of them have one, and by position when none has.',
+    );
   }
   const [schema] = lookupTool.getSchemaForPath(target);
   const [itemSchema] = lookupTool.getSchemaForPath(`${target}[0]`);
@@ -316,28 +322,20 @@ function mergeRows(target: string, rows: unknown[], context: CalculationTarget) 
 const NEW_ROW = -1;
 
 /**
- * Finds the current row each result row merges into, or NEW_ROW. Ids are matched first, so a row named by id is never
- * taken by position.
+ * Finds the current row each result row merges into, or NEW_ROW: by id when the rows have one, and by position when
+ * they do not
  */
 function planRows(
   resultRowIds: (string | undefined)[],
   current: unknown[],
   currentIndexById: Map<string, number>,
 ): number[] {
-  const namedById = new Set<number>();
-  const sources = resultRowIds.map((rowId) => {
-    const currentIndex = rowId === undefined ? undefined : currentIndexById.get(rowId);
-    if (currentIndex === undefined) {
-      return NEW_ROW;
+  return resultRowIds.map((rowId, index) => {
+    if (rowId !== undefined) {
+      return currentIndexById.get(rowId) ?? NEW_ROW;
     }
-    namedById.add(currentIndex);
-    return currentIndex;
+    return index < current.length && isObject(current[index]) ? index : NEW_ROW;
   });
-  return sources.map((source, index) =>
-    resultRowIds[index] === undefined && index < current.length && isObject(current[index]) && !namedById.has(index)
-      ? index
-      : source,
-  );
 }
 
 /** Calculations read and write the same draft so later expressions see earlier results. */
