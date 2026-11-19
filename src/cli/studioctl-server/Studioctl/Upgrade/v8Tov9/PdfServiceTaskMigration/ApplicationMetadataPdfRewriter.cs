@@ -47,9 +47,7 @@ internal sealed class ApplicationMetadataPdfRewriter
 
     /// <summary>
     /// Returns the distinct tasks that made a PDF in v8, in document order, each with the ids of the qualifying data
-    /// types bound to it, in document order. The first of them that an instance has is the task's form data model,
-    /// which is what a gateway after the task would previously have inferred from its UI configuration (see
-    /// PdfProcessRewriter).
+    /// types bound to it, in document order.
     /// </summary>
     /// <param name="metadata">The file's content, from <see cref="Read"/>.</param>
     public IReadOnlyList<TaskRequiringPdf> GetTasksRequiringPdf(JsonElement metadata)

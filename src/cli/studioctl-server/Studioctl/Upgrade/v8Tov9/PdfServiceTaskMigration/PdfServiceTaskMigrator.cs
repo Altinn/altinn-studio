@@ -126,7 +126,12 @@ internal sealed class PdfServiceTaskMigrator
                 metadata.RootElement,
                 processRewriter.Document
             );
-            var (tasks, uncertain) = PlanPdfTasks(tasksRequiringPdf, creators, messages);
+            var (tasks, uncertain) = PlanPdfTasks(
+                tasksRequiringPdf,
+                creators,
+                new TaskUiSettings(_projectFolder),
+                messages
+            );
 
             // Decide how each task's PDF must render before changing anything. A task whose legacy PDF
             // came from a custom layout gets a layout set of its own for its PDF service task.
@@ -248,13 +253,14 @@ internal sealed class PdfServiceTaskMigrator
     }
 
     /// <summary>
-    /// The tasks to add a PDF service task after, each with the data type a gateway after it infers its data model
-    /// from: the first of its data types an instance may have. A task none of whose data types anything creates
-    /// gets none, with a message saying so.
+    /// The tasks to add a PDF service task after, each with the data model a gateway after it read in v8: the one the
+    /// task's UI settings name, or else the first of its data types an instance may have. A task none of whose data
+    /// types anything creates gets none, with a message saying so.
     /// </summary>
     private static PdfTaskPlan PlanPdfTasks(
         IReadOnlyList<TaskRequiringPdf> tasksRequiringPdf,
         DataElementCreators creators,
+        TaskUiSettings taskUiSettings,
         List<UpgradeMessage> messages
     )
     {
@@ -284,14 +290,18 @@ internal sealed class PdfServiceTaskMigrator
                     creators.UnknownCreations
                 );
             }
-            tasks.Add((task.TaskId, creations.First(c => c.Creation != DataElementCreation.None).Id));
+            // SourceTaskPdfLayoutResolver reports an unreadable settings file and holds the task back.
+            var gatewayDataType =
+                taskUiSettings.FindDataTypeForTask(task.TaskId, _ => { })
+                ?? creations.First(c => c.Creation != DataElementCreation.None).Id;
+            tasks.Add((task.TaskId, gatewayDataType));
         }
 
         return new PdfTaskPlan(tasks, uncertain);
     }
 
     /// <summary>The tasks to add a PDF service task after, as <see cref="PlanPdfTasks"/> plans them.</summary>
-    /// <param name="Tasks">Each task, with the data type a gateway after it infers its data model from.</param>
+    /// <param name="Tasks">Each task, with the data model to pin on the gateways after it.</param>
     /// <param name="Uncertain">
     /// The to-do for each task whose data types only the app's code may create, should its PDF service task be added.
     /// </param>

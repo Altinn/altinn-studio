@@ -98,8 +98,8 @@ internal sealed class PdfProcessRewriter
     }
 
     /// <summary>
-    /// Inserts a pdf service task after each of the given tasks. The paired dataType id (the task's
-    /// form data model) is used to pin <c>connectedDataTypeId</c> on any downstream gateway whose
+    /// Inserts a pdf service task after each of the given tasks. The paired data type id, the data model a gateway
+    /// after the task read in v8, is pinned as <c>connectedDataTypeId</c> on any downstream gateway whose
     /// expressions previously inferred their data model from the data task. Changes are held in
     /// memory until <see cref="Write"/> is called.
     /// </summary>
@@ -334,8 +334,8 @@ internal sealed class PdfProcessRewriter
         // 5) Preserve gateway expression evaluation. Downstream exclusive gateways used to infer their
         // default data model from the data task's UI configuration (the process engine falls back to the
         // *current* task when no connectedDataTypeId is set) - with the pdf task in between, the current
-        // task at evaluation time is the pdf task, which has no UI configuration. Pin the data task's
-        // form data model explicitly on each gateway reachable through gateways from here.
+        // task at evaluation time is the pdf task, which has no UI configuration. Pin that data model
+        // explicitly on each gateway reachable through gateways from here.
         if (target is not null)
         {
             EnsureGatewayDataTypes(process, target, taskId, dataTypeId, visited: []);

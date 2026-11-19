@@ -264,6 +264,39 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.Equal("other-model", dataTypeIds[0].Value);
     }
 
+    [Theory]
+    [InlineData("ui/Task_1/Settings.json", """{ "defaultDataType": "model" }""")]
+    [InlineData("ui/layout-sets.json", """{ "sets": [{ "id": "form", "dataType": "model", "tasks": ["Task_1"] }] }""")]
+    public async Task DownstreamGateway_IsPinnedToTheDataModelOfTheTasksUiSettings(string file, string content)
+    {
+        // v8 gateways read the data model the current task's UI settings name, not the first PDF data type.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(
+                FormDataType("receipt", "Task_1", enablePdfCreation: true),
+                FormDataType("model", "Task_1", enablePdfCreation: false)
+            )
+        );
+        _app.Write(file, content);
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "data"),
+                Gateway("Gateway_1"),
+                Flow("Flow_to_gw", "Task_1", "Gateway_1"),
+                ConditionalFlow("Flow_yes", "Gateway_1", "EndEvent_1", "[\"equals\", [\"dataModel\", \"done\"], true]"),
+                ConditionalFlow("Flow_no", "Gateway_1", "EndEvent_2", "[\"equals\", [\"dataModel\", \"done\"], false]"),
+                EndEvent("EndEvent_1"),
+                EndEvent("EndEvent_2")
+            )
+        );
+
+        await Migrate();
+
+        var gateway = ElementById(ProcessAfter(), "Gateway_1");
+        Assert.Equal("model", gateway?.Descendants().Single(e => e.Name.LocalName == "connectedDataTypeId").Value);
+    }
+
     [Fact]
     public async Task ProcessFileBom_IsPreserved_AndAbsenceStaysAbsent()
     {
