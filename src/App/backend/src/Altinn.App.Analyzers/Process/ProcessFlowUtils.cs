@@ -514,8 +514,10 @@ internal static class ProcessFlowUtils
 
     /// <summary>
     /// Whether the condition calls <c>["gatewayAction"]</c> anywhere. An expression is a JSON array whose first item
-    /// names the function, and the runtime matches the name exactly (<c>ExpressionConverter</c>). A condition that is
-    /// not valid JSON fails at runtime whatever it reads, so it is not counted.
+    /// names the function, and the runtime parses the name as an enum, ignoring surrounding whitespace
+    /// (<c>ExpressionConverter</c>). A condition that is not valid JSON fails at runtime whatever it reads, so it is
+    /// not counted; the whole condition is read before answering, since the reader finds a syntax error only when it
+    /// gets there.
     /// </summary>
     internal static bool ReadsGatewayAction(string condition)
     {
@@ -535,22 +537,23 @@ internal static class ProcessFlowUtils
                 return false;
             }
 
+            var calls = false;
             var first = true;
             foreach (var item in value.GetArrayValues())
             {
-                if (first && item.Type == JsonType.String && item.StringEquals("gatewayAction".AsSpan()))
+                if (first && item.Type == JsonType.String && item.GetString().Trim() == "gatewayAction")
                 {
-                    return true;
+                    calls = true;
                 }
 
                 first = false;
                 if (CallsGatewayAction(item))
                 {
-                    return true;
+                    calls = true;
                 }
             }
 
-            return false;
+            return calls;
         }
     }
 

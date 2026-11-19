@@ -1129,9 +1129,12 @@ public class ProcessFlowUtilsTests
     [InlineData("""["equals", ["gatewayActions"], "confirm"]""", false)]
     [InlineData("""["equals", ["dataModel", "gatewayAction"], "confirm"]""", false)]
     [InlineData("\"gatewayAction\"", false)]
+    [InlineData("""["equals", [" gatewayAction "], "confirm"]""", true)]
     [InlineData("""{"function": "gatewayAction"}""", false)]
     [InlineData("", false)]
     [InlineData("""["equals", """, false)]
+    [InlineData("[\"gatewayAction\"", false)]
+    [InlineData("""["or", ["equals", ["gatewayAction"], "confirm"], ["equals", 1""", false)]
     public void A_Condition_Reads_The_Action_Only_By_Calling_GatewayAction(string condition, bool expected)
     {
         Assert.Equal(expected, ProcessFlowUtils.ReadsGatewayAction(condition));
