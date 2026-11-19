@@ -617,10 +617,9 @@ internal sealed class FormBootstrapService
         }
 
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
-        if (changes.AllChanges.Count == 0)
-        {
-            return;
-        }
+        // The save sends the data values and presentation texts the read hooks changed on the instance, with or
+        // without a form data change.
+        bool hasInstanceFieldChanges = dataAccessor.HasInstanceFieldChanges();
 
         var persistableChanges = changes
             .AllChanges.Where(c =>
@@ -628,7 +627,7 @@ internal sealed class FormBootstrapService
                 && c.DataType.IsWritableInCurrentTask(dataAccessor.Instance)
             )
             .ToList();
-        if (persistableChanges.Count == 0)
+        if (persistableChanges.Count == 0 && !hasInstanceFieldChanges)
         {
             return;
         }
