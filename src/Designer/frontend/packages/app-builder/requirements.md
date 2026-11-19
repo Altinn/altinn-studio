@@ -93,8 +93,8 @@ To build a basic app it also needs:
 4. **Field settings.** Label, description, help text, required, read-only, width (full or half), max length.
    Input as a number, amount, email or phone, which sets formatting, `autocomplete` and a schema pattern together.
    Earliest and latest date on Datepicker.
-5. **Options.** Edit inline options, and pick a shared code list. A built-in yes/no list covers the most common
-   case.
+5. **Options.** Edit inline options, and pick one of the app's code lists. A yes/no list, which the builder adds to
+   the app the first time it is used, covers the most common case.
 6. **Show when.** One-condition rules on components, groups and pages, with "is one of" for several values.
 7. **Prefill.** Fill a field from the population register, organization register or user profile, and show it as
    read-only.
@@ -103,6 +103,32 @@ To build a basic app it also needs:
 10. **Who can submit.** Person, organization or both.
 
 RepeatingGroup, Address, calculations, signing and payment come next, in roughly that order.
+
+## Decisions
+
+- **Opening an app never changes it.** A page without Next/Back, or an app without a summary page, gets a button
+  that adds them. Changes the user did not ask for would surprise them, and show up in their repository.
+- **The canvas looks like the app.** The design handover was a proof of concept, so where it differs from what the
+  app renders, the app wins. The canvas renders the shared components from `@app/form-component`, and components
+  that were missing there were moved from the App frontend without changing its output.
+- **A question asks for its label first.** The label names its data model field, so the user rarely has to rename
+  the field afterwards.
+- **The C# model is generated when the app is tested,** and from the toolbar when it is out of date, not on every
+  change, since generating compiles the app's code.
+- **Rules are the app's own `hidden` and `required` expressions.** The builder edits rules with one condition ("is",
+  "is not" and "is one of") and leaves other expressions as they are, so it never overwrites logic it does not show.
+  FileUpload has no `required`, so "required only when" sets `minNumberOfAttachments` instead.
+- **Deleting offers to remove texts and fields, but never removes a field by default.** Answers may be stored in it
+  wherever the app has run, which the builder cannot know. Whether the app is published is too weak a signal to
+  decide it. The attachment types of deleted file uploads are always removed, since the app would otherwise demand
+  uploads it has no place for. Rules elsewhere that check what is deleted are named, not changed.
+- **New file uploads allow every file type,** as in Studio, and the settings say so. 84 % of file uploads in
+  production limit their file types, so the user is likely to choose some.
+- **"Test appen" opens Studio's preview.** The builder has no test mode of its own, so testing uses the real App
+  frontend.
+- **Making code lists, and standard lists such as countries, are postponed.** The organization library's static lists
+  are the likely way to offer standard lists without code. `Altinn.Codelists` needs a change in the app's C#, so it
+  does not fit the builder.
 
 ## Example app to rebuild
 
@@ -121,3 +147,15 @@ Rebuilding it exercises items 1–7 and 10 above. The Address component can be r
 
 For a first smoke test, `nb-prod-nabap` (Norges Bank PhD scholarship application) is smaller: two pages,
 15 components, no rules, no prefill and no custom code.
+
+What the builder still lacks to rebuild them:
+
+- **Address.** `skole-utsatt-tidlig-skolestart` uses it twice. Three fields with the postcode answer type replace it.
+- **The name formatting.** Without custom code, the first and last name are prefilled into two fields instead.
+- **A country list.** `nb-prod-nabap` asks for nationality. A short text field, or a code list made once in
+  Utforming, replaces it. Its dropdown in production has a single empty option, so it does not work there either.
+- **Smaller things:** subheadings, dividers and the navigation bar, which change how the app looks but not what it
+  asks.
+
+Neither app has been rebuilt and run end to end yet. The local Studio preview was switched off when the builder was
+tested.
