@@ -12,7 +12,7 @@ namespace Altinn.App.Options
         public Task<DataList> GetDataList(string? language, Dictionary<string, string> keyValuePairs)
         {
             int start = 0;
-            int count = 10;
+            int? count = null;
             string search = "";
 
             if (keyValuePairs.ContainsKey("search") )
@@ -68,8 +68,8 @@ namespace Altinn.App.Options
             List<object> objectList = new List<object>();
             items.ForEach(o => objectList.Add(o));
 
-            int boundedCount = start + count > items.Count ? items.Count - start : count;
-            return Task.FromResult(new DataList { ListItems = objectList.GetRange(start, boundedCount), _metaData = appListsMetaData });
+            var listItems = count.HasValue ? objectList.Skip(start).Take(count.Value).ToList() : objectList;
+            return Task.FromResult(new DataList { ListItems = listItems, _metaData = appListsMetaData });
         }
     }
 }
