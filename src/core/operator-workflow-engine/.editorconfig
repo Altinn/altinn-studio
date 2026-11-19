@@ -138,14 +138,3 @@ dotnet_diagnostic.CA1032.severity = none
 [*.{yml,yaml,json}]
 indent_size = 2
 end_of_line = lf
-
-
-# https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
-
-[*.{received,verified}.{json,txt,xml}]
-end_of_line = lf
-indent_size = unset
-indent_style = unset
-insert_final_newline = false
-tab_width = unset
-trim_trailing_whitespace = false

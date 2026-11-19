@@ -6,27 +6,18 @@ using WorkflowEngine.Models;
 using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Operator.Commands.OperatorCommand;
 using WorkflowEngine.Resilience;
+using static WorkflowEngine.Operator.Tests.Fixtures.OperatorCommandTestFixture;
 
 namespace WorkflowEngine.Operator.Tests.Commands.OperatorCommand;
 
-public class OperatorCommandValidationTests
+public sealed class OperatorCommandValidationTests
 {
     private static readonly ICommand _command = CreateCommand();
-
-    private static OperatorWorkflowContext ValidContext() =>
-        new()
-        {
-            Domain = "runs",
-            Caller = "assistant",
-            SubjectId = "4e1f6a52-5f0b-5d3e-9a4b-2c7d8e9f0a1b",
-        };
-
-    private static OperatorCommandData ValidData() => new() { CommandKey = "run.admit" };
 
     [Fact]
     public void Validate_NullCommandData_Rejects()
     {
-        var result = _command.Validate(null, ValidContext());
+        var result = _command.Validate(null, DefaultContext);
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("commandKey", invalid.Message, StringComparison.Ordinal);
@@ -38,7 +29,7 @@ public class OperatorCommandValidationTests
     [InlineData("   ")]
     public void Validate_EmptyCommandKey_Rejects(string? commandKey)
     {
-        var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey! }, ValidContext());
+        var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey! }, DefaultContext);
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("commandKey", invalid.Message, StringComparison.Ordinal);
@@ -54,7 +45,7 @@ public class OperatorCommandValidationTests
     [InlineData("run.admit\n")]
     public void Validate_CommandKeyOutsideOneSegment_Rejects(string commandKey)
     {
-        var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey }, ValidContext());
+        var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey }, DefaultContext);
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("commandKey", invalid.Message, StringComparison.Ordinal);
@@ -66,7 +57,7 @@ public class OperatorCommandValidationTests
     [InlineData("maskinporten.ensure_client")]
     public void Validate_DottedCommandKey_Accepts(string commandKey)
     {
-        var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey }, ValidContext());
+        var result = _command.Validate(new OperatorCommandData { CommandKey = commandKey }, DefaultContext);
 
         Assert.IsType<CommandValidationResult.Valid>(result);
     }
@@ -74,7 +65,7 @@ public class OperatorCommandValidationTests
     [Fact]
     public void Validate_NullWorkflowContext_Rejects()
     {
-        var result = _command.Validate(ValidData(), null);
+        var result = _command.Validate(CreateCommandData(), null);
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("workflow context", invalid.Message, StringComparison.Ordinal);
@@ -86,7 +77,7 @@ public class OperatorCommandValidationTests
     [InlineData("   ")]
     public void Validate_EmptyDomain_Rejects(string? domain)
     {
-        var result = _command.Validate(ValidData(), ValidContext() with { Domain = domain! });
+        var result = _command.Validate(CreateCommandData(), DefaultContext with { Domain = domain! });
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("'domain'", invalid.Message, StringComparison.Ordinal);
@@ -98,7 +89,7 @@ public class OperatorCommandValidationTests
     [InlineData("   ")]
     public void Validate_EmptyCaller_Rejects(string? caller)
     {
-        var result = _command.Validate(ValidData(), ValidContext() with { Caller = caller! });
+        var result = _command.Validate(CreateCommandData(), DefaultContext with { Caller = caller! });
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("'caller'", invalid.Message, StringComparison.Ordinal);
@@ -110,7 +101,7 @@ public class OperatorCommandValidationTests
     [InlineData("   ")]
     public void Validate_EmptySubjectId_Rejects(string? subjectId)
     {
-        var result = _command.Validate(ValidData(), ValidContext() with { SubjectId = subjectId! });
+        var result = _command.Validate(CreateCommandData(), DefaultContext with { SubjectId = subjectId! });
 
         var invalid = Assert.IsType<CommandValidationResult.Invalid>(result);
         Assert.Contains("'subjectId'", invalid.Message, StringComparison.Ordinal);
@@ -119,7 +110,7 @@ public class OperatorCommandValidationTests
     [Fact]
     public void GetTelemetryAttributes_NamesDomainCallerAndSubject()
     {
-        var attributes = _command.GetTelemetryAttributes(ValidData(), ValidContext());
+        var attributes = _command.GetTelemetryAttributes(CreateCommandData(), DefaultContext);
 
         KeyValuePair<string, object?>[] expected =
         [
@@ -133,7 +124,7 @@ public class OperatorCommandValidationTests
     [Fact]
     public void GetTelemetryAttributes_NoContext_ReturnsNone()
     {
-        var attributes = _command.GetTelemetryAttributes(ValidData(), null);
+        var attributes = _command.GetTelemetryAttributes(CreateCommandData(), null);
 
         Assert.Empty(attributes);
     }

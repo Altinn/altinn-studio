@@ -37,7 +37,8 @@ token, and the host needs no secret. altinn-studio-infra sets the server and the
 [failure-storm throttling](../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md). Every step calls the
 same operator, so all namespaces fail together, and the throttling would hold runs back after the operator recovers.
 
-The engine keeps a finished workflow for 14 days. Until then, a caller can read the run and find it by its labels.
+The engine keeps a finished workflow for the `RetentionPeriod` in `appsettings.json`. Until then, a caller can read the
+run and find it by its labels.
 
 ## Telemetry
 

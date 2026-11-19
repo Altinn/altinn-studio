@@ -10,7 +10,7 @@ namespace WorkflowEngine.Operator.Tests.Contract;
 /// Checks the command against the callback examples in <c>src/core/operator/testdata/callbacks</c>. The operator's
 /// tests read the same files, so neither side can drift from them without a failing test.
 /// </summary>
-public class CallbackContractTests
+public sealed class CallbackContractTests
 {
     [Fact]
     public async Task Payload_ForTheExampleInputs_EqualsPayloadJson()

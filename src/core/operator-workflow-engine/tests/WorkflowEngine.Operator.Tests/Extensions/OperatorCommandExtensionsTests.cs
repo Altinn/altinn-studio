@@ -6,19 +6,19 @@ using WorkflowEngine.Operator.Extensions;
 
 namespace WorkflowEngine.Operator.Tests.Extensions;
 
-public class OperatorCommandExtensionsTests
+public sealed class OperatorCommandExtensionsTests
 {
     [Fact]
     public void ConfigureOperatorCommand_EmptyTokenPath_KeepsItEmpty()
     {
-        using var sp = BuildServiceProvider(
+        using var provider = BuildServiceProvider(
             new()
             {
                 ["OperatorCommandSettings:CommandEndpoint"] = "http://localhost:8090/workflow-engine-callbacks/",
                 ["OperatorCommandSettings:TokenPath"] = "",
             }
         );
-        var settings = sp.GetRequiredService<IOptions<OperatorCommandSettings>>().Value;
+        var settings = provider.GetRequiredService<IOptions<OperatorCommandSettings>>().Value;
 
         Assert.Equal("http://localhost:8090/workflow-engine-callbacks/", settings.CommandEndpoint);
         Assert.Equal("", settings.TokenPath);
@@ -30,12 +30,12 @@ public class OperatorCommandExtensionsTests
     [InlineData("ftp://operator/workflow-engine-callbacks/")]
     public void ConfigureOperatorCommand_InvalidCommandEndpoint_ThrowsOnResolve(string endpoint)
     {
-        using var sp = BuildServiceProvider(new() { ["OperatorCommandSettings:CommandEndpoint"] = endpoint });
+        using var provider = BuildServiceProvider(new() { ["OperatorCommandSettings:CommandEndpoint"] = endpoint });
 
-        var ex = Assert.Throws<OptionsValidationException>(() =>
-            sp.GetRequiredService<IOptions<OperatorCommandSettings>>().Value
+        var exception = Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptions<OperatorCommandSettings>>().Value
         );
-        Assert.Contains("CommandEndpoint", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("CommandEndpoint", exception.Message, StringComparison.Ordinal);
     }
 
     private static ServiceProvider BuildServiceProvider(Dictionary<string, string?> configuration)

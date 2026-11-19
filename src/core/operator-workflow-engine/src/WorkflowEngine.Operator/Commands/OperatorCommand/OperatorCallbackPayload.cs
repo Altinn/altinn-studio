@@ -11,12 +11,15 @@ namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 /// </remarks>
 internal sealed record OperatorCallbackPayload
 {
+    /// <summary>The step's key, which is also the last segment of the callback's path.</summary>
     [JsonPropertyName("commandKey")]
     public required string CommandKey { get; init; }
 
+    /// <summary>The context that the operator gave the workflow when it enqueued it.</summary>
     [JsonPropertyName("context")]
     public required OperatorWorkflowContext Context { get; init; }
 
+    /// <summary>The workflow's id in the engine.</summary>
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }
 
@@ -51,9 +54,11 @@ internal sealed record OperatorCallbackPayload
     [JsonPropertyName("executionDeadline")]
     public DateTimeOffset? ExecutionDeadline { get; init; }
 
+    /// <summary>How many times this step has deferred.</summary>
     [JsonPropertyName("deferCount")]
     public int DeferCount { get; init; }
 
+    /// <summary>When this step first deferred, or <c>null</c> before then.</summary>
     [JsonPropertyName("firstDeferredAt")]
     public DateTimeOffset? FirstDeferredAt { get; init; }
 

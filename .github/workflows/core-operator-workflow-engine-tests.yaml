@@ -46,16 +46,10 @@ jobs:
         with:
           global-json-file: src/core/operator-workflow-engine/global.json
 
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore
+      - name: Build and test
+        run: make test
         env:
           CI: true
-
-      - name: Test
-        run: dotnet test --no-build
 
   # The operator's own workflow does not start when the engine library changes, so this workflow runs the test.
   integration:

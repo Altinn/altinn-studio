@@ -12,8 +12,15 @@ namespace WorkflowEngine.Operator.Commands.OperatorCommand;
 /// </remarks>
 internal static class OperatorTelemetryAttributes
 {
+    /// <summary>The key of <see cref="OperatorWorkflowContext.Domain"/>.</summary>
     public const string Domain = "altinn.core_operator.domain";
+
+    /// <summary>The key of <see cref="OperatorWorkflowContext.Caller"/>.</summary>
     public const string Caller = "altinn.core_operator.caller";
+
+    /// <summary>The key of <see cref="OperatorWorkflowContext.SubjectId"/>.</summary>
     public const string SubjectId = "altinn.core_operator.subject_id";
+
+    /// <summary>The key of the step's command key, on the callback span.</summary>
     public const string OperatorCommandKey = "altinn.core_operator.command_key";
 }

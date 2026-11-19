@@ -6,6 +6,7 @@ internal static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
+        /// <summary>Binds <see cref="OperatorCommandSettings"/>, and fails the start when its endpoint is not a URL.</summary>
         public IServiceCollection ConfigureOperatorCommand()
         {
             const string sectionName = nameof(OperatorCommandSettings);
