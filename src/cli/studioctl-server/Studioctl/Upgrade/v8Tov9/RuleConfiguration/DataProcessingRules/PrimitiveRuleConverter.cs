@@ -33,7 +33,9 @@ internal sealed class PrimitiveRuleConverter(
         if (function.Body is not BlockStatement body)
             throw new NotSupportedException("Unsupported function body.");
         foreach (var statement in body.Body)
-            CollectLocals(statement);
+            CollectLocals(statement, assignments: false);
+        foreach (var statement in body.Body)
+            CollectLocals(statement, assignments: true);
         foreach (var (name, local) in _locals)
             if (!_helpers.ContainsKey(name))
                 code.AppendLine($"object? {local} = Undefined;");
@@ -43,11 +45,11 @@ internal sealed class PrimitiveRuleConverter(
         return code.ToString();
     }
 
-    private void CollectLocals(Statement statement)
+    private void CollectLocals(Statement statement, bool assignments)
     {
         switch (statement)
         {
-            case VariableDeclaration declaration:
+            case VariableDeclaration declaration when !assignments:
                 foreach (var variable in declaration.Declarations)
                 {
                     if (
@@ -69,18 +71,22 @@ internal sealed class PrimitiveRuleConverter(
                 break;
             case BlockStatement block:
                 foreach (var child in block.Body)
-                    CollectLocals(child);
+                    CollectLocals(child, assignments);
                 break;
             case IfStatement conditional:
-                CollectLocals(conditional.Consequent);
+                CollectLocals(conditional.Consequent, assignments);
                 if (conditional.Alternate != null)
-                    CollectLocals(conditional.Alternate);
+                    CollectLocals(conditional.Alternate, assignments);
                 break;
-            case ExpressionStatement { Expression: AssignmentExpression { Left: Identifier id } }:
+            case ExpressionStatement { Expression: AssignmentExpression { Left: Identifier id } } when assignments:
                 if (id.Name == parameterName || IsBuiltin(id.Name))
                     throw new NotSupportedException("Assignment changes the input object or a builtin.");
                 if (_locals.TryAdd(id.Name, localPrefix + _locals.Count))
+                {
+                    if (parameterValue != "obj")
+                        throw new NotSupportedException("Helpers cannot assign captured or global variables.");
                     _implicit.Add(id.Name);
+                }
                 break;
         }
     }
@@ -143,6 +149,9 @@ internal sealed class PrimitiveRuleConverter(
                         _assigned.Add(id.Name);
                         continue;
                     }
+                    // var is initialized at function entry; a later declaration does not overwrite an assignment.
+                    if (variable.Init == null && declaration.Kind.ToString() == "Var")
+                        continue;
                     code.AppendLine($"{Local(id.Name)} = {Expression(variable.Init)};");
                     _assigned.Add(id.Name);
                 }
@@ -293,7 +302,7 @@ internal sealed class PrimitiveRuleConverter(
                 Object: Identifier { Name: "Number" },
                 Property: Identifier { Name: "MAX_SAFE_INTEGER" },
                 Computed: false
-            } => "9007199254740991d",
+            } when parameterName != "Number" && !_locals.ContainsKey("Number") => "9007199254740991d",
             MemberExpression { Object: Identifier obj } member
                 when obj.Name == parameterName && parameterValue == "obj" =>
                 $"JsGet({parameterValue}, {PropertyKey(member)})",
@@ -419,14 +428,17 @@ internal sealed class PrimitiveRuleConverter(
             return $"JsTrim({receiver}, {optional})";
         if (call.Arguments.Count != 1)
             throw new NotSupportedException("Expected one method argument.");
+        var receiverLocal = "optional_" + _steps++;
+        var actualReceiver = member.Optional ? receiverLocal : receiver;
         var value = Expression(call.Arguments[0]);
-        return method.Name switch
+        var invocation = method.Name switch
         {
-            "toFixed" => $"JsFixed({receiver}, {value}, {optional})",
-            "includes" => $"JsIncludes({receiver}, {value}, {optional})",
-            "split" => $"JsSplit({receiver}, {value}, {optional})",
+            "toFixed" => $"JsFixed({actualReceiver}, {value}, false)",
+            "includes" => $"JsIncludes({actualReceiver}, {value}, false)",
+            "split" => $"JsSplit({actualReceiver}, {value}, false)",
             _ => throw new NotSupportedException($"Unsupported method {method.Name}."),
         };
+        return member.Optional ? $"JsOptional({receiver}, {receiverLocal} => {invocation})" : invocation;
     }
 
     private string Every(CallExpression call, MemberExpression member)
@@ -501,7 +513,7 @@ internal sealed class PrimitiveRuleConverter(
             || callback.Params.Count != 1
             || callback.Params[0] is not Identifier parameter
             || callback.Body is not BlockStatement block
-            || Returns(block)
+            || HasCallbackReturn(block)
             || _locals.ContainsKey(parameter.Name)
             || parameter.Name == parameterName
         )
@@ -511,19 +523,15 @@ internal sealed class PrimitiveRuleConverter(
         var source = Expression(member.Object);
         var previous = new Dictionary<string, string>(_locals, StringComparer.Ordinal);
         var assigned = new HashSet<string>(_assigned, StringComparer.Ordinal);
-        var local = "item_" + _steps;
-        _locals.Add(parameter.Name, local);
-        foreach (var declaration in block.Body.OfType<VariableDeclaration>())
-        {
-            foreach (var variable in declaration.Declarations)
-            {
-                if (variable.Id is not Identifier id || !_locals.TryAdd(id.Name, localPrefix + _locals.Count))
-                    throw new NotSupportedException("Shadowed callback variable.");
-                RegisterDeclaration(id.Name, declaration);
-            }
-        }
-        code.AppendLine($"foreach (var {local} in JsItems({source}))");
+        var iteration = "item_" + _steps;
+        _locals.Add(parameter.Name, localPrefix + _locals.Count);
+        foreach (var statement in block.Body)
+            CollectLocals(statement, assignments: false);
+        foreach (var statement in block.Body)
+            CollectLocals(statement, assignments: true);
+        code.AppendLine($"foreach (var {iteration} in JsItems({source}))");
         code.OpenBrace();
+        code.AppendLine($"object? {Local(parameter.Name)} = {iteration};");
         foreach (var name in _locals.Keys.Except(previous.Keys).Where(name => name != parameter.Name))
             code.AppendLine($"object? {Local(name)} = Undefined;");
         Statements(block.Body, code);
@@ -535,6 +543,9 @@ internal sealed class PrimitiveRuleConverter(
             _locals.Add(pair.Key, pair.Value);
         _assigned = assigned;
     }
+
+    private static bool HasCallbackReturn(Node node) =>
+        node is ReturnStatement || node is not IFunction && node.ChildNodes.Any(HasCallbackReturn);
 
     private string PropertyKey(MemberExpression member)
     {
@@ -596,6 +607,8 @@ internal sealed class PrimitiveRuleConverter(
         private static object? JsAnd(object? left, Func<object?> right) => JsTruthy(left) ? right() : left;
         private static object? JsOr(object? left, Func<object?> right) => JsTruthy(left) ? left : right();
         private static object? JsCoalesce(object? left, Func<object?> right) => left is null or JsUndefined ? right() : left;
+        private static object? JsOptional(object? receiver, Func<object, object?> invoke) =>
+            receiver is null or JsUndefined ? Undefined : invoke(receiver);
         private static bool JsTruthy(object? value) => value switch
         {
             null or JsUndefined => false,
@@ -639,12 +652,14 @@ internal sealed class PrimitiveRuleConverter(
                 int digit = character is >= '0' and <= '9' ? character - '0' :
                     character is >= 'a' and <= 'z' ? character - 'a' + 10 :
                     character is >= 'A' and <= 'Z' ? character - 'A' + 10 : -1;
-                if (digit < 0 || digit >= radix) return prefix && count > 0 ? (double)value : double.NaN;
+                if (digit < 0 || digit >= radix) return prefix && count > 0 ? JsRadixNumber(value) : double.NaN;
                 value = value * radix + digit;
                 count++;
             }
-            return count == 0 ? double.NaN : (double)value;
+            return count == 0 ? double.NaN : JsRadixNumber(value);
         }
+        private static double JsRadixNumber(System.Numerics.BigInteger value) => double.Parse(
+            value.ToString(System.Globalization.CultureInfo.InvariantCulture), System.Globalization.CultureInfo.InvariantCulture);
         private static double JsParseInt(object? value)
         {
             var text = JsTrimText(JsString(value));
@@ -705,8 +720,9 @@ internal sealed class PrimitiveRuleConverter(
         private static object? JsIncludes(object? value, object? search, bool optional) => value switch
         {
             string text => text.Contains(JsString(search), StringComparison.Ordinal),
+            string[] items => search is string item && items.Contains(item, StringComparer.Ordinal),
             null or JsUndefined when optional => Undefined,
-            _ => throw new InvalidOperationException("includes requires a string."),
+            _ => throw new InvalidOperationException("includes requires a string or split list."),
         };
         private static object JsSplit(object? value, object? separator, bool optional)
         {
