@@ -208,7 +208,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
               labelSettings={{ optionalIndicator: false }}
             />
           )
-        ) : title ? (
+        ) : title || description ? (
           <caption id={getLabelId(componentId)}>
             {tableHeading}
             {description && (
