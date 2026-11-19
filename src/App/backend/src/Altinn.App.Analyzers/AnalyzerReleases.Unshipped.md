@@ -21,7 +21,7 @@ ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
 ALTINNAPP0800 | Authorization | Error | Service owner is missing required authorization
 ALTINNAPP0801 | Authorization | Warning | Service owner authorization could not be verified
 ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
-ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type
+ALTINNAPP0901 | Metadata | Error | presentationFields/dataFields entry references an unknown data type
 ALTINNAPP0902 | Metadata | Error | autoDeleteOnProcessEnd combined with preventInstanceDeletionForDays
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
 ALTINNAPP1002 | Process | Warning | PDF service task lists an entry that adds nothing to its PDF
