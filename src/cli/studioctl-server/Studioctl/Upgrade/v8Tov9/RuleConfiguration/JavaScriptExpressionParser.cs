@@ -27,6 +27,8 @@ public class JavaScriptExpressionParser
             if (function.Params.Count > 1 || (function.Params.Count == 1 && function.Params[0] is not Identifier))
                 throw new NotSupportedException("Only one plain object parameter is supported");
             var parameter = function.Params.Count == 1 ? ((Identifier)function.Params[0]).Name : "";
+            if (parameter == "undefined")
+                throw new NotSupportedException("A parameter shadowing undefined requires manual conversion");
             var statements = function.Body switch
             {
                 BlockStatement block => block.Body.ToList(),
@@ -36,9 +38,27 @@ public class JavaScriptExpressionParser
             var declarations = new HashSet<string>(StringComparer.Ordinal);
             var constants = new HashSet<string>(StringComparer.Ordinal);
             CollectDeclarations(statements, declarations, constants, parameter);
+            var lexical = new HashSet<string>(
+                statements
+                    .OfType<VariableDeclaration>()
+                    .Where(declaration => declaration.Kind.ToString() != "Var")
+                    .SelectMany(declaration => declaration.Declarations)
+                    .SelectMany(binding =>
+                        binding.Id is Identifier id
+                            ? new[] { id.Name }
+                            : ((ObjectPattern)binding.Id)
+                                .Properties.OfType<Property>()
+                                .Select(property => ((Identifier)property.Value).Name)
+                    ),
+                StringComparer.Ordinal
+            );
             var evaluated = new List<Expression>();
             var loweredStatements = 0;
-            var expressionResult = Lower(statements, new Dictionary<string, Expression>(StringComparer.Ordinal));
+            var expressionResult = Lower(
+                statements,
+                new Dictionary<string, Expression>(StringComparer.Ordinal),
+                new(StringComparer.Ordinal)
+            );
             EnsureExpressionSize(expressionResult);
             foreach (var initializer in evaluated)
                 EnsureExpressionSize(initializer);
@@ -66,7 +86,11 @@ public class JavaScriptExpressionParser
                 return resolved;
             }
 
-            Expression Lower(List<Statement> remaining, Dictionary<string, Expression> values)
+            Expression Lower(
+                List<Statement> remaining,
+                Dictionary<string, Expression> values,
+                HashSet<string> initialized
+            )
             {
                 for (var index = 0; index < remaining.Count; index++)
                 {
@@ -88,6 +112,7 @@ public class JavaScriptExpressionParser
                                 {
                                     if (binding.Init != null)
                                         values[identifier.Name] = Resolve(binding.Init, values, true);
+                                    initialized.Add(identifier.Name);
                                 }
                                 else if (
                                     binding.Id is ObjectPattern pattern
@@ -113,6 +138,7 @@ public class JavaScriptExpressionParser
                                             new MemberExpression(source, key, false, false),
                                             values
                                         );
+                                        initialized.Add(local.Name);
                                     }
                                 }
                                 else
@@ -129,6 +155,11 @@ public class JavaScriptExpressionParser
                                 assignmentKey == null
                                 || assignment.Left is Identifier && constants.Contains(assignmentKey)
                                 || (assignment.Left is Identifier && !declarations.Contains(assignmentKey))
+                                || (
+                                    assignment.Left is Identifier
+                                    && lexical.Contains(assignmentKey)
+                                    && !initialized.Contains(assignmentKey)
+                                )
                             )
                                 throw new NotSupportedException(
                                     "Conditional rules cannot assign to global variables or replace their object parameter"
@@ -140,15 +171,17 @@ public class JavaScriptExpressionParser
                             var tail = remaining.Skip(index + 1).ToList();
                             var whenTrue = Lower(
                                 BranchStatements(branch.Consequent).Concat(tail).ToList(),
-                                new(values, StringComparer.Ordinal)
+                                new(values, StringComparer.Ordinal),
+                                new(initialized, StringComparer.Ordinal)
                             );
                             var whenFalse = Lower(
                                 BranchStatements(branch.Alternate).Concat(tail).ToList(),
-                                new(values, StringComparer.Ordinal)
+                                new(values, StringComparer.Ordinal),
+                                new(initialized, StringComparer.Ordinal)
                             );
                             return new ConditionalExpression(test, whenTrue, whenFalse);
                         case BlockStatement block:
-                            return Lower(block.Body.Concat(remaining.Skip(index + 1)).ToList(), values);
+                            return Lower(block.Body.Concat(remaining.Skip(index + 1)).ToList(), values, initialized);
                         default:
                             throw new NotSupportedException(
                                 $"Unsupported conditional-rule statement: {statement.Type}"
@@ -314,8 +347,8 @@ public class JavaScriptExpressionParser
             throw new NotSupportedException("Assignments inside expressions are not supported");
 
         protected override object VisitUnaryExpression(UnaryExpression node) =>
-            node is UpdateExpression
-                ? throw new NotSupportedException("Updates inside expressions are not supported")
+            node is UpdateExpression || node.Operator == Operator.Delete
+                ? throw new NotSupportedException("Updates and delete inside expressions are not supported")
                 : base.VisitUnaryExpression(node)
                     ?? throw new NotSupportedException("Could not substitute unary expression");
 

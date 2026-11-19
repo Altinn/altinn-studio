@@ -148,19 +148,10 @@ public partial class ConversionContext
             return false;
         var literal = comparison.Right as Literal ?? comparison.Left as Literal;
         if (
-            literal is { Value: string text }
+            literal is { Value: string }
             && GetValueType(subject) != "string"
             && comparison.Operator.ToString() is "Equality" or "=="
-            && (
-                text.Trim().Length == 0
-                || double.TryParse(
-                    text,
-                    System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    out var numeric
-                )
-                    && numeric.CompareTo(0d) == 0
-            )
+            && (BinaryComparisonMatcher.TryNumericLiteral(literal, out var numeric) && numeric.CompareTo(0d) == 0)
         )
             return false;
         if (truth && SameInput(guard, subject))

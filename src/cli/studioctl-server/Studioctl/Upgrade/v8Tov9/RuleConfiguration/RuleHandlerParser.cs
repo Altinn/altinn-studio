@@ -45,6 +45,16 @@ internal sealed class RuleHandlerParser
 
             ExtractFunctionsFromObject(program, "conditionalRuleHandlerObject", _conditionalFunctions);
             ExtractFunctionsFromObject(program, "ruleHandlerObject", _dataProcessingFunctions);
+            var assigned = AssignedNames(program).ToHashSet(StringComparer.Ordinal);
+            RemoveReassigned("conditionalRuleHandlerObject", _conditionalFunctions);
+            RemoveReassigned("ruleHandlerObject", _dataProcessingFunctions);
+
+            void RemoveReassigned(string owner, Dictionary<string, JavaScriptFunction> functions)
+            {
+                foreach (var key in functions.Keys.ToArray())
+                    if (assigned.Contains(owner) || assigned.Contains(owner + "." + key))
+                        functions.Remove(key);
+            }
         }
         catch (Exception ex)
         {
@@ -256,10 +266,27 @@ internal sealed class RuleHandlerParser
                     )
             );
         }
+        if (node is CatchClause { Param: { } binding })
+        {
+            shadowed = new(shadowed, StringComparer.Ordinal);
+            shadowed.UnionWith(AssignmentNames(binding));
+        }
         if (node is AssignmentExpression assignment)
+        {
             foreach (var name in AssignmentNames(assignment.Left))
                 if (!shadowed.Contains(name))
                     yield return name;
+            if (
+                assignment.Left is MemberExpression { Object: Identifier owner } member
+                && !shadowed.Contains(owner.Name)
+            )
+                yield return member switch
+                {
+                    { Computed: false, Property: Identifier property } => owner.Name + "." + property.Name,
+                    { Computed: true, Property: StringLiteral property } => owner.Name + "." + property.Value,
+                    _ => owner.Name,
+                };
+        }
         if (node is UpdateExpression { Argument: Identifier identifier } && !shadowed.Contains(identifier.Name))
             yield return identifier.Name;
         foreach (var child in node.ChildNodes)

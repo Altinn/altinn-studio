@@ -168,12 +168,32 @@ public class BinaryComparisonMatcher : IExpressionMatcher
                 return true;
             return context.Reject("Object-to-primitive comparisons require manual conversion", debugInfo);
         }
-        if (strict && leftType != null && rightType != null && leftType != rightType)
+        if (
+            strict
+            && leftType != null
+            && rightType != null
+            && leftType != rightType
+            && (context.IsDefinitelyNonNull(leftExpression) || context.IsDefinitelyNonNull(rightExpression))
+        )
             return false;
         var left = context.ConvertExpression(leftExpression, debugInfo);
         var right = context.ConvertExpression(rightExpression, debugInfo);
         if (left == null || right == null)
             return null;
+        if (strict && leftType != null && rightType != null && leftType != rightType)
+        {
+            if (
+                (leftType == "string" && !context.HasSafeStringDomain(leftExpression))
+                || (rightType == "string" && !context.HasSafeStringDomain(rightExpression))
+            )
+                return context.Reject("Unrestricted strings cannot preserve a strict null comparison", debugInfo);
+            return new object?[]
+            {
+                "and",
+                new object?[] { "equals", left, null },
+                new object?[] { "equals", right, null },
+            };
+        }
         if (leftType == "number" && rightType == "number")
         {
             if (
@@ -312,7 +332,7 @@ public class BinaryComparisonMatcher : IExpressionMatcher
     private static bool IsOrdinaryStringLiteral(Expression expression) =>
         expression is Literal { Value: string text } && !ConversionContext.IsReservedString(text);
 
-    private static bool TryNumericLiteral(Expression expression, out double value)
+    internal static bool TryNumericLiteral(Expression expression, out double value)
     {
         value = 0;
         if (expression is Literal { Value: double number })
@@ -350,12 +370,13 @@ public class BinaryComparisonMatcher : IExpressionMatcher
                 '\uFEFF'
             );
             return text.Length == 0
-                || double.TryParse(
-                    text,
-                    NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
-                    CultureInfo.InvariantCulture,
-                    out value
-                );
+                || !text.Contains('\0')
+                    && double.TryParse(
+                        text,
+                        NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
+                        CultureInfo.InvariantCulture,
+                        out value
+                    );
         }
         if (expression is Literal { Value: bool boolean })
         {
