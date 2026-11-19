@@ -285,7 +285,8 @@ internal sealed class FormBootstrapService
                         InitialData = formData,
                         DataElementId = dataElement.Id,
                         ExpressionValidationConfig = validationConfig,
-                        CalculationConfig = isPdf || dataElement.Locked ? null : GetCalculationConfig(dataType),
+                        CalculationConfig =
+                            isPdf || dataElement.Locked ? null : _appResources.GetCalculationConfig(dataType),
                     }
             );
         });
@@ -353,7 +354,7 @@ internal sealed class FormBootstrapService
                     InitialData = defaultData,
                     DataElementId = null,
                     ExpressionValidationConfig = validationConfig,
-                    CalculationConfig = GetCalculationConfig(dataType),
+                    CalculationConfig = _appResources.GetCalculationConfig(dataType),
                 };
             }
             catch (Exception ex)
@@ -652,21 +653,13 @@ internal sealed class FormBootstrapService
         return _appModel.Create(classRef);
     }
 
-    private object? GetCalculationConfig(string dataType)
-    {
-        var configJson = _appResources.GetCalculationConfiguration(dataType);
-        return string.IsNullOrEmpty(configJson)
-            ? null
-            : JsonSerializer.Deserialize<JsonElement>(configJson, _jsonSerializerOptions);
-    }
-
     private HashSet<string> IncludeCalculationDependencies(HashSet<string> dataTypes)
     {
         var result = new HashSet<string>(dataTypes);
         var pending = new Queue<string>(dataTypes);
         while (pending.TryDequeue(out var dataType))
         {
-            var config = GetCalculationConfig(dataType);
+            var config = _appResources.GetCalculationConfig(dataType);
             if (config is null)
             {
                 continue;
