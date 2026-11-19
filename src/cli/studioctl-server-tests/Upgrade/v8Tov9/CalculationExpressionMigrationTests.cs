@@ -87,6 +87,7 @@ public sealed class CalculationExpressionMigrationTests
     )]
     [InlineData("return obj.a === null ? 7 : obj.a;", "{}", 7)]
     [InlineData("const twice = n => n * 2; return twice(twice(3));", "{}", 12)]
+    [InlineData("const undefined = 0; if (obj.a != undefined) return obj.a === null ? 1 : 2; return 3;", "{}", 1)]
     [InlineData("let x = 1; const g = () => x; const f = x => g(); return f(5);", "{}", 1)]
     public void ConvertedCalculations_PreserveAssignmentsBranchesAndMissingInputs(
         string body,
@@ -134,12 +135,43 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData("return obj.text + 'x';")]
     [InlineData("return obj.text == null ? 0 : 1;")]
     [InlineData("return obj;")]
+    [InlineData("return Number.isFinite(1e200 * 1e200) ? 1 : 0;")]
+    [InlineData(
+        "const outer = x => { const Number = y => 7; return Number(x); }; const first = outer(obj.a); return first + Number(2);"
+    )]
     public void UnsupportedSemantics_RequireFallback(string body)
     {
         using var app = CreateApp();
         var rule = Rule("calculate", "result");
         rule.InputParams?.Add("text", "text");
         Assert.Throws<NotSupportedException>(() => Convert(app, body, rule));
+    }
+
+    [Theory]
+    [InlineData("decimal", true)]
+    [InlineData("double", false)]
+    [InlineData("float", false)]
+    public void Division_UsesTheModelsNumericDomain(string type, bool converts)
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/Root.cs",
+            "namespace TestModels { public class Root { public "
+                + type
+                + "? a { get; set; } public "
+                + type
+                + "? b { get; set; } public "
+                + type
+                + "? result { get; set; } } }"
+        );
+        const string body = "return obj.b ? obj.a / obj.b : 0;";
+        if (converts)
+        {
+            var expression = Convert(app, body, Rule("calculate", "result"));
+            Assert.Equal(1d, Evaluate(expression, new() { ["a"] = 1e-28, ["b"] = 1e-28 }));
+        }
+        else
+            Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
     }
 
     [Theory]
@@ -494,6 +526,7 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData("return obj.flag ? obj.flag + 1 : 0;")]
     [InlineData("return obj.flag ? obj.flag > '2' : false;")]
     [InlineData("let sum = 0; if (obj.flag) sum += obj.flag; return sum;")]
+    [InlineData("return obj.flag?.includes('1') === undefined ? 1 : 0;")]
     public void NumericOptionMetadata_DoesNotChangeStringAdditionOrOrdering(string body)
     {
         using var app = CreateApp();
