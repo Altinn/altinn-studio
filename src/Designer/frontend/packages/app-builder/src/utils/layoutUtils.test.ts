@@ -82,15 +82,6 @@ describe('insertComponent', () => {
     expect(getIds(updated)).toEqual(['heading', 'group', 'groupChild', 'new', 'input']);
   });
 
-  it('inserts the component after another', () => {
-    const layout = createLayout([heading, input]);
-    const updated = insertComponent(layout, newComponent, {
-      kind: 'after',
-      componentId: 'heading',
-    });
-    expect(getIds(updated)).toEqual(['heading', 'new', 'input']);
-  });
-
   it('adds the component last on the page', () => {
     const updated = insertComponent(createLayout([heading]), newComponent, { kind: 'end' });
     expect(getIds(updated)).toEqual(['heading', 'new']);
@@ -175,6 +166,16 @@ describe('components the builder keeps in place', () => {
       'heading',
       'new',
       'navigation',
+    ]);
+  });
+
+  it('adds a component at the end below them when they come first in the file', () => {
+    const newComponent: LayoutComponent = { id: 'new', type: ComponentType.Paragraph };
+    const layout = createLayout([navigation, heading]);
+    expect(getIds(insertComponent(layout, newComponent, { kind: 'end' }, fixedIds))).toEqual([
+      'navigation',
+      'heading',
+      'new',
     ]);
   });
 

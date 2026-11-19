@@ -3,10 +3,7 @@ import type { LayoutComponent, PageLayout } from '../types';
 
 /** Where a new component goes on the page. */
 export type Placement =
-  | { kind: 'before'; componentId: string }
-  | { kind: 'after'; componentId: string }
-  | { kind: 'inGroup'; groupId: string }
-  | { kind: 'end' };
+  { kind: 'before'; componentId: string } | { kind: 'inGroup'; groupId: string } | { kind: 'end' };
 
 export type ComponentWidth = 'full' | 'half';
 
@@ -96,8 +93,10 @@ function getInsertTarget(
     components.findIndex(({ id }) => id === componentId);
 
   if (placement.kind === 'end') {
-    const firstFixedIndex = components.findIndex(({ id }) => fixedIds.has(id));
-    return { layoutIndex: firstFixedIndex === -1 ? components.length : firstFixedIndex };
+    // After the last component the user placed, so it shows last whether the components the builder
+    // keeps in place come before or after it in the file.
+    const lastPlacedIndex = components.findLastIndex(({ id }) => !fixedIds.has(id));
+    return { layoutIndex: lastPlacedIndex + 1 };
   }
 
   if (placement.kind === 'inGroup') {
@@ -108,10 +107,9 @@ function getInsertTarget(
   }
 
   const group = findParentGroup(layout, placement.componentId);
-  const offset = placement.kind === 'after' ? 1 : 0;
-  const layoutIndex = indexOf(placement.componentId) + offset;
+  const layoutIndex = indexOf(placement.componentId);
   if (!group) return { layoutIndex };
-  const childIndex = getChildIds(group).indexOf(placement.componentId) + offset;
+  const childIndex = getChildIds(group).indexOf(placement.componentId);
   return { layoutIndex, group, childIndex };
 }
 

@@ -254,7 +254,6 @@
   "api_errors.Unauthorized": "Handlingen du prøver å utføre krever rettigheter du ikke har. Du blir nå logget ut.",
   "api_errors.UploadedImageNotValid": "Det opplastede bildet er ikke en gyldig filtype",
   "app_builder.add_component": "Legg til komponent",
-  "app_builder.add_component.after": "Legges etter «{{name}}».",
   "app_builder.add_component.before": "Legges før «{{name}}».",
   "app_builder.add_component.end": "Legges nederst på siden.",
   "app_builder.add_component.group.action": "Innsending",

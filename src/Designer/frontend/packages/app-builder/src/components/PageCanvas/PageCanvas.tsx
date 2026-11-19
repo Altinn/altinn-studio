@@ -80,8 +80,7 @@ function PageCanvasContent({ onSelectPage, onPageDeleted }: PageCanvasProps): Re
   const containerRef = useRef<HTMLDivElement>(null);
   const { layout, fixedIds, isSummaryPage: isSummary } = usePageEditing();
   const canvasState = useCanvasState();
-  const { selectedComponentId, selectComponent, openSettings, addPlacement, newQuestion } =
-    canvasState;
+  const { selectComponent, openSettings, addPlacement, newQuestion } = canvasState;
   const addFlow = useAddFlow();
   const components = getTopLevelComponents(layout).filter(({ id }) => !fixedIds.has(id));
 
@@ -93,11 +92,9 @@ function PageCanvasContent({ onSelectPage, onPageDeleted }: PageCanvasProps): Re
   };
 
   const background = { [backgroundAttribute]: '' };
-  const selected = selectedComponentId ? findComponent(layout, selectedComponentId) : undefined;
-  const bottomPlacement = getBottomPlacement(selected);
-  const isAddingAtBottom =
-    (addPlacement && addPlacement.kind !== 'before') ||
-    (newQuestion && newQuestion.placement.kind !== 'before');
+  const isAddingAtEnd = [addPlacement, newQuestion?.placement].some(
+    (placement) => placement?.kind === 'end',
+  );
 
   return (
     <div
@@ -121,15 +118,15 @@ function PageCanvasContent({ onSelectPage, onPageDeleted }: PageCanvasProps): Re
         )}
         {isSummary && <SummaryPreview onSelectPage={onSelectPage} />}
         <NavigationRow />
-        {isAddingAtBottom ? (
-          <AddArea placement={addPlacement ?? newQuestion?.placement} addFlow={addFlow} />
+        {isAddingAtEnd ? (
+          <AddArea placement={{ kind: 'end' }} addFlow={addFlow} />
         ) : (
           <StudioButton
             variant='secondary'
             data-size='sm'
             icon={<PlusIcon />}
             className={classes.addButton}
-            onClick={() => canvasState.openAddBox(bottomPlacement)}
+            onClick={() => canvasState.openAddBox({ kind: 'end' })}
           >
             {t('app_builder.add_component')}
           </StudioButton>
@@ -138,13 +135,6 @@ function PageCanvasContent({ onSelectPage, onPageDeleted }: PageCanvasProps): Re
       <DeleteComponentDialog />
     </div>
   );
-}
-
-// A new component goes into the selected group, after the selected component, or last on the page.
-function getBottomPlacement(selected: LayoutComponent | undefined): Placement {
-  if (!selected) return { kind: 'end' };
-  if (isGroup(selected)) return { kind: 'inGroup', groupId: selected.id };
-  return { kind: 'after', componentId: selected.id };
 }
 
 type ComponentGridProps = {
@@ -164,24 +154,24 @@ function ComponentGrid({ components, addFlow }: ComponentGridProps): ReactElemen
     requestDelete,
   } = useCanvasState();
 
+  const placements = [addPlacement, newQuestion?.placement];
   const isAddingBefore = (componentId: string): boolean =>
-    [addPlacement, newQuestion?.placement].some(
-      (placement) => placement?.kind === 'before' && placement.componentId === componentId,
+    placements.some((p) => p?.kind === 'before' && p.componentId === componentId);
+  const isAddingInGroup = (groupId: string): boolean =>
+    placements.some((p) => p?.kind === 'inGroup' && p.groupId === groupId);
+
+  const renderInsertPoint = (placement: Placement, isAdding: boolean): ReactElement =>
+    isAdding ? (
+      <AddArea placement={placement} addFlow={addFlow} className={classes.fullWidth} />
+    ) : (
+      <InsertLine className={classes.fullWidth} onClick={() => openAddBox(placement)} />
     );
 
   const renderComponent = (component: LayoutComponent): ReactElement => (
     <Fragment key={component.id}>
-      {isAddingBefore(component.id) ? (
-        <AddArea
-          placement={{ kind: 'before', componentId: component.id }}
-          addFlow={addFlow}
-          className={classes.fullWidth}
-        />
-      ) : (
-        <InsertLine
-          className={classes.fullWidth}
-          onClick={() => openAddBox({ kind: 'before', componentId: component.id })}
-        />
+      {renderInsertPoint(
+        { kind: 'before', componentId: component.id },
+        isAddingBefore(component.id),
       )}
       <EditableComponent
         component={component}
@@ -205,6 +195,10 @@ function ComponentGrid({ components, addFlow }: ComponentGridProps): ReactElemen
       {isGroup(component) && (
         <div className={cn(classes.fullWidth, classes.groupChildren)}>
           {getChildComponents(layout, component).map(renderComponent)}
+          {renderInsertPoint(
+            { kind: 'inGroup', groupId: component.id },
+            isAddingInGroup(component.id),
+          )}
         </div>
       )}
     </Fragment>
@@ -254,10 +248,6 @@ function AddArea({ placement, addFlow, className }: AddAreaProps): ReactElement 
   const placementTexts: Record<Placement['kind'], () => string> = {
     before: () =>
       t('app_builder.add_component.before', {
-        name: nameOf((placement as { componentId: string }).componentId),
-      }),
-    after: () =>
-      t('app_builder.add_component.after', {
         name: nameOf((placement as { componentId: string }).componentId),
       }),
     inGroup: () =>

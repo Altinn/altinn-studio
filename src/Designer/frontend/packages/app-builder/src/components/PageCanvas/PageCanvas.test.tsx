@@ -52,6 +52,8 @@ const group: LayoutComponent = {
   textResourceBindings: { title: 'group.title' },
   children: [],
 };
+const groupChild: LayoutComponent = { id: 'groupChild', type: ComponentType.Paragraph };
+const groupWithChild: LayoutComponent = { ...group, children: [groupChild.id] };
 const map: LayoutComponent = { id: 'map', type: ComponentType.Map };
 
 const createLayout = (components: LayoutComponent[]): PageLayout => ({
@@ -251,33 +253,45 @@ describe('PageCanvas, adding components', () => {
     expect(getSavedComponents(saveFormLayout).at(-1)).toMatchObject({ type: 'Heading', size: 'L' });
   });
 
-  it('adds a component after the selected one', async () => {
+  it('adds a component at the end of the page when another is selected', async () => {
     const user = userEvent.setup();
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
-    renderPageCanvas({}, { saveFormLayout });
+    renderPageCanvas(
+      { layouts: { [pageName]: createLayout([heading, groupWithChild, groupChild]) } },
+      { saveFormLayout },
+    );
 
     await user.click(getSelectButton(nbTexts['heading.title']));
     await user.click(getAddComponentButton());
     await user.click(getComponentTypeButton('Paragraph'));
 
-    expect(getSavedComponents(saveFormLayout)[1]).toMatchObject({ type: 'Paragraph' });
+    const savedComponents = getSavedComponents(saveFormLayout);
+    expect(savedComponents.at(-1)).toMatchObject({ type: 'Paragraph' });
+    expect(savedComponents[1]).toMatchObject({ children: [groupChild.id] });
   });
 
-  it('adds a component into the selected group', async () => {
+  it('adds a component last in a group', async () => {
     const user = userEvent.setup();
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
     renderPageCanvas(
-      { layouts: { [pageName]: createLayout([heading, group]) } },
+      { layouts: { [pageName]: createLayout([heading, groupWithChild, groupChild]) } },
       { saveFormLayout },
     );
 
-    await user.click(getSelectButton(nbTexts['group.title']));
-    await user.click(getAddComponentButton());
+    const addHereButtons = screen.getAllByRole('button', {
+      name: textMock('app_builder.add_here'),
+    });
+    await user.click(addHereButtons.at(-1));
+    expect(
+      screen.getByText(
+        textMock('app_builder.add_component.in_group', { name: nbTexts['group.title'] }),
+      ),
+    ).toBeInTheDocument();
     await user.click(getComponentTypeButton('Alert'));
 
-    const [, savedGroup, alert] = getSavedComponents(saveFormLayout);
+    const [, savedGroup, , alert] = getSavedComponents(saveFormLayout);
     expect(alert).toMatchObject({ type: 'Alert' });
-    expect(savedGroup).toMatchObject({ children: [alert.id] });
+    expect(savedGroup).toMatchObject({ children: [groupChild.id, alert.id] });
   });
 
   it('asks for the label of a question, and saves its data model field before the layout', async () => {
