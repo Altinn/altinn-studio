@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
@@ -517,9 +518,9 @@ public class WorkflowEngineCallbackController : ControllerBase
     {
         _logger.LogWarning(
             "Workflow step needs app library version {MinAppLibVersion} or newer, and this pod runs {PodVersion}. Answering 503 so the workflow engine retries it until it reaches a pod on that version or newer. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
-            payload.MinAppLibVersion,
+            LogSanitizer.Sanitize(payload.MinAppLibVersion),
             AppLibVersion.Current,
-            commandKey,
+            LogSanitizer.Sanitize(commandKey),
             instanceId,
             payload.WorkflowId,
             payload.StepId

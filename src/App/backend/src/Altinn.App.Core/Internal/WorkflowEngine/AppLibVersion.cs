@@ -154,9 +154,15 @@ internal static class AppLibVersion
     private static bool IsNumeric(string value) => value.Length > 0 && value.All(char.IsAsciiDigit);
 
     private sealed record SemanticVersion(int Major, int Minor, int Patch, string[] Prerelease)
+        : IComparable<SemanticVersion>
     {
-        public int CompareTo(SemanticVersion other)
+        public int CompareTo(SemanticVersion? other)
         {
+            if (other is null)
+            {
+                return 1;
+            }
+
             int result = Major.CompareTo(other.Major);
             if (result == 0)
             {
