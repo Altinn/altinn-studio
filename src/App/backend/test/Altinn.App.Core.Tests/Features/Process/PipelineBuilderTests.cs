@@ -112,4 +112,38 @@ public class PipelineBuilderTests
 
         Assert.Contains("already ended by Finally", thrown.Message, StringComparison.Ordinal);
     }
+
+    public static TheoryData<string> TerminalsWithAnInvalidArgument =>
+        new()
+        {
+            "Finally with null work",
+            "Finally with invalid options",
+            "ConcludeOnReplies with a null handle",
+            "ConcludeOnReplies with invalid options",
+        };
+
+    [Theory]
+    [MemberData(nameof(TerminalsWithAnInvalidArgument))]
+    public void ATerminalWithAnInvalidArgument_AfterTheBuilderEnded_SaysTheBuilderEnded(string call)
+    {
+        // Stage and HandleReplies check the ending before their arguments; the terminals check it after. So a
+        // second ending with a bad argument reports the argument, and only once that is fixed the real mistake.
+        var builder = new PipelineBuilder();
+        builder.Stage(Send, _threeDays, out MailboxHandle handle).ConcludeOnReplies(handle, OnMessage, OnClosed);
+        var invalidOptions = new ProcessStepOptions { WaitBudget = TimeSpan.Zero };
+
+        System.Action composing = call switch
+        {
+            "Finally with null work" => () => builder.Finally(null!),
+            "Finally with invalid options" => () => builder.Finally(Conclude, invalidOptions),
+            "ConcludeOnReplies with a null handle" => () => builder.ConcludeOnReplies(null!, OnMessage, OnClosed),
+            "ConcludeOnReplies with invalid options" => () =>
+                builder.ConcludeOnReplies(handle, OnMessage, OnClosed, invalidOptions),
+            _ => throw new ArgumentOutOfRangeException(nameof(call), call, null),
+        };
+
+        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(composing);
+
+        Assert.Contains("already ended by ConcludeOnReplies", thrown.Message, StringComparison.Ordinal);
+    }
 }
