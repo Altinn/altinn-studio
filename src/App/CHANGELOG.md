@@ -32,6 +32,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - A calculation for an item in a list at the top of the data model, such as `numbers[1]`, sets that item in the form. It made a separate field named `numbers[1]` before. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Typing an invalid or unfinished date, such as `32.13.2026` or `12.12`, into a `Datepicker` bound to a `DateTime` field shows an invalid date message instead of crashing the form. ([Altinn/app-frontend-react#4180](https://github.com/Altinn/app-frontend-react/issues/4180))
 
 ## [9.0.0-preview.13] - 2026-11-19
 
