@@ -18,7 +18,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// stage that writes behind the stage's data mutator and repeats every call on a retry, while looking finished. It
 /// gets a <c>Define</c> member beside it instead that stops the build with <c>#error</c>, and a comment that says how
 /// to port the work: one stage per call to another service, instance data through the data mutator, and each stage
-/// safe to retry. The v8 method stays as the code to port from. An explicit implementation becomes a private
+/// safe to retry. The member throws until the work is ported, so the app refuses to start if only the
+/// <c>#error</c> is removed. The v8 method stays as the code to port from. An explicit implementation becomes a private
 /// method, since v9 has no interface member for it to implement, under another name when the type also has an
 /// implicit method of that signature. A type that already composes the phase keeps what it has; its v8 method stays
 /// as the type's own method.</p>
@@ -34,9 +35,11 @@ internal sealed class ProcessTaskLifecycleMigration
 {
     private const string InterfaceNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks";
     private const string InterfaceName = "IProcessTask";
+    private const string BuilderNamespace = "Altinn.App.Core.Features.Process";
     private const string BuilderName = "PipelineBuilder";
-    private const string PipelineTypeName = "Altinn.App.Core.Features.Process.ProcessTaskPipeline";
-    private const string BuilderTypeName = "Altinn.App.Core.Features.Process." + BuilderName;
+    private const string BuilderTypeName = BuilderNamespace + "." + BuilderName;
+    private const string LifecycleName = "Lifecycle";
+    private const string NotImplementedTypeName = "System.NotImplementedException";
 
     private static readonly string[] _phases = ["Start", "End", "Abandon"];
     private static readonly string[] _legacyParameterTypes = ["string", "Instance"];
@@ -247,7 +250,7 @@ internal sealed class ProcessTaskLifecycleMigration
             var definitions = BaseTypes(symbol)
                 .SelectMany(baseType => baseType.GetMembers("Define" + phase).OfType<IMethodSymbol>())
                 .Where(static definition =>
-                    definition.Parameters.Length == 1 && definition.Parameters[0].Type.Name == BuilderName
+                    definition.Parameters.Length == 1 && IsLifecycleBuilder(definition.Parameters[0].Type)
                 )
                 .ToList();
             var existing = Existing(definitions.Count, definitions.Any(IsImplementation));
@@ -330,7 +333,7 @@ internal sealed class ProcessTaskLifecycleMigration
                 .Where(other =>
                     other.Identifier.ValueText == "Define" + phase
                     && other.ParameterList.Parameters.Count == 1
-                    && SimpleName(other.ParameterList.Parameters[0].Type) == BuilderName
+                    && IsLifecycleBuilder(other.ParameterList.Parameters[0].Type)
                 )
                 .ToList();
             var mayBeCalled =
@@ -497,9 +500,11 @@ internal sealed class ProcessTaskLifecycleMigration
 
     /// <summary>
     /// The <c>Define</c> member for a v8 method that does work, laid out below it with its indentation. It stops the
-    /// build with <c>#error</c>, and has no return statement, so deleting that line alone does not make it compile:
-    /// the work must be composed first. Its comment says how, for the developer or an assistant doing the port. The
-    /// type references are emitted qualified for the final pass against the upgraded project to simplify.
+    /// build with <c>#error</c>, and its last statement throws, so deleting that line alone does not let the work go
+    /// silently undone: app startup composes every task's lifecycle pipelines and refuses to start when one throws,
+    /// naming the task and the phase. Its comment says how to port the work, for the developer or an assistant doing
+    /// the port. The type references are emitted qualified for the final pass against the upgraded project to
+    /// simplify.
     /// </summary>
     private static MemberDeclarationSyntax Definition(string phase, string callName, MethodDeclarationSyntax method)
     {
@@ -512,7 +517,7 @@ internal sealed class ProcessTaskLifecycleMigration
         };
         var text = $$"""
 
-            {{indent}}public global::{{PipelineTypeName}} Define{{phase}}(global::{{BuilderTypeName}} pipeline)
+            {{indent}}public void Define{{phase}}(global::{{BuilderTypeName}}.{{LifecycleName}} pipeline)
             {{indent}}{
             {{indent}}    #error Port {{callName}} to stages in Define{{phase}} as the comment below says, then remove this line.
             {{indent}}    // v9 no longer calls {{callName}}(string taskId, Instance instance). It runs the stages this method
@@ -528,13 +533,15 @@ internal sealed class ProcessTaskLifecycleMigration
             {{indent}}    // - The task id is context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId.
             {{indent}}    // - Pass each stage as a named method. Its name becomes the step's name in the admin panel.
             {{indent}}    //
-            {{indent}}    // return pipeline.Stage(FirstStage).Stage(SecondStage).Build();
+            {{indent}}    // pipeline.Stage(FirstStage).Stage(SecondStage);
             {{indent}}    //
             {{indent}}    // private async Task<StageResult> FirstStage(StageContext context)
             {{indent}}    // {
             {{indent}}    //     ...
             {{indent}}    //     return StageResult.Completed();
             {{indent}}    // }
+
+            {{indent}}    throw new global::{{NotImplementedTypeName}}("Port {{callName}} to stages in Define{{phase}}, then delete the line that throws this exception.");
             {{indent}}}
 
             """;
@@ -545,9 +552,10 @@ internal sealed class ProcessTaskLifecycleMigration
             member
                 .DescendantNodes()
                 .OfType<NameSyntax>()
+                // The builder alone, not PipelineBuilder.Lifecycle: the final pass resolves its annotation by metadata
+                // name, which spells a nested type with '+'.
                 .Where(static name =>
-                    name.Parent is not NameSyntax
-                    && name.ToString() is "global::" + PipelineTypeName or "global::" + BuilderTypeName
+                    name.ToString() is "global::" + BuilderTypeName or "global::" + NotImplementedTypeName
                 ),
             static (original, _) =>
                 GeneratedTypeReferenceFinalizer
@@ -582,24 +590,46 @@ internal sealed class ProcessTaskLifecycleMigration
         method.GetLeadingTrivia().LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)).ToString();
 
     /// <summary>
-    /// Whether the member can implement the v9 interface member: a public instance method, or an explicit
-    /// implementation of the Altinn interface. A private or static helper of that signature cannot, and a generated
-    /// public one would collide with it.
+    /// Whether the member can implement the v9 interface member: a public instance method that returns
+    /// <c>void</c>, or an explicit implementation of the Altinn interface. A private or static helper of that
+    /// signature cannot, nor can one that returns a value, and a generated public one would collide with it.
     /// </summary>
     private static bool IsImplementation(IMethodSymbol definition) =>
         definition.ExplicitInterfaceImplementations.Any(static member => IsSdkProcessTask(member.ContainingType))
-        || (definition.DeclaredAccessibility == Accessibility.Public && !definition.IsStatic);
+        || (definition.DeclaredAccessibility == Accessibility.Public && !definition.IsStatic && definition.ReturnsVoid);
 
     private static bool IsImplementation(MethodDeclarationSyntax definition) =>
         definition.ExplicitInterfaceSpecifier is { } explicitInterface
             ? SimpleName(explicitInterface.Name) == InterfaceName
-            : definition.Modifiers.Any(SyntaxKind.PublicKeyword) && !definition.Modifiers.Any(SyntaxKind.StaticKeyword);
+            : definition.Modifiers.Any(SyntaxKind.PublicKeyword)
+                && !definition.Modifiers.Any(SyntaxKind.StaticKeyword)
+                && definition.ReturnType is PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword };
 
     private static string NotAnImplementation(ScannedCSharpFile file, MethodDeclarationSyntax method, string phase) =>
         $"{Location(file, method)}: {MemberName(method)}(string taskId, Instance instance) is no longer part of "
-        + $"{InterfaceName}, and the type's Define{phase}({BuilderName}) cannot take its place: v9 calls only a public "
-        + $"instance method of that signature, or an explicit implementation. Make it one, and run the {phase} work "
-        + "from it.";
+        + $"{InterfaceName}, and the type's Define{phase}({BuilderName}.{LifecycleName}) cannot take its place: v9 "
+        + "calls only a public void instance method of that signature, or an explicit implementation. Make it one, and "
+        + $"run the {phase} work from it.";
+
+    /// <summary>
+    /// Whether the type is the v9 lifecycle builder, <c>PipelineBuilder.Lifecycle</c>.
+    /// </summary>
+    private static bool IsLifecycleBuilder(ITypeSymbol type) =>
+        type is INamedTypeSymbol { Name: LifecycleName, ContainingType: { Name: BuilderName } builder }
+        && builder.ContainingNamespace.ToDisplayString() == BuilderNamespace;
+
+    /// <summary>
+    /// Whether a written type names the v9 lifecycle builder: <c>PipelineBuilder.Lifecycle</c>, qualified with its
+    /// namespace or not.
+    /// </summary>
+    private static bool IsLifecycleBuilder(TypeSyntax? type) =>
+        type switch
+        {
+            QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == LifecycleName
+                && SimpleName(qualified.Left) == BuilderName,
+            NullableTypeSyntax nullable => IsLifecycleBuilder(nullable.ElementType),
+            _ => false,
+        };
 
     private static bool IsSdkProcessTask(INamedTypeSymbol contract) =>
         contract.Name == InterfaceName

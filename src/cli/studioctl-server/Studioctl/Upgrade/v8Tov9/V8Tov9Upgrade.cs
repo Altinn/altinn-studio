@@ -987,9 +987,10 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Gives app implementations of <c>IProcessTask</c> the <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c>
-    /// members v9 runs instead of the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>, each running the v8 method
-    /// as one stage, and makes an explicit implementation of a removed member the type's own method.
+    /// Moves app implementations of <c>IProcessTask</c> off the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>:
+    /// removes one that does nothing, and gives one that does work a <c>DefineStart</c>, <c>DefineEnd</c> or
+    /// <c>DefineAbandon</c> beside it that stops the build until the work is ported to stages. An explicit
+    /// implementation of a removed member becomes the type's own method.
     /// </summary>
     static int MigrateProcessTaskLifecycle(CSharpSourceScanner scanner, CancellationToken cancellationToken)
     {
