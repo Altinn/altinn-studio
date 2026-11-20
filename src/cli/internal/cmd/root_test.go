@@ -233,6 +233,11 @@ func TestCLI_Run(t *testing.T) {
 			wantCode: 0,
 		},
 		{
+			name:     "auth token command exists",
+			args:     []string{"auth", "token", "--help"},
+			wantCode: 0,
+		},
+		{
 			name:     "agent skills install command exists",
 			args:     []string{"agent", "skills", "install", "--help"},
 			wantCode: 0,
