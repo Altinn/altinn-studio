@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 
+import { isHttpError } from '@studio/http-client';
 import { skipToken, useQuery } from '@tanstack/react-query';
+import type { RequestOptions } from '@studio/http-client';
 import type { QueryClient, UseQueryOptions } from '@tanstack/react-query';
-import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 
 export function useFormDataQueryDef(url: string | undefined): UseQueryOptions<unknown> {
@@ -54,7 +54,7 @@ export async function invalidateFormDataQueries(queryClient: QueryClient) {
 function useFormDataQueryOptions() {
   const selectedPartyId = useSelectedParty()?.partyId;
   const isStateless = useIsStateless();
-  const options: AxiosRequestConfig = {};
+  const options: RequestOptions = {};
   if (isStateless && selectedPartyId !== undefined) {
     options.headers = {
       party: `partyid:${selectedPartyId}`,
@@ -80,7 +80,7 @@ export function useFormDataQuery(url: string | undefined) {
   const utils = useQuery(def);
 
   useEffect(() => {
-    if (utils.error && isAxiosError(utils.error)) {
+    if (utils.error && isHttpError(utils.error)) {
       if (utils.error.message?.includes('403')) {
         window.logInfo('Current party is missing roles');
       } else {

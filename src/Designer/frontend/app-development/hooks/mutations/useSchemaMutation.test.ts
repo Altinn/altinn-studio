@@ -7,7 +7,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { jsonSchemaMock } from '../../test/jsonSchemaMock';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const modelPath = 'modelPath';

@@ -7,8 +7,8 @@ import {
   StudioLink,
   StudioHeading,
   StudioToggleGroup,
-} from '@studio/components';
-import { PencilWritingIcon, PlusIcon } from '@studio/icons';
+} from '@designer/components';
+import { PencilWritingIcon, PlusIcon } from '@designer/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { useGetResourceEnvironmentsQuery } from '../../hooks/queries';

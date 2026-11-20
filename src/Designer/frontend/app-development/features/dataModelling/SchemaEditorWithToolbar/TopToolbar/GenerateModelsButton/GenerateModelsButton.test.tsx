@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

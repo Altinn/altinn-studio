@@ -37,7 +37,7 @@ import { extractNameFromPointer } from '../pointerUtils';
 import { isArray, isDefinition } from '../utils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { CombinationNode } from '../../types/CombinationNode';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildUiSchema } from '../build-ui-schema';
 import { buildJsonSchema } from '../build-json-schema';

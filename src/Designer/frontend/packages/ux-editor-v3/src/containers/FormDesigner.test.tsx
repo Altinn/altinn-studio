@@ -6,10 +6,10 @@ import {
   renderWithMockStore,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import ruleHandlerMock from '../testing/ruleHandlerMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 
 const render = () => {

@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "calculation-model.schema.json",
+  "type": "object",
+  "properties": {
+    "text": { "type": "string" },
+    "otherText": { "type": "string" },
+    "decimal": { "type": "number" },
+    "otherDecimal": { "type": "number" },
+    "nullableDecimal": { "type": ["number", "null"] },
+    "integer": { "type": "integer" },
+    "boolean": { "type": "boolean" },
+    "nullableBoolean": { "type": ["boolean", "null"] },
+    "numbers": { "type": "array", "items": { "type": "number" } },
+    "nullableNumbers": { "type": "array", "items": { "type": ["number", "null"] } },
+    "texts": { "type": "array", "items": { "type": "string" } },
+    "valueTypes": { "$ref": "#/definitions/ValueTypes" },
+    "object": { "$ref": "#/definitions/Object" },
+    "rows": { "type": "array", "items": { "$ref": "#/definitions/Row" } },
+    "copies": { "type": "array", "items": { "$ref": "#/definitions/Row" } }
+  },
+  "definitions": {
+    "ValueTypes": {
+      "type": "object",
+      "properties": {
+        "decimal": { "type": "number" },
+        "integer": { "type": "integer" },
+        "boolean": { "type": "boolean" },
+        "numberDefaultFive": { "type": "integer", "default": 5 }
+      },
+      "required": ["decimal", "integer", "boolean", "numberDefaultFive"]
+    },
+    "Object": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "decimal": { "type": "number" },
+        "nested": { "$ref": "#/definitions/Nested" }
+      }
+    },
+    "Nested": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "decimal": { "type": "number" }
+      }
+    },
+    "Row": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "decimal": { "type": "number" },
+        "total": { "type": "number" },
+        "children": { "type": "array", "items": { "$ref": "#/definitions/Child" } }
+      }
+    },
+    "Child": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "decimal": { "type": "number" }
+      }
+    }
+  }
+}

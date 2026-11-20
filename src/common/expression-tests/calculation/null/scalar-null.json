@@ -1,0 +1,157 @@
+{
+  "name": "A null result clears a field",
+  "dataModel": {
+    "text": "old",
+    "nullableDecimal": 3,
+    "nullableBoolean": true,
+    "numbers": [1, 2],
+    "object": {
+      "text": "a"
+    },
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "a"
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "string",
+      "calculations": [
+        {
+          "field": "text",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "text": null,
+        "nullableDecimal": 3,
+        "nullableBoolean": true,
+        "numbers": [1, 2],
+        "object": {
+          "text": "a"
+        },
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "text": "a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "nullable number",
+      "calculations": [
+        {
+          "field": "nullableDecimal",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "text": "old",
+        "nullableDecimal": null,
+        "nullableBoolean": true,
+        "numbers": [1, 2],
+        "object": {
+          "text": "a"
+        },
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "text": "a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "nullable boolean",
+      "calculations": [
+        {
+          "field": "nullableBoolean",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "text": "old",
+        "nullableDecimal": 3,
+        "nullableBoolean": null,
+        "numbers": [1, 2],
+        "object": {
+          "text": "a"
+        },
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "text": "a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list of primitives",
+      "calculations": [
+        {
+          "field": "numbers",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "text": "old",
+        "nullableDecimal": 3,
+        "nullableBoolean": true,
+        "numbers": null,
+        "object": {
+          "text": "a"
+        },
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "text": "a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "object",
+      "calculations": [
+        {
+          "field": "object",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "text": "old",
+        "nullableDecimal": 3,
+        "nullableBoolean": true,
+        "numbers": [1, 2],
+        "object": null,
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "text": "a"
+          }
+        ]
+      }
+    },
+    {
+      "name": "list of objects",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "text": "old",
+        "nullableDecimal": 3,
+        "nullableBoolean": true,
+        "numbers": [1, 2],
+        "object": {
+          "text": "a"
+        },
+        "rows": null
+      }
+    }
+  ]
+}

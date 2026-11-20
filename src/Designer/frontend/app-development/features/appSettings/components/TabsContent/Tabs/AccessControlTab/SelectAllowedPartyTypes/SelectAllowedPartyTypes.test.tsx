@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { SelectAllowedPartyTypes } from './SelectAllowedPartyTypes';
 import type { SelectAllowedPartyTypesProps } from './SelectAllowedPartyTypes';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { renderWithProviders } from 'app-development/test/mocks';
 
 describe('SelectAllowedPartyTypes', () => {

@@ -53,6 +53,15 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_EmptyFor
     ) => false;
 
     #endregion Setters
+    #region AddRow
+
+    /// <inheritdoc />
+    public bool AddRow(
+        global::System.ReadOnlySpan<char> path,
+        global::Altinn.App.Core.Internal.Expressions.ExpressionValue value
+    ) => false;
+
+    #endregion AddRow
     #region AddIndexToPath
 
     /// <inheritdoc />

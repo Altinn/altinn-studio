@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { useGetAltinn2ResourcePoliciesQuery } from '../../hooks/queries/useGetAltinn2ResourcePoliciesQuery';
 import classes from './Altinn2ResourcePoliciesPage.module.css';
-import { StudioAlert, StudioHeading, StudioSpinner, StudioToggleGroup } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioSpinner, StudioToggleGroup } from '@designer/components';
 import { getResourceDashboardURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';

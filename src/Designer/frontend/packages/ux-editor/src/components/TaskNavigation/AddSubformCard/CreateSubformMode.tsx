@@ -7,10 +7,10 @@ import {
   StudioTabs,
   StudioTextfield,
   StudioSelect,
-} from '@studio/components';
+} from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './CreateSubformMode.module.css';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon, XMarkIcon } from '@designer/icons';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';

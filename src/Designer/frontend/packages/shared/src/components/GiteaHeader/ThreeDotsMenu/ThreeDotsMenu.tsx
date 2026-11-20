@@ -1,7 +1,7 @@
-import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
+import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioPopover, StudioDropdown, StudioLinkButton } from '@studio/components';
+import { StudioPopover, StudioDropdown, StudioLinkButton } from '@designer/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';

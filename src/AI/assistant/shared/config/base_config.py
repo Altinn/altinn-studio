@@ -36,23 +36,22 @@ class BaseConfig:
         "AZURE_ANTHROPIC_ENDPOINT", "https://team-altinnstudio-ai.services.ai.azure.com/anthropic/"
     )
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
-    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
+    AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-6-luna")
+    # Judges each request before the agent starts. The decisions API takes only gpt-6-luna.
+    DECISION_MODEL = os.getenv("DECISION_MODEL", "gpt-6-luna")
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
-    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5.4-mini")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-6-luna")
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
     # Reviews the eval report; not in the agent's path.
-    LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-5.6-sol")
+    LLM_MODEL_EVAL_JUDGE = os.getenv("LLM_MODEL_EVAL_JUDGE", "gpt-6.1-sol")
     LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "low")
 
-    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-5.6-sol")
+    LLM_MODEL_PLANNER = os.getenv("LLM_MODEL_PLANNER", "gpt-6.1-sol")
     LLM_TEMPERATURE_PLANNER = os.getenv("LLM_TEMPERATURE_PLANNER")  # None → model default
 
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.6-terra")
-
-    LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
-    LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-6.1-terra")
 
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
     PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
@@ -69,11 +68,16 @@ class BaseConfig:
 
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
-    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")
+    LANGFUSE_HOST = "https://langfuse.digdir.cloud"
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
     LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "assistant-agents")
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)
     LANGFUSE_TRACE_RETENTION_DAYS = int(os.getenv("LANGFUSE_TRACE_RETENTION_DAYS", "90"))
+
+
+# The SDK reads this when it builds a client itself, such as when init_langfuse() failed,
+# and would otherwise reach cloud.langfuse.com.
+os.environ["LANGFUSE_BASE_URL"] = BaseConfig.LANGFUSE_HOST
 
 
 def get_config() -> BaseConfig:
@@ -83,8 +87,6 @@ def get_config() -> BaseConfig:
 ROLE_MODEL_CONFIG_KEYS = {
     "actor": "LLM_MODEL_ACTOR",
     "planner": "LLM_MODEL_PLANNER",
-    "reviewer": "LLM_MODEL_REVIEWER",
-    "assistant": "LLM_MODEL_ASSISTANT",
 }
 
 # The role LLMClient has no branch for, reached by get_llm_client() with no role.
@@ -102,4 +104,6 @@ def resolved_role_models() -> dict[str, str]:
     config = get_config()
     models = {role: getattr(config, key) for role, key in ROLE_MODEL_CONFIG_KEYS.items()}
     models[DEFAULT_ROLE] = default_role_model()
+    # The decision model is not an LLM, but it is here so a benchmark run records which model judged the requests.
+    models["decision"] = config.DECISION_MODEL
     return models

@@ -1,5 +1,5 @@
 import type { ITextResource, ITextResources, ITextResourcesWithLanguage } from '../types/global';
-import { TextResourceUtils } from '@studio/pure-functions';
+import { TextResourceUtils } from '@designer/pure-functions';
 
 export const setTextResourcesForLanguage = (
   existingResources: ITextResources,

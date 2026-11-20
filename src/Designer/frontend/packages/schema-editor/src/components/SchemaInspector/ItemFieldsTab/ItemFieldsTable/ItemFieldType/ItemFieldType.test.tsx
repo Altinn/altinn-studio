@@ -10,7 +10,7 @@ import {
   objectNodeMock,
 } from '../../../../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const defaultNode: UiSchemaNode = combinationNodeMock;

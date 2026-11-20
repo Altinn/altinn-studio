@@ -10,7 +10,6 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
-import reactCompiler from 'eslint-plugin-react-compiler';
 import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -41,7 +40,6 @@ export default defineConfig([
       'unused-imports': unusedImports,
       '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks,
-      'react-compiler': reactCompiler,
       sonarjs,
       local: {
         rules: {
@@ -113,6 +111,8 @@ export default defineConfig([
 
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],
+      'react-hooks/hooks': 'error',
+      'react-hooks/immutability': 'error',
       'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
       'react/jsx-fragments': ['error'],
@@ -135,8 +135,6 @@ export default defineConfig([
       'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: false }],
 
       'preferred-import-path/preferred-import-path': ['warn', { '^/src': 'src', '^/test/': 'test/' }],
-
-      'react-compiler/react-compiler': 'error',
 
       'simple-import-sort/imports': [
         'error',
@@ -228,12 +226,39 @@ export default defineConfig([
     },
   },
   {
+    // The table restriction above, for the query directory that block ignores
+    files: ['src/core/queries/**/*.{js,cjs,mjs,jsx,ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table', 'TableHead', 'TableBody', 'TableFoot', 'TableRow', 'TableHeaderCell', 'TableCell'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.{js,cjs,mjs,jsx,ts,tsx}'],
     ignores: ['src/core/queries/**'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table', 'TableHead', 'TableBody', 'TableFoot', 'TableRow', 'TableHeaderCell', 'TableCell'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
+            },
+          ],
           patterns: [
             {
               regex: '^@tanstack/(react-query(?:-devtools)?|query-core)(/|$)',

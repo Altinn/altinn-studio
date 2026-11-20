@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('Viewer', () => {
   it('displays correct error message when bpmnViewerError is "noDiagram"', async () => {

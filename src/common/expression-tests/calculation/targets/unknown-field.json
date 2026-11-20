@@ -1,0 +1,19 @@
+{
+  "name": "A field the data model does not have is skipped",
+  "dataModel": {
+    "text": "a"
+  },
+  "calculations": [
+    {
+      "field": "unknown",
+      "expression": 1
+    },
+    {
+      "field": "object.unknown",
+      "expression": 1
+    }
+  ],
+  "expects": {
+    "text": "a"
+  }
+}

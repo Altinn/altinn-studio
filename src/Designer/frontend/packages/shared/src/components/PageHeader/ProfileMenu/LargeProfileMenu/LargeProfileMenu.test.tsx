@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { LargeProfileMenu, type LargeProfileMenuProps } from './LargeProfileMenu';
 import type { User } from 'app-shared/types/Repository';
-import { StudioPageHeader } from '@studio/components';
+import { StudioPageHeader } from '@designer/components';
 
 const mockUseUserQuery = vi.fn();
 

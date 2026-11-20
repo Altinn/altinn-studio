@@ -6,7 +6,7 @@ import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
 import { BpmnConfigPanelFormContextProvider } from '../../../contexts/BpmnConfigPanelContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
 import type { Element } from 'bpmn-js/lib/model/Types';

@@ -7,9 +7,9 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { HttpError } from 'app-shared/utils/networking';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -107,7 +107,9 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display an alert if user does not have access on behalf of the organization', async () => {
-    const getMaskinportenScopes = vi.fn().mockRejectedValue(createHttpError(ServerCodes.Forbidden));
+    const getMaskinportenScopes = vi
+      .fn()
+      .mockRejectedValue(createHttpErrorMock(ServerCodes.Forbidden));
     const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ scopes: [] }));
@@ -127,7 +129,9 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display selected scopes without management controls if user does not have access on behalf of the organization', async () => {
-    const getMaskinportenScopes = vi.fn().mockRejectedValue(createHttpError(ServerCodes.Forbidden));
+    const getMaskinportenScopes = vi
+      .fn()
+      .mockRejectedValue(createHttpErrorMock(ServerCodes.Forbidden));
     const getSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
@@ -165,7 +169,7 @@ describe('ScopeListContainer', () => {
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
     const getSelectedMaskinportenScopes = vi
       .fn()
-      .mockRejectedValue(createHttpError(ServerCodes.Forbidden));
+      .mockRejectedValue(createHttpErrorMock(ServerCodes.Forbidden));
 
     renderScopeListContainer({
       getMaskinportenScopes,
@@ -185,7 +189,7 @@ describe('ScopeListContainer', () => {
       .mockImplementation(() => Promise.resolve(maskinportenScopes));
     const getSelectedMaskinportenScopes = vi
       .fn()
-      .mockRejectedValue(createHttpError(ServerCodes.InternalServerError));
+      .mockRejectedValue(createHttpErrorMock(ServerCodes.InternalServerError));
 
     renderScopeListContainer({
       getMaskinportenScopes,
@@ -246,7 +250,3 @@ const queryCell = (name: string): HTMLTableCellElement | null =>
 const getButton = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
 const queryButton = (name: string): HTMLButtonElement | null =>
   screen.queryByRole('button', { name });
-
-function createHttpError(status: ServerCodes): HttpError {
-  return new HttpError({ status, data: {} });
-}

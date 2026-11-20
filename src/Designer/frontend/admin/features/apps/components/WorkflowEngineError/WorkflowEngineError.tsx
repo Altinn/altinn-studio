@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioError } from '@studio/components';
+import { StudioAlert, StudioError } from '@designer/components';
 import { isHttpError } from 'app-shared/utils/networking';
 import { useTranslation } from 'react-i18next';
 import { useCurrentOrg } from 'admin/contexts/OrgContext';

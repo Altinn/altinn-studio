@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './App.module.css';
-import { StudioPageError, StudioPageSpinner } from '@studio/components';
+import { StudioPageError, StudioPageSpinner } from '@designer/components';
 import { CreateService } from '../pages/CreateService';
 import { Dashboard } from '../pages/Dashboard';
 import { Route, Routes } from 'react-router-dom';

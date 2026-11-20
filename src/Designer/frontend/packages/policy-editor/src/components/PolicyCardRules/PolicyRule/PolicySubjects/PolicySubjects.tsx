@@ -13,7 +13,7 @@ import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages'
 import { hasSubject } from '@altinn/policy-editor/utils';
 import { PolicySubjectsPerson } from './PolicySubjectsPerson';
 import { PolicySubjectsOrg } from './PolicySubjectsOrg';
-import { StudioValidationMessage } from '@studio/components';
+import { StudioValidationMessage } from '@designer/components';
 import { ChosenSubjects } from './ChosenSubjects';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import classes from './PolicySubjects.module.css';

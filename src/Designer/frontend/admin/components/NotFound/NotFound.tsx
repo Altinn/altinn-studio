@@ -1,4 +1,4 @@
-import { StudioNotFoundPage, StudioParagraph, StudioLink } from '@studio/components';
+import { StudioNotFoundPage, StudioParagraph, StudioLink } from '@designer/components';
 import { useTranslation, Trans } from 'react-i18next';
 
 export const NotFound = () => {

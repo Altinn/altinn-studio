@@ -6,7 +6,7 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';

@@ -9,7 +9,7 @@ import {
   StudioHeading,
   StudioButton,
   StudioTag,
-} from '@studio/components';
+} from '@designer/components';
 import React, { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDateAndTime } from 'admin/features/apps/utils/formatDateAndTime';
@@ -30,7 +30,7 @@ import {
   PersonPencilIcon,
   ReceiptIcon,
   StudioDeleteIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 
 import classes from './InstanceDataView.module.css';
 import {

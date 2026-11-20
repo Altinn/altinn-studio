@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, render } from '@testing-library/react';
 import { SmallHeaderMenuItem, type SmallHeaderMenuItemProps } from './SmallHeaderMenuItem';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import type { NavigationMenuItem } from '../../../../../types/NavigationMenuItem';
 import { HeaderContext, type HeaderContextProps } from '../../../../../context/HeaderContext';
 import { MockServicesContextWrapper } from '../../../../../dashboardTestUtils';

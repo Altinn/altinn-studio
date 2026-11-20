@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import type { MemoryRouterProps } from 'react-router-dom';
 import { MemoryRouter } from 'react-router-dom';
-import type { FeatureFlagsContextValue } from '@studio/feature-flags';
+import type { FeatureFlagsContextValue } from '@designer/feature-flags';
 import type {
   ServicesContextProps,
   ServicesContextProviderProps,
@@ -10,7 +10,7 @@ import type {
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientConfigMock, createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
 export type MockServicesContextWrapperProps = {
   children: ReactNode;

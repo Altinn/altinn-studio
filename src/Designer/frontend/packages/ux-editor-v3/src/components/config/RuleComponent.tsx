@@ -6,8 +6,8 @@ import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
 import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
-import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
-import { CogIcon, PlusIcon } from '@studio/icons';
+import { StudioButton, StudioDialog, StudioHeading } from '@designer/components';
+import { CogIcon, PlusIcon } from '@designer/icons';
 
 export interface IRuleComponentProps {
   connectionId?: string;

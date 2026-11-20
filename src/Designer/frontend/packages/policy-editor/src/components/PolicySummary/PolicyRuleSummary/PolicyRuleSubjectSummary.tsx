@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePolicyEditorContext } from '../../../contexts/PolicyEditorContext';
-import { StudioTag, StudioTable } from '@studio/components';
+import { StudioTag, StudioTable } from '@designer/components';
 import {
   getSubjectCategoryTextKey,
   getSubjectDisplayName,
@@ -8,7 +8,7 @@ import {
 } from '../../../utils/AppPolicyUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyRuleSubjectSummary.module.css';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export type PolicyRuleSubjectSummaryProps = {
   subject: string;

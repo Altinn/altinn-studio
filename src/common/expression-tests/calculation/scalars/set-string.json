@@ -1,0 +1,17 @@
+{
+  "name": "A string result replaces a string field",
+  "dataModel": {
+    "text": "old",
+    "otherText": "new"
+  },
+  "calculations": [
+    {
+      "field": "text",
+      "expression": ["dataModel", "otherText"]
+    }
+  ],
+  "expects": {
+    "text": "new",
+    "otherText": "new"
+  }
+}
