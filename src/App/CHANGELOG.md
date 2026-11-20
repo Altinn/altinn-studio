@@ -23,6 +23,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- The receipt page no longer stays blank with placeholder fields when every data type in the app, including the data model, has `autoDeleteOnProcessEnd`. It shows the receipt without attachments. ([#21999](https://github.com/Altinn/altinn-studio/pull/21999))
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
 - `Datepicker` in time zones other than UTC: ([#22012](https://github.com/Altinn/altinn-studio/pull/22012))
   - The calendar no longer marks the day before the chosen date for users west of UTC, such as in the Americas.

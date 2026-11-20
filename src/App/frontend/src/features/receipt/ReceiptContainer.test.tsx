@@ -20,6 +20,7 @@ interface IRender {
   hasPdf?: boolean;
   setCustomReceipt?: boolean;
   receiptLayoutExist?: boolean;
+  hasDataElements?: boolean;
 }
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
@@ -27,7 +28,7 @@ const exampleDataElementId = 'c21ebe7a-038d-4e8d-811c-0df1c16a1aa9';
 const exampleDataElementId2 = 'afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb';
 const exampleInstanceId = `512345/${exampleGuid}`;
 
-const buildInstance = (hasPdf = true) =>
+const buildInstance = (hasPdf = true, hasDataElements = true) =>
   getInstanceDataMock((i) => {
     i.org = 'ttd';
     i.id = exampleInstanceId;
@@ -43,6 +44,10 @@ const buildInstance = (hasPdf = true) =>
         onlyHierarchyElementWithNoAccess: false,
       } as IParty,
     };
+    if (!hasDataElements) {
+      i.data = [];
+      return;
+    }
     if (hasPdf) {
       i.data.push({
         id: exampleDataElementId,
@@ -86,7 +91,7 @@ const buildInstance = (hasPdf = true) =>
     });
   });
 
-const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
+const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true, hasDataElements = true }: IRender = {}) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
     a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
   });
@@ -105,7 +110,9 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         {children}
       </InstanceRouter>
     ),
-    queries: { getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }) },
+    queries: {
+      getInstance: async () => ({ ...buildInstance(hasPdf, hasDataElements), process: getProcessDataMock() }),
+    },
   });
 };
 
@@ -179,6 +186,26 @@ describe('ReceiptContainer', () => {
         /Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden/i,
       ),
     ).toBeInTheDocument();
+  });
+
+  it('should show receipt when the instance has no data elements left (all data types auto-deleted)', async () => {
+    await render({ hasDataElements: false });
+
+    expect(screen.getByRole('heading', { name: 'Skjemaet er sendt inn' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Følgende er sendt inn:/ })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
+  it('should show simple receipt when the instance has no data elements left and autoDeleteOnProcessEnd is true', async () => {
+    await render({ autoDeleteOnProcessEnd: true, hasDataElements: false });
+
+    expect(screen.getByRole('heading', { name: 'Skjemaet er sendt inn' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Av sikkerhetshensyn vil verken innholdet i tjenesten eller denne meldingen være synlig i Altinn etter at du har forlatt denne siden/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 });
 
