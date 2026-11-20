@@ -1,0 +1,35 @@
+{
+  "name": "Rows in a result with ids merge into the rows with those ids, in the order of the result",
+  "dataModel": {
+    "rows": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "text": "a" },
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 2, "text": "b" }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000002", "total", 2],
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 1]
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 2,
+        "text": "b",
+        "total": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1,
+        "text": "a",
+        "total": 1
+      }
+    ]
+  }
+}

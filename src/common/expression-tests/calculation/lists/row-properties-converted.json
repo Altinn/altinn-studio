@@ -1,0 +1,26 @@
+{
+  "name": "The properties of each row are converted to the types of the fields",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "a"
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "text", 1, "total", "2"]]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "1",
+        "total": 2
+      }
+    ]
+  }
+}

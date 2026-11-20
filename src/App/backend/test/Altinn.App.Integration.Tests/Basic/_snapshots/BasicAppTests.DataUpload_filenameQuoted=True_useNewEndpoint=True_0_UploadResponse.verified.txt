@@ -118,8 +118,8 @@
           IsRead: true,
           Created: DateTime_4,
           CreatedBy: 991825827,
-          LastChanged: DateTime_5,
-          LastChangedBy: 1337
+          LastChanged: DateTime_4,
+          LastChangedBy: 991825827
         },
         {
           Id: <dataElementId[1]>,
@@ -146,23 +146,6 @@
       CreatedBy: 1337,
       LastChanged: DateTime_5,
       LastChangedBy: 1337
-    },
-    NewDataModels: [
-      {
-        DataElementId: Guid_2,
-        Data: {
-          price: 200,
-          quantity: 1,
-          total: 200,
-          lines: [
-            {
-              altinnRowId: Guid_3,
-              label: total,
-              amount: 200
-            }
-          ]
-        }
-      }
-    ]
+    }
   }
 }
