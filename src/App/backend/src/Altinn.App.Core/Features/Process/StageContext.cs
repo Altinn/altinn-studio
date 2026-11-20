@@ -1,3 +1,5 @@
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
@@ -18,6 +20,12 @@ public sealed record StageContext
     /// elements from previous tasks are locked.
     /// </remarks>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
+
+    /// <summary>
+    /// The actor who started the transition, as the workflow engine recorded it; the request itself is authenticated
+    /// as the app.
+    /// </summary>
+    public required Actor Actor { get; init; }
 
     /// <summary>
     /// Cancellation token for the operation.

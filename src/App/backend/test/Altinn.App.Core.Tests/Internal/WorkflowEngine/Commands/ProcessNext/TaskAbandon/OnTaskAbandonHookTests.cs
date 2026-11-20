@@ -97,6 +97,7 @@ public class OnTaskAbandonHookTests
                         && c.CancellationToken.Equals(context.CancellationToken)
                         && c.WorkflowId == context.Payload.WorkflowId
                         && c.StepId == context.Payload.StepId
+                        && c.Actor == context.Payload.Actor
                     )
                 ),
             Times.Once

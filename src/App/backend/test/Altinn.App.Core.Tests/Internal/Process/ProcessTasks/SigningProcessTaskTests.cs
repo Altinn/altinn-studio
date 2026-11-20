@@ -454,6 +454,7 @@ public sealed class SigningProcessTaskTests : IDisposable
         new()
         {
             InstanceDataMutator = dataMutator,
+            Actor = new(),
             WorkflowId = Guid.Empty,
             StepId = stepId ?? Guid.NewGuid(),
         };
