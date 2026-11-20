@@ -35,7 +35,7 @@ internal sealed class WorkflowStepSet
 {
     private readonly List<PlannedStep> _lifecycleSteps = [];
     private readonly List<PlannedStep> _primaryPostCommitSteps = [];
-    private readonly List<PlannedStep> _auxiliarySteps = [];
+    private readonly List<IReadOnlyList<PlannedStep>> _auxiliaryWorkflows = [];
 
     /// <summary>
     /// The lifecycle steps for this event. A task end's or abandon's run before CommitProcessState, a task start's after
@@ -51,11 +51,11 @@ internal sealed class WorkflowStepSet
     public IReadOnlyList<PlannedStep> PrimaryPostCommitSteps => _primaryPostCommitSteps;
 
     /// <summary>
-    /// The steps after the commit that run in auxiliary workflows (e.g., MovedToAltinnEvent), one
-    /// workflow per step. An auxiliary workflow runs beside the process and never gates the next
-    /// transition.
+    /// The auxiliary workflows to run after the commit (e.g., MovedToAltinnEvent), each as its steps in order. An
+    /// auxiliary workflow runs beside the process and never gates the next transition. Most hold one step; the
+    /// instantiation notification's holds the send and the delivery check that follows it up.
     /// </summary>
-    public IReadOnlyList<PlannedStep> AuxiliarySteps => _auxiliarySteps;
+    public IReadOnlyList<IReadOnlyList<PlannedStep>> AuxiliaryWorkflows => _auxiliaryWorkflows;
 
     /// <summary>
     /// Whether this set plans a service task's steps after CommitProcessState. The service task's
@@ -101,10 +101,13 @@ internal sealed class WorkflowStepSet
 
         if (context.IsInstantiation && context.Notification is not null)
         {
-            group.AddAuxiliaryStep(
-                NotifyInstanceOwnerOnInstantiation.Key,
-                new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
-            );
+            group._auxiliaryWorkflows.Add([
+                CreateStep(
+                    NotifyInstanceOwnerOnInstantiation.Key,
+                    new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
+                ),
+                CreateStep(AwaitNotificationDelivery.Key),
+            ]);
         }
 
         return group;
@@ -235,7 +238,7 @@ internal sealed class WorkflowStepSet
     /// </summary>
     private WorkflowStepSet AddAuxiliaryStep(string commandKey, CommandRequestPayload? payload = null)
     {
-        _auxiliarySteps.Add(CreateStep(commandKey, payload));
+        _auxiliaryWorkflows.Add([CreateStep(commandKey, payload)]);
         return this;
     }
 

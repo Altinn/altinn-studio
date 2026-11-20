@@ -291,17 +291,18 @@ internal sealed class ProcessNextRequestFactory
                 Labels = labels,
                 // Runtime authentication is added by the enqueue command. Embedding a freshly minted
                 // callback token here would change the parent's hashed payload on every reconstruction.
-                // One single-step workflow per auxiliary step: the steps are independent
-                // outcomes, so each gets its own failure containment - a dead-lettered event
-                // registration must not starve the notification behind it - and its own retry
-                // pacing, alert row, and redrive. Should an auxiliary step ever need ordering
-                // relative to another, express it explicitly via DependsOn rather than as an
-                // accident of step-list position.
+                // One workflow per independent outcome, so each gets its own failure containment - a
+                // dead-lettered event registration must not starve the notification behind it - and its
+                // own retry pacing, alert row, and redrive. Steps share a workflow only when a later one
+                // follows up an earlier one, as the notification's delivery check follows its send.
+                // Should one auxiliary workflow ever need ordering relative to another, express it
+                // explicitly via DependsOn rather than as an accident of list position.
                 Workflows = assembled
-                    .Auxiliary.Select(step => new WorkflowRequest
+                    .Auxiliary.Select(workflowSteps => new WorkflowRequest
                     {
-                        OperationId = $"{AuxiliaryOperationIdPrefix} {fromTaskId} -> {toTaskId} · {step.OperationId}",
-                        Steps = [step],
+                        OperationId =
+                            $"{AuxiliaryOperationIdPrefix} {fromTaskId} -> {toTaskId} · {workflowSteps[0].OperationId}",
+                        Steps = workflowSteps,
                         // The command injects State (this step's commit-time state blob) and
                         // Links (the primary workflow id) when it executes.
                         // Auxiliary and started immediately: independent roots that neither consume
@@ -395,7 +396,7 @@ internal sealed class ProcessNextRequestFactory
     private readonly record struct AssembledSteps(
         List<StepRequest> ThroughTaskStart,
         List<StepRequest> PrimaryPostCommit,
-        List<StepRequest> Auxiliary,
+        List<List<StepRequest>> Auxiliary,
         bool EndsProcess
     );
 
@@ -410,7 +411,7 @@ internal sealed class ProcessNextRequestFactory
         var taskEndSteps = new List<StepRequest>();
         var taskStartSteps = new List<StepRequest>();
         var primaryPostCommitSteps = new List<StepRequest>();
-        var auxiliarySteps = new List<StepRequest>();
+        var auxiliaryWorkflows = new List<List<StepRequest>>();
         bool endsProcess = false;
         bool serviceTaskFollowsCommit = false;
 
@@ -473,7 +474,11 @@ internal sealed class ProcessNextRequestFactory
                 }
 
                 primaryPostCommitSteps.AddRange(eventSteps.PrimaryPostCommitSteps.ToStepRequests(_stepOptionsResolver));
-                auxiliarySteps.AddRange(eventSteps.AuxiliarySteps.ToStepRequests(_stepOptionsResolver));
+                auxiliaryWorkflows.AddRange(
+                    eventSteps.AuxiliaryWorkflows.Select(workflowSteps =>
+                        workflowSteps.ToStepRequests(_stepOptionsResolver).ToList()
+                    )
+                );
             }
         }
 
@@ -493,7 +498,7 @@ internal sealed class ProcessNextRequestFactory
             primaryPostCommitSteps.Add(CreateStep(ReleaseProcessingStatus.Key));
         }
 
-        return new AssembledSteps(throughTaskStart, primaryPostCommitSteps, auxiliarySteps, endsProcess);
+        return new AssembledSteps(throughTaskStart, primaryPostCommitSteps, auxiliaryWorkflows, endsProcess);
     }
 
     private WorkflowStepSet? GetWorkflowStepsForInstanceEvent(

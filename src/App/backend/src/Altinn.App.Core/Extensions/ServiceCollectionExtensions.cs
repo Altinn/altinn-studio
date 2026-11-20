@@ -275,6 +275,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IEmailNotificationClient, EmailNotificationClient>();
         services.AddHttpClient<ISmsNotificationClient, SmsNotificationClient>();
         services.AddHttpClient<INotificationOrderClient, NotificationOrderClient>();
+        services.AddHttpClient<INotificationShipmentClient, NotificationShipmentClient>();
         services.TryAddTransient<INotificationService, NotificationService>();
         services.TryAddTransient<ICancelInstantiationNotification, SendOnProcessNotEnded>();
         services.TryAddSingleton<INotificationConditionSecretProvider, NotificationConditionSecretProvider>();

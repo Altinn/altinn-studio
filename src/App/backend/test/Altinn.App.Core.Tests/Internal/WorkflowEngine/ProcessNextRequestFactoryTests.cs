@@ -2282,7 +2282,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_InstantiationWithNotification_EmitsOneSingleStepAuxiliaryWorkflowPerCommand()
+    public async Task Create_InstantiationWithNotification_EmitsOneAuxiliaryWorkflowPerOutcome()
     {
         // Arrange
         var factory = CreateFactory();
@@ -2299,19 +2299,23 @@ public class ProcessNextRequestFactoryTests
             notification: notification
         );
 
-        // Assert - the auxiliary steps are independent outcomes: each rides its own single-step
-        // auxiliary workflow so a dead-lettered event registration cannot starve the notification behind it.
+        // Assert - the auxiliary outcomes are independent: each rides its own auxiliary workflow so a
+        // dead-lettered event registration cannot starve the notification behind it. The notification's
+        // delivery check follows its send in the same workflow, where it reads the shipment the send recorded.
         Assert.Single(bundle.Request.Workflows);
         List<WorkflowRequest> siblings = ExtractAuxiliaryWorkflows(bundle);
         Assert.Equal(
-            [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
-            siblings.SelectMany(ExtractCommandKeys).ToList()
+            [
+                [MovedToAltinnEvent.Key],
+                [InstanceCreatedAltinnEvent.Key],
+                [NotifyInstanceOwnerOnInstantiation.Key, AwaitNotificationDelivery.Key],
+            ],
+            siblings.Select(ExtractCommandKeys)
         );
         Assert.All(
             siblings,
             sibling =>
             {
-                Assert.Single(sibling.Steps);
                 Assert.False(sibling.IsHead);
                 Assert.False(sibling.DependsOnHeads);
                 Assert.Null(sibling.DependsOn);
