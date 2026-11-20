@@ -27,7 +27,6 @@ public class FiksArkivMessageSenderTest
     public async Task GenerateAndSendMessage_WithDataMutator_NormalizesNonSeekableArchiveForStageAndSend()
     {
         var fiksIOClientMock = new Mock<IFiksIOClient>();
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         var fiksArkivConfigResolverMock = new Mock<IFiksArkivConfigResolver>();
         var fiksArkivPayloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
         var dataMutatorMock = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
@@ -61,7 +60,6 @@ public class FiksArkivMessageSenderTest
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("FiksArkivCustomSettings");
                 services.AddSingleton(fiksIOClientMock.Object);
-                services.AddSingleton(fiksArkivInstanceClientMock.Object);
                 services.AddSingleton(fiksArkivConfigResolverMock.Object);
                 services.AddSingleton(fiksArkivPayloadGeneratorMock.Object);
             },
@@ -161,7 +159,6 @@ public class FiksArkivMessageSenderTest
         dataMutatorMock.Verify();
         fiksArkivPayloadGeneratorMock.Verify();
         fiksIOClientMock.Verify();
-        fiksArkivInstanceClientMock.VerifyNoOtherCalls();
     }
 
     private sealed class NonSeekableReadStream(ReadOnlyMemory<byte> data) : Stream
@@ -198,7 +195,6 @@ public class FiksArkivMessageSenderTest
         var initialVersions = new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 4);
         var committedVersions = new StorageVersionMetadata(InstanceVersion: 8, ProcessStateVersion: 4);
         var fiksIOClientMock = new Mock<IFiksIOClient>(MockBehavior.Strict);
-        var fiksArkivInstanceClientMock = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         var fiksArkivConfigResolverMock = new Mock<IFiksArkivConfigResolver>(MockBehavior.Strict);
         var fiksArkivPayloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>(MockBehavior.Strict);
         var customFiksArkivSettings = new FiksArkivSettings
@@ -224,7 +220,6 @@ public class FiksArkivMessageSenderTest
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("FiksArkivCustomSettings");
                 services.AddSingleton(fiksIOClientMock.Object);
-                services.AddSingleton(fiksArkivInstanceClientMock.Object);
                 services.AddSingleton(fiksArkivConfigResolverMock.Object);
                 services.AddSingleton(fiksArkivPayloadGeneratorMock.Object);
             },
@@ -335,7 +330,6 @@ public class FiksArkivMessageSenderTest
 
         Assert.Equal(0, commitCalls);
         fiksIOClientMock.Verify();
-        fiksArkivInstanceClientMock.VerifyNoOtherCalls();
 
         DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
         Assert.Single(changes.BinaryDataChanges);

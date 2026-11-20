@@ -16,22 +16,16 @@ namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 public class FiksArkivConfigValidationServiceTest
 {
     [Fact]
-    public async Task StartAsync_ValidatesReceiptSettings_AndDelegatesToThePayloadGenerator()
+    public async Task StartAsync_ValidatesReceiptSettings_DelegatesToThePayloadGenerator_AndResolvesTheServiceOwnerToken()
     {
         // Arrange
         var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
-        var instanceClientMock = new Mock<IFiksArkivInstanceClient>();
         var appMetadata = new ApplicationMetadata("ttd/test-app")
         {
             DataTypes = [new DataType { Id = "archive-record-type" }, new DataType { Id = "confirmation-record-type" }],
         };
 
-        await using var fixture = CreateFixture(
-            ValidSettings(),
-            payloadGeneratorMock,
-            instanceClientMock,
-            out var processTasks
-        );
+        await using var fixture = CreateFixture(ValidSettings(), payloadGeneratorMock, out var processTasks);
         fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
 
         // Act
@@ -39,7 +33,35 @@ public class FiksArkivConfigValidationServiceTest
 
         // Assert
         payloadGeneratorMock.Verify(x => x.ValidateConfiguration(appMetadata.DataTypes, processTasks), Times.Once);
-        instanceClientMock.Verify(x => x.GetServiceOwnerToken(It.IsAny<CancellationToken>()), Times.Once);
+        fixture.MaskinportenClientMock.Verify(
+            x => x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task StartAsync_Throws_WhenTheServiceOwnerTokenCannotBeResolved()
+    {
+        // Arrange
+        await using var fixture = CreateFixture(ValidSettings(), new Mock<IFiksArkivPayloadGenerator>(), out _);
+        fixture
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(ReceiptDataTypes("archive-record-type", allowedContentTypes: null));
+        fixture
+            .MaskinportenClientMock.Setup(x =>
+                x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
+            )
+            .ThrowsAsync(new InvalidOperationException("no Maskinporten client is configured"));
+
+        // Act
+        var record = await Record.ExceptionAsync(() =>
+            fixture.FiksArkivConfigValidationService.StartAsync(CancellationToken.None)
+        );
+
+        // Assert
+        var exception = Assert.IsType<FiksArkivException>(record);
+        Assert.Contains("service owner token", exception.Message);
+        Assert.Contains("no Maskinporten client is configured", exception.Message);
     }
 
     [Fact]
@@ -47,14 +69,8 @@ public class FiksArkivConfigValidationServiceTest
     {
         // Arrange
         var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
-        var instanceClientMock = new Mock<IFiksArkivInstanceClient>();
 
-        await using var fixture = CreateFixture(
-            new FiksArkivSettings { Receipt = null },
-            payloadGeneratorMock,
-            instanceClientMock,
-            out _
-        );
+        await using var fixture = CreateFixture(new FiksArkivSettings { Receipt = null }, payloadGeneratorMock, out _);
 
         // Act
         var record = await Record.ExceptionAsync(() =>
@@ -65,7 +81,7 @@ public class FiksArkivConfigValidationServiceTest
         var exception = Assert.IsType<FiksArkivConfigurationException>(record);
         Assert.Contains("Receipt configuration is required", exception.Message);
         payloadGeneratorMock.VerifyNoOtherCalls();
-        instanceClientMock.VerifyNoOtherCalls();
+        fixture.MaskinportenClientMock.VerifyNoOtherCalls();
     }
 
     [Theory]
@@ -76,8 +92,7 @@ public class FiksArkivConfigValidationServiceTest
         // Arrange: v8 stored the records as application/xml whatever the data type allowed, so an upgraded app can
         // still restrict them to other content types.
         var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
-        var instanceClientMock = new Mock<IFiksArkivInstanceClient>();
-        await using var fixture = CreateFixture(ValidSettings(), payloadGeneratorMock, instanceClientMock, out _);
+        await using var fixture = CreateFixture(ValidSettings(), payloadGeneratorMock, out _);
         fixture
             .AppMetadataMock.Setup(x => x.ApplicationMetadata)
             .Returns(ReceiptDataTypes(dataTypeId, ["application/pdf"]));
@@ -108,13 +123,7 @@ public class FiksArkivConfigValidationServiceTest
     {
         // Arrange
         var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
-        var instanceClientMock = new Mock<IFiksArkivInstanceClient>();
-        await using var fixture = CreateFixture(
-            ValidSettings(),
-            payloadGeneratorMock,
-            instanceClientMock,
-            out var processTasks
-        );
+        await using var fixture = CreateFixture(ValidSettings(), payloadGeneratorMock, out var processTasks);
         var appMetadata = ReceiptDataTypes("archive-record-type", allowedContentTypes);
         appMetadata.DataTypes.Single(x => x.Id == "confirmation-record-type").AllowedContentTypes = allowedContentTypes;
         fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
@@ -250,7 +259,6 @@ public class FiksArkivConfigValidationServiceTest
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
                 services.AddSingleton(new Mock<IFiksArkivPayloadGenerator>().Object);
-                services.AddSingleton(new Mock<IFiksArkivInstanceClient>().Object);
             },
             [("CustomFiksArkivSettings", settings)],
             useDefaultFiksArkivSettings: false
@@ -318,7 +326,6 @@ public class FiksArkivConfigValidationServiceTest
     private static TestFixture CreateFixture(
         FiksArkivSettings settings,
         Mock<IFiksArkivPayloadGenerator> payloadGeneratorMock,
-        Mock<IFiksArkivInstanceClient> instanceClientMock,
         out List<ProcessTask> processTasks
     )
     {
@@ -329,7 +336,6 @@ public class FiksArkivConfigValidationServiceTest
             {
                 services.AddFiksArkiv().WithFiksArkivConfig("CustomFiksArkivSettings");
                 services.AddSingleton(payloadGeneratorMock.Object);
-                services.AddSingleton(instanceClientMock.Object);
             },
             [("CustomFiksArkivSettings", settings)],
             useDefaultFiksArkivSettings: false
