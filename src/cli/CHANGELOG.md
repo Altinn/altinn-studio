@@ -17,6 +17,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` migrates calculations: ([#21928](https://github.com/Altinn/altinn-studio/pull/21928))
     - converts `calculations` in `models/*.calculation.json` to the v9 list, keeping comments and formatting. A file whose calculations would not load in v9, such as one without an `expression`, is left as it is and reported as a TODO that says what to fix
     - reports app code that calls the removed `IAppResources.GetCalculationConfiguration`
+- `studioctl app upgrade v9` removes code in `ProcessDataRead` that unlocks, writes and locks the form being read, which v9 refuses while it creates the payment receipt. Changes the method makes to the form are still shown, but no longer saved. ([#21480](https://github.com/Altinn/altinn-studio/pull/21480))
 
 ### Changed
 
