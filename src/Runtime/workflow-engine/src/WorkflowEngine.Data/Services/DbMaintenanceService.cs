@@ -65,6 +65,7 @@ internal sealed class DbMaintenanceService(
                 {
                     _lastRetentionRun = now;
                     await PurgeExpiredWorkflows(now, settings.Retention, stoppingToken);
+                    await ClearExpiredCompletedState(now, settings.Retention, stoppingToken);
                     await PurgeExpiredMailboxes(now, settings.Retention, stoppingToken);
                 }
 
@@ -330,6 +331,44 @@ internal sealed class DbMaintenanceService(
         cmd.Parameters.AddWithValue("namespaces", namespaces);
 
         await cmd.ExecuteNonQueryAsync(ct);
+    }
+
+    /// <summary>
+    /// Clears the state of workflows that completed more than
+    /// <see cref="RetentionSettings.CompletedStateRetentionPeriod"/> ago: the initial state and every step's state
+    /// out. The rows, statuses and idempotency keys stay until <see cref="PurgeExpiredWorkflows"/> deletes them.
+    /// </summary>
+    /// <remarks>
+    /// Only <see cref="PersistentItemStatus.Completed"/> qualifies. It is the one terminal status a workflow
+    /// never leaves: resume refuses it, so no step of it runs again. A dependent never reads a predecessor's
+    /// state either, since every workflow carries its own initial state from enqueue. Every other terminal
+    /// status can be resumed, and a resumed step runs from the state its predecessor left, so those keep it.
+    /// </remarks>
+    internal async Task ClearExpiredCompletedState(DateTimeOffset now, RetentionSettings settings, CancellationToken ct)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMaintenanceService.ClearExpiredCompletedState");
+
+        var cutoff = now - settings.CompletedStateRetentionPeriod;
+        var totalCleared = 0;
+
+        // Bounded by the batch emptying rather than coming back short, so a zero batch size ends the loop.
+        int cleared;
+        do
+        {
+            using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
+            {
+                await using var cmd = dataSource.CreateCommand(Sql.ClearExpiredCompletedStateCommand);
+                cmd.Parameters.AddWithValue("cutoff", cutoff);
+                cmd.Parameters.AddWithValue("batchSize", settings.BatchSize);
+                cmd.Parameters.AddWithValue("now", now);
+
+                cleared = await cmd.ExecuteNonQueryAsync(ct);
+                totalCleared += cleared;
+            }
+        } while (cleared > 0 && cleared >= settings.BatchSize);
+
+        if (totalCleared > 0)
+            logger.RetentionClearedCompletedState(totalCleared);
     }
 
     private sealed record WorkflowPurgeCandidate(Guid Id, string? CollectionKey, string Namespace);
@@ -630,6 +669,38 @@ internal sealed class DbMaintenanceService(
             RETURNING id, collection_key, namespace
             """;
 
+        private const string SuccessfulStatuses = PersistentItemStatusMap.SuccessfulSqlList;
+
+        // One statement, so a workflow's steps and its own row are cleared together or not at all. The
+        // candidate filter repeats the partial index's predicate (ix_workflows_updated_at_completed_state)
+        // so the planner can use it; stamping state_cleared_at takes the row out of that index. SKIP LOCKED
+        // passes over a row that another pod's workflow purge holds. The row count is the top-level UPDATE's,
+        // one per workflow; the steps CTE runs once whether or not the outer query reads it.
+        internal const string ClearExpiredCompletedStateCommand = $"""
+            WITH candidates AS (
+                SELECT w.id
+                FROM engine.workflows w
+                WHERE w.status IN ({SuccessfulStatuses})
+                  AND w.state_cleared_at IS NULL
+                  AND w.updated_at < @cutoff
+                ORDER BY w.updated_at
+                LIMIT @batchSize
+                FOR UPDATE SKIP LOCKED
+            ),
+            cleared_steps AS (
+                UPDATE engine.steps s
+                SET state_out = NULL
+                FROM candidates c
+                WHERE s.job_id = c.id
+                  AND s.state_out IS NOT NULL
+            )
+            UPDATE engine.workflows w
+            SET initial_state = NULL,
+                state_cleared_at = @now
+            FROM candidates c
+            WHERE w.id = c.id
+            """;
+
         internal const string SelectExpiredMailboxCandidatesCommand = $"""
             SELECT m.id
             FROM engine.mailboxes m
@@ -744,6 +815,9 @@ internal static partial class DbMaintenanceServiceLogs
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} terminal workflow(s)")]
     internal static partial void RetentionDeletedWorkflows(this ILogger<DbMaintenanceService> logger, int count);
+
+    [LoggerMessage(LogLevel.Information, "Retention: cleared the state of {Count} completed workflow(s)")]
+    internal static partial void RetentionClearedCompletedState(this ILogger<DbMaintenanceService> logger, int count);
 
     [LoggerMessage(LogLevel.Information, "Retention: deleted {Count} orphaned idempotency key(s)")]
     internal static partial void RetentionDeletedKeys(this ILogger<DbMaintenanceService> logger, int count);

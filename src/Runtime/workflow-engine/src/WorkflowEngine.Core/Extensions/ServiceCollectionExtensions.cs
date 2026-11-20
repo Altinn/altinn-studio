@@ -250,6 +250,12 @@ public static class OptionsBuilderExtensions
                 if (config.Retention.RetentionPeriod <= TimeSpan.Zero)
                     config.Retention.RetentionPeriod = Defaults.EngineSettings.Retention.RetentionPeriod;
 
+                if (config.Retention.CompletedStateRetentionPeriod <= TimeSpan.Zero)
+                    config.Retention.CompletedStateRetentionPeriod = Defaults
+                        .EngineSettings
+                        .Retention
+                        .CompletedStateRetentionPeriod;
+
                 if (config.Retention.BatchSize <= 0)
                     config.Retention.BatchSize = Defaults.EngineSettings.Retention.BatchSize;
 
@@ -440,6 +446,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Retention.RetentionPeriod > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.RetentionPeriod)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.Retention.CompletedStateRetentionPeriod > TimeSpan.Zero,
+                $"{ns}.{nameof(EngineSettings.Retention)}.{nameof(RetentionSettings.CompletedStateRetentionPeriod)} must be greater than zero."
             );
 
             builder.Validate(

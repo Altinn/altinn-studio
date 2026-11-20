@@ -70,6 +70,13 @@ internal static class PersistentItemStatusMap
     public const string FailedSqlList = "4, 5, 6";
 
     /// <summary>
+    /// <see cref="Successful"/> as integer literals, interpolated into the partial index backing the completed
+    /// state sweep so the index and the sweep cannot drift. Same constancy contract as
+    /// <see cref="FinishedSqlList"/>.
+    /// </summary>
+    public const string SuccessfulSqlList = "3";
+
+    /// <summary>
     /// <see cref="PersistentItemStatus.Processing"/> as an integer literal, for interpolation
     /// into compile-time-constant SQL. Same constancy contract as <see cref="FinishedSqlList"/>.
     /// </summary>
