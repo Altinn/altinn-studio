@@ -125,6 +125,22 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Theory]
+    [InlineData("1e309")]
+    [InlineData("-1e309")]
+    public void NonFiniteLiterals_DoNotStopLaterCalculations(string literal)
+    {
+        using var app = CreateApp();
+        WriteRules(
+            app,
+            new() { ["unsupported"] = Rule("unsupported", "result"), ["sum"] = Rule("sum", "other") },
+            "unsupported: function(obj) { return " + literal + "; }, sum: function(obj) { " + Sum + " }"
+        );
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Equal(["sum"], migration.ConvertedRules["form"]);
+        Assert.Contains(migration.FallbackReasons, reason => reason.Contains("Non-finite", StringComparison.Ordinal));
+    }
+
+    [Theory]
     [InlineData("return Math.floor(obj.a);")]
     [InlineData("return obj.a.toFixed(2);")]
     [InlineData("return parseFloat(obj.a);")]

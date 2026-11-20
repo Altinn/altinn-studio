@@ -288,6 +288,8 @@ public sealed class LegacyRuleConversionTests
 
     [Theory]
     [InlineData("obj = obj.a; return obj;")]
+    [InlineData("return 1e309;")]
+    [InlineData("return -1e309;")]
     [InlineData("return helper(obj.a); const helper = value => value;")]
     [InlineData("const extra = obj.b; const helper = value => value + extra; return helper(obj.a);")]
     [InlineData("const Number = value => 7; const helper = value => Number(value); return helper(obj.a);")]
