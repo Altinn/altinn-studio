@@ -883,7 +883,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             Status = step.Status,
             RetryCount = step.RetryCount,
             StateOut = step.StateOut,
-            RetryStrategy = step.RetryStrategy,
             ErrorHistory = step.ErrorHistory.Count == 0 ? null : step.ErrorHistory.ToList(),
         };
 

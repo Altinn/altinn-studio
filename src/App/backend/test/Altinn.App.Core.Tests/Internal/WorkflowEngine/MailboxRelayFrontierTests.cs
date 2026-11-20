@@ -19,6 +19,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -342,7 +343,8 @@ public class MailboxRelayFrontierTests
             processNextRequestFactory: null!,
             collection,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
     private static MailboxRelayRequest CreateRequest(Guid receiverWorkflowId, Guid stepId) =>

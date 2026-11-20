@@ -5,6 +5,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// <summary>
 /// Defines backoff types for retry strategies.
 /// </summary>
+/// <remarks>
+/// The app only sends this enum, so it reads it strictly and has no <c>Unknown</c> member. An unknown backoff type
+/// means nothing in a request the engine must act on.
+/// </remarks>
 [JsonConverter(typeof(JsonStringEnumConverter<BackoffType>))]
 internal enum BackoffType
 {

@@ -83,7 +83,6 @@ internal sealed record WorkflowStatusResponse
     /// The overall status of the workflow.
     /// </summary>
     [JsonPropertyName("overallStatus")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required PersistentItemStatus OverallStatus { get; init; }
 
     /// <summary>
@@ -120,7 +119,6 @@ internal sealed record WorkflowStatusResponse
     /// encoding; this is the field the app reads.
     /// </summary>
     [JsonPropertyName("role")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
     public required WorkflowRole Role { get; init; }
 
     /// <summary>

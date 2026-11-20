@@ -5,9 +5,15 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// <summary>
 /// Represents the status of a persistent workflow item.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(TolerantEnumConverter<PersistentItemStatus>))]
 internal enum PersistentItemStatus
 {
+    /// <summary>
+    /// A status this version does not know, which a newer engine sent. The app's own member, never on the wire. A
+    /// workflow or step that has it counts as still running: never as failed, and never as completed.
+    /// </summary>
+    Unknown = -1,
+
     /// <summary>The item has been enqueued for processing.</summary>
     Enqueued = 0,
 

@@ -176,6 +176,9 @@ Storage. The chain is the workflow it enqueued and every later primary workflow.
   returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
   request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
+- The engine deploys ahead of released apps, so it can report a status or role that this version does not know. The
+  app counts a workflow or step with an unknown status as still running, never as failed or finished, and the process
+  waits on a workflow with an unknown role. It logs each unknown value once.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind
 and the workflow ID as a support reference. A deferred step also reports the task's reason for waiting. A read fails

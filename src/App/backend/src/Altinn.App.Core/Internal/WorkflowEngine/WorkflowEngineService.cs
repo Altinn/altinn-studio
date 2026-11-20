@@ -11,6 +11,7 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -33,21 +34,31 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private readonly IWorkflowEngineClient _workflowEngineClient;
     private readonly IInstanceClientWithStorageMetadata _instanceClient;
     private readonly AppIdentifier _appIdentifier;
+    private readonly ILogger<WorkflowEngineService> _logger;
     private readonly TimeProvider _timeProvider;
 
     public WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
         IInstanceClientWithStorageMetadata instanceClient,
-        AppIdentifier appIdentifier
+        AppIdentifier appIdentifier,
+        ILogger<WorkflowEngineService> logger
     )
-        : this(processNextRequestFactory, workflowEngineClient, instanceClient, appIdentifier, TimeProvider.System) { }
+        : this(
+            processNextRequestFactory,
+            workflowEngineClient,
+            instanceClient,
+            appIdentifier,
+            logger,
+            TimeProvider.System
+        ) { }
 
     internal WorkflowEngineService(
         ProcessNextRequestFactory processNextRequestFactory,
         IWorkflowEngineClient workflowEngineClient,
         IInstanceClientWithStorageMetadata instanceClient,
         AppIdentifier appIdentifier,
+        ILogger<WorkflowEngineService> logger,
         TimeProvider timeProvider
     )
     {
@@ -55,6 +66,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         _workflowEngineClient = workflowEngineClient;
         _instanceClient = instanceClient;
         _appIdentifier = appIdentifier;
+        _logger = logger;
         _timeProvider = timeProvider;
     }
 
@@ -213,10 +225,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // than issuing label queries just to discover the key. If the key convention ever drifts,
         // GetCollection returns null and we degrade safely to Idle.
         string collectionKey = ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance));
-        WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
-            GetNamespace(),
-            collectionKey,
-            cancellationToken: cancellationToken
+        WorkflowCollectionDetailResponse? collection = await ReadFromEngine(
+            _workflowEngineClient.GetCollection(GetNamespace(), collectionKey, cancellationToken: cancellationToken)
         );
         if (collection is null || collection.Heads.Count == 0)
         {
@@ -272,10 +282,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         // rules as the enqueue wait: auxiliary workflows, which must never be classified as transition
         // failures (and so never picked as process/resume's target), are stripped in that one place.
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
-            await _workflowEngineClient.ListWorkflows(
-                GetNamespace(),
-                collectionKey: collectionKey,
-                cancellationToken: cancellationToken
+            await ReadFromEngine(
+                _workflowEngineClient.ListWorkflows(
+                    GetNamespace(),
+                    collectionKey: collectionKey,
+                    cancellationToken: cancellationToken
+                )
             ),
             sinceWorkflowId: null
         );
@@ -338,10 +350,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             // continuation is authoritative if the acknowledgment was lost. Storage replay can
             // refresh incidental instance metadata, and state signing keys can rotate, so even a
             // deterministic transition may carry different state bytes on reconstruction.
-            var workflows = await _workflowEngineClient.ListWorkflows(
-                bundle.Namespace,
-                collectionKey,
-                cancellationToken: cancellationToken
+            var workflows = await ReadFromEngine(
+                _workflowEngineClient.ListWorkflows(
+                    bundle.Namespace,
+                    collectionKey,
+                    cancellationToken: cancellationToken
+                )
             );
             string? sourceTask = bundle.Request.Labels?.GetValueOrDefault(
                 ProcessNextRequestFactory.ProcessNextSourceTaskLabel
@@ -365,10 +379,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             {
                 // List responses omit dependencies. Read the detail to verify the parent and
                 // recheck eligibility in case the candidate was abandoned after the list read.
-                var accepted = await _workflowEngineClient.GetWorkflow(
-                    bundle.Namespace,
-                    candidates[0].DatabaseId,
-                    cancellationToken
+                var accepted = await ReadFromEngine(
+                    _workflowEngineClient.GetWorkflow(bundle.Namespace, candidates[0].DatabaseId, cancellationToken)
                 );
                 if (
                     accepted is not null
@@ -447,21 +459,20 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 return await CreatePollingTimeoutResult(instance, collectionKey, sinceWorkflowId, cancellationToken);
             }
 
-            WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
-                GetNamespace(),
-                collectionKey,
-                cancellationToken: cancellationToken
+            WorkflowCollectionDetailResponse? collection = await ReadFromEngine(
+                _workflowEngineClient.GetCollection(GetNamespace(), collectionKey, cancellationToken: cancellationToken)
             );
             if (collection?.Heads.Count > 0)
             {
                 if (!collection.Heads.Any(IsActiveCollectionHeadStatus))
                 {
-                    IReadOnlyList<WorkflowStatusResponse> collectionWorkflows =
-                        await _workflowEngineClient.ListWorkflows(
+                    IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = await ReadFromEngine(
+                        _workflowEngineClient.ListWorkflows(
                             GetNamespace(),
                             collectionKey: collectionKey,
                             cancellationToken: cancellationToken
-                        );
+                        )
+                    );
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
                         collectionWorkflows,
                         sinceWorkflowId
@@ -488,10 +499,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                     // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
                     // success shape applies and the read-path annotation takes over.
                     IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
-                        await _workflowEngineClient.ListWorkflows(
-                            GetNamespace(),
-                            collectionKey: collectionKey,
-                            cancellationToken: cancellationToken
+                        await ReadFromEngine(
+                            _workflowEngineClient.ListWorkflows(
+                                GetNamespace(),
+                                collectionKey: collectionKey,
+                                cancellationToken: cancellationToken
+                            )
                         ),
                         sinceWorkflowId
                     );
@@ -544,10 +557,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             cancellationToken: cancellationToken
         );
         IReadOnlyList<WorkflowStatusResponse> currentChain = ScopeToCurrentChain(
-            await _workflowEngineClient.ListWorkflows(
-                GetNamespace(),
-                collectionKey: collectionKey,
-                cancellationToken: cancellationToken
+            await ReadFromEngine(
+                _workflowEngineClient.ListWorkflows(
+                    GetNamespace(),
+                    collectionKey: collectionKey,
+                    cancellationToken: cancellationToken
+                )
             ),
             sinceWorkflowId
         );
@@ -608,24 +623,38 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <see cref="ProcessNextRequestFactory.AuxiliaryOperationIdPrefix"/> OperationId marker is purely a
     /// human-readable naming convention for ops queries and logs, not load-bearing for identification.
     /// </summary>
+    /// <remarks>An unknown role counts as primary, so the process waits on the workflow.</remarks>
     internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) =>
         workflow.Role == WorkflowRole.Auxiliary;
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
+
+    /// <summary>
+    /// Awaits a read from the engine, then logs the values in it, or in any read since, that this version does
+    /// not know. Each such value is logged once per process, as <see cref="UnknownEngineValues"/> explains.
+    /// </summary>
+    private async Task<T> ReadFromEngine<T>(Task<T> read)
+    {
+        T result = await read;
+        UnknownEngineValues.Shared.LogNew(_logger);
+        return result;
+    }
 
     // Waiting counts as active: a step that deferred while awaiting an external outcome is still
     // mid-transition, holding no lease but owning the process. Reading it as settled would let the
     // wait return success on an uncommitted transition and let the next action start on top of it.
     // Held counts for the same reason, and is the stronger case: a parked receiver is the whole of what
     // remains of its transition, so reading it as settled is exactly the early execution the frontier
-    // convention prevents.
+    // convention prevents. Unknown, a status a newer engine added, counts for the same reason: the app cannot
+    // tell that the workflow is done, so it must not act as if it were.
     private static bool IsActiveWorkflowStatus(WorkflowStatusResponse workflow) =>
         workflow.OverallStatus
             is PersistentItemStatus.Enqueued
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
                 or PersistentItemStatus.Waiting
-                or PersistentItemStatus.Held;
+                or PersistentItemStatus.Held
+                or PersistentItemStatus.Unknown;
 
     private static bool IsActiveCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status
@@ -633,9 +662,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 or PersistentItemStatus.Processing
                 or PersistentItemStatus.Requeued
                 or PersistentItemStatus.Waiting
-                or PersistentItemStatus.Held;
+                or PersistentItemStatus.Held
+                or PersistentItemStatus.Unknown;
 
-    // Parked: active with nothing running and nothing scheduled — waiting on the outside world.
+    // Parked: active with nothing running and nothing scheduled — waiting on the outside world. Unknown is not
+    // parked: a chain the app cannot read keeps the wait polling until it settles or times out, rather than being
+    // released early.
     private static bool IsParkedCollectionHeadStatus(CollectionHeadStatus workflow) =>
         workflow.Status is PersistentItemStatus.Waiting or PersistentItemStatus.Held;
 

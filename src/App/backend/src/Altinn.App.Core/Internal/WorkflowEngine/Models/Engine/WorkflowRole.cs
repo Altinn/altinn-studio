@@ -8,9 +8,16 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// process: it never blocks or moves it, and its failure means work was lost and must be redriven,
 /// not that the instance is stuck.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(TolerantEnumConverter<WorkflowRole>))]
 internal enum WorkflowRole
 {
+    /// <summary>
+    /// A role this version does not know, which a newer engine sent. The app's own member, never on the wire. The
+    /// process waits on a workflow that has it, as on a primary one. Reading it as auxiliary could let a transition
+    /// settle while that workflow still runs.
+    /// </summary>
+    Unknown = -1,
+
     /// <summary>
     /// The process waits on this workflow: its <c>isHead</c> directive is <c>true</c> or unset.
     /// </summary>
