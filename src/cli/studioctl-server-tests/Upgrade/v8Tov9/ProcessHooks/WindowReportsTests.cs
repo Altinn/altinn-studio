@@ -210,7 +210,7 @@ public sealed class WindowReportsTests : IDisposable
                     }
                     """,
                 "await instanceClient.UpdateDataValue(instance, \"validatedVersion\", \"1\");",
-                "IInstanceClient.UpdateDataValue writes data values while process/next validates (ITaskValidator.ValidateTask). This does not stop the transition (data values do not change the instance's version), but it runs on every validation and outside the transition's checks; set them in the task's IOnTaskEndingHandler with dataMutator.SetDataValue."
+                "IInstanceClient.UpdateDataValue writes data values while process/next validates (ITaskValidator.ValidateTask). This does not stop the transition (data values do not change the instance's version), but it runs on every validation and outside the transition's checks; set them on dataMutator.Instance.DataValues in the task's IOnTaskEndingHandler."
             },
             {
                 // brg/virksomhetsregistrering TaskEndFlowHelpers.cs:50-51.
