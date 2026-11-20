@@ -7,37 +7,45 @@ this file is the reference the API docs point to.
 
 ## The shape of a pipeline
 
-Every service task is a pipeline, composed in `IServiceTask.DefineExecute`. A task that does one thing is a
-pipeline of just the conclusion:
+Every service task is a pipeline, composed in `IServiceTask.DefineExecute` on the `PipelineBuilder.ServiceTask`
+it is handed. A task that does one thing is a pipeline of one step that ends it:
 
 ```csharp
-public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
 private async Task<ServiceTaskResult> Execute(StageContext context) { ... }
 ```
 
-A task with more than one durable step gives each its own stage ahead of the conclusion:
+A task with more than one durable step gives each its own stage ahead of the step that ends the task:
 
 ```csharp
-public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
     pipeline
         .Stage(SendToArchive, new MailboxOptions { Timeout = TimeSpan.FromDays(14) }, out MailboxHandle archive)
-        .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
+        .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 ```
 
-A composition is zero or more `Stage(...)` calls and `HandleReplies(...)` handlers, in any order, ended by
-exactly one terminal — `Finally(...)` for work that finishes by itself or by polling, or
-`ConcludeOnReplies(...)` for work answered by a message. The terminal is the only way to obtain the
-`ServiceTaskPipeline` that `DefineExecute` must return, so a pipeline cannot be left unfinished.
+A composition is `Stage(...)` calls for the app's own work and `HandleReplies(...)` calls for answering a mailbox,
+in any order. What a step's methods return decides whether it carries on or ends the task:
+
+|               | `Stage`                          | `HandleReplies`                                                     |
+| ------------- | -------------------------------- | ------------------------------------------------------------------- |
+| Carries on    | work returns `StageResult`       | handlers return `StageExchangeResult` and `StageResult`             |
+| Ends the task | work returns `ServiceTaskResult` | handlers return `ServiceTaskExchangeResult` and `ServiceTaskResult` |
+
+A step that ends the task returns the `ServiceTaskPipeline` that `DefineExecute` must return, which has nothing
+more to add to, so exactly one step ends the task and it is always the last. A pipeline whose last step carries on
+does not compile.
 
 `DefineExecute` runs when a transition is enqueued (fixing the pipeline's shape for that workflow's lifetime), on
 every callback (to dispatch), and at app startup (to validate). It must be cheap, deterministic and
 side-effect free — the work happens inside the stages when the engine runs them.
 
 The builder validates eagerly: a null delegate, invalid options, a mailbox handle from another pipeline, a
-handle answered twice, a mailbox left unanswered at the terminal, or any call after the terminal all throw from the
-composing call and fail **app startup**, not a callback days later. A builder composes one pipeline, so to choose
-between shapes, compose each as a complete chain in its own branch and build only the one you return.
+handle answered twice, a mailbox left unanswered when the pipeline ends, or any call after the step that ends it
+all throw from the composing call and fail **app startup**, not a callback days later. A builder composes one
+pipeline, so to choose between shapes, compose each as a complete chain in its own branch and build only the one
+you return.
 
 App startup also checks the other side of the same invariant, in `process.bpmn`. Every task there must
 carry a non-blank `<altinn:taskType>`, and that type must name something the app resolves: one of the
@@ -70,13 +78,19 @@ The built-in eFormidling task uses this hook for its environment-specific BPMN c
 types, and required service registrations.
 
 The work any task type does when a task starts, ends or is abandoned composes the same way, from the same
-stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take the same `PipelineBuilder` and compose
-`Stage(work, options?)` calls, where `work` takes a `StageContext` and returns a `StageResult`, exactly as a service
-task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
-them as a single stage. Each stage runs as its own workflow
-step that saves on its own, and a failed stage is retried without the ones before it. There is no conclusion: the
-stages run inside the transition and never advance the process, so the pipeline ends with
-`Build()`. The built-in signing task resolves, delegates and notifies its signees this way. A lifecycle stage that
+stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return
+nothing. It has one call, `Stage(work, options?)`, where `work` takes a `StageContext` and returns a `StageResult`,
+exactly as a service task stage that carries on does:
+
+```csharp
+public void DefineEnd(PipelineBuilder.Lifecycle pipeline) =>
+    pipeline.Stage(RevokeSigneeRights).Stage(StoreSigningPdf);
+```
+
+Each stage runs as its own workflow step that saves on its own, and a failed stage is retried without the ones
+before it. There is nothing to end: the stages run inside the transition and never advance the process, and they
+open no mailbox. The defaults compose no stages, so a task with nothing to do plans no step. The built-in signing
+task resolves, delegates and notifies its signees this way. A lifecycle stage that
 defers holds the transition: the instance stays `processing` until the stage
 completes, the way a waiting service task holds it. Stages are dispatched by position too, so the rules in
 [Redeploys and in-flight workflows](#redeploys-and-in-flight-workflows) apply to them as well.
@@ -105,9 +119,9 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
 ### Stage results
 
 `StageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
-`FailedRetryable(msg)`, `FailedPermanent(msg)`. A plain stage cannot conclude the task or advance the
-process — that is reserved for the pipeline's conclusion, and for a mailbox-opening stage's `Conclude`
-(see below). The concluding step returns `ServiceTaskResult`. Returning `Success(action?)` completes
+`FailedRetryable(msg)`, `FailedPermanent(msg)`. A stage that carries on cannot conclude the task or advance the
+process — that is reserved for the step that ends the task, and for a mailbox-opening stage's `Conclude`
+(see below). The step that ends the task returns `ServiceTaskResult`. Returning `Success(action?)` completes
 the task and advances the process, using the optional action to select the next transition. Work that
 is still waiting for an outcome uses `Defer` or a mailbox reply handler.
 
@@ -121,11 +135,11 @@ process on this step — no worker held, no error recorded, retry counter reset 
   rejected as a contract violation. Work that produces something durable belongs before the wait, in its
   own stage.
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
-  step. Declare a polling pipeline's wait budget on `Finally`, the step that waits.
+  step. Declare a polling pipeline's wait budget on the step that waits, the one that ends the task.
 - Read `StageContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
   to pace the wait, and give up on `IsFinalCheck` with a message that names what never arrived.
-  `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that owns the
-  wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
+  `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling stage that ends the task and
+  owns the wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
   `Wait.IsFinalCheck`.
 - The `reason` string is persisted on the step and surfaced on status reads (ops dashboards, and the
   frontend's waiting UI via the `workflow.waitingReason` annotation) — phrase it for a reader, not a log
@@ -134,7 +148,7 @@ process on this step — no worker held, no error recorded, retry counter reset 
 ### Step options
 
 A step's options — its timeout, retry strategy and wait budget — are declared where the step is composed: a
-stage's on `Stage`, a reply handler's on its `HandleReplies`, the conclusion's on the terminal. Each step
+stage's on its `Stage`, a reply handler's on its `HandleReplies`, whether the step carries on or ends the task. Each step
 carries exactly what its own call declared; a field left unset falls back to the command's default and then
 the engine's, never to another step's. A task that wants the same options on several steps passes the same
 object to each call.
@@ -195,15 +209,18 @@ address that does not exist — where waiting out the exchange would only delay 
 
 ### Answering the exchange
 
-Exactly one handler answers each mailbox, named by the handle the opening `Stage` handed out:
+Exactly one `HandleReplies(handle, onMessage, onClosed)` answers each mailbox, named by the handle the opening
+`Stage` handed out. What its handlers return decides what kind of exchange it is:
 
-- `ConcludeOnReplies(handle, onMessage, onClosed)` — the exchange the task **ends** on. `onMessage`
-  returns `ServiceTaskExchangeResult`: any `ServiceTaskResult` (concluding the task), or
-  `AwaitNextReply()` to be called again on the next message.
-- `HandleReplies(handle, onMessage, onClosed)` — an exchange the pipeline **carries on past**. `onMessage`
-  returns `StageExchangeResult`: any `StageResult`, or `AwaitNextReply()`.
-  `Completed()` here means _this exchange is concluded, run the pipeline's next segment_ — concluding the
-  task and advancing the process are deliberately not in this vocabulary.
+- An exchange the task **ends** on: `onMessage` returns `ServiceTaskExchangeResult`, which is any
+  `ServiceTaskResult` (concluding the task) or `AwaitNextReply()` to be called again on the next message, and
+  `onClosed` returns `ServiceTaskResult`.
+- An exchange the pipeline **carries on past**: `onMessage` returns `StageExchangeResult`, which is any
+  `StageResult` or `AwaitNextReply()`, and `onClosed` returns `StageResult`. `Completed()` here means _this
+  exchange is concluded, run the pipeline's next segment_ — concluding the task and advancing the process are
+  deliberately not in this vocabulary.
+
+A handler whose two methods are of different kinds does not compile.
 
 `onMessage` runs once per message, each as its own durable unit of work. Messages arrive one at a time in
 accepted order, each starting from the state its predecessor published — on `AwaitNextReply()`, data
@@ -212,8 +229,8 @@ changes are saved, so publish what the next message should see.
 `onClosed` runs when the mailbox closed with the exchange still unconcluded — the deadline passed, or it
 was closed by hand; `MailboxClosedReason` says which, and it changes only the wording, since both mean no
 message can arrive. It cannot ask for another message, and it decides whether that is fatal
-(`FailedPermanent`) or, for `HandleReplies`, simply the end of an exchange the task can live without
-(`Completed()`, and the pipeline carries on).
+(`FailedPermanent`) or, for an exchange the pipeline carries on past, simply the end of an exchange the task can
+live without (`Completed()`, and the pipeline carries on).
 
 What each verdict does to the exchange:
 
@@ -233,8 +250,8 @@ self-reports at the deadline through the handler's own `onClosed`.
 
 A task may open several mailboxes, each answered by exactly one handler. Exchanges run strictly
 sequentially, **in the order their handlers are composed — not the order their sends are**:
-`Stage(A) → Stage(B) → HandleReplies(A) → ConcludeOnReplies(B)` sends both messages up front and still
-reads A's exchange to the end before B's begins.
+`Stage(A) → Stage(B) → HandleReplies(A) → HandleReplies(B)`, with A's handlers carrying on and B's ending the task,
+sends both messages up front and still reads A's exchange to the end before B's begins.
 
 - Messages for a later exchange wait in its mailbox until the pipeline reaches its handler — never lost,
   and never handled early.
