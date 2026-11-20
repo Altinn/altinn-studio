@@ -488,6 +488,8 @@ internal sealed partial class CalculationExpressionConverter
             "LessThanOrEqual" => "lessThanEq",
             _ => throw new NotSupportedException($"Operator '{op}' requires C# conversion."),
         };
+        if (op == "Multiplication")
+            RequireSafeProduct(a.Expression, b.Expression);
         if (op == "Division" && !b.NonZero)
             throw new NotSupportedException("Division is not guarded against a zero denominator.");
         if (op == "Division" && JsonNode.DeepEquals(a.Expression, b.Expression))
@@ -514,6 +516,30 @@ internal sealed partial class CalculationExpressionConverter
             Call(function, a.Expression, denominator),
             function is "greaterThan" or "greaterThanEq" or "lessThan" or "lessThanEq" ? Kind.Boolean : Kind.Number
         );
+    }
+
+    private void RequireSafeProduct(JsonNode? left, JsonNode? right)
+    {
+        if (
+            MaximumMagnitude(left) is not { } a
+            || MaximumMagnitude(right) is not { } b
+            || !double.IsFinite(a * b)
+            || a >= (double)decimal.MaxValue
+            || b >= (double)decimal.MaxValue
+            || a * b >= (double)decimal.MaxValue
+            || (
+                a > 0
+                && b > 0
+                && (
+                    MinimumMagnitude(left) is not { } minimumA
+                    || MinimumMagnitude(right) is not { } minimumB
+                    || minimumA * minimumB < MinimumDecimalMagnitude
+                )
+            )
+        )
+            throw new NotSupportedException(
+                "Multiplication cannot be proven safe in backend decimal arithmetic; keep this calculation in C#."
+            );
     }
 
     private bool HasFloatingPointInput(JsonNode? node) =>
@@ -593,6 +619,13 @@ internal sealed partial class CalculationExpressionConverter
             return null;
         if (call[0]?.GetValue<string>() == "dataModel")
             return _decimalInputs.Contains(call[1]?.GetValue<string>() ?? "") ? MinimumDecimalMagnitude : null;
+        if (
+            call[0]?.GetValue<string>() == "divide"
+            && call.Count == 3
+            && MinimumMagnitude(call[1]) is { } numerator
+            && MaximumMagnitude(call[2]) is > 0 and var denominator
+        )
+            return numerator / denominator;
         if (call[0]?.GetValue<string>() == "plus")
         {
             var operands = call.Skip(1)

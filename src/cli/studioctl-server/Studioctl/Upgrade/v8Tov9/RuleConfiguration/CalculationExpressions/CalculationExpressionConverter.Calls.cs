@@ -30,7 +30,11 @@ internal sealed partial class CalculationExpressionConverter
         };
         if (op == "AdditionAssignment" && (left.Kind == Kind.String || right.Kind == Kind.String))
             throw new NotSupportedException("String addition concatenates values instead of adding numbers.");
-        values[key] = new(Call(function, Numeric(left).Expression, Numeric(right).Expression), Kind.Number);
+        var a = Numeric(left).Expression;
+        var b = Numeric(right).Expression;
+        if (op == "MultiplicationAssignment")
+            RequireSafeProduct(a, b);
+        values[key] = new(Call(function, a, b), Kind.Number);
     }
 
     private static bool IsBuiltin(string name) =>
