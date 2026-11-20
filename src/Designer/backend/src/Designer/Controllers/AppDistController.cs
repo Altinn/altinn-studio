@@ -132,9 +132,11 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     private void MarkResponseImmutable() => Response.GetTypedHeaders().CacheControl = s_immutableCacheControl;
 
     /// <summary>
-    /// Apps load the app frontend from here through a crossorigin script tag, and the dev tools in an app list the
-    /// versions, so browsers must be allowed to read the responses from any origin, as they could from altinncdn.no
-    /// in v4. The wildcard never allows credentials, so a Studio session cannot be used from another origin.
+    /// A running app normally uses the app frontend bundled with the app. Only when an app is told to use a specific
+    /// frontend version for testing does it load that version from here, through a crossorigin script tag, and its
+    /// dev tools list the versions from here. Browsers must therefore be allowed to read the responses from any
+    /// origin, as they could from altinncdn.no in v4. The wildcard never allows credentials, so a Studio session
+    /// cannot be used from another origin.
     /// The header is set when the response starts, because the exception handler clears the headers before it
     /// writes a 502, and a browser should see that 502 rather than a CORS error.
     /// </summary>
