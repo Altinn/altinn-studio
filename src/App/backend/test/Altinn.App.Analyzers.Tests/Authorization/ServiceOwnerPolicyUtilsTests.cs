@@ -43,7 +43,7 @@ public class ServiceOwnerPolicyUtilsTests
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
             ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
-            metadata: Metadata(confirmOnProcessEnd: true)
+            metadata: Metadata(Confirm)
         );
 
         Assert.Empty(diagnostics);
@@ -58,7 +58,7 @@ public class ServiceOwnerPolicyUtilsTests
                 PolicyFixtures.OrgRule(["complete"], endEvent: "RenamedEndEvent")
             ),
             ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
-            metadata: Metadata(confirmOnProcessEnd: true)
+            metadata: Metadata(Confirm)
         );
 
         Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
@@ -70,7 +70,7 @@ public class ServiceOwnerPolicyUtilsTests
         var diagnostics = Collect(
             PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
             ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
-            metadata: Metadata(autoDeleteOnProcessEnd: true)
+            metadata: Metadata(AutoDelete)
         );
 
         Assert.Equal(["delete"], Actions(diagnostics, MissingGrant));
@@ -245,7 +245,7 @@ public class ServiceOwnerPolicyUtilsTests
                 )
             ),
             ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
-            metadata: Metadata(confirmOnProcessEnd: true)
+            metadata: Metadata(Confirm)
         );
 
         Assert.All(diagnostics, d => Assert.Equal(NotVerifiable, d.Id));
@@ -271,27 +271,115 @@ public class ServiceOwnerPolicyUtilsTests
               </bpmn:process>
             </bpmn:definitions>
             """,
-            metadata: Metadata(confirmOnProcessEnd: true)
+            metadata: Metadata(Confirm)
         );
 
         Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
     }
 
     [Theory]
-    [InlineData(true, new[] { "complete" })]
-    [InlineData(false, new string[0])]
-    public void An_Unreadable_Process_Is_Reported_Only_When_Complete_Is_Needed(bool confirm, string[] notVerifiable)
+    [InlineData(new[] { "read", "write", "complete" }, new string[0])]
+    [InlineData(new[] { "read", "write" }, new[] { "complete" })]
+    public void An_Unreadable_Process_Leaves_Complete_Decidable_Without_An_End_Event_Scope(
+        string[] granted,
+        string[] missing
+    )
     {
-        // The process only supplies the end events a 'complete' grant may be scoped to.
         var diagnostics = Collect(
-            PolicyFixtures.Policy(PolicyFixtures.RoleRule("read")),
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(granted)),
             "<bpmn:definitions",
-            metadata: Metadata(confirmOnProcessEnd: confirm)
+            metadata: Metadata(Confirm)
         );
 
-        Assert.Equal(notVerifiable, Actions(diagnostics, NotVerifiable));
-        Assert.All(diagnostics.Where(d => d.Id == NotVerifiable), d => Assert.Contains("process.bpmn", d.GetMessage()));
-        Assert.Equal(["read", "write"], Actions(diagnostics, MissingGrant)[..2]);
+        Assert.Equal(missing.Select(_ => MissingGrant), diagnostics.Select(d => d.Id));
+        Assert.Equal(missing, Actions(diagnostics, MissingGrant));
+    }
+
+    [Theory]
+    [InlineData("<bpmn:definitions")]
+    [InlineData(null)]
+    public void A_Complete_Grant_Scoped_To_An_End_Event_Is_Inconclusive_Without_A_Readable_Process(string? process)
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.OrgRule(["read", "write"]),
+                PolicyFixtures.OrgRule(["complete"], endEvent: ProcessFixtures.EndEventId)
+            ),
+            process,
+            metadata: Metadata(Confirm)
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(NotVerifiable, diagnostic.Id);
+        Assert.Equal(["complete"], Actions(diagnostics, NotVerifiable));
+        Assert.Contains("process.bpmn is missing or could not be parsed", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void An_Unreadable_Process_Is_Not_Blamed_For_A_Complete_Grant_Behind_A_Condition()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.OrgRule(["read", "write"]),
+                PolicyFixtures.OrgRule(["complete"], condition: true)
+            ),
+            "<bpmn:definitions",
+            metadata: Metadata(Confirm)
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(NotVerifiable, diagnostic.Id);
+        Assert.Equal(["complete"], Actions(diagnostics, NotVerifiable));
+        Assert.DoesNotContain("process.bpmn", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void A_Readable_Process_Is_Not_Blamed_For_An_End_Event_Scoped_Grant_Behind_A_Condition()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(
+                PolicyFixtures.OrgRule(["read", "write"]),
+                PolicyFixtures.OrgRule(["complete"], endEvent: ProcessFixtures.EndEventId, condition: true)
+            ),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(Confirm)
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(NotVerifiable, diagnostic.Id);
+        Assert.Equal(["complete"], Actions(diagnostics, NotVerifiable));
+        Assert.DoesNotContain("process.bpmn", diagnostic.GetMessage());
+    }
+
+    [Theory]
+    [InlineData("\"OnProcessEnd\": { \"Confirm\": true }", "complete")]
+    [InlineData("\"AutoDeleteOnProcessEnd\": true", "delete")]
+    public void Process_End_Settings_Are_Read_Case_Insensitively(string setting, string action)
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(setting)
+        );
+
+        Assert.Equal([MissingGrant], diagnostics.Select(d => d.Id));
+        Assert.Equal([action], Actions(diagnostics, MissingGrant));
+    }
+
+    [Theory]
+    [InlineData("\"onProcessEnd\": { \"confirm\": false }")]
+    [InlineData("\"onProcessEnd\": {}")]
+    [InlineData("\"onProcessEnd\": { \"confirm\": \"true\" }")]
+    [InlineData("\"onProcessEnd\": true")]
+    public void Only_A_Boolean_True_Confirm_Needs_Complete(string setting)
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(setting)
+        );
+
+        Assert.Empty(diagnostics);
     }
 
     [Fact]
@@ -357,17 +445,18 @@ public class ServiceOwnerPolicyUtilsTests
             .ToArray();
     }
 
-    private static string Metadata(
-        string id = "ttd/app",
-        bool autoDeleteOnProcessEnd = false,
-        bool confirmOnProcessEnd = false
-    ) =>
+    private const string Confirm = "\"onProcessEnd\": { \"confirm\": true }";
+
+    private const string AutoDelete = "\"autoDeleteOnProcessEnd\": true";
+
+    /// <param name="setting">One more property of the metadata object, such as <see cref="Confirm"/>.</param>
+    /// <param name="id">The app's <c>org/app</c>.</param>
+    private static string Metadata(string? setting = null, string id = "ttd/app") =>
         $$"""
             {
               "id": "{{id}}",
               "org": "{{id.Split('/')[0]}}",
-              "autoDeleteOnProcessEnd": {{(autoDeleteOnProcessEnd ? "true" : "false")}},
-              {{(confirmOnProcessEnd ? "\"onProcessEnd\": { \"confirm\": true }," : "")}}
+              {{(setting is null ? "" : setting + ",")}}
               "dataTypes": []
             }
             """;
