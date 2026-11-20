@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { AccordionItem, Button, Flex } from '@app/form-component';
 import { CheckmarkCircleIcon } from '@navikt/aksel-icons';

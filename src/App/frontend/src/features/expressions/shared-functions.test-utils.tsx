@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactElement } from 'react';
 
 import { screen } from '@testing-library/react';
 import type { Mock } from 'vitest';
@@ -286,7 +286,7 @@ function createInstance(test: FunctionTest): IInstance | undefined {
 
 async function renderExpression(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>) {
   const { context, positionalArguments, valueArguments, stateless } = test;
-  const renderer = (): React.ReactElement => (
+  const renderer = (): ReactElement => (
     <ExpressionRunner
       context={context}
       expression={expression}

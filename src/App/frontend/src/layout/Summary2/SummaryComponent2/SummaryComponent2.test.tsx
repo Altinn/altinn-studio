@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 import type { CompSummary2External } from '@app/layout-contract/generated/components/Summary2/config.generated';
 

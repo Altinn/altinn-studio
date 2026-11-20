@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PatternFormat } from 'react-number-format';
-import type { Ref } from 'react';
+import type { ChangeEvent, Ref } from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
 import { format, isValid } from 'date-fns';
@@ -44,14 +44,14 @@ export function DatePickerInput({
     setInputValue(formattedDateValue ?? '');
   }, [formattedDateValue]);
 
-  const saveValue = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const saveValue = (e: ChangeEvent<HTMLInputElement>) => {
     const stringValue = e.target.value;
     const date = strictParseFormat(stringValue, datepickerFormat);
     const valueToSave = getSaveFormattedDateString(date, timeStamp) ?? stringValue;
     onValueChange && onValueChange(valueToSave);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const stringValue = e.target.value;
     setInputValue(stringValue);
     // If the date is valid, save immediately

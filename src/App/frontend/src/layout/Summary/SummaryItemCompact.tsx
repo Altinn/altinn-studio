@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { Lang } from 'src/features/language/Lang';

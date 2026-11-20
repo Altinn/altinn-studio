@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button, useIsMobile } from '@app/form-component';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';

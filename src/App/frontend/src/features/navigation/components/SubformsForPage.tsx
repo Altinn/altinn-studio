@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { ChevronDownIcon } from '@navikt/aksel-icons';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Tag } from '@digdir/designsystemet-react';
 
 import { useBrokerFileTransferOverviewQuery } from 'src/core/queries/brokerFileTransfer';

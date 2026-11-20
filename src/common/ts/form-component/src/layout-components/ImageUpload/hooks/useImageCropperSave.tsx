@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { RefObject } from 'react';
 
 import {
   cropAreaPlacement,
@@ -13,8 +13,8 @@ import type {
 } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 type UseImageCropperSaveProps = {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  imageRef: React.RefObject<HTMLImageElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
+  imageRef: RefObject<HTMLImageElement | null>;
   cropArea: CropInternal;
   zoom: number;
   position: Position;

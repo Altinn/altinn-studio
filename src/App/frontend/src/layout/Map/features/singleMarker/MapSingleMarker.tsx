@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import { Marker, useMapEvent } from 'react-leaflet';
 
 import { icon } from 'leaflet';

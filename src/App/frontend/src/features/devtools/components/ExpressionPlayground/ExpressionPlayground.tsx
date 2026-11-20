@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Checkbox, EXPERIMENTAL_Suggestion as Suggestion, Fieldset, Tabs } from '@digdir/designsystemet-react';

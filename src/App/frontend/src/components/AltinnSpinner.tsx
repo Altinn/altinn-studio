@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Spinner } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
 import classNames from 'classnames';

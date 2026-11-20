@@ -1,5 +1,5 @@
-import React, { createContext, useLayoutEffect, useReducer, useRef } from 'react';
-import type { PropsWithChildren } from 'react';
+import { createContext, useContext, useLayoutEffect, useReducer, useRef } from 'react';
+import type { Dispatch, PropsWithChildren } from 'react';
 
 import { SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 
@@ -8,7 +8,7 @@ type Action = { when: 'mount'; content: SummaryContains } | { when: 'unmount'; c
 export interface EmptyChildrenContext {
   parent?: EmptyChildrenContext;
   onlyEmptyChildren: boolean;
-  dispatch: React.Dispatch<Action>;
+  dispatch: Dispatch<Action>;
 }
 
 const Context = createContext<EmptyChildrenContext | undefined>(undefined);
@@ -21,7 +21,7 @@ const Context = createContext<EmptyChildrenContext | undefined>(undefined);
  * they are empty or not.
  */
 export function EmptyChildrenBoundary({ children, reportSelf = true }: PropsWithChildren<{ reportSelf?: boolean }>) {
-  const parent = React.useContext(Context);
+  const parent = useContext(Context);
   const countsRef = useRef({ empty: 0, notEmpty: 0, presentational: 0 });
 
   const [onlyEmptyChildren, dispatch] = useReducer((_prevState: boolean, action: Action): boolean => {
@@ -61,7 +61,7 @@ export function EmptyChildrenBoundary({ children, reportSelf = true }: PropsWith
 }
 
 export function useHasOnlyEmptyChildren() {
-  const context = React.useContext(Context);
+  const context = useContext(Context);
   if (!context) {
     throw new Error('useHasOnlyEmptyChildren must be used within a EmptyChildrenBoundary');
   }
@@ -81,11 +81,11 @@ function useMarkRendering(ctx: EmptyChildrenContext | undefined, content: Summar
 }
 
 export function useReportSummaryRender(content: SummaryContains | undefined) {
-  const ctx = React.useContext(Context);
+  const ctx = useContext(Context);
   useMarkRendering(ctx, content);
 }
 
 export function useReportSummaryRenderToParent(content: SummaryContains | undefined) {
-  const ctx = React.useContext(Context);
+  const ctx = useContext(Context);
   useMarkRendering(ctx?.parent, content);
 }

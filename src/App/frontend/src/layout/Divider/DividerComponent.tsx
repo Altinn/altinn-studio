@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Divider } from '@app/form-component';
 
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';

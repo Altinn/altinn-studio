@@ -1,5 +1,5 @@
-import React from 'react';
 import { useNavigate, useNavigation } from 'react-router';
+import type { JSX } from 'react';
 
 import { BaseTable, FatalError, Flex, Spinner } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -117,7 +117,7 @@ function SubformTableRow({
 
 export function SubformSummaryTable({
   targetBaseComponentId,
-}: Pick<Summary2Props, 'targetBaseComponentId'>): React.JSX.Element | null {
+}: Pick<Summary2Props, 'targetBaseComponentId'>): JSX.Element | null {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const componentId = useIndexedId(targetBaseComponentId);
   const summaryTitle = useEvalOptionalText(

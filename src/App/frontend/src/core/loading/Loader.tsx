@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 
 import { AltinnContentLoader } from '@app/form-component';

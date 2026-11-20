@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import type { FC } from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
 import { Flex } from '@app/form-component/app-components/Flex/Flex';
@@ -30,7 +31,7 @@ export type DatePickerControlProps = {
   autoComplete?: 'bday';
 };
 
-export const DatePickerControl: React.FC<DatePickerControlProps> = ({
+export const DatePickerControl: FC<DatePickerControlProps> = ({
   id,
   value,
   dateFormat,

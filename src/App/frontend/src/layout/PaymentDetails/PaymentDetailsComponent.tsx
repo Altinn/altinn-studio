@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import deepEqual from 'fast-deep-equal';

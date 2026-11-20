@@ -1,4 +1,3 @@
-import React from 'react';
 import { TileLayer, WMSTileLayer } from 'react-leaflet';
 
 import type { MapTileLayer, MapWMSLayer } from '@app/layout-contract/generated/components/Map/config.generated';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 
 import { ConfirmPopover } from '@app/form-component/app-components';
@@ -14,10 +13,10 @@ export type TableCellValue =
   string | number | boolean | null | TableCellValue[] | { [key: string]: TableCellValue };
 
 export interface Column<T> {
-  header: React.ReactNode;
+  header: ReactNode;
   ariaLabel?: string;
   accessors: string[];
-  renderCell?: (values: TableCellValue[], rowData: T, rowIndex: number) => React.ReactNode;
+  renderCell?: (values: TableCellValue[], rowData: T, rowIndex: number) => ReactNode;
   enableInlineEditing?: boolean;
 }
 
@@ -29,8 +28,8 @@ export interface TableActionButtonConfirm {
 
 export interface TableActionButton<T = unknown> {
   onClick: (rowIdx: number, rowData: T) => void;
-  buttonText: React.ReactNode;
-  icon: React.ReactNode;
+  buttonText: ReactNode;
+  icon: ReactNode;
   color?: 'first' | 'second' | 'success' | 'danger';
   variant?: 'tertiary' | 'primary' | 'secondary';
   confirm?: TableActionButtonConfirm;
@@ -39,7 +38,7 @@ export interface TableActionButton<T = unknown> {
 export interface AppTableProps<T> {
   data: T[];
   columns: Column<T>[];
-  caption?: React.ReactNode;
+  caption?: ReactNode;
   ariaLabel?: string;
   tableTestId?: string;
   actionButtons?: TableActionButton<T>[];

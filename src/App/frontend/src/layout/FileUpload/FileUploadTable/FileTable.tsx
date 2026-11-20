@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import type { JSX } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
@@ -33,7 +34,7 @@ export function FileTable({
   options,
   isSummary,
   isFetching,
-}: FileTableProps): React.JSX.Element | null {
+}: FileTableProps): JSX.Element | null {
   const config = useComponentConfig(baseComponentId, 'FileUpload');
   const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
   const resolvedTagTitle = useEvalExpression(
@@ -43,7 +44,7 @@ export function FileTable({
 
   const hasTag = fileUploadHasTag(config);
   const pdfModeActive = usePdfModeActive();
-  const [editIndex, setEditIndex] = React.useState<number>(-1);
+  const [editIndex, setEditIndex] = useState<number>(-1);
   if (!attachments || attachments.length === 0) {
     return null;
   }

@@ -1,20 +1,20 @@
-import React from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import { Card, type CardProps, Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import classes from './Card.module.css';
 
 export type AppCardProps = {
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  footer?: React.ReactNode;
-  media?: React.ReactNode;
+  title?: ReactNode;
+  description?: ReactNode;
+  footer?: ReactNode;
+  media?: ReactNode;
   mediaPosition?: 'top' | 'bottom';
   color?: CardProps['data-color'];
-  children?: React.ReactNode;
+  children?: ReactNode;
   variant?: 'tinted' | 'default';
   className?: string;
-  ref?: React.Ref<HTMLDivElement>;
+  ref?: Ref<HTMLDivElement>;
 };
 
 export function AppCard({

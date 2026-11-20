@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ValidationMessages } from '@app/form-component';
 
 import { LangReference } from 'src/features/language/Lang';

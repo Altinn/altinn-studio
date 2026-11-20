@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { PageValidation } from '@app/layout-contract/generated/common.generated';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

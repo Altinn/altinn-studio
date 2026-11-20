@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 
 import { Lang } from 'src/features/language/Lang';

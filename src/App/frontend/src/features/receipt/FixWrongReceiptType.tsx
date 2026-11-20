@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Loader } from 'src/core/loading/Loader';

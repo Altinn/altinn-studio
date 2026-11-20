@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Checkboxes } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 

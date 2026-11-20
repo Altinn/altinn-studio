@@ -1,5 +1,4 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
@@ -9,7 +8,7 @@ import classes from 'src/components/presentation/Header.module.css';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 
 export interface IHeaderProps extends PropsWithChildren {
-  header: string | React.ReactNode;
+  header: string | ReactNode;
 }
 
 export function Header({ header: _header, children }: IHeaderProps) {

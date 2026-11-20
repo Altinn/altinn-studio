@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import type { AriaAttributes, PropsWithChildren } from 'react';
+import { useState } from 'react';
+import type { AriaAttributes, PropsWithChildren, ReactNode } from 'react';
 
 import {
   BaseTable,
@@ -337,7 +337,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
 
 type ListMobileRowContentProps = {
   headers: Record<string, string | undefined>;
-  renderValue: (key: string) => React.ReactNode;
+  renderValue: (key: string) => ReactNode;
 };
 
 /**

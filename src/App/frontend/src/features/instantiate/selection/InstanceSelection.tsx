@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 
 import { BaseTable, Button, Pagination, useIsMobileOrTablet } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
@@ -304,7 +305,7 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
  * This works much like window.open, but respects the browser settings for opening
  * new tabs (if they should open in the background or not)
  */
-const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+const openInTab = (url: string, originalEvent: ReactMouseEvent<HTMLButtonElement, MouseEvent>) => {
   const link = document.createElement('a');
   link.href = url;
   const options: MouseEventInit = {
@@ -324,7 +325,7 @@ const openInTab = (url: string, originalEvent: React.MouseEvent<HTMLButtonElemen
  */
 const openInstance = (
   instanceId: string,
-  originalEvent: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  originalEvent: ReactMouseEvent<HTMLButtonElement, MouseEvent>,
   navigate: ReturnType<typeof useNavigate>,
 ) => {
   if (originalEvent.ctrlKey || originalEvent.metaKey || originalEvent.button === 1) {

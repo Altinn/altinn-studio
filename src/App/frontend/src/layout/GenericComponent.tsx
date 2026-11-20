@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
@@ -60,7 +60,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
     </ComponentErrorBoundary>
   );
 }
-const MemoGenericComponent = React.memo(NonMemoGenericComponent);
+const MemoGenericComponent = memo(NonMemoGenericComponent);
 MemoGenericComponent.displayName = 'GenericComponent';
 export const GenericComponent = MemoGenericComponent as typeof NonMemoGenericComponent;
 
@@ -107,9 +107,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const breakAfter = useEvalExpression(pageBreakUnresolved?.breakAfter, CommonExpressions.IPageBreak.breakAfter);
   const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
   const nodeId = useIndexedId(baseComponentId);
-  const containerDivRef = React.useRef<HTMLDivElement | null>(null);
+  const containerDivRef = useRef<HTMLDivElement | null>(null);
   const handleFocusContainerMount = useHandleFocusComponent(nodeId, containerDivRef);
-  const focusContainerRef = React.useCallback(
+  const focusContainerRef = useCallback(
     (div: HTMLDivElement | null) => {
       containerDivRef.current = div;
       handleFocusContainerMount();

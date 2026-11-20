@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 import { BaseTable, getLabelId, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';

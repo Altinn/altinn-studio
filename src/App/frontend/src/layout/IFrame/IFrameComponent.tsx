@@ -1,4 +1,3 @@
-import React from 'react';
 import type { JSX } from 'react';
 
 import { IFrame as IFrameLayout } from '@app/form-component';

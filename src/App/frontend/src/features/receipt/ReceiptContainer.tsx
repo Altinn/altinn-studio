@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { AltinnContentLoader, PrettyDateAndTime } from '@app/form-component';
 import { formatDate } from 'date-fns';

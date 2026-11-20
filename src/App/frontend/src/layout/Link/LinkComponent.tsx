@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Link as LinkLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 

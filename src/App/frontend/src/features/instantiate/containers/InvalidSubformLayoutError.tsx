@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@app/form-component';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';

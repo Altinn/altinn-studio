@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { ComponentProps } from 'react';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -16,7 +17,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: React.ComponentProps<typeof TextArea>) => {
+const Wrapper = (args: ComponentProps<typeof TextArea>) => {
   const [value, setValue] = useState(args.value);
   return <TextArea {...args} value={value} onChange={setValue} />;
 };

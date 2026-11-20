@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Chip, Fieldset } from '@digdir/designsystemet-react';
 
