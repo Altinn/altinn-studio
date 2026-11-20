@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
+- `studioctl app upgrade v9` sets `AppSettings:RemoveHiddenData` to `false` for apps whose layouts can hide fields that hold data, so hidden data is kept as in v8 instead of being deleted when a task ends. Remove the setting to use the v9 default. ([#21251](https://github.com/Altinn/altinn-studio/pull/21251))
 
 ### Fixed
 
