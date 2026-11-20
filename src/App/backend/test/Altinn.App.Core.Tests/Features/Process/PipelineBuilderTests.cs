@@ -11,6 +11,10 @@ public class PipelineBuilderTests
 
     private static Task<StageResult> Plain(StageContext context) => Task.FromResult(StageResult.Completed());
 
+    private static Task<StageResult> SendToArchive(StageContext context) => Task.FromResult(StageResult.Completed());
+
+    private static Task<StageResult> NotifyOwner(StageContext context) => Task.FromResult(StageResult.Completed());
+
     private static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
         Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
@@ -32,21 +36,106 @@ public class PipelineBuilderTests
     // ── Lifecycle ────────────────────────────────────────────────────────────────────────────
 
     [Fact]
-    public void Lifecycle_KeepsTheStagesInCompositionOrder_WithTheirOptions()
+    public void Lifecycle_KeepsTheStagesInCompositionOrder_WithTheirOptionsAndNames()
     {
         var second = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
 
-        ProcessTaskPipeline pipeline = new PipelineBuilder.Lifecycle().Stage(Plain).Stage(Plain, second).ToPipeline();
+        ProcessTaskPipeline pipeline = new PipelineBuilder.Lifecycle()
+            .Stage(SendToArchive)
+            .Stage(NotifyOwner, second)
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
+            .ToPipeline();
 
-        Assert.Equal(2, pipeline.Stages.Count);
+        Assert.Equal(["Send to archive", "Notify owner", null], pipeline.Stages.Select(stage => stage.DisplayName));
         Assert.Null(pipeline.Stages[0].StepOptions);
         Assert.Same(second, pipeline.Stages[1].StepOptions);
+        Assert.Null(pipeline.Stages[2].StepOptions);
     }
 
     [Fact]
     public void Lifecycle_WithNoStages_IsAnEmptyPipeline()
     {
         Assert.Empty(new PipelineBuilder.Lifecycle().ToPipeline().Stages);
+    }
+
+    [Fact]
+    public void Lifecycle_StageWithInvalidOptions_IsRefusedAtComposition()
+    {
+        var builder = new PipelineBuilder.Lifecycle();
+
+        Assert.Throws<InvalidOperationException>(() =>
+            builder.Stage(Plain, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
+        );
+        Assert.Empty(builder.ToPipeline().Stages);
+    }
+
+    // ── Service task: the return type picks the overload ─────────────────────────────────────
+
+    [Fact]
+    public void ServiceTask_AStageWhoseWorkReturnsStageResult_CarriesOn()
+    {
+        var builder = new PipelineBuilder.ServiceTask();
+
+        PipelineBuilder.ServiceTask returned = builder.Stage(Plain);
+
+        Assert.Same(builder, returned);
+        Assert.IsType<PipelineStage.Plain>(returned.Stage(Conclude).Items[0]);
+    }
+
+    [Fact]
+    public void ServiceTask_AStageWhoseWorkReturnsServiceTaskResult_EndsThePipelineWithAFinalConclusion()
+    {
+        Func<StageContext, Task<ServiceTaskResult>> conclude = Conclude;
+        var options = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) };
+
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask().Stage(Plain).Stage(conclude, options);
+
+        Assert.Equal(2, pipeline.Items.Count);
+        Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
+        var final = Assert.IsType<PipelineConclusion.Final>(pipeline.Items[1]);
+        Assert.Same(conclude, final.Work);
+        Assert.Same(options, final.StepOptions);
+        Assert.Equal("Conclude", final.DisplayName);
+    }
+
+    [Fact]
+    public void ServiceTask_AHandleRepliesWhoseHandlersReturnServiceTaskResult_EndsThePipelineWithAReplyExchange()
+    {
+        Func<StageContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage = OnMessage;
+        Func<StageContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed = OnClosed;
+        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
+
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .Stage(Plain)
+            .Stage(Send, _threeDays, out MailboxHandle handle)
+            .HandleReplies(handle, onMessage, onClosed, options);
+
+        Assert.Equal(3, pipeline.Items.Count);
+        var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[2]);
+        Assert.Equal(1, exchange.OpeningIndex);
+        Assert.Same(onMessage, exchange.OnMessage);
+        Assert.Same(onClosed, exchange.OnClosed);
+        Assert.Same(options, exchange.StepOptions);
+        Assert.Equal("On message / On closed", exchange.DisplayName);
+    }
+
+    [Fact]
+    public void ServiceTask_AHandleRepliesWhoseHandlersReturnStageResult_AddsAReplySegment_AndCarriesOn()
+    {
+        var builder = new PipelineBuilder.ServiceTask();
+        builder.Stage(Send, _threeDays, out MailboxHandle handle);
+
+        PipelineBuilder.ServiceTask returned = builder.HandleReplies(handle, OnSegmentMessage, OnSegmentClosed);
+
+        Assert.Same(builder, returned);
+        ServiceTaskPipeline pipeline = returned.Stage(Plain).Stage(Conclude);
+        Assert.Collection(
+            pipeline.Items,
+            item => Assert.IsType<PipelineStage.MailboxOpening>(item),
+            item => Assert.Equal(0, Assert.IsType<ReplySegment>(item).OpeningIndex),
+            item => Assert.IsType<PipelineStage.Plain>(item),
+            item => Assert.IsType<PipelineConclusion.Final>(item)
+        );
     }
 
     // ── Service task: one ending per builder ─────────────────────────────────────────────────
