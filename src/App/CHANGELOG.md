@@ -10,6 +10,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: each `Define` method takes its own `PipelineBuilder` variant:
+  - `IServiceTask.DefineExecute` takes `PipelineBuilder.ServiceTask`, without `Finally` and `ConcludeOnReplies`: a step whose work returns `ServiceTaskResult` or `ServiceTaskExchangeResult` ends the task. Replace `.Finally(x)` with `.Stage(x)` and `.ConcludeOnReplies(...)` with `.HandleReplies(...)`. ([custom service tasks](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/service-tasks/custom/), [multi-step service tasks](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/service-tasks/flere-steg/))
+  - `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take `PipelineBuilder.Lifecycle` and return `void`: drop `ProcessTaskPipeline` and `.Build()`, as in `public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(RevokeRights).Stage(StorePdf);`
+
 ### Fixed
 
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
