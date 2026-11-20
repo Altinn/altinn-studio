@@ -131,6 +131,28 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains("DefineExecute returned null", exception.Message);
     }
 
+    private sealed class TwoChainsTask : IServiceTask
+    {
+        public string Type => "twoChains";
+
+        // The violation: both chains are built on the one builder, and only the second is returned.
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+        {
+            _ = pipeline.Stage(NoopStage).Finally(NoopFinally);
+            return pipeline.Finally(NoopFinally);
+        }
+    }
+
+    [Fact]
+    public async Task DefineEndingOneBuilderTwice_FailsStartup_NamingTheTask()
+    {
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, TwoChainsTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains(nameof(TwoChainsTask), exception.Message, StringComparison.Ordinal);
+        Assert.Contains("already ended by Finally", exception.Message, StringComparison.Ordinal);
+    }
+
     // ── Mailbox composition ──────────────────────────────────────────────────────────────────
 
     private sealed class UnansweredMailboxTask : IServiceTask
