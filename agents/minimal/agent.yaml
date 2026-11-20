@@ -22,6 +22,9 @@ spec:
     - source: ../instructions.md
     - source: environment.md
     - source: ../improving.md
+    # Your own instructions, read last. Leave the file out if you have none.
+    - source: ~/.config/altinn-agents/instructions.md
+      optional: true
   skills:
     - source: ../_skills/app-development
       name: altinn-studio-app-development

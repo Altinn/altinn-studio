@@ -31,6 +31,13 @@ If you used these Agents with a `.env` file before, run `agentctl update` in thi
 values as below and deletes it. Then apply your Agents again, which changes them in place. They get a newer image
 only when created again.
 
+## Your own instructions
+
+Put instructions of your own, such as how you like pull requests handed over, in
+`~/.config/altinn-agents/instructions.md` on the machine you run `agentctl` on. Both Agents read it after the shared
+instructions, so it takes precedence. Run `agentctl apply` to update a running Agent after you change it. Without the
+file, they start without it.
+
 ## External harnesses
 
 You can also work in an Agent's Sandbox from a harness outside `agentctl`, through any app that runs its sessions
