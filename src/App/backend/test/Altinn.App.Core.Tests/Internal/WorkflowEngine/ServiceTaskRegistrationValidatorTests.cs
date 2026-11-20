@@ -22,7 +22,7 @@ public class ServiceTaskRegistrationValidatorTests
 
     private static Task<StageResult> NoopStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskResult> NoopFinally(StageContext context) =>
+    private static Task<ServiceTaskResult> NoopConclusion(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     private static Task<ServiceTaskOpeningStageResult> NoopSend(StageContext context, ServiceTaskMailbox mailbox) =>
@@ -40,17 +40,17 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "simple";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
-        public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
+        public Task<ServiceTaskResult> Execute(StageContext context) => NoopConclusion(context);
     }
 
     private sealed class GoodPipelineTask : IServiceTask
     {
         public string Type => "good";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Stage(NoopStage).Finally(NoopFinally);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(NoopStage).Stage(NoopConclusion);
     }
 
     [Fact]
@@ -83,10 +83,10 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "invalidOptions";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(NoopStage, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
-                .Finally(NoopFinally);
+                .Stage(NoopConclusion);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "throwingDefine";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             throw new InvalidOperationException("no pipeline for you");
     }
 
@@ -119,7 +119,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "nullDefine";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => null!;
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => null!;
     }
 
     [Fact]
@@ -136,10 +136,10 @@ public class ServiceTaskRegistrationValidatorTests
         public string Type => "twoChains";
 
         // The violation: both chains are built on the one builder, and only the second is returned.
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
         {
-            _ = pipeline.Stage(NoopStage).Finally(NoopFinally);
-            return pipeline.Finally(NoopFinally);
+            _ = pipeline.Stage(NoopStage).Stage(NoopConclusion);
+            return pipeline.Stage(NoopConclusion);
         }
     }
 
@@ -150,7 +150,11 @@ public class ServiceTaskRegistrationValidatorTests
 
         Assert.NotNull(exception);
         Assert.Contains(nameof(TwoChainsTask), exception.Message, StringComparison.Ordinal);
-        Assert.Contains("already ended by Finally", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            "already ended by a Stage whose work returns ServiceTaskResult",
+            exception.Message,
+            StringComparison.Ordinal
+        );
     }
 
     // ── Mailbox composition ──────────────────────────────────────────────────────────────────
@@ -159,12 +163,12 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "unansweredMailbox";
 
-        // The violation: a stage opens a mailbox and the pipeline ends with Finally, so nothing answers the
+        // The violation: a stage opens a mailbox and the pipeline ends with an ending Stage, so nothing answers the
         // messages that come back.
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
-                .Finally(NoopFinally);
+                .Stage(NoopConclusion);
     }
 
     [Fact]
@@ -175,9 +179,9 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.NotNull(exception);
         Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
         Assert.Contains("nothing answers it", exception.Message, StringComparison.Ordinal);
-        // The startup surface points at both handler positions, as the builder's own guidance does.
-        Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), exception.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(PipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
+        // The startup surface names the ending and points at the handler, as the builder's own guidance does.
+        Assert.Contains("a Stage whose work returns ServiceTaskResult", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(nameof(PipelineBuilder.ServiceTask.HandleReplies), exception.Message, StringComparison.Ordinal);
     }
 
     private sealed class ForeignMailboxHandleTask : IServiceTask
@@ -188,7 +192,7 @@ public class ServiceTaskRegistrationValidatorTests
 
         private static MailboxHandle CacheAHandle()
         {
-            new PipelineBuilder().Stage(
+            new PipelineBuilder.ServiceTask().Stage(
                 NoopSend,
                 new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                 out MailboxHandle handle
@@ -197,10 +201,10 @@ public class ServiceTaskRegistrationValidatorTests
         }
 
         // The violation: a handle cached from an earlier DefineExecute call belongs to that call's builder.
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
-                .ConcludeOnReplies(_cached, NoopMessage, NoopClosed);
+                .HandleReplies(_cached, NoopMessage, NoopClosed);
     }
 
     [Fact]

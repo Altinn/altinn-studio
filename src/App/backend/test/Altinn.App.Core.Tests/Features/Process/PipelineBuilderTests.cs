@@ -4,6 +4,9 @@ namespace Altinn.App.Core.Tests.Features.Process;
 
 public class PipelineBuilderTests
 {
+    private const string EndedByStage = "already ended by a Stage whose work returns ServiceTaskResult";
+    private const string EndedByReplies = "already ended by a HandleReplies whose handlers return ServiceTaskResult";
+
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
     private static Task<StageResult> Plain(StageContext context) => Task.FromResult(StageResult.Completed());
@@ -26,12 +29,14 @@ public class PipelineBuilderTests
     private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult(StageResult.Completed());
 
+    // ── Lifecycle ────────────────────────────────────────────────────────────────────────────
+
     [Fact]
-    public void Build_KeepsTheStagesInCompositionOrder_WithTheirOptions()
+    public void Lifecycle_KeepsTheStagesInCompositionOrder_WithTheirOptions()
     {
         var second = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
 
-        ProcessTaskPipeline pipeline = new PipelineBuilder().Stage(Plain).Stage(Plain, second).Build();
+        ProcessTaskPipeline pipeline = new PipelineBuilder.Lifecycle().Stage(Plain).Stage(Plain, second).ToPipeline();
 
         Assert.Equal(2, pipeline.Stages.Count);
         Assert.Null(pipeline.Stages[0].StepOptions);
@@ -39,62 +44,60 @@ public class PipelineBuilderTests
     }
 
     [Fact]
-    public void Build_WithNoStages_IsAnEmptyPipeline()
+    public void Lifecycle_WithNoStages_IsAnEmptyPipeline()
     {
-        Assert.Empty(new PipelineBuilder().Build().Stages);
+        Assert.Empty(new PipelineBuilder.Lifecycle().ToPipeline().Stages);
     }
 
-    [Fact]
-    public void Build_AfterOpeningAMailbox_IsRefusedAtComposition()
-    {
-        // A reply is answered after the transition commits, which only a service task's conclusion does.
-        PipelineBuilder builder = new PipelineBuilder().Stage(Send, _threeDays, out MailboxHandle _);
-
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() => builder.Build());
-
-        Assert.Contains("opens a mailbox", thrown.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), thrown.Message, StringComparison.Ordinal);
-    }
+    // ── Service task: one ending per builder ─────────────────────────────────────────────────
 
     [Fact]
     public void TwoChainsOnOneBuilder_AreRefusedAtTheSecondChain()
     {
         // Composing one complete chain per branch is fine when only the chain returned is built. Building both on
         // the one builder would hand the second chain the first chain's stages as well.
-        var builder = new PipelineBuilder();
-        builder.Stage(Plain).Finally(Conclude);
+        var builder = new PipelineBuilder.ServiceTask();
+        builder.Stage(Plain).Stage(Conclude);
 
         InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
-            builder.Stage(Plain).Finally(Conclude)
+            builder.Stage(Plain).Stage(Conclude)
         );
 
-        Assert.Contains("already ended by Finally", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains(EndedByStage, thrown.Message, StringComparison.Ordinal);
+        Assert.Contains("so Stage cannot add to it", thrown.Message, StringComparison.Ordinal);
     }
 
-    public static TheoryData<string> CallsAfterAnEnding =>
-        new() { "Stage", "Stage opening a mailbox", "HandleReplies", "Finally", "ConcludeOnReplies", "Build" };
+    public static TheoryData<string, string> CallsAfterAnEnding =>
+        new()
+        {
+            { "Stage", "Stage" },
+            { "Stage opening a mailbox", "Stage" },
+            { "carry-on HandleReplies", "HandleReplies" },
+            { "ending Stage", "Stage" },
+            { "ending HandleReplies", "HandleReplies" },
+        };
 
     [Theory]
     [MemberData(nameof(CallsAfterAnEnding))]
-    public void EveryCall_AfterTheBuilderEnded_Throws(string call)
+    public void EveryCall_AfterTheBuilderEnded_Throws_NamingTheEndingAndTheCall(string call, string calledMethod)
     {
-        var builder = new PipelineBuilder();
-        builder.Stage(Send, _threeDays, out MailboxHandle handle).ConcludeOnReplies(handle, OnMessage, OnClosed);
+        var builder = new PipelineBuilder.ServiceTask();
+        builder.Stage(Send, _threeDays, out MailboxHandle handle).HandleReplies(handle, OnMessage, OnClosed);
 
         System.Action composing = call switch
         {
             "Stage" => () => builder.Stage(Plain),
             "Stage opening a mailbox" => () => builder.Stage(Send, _threeDays, out MailboxHandle _),
-            "HandleReplies" => () => builder.HandleReplies(handle, OnSegmentMessage, OnSegmentClosed),
-            "Finally" => () => builder.Finally(Conclude),
-            "ConcludeOnReplies" => () => builder.ConcludeOnReplies(handle, OnMessage, OnClosed),
-            "Build" => () => builder.Build(),
+            "carry-on HandleReplies" => () => builder.HandleReplies(handle, OnSegmentMessage, OnSegmentClosed),
+            "ending Stage" => () => builder.Stage(Conclude),
+            "ending HandleReplies" => () => builder.HandleReplies(handle, OnMessage, OnClosed),
             _ => throw new ArgumentOutOfRangeException(nameof(call), call, null),
         };
 
         InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(composing);
 
-        Assert.Contains("already ended by ConcludeOnReplies", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains(EndedByReplies, thrown.Message, StringComparison.Ordinal);
+        Assert.Contains($"so {calledMethod} cannot add to it", thrown.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -102,15 +105,15 @@ public class PipelineBuilderTests
     {
         // A Define method that catches the builder's exception and composes on would otherwise return a pipeline
         // built partly by the call that failed.
-        var builder = new PipelineBuilder();
+        var builder = new PipelineBuilder.ServiceTask();
         builder.Stage(Send, _threeDays, out MailboxHandle handle);
-        Assert.Throws<InvalidOperationException>(() => builder.Finally(Conclude));
+        Assert.Throws<InvalidOperationException>(() => builder.Stage(Conclude));
 
         InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
             builder.HandleReplies(handle, OnSegmentMessage, OnSegmentClosed)
         );
 
-        Assert.Contains("already ended by Finally", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains(EndedByStage, thrown.Message, StringComparison.Ordinal);
     }
 
     [Fact]
