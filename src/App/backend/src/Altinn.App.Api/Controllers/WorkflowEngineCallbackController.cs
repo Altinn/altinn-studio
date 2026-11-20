@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
@@ -70,6 +71,11 @@ public class WorkflowEngineCallbackController : ControllerBase
 
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+
+        if (AppLibVersion.IsNewerThan(payload.MinAppLibVersion, AppLibVersion.Current))
+        {
+            return NewerAppLibVersionRequired(commandKey, instanceId, payload, activity);
+        }
 
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
         if (
@@ -494,6 +500,36 @@ public class WorkflowEngineCallbackController : ControllerBase
             default:
                 throw new UnreachableException($"Unknown acquisition outcome: {acquisition.GetType().Name}");
         }
+    }
+
+    /// <summary>
+    /// Refuses a step whose workflow needs a newer app library version than this pod runs, without the
+    /// <c>nonRetryable</c> marker, so the engine retries it. During a rolling deploy a retry reaches a pod on the new
+    /// version. After a rollback the step retries until the app is rolled forward or its retry strategy runs out.
+    /// </summary>
+    private ObjectResult NewerAppLibVersionRequired(
+        string commandKey,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        Activity? activity
+    )
+    {
+        _logger.LogWarning(
+            "Workflow step needs app library version {MinAppLibVersion} or newer, and this pod runs {PodVersion}. Answering 503 so the workflow engine retries it until it reaches a pod on that version or newer. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+            LogSanitizer.Sanitize(payload.MinAppLibVersion),
+            AppLibVersion.Current,
+            LogSanitizer.Sanitize(commandKey),
+            instanceId,
+            payload.WorkflowId,
+            payload.StepId
+        );
+
+        activity?.SetStatus(ActivityStatusCode.Error, "Needs a newer app library version");
+        return Problem(
+            title: "Newer App Library Version Required",
+            detail: $"This step needs app library version {payload.MinAppLibVersion} or newer, and this pod runs {AppLibVersion.Current}. It runs once a retry reaches a pod on that version or newer.",
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        );
     }
 
     private string? GetCollectionKey()

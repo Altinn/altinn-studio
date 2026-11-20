@@ -28,4 +28,18 @@ internal sealed record AppWorkflowContext
     /// </summary>
     [JsonPropertyName("callbackToken")]
     public required string CallbackToken { get; init; }
+
+    /// <summary>
+    /// The oldest Altinn.App.Core version that may run the workflow's steps, which the engine echoes as
+    /// <see cref="AppCallbackPayload.MinAppLibVersion"/> on every callback without reading it. An enqueue whose steps
+    /// this pod planned sets <see cref="AppLibVersion.MinForWorkflows"/>, and one that enqueues steps another workflow
+    /// planned passes that workflow's value on. <c>null</c> only for steps planned before the stamp existed.
+    /// </summary>
+    /// <remarks>
+    /// The engine leaves the context out of the enqueue fingerprint. A replay from another version therefore still
+    /// matches when it plans the same steps, and the engine keeps the first attempt's context, whose version planned
+    /// the steps it stored.
+    /// </remarks>
+    [JsonPropertyName("minAppLibVersion")]
+    public required string? MinAppLibVersion { get; init; }
 }

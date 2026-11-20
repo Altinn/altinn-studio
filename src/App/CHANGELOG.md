@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- During a rolling deploy or after a rollback, a process transition that a newer library version started no longer fails on a pod with an older version. The workflow engine retries its steps until a newer pod runs them, for up to a day by default. A later version can let this version run its steps. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed

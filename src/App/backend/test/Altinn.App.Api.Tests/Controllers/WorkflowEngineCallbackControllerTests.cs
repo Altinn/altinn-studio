@@ -420,6 +420,129 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Empty(GetMutationRequests(setup.Services));
     }
 
+    [Theory]
+    [InlineData("999.0.0")]
+    [InlineData("not-a-version")]
+    public async Task ExecuteCommand_NeedsNewerAppLibVersion_AnswersRetryableWithoutRestoringStateOrRunningTheCommand(
+        string minAppLibVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            minAppLibVersion: minAppLibVersion
+        );
+
+        ProblemDetails problem = AssertNewerAppLibVersionRequired(result);
+        Assert.Contains(
+            $"needs app library version {minAppLibVersion} or newer, and this pod runs {AppLibVersion.Current}",
+            problem.Detail,
+            StringComparison.Ordinal
+        );
+        Assert.False(command.Executed);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+        Assert.Contains(
+            setup.ServiceProvider.Logs,
+            log =>
+                log.LogLevel == LogLevel.Warning
+                && log.FormattedMessage?.Contains(minAppLibVersion, StringComparison.Ordinal) == true
+                && log.FormattedMessage.Contains(AppLibVersion.Current, StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>
+    /// The case the stamp exists for: a newer version planned a command this pod does not have. Without the stamp
+    /// this pod would fail the workflow permanently.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteCommand_CommandThisPodLacks_NeedsNewerAppLibVersion_AnswersRetryable()
+    {
+        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
+
+        IActionResult result = await setup.Execute(
+            "CommandFromANewerVersion",
+            stepId: Guid.NewGuid(),
+            minAppLibVersion: "999.0.0"
+        );
+
+        AssertNewerAppLibVersionRequired(result);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireNeedsNewerAppLibVersion_AnswersRetryableWithoutClaimingTheInstance()
+    {
+        await using ControllerSetup setup = CreateSetup(_ => { });
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            setup.CreateAcquirePayload(),
+            collectionKey: "acquire-chain",
+            minAppLibVersion: "999.0.0"
+        );
+
+        AssertNewerAppLibVersionRequired(result);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+    }
+
+    /// <summary>
+    /// Stamps this pod may run: its own version, an older one, or none, from before the stamp existed.
+    /// </summary>
+    public static TheoryData<string?> RunnableStamps => new() { AppLibVersion.Current, "8.12.7", null };
+
+    [Theory]
+    [MemberData(nameof(RunnableStamps))]
+    public async Task ExecuteCommand_PodAtOrAboveTheMinimum_RunsTheStep(string? minAppLibVersion)
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(command);
+
+        IActionResult result = await setup.Execute(
+            command.GetKey(),
+            stepId: Guid.NewGuid(),
+            minAppLibVersion: minAppLibVersion
+        );
+
+        Assert.IsType<OkObjectResult>(result);
+        Assert.True(command.Executed);
+    }
+
+    /// <summary>
+    /// A pod at or above the minimum treats the plan as its own, so a command it lacks fails the step.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(RunnableStamps))]
+    public async Task ExecuteCommand_CommandThisPodLacks_PodAtOrAboveTheMinimum_FailsPermanently(
+        string? minAppLibVersion
+    )
+    {
+        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
+
+        IActionResult result = await setup.Execute(
+            "RemovedCommand",
+            stepId: Guid.NewGuid(),
+            minAppLibVersion: minAppLibVersion
+        );
+
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status404NotFound, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.True((bool)problem.Extensions["nonRetryable"]!);
+    }
+
+    private static ProblemDetails AssertNewerAppLibVersionRequired(IActionResult result)
+    {
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.Equal("Newer App Library Version Required", problem.Title);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        return problem;
+    }
+
     [Fact]
     public async Task ExecuteCommand_RestoresTheDataMutatorInTheActorsLanguage()
     {
@@ -1572,8 +1695,18 @@ public class WorkflowEngineCallbackControllerTests
             Guid stepId,
             string? commandPayload = null,
             string? collectionKey = null,
-            Actor? actor = null
-        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey, actor);
+            Actor? actor = null,
+            string? minAppLibVersion = null
+        ) =>
+            Execute(
+                commandKey,
+                stepId,
+                commandPayload,
+                FixtureExecutionReferenceTime,
+                collectionKey,
+                actor,
+                minAppLibVersion
+            );
 
         public async Task<IActionResult> Execute(
             string commandKey,
@@ -1581,7 +1714,8 @@ public class WorkflowEngineCallbackControllerTests
             string? commandPayload,
             DateTimeOffset executionReferenceTime,
             string? collectionKey = null,
-            Actor? actor = null
+            Actor? actor = null,
+            string? minAppLibVersion = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -1599,6 +1733,7 @@ public class WorkflowEngineCallbackControllerTests
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,
+                MinAppLibVersion = minAppLibVersion,
             };
             // What the callback scheme would authenticate for a token minted for this actor.
             Controller.HttpContext.User = new ClaimsPrincipal(

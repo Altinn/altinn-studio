@@ -574,6 +574,7 @@ internal sealed class MailboxRelay
                 request.Payload.Actor,
                 [receiveWorkflow]
             ),
+            MinAppLibVersion = AppLibVersion.MinForWorkflows,
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest
@@ -637,6 +638,7 @@ internal sealed class MailboxRelay
                 request.Payload.Actor,
                 [continuationWorkflow]
             ),
+            MinAppLibVersion = AppLibVersion.MinForWorkflows,
         };
 
         var enqueueRequest = new WorkflowEnqueueRequest

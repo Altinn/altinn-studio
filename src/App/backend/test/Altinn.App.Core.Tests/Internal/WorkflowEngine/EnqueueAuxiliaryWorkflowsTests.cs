@@ -40,6 +40,9 @@ public class EnqueueAuxiliaryWorkflowsTests
             ],
         };
 
+    // Not this pod's, so the tests tell passing the primary workflow's minimum on from stamping this pod's.
+    private const string PrimaryMinAppLibVersion = "9.0.0-preview.1";
+
     private static WorkflowEngineCommandContext CreateContext() =>
         new()
         {
@@ -56,6 +59,7 @@ public class EnqueueAuxiliaryWorkflowsTests
                 StepId = Guid.NewGuid(),
                 State = SignedTestState,
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+                MinAppLibVersion = PrimaryMinAppLibVersion,
             },
         };
 
@@ -115,6 +119,7 @@ public class EnqueueAuxiliaryWorkflowsTests
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(capturedRequest.Context!.Value)!;
         Assert.Equal(CreateContext().Payload.Actor, context.Actor);
         Assert.Equal(_instanceId.InstanceGuid, context.InstanceGuid);
+        Assert.Equal(PrimaryMinAppLibVersion, context.MinAppLibVersion);
         tokens.AssertMintedFor(capturedRequest);
         Assert.Equal(2, capturedRequest.Workflows.Count);
         Assert.All(
