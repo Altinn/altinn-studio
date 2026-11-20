@@ -28,3 +28,15 @@
 .deprecatedComponent {
   background-color: var(--ds-color-warning-surface-tinted);
 }
+
+.previewErrors {
+  background-color: var(--ds-color-danger-surface-tinted);
+}
+
+.previewErrorIcon {
+  flex-shrink: 0;
+  align-self: center;
+  margin-inline: var(--ds-size-1);
+  font-size: var(--ds-size-5);
+  color: var(--ds-color-danger-text-default);
+}
