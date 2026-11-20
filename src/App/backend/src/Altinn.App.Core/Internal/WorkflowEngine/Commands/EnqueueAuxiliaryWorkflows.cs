@@ -83,7 +83,6 @@ internal sealed class EnqueueAuxiliaryWorkflows(
                                 context.Payload.Actor,
                                 auxiliaryWorkflows
                             ),
-                            // The primary workflow's planner planned these steps, so they keep its minimum version.
                             MinAppLibVersion = context.Payload.MinAppLibVersion,
                         }
                     ),

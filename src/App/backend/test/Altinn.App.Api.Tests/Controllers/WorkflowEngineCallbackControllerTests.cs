@@ -535,7 +535,6 @@ public class WorkflowEngineCallbackControllerTests
 
     private static ProblemDetails AssertNewerAppLibVersionRequired(IActionResult result)
     {
-        // 503 is retryable for the engine, as long as the nonRetryable marker is absent.
         var error = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
         var problem = Assert.IsType<ProblemDetails>(error.Value);

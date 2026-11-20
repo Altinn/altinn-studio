@@ -72,8 +72,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-        // First, since a newer version may have changed anything after it: the actor, the state, the command. It reads
-        // only the stamp and changes nothing.
         if (AppLibVersion.IsNewerThan(payload.MinAppLibVersion, AppLibVersion.Current))
         {
             return NewerAppLibVersionRequired(commandKey, instanceId, payload, activity);

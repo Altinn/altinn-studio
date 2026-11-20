@@ -119,7 +119,6 @@ public class EnqueueAuxiliaryWorkflowsTests
         var context = JsonSerializer.Deserialize<AppWorkflowContext>(capturedRequest.Context!.Value)!;
         Assert.Equal(CreateContext().Payload.Actor, context.Actor);
         Assert.Equal(_instanceId.InstanceGuid, context.InstanceGuid);
-        // The primary workflow's planner planned these steps.
         Assert.Equal(PrimaryMinAppLibVersion, context.MinAppLibVersion);
         tokens.AssertMintedFor(capturedRequest);
         Assert.Equal(2, capturedRequest.Workflows.Count);
