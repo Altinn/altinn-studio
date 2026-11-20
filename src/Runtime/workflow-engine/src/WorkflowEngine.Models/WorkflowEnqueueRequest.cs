@@ -17,8 +17,9 @@ public sealed record WorkflowEnqueueRequest
     public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
-    /// Opaque context passed to the commands at execution time.
-    /// Applied to all workflows in this batch. The engine never inspects this.
+    /// Opaque context passed to the commands at execution time. Applied to all workflows in this batch. The engine
+    /// does not interpret it, but hands it to each command that declares a context type, at enqueue for validation
+    /// and at execution.
     /// </summary>
     [JsonPropertyName("context")]
     public JsonElement? Context { get; init; }
@@ -29,13 +30,35 @@ public sealed record WorkflowEnqueueRequest
     [JsonPropertyName("workflows")]
     public required IReadOnlyList<WorkflowRequest> Workflows { get; init; }
 
+    /// <summary>
+    /// The fingerprint an idempotency key is checked against. A replay with the same key and the same fingerprint
+    /// returns the original workflows, and a different fingerprint is a conflict. The fingerprint covers what the
+    /// engine runs and indexes, and leaves out what it only carries for others:
+    /// <list type="bullet">
+    ///   <item><see cref="Context"/>. A caller may rebuild it per attempt, such as a fresh auth token with a new
+    ///   issued-at. The commands still validate it before the fingerprint is checked, so a replay whose context a
+    ///   command rejects is invalid rather than a duplicate.</item>
+    ///   <item>Each step's <see cref="StepRequest.Labels"/>. The engine stores them for its readers and never
+    ///   queries them, so a caller may rename what it shows for a step between an enqueue whose response was lost
+    ///   and the replay, and the replay still finds the workflow it already has.</item>
+    /// </list>
+    /// Workflow <see cref="Labels"/> stay in. The engine indexes them, and callers read them back to decide what a
+    /// workflow was for, so a key reused with other workflow labels is a different request.
+    /// </summary>
     internal byte[] ComputeHash()
     {
-        // Context is opaque passthrough that the engine never inspects, and callers may legitimately rebuild
-        // it per attempt (e.g. a freshly minted auth token with a new issued-at). Excluding it from the
-        // idempotency hash keeps the hash stable across rebuilds of the same logical request, so retries
-        // under a stable idempotency key dedupe instead of raising a spurious idempotency conflict.
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this with { Context = null });
-        return SHA256.HashData(jsonBytes);
+        var fingerprint = this with
+        {
+            Context = null,
+            Workflows = Workflows
+                .Select(workflow =>
+                    workflow with
+                    {
+                        Steps = workflow.Steps.Select(step => step with { Labels = null }).ToList(),
+                    }
+                )
+                .ToList(),
+        };
+        return SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(fingerprint));
     }
 }
