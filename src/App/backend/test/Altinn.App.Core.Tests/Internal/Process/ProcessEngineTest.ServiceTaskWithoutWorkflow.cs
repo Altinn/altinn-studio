@@ -4,6 +4,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -190,6 +191,40 @@ public sealed partial class ProcessEngineTest
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Next_OnAServiceTaskV8LeftThatTheProcessNoLongerDeclares_IsRefusedAndRunsNothing(
+        bool keptAsUserTask
+    )
+    {
+        // A deploy removed the task, or made it a user task, while v8 left instances in it.
+        Instance instance = CreateServiceTaskInstance();
+        await using var fixture = CreateServiceTaskFixture();
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetFlowElement("Task_Service"))
+            .Returns(keptAsUserTask ? CreateDeclaredTask(new ProcessTask()) : null);
+        Mock<IWorkflowEngineService> workflowService = fixture.Mock<IWorkflowEngineService>();
+        SetupServiceTaskWithoutWorkflow(workflowService);
+
+        ProcessChangeResult result = await fixture.ProcessEngine.Next(
+            new ProcessNextRequest
+            {
+                Instance = instance,
+                InstanceVersions = _storageVersions,
+                User = CreateUserClaimsPrincipal(),
+                Action = null,
+                Language = null,
+            }
+        );
+
+        Assert.False(result.Success);
+        Assert.Equal(ProcessErrorType.Conflict, result.ErrorType);
+        Assert.Equal("Service task not in the process.", result.ErrorTitle);
+        workflowService.VerifyNoOtherCalls();
+    }
+
+    [Theory]
     [InlineData(WorkflowActivityStatus.Processing, ProcessNextState.Retrying)]
     [InlineData(WorkflowActivityStatus.Failed, ProcessNextState.ResumeRequired)]
     public async Task Next_OnAnIdleServiceTaskWithAWorkflow_AnswersWithItsStateAndMovesNothing(
@@ -289,7 +324,22 @@ public sealed partial class ProcessEngineTest
     {
         var services = new ServiceCollection();
         services.AddSingleton<IServiceTask>(new ServiceTaskRunWithoutWorkflow());
-        return Fixture.Create(services);
+        Fixture fixture = Fixture.Create(services);
+        fixture
+            .Mock<IProcessReader>()
+            .Setup(r => r.GetFlowElement("Task_Service"))
+            .Returns(CreateDeclaredTask(new ServiceTask()));
+        return fixture;
+    }
+
+    private static ProcessElement CreateDeclaredTask(ProcessTask task)
+    {
+        task.Id = "Task_Service";
+        task.Name = "Lag PDF";
+        task.Incoming = ["Flow_1"];
+        task.Outgoing = ["Flow_2"];
+        task.ExtensionElements = new() { TaskExtension = new() { TaskType = ServiceTaskWithoutWorkflowType } };
+        return task;
     }
 
     // Idle, as v8 left it: v8 knew no process status.

@@ -602,7 +602,8 @@ internal class ProcessEngine : IProcessEngine
 
     /// <summary>
     /// Why process/next does not start a service task without workflow again, or null when it does: an action the
-    /// task does not take, refused as v8 refused it, or a workflow that still runs or must be resumed.
+    /// task does not take, refused as v8 refused it, a task the process no longer declares as a service task, or a
+    /// workflow that still runs or must be resumed.
     /// </summary>
     private async Task<ProcessChangeResult?> CheckServiceTaskRestart(
         Instance instance,
@@ -620,6 +621,22 @@ internal class ProcessEngine : IProcessEngine
                 ErrorTitle = "User action not supported.",
                 ErrorMessage =
                     $"Service tasks do not support running user actions. Received action {LogSanitizer.Sanitize(action)}.",
+            };
+        }
+
+        // The restart runs the task type stored on the instance. A deploy that removed the task, or made it another
+        // kind of element, would have it run for an element the process cannot move on from.
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
+        if (_processReader.GetFlowElement(taskId) is not ServiceTask)
+        {
+            return new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "Service task not in the process.",
+                ErrorMessage =
+                    $"The process no longer declares {LogSanitizer.Sanitize(taskId)} as a service task, so it cannot "
+                    + "run again.",
             };
         }
 
