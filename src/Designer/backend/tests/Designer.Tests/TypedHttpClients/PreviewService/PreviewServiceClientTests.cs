@@ -71,6 +71,39 @@ public class PreviewServiceClientTests : IDisposable
         Assert.Empty(_server.LogEntries.ToList());
     }
 
+    [Fact]
+    public async Task CreateInstance_AsksForAnInstanceInTheDevelopersSession()
+    {
+        _server
+            .Given(Request.Create().WithPath("/sessions/instances").UsingPost())
+            .RespondWith(
+                Response.Create().WithStatusCode(201).WithBodyAsJson(new { instanceId = "51001/instance-guid" })
+            );
+
+        string instanceId = await Client()
+            .CreateInstance("developer", "ttd", "my-app", new Uri(SessionUrl), "Task_1", CancellationToken.None);
+
+        Assert.Equal("51001/instance-guid", instanceId);
+        string body = Assert.Single(_server.LogEntries).RequestMessage.Body;
+        using JsonDocument request = JsonDocument.Parse(body);
+        Assert.Equal("developer", request.RootElement.GetProperty("developer").GetString());
+        Assert.Equal(SessionUrl, request.RootElement.GetProperty("sessionUrl").GetString());
+        Assert.Equal("Task_1", request.RootElement.GetProperty("taskId").GetString());
+    }
+
+    [Fact]
+    public async Task CreateInstance_ReturnsNullWhenTheDeveloperHasNoSuchSession()
+    {
+        _server
+            .Given(Request.Create().WithPath("/sessions/instances").UsingPost())
+            .RespondWith(Response.Create().WithStatusCode(404));
+
+        string instanceId = await Client()
+            .CreateInstance("developer", "ttd", "my-app", new Uri(SessionUrl), "Task_1", CancellationToken.None);
+
+        Assert.Null(instanceId);
+    }
+
     public void Dispose()
     {
         _server.Stop();
