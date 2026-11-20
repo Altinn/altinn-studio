@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import './PageLayout.css';
 import { Outlet, useLocation, useMatch, useNavigate } from 'react-router-dom';
 import classes from './PageLayout.module.css';
-import { appContentWrapperId } from '@studio/testing/testids';
+import { appContentWrapperId } from '@designer/testing/testids';
 import { PageHeader } from 'app-shared/components/PageHeader/PageHeader';
 import { RoutePaths } from 'admin/routes/RoutePaths';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@designer/components';
 import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 

@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 
 export type PreviewDisabledInfoProps = {
   className?: string;

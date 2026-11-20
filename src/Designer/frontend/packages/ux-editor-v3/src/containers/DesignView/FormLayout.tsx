@@ -2,7 +2,7 @@ import type { IInternalLayout } from '../../types/global';
 import { FormTree } from './FormTree';
 import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph, StudioAlert } from '@studio/components';
+import { StudioParagraph, StudioAlert } from '@designer/components';
 
 export interface FormLayoutProps {
   layout: IInternalLayout;

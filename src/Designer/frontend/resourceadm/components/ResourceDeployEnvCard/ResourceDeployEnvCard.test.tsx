@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ResourceDeployEnvCardProps } from './ResourceDeployEnvCard';
 import { ResourceDeployEnvCard } from './ResourceDeployEnvCard';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { QueryClient } from '@tanstack/react-query';
 import type { EnvId } from '../../utils/resourceUtils';

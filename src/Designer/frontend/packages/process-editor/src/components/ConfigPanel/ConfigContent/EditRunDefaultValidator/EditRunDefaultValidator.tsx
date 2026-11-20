@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 import { useRunDefaultValidator } from './useRunDefaultValidator';
 import classes from './EditRunDefaultValidator.module.css';
 

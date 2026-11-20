@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioLink, StudioPageHeader } from '@studio/components';
+import { StudioLink, StudioPageHeader } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import classes from './NavigationMenu.module.css';

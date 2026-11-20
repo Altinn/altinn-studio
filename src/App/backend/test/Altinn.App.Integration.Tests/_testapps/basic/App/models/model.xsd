@@ -11,6 +11,18 @@
         <xs:element name="property1" type="xs:string" />
         <xs:element name="property2" type="xs:string" />
         <xs:element minOccurs="0" name="property3" type="xs:string" />
+        <xs:element minOccurs="0" name="price" type="xs:decimal" />
+        <xs:element minOccurs="0" name="quantity" type="xs:decimal" />
+        <xs:element minOccurs="0" name="total" type="xs:decimal" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="lines">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="label" type="xs:string" />
+              <xs:element minOccurs="0" name="amount" type="xs:decimal" />
+            </xs:sequence>
+            <xs:attribute name="altinnRowId" type="xs:string" />
+          </xs:complexType>
+        </xs:element>
       </xs:sequence>
     </xs:complexType>
   </xs:element>

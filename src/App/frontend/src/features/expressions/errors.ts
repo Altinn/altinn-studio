@@ -30,8 +30,18 @@ export class UnknownArgType extends ExprRuntimeError {
 
 export class UnexpectedType extends ExprRuntimeError {
   public constructor(expression: Expression, path: string[], expected: string, actual: unknown) {
-    super(expression, path, `Expected ${expected}, got value ${JSON.stringify(actual)}`);
+    super(expression, path, `Expected ${expected}, got value ${JSON.stringify(actual)}${numberHint(expected, actual)}`);
   }
+}
+
+/**
+ * The most common reason a string is not a number is a comma as the decimal separator. Say so, with the same words
+ * as the backend.
+ */
+function numberHint(expected: string, actual: unknown): string {
+  return expected === 'number' && typeof actual === 'string' && actual.includes(',')
+    ? ' (a comma is not a decimal separator, use a period)'
+    : '';
 }
 
 export class NodeRelationNotFound extends ExprRuntimeError {

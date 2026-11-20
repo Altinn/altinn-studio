@@ -5,7 +5,7 @@ WORKDIR /src
 COPY common/dotnet/Altinn.Studio.Common ./common/dotnet/Altinn.Studio.Common
 COPY common/dotnet/Altinn.Studio.Common.Telemetry ./common/dotnet/Altinn.Studio.Common.Telemetry
 COPY cli/.editorconfig cli/Directory.Build.props cli/Directory.Packages.props ./cli/
-COPY cli/common/dotnet/.editorconfig cli/common/dotnet/Directory.Build.props ./cli/common/dotnet/
+COPY cli/common/dotnet/Directory.Build.props ./cli/common/dotnet/
 COPY cli/common/dotnet/Altinn.Studio.AppDist ./cli/common/dotnet/Altinn.Studio.AppDist
 COPY Designer/backend ./Designer/backend
 
@@ -17,7 +17,7 @@ ENV StudioOidcLoginSettings__ClientId=dummyRequired
 ENV StudioOidcLoginSettings__ClientSecret=dummyRequired
 
 RUN dotnet restore Designer/backend/src/Designer/Designer.csproj && \
-    dotnet build Designer/backend/src/Designer/Designer.csproj --no-restore && \
+    dotnet build Designer/backend/src/Designer/Designer.csproj --no-restore /p:RunAnalyzers=false && \
     dotnet ef migrations script --project Designer/backend/src/Designer/Designer.csproj --no-build --idempotent -o /app/migrations.sql
 
 FROM alpine:3.24.1@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS final

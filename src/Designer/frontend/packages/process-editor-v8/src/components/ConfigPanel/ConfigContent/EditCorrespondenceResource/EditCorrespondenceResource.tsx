@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioToggleableTextfield } from '@studio/components';
+import { StudioToggleableTextfield } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
 import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';

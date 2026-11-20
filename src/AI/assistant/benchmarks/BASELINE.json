@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "32bcee5d3c09",
-    "code": "faee743 clean",
-    "dataset": "84 items d7671477fb57",
+    "actor_prompt": "55a1d094fc83",
+    "code": "e13971f clean",
+    "dataset": "87 items 259bb6306c05",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
-    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
+    "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "3633d27c3dc2"
+    "tools": "2e6a7cc24e26"
   },
-  "check_id": "20261111T140032Z-21862-no-unsaved-edits-between-messages-faee743e7d-9d4e",
-  "label": "21862 no unsaved edits between messages faee743e7d",
-  "recorded_at": "2026-11-11T14:07:19+00:00",
-  "why": "#21862 keeps no unsaved edits between messages. It adds a rule about saved changes to the final-answer contracts, and discard_file_changes now deletes a file that the last commit does not have. This moves the actor_prompt and tools digests. Full check with e2e: every scored behavior has the same score as the previous baseline, and all four builds finished with success. Studio's preview is turned off on main, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force. The judge is gpt-6.1-sol from the local LLM_MODEL_EVAL_JUDGE."
+  "check_id": "20261117T142133Z-decision-model-request-gate-with-e2e-21981-on-e13971f5b6-1f8f",
+  "label": "decision-model request gate with e2e, #21981 on e13971f5b6",
+  "recorded_at": "2026-11-17T14:26:46+00:00",
+  "why": "#21981 replaces the scope and security gates with one call to the decisions API on gpt-6-luna, and changes the gate datasets. Gates/scope uses the key relevance, drops decline_language and has 37 items in place of 31. Gates/security keeps 30 items, with the CI item marked unsafe. Both datasets run through judge_request, three runs per item, and an item passes only when every run does. Full check with e2e on e13971f, with a clean tree. The assistant container ran the same commit against the local Designer stack and the app ttd/assistant-bench, with PREVIEW_CHECK_ENABLED off as in production. Every scored behavior matches the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, on Loop/traces 0.889 for gen_required_tools, 1.000 for gen_stopped_cleanly and 0.000 for gen_content_pairings, and 1.000 on bench_completed, bench_field_coverage, bench_order_integrity and bench_texts_bound. All four builds finished with success. The render check was off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force, as the last baseline was. The judge is gpt-6.1-sol."
 }

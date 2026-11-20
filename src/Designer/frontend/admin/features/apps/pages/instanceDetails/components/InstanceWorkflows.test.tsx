@@ -4,14 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { get, post, HttpError } from 'app-shared/utils/networking';
+import { get, post } from 'app-shared/utils/networking';
 import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { formatDay, formatTimeOfDay } from 'admin/features/apps/utils/formatTimestamp';
 import { InstanceWorkflows } from './InstanceWorkflows';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
 vi.mock('app-shared/utils/networking', async (importOriginal) => ({
   ...(await importOriginal<typeof Networking>()),
@@ -826,7 +827,7 @@ describe('InstanceWorkflows', () => {
     const cursor = 'opaque-cursor';
     vi.mocked(get).mockImplementation(async (url: string) => {
       if (url.includes(`cursor=${cursor}`)) {
-        throw new HttpError();
+        throw createHttpErrorMock();
       }
       return { ...workflowsResponse, nextCursor: cursor };
     });
@@ -862,9 +863,8 @@ describe('InstanceWorkflows', () => {
   });
 
   it('reports an unreachable engine as unavailable', async () => {
-    const error = new HttpError({
-      status: 502,
-      data: { type: 'urn:altinn:studio:designer:runtime-gateway-unavailable' },
+    const error = createHttpErrorMock(502, {
+      type: 'urn:altinn:studio:designer:runtime-gateway-unavailable',
     });
     vi.mocked(get).mockRejectedValue(error);
     renderInstanceWorkflows();

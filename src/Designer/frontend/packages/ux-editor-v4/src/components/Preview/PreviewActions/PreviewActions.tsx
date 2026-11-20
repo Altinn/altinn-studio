@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioLinkButton } from '@studio/components';
-import { ExternalLinkIcon, SidebarRightIcon } from '@studio/icons';
+import { StudioButton, StudioLinkButton } from '@designer/components';
+import { ExternalLinkIcon, SidebarRightIcon } from '@designer/icons';
 import classes from './PreviewActions.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

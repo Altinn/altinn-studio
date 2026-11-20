@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Buildings3Icon, PersonIcon } from '@studio/icons';
+import { Buildings3Icon, PersonIcon } from '@designer/icons';
 import { SubjectListItem } from '../SubjectListItem';
 import classes from './ChosenSubjects.module.css';
 import { getDeprecatedAltinn2SubjectsFromRule } from 'app-shared/utils/altinn2RoleUtils';

@@ -4,7 +4,7 @@ import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ItemCategory, type ItemCategoryProps } from './ItemCategory';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const validCategories = [

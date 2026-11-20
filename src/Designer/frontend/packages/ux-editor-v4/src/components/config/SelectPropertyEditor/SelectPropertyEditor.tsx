@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioFormActions, StudioProperty } from '@studio/components';
+import { StudioFormActions, StudioProperty } from '@designer/components';
 import classes from './SelectPropertyEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';

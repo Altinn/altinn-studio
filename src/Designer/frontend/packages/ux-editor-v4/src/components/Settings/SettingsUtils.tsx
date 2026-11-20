@@ -5,7 +5,7 @@ import {
   CardIcon,
   ReceiptIcon,
   FolderIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';

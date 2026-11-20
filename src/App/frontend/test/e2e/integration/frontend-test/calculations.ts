@@ -15,7 +15,7 @@ function saveAndReturn() {
 }
 
 describe('Expression calculations stored in the data model', () => {
-  it('shows calculations before saving, persists them, and handles empty, negative and normalized inputs', () => {
+  it('shows calculations before saving, saves them in both ends, and handles empty, negative and normalized inputs', () => {
     // Defer saving until navigation so the displayed results prove that calculations run in the frontend.
     interceptAltinnAppGlobalData((data) => {
       data.ui.settings!.autoSaveBehavior = 'onChangePage';
@@ -29,7 +29,32 @@ describe('Expression calculations stored in the data model', () => {
     cy.get(appFrontend.group.row(0).newValue).numberFormatReplace('40');
     assertChanges('NOK 30');
 
+    // The frontend has calculated the list, the object and the rows, and nothing is saved yet.
+    cy.window().should((win) => {
+      const formData = win.CypressState?.formData?.['nested-group'] as Record<string, unknown> | undefined;
+      expect(formData?.ChangeList).to.deep.equal([30]);
+      expect(formData?.ChangeSummary).to.deep.equal({ Total: 30, Rows: 1 });
+      expect(formData?.ChangeRows).to.have.length(1);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].Change', 30);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].altinnRowId').that.is.a('string');
+    });
+
+    // The save returns the rows with the ids the backend stored. The frontend keeps them when it calculates again,
+    // so nothing is left to save: the next page changes do not save again.
+    cy.intercept({ method: 'PATCH', url: '**/data?*' }).as('save');
     cy.gotoNavPage('Kjæledyr');
+    cy.wait('@save');
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 1);
+    cy.gotoNavPage('Kjæledyr');
+    cy.get(appFrontend.pets.decisionPanel.manualButton).should('be.visible');
+    cy.get('@save.all').should('have.length', 1);
+    cy.window().should((win) => {
+      const formData = win.CypressState?.formData?.['nested-group'] as Record<string, unknown> | undefined;
+      expect(formData?.ChangeRows).to.have.length(1);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].altinnRowId').that.is.a('string');
+    });
+
     cy.reload();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.row(0).editBtn).click();

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { useUpdateBpmn } from './useUpdateBpmn';
 import { queriesMock } from '../mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { getDataTypesToSignMock } from '../mocks/bpmnDefinitionsMock';
 import { removeDataTypeIdsToSign, updateDataTypeIdsToSign } from '../utils/bpmnUtils';
 import type { ServicesContextProps } from '../contexts/ServicesContext';

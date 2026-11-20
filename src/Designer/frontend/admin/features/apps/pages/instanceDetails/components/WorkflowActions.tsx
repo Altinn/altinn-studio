@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioButton, StudioSpinner } from '@studio/components';
-import { CheckmarkCircleFillIcon } from '@studio/icons';
+import { StudioAlert, StudioButton, StudioSpinner } from '@designer/components';
+import { CheckmarkCircleFillIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { ConfirmActionDialog } from 'admin/features/apps/components/ConfirmActionDialog/ConfirmActionDialog';
 import type { WorkflowOpsContext } from 'admin/features/apps/hooks/mutations/useWorkflowOpsMutations';

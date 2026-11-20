@@ -5,7 +5,7 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
+import { ArrayUtils, ObjectUtils } from '@designer/pure-functions';
 import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';

@@ -3,7 +3,7 @@ import type { CreateRepoCommitPayload } from 'app-shared/types/api';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { useRepoCommitAndPushMutation } from './useRepoCommitAndPushMutation';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 

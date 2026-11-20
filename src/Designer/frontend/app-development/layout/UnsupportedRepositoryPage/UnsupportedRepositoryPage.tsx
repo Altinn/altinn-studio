@@ -6,7 +6,7 @@ import {
   StudioHeading,
   StudioLink,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 import { RepositoryType } from 'app-shared/types/global';
 import { getRepositoryEditUrl } from 'app-shared/utils/repository';
 import classes from './UnsupportedRepositoryPage.module.css';

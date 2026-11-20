@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioDeleteButton, StudioSpinner, StudioValidationMessage } from '@studio/components';
+import { StudioDeleteButton, StudioSpinner, StudioValidationMessage } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
@@ -13,7 +13,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import { retrieveOptionsType } from '../../utils/retrieveOptionsType';
 import { OptionsType } from '../../enums/OptionsType';
 import type { CodeListIdContextData } from '../../types/CodeListIdContextData';
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 import { PublishedCodeListEditor } from './PublishedCodeListEditor';
 
 export type OptionListEditorProps = Pick<

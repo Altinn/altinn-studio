@@ -14,12 +14,12 @@ import {
 } from '../../../../../utils/expressionsUtils';
 import { ComplexExpression } from '../ComplexExpression';
 import { SimpleExpression } from './SimpleExpression';
-import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@studio/icons';
+import { CheckmarkIcon, PlusCircleIcon, TrashIcon } from '@designer/icons';
 import { Trans } from 'react-i18next';
 import classes from '../ExpressionContent.module.css';
 import { stringifyData } from '../../../../../utils/jsonUtils';
 import { useText } from '../../../../../hooks';
-import { StudioButton, StudioSwitch } from '@studio/components';
+import { StudioButton, StudioSwitch } from '@designer/components';
 
 export interface ExpressionEditModeProps {
   expression: Expression;

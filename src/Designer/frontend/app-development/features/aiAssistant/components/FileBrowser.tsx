@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { get } from 'app-shared/utils/networking';
-import { StudioFileBrowser } from '@studio/components';
+import { StudioFileBrowser } from '@designer/components';
 import type {
   StudioFileBrowserDirectory,
   StudioFileBrowserEntry,
   StudioFileBrowserFile,
   StudioFileBrowserTexts,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './FileBrowser.module.css';
 
 export type FileSystemObject = {

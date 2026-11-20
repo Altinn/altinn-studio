@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { filterSucceededReleases, mapAppReleasesToImageOptions } from './utils'; // Adjust the import paths as needed
 import { BuildResult } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { appRelease } from 'app-shared/mocks/mocks';
 import type * as I18next from 'i18next';
 

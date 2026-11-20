@@ -8,7 +8,7 @@ import { renderHookWithProviders, renderWithProviders } from '../../../../testin
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormImageComponent } from '../../../../types/FormComponent';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

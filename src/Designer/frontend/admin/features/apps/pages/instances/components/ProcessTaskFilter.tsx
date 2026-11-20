@@ -1,4 +1,4 @@
-import { StudioSpinner, StudioError } from '@studio/components';
+import { StudioSpinner, StudioError } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { StatusFilter } from './StatusFilter';
 import type { ProcessTaskMetadata } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';

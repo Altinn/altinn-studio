@@ -1,0 +1,40 @@
+{
+  "name": "A total over rows reads the row results calculated before it",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 5
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows.total",
+      "expression": ["dataModel", "rows.decimal"]
+    },
+    {
+      "field": "numbers",
+      "expression": ["jmespath", ["dataModel", "rows"], "[].total"]
+    }
+  ],
+  "expects": {
+    "numbers": [2, 5],
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 2,
+        "total": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 5,
+        "total": 5
+      }
+    ]
+  }
+}

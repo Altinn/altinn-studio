@@ -40,7 +40,7 @@ import {
   StudioSwitch,
   StudioTextarea,
   StudioTextfield,
-} from '@studio/components';
+} from '@designer/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;

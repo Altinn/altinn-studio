@@ -60,6 +60,11 @@
         "componentRef": "subform"
       },
       {
+        "componentRef": "extra",
+        "id": "Summary-extra",
+        "type": "Summary"
+      },
+      {
         "id": "ButtonGroup-uyAk1H",
         "type": "ButtonGroup",
         "children": ["NavigationButtons-AftsFv", "Button-sPjiD2"]

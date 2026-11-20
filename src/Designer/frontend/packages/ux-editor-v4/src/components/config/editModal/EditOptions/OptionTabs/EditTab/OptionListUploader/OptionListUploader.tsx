@@ -3,9 +3,9 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
-import { StudioFileUploader } from '@studio/components';
+import { StudioFileUploader } from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
+import { FileNameErrorResult, FileNameUtils } from '@designer/pure-functions';
 import type { HttpError } from 'app-shared/utils/networking';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
