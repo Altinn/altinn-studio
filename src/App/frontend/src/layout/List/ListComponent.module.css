@@ -3,7 +3,7 @@
   padding-bottom: var(--ds-size-4);
 }
 
-.listTable:not(.configuredColumns) th:first-of-type,
+.listTable:not(.configuredColumns, .mobileTable) th:first-of-type,
 .selectionColumn {
   width: 100px;
 }
@@ -21,39 +21,16 @@
   cursor: default;
 }
 
-.selectedRow,
 .selectedRowCell {
   background-color: var(--ds-color-accent-surface-tinted);
 }
 
-.mobileGroup > div :hover {
-  background-color: var(--ds-color-neutral-background-tinted);
+/* Without a header row, the browser would give the control column an equal share of the width */
+.mobileControlCell {
+  width: 1px;
 }
 
-.mobile {
-  display: flex;
-  align-items: center;
-  width: auto;
-  border-top: 1px solid var(--ds-color-neutral-border-subtle);
-  padding: var(--ds-size-4);
-  gap: var(--ds-size-8);
-}
-
-.mobile input:checked:hover {
-  background-color: var(--ds-color-accent-base-default);
-}
-
-.mobile label {
-  width: 100%;
-}
-
-.mobile span {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-4);
-}
-
-.mobile label div {
+.mobileRowContent {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
@@ -79,8 +56,4 @@
 .editButton {
   margin-left: auto;
   min-width: unset;
-}
-
-.description {
-  max-width: var(--running-text-max-width);
 }
