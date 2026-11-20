@@ -71,7 +71,7 @@ internal sealed class UnlockWriteRelockInProcessDataReadScenario : IKnownScenari
 
     private const string TypeWritten = " The removed write passed a type instead of the data, so it failed in v8 too.";
 
-    public MigrationResult Apply(CSharpSourceScanner scanner)
+    public MigrationResult Apply(CSharpSourceScanner scanner, string projectFolder)
     {
         var runs = scanner.Files.SelectMany(FindRuns).ToList();
         var messages = runs.OrderBy(static run => run.File.RelativePath.Replace('\\', '/'), StringComparer.Ordinal)
