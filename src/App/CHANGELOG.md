@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- An exception thrown in a service task or in a process hook such as `IOnTaskEndingHandler` is now logged with its stack trace, not only its message. ([#21879](https://github.com/Altinn/altinn-studio/issues/21879))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
@@ -249,6 +250,7 @@ public class UnlockTaskDataTests
         var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("UnreachableException", failed.ExceptionType);
+        Assert.IsType<UnreachableException>(failed.Exception);
         Assert.Contains("InstanceDataUnitOfWork", failed.ErrorMessage, StringComparison.Ordinal);
     }
 

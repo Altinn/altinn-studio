@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
@@ -356,6 +357,21 @@ public class CommitProcessStateTests
         Assert.Equal("CommitProcessState payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
         mutatorMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_WithMalformedPayload_KeepsTheParseErrorForTheLog()
+    {
+        var mutatorMock = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+        CommitProcessState command = CreateCommand();
+
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
+            CreateContext(mutatorMock.Object, "{")
+        );
+
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.IsAssignableFrom<JsonException>(failed.Exception);
     }
 
     private static Instance CreateInstance(string taskId) =>

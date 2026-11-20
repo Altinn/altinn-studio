@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Changed
+
+- `studioctl env up` sets up the workflow engine for development: a failing step, such as a process hook that throws, fails its workflow after about a minute instead of a day of retries, and a step can run for 30 minutes, long enough for a debugger. ([#21879](https://github.com/Altinn/altinn-studio/issues/21879))
+
 ## [0.1.0-preview.34] - 2026-11-20
 
 ### Added

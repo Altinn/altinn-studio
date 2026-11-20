@@ -49,6 +49,14 @@ const (
 	workflowEngineOTelServiceName = "workflow-engine-app"
 	// Every service exports metrics every 15 s, set by the deployment rather than in code.
 	otelMetricExportIntervalMillis = "15000"
+
+	// Production retries a failing step for a day and cancels a step after 100 s. Locally, an exception in app
+	// code should fail the workflow while the developer still watches, and a step should outlast a debugger
+	// session. Six retries on the engine's backoff from 1 s take about a minute. The timeout must stay within the
+	// engine's MaxStepCommandTimeout, or the engine rejects its settings. Options the app sets on a step win over both,
+	// and a deferring step's wait has its own budget.
+	workflowEngineStepMaxRetries = "6"
+	workflowEngineStepTimeout    = "00:30:00"
 )
 
 func registerWorkflowEngineComponents(manifest *Manifest, opts *Options) {
@@ -173,6 +181,9 @@ func workflowEngineEnv(topology envtopology.Local, includeMonitoring bool) map[s
 		"AppCommandSettings__CommandEndpoint": topology.LocaltestBaseURL() + "/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
 		"OTEL_SERVICE_NAME":                   workflowEngineOTelServiceName,
 		"OTEL_METRIC_EXPORT_INTERVAL":         otelMetricExportIntervalMillis,
+
+		"EngineSettings__DefaultStepRetryStrategy__MaxRetries": workflowEngineStepMaxRetries,
+		"EngineSettings__DefaultStepCommandTimeout":            workflowEngineStepTimeout,
 	}
 	if includeMonitoring {
 		// The collector's host alias resolves on the environment network only while monitoring runs.

@@ -39,7 +39,7 @@ internal sealed class UnlockTaskData : WorkflowEngineCommandBase<TaskDataLockPay
         }
         catch (UnreachableException ex)
         {
-            return FailedWorkflowEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
+            return FailedWorkflowEngineCommandResult.Permanent(ex.Message, ex.GetType().Name, exception: ex);
         }
         catch (Exception ex)
         {
