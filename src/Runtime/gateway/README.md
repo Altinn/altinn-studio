@@ -17,6 +17,8 @@ it counts a cluster as up only on a 200 whose body starts with `{"status":"healt
 
 The checks call services at the addresses apps get from [apps-config](../../../infra/runtime/apps-config), so a cluster
 fault that breaks apps also fails them, as in [altinn-platform#4358](https://github.com/Altinn/altinn-platform/issues/4358).
+The platform access check calls the platform on the host apps get for Storage, so it goes through the
+[platform proxy](../platform-proxy/README.md) once apps do.
 
 ## Telemetry
 

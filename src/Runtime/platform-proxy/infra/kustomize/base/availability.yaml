@@ -1,0 +1,33 @@
+# Apps reach the platform only through the proxy, so it runs at least two pods, spread across zones
+# (see the Deployment's topologySpreadConstraints), and a voluntary disruption takes at most one.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: platform-proxy
+  namespace: runtime-platform-proxy
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: platform-proxy
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 75
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: platform-proxy
+  namespace: runtime-platform-proxy
+spec:
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: platform-proxy

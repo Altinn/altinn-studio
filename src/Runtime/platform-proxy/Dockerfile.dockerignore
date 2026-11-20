@@ -1,0 +1,9 @@
+# Build context: src/
+# Send only the shared Go module and the platform proxy's.
+**
+!common/go/**
+common/go/bin
+!Runtime/platform-proxy/go.mod
+!Runtime/platform-proxy/go.sum
+!Runtime/platform-proxy/cmd/**
+!Runtime/platform-proxy/internal/**
