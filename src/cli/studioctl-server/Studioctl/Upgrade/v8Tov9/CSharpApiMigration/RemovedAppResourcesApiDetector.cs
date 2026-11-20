@@ -21,6 +21,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// header the way <c>HttpRequest.CreateContentStream()</c> did - porting the call site means deciding
 /// what filename (if any) to pass, so this is reported rather than guessed.
 /// </item>
+/// <item>
+/// <c>IAppResources.GetCalculationConfiguration(dataTypeId)</c> is removed. <c>GetCalculationConfig(dataTypeId)</c>
+/// replaces it, but returns a parsed <c>CalculationConfig</c> instead of the file's text, and throws on a file v9
+/// cannot read, so code that read the JSON itself has to be rewritten.
+/// </item>
 /// </list>
 /// <c>GetApplicationXACMLPolicy</c>/<c>GetApplicationBPMNProcess</c> share their exact name and arity
 /// with the still-current <c>IAppMetadata</c> replacement, so telling the removed call from a
@@ -44,6 +49,15 @@ internal sealed class RemovedAppResourcesApiDetector
         "GetApplicationBPMNProcess",
     };
 
+    private const string GetCalculationConfigurationMethodName = "GetCalculationConfiguration";
+
+    private static readonly IReadOnlySet<string> _calculationConfigurationMethodNames = new HashSet<string>(
+        StringComparer.Ordinal
+    )
+    {
+        GetCalculationConfigurationMethodName,
+    };
+
     private static readonly IReadOnlySet<string> _updateBinaryDataMethodNames = new HashSet<string>(
         StringComparer.Ordinal
     )
@@ -63,6 +77,12 @@ internal sealed class RemovedAppResourcesApiDetector
         + "instead: pass new InstanceIdentifier(instanceOwnerPartyId, instanceGuid), Request.ContentType, a "
         + "filename (the old overload read one from the request's Content-Disposition header - decide whether "
         + "this call site needs one), and Request.Body as the stream. Call sites found:";
+
+    private const string CalculationConfigurationSummary =
+        "IAppResources.GetCalculationConfiguration(dataTypeId) is removed in v9. Use "
+        + "GetCalculationConfig(dataTypeId), which returns a CalculationConfig whose Calculations is the list of "
+        + "field and expression items from calculation.json, or null when the data type has no such file. It "
+        + "throws when the file is invalid, where the old method returned its text. Call sites found:";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -96,9 +116,26 @@ internal sealed class RemovedAppResourcesApiDetector
                 : SyntaxUpdateBinaryDataMatches(file)
         );
 
+        // No surviving method shares the name, so the syntax-only path can match it by name and arity.
+        var calculationConfigurationMatches = _scanner.Files.SelectMany(file =>
+            file.SemanticModel is { } semanticModel
+                ? CSharpSemanticQueries.InvokedAltinnMethods(
+                    file,
+                    semanticModel,
+                    _calculationConfigurationMethodNames,
+                    containingTypeName: AppResourcesTypeName
+                )
+                : CSharpSyntaxQueries.InvokedMethodsWithArity(
+                    file,
+                    GetCalculationConfigurationMethodName,
+                    argumentCount: 1
+                )
+        );
+
         return WarnOnlyDetector.Combine(
             WarnOnlyDetector.Report(AppResourcesSummary, appResourcesMatches),
-            WarnOnlyDetector.Report(UpdateBinaryDataSummary, updateBinaryDataMatches)
+            WarnOnlyDetector.Report(UpdateBinaryDataSummary, updateBinaryDataMatches),
+            WarnOnlyDetector.Report(CalculationConfigurationSummary, calculationConfigurationMatches)
         );
     }
 

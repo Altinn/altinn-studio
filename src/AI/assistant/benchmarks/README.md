@@ -117,7 +117,8 @@ Langfuse cannot aggregate it across runs.
 The `.env` file in this directory (or the exported environment) has these values:
 
 ```
-LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is also accepted for the host
+LANGFUSE_PUBLIC_KEY=…
+LANGFUSE_SECRET_KEY=…
 AGENT_DESIGNER_API_KEY=…            # X-Api-Key for the agent API and the Gitea proxy
 AGENT_BASE_URL=http://localhost:8071
 BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git
@@ -134,8 +135,7 @@ with the userinfo endpoint of Designer. Thus, a Gitea personal access token does
 key with `bootstrap_api_key` (prerequisite 4).
 
 The dataset items refer to attachments in `metadata.attachments`. These files are in
-`benchmarks/assets/`. Git ignores this directory, because binary test fixtures must not be in the
-repository. To use a different directory, use `--assets-dir`.
+`benchmarks/assets/`. To use a different directory, use `--assets-dir`.
 
 ```bash
 # One time: make the bench_* score configs in Langfuse

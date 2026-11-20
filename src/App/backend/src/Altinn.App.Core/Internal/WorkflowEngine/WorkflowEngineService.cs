@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -197,7 +198,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
 
-        if (instance.Process?.CurrentTask?.ElementId is not { Length: > 0 })
+        ProcessElementInfo? currentTask = instance.Process?.CurrentTask;
+        string? currentTaskId = currentTask?.ElementId;
+        if (currentTask is null || string.IsNullOrEmpty(currentTaskId))
         {
             // Not started, or ended: there is no current task to annotate, so don't query the
             // engine. Known gap: the final (task -> end) transition's post-commit steps still run
@@ -207,6 +210,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             // workflows (see the live workflow-status ADR).
             return idle;
         }
+
+        // A service task without workflow: only v8 leaves an instance idle in a service task. Failed, so the frontend
+        // offers its retry. See docs/workflow-engine-integration.md#service-tasks-without-workflow.
+        WorkflowTaskStatus Settled() =>
+            ProcessStatusHelper.IsIdle(instance) && _processNextRequestFactory.IsServiceTask(currentTask.AltinnTaskType)
+                ? new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Failed,
+                    currentTaskId,
+                    Failure: null,
+                    ServiceTaskWithoutWorkflow: true
+                )
+                : idle;
 
         // The process-next collection key is deterministically the instance guid (see
         // ProcessNextRequestFactory), so the read path goes straight to the collection heads rather
@@ -220,7 +235,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         if (collection is null || collection.Heads.Count == 0)
         {
-            return idle;
+            return Settled();
         }
 
         // A head that is active means a transition is in flight (processing); a head that failed
@@ -263,7 +278,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         if (resumeRequiredHead is null)
         {
-            return idle;
+            return Settled();
         }
 
         // A failed transition additionally needs its failure detail, which lives in the workflow's

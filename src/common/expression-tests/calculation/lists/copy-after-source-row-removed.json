@@ -1,0 +1,55 @@
+{
+  "name": "Copied rows follow their source rows when a source row is removed",
+  "comment": "The copies keep the ids of the rows they are copied from, and the text the user wrote on each copy stays on that copy when the first source row is removed",
+  "dataModel": {
+    "rows": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 20 },
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000003", "decimal": 30 }
+    ],
+    "copies": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 10,
+        "text": "written on a"
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 20,
+        "text": "written on b"
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000003",
+        "decimal": 30,
+        "text": "written on c"
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "copies",
+      "expression": [
+        "jmespath",
+        ["dataModel", "rows"],
+        "[].{altinnRowId: altinnRowId, decimal: decimal}"
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 20 },
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000003", "decimal": 30 }
+    ],
+    "copies": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 20,
+        "text": "written on b"
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000003",
+        "decimal": 30,
+        "text": "written on c"
+      }
+    ]
+  }
+}

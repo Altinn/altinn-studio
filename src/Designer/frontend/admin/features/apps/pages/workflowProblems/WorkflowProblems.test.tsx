@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import { get, HttpError } from 'app-shared/utils/networking';
+import { get } from 'app-shared/utils/networking';
 import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { textMock } from '@designer/testing/mocks/i18nMock';
@@ -12,6 +12,7 @@ import { app, org } from '@designer/testing/testids';
 import { OrgContext } from 'admin/contexts/OrgContext';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import { WorkflowProblems } from './WorkflowProblems';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
 vi.mock('app-shared/utils/networking', async (importOriginal) => ({
   ...(await importOriginal<typeof Networking>()),
@@ -90,7 +91,7 @@ describe('WorkflowProblems', () => {
     const user = userEvent.setup();
     respondWith((url) =>
       url.includes(`cursor=${cursor}`)
-        ? Promise.reject(new HttpError())
+        ? Promise.reject(createHttpErrorMock())
         : page(firstPageKey, cursor),
     );
     renderWorkflowProblems();
@@ -144,9 +145,8 @@ describe('WorkflowProblems', () => {
   });
 
   it('reports an unreachable engine as unavailable rather than an error', async () => {
-    const error = new HttpError({
-      status: 502,
-      data: { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' },
+    const error = createHttpErrorMock(502, {
+      type: 'urn:altinn:studio:gateway:workflow-engine-unavailable',
     });
     respondWith(() => Promise.reject(error));
     renderWorkflowProblems();
@@ -158,7 +158,7 @@ describe('WorkflowProblems', () => {
   });
 
   it('falls back to the generic error state for a real failure', async () => {
-    respondWith(() => Promise.reject(new HttpError()));
+    respondWith(() => Promise.reject(createHttpErrorMock()));
     renderWorkflowProblems();
 
     expect(await screen.findByText(textMock('general.page_error_title'))).toBeInTheDocument();

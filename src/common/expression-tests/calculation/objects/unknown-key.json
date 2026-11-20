@@ -1,0 +1,20 @@
+{
+  "name": "A key the data model does not have is skipped, and the others are set",
+  "dataModel": {
+    "object": {
+      "text": "old"
+    }
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "text", "new", "unknown", 1]
+    }
+  ],
+  "expects": {
+    "object": {
+      "text": "new"
+    }
+  },
+  "expectsWarnings": ["object.unknown"]
+}

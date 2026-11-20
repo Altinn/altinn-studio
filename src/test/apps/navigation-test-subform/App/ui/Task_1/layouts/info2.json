@@ -11,6 +11,7 @@
       },
       {
         "id": "NavigationButtons-xerTYS",
+        "validateOnBackToSummary": { "page": "all", "show": ["Required"] },
         "textResourceBindings": {},
         "type": "NavigationButtons"
       }

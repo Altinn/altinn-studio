@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { isHttpError } from '@studio/http-client';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -30,10 +31,7 @@ import {
 } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
-import {
-  ClearHiddenSummaryReturnState,
-  createPageNavigationSlice,
-} from 'src/features/form/layout/PageNavigationContext';
+import { ClearInvalidReturnState, createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { TaskTransitionBoundary } from 'src/features/form/TaskTransitionBoundary';
 import { getUiFolderSettings } from 'src/features/form/ui';
@@ -50,7 +48,6 @@ import { createValidationSlice, ValidationEffects } from 'src/features/validatio
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsPdf } from 'src/hooks/useIsPdf';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -118,7 +115,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   }
 
   if (error) {
-    if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
+    if (isHttpError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
       return <MissingRolesError />;
     }
 
@@ -136,7 +133,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <LayoutRevisionBoundary>
         <LayoutPropertiesValidation>
           <TaskTransitionBoundary>
-            <ClearHiddenSummaryReturnState />
+            <ClearInvalidReturnState />
             <RunOptionsEffects />
             {window.Cypress && <UpdateAttachmentsForCypress />}
             <AttachmentEffects />
