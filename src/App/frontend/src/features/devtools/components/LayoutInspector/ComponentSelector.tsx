@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type React from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 
 import { Button } from '@app/form-component';
 import { FingerButtonIcon } from '@navikt/aksel-icons';
@@ -21,7 +21,7 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
 
   const highlightElementsRef = useRef(new Map<Element, Element>());
 
-  function toggle(e: React.MouseEvent) {
+  function toggle(e: ReactMouseEvent) {
     e.stopPropagation();
     if (!active) {
       activate();

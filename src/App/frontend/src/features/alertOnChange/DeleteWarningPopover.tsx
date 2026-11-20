@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import { Button } from '@app/form-component';
 import { Popover } from '@digdir/designsystemet-react';
@@ -7,11 +7,11 @@ import classes from 'src/features/alertOnChange/DeleteWarningPopover.module.css'
 import { Lang } from 'src/features/language/Lang';
 
 export interface IDeleteWarningPopover {
-  children?: React.ReactNode;
+  children?: ReactNode;
   onPopoverDeleteClick: () => void;
   onCancelClick: () => void;
   deleteButtonText: string;
-  messageText: React.ReactNode;
+  messageText: ReactNode;
   open: boolean;
   popoverId?: string;
   setOpen: (open: boolean) => void;

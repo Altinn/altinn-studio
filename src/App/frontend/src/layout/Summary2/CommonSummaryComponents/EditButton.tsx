@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { HTMLAttributes } from 'react';
 
 import { Button, useIsMobile } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
@@ -21,7 +21,7 @@ export type EditButtonProps = {
   targetBaseComponentId: string;
   navigationOverride?: (() => Promise<void> | void) | null;
   skipLastIdMutator?: boolean;
-} & React.HTMLAttributes<HTMLButtonElement>;
+} & HTMLAttributes<HTMLButtonElement>;
 
 /**
  * Render an edit button for the first visible (non-hidden) and editable component in a list of possible IDs

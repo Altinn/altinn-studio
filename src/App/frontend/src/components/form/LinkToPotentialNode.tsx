@@ -1,5 +1,5 @@
 import { Link, useLinkClickHandler } from 'react-router';
-import type React from 'react';
+import type { ReactNode } from 'react';
 import type { LinkProps } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';
@@ -8,7 +8,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 
-type Props = LinkProps & { children?: React.ReactNode };
+type Props = LinkProps & { children?: ReactNode };
 
 /**
  * This component is used to navigate to a potential node. If the node it is supposed

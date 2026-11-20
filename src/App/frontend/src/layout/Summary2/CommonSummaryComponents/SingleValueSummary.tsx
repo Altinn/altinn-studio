@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -12,10 +12,10 @@ import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponent
 import type { BaseValidation } from 'src/features/validation';
 
 type SingleValueSummaryProps = {
-  title: React.ReactNode;
+  title: ReactNode;
   errors?: BaseValidation[];
   targetBaseComponentId: string;
-  displayData?: string | React.ReactNode;
+  displayData?: string | ReactNode;
   hideEditButton?: boolean;
   multiline?: boolean;
   isCompact: boolean | undefined;

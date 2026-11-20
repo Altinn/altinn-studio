@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type React from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 
@@ -24,7 +24,7 @@ const { Provider, useCtx } = createContext<UiPreferences>({
   },
 });
 
-export function UiPreferencesProvider({ children }: React.PropsWithChildren) {
+export function UiPreferencesProvider({ children }: PropsWithChildren) {
   const [userPrefersExpandedWidth, setUserPrefersExpandedWidth] = useState<boolean | undefined>(undefined);
 
   return (

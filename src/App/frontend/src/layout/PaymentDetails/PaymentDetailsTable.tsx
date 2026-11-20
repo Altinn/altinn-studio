@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { HTMLAttributes } from 'react';
 
 import { BaseTable } from '@app/form-component';
 import { Label } from '@digdir/designsystemet-react';
@@ -13,7 +13,7 @@ type PaymentDetailsTableProps = {
   tableTitle?: string;
   description?: string;
   help?: string;
-} & React.HTMLAttributes<HTMLTableElement>;
+} & HTMLAttributes<HTMLTableElement>;
 
 export const PaymentDetailsTable = ({
   orderDetails,

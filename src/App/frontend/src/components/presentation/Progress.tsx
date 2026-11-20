@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { SVGProps } from 'react';
 
 import { getLabelId } from '@app/form-component';
 
@@ -74,7 +74,7 @@ const CircularProgress = ({ value, ariaLabel, label, id }: CircularProgressProps
   );
 };
 
-const Circle = (props: React.SVGProps<SVGCircleElement>) => (
+const Circle = (props: SVGProps<SVGCircleElement>) => (
   <circle
     cx='50%'
     cy='50%'

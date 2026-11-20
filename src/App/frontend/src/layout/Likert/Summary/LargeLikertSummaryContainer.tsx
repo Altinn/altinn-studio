@@ -1,5 +1,4 @@
-import type React from 'react';
-import type { JSX } from 'react';
+import type { JSX, Ref } from 'react';
 
 import { Fieldset } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -18,7 +17,7 @@ import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface IDisplayLikertContainer {
   likertBaseId: string;
-  divRef?: React.Ref<HTMLDivElement>;
+  divRef?: Ref<HTMLDivElement>;
   id?: string;
   renderLayoutComponent: (indexedId: string, baseId: string) => JSX.Element | null;
 }

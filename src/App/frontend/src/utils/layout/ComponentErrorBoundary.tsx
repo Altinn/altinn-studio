@@ -1,5 +1,5 @@
 import { Component, useEffect } from 'react';
-import type React from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useIsPdf } from 'src/hooks/useIsPdf';
@@ -8,7 +8,7 @@ interface IErrorBoundary {
   lastError?: Error;
 }
 
-interface Props extends React.PropsWithChildren {
+interface Props extends PropsWithChildren {
   nodeId: string;
 }
 

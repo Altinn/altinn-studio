@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-import type React from 'react';
 import type { JSX } from 'react';
 
 import { PaymentDef } from 'src/layout/Payment/config.def.generated';
@@ -17,11 +16,11 @@ export class Payment extends PaymentDef {
     },
   );
 
-  renderSummary(props: SummaryRendererProps): React.JSX.Element | null {
+  renderSummary(props: SummaryRendererProps): JSX.Element | null {
     return <SummaryPaymentComponent {...props} />;
   }
 
-  renderSummary2(props: Summary2Props): React.JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return <PaymentSummary {...props} />;
   }
 

@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 
@@ -15,7 +15,7 @@ import { typedBoolean } from 'src/utils/typing';
 
 type PaymentInfoTableRowProps = {
   labelId: string;
-  value: React.ReactNode;
+  value: ReactNode;
 };
 
 // Reusable TableRow Component

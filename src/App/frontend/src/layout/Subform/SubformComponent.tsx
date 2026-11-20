@@ -1,5 +1,5 @@
 import { useNavigation } from 'react-router';
-import type React from 'react';
+import type { JSX, KeyboardEvent } from 'react';
 
 import { BaseTable, Button, FatalError, Flex, Spinner } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -30,7 +30,7 @@ import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IData } from 'src/types/shared';
 
-export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<'Subform'>): React.JSX.Element | null {
+export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<'Subform'>): JSX.Element | null {
   const config = useComponentConfig(baseComponentId, 'Subform');
   const componentId = useIndexedId(baseComponentId);
   const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
@@ -184,7 +184,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
               isLoading={isAdding}
               loadingLabel={langAsString('general.loading')}
               onClick={async () => await addEntry()}
-              onKeyUp={async (event: React.KeyboardEvent<HTMLButtonElement>) => {
+              onKeyUp={async (event: KeyboardEvent<HTMLButtonElement>) => {
                 const allowedKeys = ['enter', ' ', 'spacebar'];
                 if (allowedKeys.includes(event.key.toLowerCase())) {
                   await addEntry();

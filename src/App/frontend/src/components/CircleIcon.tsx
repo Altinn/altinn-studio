@@ -1,10 +1,10 @@
-import type React from 'react';
+import type { HTMLProps } from 'react';
 
 import cn from 'classnames';
 
 import classes from 'src/components/CircleIcon.module.css';
 
-type Props = Omit<React.HTMLProps<HTMLDivElement>, 'size' | 'color'> & {
+type Props = Omit<HTMLProps<HTMLDivElement>, 'size' | 'color'> & {
   size: string | number;
   color?: string;
 };

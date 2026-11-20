@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ComponentProps } from 'react';
 
 import { Tag } from '@digdir/designsystemet-react';
 
@@ -33,7 +33,7 @@ function getSigneeStatus(state: SigneeState): SigneeStatus {
 
 export function SigneeStateTag({ state }: { state: SigneeState }) {
   const status = getSigneeStatus(state);
-  const colorByStatus: Record<SigneeStatus, React.ComponentProps<typeof Tag>['data-color']> = {
+  const colorByStatus: Record<SigneeStatus, ComponentProps<typeof Tag>['data-color']> = {
     signed: 'success',
     delegationFailed: 'danger',
     notificationFailed: 'warning',

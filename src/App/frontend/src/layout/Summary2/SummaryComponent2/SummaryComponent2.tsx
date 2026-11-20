@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import cn from 'classnames';
@@ -76,5 +76,5 @@ function SummaryComponent2Inner({ baseComponentId }: Pick<PropsFromGenericCompon
   );
 }
 
-export const SummaryComponent2 = React.memo(SummaryComponent2Inner);
+export const SummaryComponent2 = memo(SummaryComponent2Inner);
 SummaryComponent2.displayName = 'SummaryComponent2';

@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 
@@ -8,7 +8,7 @@ const { Provider, useHasProvider } = createContext<boolean | undefined>({
   default: false,
 });
 
-export function AccordionGroupProvider({ children }: { children: React.ReactNode }) {
+export function AccordionGroupProvider({ children }: { children: ReactNode }) {
   return <Provider value={true}>{children}</Provider>;
 }
 export const useIsInAccordionGroup = () => useHasProvider();

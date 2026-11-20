@@ -1,5 +1,4 @@
 import { useId, useRef } from 'react';
-import type React from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { Button, FullWidthWrapper, LiveValidationMessage, Panel } from '@app/form-component';
@@ -18,11 +17,11 @@ import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type SigningPanelProps = {
   baseComponentId: string;
-  heading: React.ReactElement;
-  description?: React.ReactElement;
+  heading: ReactElement;
+  description?: ReactElement;
   variant?: PanelProps['variant'];
   actionButton?: ReactElement<typeof Button>;
-  errorMessage?: React.ReactElement;
+  errorMessage?: ReactElement;
 };
 
 export function SigningPanel({

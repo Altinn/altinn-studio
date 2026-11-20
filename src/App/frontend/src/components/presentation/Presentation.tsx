@@ -1,6 +1,5 @@
 import { useLayoutEffect } from 'react';
-import type React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Flex } from '@app/form-component';
 import cn from 'classnames';
@@ -25,7 +24,7 @@ import { useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 
 export interface IPresentationProvidedProps extends PropsWithChildren {
-  header?: React.ReactNode;
+  header?: ReactNode;
   showNavbar?: boolean;
   showNavigation?: boolean;
 }

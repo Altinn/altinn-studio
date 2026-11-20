@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-import type React from 'react';
 import type { JSX } from 'react';
 
 import { Cards as CardsComponent } from 'src/layout/Cards/Cards';
@@ -13,7 +12,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 export class Cards extends CardsDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Cards'>>(
-    function LayoutComponentCardRender(props, _): React.JSX.Element | null {
+    function LayoutComponentCardRender(props, _): JSX.Element | null {
       return <CardsComponent {...props} />;
     },
   );
@@ -22,7 +21,7 @@ export class Cards extends CardsDef {
     return false;
   }
 
-  renderSummary2(props: Summary2Props): React.JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     return (
       <EmptyChildrenBoundary>
         <CardsSummary2 {...props} />

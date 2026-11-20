@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import type React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactElement } from 'react';
 
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
@@ -174,7 +173,7 @@ export function NestedDataModelLocationProviders({ reference, children }: PropsW
         {child}
       </DataModelLocationProvider>
     ),
-    children as React.ReactElement,
+    children as ReactElement,
   );
 }
 

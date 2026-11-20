@@ -1,5 +1,4 @@
-import type React from 'react';
-import type { JSX } from 'react';
+import type { forwardRef, JSX } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -54,7 +53,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
    * Given properties from GenericComponent, render this layout component
    */
   abstract render:
-    | ReturnType<typeof React.forwardRef<HTMLElement, PropsFromGenericComponent<Type>>>
+    | ReturnType<typeof forwardRef<HTMLElement, PropsFromGenericComponent<Type>>>
     | ((props: PropsFromGenericComponent<Type>) => JSX.Element | null);
 
   renderSummary2?(props: Summary2Props): JSX.Element | null;

@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import { Label, List, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -24,7 +24,7 @@ type ValidTypes = 'MultipleSelect' | 'Checkboxes';
 type Row = Record<string, string | number | boolean>;
 
 interface MultipleValueSummaryProps {
-  title: React.ReactNode;
+  title: ReactNode;
   baseComponentId: string;
   displayValues: ReturnType<typeof useMultipleValuesForSummary>;
   showAsList?: boolean;

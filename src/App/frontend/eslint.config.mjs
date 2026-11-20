@@ -94,6 +94,11 @@ export default defineConfig([
           selector: "ExportNamedDeclaration[source.type='Literal']",
           message: 'Do not re-exports already exported symbols',
         },
+        {
+          selector:
+            "ImportDeclaration[source.value='react'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)",
+          message: "Import what you need by name, such as `import { useState } from 'react'`.",
+        },
       ],
 
       'jsx-a11y/no-autofocus': ['off'],

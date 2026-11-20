@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import cn from 'classnames';
 
@@ -10,7 +10,7 @@ export interface ILandmarkShortcutsProps {
 
 interface ILandmarkShortcut {
   id: string;
-  text: React.ReactNode;
+  text: ReactNode;
 }
 
 // TODO: remove workaround since we no longer use hash-router

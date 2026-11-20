@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-import type React from 'react';
 import type { JSX } from 'react';
 
 import { Summary2Def } from 'src/layout/Summary2/config.def.generated';
@@ -19,7 +18,7 @@ export class Summary2 extends Summary2Def {
     return true;
   }
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'Summary2'>): React.JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'Summary2'>): JSX.Element | null {
     return <Summary2LayoutValidator {...props} />;
   }
 }

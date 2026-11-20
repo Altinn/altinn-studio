@@ -1,5 +1,5 @@
 import { forwardRef, useRef } from 'react';
-import type React from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
 
 import { ConditionalWrapper, HelpText } from '@app/form-component';
 import { Radio } from '@digdir/designsystemet-react';
@@ -13,11 +13,11 @@ import { useLanguage } from 'src/features/language/useLanguage';
 
 export interface IRadioButtonProps extends Omit<RadioProps, 'children' | 'aria-label' | 'aria-labelledby'> {
   showAsCard?: boolean;
-  helpText?: React.ReactNode;
+  helpText?: ReactNode;
   hideLabel?: boolean;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   alertOnChange?: boolean;
-  alertText?: React.ReactNode;
+  alertText?: ReactNode;
   confirmChangeText?: string;
 }
 

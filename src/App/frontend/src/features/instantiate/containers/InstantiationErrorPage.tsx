@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { ReactNode } from 'react';
 
 import { Flex } from '@app/form-component';
 
@@ -6,9 +6,9 @@ import { AltinnError } from 'src/components/altinnError';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 
 export type IInstantiationErrorPageProps = {
-  title: React.ReactNode;
-  content: React.ReactNode;
-  statusCode?: React.ReactNode;
+  title: ReactNode;
+  content: ReactNode;
+  statusCode?: ReactNode;
   showContactInfo?: boolean;
 };
 
