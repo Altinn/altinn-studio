@@ -22,6 +22,7 @@ internal sealed partial class CalculationExpressionConverter
         Boolean,
         Null,
         Undefined,
+        Uninitialized,
         Object,
     }
 
@@ -107,6 +108,7 @@ internal sealed partial class CalculationExpressionConverter
                     && _selectionOptions.ContainsKey(NumericOptionInputs.Normalize(path))
             );
         }
+        ReserveBuiltinBindings(body.Body.ToArray(), values);
         var result = Execute(body.Body.ToArray(), values);
         MayReturnNull = result.Kind is Kind.Null or Kind.Undefined || result.MayBeMissing;
         var outputType = types.ResolveType(rule.OutParams?.GetValueOrDefault("outParam0") ?? "")?.TrimEnd('?');
@@ -154,7 +156,7 @@ internal sealed partial class CalculationExpressionConverter
                     if (
                         variable.Id is not Identifier id
                         || id.Name == _parameter
-                        || values.ContainsKey(id.Name)
+                        || (values.TryGetValue(id.Name, out var existing) && existing.Kind != Kind.Uninitialized)
                         || _helpers.ContainsKey(id.Name)
                     )
                         throw new NotSupportedException("Destructured, shadowed, or repeated local declaration.");
@@ -162,6 +164,7 @@ internal sealed partial class CalculationExpressionConverter
                     {
                         if (!_helpers.TryAdd(id.Name, helper))
                             throw new NotSupportedException("Repeated helper declaration.");
+                        values.Remove(id.Name);
                     }
                     else if (TrySelectionList(variable.Init, values, out var selection))
                     {
@@ -343,6 +346,8 @@ internal sealed partial class CalculationExpressionConverter
 
     private static Value CheckedInput(Value value)
     {
+        if (value.Kind == Kind.Uninitialized)
+            throw new NotSupportedException("Local binding is read before initialization.");
         if (value.Kind == Kind.String && value.MayBeMissing && !value.NumericString && !value.SelectionString)
             throw new NotSupportedException(
                 "String inputs require JS semantics for numeric coercion and reserved expression strings."
@@ -538,6 +543,30 @@ internal sealed partial class CalculationExpressionConverter
             throw new NotSupportedException(
                 "Multiplication cannot be proven safe in backend decimal arithmetic; keep this calculation in C#."
             );
+    }
+
+    private static void ReserveBuiltinBindings(IReadOnlyList<Statement> statements, Dictionary<string, Value> values)
+    {
+        foreach (var statement in statements)
+            switch (statement)
+            {
+                case VariableDeclaration declaration:
+                    foreach (var variable in declaration.Declarations)
+                        if (variable.Id is Identifier id && IsBuiltin(id.Name))
+                            values.TryAdd(id.Name, new(null, Kind.Uninitialized));
+                    break;
+                case BlockStatement block:
+                    ReserveBuiltinBindings(block.Body.ToArray(), values);
+                    break;
+                case IfStatement conditional:
+                    ReserveBuiltinBindings(
+                        conditional.Alternate is { } alternate
+                            ? [conditional.Consequent, alternate]
+                            : [conditional.Consequent],
+                        values
+                    );
+                    break;
+            }
     }
 
     private bool HasFloatingPointInput(JsonNode? node) =>

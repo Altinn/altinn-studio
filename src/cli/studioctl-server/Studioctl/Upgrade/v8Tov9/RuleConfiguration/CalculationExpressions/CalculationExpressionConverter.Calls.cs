@@ -339,6 +339,7 @@ internal sealed partial class CalculationExpressionConverter
             {
                 if (!PureHelperBody(body))
                     throw new NotSupportedException("Helper has side effects or unsupported statements.");
+                ReserveBuiltinBindings(body.Body.ToArray(), locals);
                 return Execute(body.Body.ToArray(), locals);
             }
             if (helper.Body is Expression expression)
