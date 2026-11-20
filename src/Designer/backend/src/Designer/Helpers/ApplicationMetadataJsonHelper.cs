@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.Studio.Designer.Helpers;
 
@@ -49,6 +50,30 @@ public static class ApplicationMetadataJsonHelper
         jsonObj[key] = versionId;
 
         return jsonObj.ToJsonString(serializationOptions);
+    }
+
+    public static string SetStatus(string json, AppStatus status, JsonSerializerOptions? serializationOptions = null)
+    {
+        var jsonObj = ParseAndEnsureJsonObject(json);
+        string key = UsesPascalCaseProps(jsonObj) ? "Status" : "status";
+
+        jsonObj[key] = status.ToString();
+
+        return jsonObj.ToJsonString(serializationOptions);
+    }
+
+    public static AppStatus? GetStatus(string json)
+    {
+        var jsonObj = ParseAndEnsureJsonObject(json);
+        string key = UsesPascalCaseProps(jsonObj) ? "Status" : "status";
+
+        return
+            jsonObj[key] is JsonValue value
+            && value.TryGetValue(out string? status)
+            && Enum.TryParse(status, ignoreCase: false, out AppStatus appStatus)
+            && Enum.IsDefined(appStatus)
+            ? appStatus
+            : null;
     }
 
     private static JsonObject ParseAndEnsureJsonObject(string json)

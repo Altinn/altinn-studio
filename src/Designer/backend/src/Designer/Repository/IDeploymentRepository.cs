@@ -35,6 +35,12 @@ public interface IDeploymentRepository
     Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment);
 
     /// <summary>
+    /// Gets the most recent deployment of type <see cref="DeploymentType.Deploy"/> on environment,
+    /// ignoring decommissions. Returns null if the app has never been deployed to the environment.
+    /// </summary>
+    Task<DeploymentEntity> GetLatestDeploy(string org, string app, string environment);
+
+    /// <summary>
     /// Get all deployments for an app in an environment
     /// </summary>
     Task<IEnumerable<DeploymentEntity>> GetSucceeded(

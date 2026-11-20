@@ -156,12 +156,15 @@ public static class AltinnAppServiceResourceValidator
 
 public static class ApplicationMetadataMapper
 {
+    public static string ToServiceResourceIdentifier(string? applicationId) =>
+        "app_" + applicationId?.Replace('/', '_');
+
     public static ServiceResource ToServiceResource(this ApplicationMetadata applicationmetadata)
     {
         return new ServiceResource
         {
             ResourceType = ResourceType.AltinnApp,
-            Identifier = "app_" + applicationmetadata?.Id?.Replace('/', '_'),
+            Identifier = ToServiceResourceIdentifier(applicationmetadata?.Id),
             ResourceReferences = new()
             {
                 new()

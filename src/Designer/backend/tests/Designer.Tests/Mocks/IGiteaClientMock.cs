@@ -150,6 +150,20 @@ public class IGiteaClientMock : IGiteaClient
         return GetFileAsync(org, app, filePath, reference);
     }
 
+    public Task<string> UpdateFileAsync(
+        string org,
+        string app,
+        string filePath,
+        string content,
+        string sha,
+        string branch,
+        string message,
+        CancellationToken cancellationToken = default
+    )
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<Repository> GetRepository(string org, string repository)
     {
         Repository returnRepository = null;
