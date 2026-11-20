@@ -19,6 +19,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Apps on `Altinn.App.Core` 9.0.0-preview.10 no longer fail at startup with a `TypeLoadException` for `GetAppOptions` when they call `AddAltinnCodelists()`.
 
+### Fixed
+
+- SSB code lists can recover from temporary service failures without leaving dropdowns empty until the next day. ([#21287](https://github.com/Altinn/altinn-studio/issues/21287))
+
 ## [9.0.0-preview.1] - 2026-09-09
 
 ### Changed
