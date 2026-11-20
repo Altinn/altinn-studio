@@ -1,0 +1,61 @@
+.container,
+.intro,
+.cards,
+.featureList {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  gap: var(--ds-size-6);
+  max-width: 616px;
+}
+
+.intro {
+  gap: var(--ds-size-2);
+}
+
+.cards,
+.featureList {
+  gap: var(--ds-size-3);
+}
+
+.featureList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  padding: var(--ds-size-3);
+  border: 1px solid var(--ds-color-neutral-border-default);
+  border-radius: var(--ds-border-radius-md);
+  background: var(--ds-color-neutral-background-default);
+}
+
+.selectAll {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ds-size-2) var(--ds-size-4);
+  background: var(--ds-color-neutral-background-tinted);
+}
+
+.selectAll > :first-child {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.subtle {
+  flex-shrink: 0;
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.featureLabel {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.selectAllLabel {
+  font-weight: var(--ds-font-weight-semibold);
+}

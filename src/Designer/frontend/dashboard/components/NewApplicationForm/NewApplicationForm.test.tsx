@@ -126,24 +126,52 @@ describe('NewApplicationForm', () => {
     expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeEnabled();
   });
 
-  it('should show app template selector', () => {
+  it('should show app template selector with the v9 template when the v9 feature is enabled', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({}, { queryClient });
+    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplateV9], queryClient });
 
     expect(
       screen.getByRole('combobox', {
         name: textMock('dashboard.new_application_form.select_app_template'),
       }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Altinn App v9 (preview)' })).toBeInTheDocument();
+  });
+
+  it('should not offer the v9 template when the v9 feature is disabled', async () => {
+    const user = userEvent.setup();
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
+
+    renderNewApplicationForm({}, { queryClient });
+
+    expect(
+      screen.queryByRole('combobox', {
+        name: textMock('dashboard.new_application_form.select_app_template'),
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('combobox', { name: textMock('general.service_owner') }));
+    await user.click(screen.getByRole('option', { name: mockUser.full_name }));
+    await user.type(
+      screen.getByRole('textbox', { name: textMock('general.service_name') }),
+      'repo-without-app-template',
+    );
+    await user.click(screen.getByRole('button', { name: mockSubmitbuttonText }));
+
+    expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({ appTemplate: undefined }));
   });
 
   it('should not show app template selector when shouldUseAppTemplate is false', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({ shouldUseAppTemplate: false }, { queryClient });
+    renderNewApplicationForm(
+      { shouldUseAppTemplate: false },
+      { featureFlags: [FeatureFlag.AppTemplateV9], queryClient },
+    );
 
     expect(
       screen.queryByRole('combobox', {
@@ -157,7 +185,7 @@ describe('NewApplicationForm', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({}, { queryClient });
+    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplateV9], queryClient });
 
     await user.selectOptions(
       screen.getByRole('combobox', {
