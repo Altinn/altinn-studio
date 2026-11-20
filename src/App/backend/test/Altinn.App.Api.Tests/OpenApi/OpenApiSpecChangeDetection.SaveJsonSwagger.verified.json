@@ -8948,6 +8948,37 @@
         "additionalProperties": false,
         "description": "Represents the details of an authorized organization."
       },
+      "CalculationConfig": {
+        "required": [
+          "calculations"
+        ],
+        "type": "object",
+        "properties": {
+          "calculations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalculationItem"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CalculationItem": {
+        "required": [
+          "expression",
+          "field"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "expression": {
+            "$ref": "#/components/schemas/Expression"
+          }
+        },
+        "additionalProperties": false
+      },
       "CalculationResult": {
         "type": "object",
         "properties": {
@@ -9359,7 +9390,9 @@
             "nullable": true
           },
           "expressionValidationConfig": {},
-          "calculationConfig": {},
+          "calculationConfig": {
+            "$ref": "#/components/schemas/CalculationConfig"
+          },
           "initialValidationIssues": {
             "type": "array",
             "items": {
@@ -9971,6 +10004,28 @@
         },
         "additionalProperties": false,
         "description": "Represents an instance response with enriched process state including authorized actions,\nread/write access, element types, and process task metadata."
+      },
+      "Expression": {
+        "title": "Expression",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Expression"
+            },
+            "description": "The function name, then one expression per argument"
+          }
+        ],
+        "description": "A literal (string, number, boolean or null), or an array with a function name followed by its arguments, which are expressions, such as [\"dataModel\", \"skjema.price\"]"
       },
       "FileScanResult": {
         "enum": [

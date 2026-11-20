@@ -1,0 +1,42 @@
+{
+  "name": "A data type without calculations is not changed",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "d0000000-0000-4000-8000-000000000001",
+        "dataType": "default"
+      },
+      "data": {
+        "decimal": 2
+      }
+    },
+    {
+      "dataElement": {
+        "id": "d0000000-0000-4000-8000-000000000002",
+        "dataType": "other"
+      },
+      "data": {
+        "decimal": 5,
+        "text": "kept"
+      }
+    }
+  ],
+  "calculations": {
+    "default": [
+      {
+        "field": "text",
+        "expression": ["dataModel", "text", "other"]
+      }
+    ]
+  },
+  "expects": {
+    "default": {
+      "decimal": 2,
+      "text": "kept"
+    },
+    "other": {
+      "decimal": 5,
+      "text": "kept"
+    }
+  }
+}

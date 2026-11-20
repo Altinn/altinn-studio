@@ -7,6 +7,9 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    css: {
+      include: [/BaseTable\.module\.css$/],
+    },
     environment: 'jsdom',
     globals: true,
     globalSetup: ['./src/test/global-setup.ts'],

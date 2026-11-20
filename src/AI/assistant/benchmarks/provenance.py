@@ -29,7 +29,7 @@ ENVIRONMENTS = ("local", "dev", "prod", "ci")
 # The actor_prompt digest uses this session date. With the real date, the digest changes every day.
 DIGEST_SESSION_DATE = date(2000, 1, 1)
 
-LIVE_ROLES = ("actor", "planner", "default")
+LIVE_ROLES = ("actor", "planner", "default", "decision")
 
 
 def _git(*args: str) -> str | None:

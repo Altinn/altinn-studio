@@ -19,6 +19,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     private readonly ConcurrencyLimiter _limiter = new(50, 50, 5);
     private readonly List<IDisposable> _disposables = [];
     private NpgsqlDataSource? _dataSource;
+    private PooledDbContextFactory<EngineDbContext>? _contextFactory;
 
     private readonly IOptions<EngineSettings> _settings = Options.Create(
         new EngineSettings
@@ -56,6 +57,15 @@ public sealed class PostgresFixture : IAsyncLifetime
     private NpgsqlDataSource DataSource =>
         _dataSource ?? throw new InvalidOperationException("The fixture has not been initialized yet.");
 
+    /// <summary>
+    /// One context pool for the repositories <c>CreateRepository</c> builds, as the engine has one, so a repository
+    /// method that breaks its context fails the calls after it. The pool keeps at most one idle context, so in a run
+    /// of calls that don't overlap, each gets the context the one before it used. Overlapping calls use different
+    /// contexts, and only one of those goes back to the pool.
+    /// </summary>
+    private PooledDbContextFactory<EngineDbContext> ContextFactory =>
+        _contextFactory ?? throw new InvalidOperationException("The fixture has not been initialized yet.");
+
     public async ValueTask InitializeAsync()
     {
         await _container.StartAsync();
@@ -64,6 +74,10 @@ public sealed class PostgresFixture : IAsyncLifetime
         await migrationService.Migrate(ConnectionString);
 
         _dataSource = NpgsqlDataSource.Create(ConnectionString);
+        _contextFactory = new PooledDbContextFactory<EngineDbContext>(
+            new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(_dataSource).Options,
+            poolSize: 1
+        );
     }
 
     public async ValueTask DisposeAsync()
@@ -86,12 +100,10 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal EngineRepository CreateRepository(TimeProvider? timeProvider = null)
     {
-        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
-        var factory = new PooledDbContextFactory<EngineDbContext>(options);
-        var sqlBulkInserter = new SqlBulkInserter(factory);
+        var sqlBulkInserter = new SqlBulkInserter(ContextFactory);
         return new EngineRepository(
             DataSource,
-            factory,
+            ContextFactory,
             _settings,
             _limiter,
             sqlBulkInserter,
@@ -102,12 +114,10 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     internal EngineRepository CreateRepository(IOptions<EngineSettings> settings)
     {
-        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
-        var factory = new PooledDbContextFactory<EngineDbContext>(options);
-        var sqlBulkInserter = new SqlBulkInserter(factory);
+        var sqlBulkInserter = new SqlBulkInserter(ContextFactory);
         return new EngineRepository(
             DataSource,
-            factory,
+            ContextFactory,
             settings,
             _limiter,
             sqlBulkInserter,

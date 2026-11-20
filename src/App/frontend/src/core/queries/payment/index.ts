@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 
 import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { mutationResult } from 'src/core/queries/mutationResult';
@@ -23,7 +23,7 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
         return await doPerformAction(partyId, instanceGuid, { action: 'pay' }, selectedLanguage);
       }
     },
-    onError: (error: AxiosError) => {
+    onError: (error: HttpError) => {
       window.logError('Error performing pay action', error);
       if (error.response?.status === 409) {
         // The payment has already been paid, reload the page to get the updated status and go to receipt

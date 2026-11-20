@@ -5,8 +5,8 @@ import { Button } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
-import axios from 'axios';
 
+import { httpClient } from 'src/core/httpClient';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -36,7 +36,7 @@ const InnerDownloadXMLButton = () => {
     const dataElementId = selectedDataType ? getDataElementIdForDataType(selectedDataType) : undefined;
     const dataUrl = dataElementId && instanceId ? getStatefulDataModelUrl(instanceId, dataElementId) : undefined;
     if (dataUrl) {
-      const response = await axios.get(dataUrl, { headers: { Accept: 'application/xml' } });
+      const response = await httpClient.get<string>(dataUrl, { headers: { Accept: 'application/xml' } });
 
       const blob = new Blob([response.data], { type: 'application/xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -54,13 +54,15 @@ const InnerDownloadXMLButton = () => {
       const currentLock = await lock();
       try {
         const dataToUpload = await acceptedFiles[0].text();
-        await axios.put(dataUrl, dataToUpload, { headers: { 'Content-Type': 'application/xml' } }).catch((error) => {
-          // 303 is expected when using ProcessDataWrite and can be ignored
-          if (error.response?.status !== 303) {
-            throw error;
-          }
-        });
-        const { data: updatedDataModel } = await axios.get(dataUrl, {
+        await httpClient
+          .put(dataUrl, dataToUpload, { headers: { 'Content-Type': 'application/xml' } })
+          .catch((error) => {
+            // 303 is expected when using ProcessDataWrite and can be ignored
+            if (error.response?.status !== 303) {
+              throw error;
+            }
+          });
+        const { data: updatedDataModel } = await httpClient.get<object>(dataUrl, {
           headers: { Accept: 'application/json' },
         });
         currentLock.unlock({ updatedDataModels: { [dataElementId!]: updatedDataModel }, updatedValidationIssues: {} });

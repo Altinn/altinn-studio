@@ -179,6 +179,8 @@ public sealed class PatchServiceTests : IDisposable
     {
         [MinLength(20)]
         public string? Name { get; set; }
+
+        public DateTime? BirthDate { get; set; }
     }
 
     [Fact]
@@ -494,6 +496,28 @@ public sealed class PatchServiceTests : IDisposable
             .Be(
                 "The JSON property 'Age' could not be mapped to any .NET member contained in type 'Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel'."
             );
+        err.Status.Should().Be((int)HttpStatusCode.UnprocessableEntity);
+    }
+
+    [Fact]
+    public async Task ApplyPatches_WhenValueDoesNotConvertToPropertyType_ReturnsUnprocessableEntity()
+    {
+        var jsonPatch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "add", "path": "/BirthDate", "value": "32.13.2026" }
+            ]
+            """
+        );
+        SetupDataClient(new MyModel());
+
+        var patches = new Dictionary<Guid, List<JsonPatchOperation>>() { { _dataGuid, jsonPatch } };
+        var response = await _patchService.ApplyPatches(_instance, patches, null, null);
+
+        var err = response.Error;
+        err.Should().NotBeNull();
+        err!.Title.Should().Be("Patch operation did not deserialize");
+        err.Detail.Should().Contain("BirthDate");
         err.Status.Should().Be((int)HttpStatusCode.UnprocessableEntity);
     }
 

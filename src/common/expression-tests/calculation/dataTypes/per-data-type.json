@@ -1,0 +1,47 @@
+{
+  "name": "Each data type runs its own calculations and can read the others",
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "d0000000-0000-4000-8000-000000000001",
+        "dataType": "default"
+      },
+      "data": {
+        "decimal": 2
+      }
+    },
+    {
+      "dataElement": {
+        "id": "d0000000-0000-4000-8000-000000000002",
+        "dataType": "other"
+      },
+      "data": {
+        "decimal": 5
+      }
+    }
+  ],
+  "calculations": {
+    "default": [
+      {
+        "field": "otherDecimal",
+        "expression": ["dataModel", "decimal", "other"]
+      }
+    ],
+    "other": [
+      {
+        "field": "text",
+        "expression": ["dataModel", "decimal"]
+      }
+    ]
+  },
+  "expects": {
+    "default": {
+      "decimal": 2,
+      "otherDecimal": 5
+    },
+    "other": {
+      "decimal": 5,
+      "text": "5"
+    }
+  }
+}
