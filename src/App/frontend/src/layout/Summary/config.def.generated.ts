@@ -6,6 +6,10 @@ export abstract class SummaryDef extends PresentationComponent<'Summary'> {
   directRender(): boolean {
     return true;
   }
+
+  declare renderSummary?: never;
+
+  declare renderSummary2?: never;
 }
 
-// Source hash: 81d0dc28db05a5ea961f7935006604666d74b9d8c3555b0747422506289e7050
+// Source hash: 0fd6d25669b9cee8050ce63a052089d65fcf460aa3c83e1126769c0265c85ef6

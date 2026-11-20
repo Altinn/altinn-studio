@@ -1,5 +1,6 @@
 import {
   ComponentBase,
+  ISummaryOverridesCommon,
   LabeledComponentProps,
   TRBLabel,
 } from '@app/layout-contract/generated/common.generated';
@@ -17,6 +18,10 @@ export interface CompInstanceInformationExternal extends ComponentBase, LabeledC
   dataModelBindings?: undefined;
 }
 
+export type InstanceInformationSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'InstanceInformation' } & ISummaryOverridesCommon);
+
 export const componentConfig = {
   category: CompCategory.Presentation,
   availability: 'configurable',
@@ -30,7 +35,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -41,8 +46,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompInstanceInformationExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: InstanceInformationSummaryOverridesWithRef;
 };
 
-// Source hash: 1ab982c647effe6e77031a37d6097a86b01373b242bcdbcaa08a148464275fdd
+// Source hash: 3d2c36f728837730316ed378afeb8eac58592e0c01731b5b48112e9008716a59

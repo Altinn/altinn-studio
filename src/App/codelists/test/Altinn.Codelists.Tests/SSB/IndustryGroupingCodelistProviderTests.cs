@@ -9,7 +9,7 @@ namespace Altinn.Codelists.Tests.SSB;
 public class IndustryGroupingCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_AllLevels_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_AllLevels_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
@@ -18,7 +18,7 @@ public class IndustryGroupingCodelistProviderTests
             httpClientMock
         );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(1811, appOptions.Options.Count);
@@ -31,7 +31,7 @@ public class IndustryGroupingCodelistProviderTests
     }
 
     [Fact]
-    public async Task GetAppOptionsAsync_FirstLevelOnly_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_FirstLevelOnly_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
@@ -40,7 +40,7 @@ public class IndustryGroupingCodelistProviderTests
             httpClientMock
         );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync(
+        var appOptions = await appOptionsProvider.GetAppOptions(
             "nb",
             new Dictionary<string, string>() { { "level", "1" } }
         );
@@ -52,7 +52,7 @@ public class IndustryGroupingCodelistProviderTests
     }
 
     [Fact]
-    public async Task GetAppOptionsAsync_DefaultFirstLevel_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_DefaultFirstLevel_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
@@ -62,7 +62,7 @@ public class IndustryGroupingCodelistProviderTests
             new Dictionary<string, string>() { { "level", "1" } }
         );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(21, appOptions.Options.Count);

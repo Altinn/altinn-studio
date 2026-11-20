@@ -190,7 +190,7 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         {
             IReadOnlyList<DataElement> dataElements = [.. instance.GetOptionalDataElements(attachmentSetting.DataType)];
 
-            if (dataElements.Any() is false)
+            if (dataElements.Count == 0)
                 continue;
 
             attachmentDocuments.AddRange(

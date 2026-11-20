@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -32,9 +33,9 @@ const testUser = {
 
 const resourceId = 'res-id';
 
-const navigateMock = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const navigateMock = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => navigateMock,
   useParams: () => ({
     org: mainOrganization.username,
@@ -43,8 +44,6 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('ResourceAdmHeader', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should show org name and resource id in header', () => {
     renderResourceAdmHeader();
 

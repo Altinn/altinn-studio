@@ -7,19 +7,19 @@ import {
   ISelectionComponent,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompLikertExternal
   extends
     ComponentBase,
-    SummarizableComponentProps,
     ISelectionComponent,
     FormComponentProps,
     LabeledComponentProps,
     ILikertColumnProperties {
   type: 'Likert';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -29,6 +29,8 @@ export interface CompLikertExternal
     questionDescriptions?: ExprValToActualOrExpr<ExprVal.String>;
     questionHelpTexts?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBSummarizable;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsLikert;
   filter?: ILikertFilter;
@@ -36,9 +38,13 @@ export interface CompLikertExternal
 
 export type ILikertFilter = { key: 'start' | 'stop'; value: string | number }[];
 
+export interface LikertSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type LikertSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Likert' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & LikertSummaryOverrides)
+  | ({ componentType: 'Likert' } & LikertSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Container,
@@ -64,8 +70,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompLikertExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: LikertSummaryOverrides;
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: 668578f964b13d41565f2d14c88597527531375c74c01291295ac62cb32fb40d
+// Source hash: 5566c8f5188131429b531c4b6ab767ecc240bef0fd311311dd0684b9b1422ea5

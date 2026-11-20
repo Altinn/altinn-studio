@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Scheduling;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,6 +86,39 @@ public class SchedulingDependencyInjectionExtensionsTests
             .Value.Triggers.Single(trigger => trigger.Key.Name == RepositoryCleanupJobConstants.TriggerName);
 
         Assert.InRange(trigger.StartTimeUtc, earliestExpectedStart, DateTimeOffset.UtcNow);
+    }
+
+    [Theory]
+    [InlineData(ReportFrequency.Daily, "0 0 7 * * ?")]
+    [InlineData(ReportFrequency.Weekly, "0 0 7 ? * MON")]
+    [InlineData(ReportFrequency.Monthly, "0 0 7 1 * ?")]
+    public void AddQuartzJobScheduling_RegistersPeriodicReportTriggerInNorwegianTime(
+        ReportFrequency frequency,
+        string expectedCronExpression
+    )
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string>
+                {
+                    [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.UsePersistentScheduling)}"] = "false",
+                    [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.AddHostedService)}"] = "false",
+                }
+            )
+            .Build();
+        var services = new ServiceCollection();
+        services.AddQuartzJobScheduling(configuration);
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+        ITrigger trigger = serviceProvider
+            .GetRequiredService<IOptions<QuartzOptions>>()
+            .Value.Triggers.Single(trigger => trigger.Key.Name == PeriodicReportJobConstants.TriggerName(frequency));
+
+        var cronTrigger = Assert.IsAssignableFrom<ICronTrigger>(trigger);
+        Assert.Equal(PeriodicReportJobConstants.JobName, trigger.JobKey.Name);
+        Assert.Equal(expectedCronExpression, cronTrigger.CronExpressionString);
+        Assert.Equal("Europe/Oslo", cronTrigger.TimeZone.Id);
+        Assert.Equal(frequency.ToString(), trigger.JobDataMap.GetString(PeriodicReportJobConstants.FrequencyKey));
     }
 
     [Fact]

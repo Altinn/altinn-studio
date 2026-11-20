@@ -1,16 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 
 import { useUpdate } from './useUpdate';
 
 describe('useUpdate', () => {
   it('Does not call effect on first render', () => {
-    const effect = jest.fn();
+    const effect = vi.fn();
     renderHook(() => useUpdate(effect, []));
     expect(effect).not.toHaveBeenCalled();
   });
 
   it('Calls effect on second render if a dependency changes', () => {
-    const effect = jest.fn();
+    const effect = vi.fn();
     let dependency = 'Something';
     const { rerender } = renderHook(() => useUpdate(effect, [dependency]));
     dependency = 'Something else';
@@ -19,7 +20,7 @@ describe('useUpdate', () => {
   });
 
   it('Does not call effect on second render if there is no dependency change', () => {
-    const effect = jest.fn();
+    const effect = vi.fn();
     renderHook(() => useUpdate(effect, [])).rerender();
     expect(effect).not.toHaveBeenCalled();
   });

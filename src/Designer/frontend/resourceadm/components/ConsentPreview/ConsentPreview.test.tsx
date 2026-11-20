@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { testConsentTemplates } from '../../testing/utils/testUtils';
 import { ConsentPreview } from './ConsentPreview';
 import type { ValidLanguage } from 'app-shared/types/ResourceAdm';
-import { resourceAdmConsentPreview } from '@studio/testing/testids';
+import { resourceAdmConsentPreview } from '@designer/testing/testids';
 
 const consentTemplates = testConsentTemplates;
 const defaultProps = {
@@ -30,8 +31,6 @@ const defaultProps = {
 };
 
 describe('ConsentPreview', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should show consent preview if consentText is null', () => {
     render(<ConsentPreview {...defaultProps} consentText={null} />);
 

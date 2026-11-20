@@ -1,6 +1,7 @@
 package localtest
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -195,6 +196,100 @@ func assertWorkflowEngineContainerConfig(t *testing.T, workflowEngine components
 	}
 }
 
+// The engine exports to the collector only while monitoring runs: without the collector, its host
+// alias does not resolve on the environment network.
+func TestWorkflowEngineContainer_TelemetryFollowsMonitoring(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	tests := map[string]struct {
+		wantDependencies  []string
+		includeMonitoring bool
+	}{
+		"without monitoring": {
+			includeMonitoring: false,
+			wantDependencies:  []string{components.ContainerWorkflowEngineDb, components.ContainerLocaltest},
+		},
+		"with monitoring": {
+			includeMonitoring: true,
+			wantDependencies: []string{
+				components.ContainerWorkflowEngineDb,
+				components.ContainerLocaltest,
+				components.ContainerOtelCollector,
+			},
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			resources := localtestResources(t, t.TempDir(), tt.includeMonitoring)
+			workflowEngine := mustContainerSpec(t, resources, components.ContainerWorkflowEngine)
+
+			assertEnvValue(t, workflowEngine.Environment, "OTEL_SERVICE_NAME", "workflow-engine-app")
+			assertEnvValue(t, workflowEngine.Environment, "OTEL_METRIC_EXPORT_INTERVAL", "15000")
+			if !slices.Equal(workflowEngine.Dependencies, tt.wantDependencies) {
+				t.Fatalf("workflowEngine.Dependencies = %v, want %v", workflowEngine.Dependencies, tt.wantDependencies)
+			}
+
+			if !tt.includeMonitoring {
+				assertEnvMissing(t, workflowEngine.Environment, "OTEL_EXPORTER_OTLP_ENDPOINT")
+				return
+			}
+			assertEndpointReachesCollector(
+				t,
+				workflowEngine.Environment["OTEL_EXPORTER_OTLP_ENDPOINT"],
+				mustContainerSpec(t, resources, components.ContainerOtelCollector),
+			)
+		})
+	}
+}
+
+func TestWorkflowEngineContainer_DashboardTraceLinksFollowMonitoring(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	for name, includeMonitoring := range map[string]bool{
+		"without monitoring": false,
+		"with monitoring":    true,
+	} {
+		t.Run(name, func(t *testing.T) {
+			resources := localtestResources(t, t.TempDir(), includeMonitoring)
+			env := mustContainerSpec(t, resources, components.ContainerWorkflowEngine).Environment
+
+			if !includeMonitoring {
+				assertEnvMissing(t, env, "EngineSettings__Dashboard__GrafanaUrl")
+				assertEnvMissing(t, env, "EngineSettings__Dashboard__GrafanaTracesDatasourceUid")
+				return
+			}
+			assertEnvValue(t, env, "EngineSettings__Dashboard__GrafanaUrl", "http://local.altinn.cloud:8000/grafana")
+			assertEnvValue(t, env, "EngineSettings__Dashboard__GrafanaTracesDatasourceUid", "altinn-studio-traces")
+		})
+	}
+}
+
+// An endpoint reaches the collector when it names one of the collector's aliases on the environment
+// network, on a port the collector receives OTLP on. It is the one apps are given.
+func assertEndpointReachesCollector(t *testing.T, endpoint string, collector components.ContainerSpec) {
+	t.Helper()
+	if want := testTopology().OTelURL(); endpoint != want {
+		t.Fatalf("OTLP endpoint = %q, want %q", endpoint, want)
+	}
+	parsed, err := url.Parse(endpoint)
+	if err != nil {
+		t.Fatalf("parse OTLP endpoint %q: %v", endpoint, err)
+	}
+	if !slices.Contains(collector.NetworkAliases, parsed.Hostname()) {
+		t.Fatalf(
+			"OTLP endpoint host %q, want one of the collector aliases %v",
+			parsed.Hostname(),
+			collector.NetworkAliases,
+		)
+	}
+	if !slices.ContainsFunc(collector.Ports, func(port containertypes.PortMapping) bool {
+		return port.ContainerPort == parsed.Port()
+	}) {
+		t.Fatalf("OTLP endpoint port %q, want one of the collector ports %v", parsed.Port(), collector.Ports)
+	}
+}
+
 func TestResourceBuilder_AddsPgAdminOnlyWhenRequested(t *testing.T) {
 	t.Setenv(config.EnvCI, "")
 
@@ -248,11 +343,94 @@ func TestResourceBuilder_LocaltestAliasesDoNotChangeWithPgAdmin(t *testing.T) {
 
 func TestMonitoringContainers_OtelUsesLocalDomainAlias(t *testing.T) {
 	resources := localtestResources(t, t.TempDir(), true)
-	container := mustContainerSpec(t, resources, components.ContainerMonitoringOtelCollector)
+	container := mustContainerSpec(t, resources, components.ContainerOtelCollector)
 
 	want := []string{testTopology().OTelHost()}
 	if got := container.NetworkAliases; !slices.Equal(got, want) {
 		t.Fatalf("otel.NetworkAliases = %v, want %v", got, want)
+	}
+}
+
+func TestMonitoringContainers_OtelPublishesOTLPGRPCAndHTTP(t *testing.T) {
+	resources := localtestResources(t, t.TempDir(), true)
+	container := mustContainerSpec(t, resources, components.ContainerOtelCollector)
+
+	want := []containertypes.PortMapping{
+		{HostIP: "127.0.0.1", HostPort: "4317", ContainerPort: "4317", Protocol: ""},
+		{HostIP: "127.0.0.1", HostPort: "4318", ContainerPort: "4318", Protocol: ""},
+	}
+	if got := container.Ports; !slices.Equal(got, want) {
+		t.Fatalf("otel.Ports = %v, want %v", got, want)
+	}
+}
+
+func TestMonitoringContainers_UseVictoriaStack(t *testing.T) {
+	resources := localtestResources(t, t.TempDir(), true)
+
+	victoriaMetrics := mustContainerSpec(t, resources, components.ContainerVictoriaMetrics)
+	if want := []string{
+		"-storageDataPath=/tmp/victoria-metrics-data",
+		"-retentionPeriod=1d",
+	}; !slices.Equal(
+		victoriaMetrics.Command,
+		want,
+	) {
+		t.Fatalf("victoriaMetrics.Command = %v, want %v", victoriaMetrics.Command, want)
+	}
+
+	victoriaTraces := mustContainerSpec(t, resources, components.ContainerVictoriaTraces)
+	if want := []string{
+		"-storageDataPath=/tmp/victoria-traces-data",
+		"-retentionPeriod=1d",
+	}; !slices.Equal(
+		victoriaTraces.Command,
+		want,
+	) {
+		t.Fatalf("victoriaTraces.Command = %v, want %v", victoriaTraces.Command, want)
+	}
+
+	victoriaLogs := mustContainerSpec(t, resources, components.ContainerVictoriaLogs)
+	if want := []string{
+		"-storageDataPath=/tmp/victoria-logs-data",
+		"-retentionPeriod=1d",
+	}; !slices.Equal(
+		victoriaLogs.Command,
+		want,
+	) {
+		t.Fatalf("victoriaLogs.Command = %v, want %v", victoriaLogs.Command, want)
+	}
+
+	otel := mustContainerSpec(t, resources, components.ContainerOtelCollector)
+	wantOtelDeps := []string{
+		components.ContainerVictoriaMetrics,
+		components.ContainerVictoriaTraces,
+		components.ContainerVictoriaLogs,
+	}
+	if !slices.Equal(otel.Dependencies, wantOtelDeps) {
+		t.Fatalf("otel.Dependencies = %v, want %v", otel.Dependencies, wantOtelDeps)
+	}
+
+	grafana := mustContainerSpec(t, resources, components.ContainerGrafana)
+	wantGrafanaDeps := []string{
+		components.ContainerOtelCollector,
+		components.ContainerVictoriaMetrics,
+		components.ContainerVictoriaTraces,
+		components.ContainerVictoriaLogs,
+	}
+	if !slices.Equal(grafana.Dependencies, wantGrafanaDeps) {
+		t.Fatalf("grafana.Dependencies = %v, want %v", grafana.Dependencies, wantGrafanaDeps)
+	}
+
+	for _, name := range []string{
+		"monitoring_tempo",
+		"monitoring_mimir",
+		"monitoring_loki",
+		"monitoring_otel_collector",
+		"monitoring_grafana",
+	} {
+		if findResource(resources, resource.ContainerID(name)) != nil {
+			t.Fatalf("manifest unexpectedly contains retired monitoring container %q", name)
+		}
 	}
 }
 

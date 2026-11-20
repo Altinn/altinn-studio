@@ -24,6 +24,19 @@
         "textResourceBindings": {
           "title": "ServiceLayout.description2"
         }
+      },
+      {
+        "id": "ServiceLayoutServiceView",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "ServiceLayout.serviceView.title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "field": "serviceView",
+            "dataType": "TransitionControl"
+          }
+        }
       }
     ]
   }

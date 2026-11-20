@@ -1,4 +1,5 @@
-﻿import { GitHubIssueContactProvider } from 'app-shared/getInTouch/providers/GitHubIssueContactProvider';
+import { describe, expect, it } from 'vitest';
+import { GitHubIssueContactProvider } from 'app-shared/getInTouch/providers/GitHubIssueContactProvider';
 
 describe('GitHubIssuesContactProvider', () => {
   it('should return correct link based on selected issue type', () => {

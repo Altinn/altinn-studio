@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { createQueryClientMock, queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -5,17 +6,17 @@ import type { TextResourceProps } from './TextResource';
 import { TextResource } from './TextResource';
 import { renderWithProviders } from '../../testing/mocks';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const handleIdChange = jest.fn();
-const handleRemoveTextResource = jest.fn();
+const handleIdChange = vi.fn();
+const handleRemoveTextResource = vi.fn();
 const defaultProps: TextResourceProps = { handleIdChange, handleRemoveTextResource };
 const textValue = 'Some text value';
 const idText = 'test';
@@ -28,7 +29,6 @@ const textResources: ITextResource[] = [
 
 describe('TextResource', () => {
   afterEach(() => {
-    jest.clearAllMocks();
     queryClientMock.clear();
   });
 
@@ -116,7 +116,7 @@ describe('TextResource', () => {
   });
 
   it('Calls handleRemoveTextResourceBinding when the user clicks the delete button and confirms', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const label = 'Test';
     const testTextResource = { id: idText, value: textValue };
     renderTextResource({ label, textResourceId: idText }, [testTextResource]);
@@ -126,7 +126,7 @@ describe('TextResource', () => {
   });
 
   it('Does not call handleRemoveTextResourceBinding when the user cancels the deletion', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
     const label = 'Test';
     const testTextResource = { id: idText, value: textValue };
     renderTextResource({ label, textResourceId: idText }, [testTextResource]);
@@ -164,7 +164,7 @@ describe('TextResource', () => {
   it('Does not show scrollbar when text content is shorter than default min height', async () => {
     const label = 'Test';
     const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
+    const upsertTextResources = vi.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
     const textbox = screen.getByRole('textbox', {

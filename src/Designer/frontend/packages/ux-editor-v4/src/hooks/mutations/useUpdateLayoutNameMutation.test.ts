@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
@@ -7,7 +8,7 @@ import type { UpdateLayoutNameMutationArgs } from './useUpdateLayoutNameMutation
 import { useUpdateLayoutNameMutation } from './useUpdateLayoutNameMutation';
 import { layout1NameMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const newName = 'newName';
@@ -16,8 +17,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const args: UpdateLayoutNameMutationArgs = { newName, oldName };
 
 describe('useUpdateLayoutNameMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Updates layout name', async () => {
     await renderAndWaitForData();
 
@@ -39,7 +38,7 @@ describe('useUpdateLayoutNameMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithProviders(() =>

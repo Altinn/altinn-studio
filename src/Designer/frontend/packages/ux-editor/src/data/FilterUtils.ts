@@ -1,4 +1,4 @@
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { formItemConfigs, type FormItemConfigEntry } from './formItemConfig';
 
 export class FilterUtils {
@@ -8,6 +8,7 @@ export class FilterUtils {
 
   public static filterUnsupportedSubformComponents = (component: FormItemConfigEntry): boolean => {
     const unsupportedSubformComponents: FormItemConfigEntry[] = [
+      formItemConfigs[ComponentType.BrokerFileTransfer],
       formItemConfigs[ComponentType.Button],
       formItemConfigs[ComponentType.FileUpload],
       formItemConfigs[ComponentType.InstantiationButton],

@@ -19,12 +19,6 @@ export class Summary extends SummaryDef {
     },
   );
 
-  renderSummary(): JSX.Element | null {
-    // If the code ever ends up with a Summary component referencing another Summary component, we should not end up
-    // in an infinite loop by rendering them all. This is usually stopped early in <SummaryComponent />.
-    return null;
-  }
-
   shouldRenderInAutomaticPDF() {
     return false;
   }

@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -153,7 +154,12 @@ public class AppScopesServiceTest
         environmentsService
             .Setup(s => s.IsAltinnOrg(context.Org, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
-        AppScopesService service = new(appScopesRepository.Object, environmentsService.Object, TimeProvider.System);
+        AppScopesService service = new(
+            appScopesRepository.Object,
+            environmentsService.Object,
+            TimeProvider.System,
+            NullLogger<AppScopesService>.Instance
+        );
 
         await Assert.ThrowsAsync<OperationCanceledException>(() => service.GetAppScopesAsync(context));
     }
@@ -168,6 +174,11 @@ public class AppScopesServiceTest
             .Setup(s => s.IsAltinnOrg(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(isAltinnOrg);
 
-        return new AppScopesService(appScopesRepository, environmentsService.Object, TimeProvider.System);
+        return new AppScopesService(
+            appScopesRepository,
+            environmentsService.Object,
+            TimeProvider.System,
+            NullLogger<AppScopesService>.Instance
+        );
     }
 }

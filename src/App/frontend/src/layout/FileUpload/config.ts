@@ -36,7 +36,12 @@ export const Config = asOptionsComponent(
     }),
   ),
   { supportsPreselection: false },
-);
+)
+  .makeSummarizable()
+  .addSummaryOverrides()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'));
 
 export function asUploaderComponent(config: ComponentConfig) {
   return asAttachmentUploader(config)
@@ -115,6 +120,7 @@ export function asUploaderComponent(config: ComponentConfig) {
           ),
       ),
     )
+    .addProperty(CG.common('readOnly'))
     .extends(CG.common('LabeledComponentProps'))
     .extendTextResources(CG.common('TRBLabel'));
 }

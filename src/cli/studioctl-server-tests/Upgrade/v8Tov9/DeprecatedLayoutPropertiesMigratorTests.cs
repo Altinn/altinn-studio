@@ -41,6 +41,93 @@ public sealed class DeprecatedLayoutPropertiesMigratorTests : IDisposable
     /// <summary>The node serialized without indentation, so tests can compare it to a literal.</summary>
     private static string? Compact(JsonNode? node) => node?.ToJsonString();
 
+    [Theory]
+    [InlineData("AddToList", false, false, false)]
+    [InlineData("ButtonGroup", false, false, false)]
+    [InlineData("Date", false, true, true)]
+    [InlineData("Divider", false, false, false)]
+    [InlineData("Heading", false, false, false)]
+    [InlineData("ImageUpload", false, true, true)]
+    [InlineData("Number", false, true, true)]
+    [InlineData("Option", false, true, true)]
+    [InlineData("OrganizationLookup", false, true, true)]
+    [InlineData("Paragraph", false, false, false)]
+    [InlineData("PersonLookup", false, true, true)]
+    [InlineData("SimpleTable", false, true, true)]
+    [InlineData("Text", false, true, true)]
+    [InlineData("Payment", true, false, true)]
+    [InlineData("Input", true, true, true)]
+    [InlineData("UnknownComponent", true, true, true)]
+    public async Task RemovesOnlyUnsupportedSummaryProperties(
+        string type,
+        bool retainsRenderAsSummary,
+        bool retainsForceShowInSummary,
+        bool retainsSummaryBindings
+    )
+    {
+        const string path = "ui/Task_1/layouts/Summary.json";
+        _app.Write(
+            path,
+            $$"""
+            { "data": { "layout": [{
+              "id": "component", "type": "{{type}}",
+              "renderAsSummary": false,
+              "forceShowInSummary": ["equals", ["dataModel", "Show"], true],
+              "textResourceBindings": {
+                "title": "ordinary.title",
+                "summaryTitle": "summary.title",
+                "summaryAccessibleTitle": "summary.accessible"
+              }
+            }] } }
+            """
+        );
+
+        var result = await Migrate();
+        var component = Component(path, 0);
+        Assert.Equal(retainsRenderAsSummary, component.ContainsKey("renderAsSummary"));
+        Assert.Equal(retainsForceShowInSummary, component.ContainsKey("forceShowInSummary"));
+        Assert.Equal(retainsSummaryBindings, component["textResourceBindings"]?["summaryTitle"] is not null);
+        Assert.Equal(retainsSummaryBindings, component["textResourceBindings"]?["summaryAccessibleTitle"] is not null);
+        if (type == "Divider")
+            Assert.False(component.ContainsKey("textResourceBindings"));
+        else
+            Assert.Equal("ordinary.title", Text(component["textResourceBindings"]?["title"]));
+        if (retainsForceShowInSummary)
+            Assert.Equal("""["equals",["dataModel","Show"],true]""", Compact(component["forceShowInSummary"]));
+        Assert.Equal(
+            retainsRenderAsSummary && retainsForceShowInSummary && retainsSummaryBindings ? 0 : 1,
+            result.FilesChanged
+        );
+        Assert.False(result.ManualActionRequired);
+        Assert.Empty(result.Warnings);
+        var after = _app.Read(path);
+        Assert.Equal(0, (await Migrate()).FilesChanged);
+        Assert.Equal(after, _app.Read(path));
+    }
+
+    [Theory]
+    [InlineData("AddToList")]
+    [InlineData("ButtonGroup")]
+    [InlineData("Heading")]
+    [InlineData("Paragraph")]
+    public async Task RemovesEmptySummaryBindingObjects(string type)
+    {
+        const string path = "ui/Task_1/layouts/Summary.json";
+        _app.Write(
+            path,
+            $$"""
+            { "data": { "layout": [{
+              "id": "component", "type": "{{type}}",
+              "textResourceBindings": { "summaryTitle": null, "summaryAccessibleTitle": "summary.accessible" }
+            }] } }
+            """
+        );
+
+        Assert.Equal(1, (await Migrate()).FilesChanged);
+        Assert.False(Component(path, 0).ContainsKey("textResourceBindings"));
+        Assert.Equal(0, (await Migrate()).FilesChanged);
+    }
+
     [Fact]
     public async Task ConvertsMappingToQueryParametersOnOptionComponents()
     {

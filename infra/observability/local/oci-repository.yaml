@@ -1,0 +1,10 @@
+# The fixture's registry serves plain HTTP and needs no cloud credentials.
+- op: add
+  path: /spec/insecure
+  value: true
+- op: replace
+  path: /spec/provider
+  value: generic
+- op: replace
+  path: /spec/ref/tag
+  value: local

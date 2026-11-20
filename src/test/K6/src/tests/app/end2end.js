@@ -88,10 +88,11 @@ export default function (data) {
 
   dataId = JSON.parse(res.body).id;
 
-  //Test to get validate instance attachment data and verify response code to have error "DataElementTooLarge"
-  res = appData.getValidateInstanceData(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
+  //Test to validate the instance and verify that the attachment has the error "DataElementTooLarge"
+  res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
   success = check(res, {
-    'E2E App GET Validate InstanceData response has DataElementTooLarge': (r) => JSON.parse(r.body)[0].code === 'DataElementTooLarge',
+    'E2E App GET Validate Instance response has DataElementTooLarge': (r) =>
+      JSON.parse(r.body).some((issue) => issue.dataElementId === dataId && issue.code === 'DataElementTooLarge'),
   });
   addErrorCount(success);
 
@@ -102,13 +103,6 @@ export default function (data) {
   res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, 'pdf', appOwner, level2App);
 
   dataId = JSON.parse(res.body).id;
-
-  //Test to get validate instance attachment data and verify that validation of instance is ok
-  res = appData.getValidateInstanceData(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
-  success = check(res, {
-    'E2E App GET Validate InstanceData: Validation OK': (r) => JSON.parse(r.body).length === 0,
-  });
-  addErrorCount(success);
 
   //Test to get validate instance and verify that validation of instance is ok
   res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);

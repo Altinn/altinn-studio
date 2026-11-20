@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
@@ -5,7 +6,7 @@ import { useAddLayoutSetMutation } from './useAddLayoutSetMutation';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const taskType = 'data';
@@ -15,8 +16,6 @@ const layoutSetConfig: LayoutSetConfig = {
 };
 
 describe('useAddLayoutSetMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls useAddLayoutSetMutation with correct arguments and payload', async () => {
     const addLayoutSetResult = renderHookWithProviders()(() => useAddLayoutSetMutation(org, app))
       .renderHookResult.result;
@@ -54,7 +53,7 @@ describe('useAddLayoutSetMutation', () => {
 
   it('Invalidates LayoutSetsExtended, LayoutSets, and AppValidation caches on success', async () => {
     const queryClientMock = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClientMock, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClientMock, 'invalidateQueries');
     const addLayoutSetResult = renderHookWithProviders(
       {},
       queryClientMock,

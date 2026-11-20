@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { act, render, renderHook, screen } from '@testing-library/react';
 import type { RenderHookResult, RenderOptions } from '@testing-library/react';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import React from 'react';
-import { PageName } from '@studio/content-library';
-import type { ContentLibraryRouter } from '@studio/content-library';
+import { PageName } from '@designer/content-library';
+import type { ContentLibraryRouter } from '@designer/content-library';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
@@ -27,7 +28,7 @@ describe('useContentLibraryRouter', () => {
   });
 
   it('Returns a function that renders a link component to some given page', async () => {
-    const captureLocation = jest.fn();
+    const captureLocation = vi.fn();
     const linkText = 'Code lists';
     const TestComponent = (): React.ReactElement => {
       const { renderLink, location } = useContentLibraryRouter(basePath);

@@ -1,7 +1,8 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AccessListPreconditionFailedToast } from './AccessListPreconditionFailedToast';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const originalWindowLocation = window.location;
 
@@ -12,12 +13,11 @@ describe('AccessListPreconditionFailedToast', () => {
       configurable: true,
       value: {
         ...originalWindowLocation,
-        reload: jest.fn(),
+        reload: vi.fn(),
       },
     });
   });
   afterEach(() => {
-    jest.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,

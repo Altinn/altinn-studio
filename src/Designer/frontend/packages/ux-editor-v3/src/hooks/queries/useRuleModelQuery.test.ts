@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithMockStore } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
 import type { WindowWithRuleModel } from './useRuleModelQuery';
@@ -25,18 +26,15 @@ import ruleHandlerMock, {
 } from '../../testing/ruleHandlerMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 
-const getRuleModel = jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
+const getRuleModel = vi.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock));
 
 describe('useRuleModelQuery', () => {
-  afterAll(() => {
-    delete global.window;
-  });
   it('Calls getRuleModel with correct parameters', async () => {
     await renderAndWaitForSuccess({ getRuleModel });
     expect(getRuleModel).toHaveBeenCalledTimes(1);

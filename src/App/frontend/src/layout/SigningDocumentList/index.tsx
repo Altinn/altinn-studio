@@ -2,6 +2,7 @@ import React, { forwardRef, type JSX } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import { GenericComponent } from 'src/layout/GenericComponent';
 import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import { SigningDocumentListDef } from 'src/layout/SigningDocumentList/config.def.generated';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
@@ -10,6 +11,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalExpressionMap, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class SigningDocumentList extends SigningDocumentListDef {
@@ -33,6 +35,10 @@ export class SigningDocumentList extends SigningDocumentListDef {
     return <ValidateSigningTaskType {...props} />;
   }
 
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    return <GenericComponent baseComponentId={targetBaseComponentId} />;
+  }
+
   renderSummary2({ targetBaseComponentId }: Summary2Props): JSX.Element | null {
     const config = useComponentConfig(targetBaseComponentId, 'SigningDocumentList');
     const summaryTitle = useEvalOptionalText(
@@ -47,6 +53,10 @@ export class SigningDocumentList extends SigningDocumentListDef {
       config.textResourceBindings?.help,
       Expressions.SigningDocumentList.textResourceBindings.help,
     );
+    const description = useEvalOptionalText(
+      config.textResourceBindings?.description,
+      Expressions.SigningDocumentList.textResourceBindings.description,
+    );
     const summaryHeading = summaryTitle ?? title ?? 'signing_document_list_summary.header';
 
     return (
@@ -59,7 +69,7 @@ export class SigningDocumentList extends SigningDocumentListDef {
           textResourceBindings={{
             title: summaryHeading,
             help,
-            description: undefined,
+            description,
           }}
         />
       </SummaryFlex>

@@ -12,13 +12,13 @@ import type {
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
+import { hasValidationErrors } from 'src/features/validation/utils';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
 import classes from 'src/layout/Input/InputComponent.module.css';
-import { isNumberFormat, isPatternFormat } from 'src/layout/Input/number-format-helpers';
+import { isNumberFormat, isPatternFormat, parsePastedNumber } from 'src/layout/Input/number-format-helpers';
 import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -142,7 +142,7 @@ const InputVariant = ({
   const { inputMode, pattern } = getMobileKeyboardProps(variant, config.autocomplete);
   const debounce = FormStore.data.useDebounceImmediately();
   const descriptionId = getDescriptionId(componentId);
-  const validationsId = `${baseComponentId}-validations`;
+  const validationsId = `${componentId}-validations`;
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const hasValidations = validations.length > 0;
   const inputDescribedBy = buildAriaDescribedBy({
@@ -168,7 +168,7 @@ const InputVariant = ({
     textonly: overrideDisplay?.rowReadOnly && readOnly,
     required,
     onBlur: () => debounce('blur'),
-    error: !useIsValid(baseComponentId),
+    error: hasValidationErrors(validations),
     prefix: prefix ? langAsString(prefix) : undefined,
     suffix: suffix ? langAsString(suffix) : undefined,
     style: { width: '100%' },
@@ -253,11 +253,7 @@ const InputVariant = ({
               return;
             }
             const pastedText = event.clipboardData.getData('Text');
-            if (pastedText.indexOf(',') !== -1) {
-              setValue('simpleBinding', pastedText.replace(',', '.'));
-            } else {
-              setValue('simpleBinding', pastedText);
-            }
+            setValue('simpleBinding', parsePastedNumber(pastedText, variant.format));
           }}
           characterLimit={characterLimit}
         />

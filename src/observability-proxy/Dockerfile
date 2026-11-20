@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:747cbade5bfd918a175ac32f8f1d931edec2c7d0d5397a3de72eaef1ac1f66d2 AS build
 
 # Install native AOT build prerequisites
 RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt/lists/*
@@ -12,20 +12,23 @@ COPY global.json ./
 COPY .csharpierignore ./
 COPY .csharpierrc.yaml ./
 COPY src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj src/Altinn.Studio.Observability.Proxy/
-RUN dotnet restore src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj
+# Warnings fail builds and tests, not image builds. Publish raises warnings of its own, which must not block an image.
+RUN dotnet restore src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj /p:TreatWarningsAsErrors=false
 
 COPY src/Altinn.Studio.Observability.Proxy/ src/Altinn.Studio.Observability.Proxy/
 RUN dotnet publish src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj \
     -c Release \
     -o /app/out \
     --no-restore \
-    /p:CSharpier_Bypass=true
+    /p:CSharpier_Bypass=true \
+    /p:TreatWarningsAsErrors=false
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:9cae0b131d058693c8d7496fed4a188380f05f27f34c98dd9a516b4d0331b0c4 AS final
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:2c2757fcb6e0dbf9030f6a47d950233e21008d0da838583587044418b4e80d46 AS final
 WORKDIR /app
 
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+# 8080 serves traffic and 9090 only /metrics: ObservabilityProxy:Port and
+# ObservabilityProxy:MetricsPort, on which the proxy listens itself.
+EXPOSE 8080 9090
 
 COPY --from=build /app/out .
 

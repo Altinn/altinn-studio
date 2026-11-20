@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
@@ -13,7 +14,7 @@ import {
   pagesModelMock,
 } from '../../../testing/layoutMock';
 import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
@@ -22,10 +23,6 @@ const selectedLayout = layout2NameMock;
 const layoutSetName = layoutSet1NameMock;
 
 describe('EditPageId', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders given page ID', () => {
     renderEditPageId({});
     expect(pageIdButton()).toBeInTheDocument();
@@ -34,8 +31,8 @@ describe('EditPageId', () => {
   it('calls updateFormLayoutName and textIdMutation with new page ID when changed', async () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
-    const updateTextId = jest.fn();
-    const modifyPage = jest.fn().mockImplementation(() => Promise.resolve());
+    const updateTextId = vi.fn();
+    const modifyPage = vi.fn().mockImplementation(() => Promise.resolve());
     const mockQueries: Partial<ServicesContextProps> = {
       updateTextId,
       modifyPage,
@@ -54,8 +51,8 @@ describe('EditPageId', () => {
 
   it('does not call updateFormLayoutName and textIdMutation when page ID is unchanged', async () => {
     const user = userEvent.setup();
-    const updateTextId = jest.fn();
-    const updateFormLayoutName = jest.fn();
+    const updateTextId = vi.fn();
+    const updateFormLayoutName = vi.fn();
     const mockQueries: Partial<ServicesContextProps> = {
       updateTextId,
       updateFormLayoutName,
@@ -83,7 +80,7 @@ describe('EditPageId', () => {
   it('should call modifyPage with new name when renaming a grouped page', async () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
-    const modifyPage = jest.fn().mockImplementation(() => Promise.resolve());
+    const modifyPage = vi.fn().mockImplementation(() => Promise.resolve());
     renderEditPageId({
       pagesMock: groupsPagesModelMock,
       queries: { modifyPage },
@@ -101,8 +98,8 @@ describe('EditPageId', () => {
   it('calls pageOrder mutation when changing pages without a group', async () => {
     const user = userEvent.setup();
     const newPageName = 'myNewPageName';
-    const changePageGroups = jest.fn().mockImplementation(() => Promise.resolve());
-    const modifyPage = jest.fn().mockImplementation(() => Promise.resolve());
+    const changePageGroups = vi.fn().mockImplementation(() => Promise.resolve());
+    const modifyPage = vi.fn().mockImplementation(() => Promise.resolve());
     renderEditPageId({ queries: { changePageGroups, modifyPage } });
     await user.click(pageIdButton());
     await user.clear(pageIdTextbox());
@@ -150,7 +147,7 @@ const renderEditPageId = ({
     layoutSettingsMock,
   );
   queryClient.setQueryData([QueryKey.Pages, org, app, layoutSetName], pagesMock);
-  const getPages = jest.fn().mockResolvedValue(pagesMock);
+  const getPages = vi.fn().mockResolvedValue(pagesMock);
 
   return renderWithProviders(<EditPageId layoutName={selectedLayout} />, {
     queries: { ...queries, getPages },

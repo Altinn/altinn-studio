@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AddPolicyRuleButton, type AddPolicyRuleButtonProps } from './AddPolicyRuleButton';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
@@ -12,8 +12,6 @@ const defaultProps: AddPolicyRuleButtonProps = {
 };
 
 describe('AddPolicyRuleButton', () => {
-  afterEach(vi.clearAllMocks);
-
   it('calls the onClick function when clicked', async () => {
     const user = userEvent.setup();
     renderAddPolicyRuleButton();

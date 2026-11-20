@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
 using Altinn.Studio.Designer.Infrastructure.ExceptionHandling;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
@@ -34,6 +35,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,6 +50,7 @@ WebApplicationBuilder builder;
 WebApplication app;
 try
 {
+    LibGit2Configuration.DisableSymbolicLinks();
     builder = WebApplication.CreateBuilder(args);
     builder.Services.AddGracefulShutdown(
         builder.Environment,
@@ -93,11 +96,6 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     bool reloadOnChange = config.GetValue(ReloadConfigOnChangeKey, true);
     config.SetBasePath(basePath);
-    config.AddJsonFile(
-        basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
-        optional: true,
-        reloadOnChange: reloadOnChange
-    );
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
@@ -198,7 +196,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     CreateDirectory(configuration);
 
-    services.ConfigureDataProtection(configuration, logger);
+    services.ConfigureDataProtection(configuration, env, logger);
     services.ConfigureMvc();
     services.AddProblemDetails();
     services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -226,7 +224,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
-    var signalRBuilder = services.AddSignalR();
+    var signalRBuilder = services.AddSignalR(options => options.AddFilter<HubTelemetryFilter>());
     var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)
     {
@@ -273,7 +271,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 void Configure(IConfiguration configuration)
 {
     logger.LogInformation("// Program.cs // Configure // Attempting to configure env");
-    app.UseExceptionHandler(new ExceptionHandlerOptions { SuppressDiagnosticsCallback = _ => false });
+    app.ExcludeHubConnectionsFromRequestMetrics();
+    app.UseTelemetryRouteHeader();
+    // Exceptions that become an expected (4xx) response aren't logged as errors. GlobalExceptionHandler records them
+    // on the request's span instead.
+    app.UseExceptionHandler(
+        new ExceptionHandlerOptions
+        {
+            SuppressDiagnosticsCallback = context =>
+                context.HttpContext.Response.StatusCode < StatusCodes.Status500InternalServerError,
+        }
+    );
 
     app.UseDefaultFiles();
     app.UseStaticFiles(
@@ -303,9 +311,9 @@ void Configure(IConfiguration configuration)
     app.UseResponseCompression();
     app.UseRequestLocalization();
 
-    app.MapControllers();
+    app.MapControllers().WithTelemetryRoute();
 
-    app.MapHealthChecks("/health");
+    app.MapHealthChecks("/health").DisableHttpMetrics();
     app.MapHubs();
 
     app.UseMiddleware<RequestSynchronizationMiddleware>();

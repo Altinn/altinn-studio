@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
@@ -12,8 +13,8 @@ import { buildJsonSchema } from '@altinn/schema-model';
 import { renderWithProviders } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 const user = userEvent.setup();
@@ -26,9 +27,9 @@ const dataModelGenerationSuccessMessage = textMock(
 );
 const savingText = textMock('general.saving');
 
-const setIsCreateNewOpen = jest.fn();
-const setSelectedOption = jest.fn();
-const onSetSchemaGenerationErrorMessages = jest.fn();
+const setIsCreateNewOpen = vi.fn();
+const setSelectedOption = vi.fn();
+const onSetSchemaGenerationErrorMessages = vi.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: TopToolbarProps = {
   isCreateNewOpen: false,
@@ -58,8 +59,6 @@ const renderToolbar = (
 };
 
 describe('TopToolbar', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the top toolbar', () => {
     renderToolbar();
     const topToolbar = screen.getByRole('toolbar');
@@ -85,7 +84,7 @@ describe('TopToolbar', () => {
     renderToolbar(
       {},
       {
-        generateModels: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
+        generateModels: vi.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
     );
     await user.click(screen.getByRole('button', { name: generateText }));

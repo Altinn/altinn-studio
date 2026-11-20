@@ -1,29 +1,26 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import ProcessEditor from './ProcessEditor';
 import { renderWithProviders } from '../../test/testUtils';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
 const latestEditorText = 'latest process editor';
 const v8EditorText = 'v8 process editor';
 
-jest.mock('@altinn/process-editor', () => ({
+vi.mock('@altinn/process-editor', () => ({
   ProcessEditor: () => <div>{latestEditorText}</div>,
 }));
 
-jest.mock('@altinn/process-editor-v8', () => ({
+vi.mock('@altinn/process-editor-v8', () => ({
   ProcessEditor: () => <div>{v8EditorText}</div>,
 }));
 
 describe('ProcessEditor', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('shows a spinner while loading the app version', () => {
     renderProcessEditor();
 

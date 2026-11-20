@@ -1,9 +1,10 @@
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointsTable } from './ContactPointsTable';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 
 const mockContactPoints = [
@@ -31,7 +32,7 @@ const fieldLabelKeys = {
 
 describe('ContactPointsTable', () => {
   beforeAll(() => {
-    window.HTMLElement.prototype.scrollIntoView = jest.fn();
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
   });
 
   it('renders existing contact points in the table', () => {
@@ -43,7 +44,7 @@ describe('ContactPointsTable', () => {
 
   it('adds a new contact point and calls onContactPointsChanged', async () => {
     const user = userEvent.setup();
-    const onContactPointsChanged = jest.fn();
+    const onContactPointsChanged = vi.fn();
     renderContactPointsTable({ contactPointList: [], onContactPointsChanged });
     await user.click(
       screen.getByRole('button', {
@@ -72,8 +73,8 @@ describe('ContactPointsTable', () => {
 
   it('removes a contact point and calls onContactPointsChanged when delete is confirmed', async () => {
     const user = userEvent.setup();
-    const onContactPointsChanged = jest.fn();
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const onContactPointsChanged = vi.fn();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderContactPointsTable({ onContactPointsChanged });
     const dataRows = screen.getAllByRole('row');
     const row = dataRows[1];

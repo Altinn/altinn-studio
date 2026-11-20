@@ -1,7 +1,5 @@
-import axios from 'axios';
-import type { InternalAxiosRequestConfig } from 'axios';
+import type { RequestInterceptor } from '@studio/http-client';
 
-import { axiosInstance } from 'src/core/axiosInstance';
 import { SearchParams } from 'src/core/routing/types';
 import { appPath } from 'src/utils/urls/appUrlHelper';
 
@@ -14,50 +12,43 @@ function getCookies(): { [key: string]: string } {
   return cookie;
 }
 
+let traceHeaders: Record<string, string> | null = null;
+
 export function propagateTraceWhenPdf() {
   try {
     const isPdf = new URLSearchParams(window.location.search).get(SearchParams.Pdf) === '1';
-
-    if (isPdf) {
-      const cookies = getCookies();
-      const addTraceHeaders = (config: InternalAxiosRequestConfig) => {
-        config.headers['X-Altinn-IsPdf'] = 'true';
-
-        const traceparent = cookies['altinn-telemetry-traceparent'];
-        const tracestate = cookies['altinn-telemetry-tracestate'];
-        if (traceparent) {
-          config.headers['traceparent'] = traceparent;
-        }
-        if (tracestate) {
-          config.headers['tracestate'] = tracestate;
-        }
-        return config;
-      };
-
-      // Global axios uses full URLs — only add headers for requests to our app
-      axios.interceptors.request.use((config) => {
-        try {
-          if (config.url?.startsWith(appPath) !== true) {
-            return config;
-          }
-          return addTraceHeaders(config);
-        } catch (err) {
-          console.error('Error configuring propagation of W3C trace for request', err);
-          return config;
-        }
-      });
-
-      // axiosInstance already has baseURL scoped to the app, so all its requests are app requests
-      axiosInstance.interceptors.request.use((config) => {
-        try {
-          return addTraceHeaders(config);
-        } catch (err) {
-          console.error('Error configuring propagation of W3C trace for request', err);
-          return config;
-        }
-      });
+    if (!isPdf) {
+      return;
     }
+
+    const cookies = getCookies();
+    const headers: Record<string, string> = { 'X-Altinn-IsPdf': 'true' };
+    const traceparent = cookies['altinn-telemetry-traceparent'];
+    const tracestate = cookies['altinn-telemetry-tracestate'];
+    if (traceparent) {
+      headers['traceparent'] = traceparent;
+    }
+    if (tracestate) {
+      headers['tracestate'] = tracestate;
+    }
+    traceHeaders = headers;
   } catch (err) {
     console.error('Error configuring propagation of W3C trace', err);
   }
 }
+
+/** Adds the trace headers to every request, for a client that only sends requests to the app. */
+export const addPdfTraceHeaders: RequestInterceptor = ({ headers }) => {
+  try {
+    Object.entries(traceHeaders ?? {}).forEach(([name, value]) => headers.set(name, value));
+  } catch (err) {
+    console.error('Error configuring propagation of W3C trace for request', err);
+  }
+};
+
+/** Adds the trace headers only to requests to the app, for a client that also sends requests to other hosts. */
+export const addPdfTraceHeadersToAppUrls: RequestInterceptor = (request) => {
+  if (request.url.startsWith(appPath)) {
+    addPdfTraceHeaders(request);
+  }
+};

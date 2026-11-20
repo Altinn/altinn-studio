@@ -1,5 +1,12 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
+
+export type AttachmentListSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'AttachmentList' } & ISummaryOverridesCommon);
 
 export interface CompAttachmentListExternal extends ComponentBase {
   type: 'AttachmentList';
@@ -24,7 +31,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -35,8 +42,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompAttachmentListExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: AttachmentListSummaryOverridesWithRef;
 };
 
-// Source hash: 84267891a1163db87a41b285e2f7d32b3bec0112e1333e15b95b108833a4e610
+// Source hash: 6ad62af2120e1167611ed995a3a2d3b85fa16a4fe7f5052de5a0c03fdcf2cf0e

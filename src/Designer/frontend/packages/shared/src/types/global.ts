@@ -60,6 +60,8 @@ export interface IComponentsSettings {
 export enum RepositoryType {
   App = 'App',
   DataModels = 'DataModels',
+  Resources = 'Resources',
+  OrgLibrary = 'OrgLibrary',
   Unknown = 'Unknown',
 }
 

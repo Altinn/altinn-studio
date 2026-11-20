@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioPageHeader } from '@studio/components';
-import { ArrowLeftIcon, CogIcon } from '@studio/icons';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioPageHeader } from '@designer/components';
+import { ArrowLeftIcon, CogIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import type { TranslationKey } from '@altinn-studio/language/type';
 
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { useNavigate } from 'react-router-dom';
@@ -56,12 +57,32 @@ export const SettingsPageButton = (): ReactElement => {
   );
 };
 
+type PageWithSettingsButton = Exclude<RoutePaths, RoutePaths.Root | RoutePaths.AppSettings>;
+
+// The type makes each page have a text for the button that goes back from the settings.
+const backButtonTextKeys: Record<PageWithSettingsButton, TranslationKey> = {
+  [RoutePaths.Overview]: 'sync_header.settings_back_to_overview',
+  [RoutePaths.UIEditor]: 'sync_header.settings_back_to_ui-editor',
+  [RoutePaths.DataModel]: 'sync_header.settings_back_to_data-model',
+  [RoutePaths.Deploy]: 'sync_header.settings_back_to_deploy',
+  [RoutePaths.Text]: 'sync_header.settings_back_to_text-editor',
+  [RoutePaths.ProcessEditor]: 'sync_header.settings_back_to_process-editor',
+  [RoutePaths.ContentLibrary]: 'sync_header.settings_back_to_content-library',
+  [RoutePaths.AiAssistant]: 'sync_header.settings_back_to_ai-assistant',
+};
+
 function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
   if (isSettingsPage) {
     const fromKey: string = splitKeyFromFullPath(from || '');
-    return `sync_header.settings_back_to_${fromKey}`;
+    return isPageWithSettingsButton(fromKey)
+      ? backButtonTextKeys[fromKey]
+      : `sync_header.settings_back_to_${fromKey}`;
   }
   return 'sync_header.settings';
+}
+
+function isPageWithSettingsButton(page: string): page is PageWithSettingsButton {
+  return Object.hasOwn(backButtonTextKeys, page);
 }
 function splitKeyFromFullPath(fullPath: string): string {
   const parts: string[] = fullPath.split('?')[0].split('/');

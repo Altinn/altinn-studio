@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, renderHook, screen, waitFor, act } from '@testing-library/react';
 import { PreviewContextProvider, usePreviewContext } from './PreviewContext';
 

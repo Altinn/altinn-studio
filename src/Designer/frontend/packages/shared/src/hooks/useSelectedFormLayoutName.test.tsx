@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -7,17 +8,17 @@ import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useSelectedFormLayoutName } from './useSelectedFormLayoutName';
 
 // Test data:
 const selectedLayoutSet: string = 'selectedLayoutSet';
 const layout1NameMock: string = 'Side1';
 
-const mockSetSearchParams = jest.fn();
+const mockSetSearchParams = vi.fn();
 const mockSearchParams = { layout: layout1NameMock };
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -50,8 +51,6 @@ const wrapper = ({
 };
 
 describe('useSelectedFormLayoutName', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should return undefined when the select layout is invalid', async () => {
     const { result } = renderHook(() => useSelectedFormLayoutName(selectedLayoutSet), { wrapper });
     expect(result.current.selectedFormLayoutName).toEqual(undefined);

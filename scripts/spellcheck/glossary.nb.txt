@@ -31,6 +31,7 @@ applikasjonsmetrikker
 applikasjonsnavnet
 appstyrt
 appversjon
+arbeidsflytmotoren
 arbeidslagsnavn
 arbeidstidsdata
 autentiseringer
@@ -47,7 +48,9 @@ avpublisere
 avpubliserer
 avpubliseres
 avpublisering
-avpublisert
+avvisningsdialog
+avvisningsdialogen
+avvisningsknapp
 behandlingsreferanse
 bekreftelseskoden
 beskjæringsområde
@@ -61,7 +64,6 @@ bildeopplaster
 borettslagsandel
 brukerdataene
 brukerkontoer
-brukerpålogging
 brukersynkronisering
 claimet
 datamodellbinding
@@ -73,10 +75,8 @@ delegerbar
 delegerbare
 delegeringstekst
 driftsmeldinger
-egenregistrering
 endringslogg
 endringsoppsummering
-endringstransaksjon
 endringstransaksjonen
 endringsvalg
 engangssamtykke
@@ -86,6 +86,7 @@ filbane
 filbanen
 filendelse
 filendringene
+filinnhold
 filopplastingskomponent
 filopplastingskomponenter
 filskanning
@@ -97,6 +98,7 @@ forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
+formidlingsstatus
 forsendelsestype
 forsendelsestypen
 funksjonsflagg
@@ -105,6 +107,7 @@ handlingsknapp
 handlingstype
 headerne
 hjemmelserklæring
+hovedflyten
 infoside
 innboks
 innboksen
@@ -112,6 +115,7 @@ innholdstype
 innloggingsløsningen
 innloggingsmetode
 innloggingsmetoden
+innsendingsknapp
 innsendingsrett
 instansier
 instansiering
@@ -129,6 +133,7 @@ kvitteringsside
 lagringsnavn
 lønnsrelaterte
 låsstatus
+mappesti
 medieposisjon
 medlemsprofil
 meldingsboks
@@ -143,6 +148,7 @@ navigasjonsmeny
 navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
+nedlastingsknapp
 nedkvitteringer
 nedtrekksliste
 nedtrekkslisten
@@ -206,6 +212,7 @@ samtykkemetadata
 seksjonstittel
 sidenavigasjonen
 signatarliste
+signeringsknapp
 signeringsoppgave
 signeringsrett
 signeringsrettighet
@@ -214,6 +221,7 @@ signeringssteg
 sikkerhetsnøkkel
 sikkerhetsnøkkelen
 sikkerhetsnøkler
+sjekksum
 skjemabyggeren
 skjemaeditor
 skjemagenerert
@@ -319,7 +327,6 @@ aktiverings             # aktiverings-e-post
 autoriserings           # Autoriserings-URL
 bekreftelses            # bekreftelses-e-post
 påloggings              # påloggings- og registreringssidene
-tofaktor                # tofaktor-autentisering
 trinnsautentisering     # 2-trinnsautentisering
 
 # Unusual but deliberate: calques and translator style in shipped UI text
@@ -329,9 +336,7 @@ autoriseringsforespørselen  # Gitea translation; a sibling key says 'autorisasj
 avstandsjustert             # Gitea's rendering of 'monospace' (avstandsjustert skrift)
 beskrivelsesløse            # ad-hoc -løse derivation in the Gitea UI (emneløse, ikonløse, beskrivelsesløse)
 bolsk                       # calque of 'boolean' used as a data-type label in the expression editor
-delstreng                   # calque of 'substring' in a Gitea validation message
 fravelg                     # calque of 'deselect' in the Gitea UI
-føderert                    # 'føderert avatar-oppslag' (federated) in the Gitea UI
 gjennomsynsforespørsel      # Gitea's rendering of 'review request'
 gjentagende                 # variant of 'gjentakende' in the Designer news feed
 godkjenningsoverskrift      # Gitea's rendering of 'authorization header'

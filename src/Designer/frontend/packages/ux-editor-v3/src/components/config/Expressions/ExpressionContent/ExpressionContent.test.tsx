@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -11,13 +12,13 @@ import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layout
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { ExpressionContentProps } from './ExpressionContent';
 import { ExpressionContent } from './ExpressionContent';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ExpressionPropertyBase } from '../../../../types/Expressions';
 import { FormItemContext } from '../../../../containers/FormItemContext';
 import { formItemContextProviderMock } from '../../../../testing/formItemContextMocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 import type { FormComponent } from '../../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -29,9 +30,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('ExpressionContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('renders an expression in preview when defaultEditMode is false for an existing expression on hidden property', () => {
     render({});
 
@@ -94,7 +92,7 @@ describe('ExpressionContent', () => {
 
   it('renders calls onDeleteExpression when expression is deleted from preview mode', async () => {
     const user = userEvent.setup();
-    const mockOnDeleteExpression = jest.fn();
+    const mockOnDeleteExpression = vi.fn();
     render({
       props: {
         onDeleteExpression: mockOnDeleteExpression,
@@ -111,7 +109,7 @@ describe('ExpressionContent', () => {
 
   it('renders calls onDeleteExpression when expression is deleted from edit mode', async () => {
     const user = userEvent.setup();
-    const mockOnDeleteExpression = jest.fn();
+    const mockOnDeleteExpression = vi.fn();
     render({
       props: {
         defaultEditMode: true,
@@ -179,7 +177,7 @@ const render = ({
   const defaultProps: ExpressionContentProps = {
     property: ExpressionPropertyBase.Hidden,
     defaultEditMode: false,
-    onDeleteExpression: jest.fn(),
+    onDeleteExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

@@ -8,18 +8,11 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 
 const jsonAttributeValue = { customKey: 'customValue' };
 
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => {
-  const actual = await vi.importActual<TextResourcesProviderImport>(
-    'src/features/language/textResources/TextResourcesProvider',
-  );
-  return {
-    ...actual,
-    useTextResources: vi.fn(() => ({ title: { value: 'Title' } })),
-  };
-});
-
 describe('CustomWebComponent', () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.textResources!.resources = [{ id: 'title', value: 'Title' }];
+  });
+
   it('should render the component with the provided tag name', async () => {
     await render({ component: { tagName: 'test-component' } });
     const element = screen.getByTestId('test-component');

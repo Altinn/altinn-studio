@@ -4,11 +4,13 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -18,14 +20,14 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 public class CommonTaskFinalizationTests
 {
     private static (
-        ProcessEngineCommandContext Context,
+        WorkflowEngineCommandContext Context,
         Mock<IInstanceDataMutator> MutatorMock
     ) CreateContextWithMutator(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var context = new ProcessEngineCommandContext
+        var context = new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -60,14 +62,21 @@ public class CommonTaskFinalizationTests
     private static CommonTaskFinalization CreateCommand(
         ApplicationMetadata applicationMetadata,
         bool removeHiddenData = false,
-        Mock<IDataElementAccessChecker>? accessCheckerMock = null
+        Mock<IDataElementAccessChecker>? accessCheckerMock = null,
+        IAppResources? appResources = null
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
 
         var appModelMock = new Mock<IAppModel>();
-        var layoutInitMock = new Mock<ILayoutEvaluatorStateInitializer>();
+        appResources ??= new Mock<IAppResources>().Object;
+        var layoutEvaluatorStateInitializer = new LayoutEvaluatorStateInitializer(
+            appResources,
+            Mock.Of<ITranslationService>(),
+            appMetadataMock.Object,
+            Options.Create(new FrontEndSettings())
+        );
 
         var appSettings = new AppSettings { RemoveHiddenData = removeHiddenData };
         var appSettingsOptions = Options.Create(appSettings);
@@ -81,7 +90,8 @@ public class CommonTaskFinalizationTests
         return new CommonTaskFinalization(
             appMetadataMock.Object,
             appModelMock.Object,
-            layoutInitMock.Object,
+            appResources,
+            layoutEvaluatorStateInitializer,
             appSettingsOptions,
             accessCheckerMock.Object
         );
@@ -105,7 +115,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -119,8 +129,85 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_RemoveHiddenData_TaskWithoutLayouts_SkipsHiddenDataRemoval()
+    {
+        // Arrange: a service task that owns a data type with a model, but has no layouts
+        var instance = CreateInstance("Verify");
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "verificationResult" };
+        instance.Data = [dataElement];
+
+        var formDataWrapperMock = new Mock<IFormDataWrapper>();
+        formDataWrapperMock.Setup(x => x.BackingData<object>()).Returns(new object());
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "verificationResult",
+                    TaskIds = ["Verify"],
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.VerificationResult" },
+                },
+            ],
+        };
+
+        var appResourcesMock = new Mock<IAppResources>();
+        appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder("Verify")).Returns((LayoutSettings?)null);
+
+        var command = CreateCommand(appMetadata, removeHiddenData: true, appResources: appResourcesMock.Object);
+        var (context, mutatorMock) = CreateContextWithMutator(instance);
+        mutatorMock.Setup(x => x.GetFormDataWrapper(dataElement)).ReturnsAsync(formDataWrapperMock.Object);
+
+        // Act
+        var result = await command.Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Once);
+        appResourcesMock.Verify(x => x.GetLayoutModelForFolder(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Execute_RemoveHiddenData_TaskWithLayouts_EvaluatesLayouts()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "model" };
+        instance.Data = [dataElement];
+
+        var formDataWrapperMock = new Mock<IFormDataWrapper>();
+        formDataWrapperMock.Setup(x => x.BackingData<object>()).Returns(new object());
+
+        var dataType = new DataType
+        {
+            Id = "model",
+            TaskIds = ["Task_1"],
+            AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
+        };
+        var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType] };
+
+        var appResourcesMock = new Mock<IAppResources>();
+        appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder("Task_1")).Returns(new LayoutSettings());
+        appResourcesMock
+            .Setup(x => x.GetLayoutModelForFolder("Task_1"))
+            .Returns(new LayoutModel([new UiFolderComponent([], "Task_1", dataType)], null));
+
+        var command = CreateCommand(appMetadata, removeHiddenData: true, appResources: appResourcesMock.Object);
+        var (context, mutatorMock) = CreateContextWithMutator(instance);
+        mutatorMock.Setup(x => x.GetFormDataWrapper(dataElement)).ReturnsAsync(formDataWrapperMock.Object);
+
+        // Act
+        var result = await command.Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        appResourcesMock.Verify(x => x.GetLayoutModelForFolder("Task_1"), Times.Once);
     }
 
     [Fact]
@@ -141,7 +228,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "restricted",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Restricted" },
                 },
             ],
@@ -154,7 +241,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -171,7 +258,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_2", // Different task
+                    TaskIds = ["Task_2"], // Different task
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -184,7 +271,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -202,7 +289,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "attachment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = null, // No AppLogic/ClassRef
                 },
             ],
@@ -215,7 +302,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -234,7 +321,7 @@ public class CommonTaskFinalizationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -250,7 +337,7 @@ public class CommonTaskFinalizationTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Contains("Form data not found", failed.ErrorMessage);
     }
 }

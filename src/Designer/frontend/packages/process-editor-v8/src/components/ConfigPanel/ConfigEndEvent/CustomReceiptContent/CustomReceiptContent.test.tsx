@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -9,14 +10,12 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('CustomReceiptContent', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('Shows the spinner when there are pending API operations', () => {
     renderCustomReceiptContent({ pendingApiOperations: true });
 

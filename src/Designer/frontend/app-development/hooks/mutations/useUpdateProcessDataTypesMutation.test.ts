@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useUpdateProcessDataTypesMutation } from './useUpdateProcessDataTypesMutation';
@@ -5,7 +6,7 @@ import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 
 // Test data
@@ -39,7 +40,7 @@ describe('useUpdateProcessDataTypeMutation', () => {
 
   it('invalidates metadata queries when update is successful', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     await renderHook({ queryClient });
 

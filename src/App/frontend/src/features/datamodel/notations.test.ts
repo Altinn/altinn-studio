@@ -1,4 +1,4 @@
-import { pointerToDotNotation } from 'src/features/datamodel/notations';
+import { dotNotationToPointer, pointerToDotNotation } from 'src/features/datamodel/notations';
 
 type TestCase = { input: string; output: string };
 
@@ -22,4 +22,13 @@ describe('notations', () => {
       expect(pointerToDotNotation(input)).toBe(output);
     });
   });
+});
+
+it.each([
+  ['rows[0].total', '/rows/0/total'],
+  ['rows[0].numbers[1]', '/rows/0/numbers/1'],
+  ['numbers[0]', '/numbers/0'],
+])('converts indexed path %s to JSON pointer %s and back', (path, pointer) => {
+  expect(dotNotationToPointer(path)).toBe(pointer);
+  expect(pointerToDotNotation(pointer)).toBe(path);
 });

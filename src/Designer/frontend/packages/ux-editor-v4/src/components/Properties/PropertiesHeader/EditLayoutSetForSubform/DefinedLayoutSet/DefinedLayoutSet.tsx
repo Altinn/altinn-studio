@@ -1,5 +1,5 @@
-import { ClipboardIcon } from '@studio/icons';
-import { StudioProperty } from '@studio/components';
+import { ClipboardIcon } from '@designer/icons';
+import { StudioProperty } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 type DefinedLayoutSetProps = {

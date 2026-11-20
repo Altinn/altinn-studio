@@ -1,15 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { SettingsNavigation } from './SettingsNavigation';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useTaskNavigationGroupQuery } from '../../../hooks/queries/useTaskNavigationGroupQuery';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSetsExtendedMock, layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 
-jest.mock('../../../hooks/queries/useTaskNavigationGroupQuery', () => ({
-  useTaskNavigationGroupQuery: jest.fn(),
+vi.mock('../../../hooks/queries/useTaskNavigationGroupQuery', () => ({
+  useTaskNavigationGroupQuery: vi.fn(),
 }));
 
 const defaultData = [
@@ -20,10 +22,8 @@ const defaultData = [
 ];
 
 describe('SettingsNavigation', () => {
-  beforeEach(() => jest.clearAllMocks());
-
   it('should render spinner while loading', async () => {
-    (useTaskNavigationGroupQuery as jest.Mock).mockReturnValue({
+    (useTaskNavigationGroupQuery as Mock).mockReturnValue({
       isPending: true,
     });
 
@@ -34,7 +34,7 @@ describe('SettingsNavigation', () => {
   });
 
   it('should render component with the tasks', async () => {
-    (useTaskNavigationGroupQuery as jest.Mock).mockReturnValue({
+    (useTaskNavigationGroupQuery as Mock).mockReturnValue({
       data: defaultData,
     });
 
@@ -46,7 +46,7 @@ describe('SettingsNavigation', () => {
   });
 
   it('should display a info message if there are no navigation tasks', () => {
-    (useTaskNavigationGroupQuery as jest.Mock).mockReturnValue({
+    (useTaskNavigationGroupQuery as Mock).mockReturnValue({
       data: [],
     });
 

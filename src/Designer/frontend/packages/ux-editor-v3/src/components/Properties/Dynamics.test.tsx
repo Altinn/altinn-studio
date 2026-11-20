@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../containers/FormItemContext';
 import { renderWithMockStore } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 import type { FormComponent } from '../../types/FormComponent';
 
@@ -15,16 +16,14 @@ const conditionalRenderingTestId = 'conditional-rendering';
 const expressionsTestId = 'expressions';
 
 // Mocks:
-jest.mock('./ConditionalRendering', () => ({
+vi.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
 }));
-jest.mock('../config/Expressions', () => ({
+vi.mock('../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
 
 describe('Dynamics', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render new expressions editor by default', async () => {
     await render();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();

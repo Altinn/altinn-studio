@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -14,12 +15,10 @@ const pendingText = textMock('schema_editor.generate_model_files_pending');
 const buttonText = textMock('schema_editor.generate_model_files');
 const defaultProps: GenerateModelsButtonProps = {
   modelPath,
-  onSetSchemaGenerationErrorMessages: jest.fn(),
+  onSetSchemaGenerationErrorMessages: vi.fn(),
 };
 
 describe('GenerateModelsButton', () => {
-  afterEach(jest.clearAllMocks);
-
   it('asks the backend whether the model files are out of date', async () => {
     renderGenerateModelsButton();
 
@@ -43,7 +42,7 @@ describe('GenerateModelsButton', () => {
 });
 
 const modelFilesOutOfDate = (isOutOfDate: boolean) =>
-  jest.fn().mockImplementation(() => Promise.resolve(isOutOfDate));
+  vi.fn().mockImplementation(() => Promise.resolve(isOutOfDate));
 
 const renderGenerateModelsButton = (
   props: Partial<GenerateModelsButtonProps> = {},

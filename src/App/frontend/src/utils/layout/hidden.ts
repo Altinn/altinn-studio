@@ -8,7 +8,8 @@ import { useExpressionDataSources } from 'src/features/expressions/runtime/useEx
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { usePdfExclusions, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvalExprOptions } from 'src/features/expressions';
@@ -47,7 +48,9 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups);
+  const isPdf = useIsPdf();
+  const pdfExclusions = usePdfExclusions();
+  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups, isPdf ? pdfExclusions.components : []);
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -85,9 +88,14 @@ export function useIsHiddenMulti(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const isPdf = useIsPdf();
+  const pdfExclusions = usePdfExclusions();
   const hiddenSources = useMemo(
-    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups)),
-    [baseComponentIds, layoutLookups],
+    () =>
+      baseComponentIds.map((baseComponentId) =>
+        collectHiddenSources(baseComponentId, layoutLookups, isPdf ? pdfExclusions.components : []),
+      ),
+    [baseComponentIds, layoutLookups, isPdf, pdfExclusions.components],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
@@ -131,7 +139,9 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
   }
 
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const dataSources = useExpressionDataSources(layoutCollection);
+  const dataSources = useExpressionDataSources(
+    pageKey === undefined ? undefined : layoutCollection[pageKey]?.data.hidden,
+  );
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
 
@@ -150,7 +160,8 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
   const stableOptions = useShallowMemo(options);
   const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
-  const dataSources = useExpressionDataSources(layoutCollection);
+  const hiddenExpressions = useMemo(() => getPageHiddenExpressions(layoutCollection), [layoutCollection]);
+  const dataSources = useExpressionDataSources(hiddenExpressions);
   const pageOrder = useRawPageOrder();
 
   return useMemo(
@@ -163,6 +174,11 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
       }),
     [dataSources, layoutCollection, stableOptions, pageOrder],
   );
+}
+
+/** Returns only expressions evaluated when checking page visibility. */
+export function getPageHiddenExpressions(layoutCollection: ILayoutCollection | undefined) {
+  return Object.values(layoutCollection ?? {}).map((page) => page.data.hidden);
 }
 
 export function getVisiblePageOrder({

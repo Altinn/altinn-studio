@@ -15,7 +15,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailbox;
 
 /// <summary>
 /// A task answered by messages: "SendToArchive" opens the mailbox and publishes its address, and the
-/// exchange is concluded by <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/> — two
+/// exchange is concluded by <see cref="PipelineBuilder.ConcludeOnReplies"/> — two
 /// messages, the first answered with <see cref="ServiceTaskExchangeResult.AwaitNextReply"/> and the
 /// second concluding the task. Two messages rather than one is deliberate: only an exchange that
 /// continues past its first message exercises the relay's successor path (enqueue a successor
@@ -36,7 +36,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailbox;
 /// process off its end event. A run that dispatched to the wrong half of the exchange therefore
 /// cannot pass.
 /// </remarks>
-public sealed class ArchivingServiceTask : IPipelineServiceTask
+public sealed class ArchivingServiceTask : IServiceTask
 {
     /// <summary>The <c>altinn:taskType</c> of Task_Service in this scenario's BPMN.</summary>
     public const string ServiceTaskType = "mailbox";
@@ -53,7 +53,7 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(PrepareDocuments)
             .Stage(
@@ -68,14 +68,14 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
             .Stage(RecordDispatch)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
-    private Task<ServiceTaskStageResult> PrepareDocuments(ServiceTaskContext context)
+    private Task<StageResult> PrepareDocuments(StageContext context)
     {
         int run = MailboxExchangeRecorder.NextRun(PrepareStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.PrepareDocuments.Run{run}.Completed");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(StageResult.Completed());
     }
 
-    private Task<ServiceTaskOpeningStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
     {
         int run = MailboxExchangeRecorder.NextRun(SendStageLabel);
         // Standing in for the outbound message that would carry the reply address to the archive.
@@ -84,14 +84,14 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
         return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
-    private Task<ServiceTaskStageResult> RecordDispatch(ServiceTaskContext context)
+    private Task<StageResult> RecordDispatch(StageContext context)
     {
         int run = MailboxExchangeRecorder.NextRun(RecordStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.RecordDispatch.Run{run}.Completed");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(StageResult.Completed());
     }
 
-    private Task<ServiceTaskExchangeResult> HandleArchiveMessage(ServiceTaskContext context, ServiceTaskReply reply)
+    private Task<ServiceTaskExchangeResult> HandleArchiveMessage(StageContext context, ServiceTaskReply reply)
     {
         MailboxExchangeRecorder.RecordMessage(reply);
         string kind = ReadKind(reply.Payload);
@@ -113,7 +113,7 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
         }
     }
 
-    private Task<ServiceTaskResult> HandleArchiveClosed(ServiceTaskContext context, MailboxClosedReason reason)
+    private Task<ServiceTaskResult> HandleArchiveClosed(StageContext context, MailboxClosedReason reason)
     {
         MailboxExchangeRecorder.RecordClosed(reason);
         SnapshotLogger.LogError($"Mailbox.OnClosed.{reason}.Tripwire");
@@ -282,7 +282,7 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IPipelineServiceTask, ArchivingServiceTask>();
+        services.AddTransient<IServiceTask, ArchivingServiceTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEngineMailboxEndpoints>();
     }
 }

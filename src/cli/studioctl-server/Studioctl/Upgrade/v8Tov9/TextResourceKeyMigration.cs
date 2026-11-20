@@ -1,0 +1,114 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+
+namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
+
+/// <summary>
+/// Rewrites built-in text-resource keys that v9 renamed. Apps may override these texts in their own
+/// <c>resource.*.json</c>; an override left under the old key would silently stop applying after the
+/// upgrade — the lookup misses and the built-in default text is shown instead.
+/// </summary>
+internal static class TextResourceKeyMigration
+{
+    /// <summary>The renamed keys, from the v8 key to the v9 key.</summary>
+    public static readonly IReadOnlyList<(string Old, string New)> KeyRenames =
+    [
+        // The app frontend corrected the spelling of the datepicker validation keys.
+        ("date_picker.min_date_exeeded", "date_picker.min_date_exceeded"),
+        ("date_picker.max_date_exeeded", "date_picker.max_date_exceeded"),
+        // Built-in backend validation issues used their issue code as the message, so the code was the
+        // text key an app could override. They now set a text key of their own.
+        ("MissingContentType", "validation_errors.missing_content_type"),
+        ("DataElementTooLarge", "validation_errors.file_too_large"),
+        ("DataElementFileInfected", "validation_errors.file_infected"),
+        ("DataElementFileScanPending", "validation_errors.file_scan_pending"),
+        ("TooManyDataElementsOfType", "validation_errors.too_many_data_elements"),
+        ("TooFewDataElementsOfType", "validation_errors.too_few_data_elements"),
+        // The built-in validation texts moved to validation_errors.*, next to the frontend's validation texts,
+        // and the built-in PDF texts to pdf.*.
+        ("backend.validation_errors.required", "validation_errors.required"),
+        ("backend.xsd_validation", "validation_errors.xsd"),
+        ("altinn.standard_validation.file_content_type_not_allowed", "validation_errors.file_content_type_not_allowed"),
+        ("backend.pdf_default_file_name", "pdf.default_file_name"),
+        ("pdfPreviewText", "pdf.preview_text"),
+    ];
+
+    public static async Task<int> Migrate(string projectFolder)
+    {
+        var textsDirectory = AppTextResources.ResolveTextsDirectory(projectFolder);
+        if (textsDirectory is null)
+        {
+            UpgradeConsole.Skip("No texts directory found");
+            return 0;
+        }
+
+        var changedFiles = 0;
+        foreach (var resourceFile in Directory.EnumerateFiles(textsDirectory, "resource.*.json"))
+        {
+            var decoded = Utf8TextFile.Decode(await File.ReadAllBytesAsync(resourceFile));
+            var root = JsonNode.Parse(
+                decoded.Text,
+                new JsonNodeOptions { PropertyNameCaseInsensitive = false },
+                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }
+            );
+            if (root?["resources"] is not JsonArray resources)
+            {
+                continue;
+            }
+
+            var migrated = decoded.Text;
+            var fileRenames = 0;
+            foreach (var (oldKey, newKey) in KeyRenames)
+            {
+                var structural = CountIds(resources, oldKey);
+                if (structural == 0)
+                {
+                    continue;
+                }
+
+                if (CountIds(resources, newKey) > 0)
+                {
+                    UpgradeConsole.Todo(
+                        $"{resourceFile} has texts for both '{oldKey}' and '{newKey}'. Only '{newKey}' is used in v9; remove '{oldKey}' when you have checked its text"
+                    );
+                    continue;
+                }
+
+                // The quoted key must occur exactly as often as the structural count says, so a
+                // mention inside a VALUE text cannot be rewritten by accident.
+                var pattern = new Regex($"\"{Regex.Escape(oldKey)}\"");
+                if (pattern.Count(migrated) != structural)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not safely migrate {resourceFile}: '{oldKey}' occurs outside an id field"
+                    );
+                }
+
+                migrated = pattern.Replace(migrated, $"\"{newKey}\"");
+                fileRenames += structural;
+            }
+
+            if (fileRenames == 0)
+            {
+                continue;
+            }
+
+            await Utf8TextFile.Write(resourceFile, migrated, decoded.HadBom);
+            changedFiles++;
+            UpgradeConsole.Ok($"Renamed {fileRenames} text key(s) in {resourceFile}");
+        }
+
+        if (changedFiles == 0)
+        {
+            UpgradeConsole.Skip("No overrides of the renamed text keys");
+        }
+
+        return 0;
+    }
+
+    private static int CountIds(JsonArray resources, string key) =>
+        resources.Count(r =>
+            r is JsonObject entry && entry["id"] is JsonValue id && id.TryGetValue<string>(out var v) && v == key
+        );
+}

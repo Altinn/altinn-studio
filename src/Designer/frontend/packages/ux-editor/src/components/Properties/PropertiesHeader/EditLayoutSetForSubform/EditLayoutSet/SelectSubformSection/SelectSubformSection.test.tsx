@@ -1,16 +1,15 @@
+import { describe, expect, it, vi } from 'vitest';
 import { SelectSubformSection } from './SelectSubformSection';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const subform1 = 'subformLayoutSetId';
 const subform2 = 'subformLayoutSetId2';
 const subformLayoutSetsIds = [subform1, subform2];
-const onComponentUpdate = jest.fn();
+const onComponentUpdate = vi.fn();
 
 describe('SelectLayoutSet', () => {
-  afterEach(jest.clearAllMocks);
-
   const selectSubform = async () => {
     const user = userEvent.setup();
     const subformSelector = screen.getByRole('combobox', {
@@ -65,7 +64,7 @@ const renderSelectSubformSection = () => {
     <SelectSubformSection
       recommendedNextActionText={{ title: 'title', description: 'description' }}
       onComponentUpdate={onComponentUpdate}
-      setShowCreateSubformCard={jest.fn()}
+      setShowCreateSubformCard={vi.fn()}
       subformLayoutSetsIds={subformLayoutSetsIds}
     />,
   );

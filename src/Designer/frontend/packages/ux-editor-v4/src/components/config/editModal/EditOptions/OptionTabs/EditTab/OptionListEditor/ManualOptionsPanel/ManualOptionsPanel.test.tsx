@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../../testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -10,8 +11,8 @@ import { ManualOptionsPanel, type ManualOptionsPanelProps } from './ManualOption
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
-const onDeleteButtonClick = jest.fn();
-const onEditButtonClick = jest.fn();
+const onDeleteButtonClick = vi.fn();
+const onEditButtonClick = vi.fn();
 const textResources: ITextResources = {
   nb: [
     { id: 'some-id', value: 'label 1' },
@@ -21,8 +22,6 @@ const textResources: ITextResources = {
 };
 
 describe('ManualOptionsPanel', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the open Dialog button', () => {
     renderManualOptionsEditor();
     expect(getEditButton()).toBeInTheDocument();

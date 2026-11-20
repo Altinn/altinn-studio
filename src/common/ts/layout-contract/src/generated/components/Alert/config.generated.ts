@@ -1,7 +1,14 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export type AlertSeverity = 'success' | 'warning' | 'danger' | 'info';
+
+export type AlertSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Alert' } & ISummaryOverridesCommon);
 
 export interface CompAlertExternal extends ComponentBase {
   type: 'Alert';
@@ -26,7 +33,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -37,8 +44,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompAlertExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: AlertSummaryOverridesWithRef;
 };
 
-// Source hash: ed5c0226db3c16bdbc4b1c5c7bfd0adc4caa0a2c2cf9cd0eec348ac0d2c2f9e4
+// Source hash: 6a376b2af6d070b755a4eb56452ff192288ebc129168645c118ec66cb5f573aa

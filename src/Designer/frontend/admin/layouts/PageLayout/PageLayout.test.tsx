@@ -1,22 +1,24 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { PageLayout } from './PageLayout';
 import { renderWithProviders } from '../../testing/mocks';
-import { appContentWrapperId } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { appContentWrapperId } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useRequiredRoutePathsParams } from 'admin/hooks/useRequiredRoutePathsParams';
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   Outlet: () => <div>Outlet</div>,
   useNavigate: () => mockNavigate,
 }));
-jest.mock('app-shared/components/PageHeader/PageHeader', () => ({
+vi.mock('app-shared/components/PageHeader/PageHeader', () => ({
   PageHeader: ({ onOrgSelect, onUserSelect }: any) => (
     <>
       <button
@@ -43,11 +45,11 @@ jest.mock('app-shared/components/PageHeader/PageHeader', () => ({
     </>
   ),
 }));
-jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
-  useRequiredRoutePathsParams: jest.fn(() => ({ owner: 'ttd' })),
+vi.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+  useRequiredRoutePathsParams: vi.fn(() => ({ owner: 'ttd' })),
 }));
 
-const scrollToMock = jest.fn();
+const scrollToMock = vi.fn();
 Object.defineProperty(window, 'scrollTo', { value: scrollToMock, writable: true });
 
 const userMock = {
@@ -72,8 +74,7 @@ const renderPageLayout = (initialEntries = ['/ttd/apps']) => {
 
 describe('PageLayout', () => {
   afterEach(() => {
-    jest.clearAllMocks();
-    (useRequiredRoutePathsParams as jest.Mock).mockReturnValue({ owner: 'ttd' });
+    (useRequiredRoutePathsParams as Mock).mockReturnValue({ owner: 'ttd' });
   });
 
   it('renders the app content wrapper', () => {

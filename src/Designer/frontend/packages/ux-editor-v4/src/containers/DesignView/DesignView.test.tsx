@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { StudioDragAndDrop } from '@studio/components';
+import { StudioDragAndDrop } from '@designer/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -20,7 +21,7 @@ import {
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import { AppContext } from '@altinn/ux-editor-v4/AppContext';
@@ -31,10 +32,6 @@ const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('displays the correct number of accordions', () => {
     renderDesignView({});
 
@@ -133,7 +130,7 @@ describe('DesignView', () => {
 
   it('Renders the page accordion as a pdfAccordion when pdfLayoutName is set', () => {
     const pdfLayoutName = 'pdfLayoutName';
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView({
       layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
       externalLayout: { [pdfLayoutName]: layout1Mock },
@@ -205,11 +202,11 @@ const renderDesignView = ({
 
   const appContextWithGroupsMock = {
     ...appContextMock,
-    setSelectedGroupName: jest.fn(),
+    setSelectedGroupName: vi.fn(),
   };
 
   return renderWithProviders(
-    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <AppContext.Provider value={appContextWithGroupsMock}>
           <DesignView />

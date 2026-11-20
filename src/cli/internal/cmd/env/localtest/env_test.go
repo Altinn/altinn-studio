@@ -148,7 +148,7 @@ func TestStatus_HidesAbsentOptionalContainers(t *testing.T) {
 		t.Fatalf("Status() error = %v", err)
 	}
 	assertContainerStatusAbsent(t, status, components.ContainerPgAdmin)
-	assertContainerStatusAbsent(t, status, components.ContainerMonitoringGrafana)
+	assertContainerStatusAbsent(t, status, components.ContainerGrafana)
 }
 
 func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
@@ -234,7 +234,7 @@ func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
 	if status.Running {
 		t.Fatal("StatusForUp().Running = true, want false when monitoring is requested but missing")
 	}
-	assertContainerStatus(t, status, components.ContainerMonitoringGrafana, "not found")
+	assertContainerStatus(t, status, components.ContainerGrafana, "not found")
 }
 
 func TestStatus_UsesDevWorkflowEngineFromEnvironmentTopology(t *testing.T) {
@@ -283,7 +283,7 @@ func TestStatus_UsesDevWorkflowEngineFromEnvironmentTopology(t *testing.T) {
 		t.Fatal("Status().Running = false, want true when workflow-engine is host-bound")
 	}
 	assertContainerStatusAbsent(t, status, components.ContainerWorkflowEngine)
-	assertContainerStatusAbsent(t, status, components.ContainerMonitoringGrafana)
+	assertContainerStatusAbsent(t, status, components.ContainerGrafana)
 }
 
 func TestStatus_IgnoresUnmanagedNameCollisions(t *testing.T) {
@@ -332,6 +332,47 @@ func TestDown_IgnoresUnmanagedNameCollision(t *testing.T) {
 	err := env.Down(context.Background())
 	if !errors.Is(err, envtypes.ErrAlreadyStopped) {
 		t.Fatalf("Down() error = %v, want ErrAlreadyStopped", err)
+	}
+}
+
+func TestDown_ForgetsTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testImages()}
+	if err := localtest.WriteState(cfg, localtest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	env := newTestEnvWithConfig(mock.New(), cfg)
+	if err := env.Down(context.Background()); !errors.Is(err, envtypes.ErrAlreadyStopped) {
+		t.Fatalf("Down() error = %v, want ErrAlreadyStopped", err)
+	}
+	if state, found, err := localtest.ReadState(cfg); err != nil || found {
+		t.Fatalf("ReadState() = %+v, %t, %v, want no record", state, found, err)
+	}
+}
+
+func TestDown_ForgetsTheRecordedPortAfterStoppingTheEnvironment(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testImages()}
+	if err := localtest.WriteState(cfg, localtest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+	client := mock.New()
+	client.ListContainersFunc = func(context.Context, types.ContainerListFilter) ([]types.ContainerInfo, error) {
+		return []types.ContainerInfo{{
+			ID:     "stale-container-id",
+			Name:   "stale-container",
+			Labels: map[string]string{containerbackend.GraphIDLabel: testGraphID},
+		}}, nil
+	}
+
+	if err := newTestEnvWithConfig(client, cfg).Down(context.Background()); err != nil {
+		t.Fatalf("Down() error = %v", err)
+	}
+	if state, found, err := localtest.ReadState(cfg); err != nil || found {
+		t.Fatalf("ReadState() = %+v, %t, %v, want no record", state, found, err)
 	}
 }
 
@@ -462,11 +503,11 @@ func testImages() config.ImagesConfig {
 			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
 		},
 		Monitoring: config.MonitoringImages{
-			Tempo:         config.ImageSpec{Image: "grafana/tempo", Tag: "latest"},
-			Mimir:         config.ImageSpec{Image: "grafana/mimir", Tag: "latest"},
-			Loki:          config.ImageSpec{Image: "grafana/loki", Tag: "latest"},
-			OtelCollector: config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
-			Grafana:       config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
+			VictoriaMetrics: config.ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "latest"},
+			VictoriaTraces:  config.ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "latest"},
+			VictoriaLogs:    config.ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "latest"},
+			OtelCollector:   config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
+			Grafana:         config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
 		},
 	}
 }
@@ -588,4 +629,56 @@ func containerStatus(status *localtest.Status, name string) (localtest.Container
 		}
 	}
 	return localtest.ContainerStatus{}, false
+}
+
+func TestStatus_URLIsTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testImages()}
+	if err := localtest.WriteState(cfg, localtest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+	env := newTestEnvWithConfig(coreContainersClient(types.ContainerState{Status: "running", Running: true}), cfg)
+
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+	if want := "http://local.altinn.cloud:8100"; status.URL != want {
+		t.Fatalf("Status().URL = %q, want %q", status.URL, want)
+	}
+}
+
+func TestStatus_NoURLWhileLocaltestIsStopped(t *testing.T) {
+	t.Parallel()
+
+	env := newTestEnv(coreContainersClient(types.ContainerState{Status: "exited", Running: false}))
+
+	status, err := env.Status(context.Background())
+	if err != nil {
+		t.Fatalf("Status() error = %v", err)
+	}
+	if !status.AnyRunning || status.URL != "" {
+		t.Fatalf(
+			"Status() AnyRunning = %t, URL = %q, want containers present and no URL",
+			status.AnyRunning,
+			status.URL,
+		)
+	}
+}
+
+// coreContainersClient reports the localtest container in the given state and the other core containers running.
+func coreContainersClient(localtestState types.ContainerState) *mock.Client {
+	client := mock.New()
+	client.ContainerInspectFunc = func(_ context.Context, nameOrID string) (types.ContainerInfo, error) {
+		switch nameOrID {
+		case components.ContainerLocaltest:
+			return managedContainerInfo(localtestState), nil
+		case components.ContainerPDF3, components.ContainerWorkflowEngineDb, components.ContainerWorkflowEngine:
+			return managedContainerInfo(types.ContainerState{Status: "running", Running: true}), nil
+		default:
+			return types.ContainerInfo{}, types.ErrContainerNotFound
+		}
+	}
+	return client
 }

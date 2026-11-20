@@ -1,15 +1,14 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { MaskinportenTab } from './MaskinportenTab';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 
 describe('MaskinportenTab', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should display heading and description', () => {
     renderMaskinportenTab();
 
@@ -24,8 +23,8 @@ describe('MaskinportenTab', () => {
   });
 
   it('should show an alert with text that no scopes are available for user', async () => {
-    const getMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
-    const getSelectedMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const getMaskinportenScopes = vi.fn().mockImplementation(() => Promise.resolve([]));
+    const getSelectedMaskinportenScopes = vi.fn().mockImplementation(() => Promise.resolve([]));
 
     renderMaskinportenTab({
       getMaskinportenScopes,

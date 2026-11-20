@@ -10,7 +10,9 @@ services:
   fakes:
     container_name: operator-fakes
     build:
-      dockerfile: Dockerfile.fakes
+      # src/ is the build context, for the shared Go module in src/common/go.
+      context: ../..
+      dockerfile: Runtime/operator/Dockerfile.fakes
     ports:
       - "8050:8050" # Maskinporten API
       - "8051:8051" # Maskinporten self service API

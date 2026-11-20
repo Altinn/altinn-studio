@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Observability.Proxy.Configuration;
 
 /// <summary>
-/// One backend read endpoint the query token may reach, as a path below the signal's public read
+/// One backend read endpoint the query token may reach, as a path below its read API's public
 /// prefix. A <c>*</c> segment stands for exactly one path segment, such as a label name or a trace
 /// ID. GET is always allowed; POST only where Grafana sends a query as a form body.
 /// </summary>

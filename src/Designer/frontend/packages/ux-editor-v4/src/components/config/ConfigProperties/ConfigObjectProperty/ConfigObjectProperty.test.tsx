@@ -1,14 +1,15 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { ConfigObjectProperty, type ConfigObjectPropertyProps } from './ConfigObjectProperty';
 import { componentMocks } from '../../../../testing/componentMocks';
 import InputSchema from '../../../../testing/schemas/json/component/Input.schema.v1.json';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const somePropertyName = 'somePropertyName';
 
-jest.mock('../../../../hooks/useComponentPropertyDescription', () => ({
+vi.mock('../../../../hooks/useComponentPropertyDescription', () => ({
   useComponentPropertyDescription: () => (propertyKey) =>
     propertyKey === 'somePropertyName' ? 'Some description' : undefined,
 }));
@@ -37,7 +38,7 @@ describe('ConfigObjectProperties', () => {
 
   it('should call handleComponentUpdate when a nested boolean property is toggled', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
@@ -82,9 +83,9 @@ describe('ConfigObjectProperties', () => {
   });
 
   it('should delete object property and close card when delete button is clicked', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigObjectProperty({
       props: {
         objectPropertyKey: somePropertyName,
@@ -128,7 +129,7 @@ describe('ConfigObjectProperties', () => {
         },
       },
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
       editFormId: 'test-form',
     };
     return renderWithProviders(<ConfigObjectProperty {...defaultProps} {...props} />);

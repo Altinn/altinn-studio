@@ -1,5 +1,6 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../test/mocks/bpmnContextMock';
@@ -7,8 +8,6 @@ import { mockBpmnDetails } from '../../../../test/mocks/bpmnDetailsMock';
 import type { BpmnTaskType } from '../../../types/BpmnTaskType';
 
 describe('ConfigContentContainer', () => {
-  afterEach(jest.clearAllMocks);
-
   it('shows the heading for a built-in task type', () => {
     renderConfigContentContainer('data');
 

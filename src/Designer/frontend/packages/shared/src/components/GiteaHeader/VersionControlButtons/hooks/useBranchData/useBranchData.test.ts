@@ -1,19 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useBranchData } from './useBranchData';
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { branchesMock, currentBranchInfoMock } from '../../test/mocks/branchingMocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
-jest.mock('app-shared/hooks/queries/useBranchesQuery');
-jest.mock('app-shared/hooks/queries/useCurrentBranchQuery');
+vi.mock('app-shared/hooks/queries/useBranchesQuery');
+vi.mock('app-shared/hooks/queries/useCurrentBranchQuery');
 
-const mockUseBranchesQuery = jest.mocked(useBranchesQuery);
-const mockUseCurrentBranchQuery = jest.mocked(useCurrentBranchQuery);
+const mockUseBranchesQuery = vi.mocked(useBranchesQuery);
+const mockUseCurrentBranchQuery = vi.mocked(useCurrentBranchQuery);
 
 describe('useBranchData', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Should return current branch name and branch list when data is loaded', () => {
     mockUseCurrentBranchQuery.mockReturnValue({
       data: currentBranchInfoMock,

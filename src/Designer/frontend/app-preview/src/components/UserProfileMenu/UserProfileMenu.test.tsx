@@ -1,18 +1,20 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserProfileMenu, type UserProfileMenuProps } from './UserProfileMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/hooks';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { useMediaQuery } from '@designer/hooks';
 import { type Repository, type User } from 'app-shared/types/Repository';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../../test/mocks';
-import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
+import { StudioPageHeaderContextProvider } from '@designer/components/src/components/StudioPageHeader/context';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -40,12 +42,8 @@ const defaultProps: UserProfileMenuProps = {
 };
 
 describe('UserProfileMenu', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render trigger button text when on a large screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
 
     renderUserProfileMenu();
 
@@ -57,7 +55,7 @@ describe('UserProfileMenu', () => {
   });
 
   it('should not render trigger button text when on a small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
 
     renderUserProfileMenu();
 

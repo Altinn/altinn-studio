@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { TaskUtils } from './taskUtils';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
 import type { Element } from 'bpmn-js/lib/model/Types';

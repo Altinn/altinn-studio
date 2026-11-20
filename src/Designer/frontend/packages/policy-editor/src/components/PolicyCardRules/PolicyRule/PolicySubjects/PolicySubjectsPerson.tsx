@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { StudioDetails, StudioTabs } from '@studio/components';
+import { StudioDetails, StudioTabs } from '@designer/components';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';
-import { PersonIcon } from '@studio/icons';
+import { PersonIcon } from '@designer/icons';
 import type { PolicySubject } from '@altinn/policy-editor/types';
 import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 

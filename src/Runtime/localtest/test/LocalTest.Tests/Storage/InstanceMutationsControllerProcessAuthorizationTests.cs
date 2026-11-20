@@ -6,6 +6,7 @@ using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Services;
@@ -46,7 +47,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         Assert.IsType<ForbidResult>(result.Result);
         authorization.Verify(
             service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId),
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
         Instance stored = await GetStoredInstance(storage, instance);
@@ -61,7 +67,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var authorization = new Mock<IAuthorization>();
         authorization
             .Setup(service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(true);
         InstanceMutationsController controller = CreateController(
@@ -82,7 +93,7 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
     }
 
     [Fact]
-    public async Task CommitMutation_ProcessStateWhenProcessHasEnded_ReturnsForbid()
+    public async Task CommitMutation_ProcessStateWithoutCurrentTask_FromAnyoneButTheServiceOwner_ReturnsForbid()
     {
         await using LocalStorageFixture storage = new();
         Instance instance = await CreateInstanceInTask(storage, currentTaskId: null);
@@ -92,7 +103,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
                 service.AuthorizeInstanceAction(
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -113,6 +125,48 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         Assert.Null(stored.Process.CurrentTask);
     }
 
+    [Fact]
+    public async Task CommitMutation_ProcessStateWithoutCurrentTask_FromTheServiceOwner_ReleasesTheInstance()
+    {
+        await using LocalStorageFixture storage = new();
+        Instance instance = await CreateInstanceInTask(
+            storage,
+            currentTaskId: null,
+            status: ProcessStatus.Processing
+        );
+        var releaseEndedProcess = new InstanceMutationRequest
+        {
+            ExpectedProcessStatus = ProcessStatus.Processing,
+            ProcessState = new ProcessStateUpdate
+            {
+                State = new ProcessState
+                {
+                    Started = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Ended = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                    EndEvent = "EndEvent_1",
+                    Status = ProcessStatus.Idle,
+                },
+            },
+        };
+        InstanceMutationsController controller = CreateController(
+            storage,
+            new Mock<IAuthorization>(MockBehavior.Strict).Object,
+            releaseEndedProcess,
+            org: "ttd"
+        );
+
+        ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+            501337,
+            InstanceGuid(instance),
+            CancellationToken.None
+        );
+
+        Assert.IsType<OkObjectResult>(result.Result);
+        Instance stored = await GetStoredInstance(storage, instance);
+        Assert.Equal(ProcessStatus.Idle, stored.Process.Status);
+        Assert.Equal("EndEvent_1", stored.Process.EndEvent);
+    }
+
     [Theory]
     [InlineData("reject", true)]
     [InlineData("write", false)]
@@ -129,7 +183,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
                 service.AuthorizeInstanceAction(
                     It.IsAny<Instance>(),
                     permittedAction,
-                    CurrentTaskId
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
                 )
             )
             .ReturnsAsync(true);
@@ -189,7 +244,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var permitWrite = new Mock<IAuthorization>();
         permitWrite
             .Setup(service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(true);
         ActionResult<InstanceMutationResponse> first = await CreateController(
@@ -221,7 +281,12 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var authorization = new Mock<IAuthorization>();
         authorization
             .Setup(service =>
-                service.AuthorizeInstanceAction(It.IsAny<Instance>(), "write", CurrentTaskId)
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "write",
+                    CurrentTaskId,
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(true);
         var endProcessBeforeApply = new Mock<IInstanceMutationRepository>();
@@ -294,13 +359,15 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
     private static async Task<Instance> CreateInstanceInTask(
         LocalStorageFixture storage,
         string? currentTaskId,
-        Instance? existing = null
+        Instance? existing = null,
+        ProcessStatus? status = null
     )
     {
         Instance instance = existing ?? await storage.CreateInstance();
         instance.Process = new ProcessState
         {
             Started = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            Status = status,
             CurrentTask = currentTaskId is null
                 ? null
                 : new ProcessElementInfo
@@ -337,7 +404,8 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         IAuthorization authorization,
         InstanceMutationRequest request,
         Dictionary<string, string>? headers = null,
-        IInstanceMutationRepository? mutationRepository = null
+        IInstanceMutationRepository? mutationRepository = null,
+        string? org = null
     )
     {
         var applicationRepository = new Mock<IApplicationRepository>();
@@ -358,7 +426,16 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
         var httpContext = new DefaultHttpContext
         {
             User = new ClaimsPrincipal(
-                new ClaimsIdentity([new Claim(AltinnCoreClaimTypes.UserId, "1337")], "test")
+                new ClaimsIdentity(
+                    org is null
+                        ? [new Claim(AltinnCoreClaimTypes.UserId, "1337")]
+                        :
+                        [
+                            new Claim(AltinnCoreClaimTypes.Org, org),
+                            new Claim(AltinnCoreClaimTypes.OrgNumber, "991825827"),
+                        ],
+                    "test"
+                )
             ),
         };
         httpContext.Request.ContentType = "application/json";
@@ -379,7 +456,13 @@ public sealed class InstanceMutationsControllerProcessAuthorizationTests
             settings,
             authorization,
             Mock.Of<IAuthorizationService>(),
-            new ProcessAuthorizer(authorization, settings)
+            new ProcessAuthorizer(
+                authorization,
+                Mock.Of<IClaimsPrincipalProvider>(provider =>
+                    provider.GetUser() == httpContext.User
+                ),
+                settings
+            )
         )
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },

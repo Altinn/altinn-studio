@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 // Test data
 const path = '#/properties/testpath';
@@ -24,8 +24,6 @@ const renderStringRestrictions = (props?: Partial<RestrictionItemProps>) =>
   render(<StringRestrictions {...defaultProps} {...props} />);
 
 describe('StringRestrictions', () => {
-  afterEach(vi.clearAllMocks);
-
   test.each([
     [StrRestrictionKey.format, 'combobox'],
     [StrRestrictionKey.minLength, 'spinbutton'],

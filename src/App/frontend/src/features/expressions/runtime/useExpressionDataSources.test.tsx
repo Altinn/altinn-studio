@@ -1,7 +1,12 @@
+import React from 'react';
+
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook as rtlRenderHook, waitFor } from '@testing-library/react';
+import type { RenderHookOptions } from '@testing-library/react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expressions/runtime/useExpressionDataSources';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
 import {
   useEvalExpression,
   useEvalExpressionCallback,
@@ -9,6 +14,8 @@ import {
   useEvalOptionalTrb,
 } from 'src/utils/layout/useEvalExpression';
 import type { IApplicationSettings } from 'src/types/shared';
+
+let queryTest: ReturnType<typeof createQueryTestWrapper>;
 
 const mockInputs: {
   currentLanguage: string;
@@ -19,21 +26,14 @@ const mockInputs: {
   currentPage: 'page-1',
   applicationSettings: null,
 };
-const mockInstanceQueries = {
-  countDataElements: vi.fn(() => 0),
-  getCachedInstance: vi.fn(() => undefined),
+const emptyReaders = {
+  getReader: () => ({
+    getAsString: (): string | undefined => undefined,
+    isLoading: () => true,
+    hasError: () => false,
+  }),
 };
-const mockQueryCacheObserver = { subscribe: vi.fn(() => vi.fn()) };
-const mockExternalApiQueries = {
-  ensureLoaded: vi.fn(),
-  getCached: vi.fn(() => ({})),
-  getState: vi.fn(() => undefined),
-};
-const mockTextResourceQueries = {
-  ensureLoaded: vi.fn(),
-  getCached: vi.fn(() => undefined),
-};
-
+let mockDataModelReaders = emptyReaders;
 vi.mock('src/features/applicationSettings/ApplicationSettingsProvider', () => ({
   useApplicationSettings: () => mockInputs.applicationSettings,
 }));
@@ -44,27 +44,19 @@ vi.mock('src/hooks/navigation', () => ({
   useAllNavigationParams: () => ({ pageKey: mockInputs.currentPage }),
 }));
 vi.mock('src/features/form/FormContext', () => ({
-  FormStore: { raw: { useLaxStore: () => ContextNotProvided } },
+  FormStore: { raw: { useLaxStore: () => ContextNotProvided }, useIsInstanceLocked: () => false },
 }));
-vi.mock('src/core/contexts/ApiProvider', () => ({
-  useTextResourcesApi: () => vi.fn(),
-}));
+
 vi.mock('src/features/formData/FormDataReaders', () => ({
-  useDataModelReaders: () => ({}),
-}));
-vi.mock('src/core/queries/expressionQueryReaders', () => ({
-  useExpressionQueryReaders: () => ({
-    instanceQueries: mockInstanceQueries,
-    queryCacheObserver: mockQueryCacheObserver,
-    externalApiQueries: mockExternalApiQueries,
-    textResourceQueries: mockTextResourceQueries,
-  }),
+  useDataModelReaders: () => mockDataModelReaders,
 }));
 
 beforeEach(() => {
   mockInputs.currentLanguage = 'nb';
   mockInputs.currentPage = 'page-1';
   mockInputs.applicationSettings = null;
+  mockDataModelReaders = emptyReaders;
+  queryTest = createQueryTestWrapper();
 });
 
 it('updates a language expression when the current language changes', async () => {
@@ -212,3 +204,47 @@ it('uses descriptor fallbacks for callback evaluation failures', () => {
   expect(result.current()).toBe(true);
   expect(logError).toHaveBeenCalled();
 });
+
+it('advances the validation cache revision when an external text-variable reader loads, with a stable runtime', async () => {
+  const resourceKey: string = 'external';
+  mockInputs.currentLanguage = 'en';
+  queryTest.queries.fetchTextResources.mockResolvedValue({
+    language: 'en',
+    resources: [
+      { id: resourceKey, value: 'Value {0}', variables: [{ key: 'TextField', dataSource: 'dataModel.external' }] },
+    ],
+  });
+  const { result, rerender } = renderHook(useExpressionDataSourcesBaseForStoreSelector);
+  const runtime = result.current;
+  const initialRevision = runtime.getSnapshotRevision!();
+  await waitFor(() =>
+    expect(runtime.langToolsSelector(undefined).langAsNonProcessedString(resourceKey)).toBe('Value ...'),
+  );
+
+  rerender();
+  expect(result.current).toBe(runtime);
+  expect(runtime.getSnapshotRevision!()).toBe(initialRevision);
+
+  mockDataModelReaders = {
+    getReader: () => ({
+      getAsString: () => 'loaded',
+      isLoading: () => false,
+      hasError: () => false,
+    }),
+  };
+  rerender();
+  expect(result.current).toBe(runtime);
+  expect(runtime.getSnapshotRevision!()).toBeGreaterThan(initialRevision);
+  expect(runtime.langToolsSelector(undefined).langAsNonProcessedString(resourceKey)).toBe('Value loaded');
+});
+
+function renderHook<Result, Props>(hook: (props: Props) => Result, options?: RenderHookOptions<Props>) {
+  const { wrapper: QueryWrapper } = queryTest;
+  const ExistingWrapper = options?.wrapper;
+  return rtlRenderHook(hook, {
+    ...options,
+    wrapper: ({ children }) => (
+      <QueryWrapper>{ExistingWrapper ? <ExistingWrapper>{children}</ExistingWrapper> : children}</QueryWrapper>
+    ),
+  });
+}

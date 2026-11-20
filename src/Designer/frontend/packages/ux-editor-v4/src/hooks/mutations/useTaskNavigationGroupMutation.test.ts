@@ -1,4 +1,5 @@
-import { org, app } from '@studio/testing/testids';
+import { describe, expect, it } from 'vitest';
+import { org, app } from '@designer/testing/testids';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useTaskNavigationGroupMutation } from './useTaskNavigationGroupMutation';
 import { waitFor } from '@testing-library/react';

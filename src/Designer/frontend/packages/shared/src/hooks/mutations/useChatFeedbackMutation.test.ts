@@ -1,12 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useChatFeedbackMutation } from './useChatFeedbackMutation';
 import { waitFor } from '@testing-library/react';
 
 describe('useChatFeedbackMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls sendChatFeedback with correct arguments', async () => {
     const traceId = 'trace-abc-123';
     const payload = { thumbsUp: true, comment: 'Veldig nyttig!' };

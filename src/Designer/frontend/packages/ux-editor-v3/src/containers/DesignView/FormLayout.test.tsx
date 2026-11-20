@@ -1,12 +1,13 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormLayoutProps } from './FormLayout';
 import { FormLayout } from './FormLayout';
 import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { FormItemContextProvider } from '../FormItemContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
 
 const defaultProps: FormLayoutProps = {
@@ -32,7 +33,7 @@ describe('FormLayout', () => {
 
 const render = (props?: Partial<FormLayoutProps>) =>
   renderWithMockStore()(
-    <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <FormLayout {...defaultProps} {...props} />
       </FormItemContextProvider>

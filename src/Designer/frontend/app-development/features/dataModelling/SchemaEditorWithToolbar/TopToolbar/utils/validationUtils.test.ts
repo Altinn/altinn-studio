@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { mockAppMetadata, mockDataTypeId } from '../../../../../test/applicationMetadataMock';
 import { extractDataTypeNamesFromAppMetadata } from './validationUtils';
 

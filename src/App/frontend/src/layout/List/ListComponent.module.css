@@ -1,23 +1,15 @@
-.listTable {
-  width: 100%;
-}
-
 .listTable caption {
   text-align: left;
   padding-bottom: var(--ds-size-4);
 }
 
-.listTable th:first-of-type {
+.listTable:not(.configuredColumns) th:first-of-type,
+.selectionColumn {
   width: 100px;
-}
-
-.listTable th {
-  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .listTable tr {
   cursor: pointer;
-  height: 60px;
 }
 
 .toggleControl {
@@ -25,25 +17,13 @@
   justify-content: center;
 }
 
-.listTable td {
-  font-size: 16px;
+.readOnly tr {
+  cursor: default;
 }
 
 .selectedRow,
 .selectedRowCell {
   background-color: var(--ds-color-accent-surface-tinted);
-}
-
-.pagination {
-  min-height: 60px;
-  display: flex;
-  justify-content: right;
-  align-items: center;
-  background-color: var(--ds-color-neutral-background-tinted);
-  width: 100%;
-}
-.paginationMobile {
-  justify-content: center;
 }
 
 .mobileGroup > div :hover {
@@ -99,4 +79,8 @@
 .editButton {
   margin-left: auto;
   min-width: unset;
+}
+
+.description {
+  max-width: var(--running-text-max-width);
 }

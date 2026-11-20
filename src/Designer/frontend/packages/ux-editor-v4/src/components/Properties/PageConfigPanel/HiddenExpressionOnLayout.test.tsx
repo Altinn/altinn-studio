@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -7,11 +8,11 @@ import { HiddenExpressionOnLayout } from './HiddenExpressionOnLayout';
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { BooleanExpression } from '@studio/components';
-import { GeneralRelationOperator } from '@studio/components';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import type { BooleanExpression } from '@designer/components';
+import { GeneralRelationOperator } from '@designer/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data
 const layoutSet = layoutSet1NameMock;
@@ -21,14 +22,13 @@ const defaultLayouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
 };
 
-jest.mock('@studio/hooks/src/hooks/useDebounce.ts', () => ({
-  useDebounce: jest.fn().mockReturnValue({
-    debounce: jest.fn((fn) => fn()),
+vi.mock('@designer/hooks/src/hooks/useDebounce.ts', () => ({
+  useDebounce: vi.fn().mockReturnValue({
+    debounce: vi.fn((fn) => fn()),
   }),
 }));
 
 describe('HiddenExpressionOnLayout', () => {
-  afterEach(() => jest.clearAllMocks());
   it('renders expression builder when layout has no expression set on hidden prop', () => {
     renderHiddenExpressionOnLayout();
     screen.getByRole('group', { name: textMock('right_menu.expressions_property_preview_hidden') });
@@ -94,7 +94,7 @@ describe('HiddenExpressionOnLayout', () => {
   });
 
   it('calls saveLayout when expression is deleted', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const user = userEvent.setup();
     const expression: BooleanExpression = [GeneralRelationOperator.Equals, 1, 1];
     renderHiddenExpressionOnLayout({

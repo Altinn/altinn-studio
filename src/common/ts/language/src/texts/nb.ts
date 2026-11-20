@@ -4,8 +4,6 @@ export function nb() {
   return {
     'dateTime.am': 'a.m.',
     'dateTime.pm': 'p.m.',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være.',
     'actions.sign': 'Signer',
     'actions.confirm': 'Bekreft',
     'actions.reject': 'Avslå',
@@ -70,6 +68,18 @@ export function nb() {
     'form_filler.alert_confirm': 'Bekreft',
     'form_filler.checkbox_alert': 'Er du sikker på at du vil fjerne avkrysningen?',
     'form_filler.multi_select_alert': 'Er du sikker på at du vil slette <b>{0}</b>?',
+    'form_filler.suggestion_added': 'La til',
+    'form_filler.suggestion_clear': 'Fjern tekst',
+    'form_filler.suggestion_empty': 'Ingen valgte',
+    'form_filler.suggestion_found': 'Naviger til venstre for å finne %d valgte',
+    'form_filler.suggestion_invalid': 'Ugyldig valg',
+    'form_filler.suggestion_items': 'Valgte',
+    'form_filler.suggestion_of': 'av',
+    'form_filler.suggestion_plural': '%d forslag',
+    'form_filler.suggestion_remove': 'Trykk for å fjerne',
+    'form_filler.suggestion_removed': 'Fjernet',
+    'form_filler.suggestion_singular': '%d forslag',
+    'form_filler.suggestion_toggle': 'Forslag',
     'form_filler.dropdown_alert': 'Er du sikker på at du vil endre til <b>{0}</b>?',
     'form_filler.error_report_header': 'Du må rette disse feilene før du kan gå videre',
     'form_filler.error_required': 'Du må fylle ut {0}',
@@ -95,6 +105,7 @@ export function nb() {
     'form_filler.file_uploader_list_header_delete_sr': 'Slett',
     'form_filler.file_uploader_max_size_mb': 'Maks filstørrelse {0} MB',
     'form_filler.file_uploader_upload': 'Last opp fil',
+    'form_filler.file_uploader_read_only': 'Vedleggene kan ikke endres.',
     'form_filler.file_uploader_number_of_files': 'Antall filer {0}.',
     'form_filler.file_uploader_show_more_errors': 'Vis {0} flere',
     'form_filler.file_uploader_show_fewer_errors': 'Vis færre',
@@ -137,6 +148,7 @@ export function nb() {
     'form_filler.lastName': 'etternavn',
     'form_filler.orgnr': 'organisasjonsnummer',
     'form_filler.name': 'organisasjonsnavn',
+    'form_filler.fileTransferId': 'fil',
     'navigation.main': 'Overordnet',
     'navigation.form': 'Skjemasider',
     'navigation.to_main_content': 'Hopp til hovedinnholdet',
@@ -256,6 +268,12 @@ export function nb() {
     'instance_selection.last_changed': 'Sist endret',
     'instance_selection.left_of': 'Fortsett der du slapp',
     'instance_selection.new_instance': 'Start på nytt',
+    'instantiate.not_yet_open_error_title': 'Denne tjenesten har ikke åpnet ennå',
+    'instantiate.not_yet_open_error_text':
+      'Tjenesten åpner {0}. Det er ikke mulig å starte nye skjema før det.',
+    'instantiate.closed_error_title': 'Du kan ikke starte denne tjenesten',
+    'instantiate.closed_error_text':
+      'Det er ikke mulig å starte nye skjema i denne tjenesten. Skjema du allerede har startet, kan du fortsatt fullføre fra innboksen.',
     'instantiate.all_forms': 'alle skjema',
     'instantiate.inbox': 'innboks',
     'instantiate.profile': 'profil',
@@ -281,9 +299,9 @@ export function nb() {
     'instantiate.authorization_error_ask':
       'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
+      '<a href="{0}" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
+      '<a href="{0}" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
     'instantiate.authorization_error_info_customer_service':
       'Du kan også kontakte oss på brukerservice {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -325,7 +343,7 @@ export function nb() {
     'party_selection.show_sub_unit': 'Vis underenheter',
     'party_selection.why_seeing_this': 'Hvorfor ser jeg dette?',
     'party_selection.seeing_this_preference':
-      'Du kan endre [profilinnstillingene](https://af.{0}/profile/parties) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
+      'Du kan endre [profilinnstillingene]({0}) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
     'party_selection.seeing_this_override': 'Denne appen er satt opp til å alltid spørre om aktør.',
     'payment.pay': 'Betal',
     'payment.summary': 'Oppsummering',
@@ -385,6 +403,103 @@ export function nb() {
     'person_lookup.validation_invalid_response_from_server':
       'Det oppstod en feil. Vennligst prøv igjen senere.',
     'person_lookup.unknown_error': 'Ukjent feil. Vennligst prøv igjen senere.',
+    'broker_file_transfer.unavailable':
+      'Det er ikke mulig å sende filer med Altinn Formidling her.',
+    'broker_file_transfer.sender_not_organization':
+      'Du kan bare sende denne filen på vegne av en virksomhet.',
+    'broker_file_transfer.resource_unavailable':
+      'Vi fikk ikke hentet innstillingene for å sende filen. Prøv å laste inn siden på nytt.',
+    'broker_file_transfer.none_sent': 'Ingen fil er sendt.',
+    'broker_file_transfer.max_size': 'Maks filstørrelse {0}',
+    'broker_file_transfer.send': 'Send filen',
+    'broker_file_transfer.remove_file': 'Fjern',
+    'broker_file_transfer.choose_file': 'Velg fil',
+    'broker_file_transfer.checksum': 'Sjekksum',
+    'broker_file_transfer.checksum_algorithm': '{0}-sjekksum',
+    'broker_file_transfer.checksum_help':
+      'Sjekksummen er en kode som er regnet ut fra innholdet i filen. Altinn Formidling regner den ut på nytt når filen er lastet opp, og avviser filen hvis den ikke stemmer. Du kan oppgi en MD5-sjekksum på 32 tegn eller en SHA256-sjekksum på 64 tegn.',
+    'broker_file_transfer.error_required': 'Du må sende en fil.',
+    'broker_file_transfer.error_one_file': 'Du kan bare sende én fil her.',
+    'broker_file_transfer.error_empty_file': 'Filen er tom.',
+    'broker_file_transfer.error_file_name_too_long': 'Filnavnet kan være maks {0} tegn.',
+    'broker_file_transfer.error_file_too_large': 'Filen er {0}. Du kan sende filer på opptil {1}.',
+    'broker_file_transfer.error_file_type': 'Du kan bare sende disse filtypene: {0}.',
+    'broker_file_transfer.error_no_recipients':
+      'Du må oppgi hvem som skal motta filen, før du kan sende den.',
+    'broker_file_transfer.error_invalid_recipients':
+      'Filen kan bare sendes til organisasjonsnummer med ni siffer, ikke til {0}.',
+    'broker_file_transfer.error_recipients_not_allowed':
+      'Filen kan bare sendes til virksomheter som har tilgang til denne tjenesten.',
+    'broker_file_transfer.error_checksum_invalid':
+      'Sjekksummen må være 32 eller 64 tegn, med bare tallene 0–9 og bokstavene a–f.',
+    'broker_file_transfer.error_metadata_required':
+      'Fyll ut de påkrevde feltene før du sender filen.',
+    'broker_file_transfer.error_failed_virus':
+      'Altinn Formidling fant skadelig innhold i filen og avviste den. Velg en annen fil.',
+    'broker_file_transfer.error_failed_checksum':
+      'Filen stemte ikke med sjekksummen, og Altinn Formidling avviste den. Kontroller sjekksummen, og send filen på nytt.',
+    'broker_file_transfer.error_failed_other':
+      'Altinn Formidling kunne ikke ta imot filen. Send den på nytt.',
+    'broker_file_transfer.error_no_access':
+      'Du har ikke tilgang til å sende filer i denne tjenesten på vegne av virksomheten.',
+    'broker_file_transfer.error_login':
+      'Altinn Formidling godtok ikke innloggingen din. Last inn siden på nytt for å logge inn igjen.',
+    'broker_file_transfer.error_not_set_up':
+      'Denne tjenesten er ikke satt opp til å sende filer med Altinn Formidling.',
+    'broker_file_transfer.error_send_failed': 'Filen ble ikke sendt. Prøv igjen.',
+    'broker_file_transfer.error_upload_not_prepared':
+      'Formidlingen ble opprettet, men filen ble ikke lastet opp. Prøv igjen.',
+    'broker_file_transfer.error_file_changed':
+      'Filen er endret eller flyttet etter at du valgte den. Velg den på nytt.',
+    'broker_file_transfer.error_file_changed_during_upload':
+      'Filen ble endret eller flyttet under opplastingen, så opplastingen kan ikke fortsette. Avbryt opplastingen og send filen på nytt.',
+    'broker_file_transfer.error_connection_lost':
+      'Forbindelsen til serveren ble brutt. Fortsett når du er på nett igjen – det som er lastet opp, beholdes.',
+    'broker_file_transfer.error_upload_stopped':
+      'Opplastingen stoppet. Fortsett for å laste opp resten av filen.',
+    'broker_file_transfer.error_upload_gone':
+      'Opplastingen er ikke lenger tilgjengelig på serveren. Send filen på nytt.',
+    'broker_file_transfer.error_not_sent':
+      'Filen er ikke ferdig lastet opp. Fortsett opplastingen, eller forkast den.',
+    'broker_file_transfer.error_still_checking':
+      'Altinn Formidling kontrollerer fortsatt filen. Du kan sende inn når kontrollen er ferdig.',
+    'broker_file_transfer.error_rejected': 'Fjern den avviste filen før du fortsetter.',
+    'broker_file_transfer.error_interrupted_unknown':
+      'Vi fikk ikke sjekket hvor langt den avbrutte opplastingen kom. Prøv å laste inn siden på nytt.',
+    'broker_file_transfer.progress_label': 'Fremdrift for opplastingen',
+    'broker_file_transfer.progress_announcement': '{0} prosent er lastet opp',
+    'broker_file_transfer.status_initializing': 'Oppretter formidlingen',
+    'broker_file_transfer.status_uploading': 'Laster opp – {0} % ({1} av {2})',
+    'broker_file_transfer.time_remaining': '{0} igjen',
+    'broker_file_transfer.less_than_a_minute_remaining': 'under ett minutt igjen',
+    'broker_file_transfer.status_pausing': 'Setter på pause – fullfører delene som er i gang',
+    'broker_file_transfer.status_paused': 'Satt på pause ved {0} % ({1} av {2})',
+    'broker_file_transfer.status_failed': 'Stoppet ved {0} % ({1} av {2})',
+    'broker_file_transfer.status_finishing': 'Setter sammen filen',
+    'broker_file_transfer.pause': 'Pause',
+    'broker_file_transfer.continue': 'Fortsett',
+    'broker_file_transfer.cancel': 'Avbryt opplastingen',
+    'broker_file_transfer.cancel_confirm':
+      'Det som er lastet opp, går tapt, og filen må sendes på nytt.',
+    'broker_file_transfer.cancel_confirm_yes': 'Ja, avbryt',
+    'broker_file_transfer.cancel_confirm_no': 'Nei, behold den',
+    'broker_file_transfer.interrupted':
+      'Opplastingen av «{0}» ble avbrutt. Velg den samme filen for å fortsette der den stoppet.',
+    'broker_file_transfer.interrupted_progress':
+      '{0} % er allerede lastet opp og sendes ikke på nytt.',
+    'broker_file_transfer.wrong_file':
+      'Dette er ikke filen som ble lastet opp. Velg «{0}», eller forkast den avbrutte opplastingen for å sende en annen fil.',
+    'broker_file_transfer.continue_upload': 'Fortsett opplastingen',
+    'broker_file_transfer.discard_upload': 'Forkast opplastingen',
+    'broker_file_transfer.discard_confirm_yes': 'Ja, forkast',
+    'broker_file_transfer.sent': 'Sendt',
+    'broker_file_transfer.checking': 'Kontrolleres',
+    'broker_file_transfer.rejected': 'Avvist',
+    'broker_file_transfer.sent_file': 'Filen er sendt',
+    'broker_file_transfer.not_fully_sent': 'Ikke ferdig sendt',
+    'broker_file_transfer.unsent_file': 'Filen som sendes',
+    'broker_file_transfer.file_transfer_id': 'Formidlings-ID: {0}',
+    'broker_file_transfer.sent_checksum': 'Sjekksum ({0}): {1}',
     'helptext.button_title': 'Hjelp',
     'helptext.button_title_prefix': 'Hjelpetekst for',
     'receipt.attachments': 'Vedlegg',
@@ -464,6 +579,16 @@ export function nb() {
       'Når du har satt deletionStrategy til soft må du også sette "checked".',
     'config_error.hard_delete_with_checked':
       'Når du har satt deletionStrategy til hard kan du ikke sette "checked".',
+    'config_error.broker_file_transfer_no_resource':
+      '{0} må angi ressursen i Altinn Formidling som filen skal sendes på.',
+    'config_error.broker_file_transfer_no_recipients':
+      '{0} er satt, men {1} inneholder ingen organisasjonsnummer.',
+    'config_error.broker_file_transfer_invalid_recipients':
+      'Disse mottakerne i {0} er ikke organisasjonsnummer: {1}',
+    'config_error.broker_file_transfer_too_much_metadata':
+      '{0} kan ha høyst {1} oppføringer, men har {2}.',
+    'config_error.broker_file_transfer_invalid_metadata_keys':
+      'Disse nøklene i {0} er tomme eller lengre enn {1} tegn: {2}',
     'version_error.version_mismatch': 'Versjonsfeil',
     'version_error.version_mismatch_message':
       'Denne versjonen av app frontend er ikke kompatibel med den versjonen av backend-bibliotekene du bruker. Oppdater til nyeste versjon av pakkene og prøv igjen.',
@@ -476,6 +601,10 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
+    'process_error.instance_changed':
+      'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    'process_error.concurrent_transition':
+      'Skjemaet ble sendt inn fra et annet sted samtidig, så innsendingen din ble ikke sendt. Se over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
@@ -491,7 +620,7 @@ export function nb() {
     'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.having_trouble':
-      'Vi får ikke behandlet skjemaet ditt akkurat nå, men vi prøver igjen automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
+      'Vi kan ikke behandle skjemaet ditt akkurat nå, men vi prøver igjen automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og arbeidet fortsetter automatisk. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',

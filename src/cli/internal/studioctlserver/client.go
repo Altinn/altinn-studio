@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -695,22 +696,8 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	}
 	startedAt := time.Now()
 
-	//nolint:gosec // G204: binary path comes from resolved studioctl config.
-	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.StudioctlServerBinaryPath())
-	cmd.Dir = startConfig.WorkingDir
-	cmd.Env = studioctlServerEnvironment(startConfig)
-	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
-	if err != nil {
-		return fmt.Errorf("open null device: %w", err)
-	}
-	defer ignoreError(devNull.Close())
-
-	cmd.Stdin = devNull
-	cmd.Stdout = devNull
-	cmd.Stderr = devNull
-	osutil.ApplyDetachedAttrs(cmd)
-
-	err = cmd.Start()
+	cmd := studioctlServerCommand(ctx, cfg, startConfig)
+	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("start studioctl-server: %w", err)
 	}
@@ -741,6 +728,17 @@ func startProcess(ctx context.Context, cfg *config.Config, startConfig startConf
 	ignoreError(osutil.KillProcess(startedPID))
 	ignoreError(removeStudioctlServerState(cfg))
 	return err
+}
+
+func studioctlServerCommand(ctx context.Context, cfg *config.Config, startConfig startConfig) *exec.Cmd {
+	//nolint:gosec // G204: binary path comes from resolved studioctl config.
+	cmd := exec.CommandContext(context.WithoutCancel(ctx), cfg.StudioctlServerBinaryPath())
+	cmd.Dir = startConfig.WorkingDir
+	cmd.Env = studioctlServerEnvironment(startConfig)
+	// Leave Stdin, Stdout, and Stderr nil so os/exec connects them to the null device
+	// and closes its parent-side handles after Start.
+	osutil.ApplyDetachedAttrs(cmd)
+	return cmd
 }
 
 func studioctlServerEnvironment(startConfig startConfig) []string {
@@ -1042,8 +1040,7 @@ func removeStudioctlServerState(cfg *config.Config) error {
 }
 
 func classifyClientError(err error) error {
-	var opErr *net.OpError
-	if errors.As(err, &opErr) {
+	if _, ok := errors.AsType[*net.OpError](err); ok {
 		return fmt.Errorf("%w: %s", ErrNotRunning, err.Error())
 	}
 	var pathErr *os.PathError
@@ -1074,9 +1071,9 @@ func readLatestStudioctlServerLogTailSince(dir string, since time.Time) string {
 	if err != nil {
 		return ""
 	}
-	for i := len(files) - 1; i >= 0; i-- {
-		if !files[i].ModTime.Before(since) {
-			return readStudioctlServerLogTail(files[i].Path)
+	for _, file := range slices.Backward(files) {
+		if !file.ModTime.Before(since) {
+			return readStudioctlServerLogTail(file.Path)
 		}
 	}
 	return ""

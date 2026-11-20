@@ -18,6 +18,7 @@
             "Alert",
             "AttachmentList",
             "Audio",
+            "BrokerFileTransfer",
             "Button",
             "ButtonGroup",
             "Cards",
@@ -167,6 +168,18 @@
           },
           "then": {
             "$ref": "#/definitions/CompAudio"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "BrokerFileTransfer"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompBrokerFileTransfer"
           }
         },
         {
@@ -807,6 +820,9 @@
     "CompAudio": {
       "$ref": "#/definitions/CompAudioExternal"
     },
+    "CompBrokerFileTransfer": {
+      "$ref": "#/definitions/CompBrokerFileTransferExternal"
+    },
     "CompButton": {
       "$ref": "#/definitions/CompButtonExternal"
     },
@@ -968,8 +984,107 @@
         "secondary"
       ]
     },
+    "AddressSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "AddressSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "AddressSummaryOverridesWithRef": {
       "title": "AddressSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/AddressSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for Address",
+              "description": "Properties for how to display the summary of this Address component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/AddressSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all Address",
+              "description": "Properties for how to display the summary of all Address components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Address"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "AlertSeverity": {
+      "title": "Alert severity",
+      "description": "The severity of the alert",
+      "enum": [
+        "success",
+        "warning",
+        "danger",
+        "info"
+      ]
+    },
+    "AlertSummaryOverridesWithRef": {
+      "title": "AlertSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
@@ -977,8 +1092,8 @@
               "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
-              "title": "Summary overrides for Address",
-              "description": "Properties for how to display the summary of this Address component",
+              "title": "Summary overrides for Alert",
+              "description": "Properties for how to display the summary of this Alert component",
               "type": "object",
               "properties": {
                 "componentId": {
@@ -1009,12 +1124,12 @@
               "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
-              "title": "Summary overrides for all Address",
-              "description": "Properties for how to display the summary of all Address components",
+              "title": "Summary overrides for all Alert",
+              "description": "Properties for how to display the summary of all Alert components",
               "type": "object",
               "properties": {
                 "componentType": {
-                  "const": "Address"
+                  "const": "Alert"
                 }
               },
               "required": [
@@ -1035,16 +1150,6 @@
             }
           ]
         }
-      ]
-    },
-    "AlertSeverity": {
-      "title": "Alert severity",
-      "description": "The severity of the alert",
-      "enum": [
-        "success",
-        "warning",
-        "danger",
-        "info"
       ]
     },
     "AllowedValidationMasks": {
@@ -1071,6 +1176,18 @@
           "$ref": "#/definitions/AddressSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/AlertSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/AttachmentListSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/AudioSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/BrokerFileTransferSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/CheckboxesSummaryOverridesWithRef"
         },
         {
@@ -1086,6 +1203,9 @@
           "$ref": "#/definitions/DropdownSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/FileUploadSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/GridSummaryOverridesWithRef"
         },
         {
@@ -1095,13 +1215,25 @@
           "$ref": "#/definitions/HeadingSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/IFrameSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/ImageSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/ImageUploadSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/InputSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/InstanceInformationSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/LikertSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/LikertItemSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/ListSummaryOverridesWithRef"
@@ -1122,10 +1254,16 @@
           "$ref": "#/definitions/OrganizationLookupSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/PanelSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/ParagraphSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/PaymentSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/PaymentDetailsSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/PersonLookupSummaryOverridesWithRef"
@@ -1150,6 +1288,78 @@
         },
         {
           "$ref": "#/definitions/TimePickerSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/VideoSummaryOverridesWithRef"
+        }
+      ]
+    },
+    "AttachmentListSummaryOverridesWithRef": {
+      "title": "AttachmentListSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for AttachmentList",
+              "description": "Properties for how to display the summary of this AttachmentList component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all AttachmentList",
+              "description": "Properties for how to display the summary of all AttachmentList components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "AttachmentList"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
         }
       ]
     },
@@ -1182,6 +1392,164 @@
         "title": "Audio source (when using other languages)",
         "type": "string"
       }
+    },
+    "AudioSummaryOverridesWithRef": {
+      "title": "AudioSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for Audio",
+              "description": "Properties for how to display the summary of this Audio component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all Audio",
+              "description": "Properties for how to display the summary of all Audio components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Audio"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "BrokerFileTransferSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "BrokerFileTransferSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "BrokerFileTransferSummaryOverridesWithRef": {
+      "title": "BrokerFileTransferSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/BrokerFileTransferSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for BrokerFileTransfer",
+              "description": "Properties for how to display the summary of this BrokerFileTransfer component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/BrokerFileTransferSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all BrokerFileTransfer",
+              "description": "Properties for how to display the summary of all BrokerFileTransfer components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "BrokerFileTransfer"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
     },
     "ButtonColor": {
       "title": "Button color override",
@@ -1293,6 +1661,11 @@
           "title": "CheckboxesSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "displayType": {
               "title": "Display type",
               "description": "How data should be displayed for this checkboxes component in the summary",
@@ -1331,6 +1704,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentId": true
               },
@@ -1364,6 +1738,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentType": true
               },
@@ -1521,9 +1896,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompAccordionExternal",
           "type": "object",
           "properties": {
@@ -1531,6 +1903,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Accordion"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -1590,9 +1974,9 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
+            "type": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "type": true,
             "textResourceBindings": true,
             "children": true,
             "openByDefault": true,
@@ -1613,9 +1997,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompAccordionGroupExternal",
           "type": "object",
           "properties": {
@@ -1623,6 +2004,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "AccordionGroup"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -1673,9 +2066,9 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
+            "type": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "type": true,
             "textResourceBindings": true,
             "children": true
           },
@@ -1766,9 +2159,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -1838,6 +2228,30 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -1869,14 +2283,14 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "saveWhileTyping": true,
@@ -1900,9 +2314,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompAddToListExternal",
           "type": "object",
           "properties": {
@@ -1912,25 +2323,7 @@
               "const": "AddToList"
             },
             "textResourceBindings": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/TRBFormComp"
-                },
-                {
-                  "$ref": "#/definitions/TRBSummarizable"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "tableTitle": true,
-                    "shortName": true,
-                    "requiredValidation": true,
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true
-                  },
-                  "additionalProperties": false
-                }
-              ]
+              "$ref": "#/definitions/TRBFormComp"
             },
             "title": {
               "type": "string"
@@ -1969,11 +2362,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true,
             "title": true,
@@ -2183,6 +2572,255 @@
         }
       ]
     },
+    "CompBrokerFileTransferExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
+          "title": "CompBrokerFileTransferExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "BrokerFileTransfer"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "$ref": "#/definitions/TRBLabel"
+                },
+                {
+                  "title": "Text resources",
+                  "description": "Connects component texts to text resources or expressions.",
+                  "type": "object",
+                  "properties": {
+                    "checksumTitle": {
+                      "title": "Checksum title",
+                      "description": "Title of the checksum field, instead of \"Checksum\".",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    },
+                    "checksumHelp": {
+                      "title": "Checksum help text",
+                      "description": "Help text for the checksum field, instead of the built-in one.",
+                      "$ref": "expression.schema.v1.json#/definitions/string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true,
+                    "title": true,
+                    "description": true,
+                    "help": true,
+                    "checksumTitle": true,
+                    "checksumHelp": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "removeWhenHidden": {
+              "title": "Remove fields from component dataModelBindings when hidden expression is true",
+              "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
+              "type": "object",
+              "properties": {
+                "fileTransferId": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
+                },
+                "fileTransferStatus": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
+                },
+                "fileName": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
+                }
+              },
+              "required": [
+                "fileTransferId",
+                "fileTransferStatus"
+              ],
+              "additionalProperties": false
+            },
+            "resourceId": {
+              "title": "Resource ID",
+              "description": "The Altinn Broker service the file is sent on: the ID of its resource in the Altinn Resource Registry.",
+              "type": "string"
+            },
+            "hasCustomRecipients": {
+              "title": "Specify recipients",
+              "description": "Whether the file is sent to the organizations in recipients. When false, it is sent to the party the Broker resource requires (requiredParty).",
+              "default": false,
+              "type": "boolean"
+            },
+            "recipients": {
+              "title": "Recipients",
+              "description": "Comma-separated organization numbers of the organizations that receive the file. Only used when hasCustomRecipients is set.",
+              "examples": [
+                "991825827, 912345678"
+              ],
+              "default": "",
+              "$ref": "expression.schema.v1.json#/definitions/string"
+            },
+            "metadata": {
+              "title": "Metadata",
+              "description": "Metadata sent with the file transfer, as Altinn Broker's property list: at most 10 entries, each key at most 50 characters. A value is fixed text or an expression, such as [\"dataModel\", \"path.to.field\"] for something the user filled in. Entries without a value when the file is sent are left out.",
+              "examples": [
+                {
+                  "caseNumber": [
+                    "dataModel",
+                    "case.number"
+                  ],
+                  "category": "invoice"
+                }
+              ],
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "$ref": "expression.schema.v1.json#/definitions/string"
+              }
+            },
+            "checksumField": {
+              "title": "Checksum field",
+              "description": "Shows a field where the user enters the file's checksum, MD5 or SHA256, which Altinn Broker checks the file against. The file cannot be sent without it when it is required. Without the field, Broker calculates the checksum itself.",
+              "enum": [
+                "optional",
+                "required"
+              ]
+            },
+            "disableVirusScan": {
+              "title": "Disable virus scan",
+              "description": "Sends the file without scanning it for viruses, so the size limit that scanning sets does not apply. Only allowed when the Broker resource is approved for it; otherwise the component shows a configuration error.",
+              "default": false,
+              "type": "boolean"
+            },
+            "maxFileTransferSizeInMB": {
+              "title": "Max file size (MB)",
+              "description": "Limits the file size further than the Broker resource does; the resource's limit still applies if it is lower. A file transfer with virus scan enabled does not support files larger than 50 GB.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "hasCustomFileEndings": {
+              "title": "Has custom file endings",
+              "description": "Boolean value indicating if the component has valid file endings",
+              "default": false,
+              "type": "boolean"
+            },
+            "validFileEndings": {
+              "title": "Valid file endings",
+              "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
+              "examples": [
+                ".csv",
+                ".doc",
+                ".docx",
+                ".gif",
+                ".jpeg",
+                ".pdf",
+                ".txt"
+              ],
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "dataModelBindings",
+            "resourceId"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "showValidations": true,
+            "labelSettings": true,
+            "type": true,
+            "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
+            "removeWhenHidden": true,
+            "dataModelBindings": true,
+            "resourceId": true,
+            "hasCustomRecipients": true,
+            "recipients": true,
+            "metadata": true,
+            "checksumField": true,
+            "disableVirusScan": true,
+            "maxFileTransferSizeInMB": true,
+            "hasCustomFileEndings": true,
+            "validFileEndings": true
+          },
+          "required": [
+            "id",
+            "type",
+            "dataModelBindings",
+            "resourceId"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "CompButtonExternal": {
       "allOf": [
         {
@@ -2246,9 +2884,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -2260,27 +2895,6 @@
               "description": "Identifies which component type this configuration represents.",
               "const": "ButtonGroup"
             },
-            "textResourceBindings": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/TRBSummarizable"
-                },
-                {
-                  "$ref": "#/definitions/TRBLabel"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
-                    "title": true,
-                    "description": true,
-                    "help": true
-                  },
-                  "additionalProperties": false
-                }
-              ]
-            },
             "children": {
               "title": "Children",
               "description": "Child component IDs of button-like components to be rendered in this group",
@@ -2288,6 +2902,9 @@
               "items": {
                 "type": "string"
               }
+            },
+            "textResourceBindings": {
+              "$ref": "#/definitions/TRBLabel"
             }
           },
           "required": [
@@ -2302,12 +2919,10 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
-            "textResourceBindings": true,
-            "children": true
+            "children": true,
+            "textResourceBindings": true
           },
           "required": [
             "id",
@@ -2324,9 +2939,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompCardsExternal",
           "type": "object",
           "properties": {
@@ -2334,6 +2946,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Cards"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "$ref": "#/definitions/TRBSummarizable"
@@ -2388,9 +3012,9 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
+            "type": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "type": true,
             "textResourceBindings": true,
             "mediaPosition": true,
             "minMediaHeight": true,
@@ -2415,9 +3039,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/ISelectionComponentFull"
@@ -2460,6 +3081,30 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -2504,11 +3149,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "optionsId": true,
             "queryParameters": true,
             "options": true,
@@ -2520,6 +3161,10 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "deletionStrategy": true,
@@ -2623,9 +3268,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompCustomExternal",
           "type": "object",
           "properties": {
@@ -2670,6 +3312,30 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -2697,13 +3363,13 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "tagName": true
@@ -2723,9 +3389,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompDateExternal",
           "type": "object",
           "properties": {
@@ -2733,6 +3396,12 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Date"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -2796,9 +3465,8 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
+            "forceShowInSummary": true,
             "textResourceBindings": true,
             "format": true,
             "value": true,
@@ -2821,9 +3489,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -2863,6 +3528,30 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -2958,14 +3647,14 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "autocomplete": true,
@@ -2989,9 +3678,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompDividerExternal",
           "type": "object",
           "properties": {
@@ -2999,9 +3685,6 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Divider"
-            },
-            "textResourceBindings": {
-              "$ref": "#/definitions/TRBSummarizable"
             }
           },
           "required": [
@@ -3015,10 +3698,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
-            "type": true,
-            "textResourceBindings": true
+            "type": true
           },
           "required": [
             "id",
@@ -3035,9 +3715,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/ISelectionComponentFull"
@@ -3081,6 +3758,30 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "alertOnChange": {
               "title": "Alert on change",
               "description": "Boolean value indicating if the component should alert on change",
@@ -3111,11 +3812,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "optionsId": true,
             "queryParameters": true,
             "options": true,
@@ -3127,6 +3824,10 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "alertOnChange": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
@@ -3149,9 +3850,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -3172,10 +3870,10 @@
                   "$ref": "#/definitions/TRBFormComp"
                 },
                 {
-                  "$ref": "#/definitions/TRBSummarizable"
+                  "$ref": "#/definitions/TRBLabel"
                 },
                 {
-                  "$ref": "#/definitions/TRBLabel"
+                  "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
                   "title": "Text resources",
@@ -3195,11 +3893,11 @@
                     "tableTitle": true,
                     "shortName": true,
                     "requiredValidation": true,
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
                     "title": true,
                     "description": true,
                     "help": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true,
                     "tagTitle": true
                   },
                   "additionalProperties": false
@@ -3282,6 +3980,24 @@
               "description": "Boolean value indicating if warning popup should be displayed when attempting to delete an element",
               "default": false,
               "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             }
           },
           "required": [
@@ -3299,11 +4015,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "optionsId": true,
             "queryParameters": true,
@@ -3322,7 +4034,10 @@
             "displayMode": true,
             "hasCustomFileEndings": true,
             "validFileEndings": true,
-            "alertOnDelete": true
+            "alertOnDelete": true,
+            "readOnly": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true
           },
           "required": [
             "id",
@@ -3342,9 +4057,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -3355,6 +4067,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Grid"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -3393,10 +4117,10 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
             "textResourceBindings": true,
             "rows": true
           },
@@ -3415,9 +4139,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompGroupExternal",
           "type": "object",
           "properties": {
@@ -3425,6 +4146,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Group"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -3506,9 +4239,9 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
+            "type": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "type": true,
             "textResourceBindings": true,
             "groupingIndicator": true,
             "children": true,
@@ -3529,9 +4262,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompHeadingExternal",
           "type": "object",
           "properties": {
@@ -3541,38 +4271,22 @@
               "const": "Heading"
             },
             "textResourceBindings": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/TRBSummarizable"
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
+              "type": "object",
+              "properties": {
+                "title": {
+                  "title": "Title",
+                  "description": "The text to display in the heading",
+                  "$ref": "expression.schema.v1.json#/definitions/string"
                 },
-                {
-                  "title": "Text resources",
-                  "description": "Connects component texts to text resources or expressions.",
-                  "type": "object",
-                  "properties": {
-                    "title": {
-                      "title": "Title",
-                      "description": "The text to display in the heading",
-                      "$ref": "expression.schema.v1.json#/definitions/string"
-                    },
-                    "help": {
-                      "title": "Help text",
-                      "description": "The text to display in the help tooltip/popup",
-                      "$ref": "expression.schema.v1.json#/definitions/string"
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
-                    "title": true,
-                    "help": true
-                  },
-                  "additionalProperties": false
+                "help": {
+                  "title": "Help text",
+                  "description": "The text to display in the help tooltip/popup",
+                  "$ref": "expression.schema.v1.json#/definitions/string"
                 }
-              ]
+              },
+              "additionalProperties": false
             },
             "size": {
               "title": "Size",
@@ -3599,8 +4313,6 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true,
             "size": true
@@ -3736,9 +4448,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -3777,6 +4486,24 @@
                 }
               ]
             },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "crop": {
               "$ref": "#/definitions/CropConfig"
             },
@@ -3803,14 +4530,13 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "crop": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
@@ -3830,9 +4556,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -3891,6 +4614,30 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -3995,14 +4742,14 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "saveWhileTyping": true,
@@ -4146,9 +4893,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/ISelectionComponent"
         },
         {
@@ -4168,6 +4912,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Likert"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -4233,6 +4989,18 @@
                 }
               ]
             },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -4260,8 +5028,6 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "optionsId": true,
             "queryParameters": true,
             "options": true,
@@ -4269,13 +5035,15 @@
             "sortOrder": true,
             "source": true,
             "optionFilter": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
             "labelSettings": true,
             "columns": true,
             "type": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
             "textResourceBindings": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "filter": true
@@ -4377,9 +5145,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -4418,6 +5183,24 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -4446,6 +5229,15 @@
               "properties": {},
               "additionalProperties": {
                 "type": "string"
+              }
+            },
+            "tableColumns": {
+              "title": "Table columns",
+              "description": "Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.",
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "$ref": "#/definitions/ITableColumnWidth"
               }
             },
             "sortableColumns": {
@@ -4500,18 +5292,18 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "deletionStrategy": true,
             "tableHeaders": true,
+            "tableColumns": true,
             "sortableColumns": true,
             "pagination": true,
             "dataListId": true,
@@ -4537,9 +5329,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -4579,6 +5368,30 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -4620,14 +5433,14 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "layers": true,
@@ -4652,9 +5465,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/ISelectionComponentFull"
@@ -4698,6 +5508,30 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "alertOnChange": {
               "title": "Alert on change",
               "description": "Boolean value indicating if the component should alert on change",
@@ -4732,11 +5566,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "optionsId": true,
             "queryParameters": true,
             "options": true,
@@ -4748,6 +5578,10 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "alertOnChange": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
@@ -4858,6 +5692,10 @@
             "validateOnNext": {
               "$ref": "#/definitions/PageValidation"
             },
+            "validateOnBackToSummary": {
+              "description": "Validation when returning to a summary or a linked page. Falls back to Next validation at each configuration level. Use an empty show array to skip validation.",
+              "$ref": "#/definitions/PageValidation"
+            },
             "validateOnPrevious": {
               "$ref": "#/definitions/PageValidation"
             }
@@ -4877,6 +5715,7 @@
             "textResourceBindings": true,
             "showBackButton": true,
             "validateOnNext": true,
+            "validateOnBackToSummary": true,
             "validateOnPrevious": true
           },
           "required": [
@@ -4893,9 +5732,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompNumberExternal",
           "type": "object",
           "properties": {
@@ -4903,6 +5739,12 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Number"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -4961,9 +5803,8 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
+            "forceShowInSummary": true,
             "textResourceBindings": true,
             "formatting": true,
             "value": true,
@@ -5015,9 +5856,6 @@
           "$ref": "#/definitions/ISelectionComponent"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompOptionExternal",
           "type": "object",
           "properties": {
@@ -5025,6 +5863,12 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Option"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -5087,9 +5931,8 @@
             "sortOrder": true,
             "source": true,
             "optionFilter": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
+            "forceShowInSummary": true,
             "textResourceBindings": true,
             "value": true,
             "direction": true,
@@ -5111,9 +5954,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -5173,6 +6013,24 @@
                 }
               ]
             },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -5209,14 +6067,13 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
           },
@@ -5301,9 +6158,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompParagraphExternal",
           "type": "object",
           "properties": {
@@ -5313,38 +6167,22 @@
               "const": "Paragraph"
             },
             "textResourceBindings": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/TRBSummarizable"
+              "title": "Text resources",
+              "description": "Connects component texts to text resources or expressions.",
+              "type": "object",
+              "properties": {
+                "title": {
+                  "title": "Title",
+                  "description": "The title of the paragraph",
+                  "$ref": "expression.schema.v1.json#/definitions/string"
                 },
-                {
-                  "title": "Text resources",
-                  "description": "Connects component texts to text resources or expressions.",
-                  "type": "object",
-                  "properties": {
-                    "title": {
-                      "title": "Title",
-                      "description": "The title of the paragraph",
-                      "$ref": "expression.schema.v1.json#/definitions/string"
-                    },
-                    "help": {
-                      "title": "Help text",
-                      "description": "Help text, optionally shown in a tooltip",
-                      "$ref": "expression.schema.v1.json#/definitions/string"
-                    }
-                  }
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
-                    "title": true,
-                    "help": true
-                  },
-                  "additionalProperties": false
+                "help": {
+                  "title": "Help text",
+                  "description": "Help text, optionally shown in a tooltip",
+                  "$ref": "expression.schema.v1.json#/definitions/string"
                 }
-              ]
+              },
+              "additionalProperties": false
             }
           },
           "required": [
@@ -5358,8 +6196,6 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true
           },
@@ -5442,9 +6278,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompPaymentExternal",
           "type": "object",
           "properties": {
@@ -5452,6 +6285,12 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Payment"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -5505,9 +6344,8 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
+            "renderAsSummary": true,
             "textResourceBindings": true
           },
           "required": [
@@ -5583,9 +6421,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -5643,6 +6478,24 @@
                 }
               ]
             },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -5665,14 +6518,13 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true
           },
@@ -5744,9 +6596,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/ISelectionComponentFull"
         },
         {
@@ -5787,6 +6636,30 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -5832,11 +6705,7 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "optionsId": true,
             "queryParameters": true,
             "options": true,
@@ -5848,6 +6717,10 @@
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "layout": true,
@@ -5870,9 +6743,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompRepeatingGroupExternal",
           "type": "object",
           "properties": {
@@ -5880,6 +6750,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "RepeatingGroup"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -6095,9 +6977,9 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
+            "type": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "type": true,
             "textResourceBindings": true,
             "rowsBefore": true,
             "rowsAfter": true,
@@ -6421,9 +7303,6 @@
           "$ref": "#/definitions/FormComponentProps"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "$ref": "#/definitions/LabeledComponentProps"
         },
         {
@@ -6441,10 +7320,10 @@
                   "$ref": "#/definitions/TRBFormComp"
                 },
                 {
-                  "$ref": "#/definitions/TRBSummarizable"
+                  "$ref": "#/definitions/TRBLabel"
                 },
                 {
-                  "$ref": "#/definitions/TRBLabel"
+                  "$ref": "#/definitions/TRBSummarizable"
                 },
                 {
                   "type": "object",
@@ -6452,15 +7331,21 @@
                     "tableTitle": true,
                     "shortName": true,
                     "requiredValidation": true,
-                    "summaryTitle": true,
-                    "summaryAccessibleTitle": true,
                     "title": true,
                     "description": true,
-                    "help": true
+                    "help": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true
                   },
                   "additionalProperties": false
                 }
               ]
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "title": {
               "type": "string"
@@ -6521,14 +7406,11 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "forceShowInSummary": true,
             "title": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
@@ -6556,9 +7438,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "title": "CompSubformExternal",
@@ -6628,6 +7507,18 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "layoutSet": {
               "title": "Layout set ID",
               "description": "The layout set to load for this subform",
@@ -6685,13 +7576,11 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
             "layoutSet": true,
             "showAddButton": true,
             "showDeleteButton": true,
@@ -6873,9 +7762,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompTabsExternal",
           "type": "object",
           "properties": {
@@ -6883,6 +7769,18 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Tabs"
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "$ref": "#/definitions/TRBSummarizable"
@@ -6917,9 +7815,9 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
+            "type": true,
             "renderAsSummary": true,
             "forceShowInSummary": true,
-            "type": true,
             "textResourceBindings": true,
             "size": true,
             "defaultTab": true,
@@ -6941,9 +7839,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -6984,6 +7879,30 @@
                 }
               ]
             },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
               "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
@@ -7019,14 +7938,14 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "saveWhileTyping": true,
@@ -7048,9 +7967,6 @@
           "$ref": "#/definitions/ComponentBase"
         },
         {
-          "$ref": "#/definitions/SummarizableComponentProps"
-        },
-        {
           "title": "CompTextExternal",
           "type": "object",
           "properties": {
@@ -7058,6 +7974,12 @@
               "title": "Component type",
               "description": "Identifies which component type this configuration represents.",
               "const": "Text"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "textResourceBindings": {
               "allOf": [
@@ -7109,9 +8031,8 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "type": true,
+            "forceShowInSummary": true,
             "textResourceBindings": true,
             "value": true,
             "direction": true,
@@ -7133,9 +8054,6 @@
         },
         {
           "$ref": "#/definitions/FormComponentProps"
-        },
-        {
-          "$ref": "#/definitions/SummarizableComponentProps"
         },
         {
           "$ref": "#/definitions/LabeledComponentProps"
@@ -7175,6 +8093,30 @@
                   "additionalProperties": false
                 }
               ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
             },
             "removeWhenHidden": {
               "title": "Remove fields from component dataModelBindings when hidden expression is true",
@@ -7259,14 +8201,14 @@
             "hidden": true,
             "grid": true,
             "pageBreak": true,
-            "readOnly": true,
-            "required": true,
             "showValidations": true,
-            "renderAsSummary": true,
-            "forceShowInSummary": true,
             "labelSettings": true,
             "type": true,
             "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
             "removeWhenHidden": true,
             "dataModelBindings": true,
             "autocomplete": true,
@@ -7441,13 +8383,31 @@
       ],
       "additionalProperties": false
     },
+    "DatepickerSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "DatepickerSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "DatepickerSummaryOverridesWithRef": {
       "title": "DatepickerSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DatepickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for Datepicker",
@@ -7467,6 +8427,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -7479,7 +8440,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DatepickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Datepicker",
@@ -7499,6 +8460,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -7648,13 +8610,31 @@
         }
       ]
     },
+    "DropdownSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "DropdownSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "DropdownSummaryOverridesWithRef": {
       "title": "DropdownSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DropdownSummaryOverrides"
             },
             {
               "title": "Summary overrides for Dropdown",
@@ -7674,6 +8654,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -7686,7 +8667,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DropdownSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Dropdown",
@@ -7706,6 +8687,96 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "FileUploadSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "FileUploadSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "FileUploadSummaryOverridesWithRef": {
+      "title": "FileUploadSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FileUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for FileUpload",
+              "description": "Properties for how to display the summary of this FileUpload component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FileUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all FileUpload",
+              "description": "Properties for how to display the summary of all FileUpload components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "FileUpload"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -7721,18 +8792,6 @@
       "title": "FormComponentProps",
       "type": "object",
       "properties": {
-        "readOnly": {
-          "title": "Read only/disabled?",
-          "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
-          "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
-        },
-        "required": {
-          "title": "Required?",
-          "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
-          "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
-        },
         "showValidations": {
           "$ref": "#/definitions/AllowedValidationMasks"
         }
@@ -8818,6 +9877,75 @@
       },
       "additionalProperties": false
     },
+    "IFrameSummaryOverridesWithRef": {
+      "title": "IFrameSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for IFrame",
+              "description": "Properties for how to display the summary of this IFrame component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all IFrame",
+              "description": "Properties for how to display the summary of all IFrame components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "IFrame"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
     "IGeometryType": {
       "title": "IGeometryType",
       "default": "GeoJSON",
@@ -9123,7 +10251,7 @@
       "properties": {
         "optionalIndicator": {
           "title": "Optional indicator",
-          "description": "Show the optional indicator on the label of non-required fields. Enabled by default.",
+          "description": "Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.",
           "default": true,
           "type": "boolean"
         }
@@ -9160,6 +10288,9 @@
               "type": "boolean"
             },
             "validationOnNavigation": {
+              "$ref": "#/definitions/PageValidation"
+            },
+            "validateOnBackToSummary": {
               "$ref": "#/definitions/PageValidation"
             }
           },
@@ -9248,8 +10379,8 @@
         "additionalProperties": false
       }
     },
-    "ImageUploadSummaryOverridesWithRef": {
-      "title": "ImageUploadSummaryOverridesWithRef",
+    "ImageSummaryOverridesWithRef": {
+      "title": "ImageSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
@@ -9257,8 +10388,8 @@
               "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
-              "title": "Summary overrides for ImageUpload",
-              "description": "Properties for how to display the summary of this ImageUpload component",
+              "title": "Summary overrides for Image",
+              "description": "Properties for how to display the summary of this Image component",
               "type": "object",
               "properties": {
                 "componentId": {
@@ -9289,12 +10420,12 @@
               "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
-              "title": "Summary overrides for all ImageUpload",
-              "description": "Properties for how to display the summary of all ImageUpload components",
+              "title": "Summary overrides for all Image",
+              "description": "Properties for how to display the summary of all Image components",
               "type": "object",
               "properties": {
                 "componentType": {
-                  "const": "ImageUpload"
+                  "const": "Image"
                 }
               },
               "required": [
@@ -9317,8 +10448,186 @@
         }
       ]
     },
+    "ImageUploadSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "ImageUploadSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "ImageUploadSummaryOverridesWithRef": {
+      "title": "ImageUploadSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ImageUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for ImageUpload",
+              "description": "Properties for how to display the summary of this ImageUpload component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ImageUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all ImageUpload",
+              "description": "Properties for how to display the summary of all ImageUpload components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "ImageUpload"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "InputSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "InputSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "InputSummaryOverridesWithRef": {
       "title": "InputSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/InputSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for Input",
+              "description": "Properties for how to display the summary of this Input component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/InputSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all Input",
+              "description": "Properties for how to display the summary of all Input components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Input"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "InstanceInformationSummaryOverridesWithRef": {
+      "title": "InstanceInformationSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
@@ -9326,8 +10635,8 @@
               "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
-              "title": "Summary overrides for Input",
-              "description": "Properties for how to display the summary of this Input component",
+              "title": "Summary overrides for InstanceInformation",
+              "description": "Properties for how to display the summary of this InstanceInformation component",
               "type": "object",
               "properties": {
                 "componentId": {
@@ -9358,12 +10667,12 @@
               "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
-              "title": "Summary overrides for all Input",
-              "description": "Properties for how to display the summary of all Input components",
+              "title": "Summary overrides for all InstanceInformation",
+              "description": "Properties for how to display the summary of all InstanceInformation components",
               "type": "object",
               "properties": {
                 "componentType": {
-                  "const": "Input"
+                  "const": "InstanceInformation"
                 }
               },
               "required": [
@@ -9775,6 +11084,20 @@
       },
       "additionalProperties": false
     },
+    "ITableColumnWidth": {
+      "title": "ITableColumnWidth",
+      "type": "object",
+      "properties": {
+        "width": {
+          "title": "Width",
+          "description": "Width of cell in % or 'auto'. Defaults to 'auto'",
+          "default": "auto",
+          "type": "string",
+          "pattern": "^([0-9]{1,2}%|100%|auto)$"
+        }
+      },
+      "additionalProperties": false
+    },
     "IVideo": {
       "title": "Video settings",
       "description": "Configures the video sources.",
@@ -9807,13 +11130,120 @@
         "table"
       ]
     },
+    "LikertItemSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "LikertItemSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "LikertItemSummaryOverridesWithRef": {
+      "title": "LikertItemSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/LikertItemSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for LikertItem",
+              "description": "Properties for how to display the summary of this LikertItem component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/LikertItemSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all LikertItem",
+              "description": "Properties for how to display the summary of all LikertItem components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "LikertItem"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "LikertSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "LikertSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "LikertSummaryOverridesWithRef": {
       "title": "LikertSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/LikertSummaryOverrides"
             },
             {
               "title": "Summary overrides for Likert",
@@ -9833,6 +11263,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -9845,7 +11276,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/LikertSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Likert",
@@ -9865,6 +11296,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -9885,13 +11317,31 @@
         "link"
       ]
     },
+    "ListSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "ListSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "ListSummaryOverridesWithRef": {
       "title": "ListSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/ListSummaryOverrides"
             },
             {
               "title": "Summary overrides for List",
@@ -9911,6 +11361,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -9923,7 +11374,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/ListSummaryOverrides"
             },
             {
               "title": "Summary overrides for all List",
@@ -9943,6 +11394,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -9983,13 +11435,31 @@
         }
       ]
     },
+    "MapSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "MapSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "MapSummaryOverridesWithRef": {
       "title": "MapSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/MapSummaryOverrides"
             },
             {
               "title": "Summary overrides for Map",
@@ -10009,6 +11479,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10021,7 +11492,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/MapSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Map",
@@ -10041,6 +11512,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10173,6 +11645,11 @@
           "title": "MultipleSelectSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "displayType": {
               "title": "Display type",
               "description": "How data should be displayed for the this multiple select component in the summary",
@@ -10211,6 +11688,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentId": true
               },
@@ -10244,6 +11722,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentType": true
               },
@@ -10502,13 +11981,31 @@
         }
       ]
     },
+    "OrganizationLookupSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "OrganizationLookupSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "OrganizationLookupSummaryOverridesWithRef": {
       "title": "OrganizationLookupSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/OrganizationLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for OrganizationLookup",
@@ -10528,6 +12025,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10540,7 +12038,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/OrganizationLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for all OrganizationLookup",
@@ -10560,6 +12058,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10593,6 +12092,75 @@
         "show"
       ],
       "additionalProperties": false
+    },
+    "PanelSummaryOverridesWithRef": {
+      "title": "PanelSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for Panel",
+              "description": "Properties for how to display the summary of this Panel component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all Panel",
+              "description": "Properties for how to display the summary of all Panel components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Panel"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
     },
     "PanelVariant": {
       "title": "Panel variant",
@@ -10705,6 +12273,75 @@
       ],
       "additionalProperties": false
     },
+    "PaymentDetailsSummaryOverridesWithRef": {
+      "title": "PaymentDetailsSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for PaymentDetails",
+              "description": "Properties for how to display the summary of this PaymentDetails component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all PaymentDetails",
+              "description": "Properties for how to display the summary of all PaymentDetails components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "PaymentDetails"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
     "PaymentSummaryOverridesWithRef": {
       "title": "PaymentSummaryOverridesWithRef",
       "anyOf": [
@@ -10774,13 +12411,31 @@
         }
       ]
     },
+    "PersonLookupSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "PersonLookupSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "PersonLookupSummaryOverridesWithRef": {
       "title": "PersonLookupSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/PersonLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for PersonLookup",
@@ -10800,6 +12455,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10812,7 +12468,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/PersonLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for all PersonLookup",
@@ -10832,6 +12488,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10863,13 +12520,31 @@
       ],
       "additionalProperties": false
     },
+    "RadioButtonsSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "RadioButtonsSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "RadioButtonsSummaryOverridesWithRef": {
       "title": "RadioButtonsSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/RadioButtonsSummaryOverrides"
             },
             {
               "title": "Summary overrides for RadioButtons",
@@ -10889,6 +12564,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10901,7 +12577,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/RadioButtonsSummaryOverrides"
             },
             {
               "title": "Summary overrides for all RadioButtons",
@@ -10921,6 +12597,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10941,6 +12618,11 @@
           "title": "RepeatingGroupSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "display": {
               "title": "Display type",
               "description": "Show the summary as a table or as full summary components",
@@ -10980,6 +12662,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentId": true
               },
@@ -11013,6 +12696,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentType": true
               },
@@ -11068,6 +12752,11 @@
           "title": "SubformSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "display": {
               "title": "Display type",
               "description": "Show the summary as a table or as full summary components",
@@ -11107,6 +12796,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentId": true
               },
@@ -11140,6 +12830,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentType": true
               },
@@ -11151,24 +12842,6 @@
           ]
         }
       ]
-    },
-    "SummarizableComponentProps": {
-      "title": "SummarizableComponentProps",
-      "type": "object",
-      "properties": {
-        "renderAsSummary": {
-          "title": "Render as summary",
-          "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
-          "default": false,
-          "type": "boolean"
-        },
-        "forceShowInSummary": {
-          "title": "Force show in summary",
-          "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
-          "default": false,
-          "$ref": "expression.schema.v1.json#/definitions/boolean"
-        }
-      }
     },
     "SummaryDisplayProperties": {
       "title": "Display properties",
@@ -11390,13 +13063,31 @@
         }
       ]
     },
+    "TextAreaSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "TextAreaSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "TextAreaSummaryOverridesWithRef": {
       "title": "TextAreaSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TextAreaSummaryOverrides"
             },
             {
               "title": "Summary overrides for TextArea",
@@ -11416,6 +13107,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11428,7 +13120,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TextAreaSummaryOverrides"
             },
             {
               "title": "Summary overrides for all TextArea",
@@ -11448,6 +13140,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11528,13 +13221,31 @@
         }
       ]
     },
+    "TimePickerSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "TimePickerSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "TimePickerSummaryOverridesWithRef": {
       "title": "TimePickerSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TimePickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for TimePicker",
@@ -11554,6 +13265,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11566,7 +13278,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TimePickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for all TimePicker",
@@ -11586,6 +13298,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11717,6 +13430,75 @@
         "title": "Video source (when using other languages)",
         "type": "string"
       }
+    },
+    "VideoSummaryOverridesWithRef": {
+      "title": "VideoSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for Video",
+              "description": "Properties for how to display the summary of this Video component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all Video",
+              "description": "Properties for how to display the summary of all Video components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "Video"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
     }
   }
 }

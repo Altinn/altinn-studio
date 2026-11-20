@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
@@ -8,7 +9,7 @@ import type { IWidget, IWidgetTexts } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource } from 'app-shared/types/global';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 
 // Test data:
@@ -27,8 +28,6 @@ const widget: IWidget = {
 const defaultArgs: AddWidgetMutationArgs = { widget, position: 0 };
 
 describe('useAddWidgetMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Saves layout', async () => {
     const { result } = await renderAddWidgetMutation();
     await result.current.mutateAsync(defaultArgs);

@@ -3,8 +3,8 @@ import {
   FormComponentProps,
   IQueryParameters,
   IRawDataModelBinding,
+  ITableColumnWidth,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -25,10 +25,14 @@ export interface IPagination {
 export type CompListSerialized = {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
   tableHeaders: { [key: string]: string };
+  tableColumns?: { [key: string]: ITableColumnWidth };
   sortableColumns?: string[];
   pagination?: IPagination;
   dataListId: string;
@@ -38,7 +42,6 @@ export type CompListSerialized = {
   tableHeadersMobile?: string[];
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 89d629404947b28df6ea0ba03b90c806b34396308b79a195220a2eb9bd358879
+// Source hash: 38af8152eed2614ed7e82e7a591a1901adaeaa7827b8deb6b8964b2517e55562

@@ -21,7 +21,7 @@ on:
       environments:
         description: "Runtime environments to tag. Comma-separated (e.g. at_ring1,at_ring2)."
         required: false
-        default: "at_ring2,tt_ring1,tt_ring2"
+        default: "at_ring2,tt_ring1,tt_ring2,prod_ring1,prod_ring2"
       tag-latest:
         description: 'Tag the GHCR image as "latest"'
         required: false
@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/template-runtime-construct-environments.yaml
     with:
       inputs: ${{ toJSON(github.event.inputs) }}
-      override-default-runtime-environments: at_ring2,tt_ring1,tt_ring2
+      override-default-runtime-environments: at_ring2,tt_ring1,tt_ring2,prod_ring1,prod_ring2
 
   push-workflow-engine-app-artifact:
     name: Push workflow-engine-app as OCI artifact
@@ -94,6 +94,13 @@ jobs:
 
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Ubuntu 26.04 runners give BuildKit RUN steps a stacked AppArmor label (docker-default//&unconfined), and
+      # the docker-default profile then denies signals between a container's own processes. .NET's GC relies on
+      # such a signal, so csc dies with exit code 139. Remove when Docker ships the profile fix for
+      # https://github.com/moby/moby/issues/54099.
+      - name: Let container processes signal each other (moby/moby#54099)
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0
 
       - name: docker build
         working-directory: src

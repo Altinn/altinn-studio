@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -8,15 +9,15 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { Route, Routes } from 'react-router-dom';
 import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
-const mockedNavigate = jest.fn();
-jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+const mockedNavigate = vi.fn();
+vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
 }));
 

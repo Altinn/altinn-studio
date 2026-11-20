@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
@@ -86,6 +87,13 @@ public sealed class DataModelInfo
     [JsonPropertyName("expressionValidationConfig")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? ExpressionValidationConfig { get; init; }
+
+    /// <summary>
+    /// Expression calculation configuration. Null for PDF mode or locked data.
+    /// </summary>
+    [JsonPropertyName("calculationConfig")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CalculationConfig? CalculationConfig { get; init; }
 
     /// <summary>
     /// Initial validation issues scoped to this data model/data element.

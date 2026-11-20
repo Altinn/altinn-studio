@@ -1,11 +1,12 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { TasksTable, type TasksTableProps } from './TasksTable';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const tasksMock: TaskNavigationGroup[] = [
   { taskType: 'type1', name: 'Task 1' },
@@ -15,8 +16,6 @@ const tasksMock: TaskNavigationGroup[] = [
 const allTasksMock: TaskNavigationGroup[] = [...tasksMock, { taskType: 'type3', name: 'Task 3' }];
 
 describe('TasksTable', () => {
-  beforeEach(() => jest.clearAllMocks());
-
   it('should render the table with tasks', () => {
     renderTasksTable();
 
@@ -44,7 +43,7 @@ describe('TasksTable', () => {
   });
 
   it('should remove all tasks from navigation table when hide all button is clicked and confirmed', async () => {
-    jest.spyOn(window, 'confirm').mockImplementation(jest.fn(() => true));
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
     const user = userEvent.setup();
     renderTasksTable();
 

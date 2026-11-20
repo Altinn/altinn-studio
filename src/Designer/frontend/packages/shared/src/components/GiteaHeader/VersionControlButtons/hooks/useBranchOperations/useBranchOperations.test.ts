@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBranchOperations } from './useBranchOperations';
 import { useCheckoutBranchMutation } from 'app-shared/hooks/mutations/useCheckoutBranchMutation';
@@ -5,23 +6,24 @@ import { useCreateBranchMutation } from 'app-shared/hooks/mutations/useCreateBra
 import { useDiscardChangesMutation } from 'app-shared/hooks/mutations/useDiscardChangesMutation';
 import { useDeleteBranchMutation } from 'app-shared/hooks/mutations/useDeleteBranchMutation';
 import { uncommittedChangesErrorMock } from '../../test/mocks/branchingMocks';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
-jest.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
-jest.mock('app-shared/hooks/mutations/useCreateBranchMutation');
-jest.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
-jest.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
+vi.mock('app-shared/hooks/mutations/useCheckoutBranchMutation');
+vi.mock('app-shared/hooks/mutations/useCreateBranchMutation');
+vi.mock('app-shared/hooks/mutations/useDiscardChangesMutation');
+vi.mock('app-shared/hooks/mutations/useDeleteBranchMutation');
 
-const mockUseCheckoutBranchMutation = jest.mocked(useCheckoutBranchMutation);
-const mockUseCreateBranchMutation = jest.mocked(useCreateBranchMutation);
-const mockUseDiscardChangesMutation = jest.mocked(useDiscardChangesMutation);
-const mockUseDeleteBranchMutation = jest.mocked(useDeleteBranchMutation);
+const mockUseCheckoutBranchMutation = vi.mocked(useCheckoutBranchMutation);
+const mockUseCreateBranchMutation = vi.mocked(useCreateBranchMutation);
+const mockUseDiscardChangesMutation = vi.mocked(useDiscardChangesMutation);
+const mockUseDeleteBranchMutation = vi.mocked(useDeleteBranchMutation);
 
-const checkoutBranchMutate = jest.fn();
-const createBranchMutate = jest.fn();
-const discardChangesMutate = jest.fn();
-const deleteBranchMutate = jest.fn();
+const checkoutBranchMutate = vi.fn();
+const createBranchMutate = vi.fn();
+const discardChangesMutate = vi.fn();
+const deleteBranchMutate = vi.fn();
 
 const { reload: originalReload } = window.location;
 
@@ -45,14 +47,13 @@ describe('useBranchOperations', () => {
     } as any);
 
     Object.defineProperty(window, 'location', {
-      value: { reload: jest.fn() },
+      value: { reload: vi.fn() },
       writable: true,
     });
   });
 
   afterEach(() => {
     window.location.reload = originalReload;
-    jest.clearAllMocks();
   });
 
   describe('checkoutExistingBranch', () => {
@@ -69,7 +70,7 @@ describe('useBranchOperations', () => {
 
     it('should set uncommittedChangesError on 409 conflict with data', () => {
       checkoutBranchMutate.mockImplementation((_branch, options) =>
-        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+        options?.onError?.(createHttpErrorMock(409, uncommittedChangesErrorMock)),
       );
 
       const { result } = renderHook(() => useBranchOperations(org, app));
@@ -83,7 +84,7 @@ describe('useBranchOperations', () => {
     it('should clear previous uncommittedChangesError', () => {
       checkoutBranchMutate
         .mockImplementationOnce((_branch, options) =>
-          options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+          options?.onError?.(createHttpErrorMock(409, uncommittedChangesErrorMock)),
         )
         .mockImplementationOnce((_branch, options) => options?.onSuccess?.());
 
@@ -113,7 +114,7 @@ describe('useBranchOperations', () => {
 
     it('should set generic error when create fails', () => {
       createBranchMutate.mockImplementation((_branch, options) =>
-        options?.onError?.(createAxiosError(500)),
+        options?.onError?.(createHttpErrorMock(500)),
       );
 
       const { result } = renderHook(() => useBranchOperations(org, app));
@@ -129,7 +130,7 @@ describe('useBranchOperations', () => {
     it('should set uncommittedChangesError when checkout fails with 409 and data', () => {
       createBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
       checkoutBranchMutate.mockImplementation((_branch, options) =>
-        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+        options?.onError?.(createHttpErrorMock(409, uncommittedChangesErrorMock)),
       );
 
       const { result } = renderHook(() => useBranchOperations(org, app));
@@ -142,7 +143,7 @@ describe('useBranchOperations', () => {
 
     it('should reset createError when retrying', () => {
       createBranchMutate
-        .mockImplementationOnce((_branch, options) => options?.onError?.(createAxiosError(500)))
+        .mockImplementationOnce((_branch, options) => options?.onError?.(createHttpErrorMock(500)))
         .mockImplementationOnce((_branch, options) => options?.onSuccess?.());
       checkoutBranchMutate.mockImplementation((_branch, options) => options?.onSuccess?.());
 
@@ -173,7 +174,7 @@ describe('useBranchOperations', () => {
     it('should set uncommittedChangesError when checkout fails with 409', () => {
       discardChangesMutate.mockImplementation((_undefined, options) => options?.onSuccess?.());
       checkoutBranchMutate.mockImplementation((_branch, options) =>
-        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+        options?.onError?.(createHttpErrorMock(409, uncommittedChangesErrorMock)),
       );
 
       const { result } = renderHook(() => useBranchOperations(org, app));
@@ -205,7 +206,7 @@ describe('useBranchOperations', () => {
   describe('clearUncommittedChangesError', () => {
     it('should clear the error state', () => {
       checkoutBranchMutate.mockImplementation((_undefined, options) =>
-        options?.onError?.(createAxiosError(409, uncommittedChangesErrorMock)),
+        options?.onError?.(createHttpErrorMock(409, uncommittedChangesErrorMock)),
       );
 
       const { result } = renderHook(() => useBranchOperations(org, app));
@@ -234,12 +235,4 @@ describe('useBranchOperations', () => {
       expect(result.current.isLoading).toBe(true);
     });
   });
-});
-
-const createAxiosError = (status: number, data?: unknown) => ({
-  response: { status, data, statusText: 'Error', headers: {}, config: {} as any },
-  isAxiosError: true,
-  toJSON: () => ({}),
-  name: 'AxiosError',
-  message: `Request failed with status code ${status}`,
 });

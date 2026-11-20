@@ -26,6 +26,14 @@ export function generateExpressionDescriptors(componentType: string, root: CodeG
     leaves.set(propertyPath, descriptor);
   }
 
+  const rootDescriptor = leaves.get('');
+  if (rootDescriptor !== undefined) {
+    if (leaves.size !== 1) {
+      throw new Error(`Conflicting expression descriptors at ${componentType}`);
+    }
+    return rootDescriptor;
+  }
+
   const tree: DescriptorTree = {};
   for (const [path, descriptor] of leaves) {
     let current = tree;
@@ -47,10 +55,13 @@ function renderDescriptor(entry: ExpressionDescriptorEntry, componentType: strin
   if (!typeName) {
     throw new Error(`Unknown expression return type ${entry.returnType}`);
   }
+  const errorIntroText = propertyPath
+    ? `Invalid expression for ${componentType}, property ${propertyPath}`
+    : `Invalid expression for ${componentType}`;
   return `{
     returnType: ExprVal.${typeName},
     defaultValue: ${serializeFallback(entry.defaultValue)},
-    errorIntroText: ${JSON.stringify(`Invalid expression for ${componentType}, property ${propertyPath}`)},
+    errorIntroText: ${JSON.stringify(errorIntroText)},
   } satisfies ExpressionDescriptor<ExprVal.${typeName}>`;
 }
 

@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { StudioPageHeader } from '@studio/components';
+import { StudioPageHeader } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 
 export const PageLayout = () => {

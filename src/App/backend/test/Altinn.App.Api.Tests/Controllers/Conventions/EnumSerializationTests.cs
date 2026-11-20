@@ -9,14 +9,13 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers.Conventions;
 
-public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class EnumSerializationTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -25,8 +24,8 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
     private readonly Mock<IAuthorizationClient> _authorizationClientMock;
     private readonly Mock<IAppMetadata> _appMetadataMock;
 
-    public EnumSerializationTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public EnumSerializationTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         // Mock auth client to return the enum we want to test
         _authorizationClientMock = new Mock<IAuthorizationClient>();

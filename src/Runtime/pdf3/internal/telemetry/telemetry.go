@@ -8,17 +8,18 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	otelmetric "go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
+
+	commontelemetry "altinn.studio/common/telemetry"
 )
 
 const scopeName = "pdf3"
+
+// serviceVersion is the build's version, the commit the deployment workflow builds from:
+// go build -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=...".
+var serviceVersion = "dev"
 
 //nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Tracer() oteltrace.Tracer {
@@ -30,72 +31,33 @@ func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
 }
 
-// ConfigureOTel bootstraps the OpenTelemetry pipeline.
+// ConfigureOTel bootstraps the OpenTelemetry pipeline for the runtime environment pdf3 runs in,
+// exporting the given signals. The others stay no-ops.
+// pdf3 reports its environment itself, since in the DIS core cluster no router sets it.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, err error) {
-	var shutdownFuncs []func(context.Context) error
+func ConfigureOTel(
+	ctx context.Context,
+	environment string,
+	signals commontelemetry.Signals,
+) (func(context.Context) error, error) {
+	shutdown, err := commontelemetry.Setup(ctx, commontelemetry.Config{
+		ServiceVersion: serviceVersion,
+		Environment:    environment,
+		MetricViews:    []metric.View{httpDurationView},
+		Signals:        signals,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("configure OpenTelemetry: %w", err)
+	}
 
-	shutdown = func(ctx context.Context) error {
-		var shutdownErr error
-		for _, fn := range shutdownFuncs {
-			shutdownErr = errors.Join(shutdownErr, fn(ctx))
+	if signals.Metrics {
+		if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(15 * time.Second)); err != nil {
+			err = fmt.Errorf("start runtime metrics instrumentation: %w", err)
+			return nil, errors.Join(err, shutdown(ctx))
 		}
-		shutdownFuncs = nil
-		return shutdownErr
-	}
-
-	handleErr := func(inErr error) {
-		err = errors.Join(inErr, shutdown(ctx))
-	}
-
-	// OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES set the service identity
-	res, err := resource.New(ctx,
-		resource.WithFromEnv(),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create resource: %w", err)
-	}
-
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	))
-
-	tracerProvider, err := newTracerProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
-
-	meterProvider, err := newMeterProvider(ctx, res)
-	if err != nil {
-		handleErr(err)
-		return shutdown, err
-	}
-	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
-
-	if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(15 * time.Second)); err != nil {
-		handleErr(err)
-		return shutdown, fmt.Errorf("start runtime metrics instrumentation: %w", err)
 	}
 
 	return shutdown, nil
-}
-
-func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
-	// cluster-internal endpoint, no TLS needed
-	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("create trace exporter: %w", err)
-	}
-
-	return trace.NewTracerProvider(
-		trace.WithBatcher(exporter, trace.WithBatchTimeout(5*time.Second)),
-		trace.WithResource(res),
-	), nil
 }
 
 // Buckets tailored for PDF generation latencies (0.25s to 35s).
@@ -113,17 +75,3 @@ var httpDurationView = metric.NewView(
 		},
 	},
 )
-
-func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
-	// cluster-internal endpoint, no TLS needed
-	exporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("create metric exporter: %w", err)
-	}
-
-	return metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(exporter, metric.WithInterval(30*time.Second))),
-		metric.WithResource(res),
-		metric.WithView(httpDurationView),
-	), nil
-}

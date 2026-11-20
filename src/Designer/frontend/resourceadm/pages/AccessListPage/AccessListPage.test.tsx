@@ -1,14 +1,15 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AccessListPage } from './AccessListPage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org: 'org1',
     env: 'tt02',
@@ -17,8 +18,6 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('AccessListPage', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should show spinner on load', () => {
     renderAccessListPage();
     expect(screen.getByLabelText(textMock('resourceadm.loading_access_list'))).toBeInTheDocument();
@@ -50,7 +49,7 @@ describe('AccessListPage', () => {
 const renderAccessListPage = (isLoadError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
-    getAccessList: jest
+    getAccessList: vi
       .fn()
       .mockImplementation(() => (isLoadError ? Promise.reject({}) : Promise.resolve({}))),
   };

@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ConfigEFormidlingServiceTask } from './ConfigEFormidlingServiceTask';
 import type { BpmnContextProps } from '../../../../contexts/BpmnContext';
 import { mockBpmnDetails } from '../../../../../test/mocks/bpmnDetailsMock';
@@ -27,8 +28,6 @@ const fieldLabel = (property: string): string =>
   textMock(`process_editor.configuration_panel.eformidling.${property}_label`);
 
 describe('ConfigEFormidlingServiceTask', () => {
-  afterEach(jest.clearAllMocks);
-
   it.each([
     ['process', 'process', 'urn:no:difi:profile:arkivmelding:ver1.0'],
     ['standard', 'standard', 'urn:no:difi:arkivmelding:xsd::arkivmelding'],
@@ -305,9 +304,9 @@ function renderConfigEFormidlingServiceTask(props: RenderProps = defaultProps) {
     ...mockBpmnDetails.element,
     businessObject: { extensionElements: { values: [taskExtension] } },
   };
-  const updateModdleProperties = jest.fn();
+  const updateModdleProperties = vi.fn();
   const moddle = {
-    create: jest.fn((type: string, properties: object) => ({ $type: type, ...properties })),
+    create: vi.fn((type: string, properties: object) => ({ $type: type, ...properties })),
   };
   const modelerRef = {
     current: {

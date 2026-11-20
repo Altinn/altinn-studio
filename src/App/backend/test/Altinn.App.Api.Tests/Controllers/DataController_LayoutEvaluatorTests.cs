@@ -8,16 +8,15 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_LayoutEvaluatorTests : ApiTestBase
 {
-    public DataController_LayoutEvaluatorTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataController_LayoutEvaluatorTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     private class DataProcessor : IDataProcessor
     {
@@ -92,7 +91,16 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
             updateDataElementContent
         );
         var changes = await VerifyStatusAndDeserialize<CalculationResult>(response, HttpStatusCode.OK);
-        changes.ChangedFields.Should().HaveCount(2);
+        changes.ChangedFields.Should().HaveCount(3);
+        // default.calculation.json runs on every write
+        changes
+            .ChangedFields.Should()
+            .ContainKey("melding.calculated-fixed-value")
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which.GetString()
+            .Should()
+            .Be("Hello Ola Nielsen");
         changes
             .ChangedFields.Should()
             .ContainKey("melding.toggle")

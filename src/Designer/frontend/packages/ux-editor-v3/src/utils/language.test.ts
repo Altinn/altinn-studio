@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import {
   getComponentHelperTextByComponentType,
   getComponentTitleByComponentType,
   getTextResource,
 } from './language';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
+import { mockUseTranslation } from '@designer/testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {
   describe('getComponentHelperTextByComponentType', () => {

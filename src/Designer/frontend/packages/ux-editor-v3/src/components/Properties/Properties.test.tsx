@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { Properties } from './Properties';
 import { render as rtlRender, screen, waitFor, within } from '@testing-library/react';
 import { FormItemContext } from '../../containers/FormItemContext';
 import userEvent from '@testing-library/user-event';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -18,16 +19,16 @@ const expressionsTestId = 'expressions';
 const calculationsTestId = 'calculations';
 
 // Mocks:
-jest.mock('./Content', () => ({
+vi.mock('./Content', () => ({
   Content: () => <div data-testid={contentTestId} />,
 }));
-jest.mock('./ConditionalRendering', () => ({
+vi.mock('./ConditionalRendering', () => ({
   ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
 }));
-jest.mock('../config/Expressions', () => ({
+vi.mock('../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
 }));
-jest.mock('./Calculations', () => ({
+vi.mock('./Calculations', () => ({
   Calculations: () => <div data-testid={calculationsTestId} />,
 }));
 

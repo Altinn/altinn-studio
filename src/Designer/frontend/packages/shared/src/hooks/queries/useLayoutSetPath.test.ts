@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import type { RenderHookResult } from '@testing-library/react';
@@ -9,7 +10,7 @@ import type { PagesModel } from '../../types/api/dto/PagesModel';
 const org = 'testOrg';
 const app = 'testApp';
 const layoutSetId = 'testLayoutSet';
-const getPages = jest.fn();
+const getPages = vi.fn();
 
 const pagesModelWithPages: PagesModel = {
   pages: [{ id: 'page1' }, { id: 'page2' }, { id: 'page3' }],

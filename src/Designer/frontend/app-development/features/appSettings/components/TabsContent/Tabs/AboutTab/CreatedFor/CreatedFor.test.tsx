@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { CreatedForProps } from './CreatedFor';
 import { CreatedFor } from './CreatedFor';
@@ -5,8 +6,8 @@ import {
   mockRepository1,
   mockRepository2,
 } from 'app-development/features/appSettings/mocks/repositoryMock';
-import { DateUtils } from '@studio/pure-functions';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { DateUtils } from '@designer/pure-functions';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockAuthorName = 'Mock Mockesen';
 
@@ -16,8 +17,6 @@ const defaultProps: CreatedForProps = {
 };
 
 describe('CreatedFor', () => {
-  afterEach(jest.clearAllMocks);
-
   it('displays owners full name when it is set', async () => {
     render(<CreatedFor {...defaultProps} />);
 

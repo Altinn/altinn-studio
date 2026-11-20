@@ -3,19 +3,22 @@ import type { PropsWithChildren } from 'react';
 
 import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
+import { isHttpError } from '@studio/http-client';
 
 import classes from 'src/components/message/ErrorReport.module.css';
+import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
+import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import {
   InstantiationValidation,
   isInstantiationValidationResult,
 } from 'src/features/instantiate/InstantiationValidation';
-import { Lang } from 'src/features/language/Lang';
+import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
+import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 export interface IErrorReportProps extends PropsWithChildren {
@@ -89,11 +92,7 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
     <>
       {taskErrors.map((error) => (
         <ErrorReportListItem key={getUniqueKeyFromObject(error)}>
-          <Lang
-            id={error.message.key}
-            customTextParameters={error.message.customTextParameters}
-            params={error.message.params}
-          />
+          <LangReference reference={error.message} />
         </ErrorReportListItem>
       ))}
       {formErrors.map((error) => (
@@ -106,14 +105,27 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
   );
 }
 
+export function ErrorListForClosedInstantiation({ reason }: { reason: InstantiationClosedReason }) {
+  return (
+    <ErrorReportListItem>
+      <InstantiationClosedText reason={reason} />
+    </ErrorReportListItem>
+  );
+}
+
 /**
  * @see src/routes/instance-selection/instance-selection.loader.ts Contains somewhat similar error
  * handling logic in the route loader.
  */
 export function ErrorListFromInstantiation({ error }: { error: unknown }) {
   const selectedParty = useSelectedParty();
+  const closedReason = useInstantiationClosedReason();
 
-  if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
+  if (isInstantiationClosedError(error)) {
+    return <ErrorListForClosedInstantiation reason={closedReason ?? { reason: 'closed' }} />;
+  }
+
+  if (isHttpError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
     if (isInstantiationValidationResult(error.response.data)) {
       return (
         <ErrorReportListItem>
@@ -167,11 +179,7 @@ function ErrorWithLink({ error }: { error: NodeRefValidation }) {
         data-target-node={error.nodeId}
       >
         <DataModelLocationProviderFromNode nodeId={error.nodeId}>
-          <Lang
-            id={error.message.key}
-            params={error.message.params}
-            customTextParameters={error.message.customTextParameters}
-          />
+          <LangReference reference={error.message} />
         </DataModelLocationProviderFromNode>
       </button>
     </ErrorReportListItem>

@@ -1,20 +1,32 @@
-name: Assistant-prompts
+name: Assistant - Prompts
 
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/AI/agents/agents/prompts/**'
-      - 'src/AI/agents/scripts/sync_prompts.py'
+      - 'src/AI/assistant/agents/prompts/**'
+      - 'src/AI/assistant/scripts/sync_prompts.py'
       - '.github/workflows/assistant-prompts.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   push:
     branches: [main]
     paths:
-      - 'src/AI/agents/agents/prompts/**'
-      - 'src/AI/agents/scripts/sync_prompts.py'
+      - 'src/AI/assistant/agents/prompts/**'
+      - 'src/AI/assistant/scripts/sync_prompts.py'
       - '.github/workflows/assistant-prompts.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
@@ -35,28 +47,30 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      # uv installs the Python version in .python-version and puts the venv on PATH.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          python-version: '3.12'
+          version: '0.13.0'
+          working-directory: src/AI/assistant
+          activate-environment: true
 
       - name: Install dependencies
-        working-directory: src/AI/agents
-        run: pip install -r requirements.txt
+        working-directory: src/AI/assistant
+        run: uv sync --locked --no-dev
 
       - name: What this change means for the served prompts
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         env:
-          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${LANGFUSE_HOST:-}" ] || [ -z "${LANGFUSE_SECRET_KEY:-}" ]; then
+          if [ -z "${LANGFUSE_PUBLIC_KEY:-}" ] || [ -z "${LANGFUSE_SECRET_KEY:-}" ]; then
             echo "::notice::Langfuse is not configured for this repository, so prompt"\
-                 "drift was not checked. Set LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY and"\
-                 "LANGFUSE_SECRET_KEY to turn this on."
+                 "drift was not checked. Set LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY"\
+                 "to turn this on."
             exit 0
           fi
           python -m scripts.sync_prompts --diff
@@ -75,30 +89,32 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      # uv installs the Python version in .python-version and puts the venv on PATH.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          python-version: '3.12'
+          version: '0.13.0'
+          working-directory: src/AI/assistant
+          activate-environment: true
 
       - name: Install dependencies
-        working-directory: src/AI/agents
-        run: pip install -r requirements.txt
+        working-directory: src/AI/assistant
+        run: uv sync --locked --no-dev
 
       - name: Publish drifted prompts as production
-        working-directory: src/AI/agents
+        working-directory: src/AI/assistant
         env:
           ALLOW_PROMPT_PUSH: '1'
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
-          LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
           LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
           LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${LANGFUSE_HOST:-}" ] || [ -z "${LANGFUSE_SECRET_KEY:-}" ]; then
+          if [ -z "${LANGFUSE_PUBLIC_KEY:-}" ] || [ -z "${LANGFUSE_SECRET_KEY:-}" ]; then
             echo "::error::Langfuse is not configured, so the prompts on main were not"\
-                 "published. Set LANGFUSE_HOST, LANGFUSE_PUBLIC_KEY and"\
-                 "LANGFUSE_SECRET_KEY, then re-run this job."
+                 "published. Set LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY, then"\
+                 "re-run this job."
             exit 1
           fi
           python -m scripts.sync_prompts --push -m "$COMMIT_URL"

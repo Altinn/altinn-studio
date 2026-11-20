@@ -33,7 +33,7 @@ internal static class ObservabilityRequestTransforms
         if (ObservabilityReverseProxyConfig.RouteGroupOf(transformContext.Route) == ObservabilityPaths.OtlpRouteGroup)
         {
             var agentWriteHeaders =
-                ObservabilityReverseProxyConfig.WriteSignalOf(transformContext.Route)?.AgentWriteHeaders
+                ObservabilityReverseProxyConfig.SignalOf(transformContext.Route)?.AgentWriteHeaders
                 ?? new Dictionary<string, string>();
 
             // X-Forwarded-* describe the client to a backend that makes no use of it.

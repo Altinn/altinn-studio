@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 using Microsoft.Extensions.Options;
 

@@ -7,7 +7,7 @@ public class ExternalApi : IExternalApiClient
 {
     public string Id => "testId";
 
-    public Task<object?> GetExternalApiDataAsync(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams)
+    public Task<object?> GetExternalApiData(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams)
     {
         List<Detail> details = [new Detail { Id = "firstDetail", Info = "firstInfo" }, new Detail { Id = "secondDetail", Info = "secondInfo" }];
         return Task.FromResult<object?>(new ExternalApiModel { Id = "apiId", Details = details });

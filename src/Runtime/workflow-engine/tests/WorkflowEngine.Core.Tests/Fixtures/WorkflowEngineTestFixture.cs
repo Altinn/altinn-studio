@@ -126,8 +126,8 @@ internal sealed record WorkflowEngineTestFixture(
 }
 
 /// <summary>
-/// A test-specific command descriptor that executes a delegate.
-/// Since delegates cannot be serialized as Command.Data, this descriptor stores
+/// A test-specific command that executes a delegate.
+/// Since delegates cannot be serialized as Command.Data, this command stores
 /// the delegate externally and the test wires it up before execution.
 /// </summary>
 internal sealed class TestDelegateCommand : ICommand

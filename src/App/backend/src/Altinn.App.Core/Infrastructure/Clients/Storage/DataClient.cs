@@ -541,7 +541,7 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
             cancellationToken: cts.Token
         );
 
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Delete,
             token,
             apiUrl,
@@ -581,7 +581,7 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
         );
 
         using HttpContent content = CreateInstanceMutationContent(mutation, contentParts);
-        HttpResponseMessage response = await SendStorageRequestAsync(
+        HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Post,
             token,
             apiUrl,
@@ -756,7 +756,7 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
             };
         }
 
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Post,
             token,
             apiUrl,
@@ -841,7 +841,7 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
             };
         }
 
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Put,
             token,
             apiUrl,
@@ -899,7 +899,7 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
         );
 
         StringContent jsonString = new(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await SendStorageRequestAsync(
+        using HttpResponseMessage response = await SendStorageRequest(
             HttpMethod.Put,
             token,
             apiUrl,
@@ -1009,7 +1009,7 @@ internal sealed class DataClient : IDataClient, IDataClientWithStorageMetadata, 
         throw await PlatformHttpException.Create(response, cts.Token);
     }
 
-    private async Task<HttpResponseMessage> SendStorageRequestAsync(
+    private async Task<HttpResponseMessage> SendStorageRequest(
         HttpMethod method,
         JwtToken token,
         string apiUrl,

@@ -39,6 +39,13 @@ public class GlobalPageSettings
     public bool ShowProgress { get; set; } = false;
 
     /// <summary>
+    /// Hides the explicit marking that says a field is optional. A component's own
+    /// <c>labelSettings.optionalIndicator</c> overrides it.
+    /// </summary>
+    [JsonPropertyName("hideOptionalIndicator")]
+    public bool HideOptionalIndicator { get; set; } = false;
+
+    /// <summary>
     /// An attribute specifying when the application will save form data.
     /// onChangeFormData saves on every interaction with form elements.
     /// onChangePage saves on every page change.
@@ -63,6 +70,13 @@ public class GlobalPageSettings
     /// </summary>
     [JsonPropertyName("validationOnNavigation")]
     public PageValidation? ValidationOnNavigation { get; set; }
+
+    /// <summary>
+    /// Validation when returning to a summary or a page linked with a return button.
+    /// Falls back to forward navigation validation at each configuration level.
+    /// </summary>
+    [JsonPropertyName("validateOnBackToSummary")]
+    public PageValidation? ValidateOnBackToSummary { get; set; }
 
     /// <summary>
     /// Controls whether the app name is hidden in the PDF header and footer. Can be a boolean or an expression.
@@ -180,6 +194,12 @@ public enum ValidationMask
     /// </summary>
     [JsonStringEnumMemberName("All")]
     All,
+
+    /// <summary>
+    /// Input that cannot be saved.
+    /// </summary>
+    [JsonStringEnumMemberName("Invalid")]
+    Invalid,
 }
 
 /// <summary>

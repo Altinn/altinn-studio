@@ -69,6 +69,38 @@ describe('deriveNodes', () => {
     });
 
     expect(nodes.map((node) => node.id)).toEqual(['input-1']);
+
+    const unordered = deriveNodes(state, {
+      pageOrder: ['Form'],
+      includedNodeIds: ['input-1', 'missing', 'input-0', 'input-1'],
+      pdfLayoutName: undefined,
+      hiddenDataSources: {} as ExpressionDataSources,
+    });
+    expect(unordered.map((node) => node.id)).toEqual(['input-0', 'input-1']);
+    expect(unordered.map((node) => node.rowIds)).toEqual([['row-0'], ['row-1']]);
+    const scopedInputs = {
+      pageOrder: ['Form'],
+      descendantScope: { nodeId: 'group', restriction: 1, includeSelf: false },
+      pdfLayoutName: undefined,
+      hiddenDataSources: {} as ExpressionDataSources,
+    };
+    expect(deriveNodes(state, scopedInputs).map((node) => node.id)).toEqual(['input-1']);
+    expect(deriveNodes(state, { ...scopedInputs, includedNodeIds: ['input-0', 'unrelated'] })).toEqual([]);
+    expect(
+      deriveNodes(state, {
+        ...scopedInputs,
+        descendantScope: { ...scopedInputs.descendantScope, includeSelf: true },
+      }).map((node) => node.id),
+    ).toEqual(['group', 'input-1']);
+    expect(
+      deriveNodes(state, {
+        pageOrder: ['Form'],
+        includedPageKeys: ['AnotherPage'],
+        includedNodeIds: ['input-0'],
+        pdfLayoutName: undefined,
+        hiddenDataSources: {} as ExpressionDataSources,
+      }),
+    ).toEqual([]);
   });
 
   it('throws when a repeating row is missing its row ID', () => {
@@ -263,4 +295,70 @@ describe('deriveNodes', () => {
     expect(addresses.group.field).toBe('people[0].addresses');
     expect(street.simpleBinding.field).toBe('people[0].addresses[0].street');
   });
+});
+
+it('evaluates shared hidden expressions once per row context and refreshes them on the next derivation', () => {
+  const layouts = {
+    First: {
+      data: {
+        layout: [
+          {
+            id: 'group',
+            type: 'RepeatingGroup',
+            children: ['first', 'second'],
+            dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'Group' } },
+            hidden: ['equals', ['dataModel', 'Shared'], 'hide'],
+            hiddenRow: ['equals', ['dataModel', 'Group.Hide'], 'yes'],
+          },
+          {
+            id: 'first',
+            type: 'Input',
+            dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.First' } },
+          },
+          {
+            id: 'second',
+            type: 'Input',
+            dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.Second' } },
+          },
+        ],
+      },
+    },
+  } satisfies ILayoutCollection;
+  const state = {
+    bootstrap: { layoutLookups: makeLayoutLookups(processLayouts(layouts, defaultDataTypeMock), layouts) },
+    data: {
+      models: {
+        [defaultDataTypeMock]: {
+          debouncedCurrentData: {
+            Group: [{ [ALTINN_ROW_ID]: 'row-0' }, { [ALTINN_ROW_ID]: 'row-1' }],
+          },
+        },
+      },
+    },
+  } as unknown as FormStoreState;
+  const values: Record<string, string> = { Shared: 'show', 'Group[0].Hide': 'no', 'Group[1].Hide': 'yes' };
+  const read = vi.fn((reference: { field: string }) => values[reference.field]);
+  const dataSources = {
+    context: { assertDataSourceSupported: () => undefined },
+    markExpressionEvaluated: () => undefined,
+    formData: { defaultDataType: () => defaultDataTypeMock, hasDataType: () => true, read },
+  } as unknown as ExpressionDataSources;
+  const inputs = { pageOrder: ['First'], pdfLayoutName: undefined, hiddenDataSources: dataSources };
+
+  const nodes = deriveNodes(state, inputs);
+  expect(nodes.map(({ id, hidden }) => ({ id, hidden }))).toEqual([
+    { id: 'group', hidden: false },
+    { id: 'first-0', hidden: false },
+    { id: 'second-0', hidden: false },
+    { id: 'first-1', hidden: true },
+    { id: 'second-1', hidden: true },
+  ]);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Shared')).toHaveLength(3);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Group[0].Hide')).toHaveLength(1);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Group[1].Hide')).toHaveLength(1);
+
+  values.Shared = 'hide';
+  read.mockClear();
+  expect(deriveNodes(state, inputs).every((node) => node.hidden)).toBe(true);
+  expect(read.mock.calls.filter(([reference]) => reference.field === 'Shared')).toHaveLength(3);
 });

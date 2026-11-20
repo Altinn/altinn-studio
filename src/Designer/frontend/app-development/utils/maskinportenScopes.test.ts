@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { MaskinportenScope, MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import {
   addDefaultMaskinportenScopes,

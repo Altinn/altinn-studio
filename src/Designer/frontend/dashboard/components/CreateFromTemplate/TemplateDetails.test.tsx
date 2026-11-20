@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { TemplateDetails, type TemplateDetailsProps } from './TemplateDetails';
 import { render, screen } from '@testing-library/react';
 

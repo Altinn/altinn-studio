@@ -1,16 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { InputActionWrapperProps } from './InputActionWrapper';
 import { InputActionWrapper } from './InputActionWrapper';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
 
 const mockProps: InputActionWrapperProps = {
   mode: 'editMode',
-  onEditClick: jest.fn(),
-  onDeleteClick: jest.fn(),
-  onSaveClick: jest.fn(),
+  onEditClick: vi.fn(),
+  onDeleteClick: vi.fn(),
+  onSaveClick: vi.fn(),
   children: <input />,
 };
 

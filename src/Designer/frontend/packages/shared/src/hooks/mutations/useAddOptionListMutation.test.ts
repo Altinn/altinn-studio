@@ -1,16 +1,15 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useAddOptionListMutation } from './useAddOptionListMutation';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import { FileUtils } from '@studio/pure-functions';
+import { FileUtils } from '@designer/pure-functions';
 
 // Test data:
 const file = new File(['hello'], 'hello.json', { type: 'text/json' });
 const formData = FileUtils.convertToFormData(file);
 
 describe('useAddOptionsMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls useAddOptionsMutation with correct arguments and payload', async () => {
     const optionsResult = renderHookWithProviders(() => useAddOptionListMutation(org, app)).result;
 

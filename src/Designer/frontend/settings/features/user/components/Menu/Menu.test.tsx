@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Menu } from './Menu';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockNavigate = vi.fn();
 
@@ -22,8 +22,6 @@ const getPrivacyTab = () =>
   screen.getByRole('tab', { name: textMock('settings.user.privacy.heading') });
 
 describe('Menu', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the api keys tab as selected when on the api-keys route', () => {
     renderMenu();
     expect(getApiKeysTab()).toHaveAttribute('tabindex', '0');

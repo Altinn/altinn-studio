@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteLayoutMutation } from './useDeleteLayoutMutation';
@@ -10,18 +11,16 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 
 // Test data:
 const selectedLayoutSet = layoutSet1NameMock;
 const layoutName = layout2NameMock;
 
 describe('useDeleteLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls deleteFormLayout with the name of the layout to delete', async () => {
     const { result } = renderDeleteLayoutMutation();
     await result.current.mutateAsync(layoutName);

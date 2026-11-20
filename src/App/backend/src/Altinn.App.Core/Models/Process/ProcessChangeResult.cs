@@ -75,14 +75,15 @@ public class ProcessChangeResult
     internal StorageVersionMetadata MutatedInstanceVersions { get; init; } = StorageVersionMetadata.Empty;
 
     /// <summary>
+    /// The process moved on, but the workflow chain the change started is parked: a service task deferred, or a
+    /// mailbox step waits for its message. The chain goes on without this request.
+    /// </summary>
+    internal bool WorkflowParked { get; init; }
+
+    /// <summary>
     /// The exact non-idle process status that blocked this user-facing request, if applicable.
     /// </summary>
     internal ProcessStatus? BlockingProcessStatus { get; init; }
-
-    /// <summary>
-    /// Indicates that CompleteProcess's legacy task-type authorization failed and must retain its bare 403 response.
-    /// </summary>
-    internal bool CompleteProcessAuthorizationFailed { get; init; }
 
     /// <summary>
     /// Initializes a new <see cref="ProcessChangeResult"/> instance with a mutated instance.
@@ -134,6 +135,18 @@ public enum ProcessNextState
     /// The workflow for the current task failed and must be resumed before continuing.
     /// </summary>
     ResumeRequired,
+
+    /// <summary>
+    /// The instance changed after the request read it, so the process did not move on.
+    /// Refresh the instance and try again.
+    /// </summary>
+    InstanceChanged,
+
+    /// <summary>
+    /// Another call on the same instance version had already submitted a different transition, so this call did
+    /// nothing. Refresh the instance and try again.
+    /// </summary>
+    ConcurrentTransition,
 }
 
 /// <summary>
@@ -233,13 +246,6 @@ public enum WorkflowFailureKind
     /// Polling timed out before the workflow dependency graph reached a terminal state.
     /// </summary>
     Timeout,
-
-    /// <summary>
-    /// The first workflow step could not acquire process ownership because the captured
-    /// instance version or process status was no longer current. The workflow was written off
-    /// without side effects, so the caller should refresh the instance and retry the action.
-    /// </summary>
-    AcquireConflict,
 }
 
 /// <summary>

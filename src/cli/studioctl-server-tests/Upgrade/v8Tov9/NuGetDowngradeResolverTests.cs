@@ -46,6 +46,24 @@ public sealed class NuGetDowngradeResolverTests : IDisposable
     }
 
     [Fact]
+    public async Task FailedRestoreWithoutDowngrades_RequiresManualFollowUp()
+    {
+        _app.Write("../NuGet.Config", "<configuration><packageSources><clear /></packageSources></configuration>");
+        var projectFile = _app.Write("App.csproj", "<Project Sdk=\"Missing.Sdk\" />");
+
+        var result = await new NuGetDowngradeResolver().ResolveAsync(
+            _app.Root,
+            projectFile,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.True(result.RequiresManualFollowUp);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("dotnet restore", todo);
+        Assert.Contains("Missing.Sdk", todo);
+    }
+
+    [Fact]
     public async Task SetPackageReferenceVersions_RaisesExistingReferenceOnly()
     {
         var csproj = _app.Write(

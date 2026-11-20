@@ -1,17 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
 import { useFormLayout } from './';
 import { renderHookWithProviders } from '../testing/mocks';
 import { useFormLayoutsQuery } from './queries/useFormLayoutsQuery';
 import { externalLayoutsMock, layout1NameMock, layoutMock } from '../testing/layoutMock';
 import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 import { waitFor } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 
 const render = async () => {
-  const getFormLayouts = jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
+  const getFormLayouts = vi.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock));
   const formLayoutsResult = renderHookWithProviders(
     () => useFormLayoutsQuery(org, app, selectedLayoutSet),
     { queries: { getFormLayouts } },

@@ -28,7 +28,7 @@ public class PostalCodesCodelistProviderTests
         var optionsProvider = serviceProvider.GetRequiredService<IAppOptionsProvider>();
 
         var postalCodes = await client.GetPostalCodes();
-        var options = await optionsProvider.GetAppOptionsAsync(null, []);
+        var options = await optionsProvider.GetAppOptions(null, []);
 
         var clientCodes = postalCodes.Select(p => p.PostCode).ToHashSet();
         Assert.NotNull(options.Options);

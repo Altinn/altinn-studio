@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { renderWithMockStore, renderHookWithMockStore } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
@@ -5,7 +6,7 @@ import { FileUploadComponent } from './FileUploadComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormFileUploaderComponent } from '../../../../types/FormComponent';
 import { waitFor, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
@@ -17,12 +18,12 @@ const component: FormFileUploaderComponent = {
   maxFileSizeInMB: 10,
   maxNumberOfAttachments: 1,
   minNumberOfAttachments: 0,
-  onClickAction: jest.fn(),
+  onClickAction: vi.fn(),
   type: ComponentTypeV3.FileUpload,
   itemType: 'COMPONENT',
   dataModelBindings: {},
 };
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const defaultProps: IGenericEditComponent = {
   component,
   handleComponentChange,

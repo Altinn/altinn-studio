@@ -1,7 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import axios from 'axios';
+import { getAdminResource } from 'admin/features/apps/utils/getAdminResource';
 import { processMetadataPath } from 'admin/features/apps/utils/apiPaths';
 
 export type ProcessTaskMetadata = {
@@ -28,10 +28,8 @@ export const useProcessMetadataQuery = (
   return useQuery<ProcessTaskMetadata[]>({
     queryKey: [QueryKey.AppProcessMetadata, org, env, app],
     queryFn: async ({ signal }) =>
-      (
-        await axios.get<ProcessTaskMetadata[]>(processMetadataPath(org, env, app), {
-          signal,
-        })
-      ).data,
+      await getAdminResource<ProcessTaskMetadata[]>(processMetadataPath(org, env, app), {
+        signal,
+      }),
   });
 };

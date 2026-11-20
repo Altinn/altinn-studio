@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -6,14 +7,14 @@ import { formItemContextProviderMock } from '../../../testing/formItemContextMoc
 import type { IFormLayouts } from '../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
@@ -30,8 +31,6 @@ const componentWithExpression: FormComponent = {
 };
 
 describe('Expressions', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('renders only add new expression button when there are no existing expressions on component', async () => {
     render({ component: { ...componentWithExpression, hidden: true } });
     const deleteExpressionButtons = screen.queryByRole('button', {

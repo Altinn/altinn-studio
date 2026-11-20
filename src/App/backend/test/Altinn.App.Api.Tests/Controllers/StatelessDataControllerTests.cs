@@ -307,7 +307,7 @@ public class StatelessDataControllerTests
             .Returns(TestAuthentication.GetUserAuthentication());
         fixture
             .Mock<IPDP>()
-            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new XacmlJsonResponse()
                 {
@@ -336,7 +336,9 @@ public class StatelessDataControllerTests
         result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(403);
         fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
         fixture.Mock<IAppResources>().VerifyNoOtherCalls();
-        fixture.Mock<IPDP>().Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
+        fixture
+            .Mock<IPDP>()
+            .Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()));
         fixture.Mock<IPDP>().VerifyNoOtherCalls();
         fixture.Mock<IDataProcessor>().VerifyNoOtherCalls();
         fixture.Mock<IPrefill>().VerifyNoOtherCalls();
@@ -358,7 +360,7 @@ public class StatelessDataControllerTests
         fixture.Mock<IAuthenticationContext>().Setup(c => c.Current).Returns(auth);
         fixture
             .Mock<IPDP>()
-            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new XacmlJsonResponse()
                 {
@@ -385,7 +387,9 @@ public class StatelessDataControllerTests
         result.Should().BeOfType<OkObjectResult>().Which.StatusCode.Should().Be(200);
         result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeOfType<DummyModel>();
         fixture.Mock<IAppResources>().Verify(x => x.GetClassRefForLogicDataType(dataType), Times.Once);
-        fixture.Mock<IPDP>().Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()));
+        fixture
+            .Mock<IPDP>()
+            .Verify(p => p.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()));
         fixture.Mock<IAppModel>().Verify(a => a.Create(classRef), Times.Once);
         fixture
             .Mock<IPrefill>()

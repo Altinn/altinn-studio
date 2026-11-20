@@ -103,7 +103,7 @@ public class ProcessController : ControllerBase
             return NotFound();
         }
 
-        if (!await _processAuthorizer.AuthorizeProcessNext(existingInstance, processState))
+        if (!await _processAuthorizer.AuthorizeProcessNext(existingInstance, processState, cancellationToken))
         {
             return Forbid();
         }
@@ -225,7 +225,7 @@ public class ProcessController : ControllerBase
             return BadRequest("Invalid instance state");
         }
 
-        if (!await _processAuthorizer.AuthorizeProcessNext(existingInstance, processState))
+        if (!await _processAuthorizer.AuthorizeProcessNext(existingInstance, processState, cancellationToken))
         {
             return Forbid();
         }

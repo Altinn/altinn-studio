@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutSetsContainer } from './LayoutSetsContainer';
@@ -11,17 +12,17 @@ import {
 import type { AppContextProps } from '../../AppContext';
 import { appStateMock } from '../../testing/stateMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(),
+vi.mock('react-redux', async () => ({
+  ...(await vi.importActual('react-redux')),
+  useDispatch: vi.fn(),
 }));
 // Test data
 const layoutSetName1 = layoutSet1NameMock;
 const layoutSetName2 = layoutSet2NameMock;
 const { selectedLayoutSet } = appStateMock.formDesigner.layout;
-const setSelectedLayoutSetMock = jest.fn();
+const setSelectedLayoutSetMock = vi.fn();
 
 describe('LayoutSetsContainer', () => {
   it('renders component', async () => {

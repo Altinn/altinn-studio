@@ -69,7 +69,46 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         {
             return false;
         }
-        return SetModelDataRecursive(field.Split('.'), 0, _dataModel, value);
+        return SetModelData(field.Split('.'), _dataModel, value);
+    }
+
+    /// <inheritdoc />
+    public bool AddRow(ReadOnlySpan<char> path, ExpressionValue value)
+    {
+        if (path.IsEmpty)
+        {
+            return false;
+        }
+        var keys = path.ToString().Split('.');
+        var (key, groupIndex) = ParseKeyPart(keys[^1]);
+        if (groupIndex is not null)
+        {
+            return false;
+        }
+        var container = GetOrCreateContainer(keys, _dataModel);
+        if (container is null)
+        {
+            return false;
+        }
+        var prop = Array.Find(container.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
+        if (prop is null || !typeof(System.Collections.IList).IsAssignableFrom(prop.PropertyType))
+        {
+            return false;
+        }
+
+        // Convert before the list is created, so a value that does not convert leaves the model unchanged
+        var elementType = prop.PropertyType.GetInterface("IList`1")?.GetGenericArguments().FirstOrDefault();
+        if (elementType is null || !value.TryDeserialize(elementType, out var row))
+        {
+            return false;
+        }
+
+        if (GetOrCreateList(container, prop) is not { } list)
+        {
+            return false;
+        }
+        list.Add(row);
+        return true;
     }
 
     /// <inheritdoc />
@@ -217,128 +256,151 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         return (match.Groups[1].Value, int.Parse(indexString, CultureInfo.InvariantCulture));
     }
 
-    private static bool SetModelDataRecursive(string[] keys, int index, object currentModel, ExpressionValue value)
+    private static bool SetModelData(string[] keys, object model, ExpressionValue value)
     {
-        if (index == keys.Length - 1)
-        {
-            // We're at the last key, set the value
-            var (key, groupIndex) = ParseKeyPart(keys[index]);
-            var prop = Array.Find(currentModel.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
-            if (prop is null)
-            {
-                return false;
-            }
-
-            if (groupIndex is null)
-            {
-                // Setting a simple property
-                if (!value.TryDeserialize(prop.PropertyType, out var convertedValue))
-                {
-                    return false;
-                }
-                if (
-                    convertedValue is null
-                    && prop.PropertyType.IsValueType
-                    && Nullable.GetUnderlyingType(prop.PropertyType) is null
-                )
-                {
-                    // Can't set a non-nullable value type to null
-                    return false;
-                }
-                try
-                {
-                    prop.SetValue(currentModel, convertedValue);
-                    return true;
-                }
-                catch (TargetException)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                // Setting an element in a list
-                var listProperty = prop.GetValue(currentModel);
-                if (listProperty is not System.Collections.IList list)
-                {
-                    return false;
-                }
-
-                if (groupIndex.Value < 0 || groupIndex.Value >= list.Count)
-                {
-                    return false;
-                }
-
-                var elementType = list.GetType().GetGenericArguments().FirstOrDefault();
-                if (elementType is null)
-                {
-                    return false;
-                }
-
-                if (value.TryDeserialize(elementType, out var deserializedValue))
-                {
-                    list[groupIndex.Value] = deserializedValue;
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        // Navigate to the next level
-        var (currentKey, currentGroupIndex) = ParseKeyPart(keys[index]);
-        var currentProp = Array.Find(
-            currentModel.GetType().GetProperties(),
-            p => IsPropertyWithJsonName(p, currentKey)
-        );
-        if (currentProp is null)
+        var container = GetOrCreateContainer(keys, model);
+        if (container is null)
         {
             return false;
         }
 
-        var childModel = currentProp.GetValue(currentModel);
-        if (childModel is null)
+        var (key, groupIndex) = ParseKeyPart(keys[^1]);
+        var prop = Array.Find(container.GetType().GetProperties(), p => IsPropertyWithJsonName(p, key));
+        if (prop is null)
         {
-            // Create an instance of the property type if it's null
-            childModel = Activator.CreateInstance(currentProp.PropertyType);
+            return false;
+        }
+
+        if (groupIndex is null)
+        {
+            // Setting a simple property
+            if (!value.TryDeserialize(prop.PropertyType, out var convertedValue))
+            {
+                return false;
+            }
+            if (
+                convertedValue is null
+                && prop.PropertyType.IsValueType
+                && Nullable.GetUnderlyingType(prop.PropertyType) is null
+            )
+            {
+                // Can't set a non-nullable value type to null
+                return false;
+            }
+            try
+            {
+                prop.SetValue(container, convertedValue);
+                return true;
+            }
+            catch (TargetException)
+            {
+                return false;
+            }
+        }
+
+        // Setting an element in a list
+        if (GetOrCreateList(container, prop) is not { } list)
+        {
+            return false;
+        }
+
+        if (groupIndex.Value < 0 || groupIndex.Value >= list.Count)
+        {
+            return false;
+        }
+
+        var elementType = list.GetType().GetGenericArguments().FirstOrDefault();
+        if (elementType is null)
+        {
+            return false;
+        }
+
+        if (value.TryDeserialize(elementType, out var deserializedValue))
+        {
+            list[groupIndex.Value] = deserializedValue;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Get the list in the property, creating it when it is null (like the generated wrapper does)
+    /// </summary>
+    private static System.Collections.IList? GetOrCreateList(object model, PropertyInfo prop)
+    {
+        var list = prop.GetValue(model);
+        if (
+            list is null
+            && !prop.PropertyType.IsAbstract
+            && typeof(System.Collections.IList).IsAssignableFrom(prop.PropertyType)
+        )
+        {
+            list = Activator.CreateInstance(prop.PropertyType);
+            prop.SetValue(model, list);
+        }
+        return list as System.Collections.IList;
+    }
+
+    /// <summary>
+    /// Navigate to the object that has the last key as a property, creating objects on the way when they are null
+    /// </summary>
+    /// <returns>The object, or null if the path could not be resolved</returns>
+    private static object? GetOrCreateContainer(string[] keys, object model)
+    {
+        var currentModel = model;
+        for (var index = 0; index < keys.Length - 1; index++)
+        {
+            var (currentKey, currentGroupIndex) = ParseKeyPart(keys[index]);
+            var currentProp = Array.Find(
+                currentModel.GetType().GetProperties(),
+                p => IsPropertyWithJsonName(p, currentKey)
+            );
+            if (currentProp is null)
+            {
+                return null;
+            }
+
+            var childModel = currentProp.GetValue(currentModel);
             if (childModel is null)
             {
-                return false;
+                // Create an instance of the property type if it's null
+                childModel = Activator.CreateInstance(currentProp.PropertyType);
+                if (childModel is null)
+                {
+                    return null;
+                }
+                currentProp.SetValue(currentModel, childModel);
             }
-            currentProp.SetValue(currentModel, childModel);
-        }
 
-        // Strings are enumerable in C#
-        // Other enumerable types is treated as a collection
-        if (!(childModel is not string && childModel is System.Collections.IEnumerable childModelList))
-        {
-            if (currentGroupIndex is not null)
+            // Strings are enumerable in C#
+            // Other enumerable types is treated as a collection
+            if (!(childModel is not string && childModel is System.Collections.IEnumerable childModelList))
             {
-                // Error, trying to index a non-collection
-                return false;
+                if (currentGroupIndex is not null)
+                {
+                    // Error, trying to index a non-collection
+                    return null;
+                }
+                currentModel = childModel;
+                continue;
             }
-            return SetModelDataRecursive(keys, index + 1, childModel, value);
+
+            if (currentGroupIndex is null)
+            {
+                return null; // Error: index for collection not specified
+            }
+
+            if (!TryGetElementAt(childModelList, currentGroupIndex.Value, out var elementAt) || elementAt is null)
+            {
+                // No item at the index, or the list had a null item (we might consider creating a new instance)
+                return null;
+            }
+
+            currentModel = elementAt;
         }
 
-        if (currentGroupIndex is null)
-        {
-            return false; // Error: index for collection not specified
-        }
-
-        if (!TryGetElementAt(childModelList, currentGroupIndex.Value, out var elementAt))
-        {
-            return false;
-        }
-
-        if (elementAt is null)
-        {
-            // The list had an item at the index, but it was null
-            // We might consider creating a new instance and replacing it in the list
-            // For now, just return false
-            return false;
-        }
-
-        return SetModelDataRecursive(keys, index + 1, elementAt, value);
+        return currentModel;
     }
 
     private static void AddIndexesRecursive(

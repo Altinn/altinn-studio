@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-development/test/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { useDeleteChatMessageMutation } from './useDeleteChatMessageMutation';
 import { waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -10,8 +11,6 @@ const threadId = 'thread-1';
 const messageId = 'message-1';
 
 describe('useDeleteChatMessageMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls deleteChatMessage with correct arguments', async () => {
     const result = renderHookWithProviders()(() => useDeleteChatMessageMutation()).renderHookResult
       .result;
@@ -25,7 +24,7 @@ describe('useDeleteChatMessageMutation', () => {
 
   it('Invalidates ChatMessages for the thread when deleting a message', async () => {
     const client = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(client, 'invalidateQueries');
     const result = renderHookWithProviders({}, client)(() => useDeleteChatMessageMutation())
       .renderHookResult.result;
 

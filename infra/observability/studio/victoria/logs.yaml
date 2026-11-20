@@ -122,6 +122,8 @@ spec:
   # vlagent only forwards to remoteWrite; the Kubernetes API is used only by its
   # log collector mode, which is off. The operator mounts no token for it.
   disableAutomountServiceAccountToken: true
+  # Each replica is scraped by name, so a change here also changes the target
+  # list in self-monitoring.yaml.
   replicaCount: 2
   # vlagent-logs-additional-service, with a cluster IP; see the VMAgent in metrics.yaml.
   serviceSpec:

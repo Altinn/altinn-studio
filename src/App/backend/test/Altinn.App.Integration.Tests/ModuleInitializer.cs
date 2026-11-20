@@ -16,6 +16,9 @@ internal static class ModuleInitializer
         if (BuildServerDetector.Detected && BuildServerDetector.IsWsl && !isCi)
             BuildServerDetector.Detected = false; // WSL is not a build server
         VerifierSettings.AutoVerify(includeBuildServer: false);
+        VerifierSettings.IgnoreMember(typeof(HttpRequestMessage), "ConnectionId");
+        // Responses deserialize `object` members, such as form data, to JsonElement
+        VerifySystemJson.Initialize();
         VerifyAspNetCore.Initialize();
     }
 

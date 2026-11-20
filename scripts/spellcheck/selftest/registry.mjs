@@ -312,6 +312,12 @@ export const EXPECTED = {
     // contract and must NOT appear above; the ghost entry must read as stale.
     "@key-contract for 'planted.ghost_key'",
   ],
+  // The hunspell pass over the same English values: `occcurred` is a slip
+  // typos does not know. The typos plants above must NOT reappear here
+  // (their finding carries the correction), and planted.glossary_ok /
+  // planted.english_glossary_ok prove the shared and English glossaries are
+  // consulted.
+  enDictionary: ["en-gb: 'occcurred'"],
   // planted.nynorsk_ok re-routes its nb value to the nn pipeline via
   // fixtures/keys.txt — 'eg'/'ikkje' appearing under nb here would mean the
   // re-route silently stopped working.

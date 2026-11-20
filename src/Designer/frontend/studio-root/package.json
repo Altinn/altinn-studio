@@ -5,14 +5,14 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
-    "vite": "8.2.2"
+    "@designer/ui-test": "workspace:^",
+    "vite": "8.2.4"
   },
   "scripts": {
     "build": "vite build",
     "start": "vite serve --host 0.0.0.0",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "jest --maxWorkers=50%",
+    "test": "yarn workspace studio-designer-frontend vitest run studio-root/",
     "typecheck": "npx tsc --noEmit",
     "typecheck:watch": "tsc --noEmit -w"
   }

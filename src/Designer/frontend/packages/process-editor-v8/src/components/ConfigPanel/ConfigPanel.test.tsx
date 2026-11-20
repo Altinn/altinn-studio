@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../contexts/BpmnContext';
 import { BpmnContext } from '../../contexts/BpmnContext';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
@@ -8,16 +9,13 @@ import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPan
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components';
+import { StudioRecommendedNextActionContextProvider } from '@designer/components';
 
-jest.mock('./ConfigSequenceFlow', () => ({
+vi.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
 }));
 
 describe('ConfigPanel', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {

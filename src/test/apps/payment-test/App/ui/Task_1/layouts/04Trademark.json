@@ -63,7 +63,6 @@
         "maxFileSizeInMB": 10,
         "maxNumberOfAttachments": 1,
         "minNumberOfAttachments": 0,
-        "required": false,
         "displayMode": "list",
         "hasCustomFileEndings": true,
         "validFileEndings": ".jpeg, .jpg, .png"

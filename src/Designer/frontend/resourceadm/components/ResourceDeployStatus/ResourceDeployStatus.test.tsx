@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { createElement, Fragment, cloneElement } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -5,11 +6,11 @@ import type { ResourceDeployStatusProps } from './ResourceDeployStatus';
 import { ResourceDeployStatus } from './ResourceDeployStatus';
 import userEvent from '@testing-library/user-event';
 import type { DeployError } from '../../types/DeployError';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 // add own version of mock for <Trans> element, to test replacement of <LinkButton>
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   Trans: ({ i18nKey, children }: { i18nKey: string; children: ReactElement }) => {
     const hasInterpolationElement = i18nKey.indexOf('<0>') > -1;
     if (hasInterpolationElement) {
@@ -49,7 +50,7 @@ const mockDeployErrorList: DeployError[] = [mockDeployError1, mockDeployError2];
 const mockDeployErrorString: string = 'Deploy error';
 
 describe('ResourceDeployStatus', () => {
-  const mockOnNavigateToPageWithError = jest.fn();
+  const mockOnNavigateToPageWithError = vi.fn();
 
   const defaultProps: ResourceDeployStatusProps = {
     title: 'Title',

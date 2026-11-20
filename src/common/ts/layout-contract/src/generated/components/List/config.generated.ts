@@ -4,22 +4,25 @@ import {
   IDataModelReference,
   IQueryParameters,
   ISummaryOverridesCommon,
+  ITableColumnWidth,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface CompListExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+export interface CompListExternal extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
   deletionStrategy?: 'soft' | 'hard';
   tableHeaders: { [key: string]: string };
+  tableColumns?: { [key: string]: ITableColumnWidth };
   sortableColumns?: string[];
   pagination?: IPagination;
   dataListId: string;
@@ -40,9 +43,13 @@ export interface IPagination {
   default: number;
 }
 
+export interface ListSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type ListSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'List' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & ListSummaryOverrides)
+  | ({ componentType: 'List' } & ListSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -68,8 +75,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompListExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: ListSummaryOverrides;
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: a7ec97269c691a72f8a81e4adc7e7f692a1f0de0f3b845283c9925d418ff7e4e
+// Source hash: f5dd3863d4fefca4dae8d6525297caf6a5ad312d526eff95ff5c0b11f5b441ab

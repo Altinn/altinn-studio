@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { FileChangesTableProps } from './FileChangesTable';
 import { FileChangesTable } from './FileChangesTable';
@@ -16,7 +17,7 @@ const repoDiffMock = {
   'mock/file/path/to/fileName.json': someDiffContent,
   'mock/file/path/to/addedFile.json': someDiffContent,
 };
-const mockGetRepoDiff = jest.fn();
+const mockGetRepoDiff = vi.fn();
 const defaultProps: FileChangesTableProps = {
   fileChanges: [
     {
@@ -27,8 +28,6 @@ const defaultProps: FileChangesTableProps = {
 };
 
 describe('FileChangesTable', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render a table with filePath and fileStatus column headers', () => {
     renderFileChangesTable();
     expect(getFileNameHeading()).toBeInTheDocument();

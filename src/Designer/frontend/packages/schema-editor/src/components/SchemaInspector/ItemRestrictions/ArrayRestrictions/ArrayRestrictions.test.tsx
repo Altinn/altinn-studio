@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { render as rtlRender, screen, waitFor } from '@testing-library/react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 // Test data:
 const onChangeRestrictionValueMock = vi.fn();
@@ -23,10 +23,6 @@ const render = (props: Partial<RestrictionItemProps> = {}) => {
 };
 
 describe('ArrayRestrictions', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   test('ArrayRestrictions should render correctly', async () => {
     render();
     Object.values(ArrRestrictionKey).forEach((key) => {

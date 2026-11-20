@@ -4,17 +4,19 @@ import {
   IDataModelReference,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface CompMapExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+export interface CompMapExternal extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'Map';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForMap;
   layers?: MapLayer[];
@@ -43,9 +45,13 @@ export interface Location {
 
 export type MapLayer = MapTileLayer | MapWMSLayer;
 
+export interface MapSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type MapSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Map' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & MapSummaryOverrides)
+  | ({ componentType: 'Map' } & MapSummaryOverrides);
 
 export interface MapTileLayer {
   url: string;
@@ -102,8 +108,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompMapExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: MapSummaryOverrides;
   summaryOverridesWithRef: MapSummaryOverridesWithRef;
 };
 
-// Source hash: 49929a850b988b61ce610559bb49d4878367eda4463bcbad74da70debc245812
+// Source hash: d3239a15708e6bb5a40d29bb883e699fd2f8ed595e30c94a4926b526160fe741

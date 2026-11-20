@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { HeadingRow } from './HeadingRow';
 import type { HeadingRowProps } from './HeadingRow';
 import type { SchemaEditorAppContextProps } from '../../../contexts/SchemaEditorAppContext';
@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../../test/renderWithProviders';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   booleanDefinitionPointer,
   combinationDefinitionPointer,
@@ -59,8 +59,6 @@ vi.mock('./HeadingRow.module.css', () => ({
 }));
 
 describe('HeadingRow', () => {
-  afterEach(vi.clearAllMocks);
-
   describe('When no type is selected', () => {
     it('Renders a level one heading with the name of the data model', () => {
       renderHeadingRow();

@@ -1,7 +1,8 @@
+import { describe, expect, it } from 'vitest';
 import { act, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { Element } from 'bpmn-js/lib/model/Types';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FiksArkivProcessShapeAlert } from './FiksArkivProcessShapeAlert';
 import type { ProcessShapeElement, ProcessShapeFlow } from './fiksArkivProcessShape';
 import { BpmnTypeEnum } from '../../../../enum/BpmnTypeEnum';
@@ -10,8 +11,6 @@ import { modelerOnMock } from '../../../../../test/mocks/bpmnModelerMock';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
 describe('FiksArkivProcessShapeAlert', () => {
-  afterEach(jest.clearAllMocks);
-
   it('warns when no gateway follows the task', () => {
     renderFiksArkivProcessShapeAlert(createTask([]));
 

@@ -5,7 +5,7 @@ import { EditTextResourceBinding } from './EditTextResourceBinding';
 import classes from './EditTextResourceBindings.module.css';
 import type { TranslationKey } from 'language/type';
 import { useTranslation } from 'react-i18next';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 
 export type TextResourceBindingKey = 'description' | 'title' | 'help' | 'body';
 

@@ -1,12 +1,13 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from '../../mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { useOrgCodeListsQuery } from '../../hooks/queries/useOrgCodeListsQuery';
 
 describe('useOrgCodeListsQuery', () => {
-  it('calls getOrgCodeLists with the correct parameters', () => {
-    render();
+  it('calls getOrgCodeLists with the correct parameters', async () => {
+    await render();
     expect(queriesMock.getOrgCodeLists).toHaveBeenCalledWith(org);
   });
 });

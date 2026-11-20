@@ -45,7 +45,7 @@ internal sealed class Altinn3LibraryCodeListApiClient : IAltinn3LibraryCodeListA
                 );
             }
 
-            return await JsonSerializerPermissive.DeserializeAsync<Altinn3LibraryCodeListResponse>(
+            return await JsonSerializerPermissive.Deserialize<Altinn3LibraryCodeListResponse>(
                 response.Content,
                 cancellationToken
             );

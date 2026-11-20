@@ -1,13 +1,14 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ValidateCardContent, type ValidateCardContentProps } from './ValidateCardContent';
 import { Scope } from '../utils/ValidateNavigationUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const layoutSet1NameMock = 'test-layout-set';
 const layoutSets = [
@@ -41,7 +42,7 @@ describe('ValidateCardContent', () => {
   it('should call onChange with correct values when task is changed in SelectedTasks scope', async () => {
     const user = userEvent.setup();
 
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderValidateCardContent({ scope: Scope.SelectedTasks, onChange: mockOnChange });
     const selectorLabel = textMock(
       'ux_editor.settings.navigation_validation_specific_task_label_several',
@@ -56,7 +57,7 @@ describe('ValidateCardContent', () => {
   it('should call onChange with correct values when task is changed in SelectedPages scope', async () => {
     const user = userEvent.setup();
 
-    const mockOnChange = jest.fn();
+    const mockOnChange = vi.fn();
     renderValidateCardContent({ scope: Scope.SelectedPages, onChange: mockOnChange });
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_task_label');
     const optionLabel = layoutSet1NameMock;
@@ -71,7 +72,7 @@ describe('ValidateCardContent', () => {
 
 const renderValidateCardContent = ({
   scope,
-  onChange = jest.fn(),
+  onChange = vi.fn(),
 }: Partial<ValidateCardContentProps>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);

@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ItemFieldsTabProps } from './ItemFieldsTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
@@ -9,7 +9,7 @@ import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase, rootNodeMock } from '../../../../test/mocks/uiSchemaMock';
 import { getSavedModel } from '../../../../test/test-utils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -67,7 +67,6 @@ const renderItemFieldsTab = (
 
 describe('ItemFieldsTab', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
-  afterEach(vi.clearAllMocks);
 
   test('Header texts appear', () => {
     renderItemFieldsTab();

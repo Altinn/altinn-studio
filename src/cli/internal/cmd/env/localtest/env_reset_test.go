@@ -47,6 +47,21 @@ func TestReset_RemovesPersistedDataWhenAlreadyStopped(t *testing.T) {
 	assertNotExists(t, workflowEngineDataDir)
 }
 
+func TestReset_ForgetsTheRecordedPort(t *testing.T) {
+	cfg := &config.Config{DataDir: t.TempDir(), Images: testResetImages()}
+	if err := WriteState(cfg, State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+
+	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), containermock.New())
+	if err := env.Reset(context.Background()); err != nil {
+		t.Fatalf("Reset() error = %v", err)
+	}
+	if state, found, err := ReadState(cfg); err != nil || found {
+		t.Fatalf("ReadState() = %+v, %t, %v, want no record", state, found, err)
+	}
+}
+
 func TestReset_StopsManagedResourcesBeforeRemovingPersistedData(t *testing.T) {
 	dataDir := t.TempDir()
 	localtestDataDir := filepath.Join(dataDir, "AltinnPlatformLocal")
@@ -251,11 +266,11 @@ func testResetImages() config.ImagesConfig {
 			PgAdmin:          config.ImageSpec{Image: "dpage/pgadmin4", Tag: "latest"},
 		},
 		Monitoring: config.MonitoringImages{
-			Tempo:         config.ImageSpec{Image: "grafana/tempo", Tag: "latest"},
-			Mimir:         config.ImageSpec{Image: "grafana/mimir", Tag: "latest"},
-			Loki:          config.ImageSpec{Image: "grafana/loki", Tag: "latest"},
-			OtelCollector: config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
-			Grafana:       config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
+			VictoriaMetrics: config.ImageSpec{Image: "victoriametrics/victoria-metrics", Tag: "latest"},
+			VictoriaTraces:  config.ImageSpec{Image: "victoriametrics/victoria-traces", Tag: "latest"},
+			VictoriaLogs:    config.ImageSpec{Image: "victoriametrics/victoria-logs", Tag: "latest"},
+			OtelCollector:   config.ImageSpec{Image: "otel/opentelemetry-collector-contrib", Tag: "latest"},
+			Grafana:         config.ImageSpec{Image: "grafana/grafana", Tag: "latest"},
 		},
 	}
 }

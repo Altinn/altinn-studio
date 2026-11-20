@@ -38,7 +38,7 @@ public class DataListsController : ControllerBase
         [FromQuery] string? language = null
     )
     {
-        DataList dataLists = await _dataListsService.GetDataListAsync(id, language, queryParams);
+        DataList dataLists = await _dataListsService.GetDataList(id, language, queryParams);
         if (dataLists.ListItems == null)
         {
             return NotFound();
@@ -71,7 +71,7 @@ public class DataListsController : ControllerBase
     {
         var instanceIdentifier = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-        DataList dataLists = await _dataListsService.GetDataListAsync(instanceIdentifier, id, language, queryParams);
+        DataList dataLists = await _dataListsService.GetDataList(instanceIdentifier, id, language, queryParams);
 
         if (dataLists.ListItems == null)
         {

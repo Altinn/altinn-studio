@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Altinn.Studio.StudioctlServer.Platform;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -9,27 +10,30 @@ internal static class V9PackageVersionResolver
     public static async Task<string> ResolveLatestTargetVersion(
         string projectFolder,
         int targetMajorVersion,
+        string minimumVersion,
         CancellationToken cancellationToken
     )
     {
         var apiVersions = await SearchPackageVersions("Altinn.App.Api", projectFolder, cancellationToken);
         var coreVersions = await SearchPackageVersions("Altinn.App.Core", projectFolder, cancellationToken);
-        return ResolveLatestTargetVersion(apiVersions, coreVersions, targetMajorVersion);
+        return ResolveLatestTargetVersion(apiVersions, coreVersions, targetMajorVersion, minimumVersion);
     }
 
     internal static string ResolveLatestTargetVersion(
         IReadOnlyCollection<string> apiVersions,
         IReadOnlyCollection<string> coreVersions,
-        int targetMajorVersion
+        int targetMajorVersion,
+        string minimumVersion
     )
     {
         var coreVersionSet = coreVersions.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var minimum = NuGetVersion.Parse(minimumVersion);
         var latest = apiVersions
             .Where(coreVersionSet.Contains)
-            .Select(NuGetPackageVersion.TryParse)
-            .OfType<NuGetPackageVersion>()
-            .Where(v => v.Major == targetMajorVersion)
-            .OrderBy(v => v.Prerelease.Count > 0)
+            .Select(value => NuGetVersion.TryParse(value, out var version) ? version : null)
+            .OfType<NuGetVersion>()
+            .Where(v => v.Major == targetMajorVersion && v >= minimum)
+            .OrderBy(v => v.IsPrerelease)
             .ThenByDescending(v => v)
             .FirstOrDefault();
 
@@ -37,11 +41,11 @@ internal static class V9PackageVersionResolver
         {
             throw new InvalidOperationException(
                 $"Could not find a common Altinn.App.Api/Altinn.App.Core version with major version {targetMajorVersion} "
-                    + "in the configured NuGet package sources."
+                    + $"at least {minimumVersion} in the configured NuGet package sources."
             );
         }
 
-        return latest.Original;
+        return latest.OriginalVersion ?? latest.ToNormalizedString();
     }
 
     private static async Task<IReadOnlyList<string>> SearchPackageVersions(
@@ -50,8 +54,7 @@ internal static class V9PackageVersionResolver
         CancellationToken cancellationToken
     )
     {
-        var startInfo = ProcessUtil.CreateStartInfo(
-            "dotnet",
+        var startInfo = ProcessUtil.CreateDotnetStartInfo(
             "package",
             "search",
             packageId,
@@ -111,90 +114,5 @@ internal static class V9PackageVersionResolver
         }
 
         return versions.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-    }
-
-    private sealed record NuGetPackageVersion(
-        string Original,
-        int Major,
-        int Minor,
-        int Patch,
-        IReadOnlyList<string> Prerelease
-    ) : IComparable<NuGetPackageVersion>
-    {
-        public static NuGetPackageVersion? TryParse(string value)
-        {
-            var versionAndMetadata = value.Split('+', 2)[0];
-            var versionParts = versionAndMetadata.Split('-', 2);
-            var numericParts = versionParts[0].Split('.');
-            if (
-                numericParts.Length < 3
-                || !int.TryParse(numericParts[0], out var major)
-                || !int.TryParse(numericParts[1], out var minor)
-                || !int.TryParse(numericParts[2], out var patch)
-            )
-            {
-                return null;
-            }
-
-            var prerelease =
-                versionParts.Length == 2 ? versionParts[1].Split('.', StringSplitOptions.RemoveEmptyEntries) : [];
-
-            return new NuGetPackageVersion(value, major, minor, patch, prerelease);
-        }
-
-        public int CompareTo(NuGetPackageVersion? other)
-        {
-            if (other is null)
-                return 1;
-
-            var numericComparison = Major.CompareTo(other.Major);
-            if (numericComparison != 0)
-                return numericComparison;
-
-            numericComparison = Minor.CompareTo(other.Minor);
-            if (numericComparison != 0)
-                return numericComparison;
-
-            numericComparison = Patch.CompareTo(other.Patch);
-            if (numericComparison != 0)
-                return numericComparison;
-
-            return ComparePrerelease(Prerelease, other.Prerelease);
-        }
-
-        private static int ComparePrerelease(IReadOnlyList<string> left, IReadOnlyList<string> right)
-        {
-            if (left.Count == 0 && right.Count == 0)
-                return 0;
-            if (left.Count == 0)
-                return 1;
-            if (right.Count == 0)
-                return -1;
-
-            for (var i = 0; i < Math.Min(left.Count, right.Count); i++)
-            {
-                var leftIsNumber = int.TryParse(left[i], out var leftNumber);
-                var rightIsNumber = int.TryParse(right[i], out var rightNumber);
-
-                if (leftIsNumber && rightIsNumber)
-                {
-                    var numberComparison = leftNumber.CompareTo(rightNumber);
-                    if (numberComparison != 0)
-                        return numberComparison;
-                    continue;
-                }
-
-                if (leftIsNumber)
-                    return -1;
-                if (rightIsNumber)
-                    return 1;
-
-                var textComparison = string.Compare(left[i], right[i], StringComparison.OrdinalIgnoreCase);
-                if (textComparison != 0)
-                    return textComparison;
-            }
-
-            return left.Count.CompareTo(right.Count);
-        }
     }
 }

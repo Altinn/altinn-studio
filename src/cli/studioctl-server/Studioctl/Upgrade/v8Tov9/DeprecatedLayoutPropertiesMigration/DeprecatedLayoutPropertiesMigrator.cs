@@ -23,6 +23,7 @@ internal sealed record DeprecatedLayoutPropertiesMigrationResult(
 ///   <item><c>mapping</c> on <c>PaymentDetails</c> becomes <c>refetchDependencies</c>.</item>
 ///   <item><c>bindingToShowInSummary</c> on <c>List</c> becomes <c>summaryBinding</c>, which names a key
 ///   in <c>dataModelBindings</c> rather than repeating the data model path.</item>
+///   <item>Unsupported summary flags and summary text-resource bindings are removed by component type.</item>
 /// </list>
 /// Instantiating <c>Button</c> components become <c>InstantiationButton</c>; other buttons lose their unused mapping.
 /// </summary>
@@ -49,6 +50,41 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
         "Option",
         "PaymentDetails",
         "RadioButtons",
+    };
+
+    private static readonly HashSet<string> _componentsWithoutRenderAsSummary = new(StringComparer.Ordinal)
+    {
+        "AddToList",
+        "ButtonGroup",
+        "Date",
+        "Divider",
+        "Heading",
+        "ImageUpload",
+        "Number",
+        "Option",
+        "OrganizationLookup",
+        "Paragraph",
+        "PersonLookup",
+        "SimpleTable",
+        "Text",
+    };
+
+    private static readonly HashSet<string> _componentsWithoutForceShowInSummary = new(StringComparer.Ordinal)
+    {
+        "AddToList",
+        "ButtonGroup",
+        "Divider",
+        "Heading",
+        "Paragraph",
+        "Payment",
+    };
+
+    private static readonly HashSet<string> _componentsWithoutSummaryTextBindings = new(StringComparer.Ordinal)
+    {
+        "AddToList",
+        "ButtonGroup",
+        "Heading",
+        "Paragraph",
     };
 
     /// <summary>Repeating group row markers (<c>[{0}]</c>) an expression resolves on its own.</summary>
@@ -147,12 +183,40 @@ internal sealed class DeprecatedLayoutPropertiesMigrator
 
             if (string.Equals(type, "List", StringComparison.Ordinal))
                 changes.Add(ConvertSummaryBinding(obj, fileName));
+
+            changes.Changed |= RemoveUnsupportedSummaryProperties(obj, type);
         }
 
         foreach (var child in GetChildren(node))
             changes.Add(MigrateComponents(child, fileName));
 
         return changes;
+    }
+
+    private static bool RemoveUnsupportedSummaryProperties(JsonObject component, string type)
+    {
+        var changed = false;
+        if (_componentsWithoutRenderAsSummary.Contains(type))
+            changed |= component.Remove("renderAsSummary");
+        if (_componentsWithoutForceShowInSummary.Contains(type))
+            changed |= component.Remove("forceShowInSummary");
+
+        // Divider no longer supports any text-resource bindings.
+        if (type == "Divider")
+            changed |= component.Remove("textResourceBindings");
+        else if (
+            _componentsWithoutSummaryTextBindings.Contains(type)
+            && component["textResourceBindings"] is JsonObject bindings
+        )
+        {
+            var bindingsChanged = bindings.Remove("summaryTitle");
+            bindingsChanged |= bindings.Remove("summaryAccessibleTitle");
+            if (bindingsChanged && bindings.Count == 0)
+                component.Remove("textResourceBindings");
+            changed |= bindingsChanged;
+        }
+
+        return changed;
     }
 
     /// <summary>

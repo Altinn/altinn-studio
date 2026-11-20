@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Models;
@@ -5,6 +8,7 @@ namespace Altinn.App.Core.Models;
 /// <summary>
 /// Wrapper type for a <see cref="DataElement.Id"/> as Guid and string
 /// </summary>
+[JsonConverter(typeof(DataElementIdentifierConverter))]
 public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
 {
     /// <summary>
@@ -108,5 +112,37 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     public override int GetHashCode()
     {
         return Guid.GetHashCode();
+    }
+
+    /// <summary>
+    /// Custom JSON converter to ensure that the struct is serialized and deserialized as a string containing the guid, to be compatible with existing code that uses strings for DataElement IDs
+    /// </summary>
+    internal sealed class DataElementIdentifierConverter : JsonConverter<DataElementIdentifier>
+    {
+        /// <inheritdoc/>
+        public override DataElementIdentifier Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
+        {
+            if (reader.TokenType != JsonTokenType.String)
+            {
+                throw new JsonException(
+                    $"Unexpected token parsing DataElementIdentifier. Expected String, got {reader.TokenType}."
+                );
+            }
+
+            string id =
+                reader.GetString()
+                ?? throw new UnreachableException("GetString should not return null when the token type is String");
+            return new DataElementIdentifier(id);
+        }
+
+        /// <inheritdoc/>
+        public override void Write(Utf8JsonWriter writer, DataElementIdentifier value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString());
+        }
     }
 }

@@ -1,40 +1,41 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RecommendedActionChangeName } from './RecommendedActionChangeName';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { StudioRecommendedNextActionContext } from '@studio/components';
+import { StudioRecommendedNextActionContext } from '@designer/components';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../contexts/BpmnApiContext';
 import { mockBpmnApiContextValue } from '../../../../../test/mocks/bpmnContextMock';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 
-jest.mock('../../../../contexts/BpmnContext', () => ({
-  useBpmnContext: jest.fn(),
+vi.mock('../../../../contexts/BpmnContext', () => ({
+  useBpmnContext: vi.fn(),
 }));
 
-jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
-  useValidateLayoutSetName: jest.fn(),
+vi.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
+  useValidateLayoutSetName: vi.fn(),
 }));
 
-const updateLayoutSetIdMock = jest.fn();
-jest.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
+const updateLayoutSetIdMock = vi.fn();
+vi.mock('../../../../hooks/useUpdateLayoutSetId', () => ({
   useUpdateLayoutSetId: () => updateLayoutSetIdMock,
 }));
 
-const removeActionMock = jest.fn();
-const validateLayoutSetNameMock = jest.fn();
+const removeActionMock = vi.fn();
+const validateLayoutSetNameMock = vi.fn();
 
 describe('RecommendedActionChangeName', () => {
   const DEFAULT_ID = 'test_id';
 
   beforeEach(() => {
-    (useBpmnContext as jest.Mock).mockReturnValue({
+    (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { id: DEFAULT_ID, element: { id: 'test_id' }, metadata: {} },
     });
-    (useValidateLayoutSetName as jest.Mock).mockReturnValue({
+    (useValidateLayoutSetName as Mock).mockReturnValue({
       validateLayoutSetName: validateLayoutSetNameMock,
     });
-    jest.clearAllMocks();
   });
 
   it('calls validation on name input', async () => {
@@ -113,8 +114,8 @@ describe('RecommendedActionChangeName', () => {
         <StudioRecommendedNextActionContext.Provider
           value={{
             removeAction: removeActionMock,
-            shouldDisplayAction: jest.fn(),
-            addAction: jest.fn(),
+            shouldDisplayAction: vi.fn(),
+            addAction: vi.fn(),
           }}
         >
           <RecommendedActionChangeName />

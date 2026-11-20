@@ -31,14 +31,14 @@ type QueryResult struct {
 	Error                  error
 	PodAge                 *string
 	PodRestarts            *string
-	Weight1                *int
-	Weight2                *int
 	HasReconcileAnnotation *bool
 	Annotations            map[string]string
 	ClusterName            string
 	Namespace              string
 	Name                   string
 	Conditions             []metav1.Condition
+	// Backends is set for an HTTPRoute, as name=weight.
+	Backends []string
 }
 
 // GetResourceStatus queries a resource (FluxCD or Deployment) and returns its status.
@@ -98,28 +98,19 @@ func GetResourceStatus(
 		result.PodRestarts = &podRestarts
 
 	case HTTPRouteResourceType:
-		routeResult := GetHTTPRouteFromCluster(ctx, runtime, namespace, name)
-		if routeResult.Error != nil {
-			result.Error = routeResult.Error
-			return result
-		}
-
-		// Populate HTTPRoute-specific fields
-		result.Weight1 = &routeResult.CurrentWeight1
-		result.Weight2 = &routeResult.CurrentWeight2
-		result.HasReconcileAnnotation = &routeResult.HasReconcileAnnotation
-
-		// Get full HTTPRoute to extract annotations
 		route, err := GetHTTPRoute(ctx, runtime, namespace, name)
 		if err != nil {
-			result.Error = fmt.Errorf("failed to get httproute annotations: %w", err)
+			result.Error = err
 			return result
 		}
-		if route.Annotations != nil {
-			result.Annotations = route.Annotations
-		}
 
-		// HTTPRoutes don't have conditions, so we'll skip that check for this resource type
+		result.Backends = HTTPRouteBackends(route)
+		_, hasReconcileAnnotation := route.Annotations[reconcileAnnotation]
+		result.HasReconcileAnnotation = &hasReconcileAnnotation
+		result.Annotations = route.Annotations
+		result.Conditions = HTTPRouteConditions(route)
+
+		// A route's conditions are per parent, and a route without status has none yet.
 		return result
 	}
 

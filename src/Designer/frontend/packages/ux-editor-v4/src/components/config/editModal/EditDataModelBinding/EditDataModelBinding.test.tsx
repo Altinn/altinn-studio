@@ -1,19 +1,20 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditDataModelBinding, type EditDataModelBindingProps } from './EditDataModelBinding';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
 
 const defaultEditDataModelingBinding: EditDataModelBindingProps<any> = {
   component: componentMocks[ComponentType.Input],
-  handleComponentChange: jest.fn(),
+  handleComponentChange: vi.fn(),
   renderOptions: {
     label: undefined,
     returnValue: 'returnValue',
@@ -155,8 +156,8 @@ describe('EditDataModelBinding', () => {
   });
 
   it('should remove binding when click on delete button in EditBinding', async () => {
-    window.confirm = jest.fn(() => true);
-    const handleComponentChange = jest.fn();
+    window.confirm = vi.fn(() => true);
+    const handleComponentChange = vi.fn();
     const label = 'kort svar';
     const binding = { field: 'field1', dataType: '' };
     const user = userEvent.setup();

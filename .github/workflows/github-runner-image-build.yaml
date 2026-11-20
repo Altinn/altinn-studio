@@ -1,0 +1,86 @@
+name: github-runner - Build runner image
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'rust-toolchain.toml'
+      - 'src/tools/releaser/go.mod'
+      - 'src/ci/github-runner/Dockerfile'
+      - 'src/ci/github-runner/run.sh'
+      - 'src/ci/github-runner/smoke.sh'
+      - '.github/workflows/deploy-github-runners.yaml'
+      - '.github/workflows/github-runner-image-build.yaml'
+      - '!**/AGENTS.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: src/ci/github-runner
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check shell scripts
+        run: shellcheck run.sh smoke.sh
+
+      # Resolve the build args the same way deploy-github-runners.yaml does, so
+      # a toolchain bump is built here before the image is published.
+      - name: Resolve toolchain versions
+        id: versions
+        run: |
+          GO_VERSION="$(awk '$1 == "go" { print $2; exit }' ../../tools/releaser/go.mod)"
+          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
+          CYPRESS_VERSION="$(jq -er '.devDependencies.cypress' "${GITHUB_WORKSPACE}/src/App/frontend/package.json")"
+          test -n "${GO_VERSION}"
+          test -n "${RUST_VERSION}"
+          {
+            echo "go=${GO_VERSION}"
+            echo "rust=${RUST_VERSION}"
+            echo "cypress=${CYPRESS_VERSION}"
+          } >> "$GITHUB_OUTPUT"
+
+      # No --cache-from: the image's build cache lives in ACR, which a pull
+      # request job has no credentials for.
+      - name: Build image
+        env:
+          GO_VERSION: ${{ steps.versions.outputs.go }}
+          RUST_VERSION: ${{ steps.versions.outputs.rust }}
+          CYPRESS_VERSION: ${{ steps.versions.outputs.cypress }}
+        run: |
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --build-arg "GO_VERSION=${GO_VERSION}" \
+            --build-arg "RUST_VERSION=${RUST_VERSION}" \
+            --build-arg "CYPRESS_VERSION=${CYPRESS_VERSION}" \
+            --file Dockerfile \
+            --platform linux/amd64 \
+            --load \
+            --tag github-runner:smoke \
+            .
+
+      - name: Smoke test image
+        env:
+          GO_VERSION: ${{ steps.versions.outputs.go }}
+          RUST_VERSION: ${{ steps.versions.outputs.rust }}
+          CYPRESS_VERSION: ${{ steps.versions.outputs.cypress }}
+        run: |
+          docker run --rm --network none --entrypoint bash \
+            --env GO_VERSION --env RUST_VERSION --env CYPRESS_VERSION \
+            --volume "${PWD}/smoke.sh:/smoke.sh:ro" \
+            github-runner:smoke /smoke.sh

@@ -8,6 +8,9 @@ public record AdminAuditLogEntry
     public required string Org { get; init; }
     public required string App { get; init; }
     public required string InstanceId { get; init; }
+
+    /// <summary>The workflow an action on the workflow engine acted on; null for other actions.</summary>
+    public Guid? WorkflowId { get; init; }
     public required string Action { get; init; }
     public required string Status { get; init; }
     public required string UserName { get; init; }

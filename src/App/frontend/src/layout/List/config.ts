@@ -19,6 +19,11 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
   .addDataModelBinding(
@@ -64,6 +69,19 @@ export const Config = new CG.component({
           productId: 'product.id',
           description: 'Beskrivelse av produkt',
         }),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
+      'tableColumns',
+      new CG.obj()
+        .additionalProperties(CG.common('ITableColumnWidth'))
+        .optional()
+        .setTitle('Table columns', 'Tabellkolonner')
+        .setDescription(
+          'Column widths keyed by the column keys in tableHeaders. Unspecified columns use automatic widths.',
+          'Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde.',
+        ),
     ),
   )
   .addProperty(

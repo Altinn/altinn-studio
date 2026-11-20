@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
 import { ResourceNarrowingList } from './ResourceNarrowingList';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { PolicyRuleResource } from '../../../../../types';
 import {
   PolicyEditorContext,
@@ -25,8 +25,6 @@ const defaultProps: ResourceNarrowingListProps = {
 };
 
 describe('ResourceNarrowingList', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the list of resources', async () => {
     renderResourceNarrowingList();
 

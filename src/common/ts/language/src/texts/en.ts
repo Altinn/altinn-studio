@@ -2,8 +2,6 @@ export function en() {
   return {
     'dateTime.am': 'AM',
     'dateTime.pm': 'PM',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be.',
     'actions.sign': 'Sign',
     'actions.confirm': 'Confirm',
     'actions.reject': 'Reject',
@@ -68,6 +66,18 @@ export function en() {
     'form_filler.alert_confirm': 'Confirm',
     'form_filler.checkbox_alert': 'Are you sure you want to uncheck?',
     'form_filler.multi_select_alert': 'Are you sure you want to delete <b>{0}</b>?',
+    'form_filler.suggestion_added': 'Added',
+    'form_filler.suggestion_clear': 'Clear text',
+    'form_filler.suggestion_empty': 'None selected',
+    'form_filler.suggestion_found': 'Navigate left to find %d selected',
+    'form_filler.suggestion_invalid': 'Invalid selection',
+    'form_filler.suggestion_items': 'Selected',
+    'form_filler.suggestion_of': 'of',
+    'form_filler.suggestion_plural': '%d suggestions',
+    'form_filler.suggestion_remove': 'Press to remove',
+    'form_filler.suggestion_removed': 'Removed',
+    'form_filler.suggestion_singular': '%d suggestion',
+    'form_filler.suggestion_toggle': 'Suggestions',
     'form_filler.dropdown_alert': 'Are you sure you want to change to <b>{0}</b>?',
     'form_filler.back_to_summary': 'Return to summary',
     'form_filler.back_to_page': 'Back to {0}',
@@ -95,6 +105,7 @@ export function en() {
     'form_filler.file_uploader_remove_infected_files': 'Remove infected files before submission.',
     'form_filler.file_uploader_max_size_mb': 'Maximum file size {0} MB',
     'form_filler.file_uploader_upload': 'Upload file',
+    'form_filler.file_uploader_read_only': 'Attachments cannot be changed.',
     'form_filler.file_uploader_number_of_files': 'Number of files {0}.',
     'form_filler.file_uploader_show_more_errors': 'Show {0} more',
     'form_filler.file_uploader_show_fewer_errors': 'Show fewer',
@@ -114,7 +125,7 @@ export function en() {
     'form_filler.file_uploader_validation_error_upload':
       'Something went wrong trying to upload the file, please try again.',
     'form_filler.file_uploader_validation_error_update':
-      'Something went wrong trying to update the filetag, please try again.',
+      'Something went wrong trying to update the file tag, please try again.',
     'form_filler.file_uploader_validation_error_no_chosen_tag': 'You have to choose one {0}',
     'form_filler.placeholder_receipt_header': 'The form has been submitted',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
@@ -136,6 +147,7 @@ export function en() {
     'form_filler.lastName': 'last name',
     'form_filler.orgnr': 'organisation number',
     'form_filler.name': 'organisation name',
+    'form_filler.fileTransferId': 'file',
     'navigation.main': 'Primary',
     'navigation.form': 'Form pages',
     'navigation.to_main_content': 'Go to main content',
@@ -255,11 +267,17 @@ export function en() {
     'instance_selection.last_changed': 'Last changed',
     'instance_selection.left_of': 'Continue where you left of',
     'instance_selection.new_instance': 'Start over',
+    'instantiate.not_yet_open_error_title': 'This service has not opened yet',
+    'instantiate.not_yet_open_error_text':
+      'The service opens {0}. It is not possible to start new forms before then.',
+    'instantiate.closed_error_title': 'You cannot start this service',
+    'instantiate.closed_error_text':
+      'It is not possible to start new forms in this service. You can still complete forms you have already started from your inbox.',
     'instantiate.all_forms': 'all forms',
     'instantiate.inbox': 'inbox',
     'instantiate.profile': 'profile',
     'instantiate.unknown_error_title': 'Unknown error',
-    'instantiate.unknown_error_text': 'An unknown error occcurred, please try again later.',
+    'instantiate.unknown_error_text': 'An unknown error occurred, please try again later.',
     'instantiate.unknown_error_status': 'Unknown error',
     'instantiate.unknown_error_customer_support':
       'If the problem persists, contact us at customer service at {0}.',
@@ -278,9 +296,9 @@ export function en() {
     'instantiate.authorization_error_ask':
       'If you are representing a person, it is the one you are representing that can give you the required rights to start this service. If you are representing an organisation, you have to ask for the required rights from persons with access delegation rights within your organisation.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
+      '<a href="{0}" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Learn more about roles and rights</a>.',
+      '<a href="{0}" target="_blank">Learn more about roles and rights</a>.',
     'instantiate.authorization_error_info_customer_service':
       'You can also contact customer service at {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -321,7 +339,7 @@ export function en() {
     'party_selection.show_sub_unit': 'Show sub units',
     'party_selection.why_seeing_this': 'Why am I seeing this?',
     'party_selection.seeing_this_preference':
-      'You can change your [profile settings](https://af.{0}/profile/parties) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
+      'You can change your [profile settings]({0}) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
     'party_selection.seeing_this_override':
       'This app has been configured to always prompt you for party selection.',
     'payment.pay': 'Pay',
@@ -337,7 +355,7 @@ export function en() {
     'payment.receipt.payer': 'Payer',
     'payment.receipt.name': 'Name',
     'payment.receipt.company_name': 'Company name',
-    'payment.receipt.org_number': 'Organisasjonsnummer',
+    'payment.receipt.org_number': 'Organisation number',
     'payment.receipt.contact_person': 'Contact person',
     'payment.receipt.contact_phone': 'Contact phone',
     'payment.receipt.contact_email': 'Contact email',
@@ -383,8 +401,106 @@ export function en() {
     'person_lookup.validation_invalid_response_from_server':
       'An error occurred. Please try again later.',
     'person_lookup.unknown_error': 'An unknown error occurred. Please try again later.',
+    'broker_file_transfer.unavailable': 'Sending files with Altinn Broker is not available here.',
+    'broker_file_transfer.sender_not_organization':
+      'You can only send this file on behalf of an organisation.',
+    'broker_file_transfer.resource_unavailable':
+      'We could not get the settings for sending the file. Try reloading the page.',
+    'broker_file_transfer.none_sent': 'No file has been sent.',
+    'broker_file_transfer.max_size': 'Maximum file size {0}',
+    'broker_file_transfer.send': 'Send file',
+    'broker_file_transfer.remove_file': 'Remove',
+    'broker_file_transfer.choose_file': 'Choose file',
+    'broker_file_transfer.checksum': 'Checksum',
+    'broker_file_transfer.checksum_algorithm': '{0} checksum',
+    'broker_file_transfer.checksum_help':
+      "The checksum is a code calculated from the file's contents. Altinn Broker calculates it again once the file is uploaded, and rejects the file if it does not match. You can enter an MD5 checksum of 32 characters or a SHA256 checksum of 64 characters.",
+    'broker_file_transfer.error_required': 'You must send a file.',
+    'broker_file_transfer.error_one_file': 'You can only send one file here.',
+    'broker_file_transfer.error_empty_file': 'The file is empty.',
+    'broker_file_transfer.error_file_name_too_long':
+      'The file name can be at most {0} characters long.',
+    'broker_file_transfer.error_file_too_large':
+      'The file is {0}. You can send files of up to {1}.',
+    'broker_file_transfer.error_file_type': 'You can only send these file types: {0}.',
+    'broker_file_transfer.error_no_recipients':
+      'You must specify who will receive the file before you can send it.',
+    'broker_file_transfer.error_invalid_recipients':
+      'The file can only be sent to nine-digit organisation numbers, not to {0}.',
+    'broker_file_transfer.error_recipients_not_allowed':
+      'The file can only be sent to organisations that have access to this service.',
+    'broker_file_transfer.error_checksum_invalid':
+      'The checksum must be 32 or 64 characters, using only the digits 0–9 and the letters a–f.',
+    'broker_file_transfer.error_metadata_required':
+      'Fill in the required fields before you send the file.',
+    'broker_file_transfer.error_failed_virus':
+      'Altinn Broker found harmful content in the file and rejected it. Choose another file.',
+    'broker_file_transfer.error_failed_checksum':
+      'The file did not match its checksum, and Altinn Broker rejected it. Check the checksum and send the file again.',
+    'broker_file_transfer.error_failed_other':
+      'Altinn Broker could not accept the file. Send it again.',
+    'broker_file_transfer.error_no_access':
+      'You do not have access to send files on this service on behalf of the organisation.',
+    'broker_file_transfer.error_login':
+      'Altinn Broker did not accept your login. Reload the page to log in again.',
+    'broker_file_transfer.error_not_set_up':
+      'This service is not set up to send files with Altinn Broker.',
+    'broker_file_transfer.error_send_failed': 'The file could not be sent. Try again.',
+    'broker_file_transfer.error_upload_not_prepared':
+      'The file transfer was created, but the file was not uploaded. Try again.',
+    'broker_file_transfer.error_file_changed':
+      'The file was changed or moved after you chose it. Choose it again.',
+    'broker_file_transfer.error_file_changed_during_upload':
+      'The file was changed or moved during the upload, so the upload cannot continue. Cancel the upload and send the file again.',
+    'broker_file_transfer.error_connection_lost':
+      'The connection to the server was lost. Continue when you are back online – what has been uploaded is kept.',
+    'broker_file_transfer.error_upload_stopped':
+      'The upload stopped. Continue to upload the rest of the file.',
+    'broker_file_transfer.error_upload_gone':
+      'The upload is no longer available on the server. Send the file again.',
+    'broker_file_transfer.error_not_sent':
+      'The file has not finished uploading. Continue the upload, or discard it.',
+    'broker_file_transfer.error_still_checking':
+      'Altinn Broker is still checking the file. You can submit when the check is finished.',
+    'broker_file_transfer.error_rejected': 'Remove the rejected file before you continue.',
+    'broker_file_transfer.error_interrupted_unknown':
+      'We could not check how far the interrupted upload got. Try reloading the page.',
+    'broker_file_transfer.progress_label': 'Upload progress',
+    'broker_file_transfer.progress_announcement': '{0} percent uploaded',
+    'broker_file_transfer.status_initializing': 'Creating the file transfer',
+    'broker_file_transfer.status_uploading': 'Uploading – {0}% ({1} of {2})',
+    'broker_file_transfer.time_remaining': '{0} left',
+    'broker_file_transfer.less_than_a_minute_remaining': 'less than a minute left',
+    'broker_file_transfer.status_pausing': 'Pausing – finishing the parts already under way',
+    'broker_file_transfer.status_paused': 'Paused at {0}% ({1} of {2})',
+    'broker_file_transfer.status_failed': 'Stopped at {0}% ({1} of {2})',
+    'broker_file_transfer.status_finishing': 'Putting the file together',
+    'broker_file_transfer.pause': 'Pause',
+    'broker_file_transfer.continue': 'Continue',
+    'broker_file_transfer.cancel': 'Cancel upload',
+    'broker_file_transfer.cancel_confirm':
+      'What has been uploaded will be lost, and the file must be sent again.',
+    'broker_file_transfer.cancel_confirm_yes': 'Yes, cancel',
+    'broker_file_transfer.cancel_confirm_no': 'No, keep it',
+    'broker_file_transfer.interrupted':
+      'The upload of “{0}” was interrupted. Choose the same file to continue where it stopped.',
+    'broker_file_transfer.interrupted_progress':
+      '{0}% has already been uploaded and will not be sent again.',
+    'broker_file_transfer.wrong_file':
+      'This is not the file that was being uploaded. Choose “{0}”, or discard the interrupted upload to send a different file.',
+    'broker_file_transfer.continue_upload': 'Continue upload',
+    'broker_file_transfer.discard_upload': 'Discard upload',
+    'broker_file_transfer.discard_confirm_yes': 'Yes, discard',
+    'broker_file_transfer.sent': 'Sent',
+    'broker_file_transfer.checking': 'Being checked',
+    'broker_file_transfer.rejected': 'Rejected',
+    'broker_file_transfer.sent_file': 'File sent',
+    'broker_file_transfer.not_fully_sent': 'Not fully sent',
+    'broker_file_transfer.unsent_file': 'File being sent',
+    'broker_file_transfer.file_transfer_id': 'File transfer ID: {0}',
+    'broker_file_transfer.sent_checksum': 'Checksum ({0}): {1}',
     'helptext.button_title': 'Help',
-    'helptext.button_title_prefix': 'Helptext for',
+    'helptext.button_title_prefix': 'Help text for',
     'receipt.attachments': 'Attachments',
     'receipt.body':
       'A mechanical check has been completed while filling in, but we reserve the right to detect errors during the processing of the case and that other documentation may be necessary. Please provide the reference number in case of any inquiries to the agency.',
@@ -462,18 +578,32 @@ export function en() {
       'When you have set deletionStrategy to soft, you must also set "checked".',
     'config_error.hard_delete_with_checked':
       'When you have set deletionStrategy to hard, you cannot set "checked".',
+    'config_error.broker_file_transfer_no_resource':
+      '{0} must name the Altinn Broker resource the file is sent on.',
+    'config_error.broker_file_transfer_no_recipients':
+      '{0} is set, but {1} contains no organisation numbers.',
+    'config_error.broker_file_transfer_invalid_recipients':
+      'These recipients in {0} are not organisation numbers: {1}',
+    'config_error.broker_file_transfer_too_much_metadata':
+      '{0} can have at most {1} entries, but has {2}.',
+    'config_error.broker_file_transfer_invalid_metadata_keys':
+      'These keys in {0} are empty or longer than {1} characters: {2}',
     'version_error.version_mismatch': 'Version mismatch',
     'version_error.version_mismatch_message':
       'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',
     'version_error.min_backend_version': 'Minimum backend version is {0}',
     'missing_row_id_error.title': 'Missing row-ID',
     'missing_row_id_error.message':
-      'When data was loaded, a row-ID was missing. This is an error in the configuration of the form, and must be corrected using the migration tools. Sjekk loggene i utviklerverktøyene for mer informasjon.',
+      'When data was loaded, a row-ID was missing. This is an error in the configuration of the form, and must be corrected using the migration tools. Check the logs in the developer tools for more information.',
     'missing_row_id_error.full_message':
       'The data model is missing the property {0} in the path {1}. This should be automatically added to the data model if you are using the correct version of the NuGet packages and have run the migration tools. Read more about the tools in the documentation: https://docs.altinn.studio/community/changelog/app-nuget/v8/migrating-from-v7/',
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
+    'process_error.instance_changed':
+      'The form was changed while you were submitting it, so it was not submitted. Check the form and try again.',
+    'process_error.concurrent_transition':
+      'The form was submitted from somewhere else at the same time, so your submission was not sent. Check the form and try again.',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',
@@ -489,7 +619,7 @@ export function en() {
     'process_workflow.failure_kind.timeout': 'Processing took too long',
     'process_workflow.failure_kind.unknown': 'Unknown cause',
     'process_workflow.having_trouble':
-      'We’re having trouble processing your form right now, but we keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
+      'We are having trouble processing your form right now, but we will keep trying automatically. Your information has been saved. You can safely close the page and come back later. You can open forms you have already started from your inbox or from the Drafts folder.',
     'process_workflow.still_working':
       'This is taking longer than usual. Your information has been saved, and the work continues automatically. You can safely close the page and come back later. You can open forms you’ve already started from your inbox or from the Drafts folder.',
     'pdfPreview.error': 'Could not show PDF preview',

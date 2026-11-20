@@ -1,0 +1,170 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-router
+spec:
+  config:
+    processors:
+      # Base's, plus the cluster's name, which resource_detection/aks reads from Azure elsewhere.
+      # insert, as there: a value the service sets is kept.
+      resource/environment:
+        attributes:
+          - key: deployment.environment.name
+            value: ${ENVIRONMENT}
+            action: upsert
+          - key: k8s.cluster.name
+            value: ${K8S_CLUSTER_NAME}
+            action: insert
+      # The platform's services that moved to DIS Core from the platform cluster. Their
+      # telemetry also goes to the platform's collector, so it stays in the platform's Azure
+      # Monitor, where the platform team follows them. Add a service's service.name when it
+      # moves here. Everything else, such as pdf3, goes to Victoria only.
+      filter/platform_services:
+        error_mode: ignore
+        traces:
+          span:
+            - not IsMatch(resource.attributes["service.name"], "^(platform-storage)$")
+        metrics:
+          metric:
+            - not IsMatch(resource.attributes["service.name"], "^(platform-storage)$")
+        logs:
+          log_record:
+            - not IsMatch(resource.attributes["service.name"], "^(platform-storage)$")
+
+    exporters:
+      # The settings are the runtime router's (infra/observability/runtime), which explains them.
+      load_balancing/traces:
+        routing_key: traceID
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.product-studio-obs.svc.cluster.local
+            port: '4317'
+      load_balancing/logs:
+        routing_key: traceID
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.product-studio-obs.svc.cluster.local
+            port: '4317'
+      load_balancing/metrics:
+        routing_key: resource
+        timeout: 10s
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          randomization_factor: 0.5
+          multiplier: 1.5
+          max_interval: 30s
+          max_elapsed_time: 300s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608
+        protocol:
+          otlp:
+            tls:
+              insecure: true
+            retry_on_failure:
+              enabled: false
+            sending_queue:
+              enabled: false
+        resolver:
+          dns:
+            hostname: otel-gateway-collector-headless.product-studio-obs.svc.cluster.local
+            port: '4317'
+      # The platform's collector, which sends traces and logs to Application Insights and metrics
+      # to an Azure Monitor Workspace. It finds each service's pod by its k8s.pod.uid, so labels
+      # on the service's Deployment, such as dis.otel/sampling, still apply. Without k8s.pod.uid
+      # it takes the connection's pod, this router. k8s_attributes in passthrough mode would set
+      # k8s.pod.ip here instead, but the operator would then ask for a ClusterRole to read pods,
+      # which DIS Core doesn't give us. A slow or unavailable
+      # collector must not hold up the export to Victoria: the queue drops data instead of
+      # blocking once it is full, and a failed export is retried for a minute.
+      otlp_grpc/platform:
+        endpoint: otel-collector.monitoring.svc.cluster.local:4317
+        tls:
+          insecure: true # in-cluster; the platform's collector accepts plaintext from any pod
+        timeout: 5s
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: 60s
+        sending_queue:
+          enabled: true
+          sizer: bytes
+          queue_size: 8388608 # as the load_balancing exporters'; the router has 256Mi
+          block_on_overflow: false
+
+    service:
+      telemetry:
+        resource:
+          k8s.pod.name: $${env:POD_NAME}
+          k8s.namespace.name: $${env:POD_NAMESPACE}
+          k8s.node.name: $${env:NODE_NAME}
+          k8s.deployment.name: otel-router-collector
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [resource/environment, transform/drop, batch]
+          exporters: [load_balancing/traces]
+        metrics:
+          receivers: [otlp]
+          processors: [filter/exporter_calls, resource/environment, transform/drop, batch]
+          exporters: [load_balancing/metrics]
+        logs:
+          receivers: [otlp]
+          processors: [filter/logs, resource/environment, transform/drop, batch]
+          exporters: [load_balancing/logs]
+        # Before the gateway's tail sampling, so the platform's collector samples whole traces
+        # by its own rules, and without transform/drop, so it gets the attributes the service
+        # sends.
+        traces/platform:
+          receivers: [otlp]
+          processors: [filter/platform_services, resource/environment, batch]
+          exporters: [otlp_grpc/platform]
+        metrics/platform:
+          receivers: [otlp]
+          processors: [filter/platform_services, filter/exporter_calls, resource/environment, batch]
+          exporters: [otlp_grpc/platform]
+        logs/platform:
+          receivers: [otlp]
+          processors: [filter/platform_services, filter/logs, resource/environment, batch]
+          exporters: [otlp_grpc/platform]

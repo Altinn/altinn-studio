@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
 import type { AddLayoutMutationArgs } from './useAddLayoutMutation';
@@ -10,7 +11,7 @@ import { externalLayoutsMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutName = 'layoutName';
@@ -18,8 +19,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const defaultArgs: AddLayoutMutationArgs = { layoutName };
 
 describe('useAddLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls saveFormLayoutV3 with new layout', async () => {
     await renderAndWaitForData();
 
@@ -81,10 +80,10 @@ describe('useAddLayoutMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayoutsV3 = jest
+  const getFormLayoutsV3 = vi
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore(

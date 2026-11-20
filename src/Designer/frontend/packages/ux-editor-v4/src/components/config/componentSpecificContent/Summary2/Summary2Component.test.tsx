@@ -1,5 +1,6 @@
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { describe, expect, it, vi } from 'vitest';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { screen, waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -18,10 +19,6 @@ import { Summary2Component } from './Summary2Component';
 import userEvent from '@testing-library/user-event';
 
 describe('Summary2ComponentTargetSelector', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render', async () => {
     render();
 
@@ -161,7 +158,7 @@ const addNewOverrideButton = () =>
 
 const defaultProps = {
   component: componentMocks[ComponentType.Summary2],
-  handleComponentChange: jest.fn(),
+  handleComponentChange: vi.fn(),
 };
 const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) => {
   const queryClient = createQueryClientMock();

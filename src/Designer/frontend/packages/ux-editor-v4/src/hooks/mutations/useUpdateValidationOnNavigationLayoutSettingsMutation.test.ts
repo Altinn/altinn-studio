@@ -1,8 +1,9 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import type { IValidationOnNavigationLayoutSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useUpdateValidationOnNavigationLayoutSettingsMutation } from './useUpdateValidationOnNavigationLayoutSettingsMutation';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
@@ -21,8 +22,6 @@ const settings: IValidationOnNavigationLayoutSettings[] = [
 ];
 
 describe('useUpdateValidationOnNavigationLayoutSettingsMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('calls updateValidationOnNavigationLayoutSettings with the correct parameters', async () => {
     const { result } = renderMutation();
     result.current.mutate(settings);

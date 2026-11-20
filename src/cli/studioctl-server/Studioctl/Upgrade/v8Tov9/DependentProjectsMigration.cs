@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Altinn.Studio.StudioctlServer.Platform;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
-using Microsoft.Build.Locator;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -60,8 +60,7 @@ internal static class DependentProjectsMigration
     {
         try
         {
-            if (!MSBuildLocator.IsRegistered)
-                MSBuildLocator.RegisterDefaults();
+            MSBuildRegistration.EnsureRegistered();
         }
         catch (InvalidOperationException ex)
         {

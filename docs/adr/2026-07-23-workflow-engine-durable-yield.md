@@ -1,6 +1,6 @@
 # Durable yield: a first-class "waiting" outcome for workflow-engine steps
 
-- Status: Approved
+- Status: Accepted
 - Deciders: Team Apps
 - Date: 23.07.2026
 
@@ -16,7 +16,7 @@
 
 Some integrations are "start now, confirm eventually" — eFormidling shipments are the canonical
 example. Today eFormidling has no poll loop of its own — after sending, the app publishes
-a CloudEvent *to itself* through Altinn Events and abuses the Events retry machinery as its timer: the
+a CloudEvent _to itself_ through Altinn Events and abuses the Events retry machinery as its timer: the
 `EventsReceiverController` returns HTTP 425 to mean "remind me later" and Events' exponential backoff
 becomes the (uncontrollable) poll cadence. Expiry means the platform team manually drains a dead-letter
 queue. The loop is untestable in localtest (which doesn't emulate Events delivery), the secret-code
@@ -125,14 +125,16 @@ alert for a non-error condition.
   checks-and-waits is by definition not a stage that records — durable work belongs in its own
   step, completed rather than deferred. A `state` parameter on `Defer` is rejected as a third
   state channel alongside Storage and the signed blob.
-- Park and defer are deliberately **identical UX on a layouted service task** — both leave the
-  process on the committed task (park awaits an external release, e.g. Fiks Arkiv's callback;
-  defer polls, e.g. eFormidling), and an app-supplied layout owns the waiting presentation for
-  both. Without a layout the split stays visible: park renders the built-in service-task waiting
-  view, defer the ordinary advancing view, and `workflow.status` (`idle` vs `processing`) reports
-  the truth in both. The synchronous `process/next` wait releases early (success shape, short
-  grace) once the anchored chain parks in `Waiting` — safe because deferral is post-commit by
-  construction, so the instance already carries the committed target task.
+- Running, deferring and parked are deliberately **identical UX on a service task with a page**
+  (its UI folder lists a page in `pages.order`): the process sits on the committed task in all
+  three (park awaits an external release, e.g. Fiks Arkiv's callback; defer polls, e.g.
+  eFormidling), so the page shows from the commit until the next task is on screen and owns the
+  waiting presentation. Without a page the split stays visible: park renders the built-in
+  service-task waiting view, running and defer the ordinary advancing view, and `workflow.status`
+  (`idle` vs `processing`) reports the truth in all three. The synchronous `process/next` wait
+  releases (success shape) as soon as the anchored chain parks in `Waiting` — safe because
+  deferral is post-commit by construction, so the instance already carries the committed target
+  task.
 - The app-side Altinn Events **receive** stack is retired in v9 (`EformidlingStartup`,
   `EformidlingStatusCheckEventHandler2`'s process-advance, `EventsReceiverController`,
   `EventHandlerResolver`, `IEventsSubscription`, `IEventSecretCodeProvider` + KeyVault provider).
@@ -145,11 +147,11 @@ Four details are load-bearing, and all four are easy to "simplify" back into bug
 
 - **The wait budget clamps rather than rejects.** A deferral overshooting the remaining budget schedules
   to the deadline. Rejecting it would forfeit the unspent remainder and make `Defer(24h)` under a 24h
-  budget fail without ever having waited. Expiry is therefore triggered by a deferral *at or past* the
+  budget fail without ever having waited. Expiry is therefore triggered by a deferral _at or past_ the
   deadline, so every step gets one final execution.
 - **Two anchors, not one.** `FirstDeferredAt` bounds the budget; `LastDeferredAt` anchors the retry
   deadline for errors after a deferral. The retry anchor cannot be `UpdatedAt` — the obvious-looking way
-  to reach "the last deferral's write-back" — because that column advances on *every* write-back, so each
+  to reach "the last deferral's write-back" — because that column advances on _every_ write-back, so each
   failed attempt slides the deadline forward and `MaxDuration` stops binding. Under the shipped default
   (no `MaxRetries`) a deferred step whose command starts failing would retry forever.
 - **`StateIn` prefers a step's own `StateOut`.** The engine hands a re-executing deferred step the

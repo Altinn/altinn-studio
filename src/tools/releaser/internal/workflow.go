@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -166,8 +167,8 @@ func resolvePathWithExistingParent(path string) (string, error) {
 				return "", fmt.Errorf("eval symlinks for %s: %w", current, evalErr)
 			}
 			resolved := resolvedCurrent
-			for i := len(missingParts) - 1; i >= 0; i-- {
-				resolved = filepath.Join(resolved, missingParts[i])
+			for _, missingPart := range slices.Backward(missingParts) {
+				resolved = filepath.Join(resolved, missingPart)
 			}
 			return filepath.Clean(resolved), nil
 		}

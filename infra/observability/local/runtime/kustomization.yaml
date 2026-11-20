@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The runtime collectors on the devenv kind fixture (src/Runtime/devenv, run with
+# monitoring). Production's configuration, less what only exists in Azure: the
+# Application Insights exporters and their routing, and the public Victoria
+# endpoint, which becomes the observability-proxy in the same cluster. Sampling,
+# filtering and the metric allowlist are left as they are, so what reaches the
+# local backend is what would reach the real one.
+resources:
+  - ../../runtime/overlay
+  - ingest-token.yaml
+
+patches:
+  - path: gateway-config.yaml
+    target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
+      name: otel-gateway
+  - path: router-config.yaml
+    target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
+      name: otel-router

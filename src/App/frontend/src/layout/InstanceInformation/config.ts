@@ -19,6 +19,8 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .makeSummarizable()
+  .addSummaryOverrides()
   .addProperty(
     new CG.prop(
       'elements',

@@ -1,42 +1,43 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsPageButton } from './SettingsPageButton';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
-import { useMediaQuery } from '@studio/hooks';
+import { useMediaQuery } from '@designer/hooks';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { useNavigate } from 'react-router-dom';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { useNavigateFrom } from './useNavigateFrom';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
-jest.mock('./useNavigateFrom.ts', () => ({
-  ...jest.requireActual('./useNavigateFrom.ts'),
-  useNavigateFrom: jest.fn().mockImplementation(() => ({
+vi.mock('./useNavigateFrom.ts', async () => ({
+  ...(await vi.importActual('./useNavigateFrom.ts')),
+  useNavigateFrom: vi.fn().mockImplementation(() => ({
     navigateFrom: '',
     currentRoutePath: '',
   })),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: vi.fn(),
 }));
 
 describe('SettingsPageButton', () => {
   const user = userEvent.setup();
   afterEach(() => {
     typedLocalStorage.removeItem('featureFlags');
-    jest.clearAllMocks();
   });
 
   it('should render the button with text on a large screen', () => {
@@ -49,7 +50,7 @@ describe('SettingsPageButton', () => {
   });
 
   it('should not render the button text on a small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderSettingsPageButton();
 
     expect(screen.queryByText(textMock('sync_header.settings'))).not.toBeInTheDocument();
@@ -59,9 +60,9 @@ describe('SettingsPageButton', () => {
   });
 
   it('renders back icon and button text when on settings page and feature is enabled', () => {
-    const mockNavigate = jest.fn();
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useNavigateFrom as jest.Mock).mockReturnValue({
+    const mockNavigate = vi.fn();
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as Mock).mockReturnValue({
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
@@ -74,9 +75,9 @@ describe('SettingsPageButton', () => {
   });
 
   it('navigates to settings page when clicking the settings button', async () => {
-    const mockNavigate = jest.fn();
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useNavigateFrom as jest.Mock).mockReturnValue({
+    const mockNavigate = vi.fn();
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as Mock).mockReturnValue({
       currentRoutePath: RoutePaths.UIEditor,
       navigateFrom: RoutePaths.UIEditor,
     });
@@ -98,9 +99,9 @@ describe('SettingsPageButton', () => {
   });
 
   it('navigates back from the settings page when clicking the go back button', async () => {
-    const mockNavigate = jest.fn();
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useNavigateFrom as jest.Mock).mockReturnValue({
+    const mockNavigate = vi.fn();
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as Mock).mockReturnValue({
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: RoutePaths.UIEditor,
     });
@@ -116,9 +117,9 @@ describe('SettingsPageButton', () => {
   });
 
   it('navigates to "overview" page when clicking go back and on settings page and from is null', async () => {
-    const mockNavigate = jest.fn();
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useNavigateFrom as jest.Mock).mockReturnValue({
+    const mockNavigate = vi.fn();
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (useNavigateFrom as Mock).mockReturnValue({
       currentRoutePath: RoutePaths.AppSettings,
       navigateFrom: null,
     });

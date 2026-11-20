@@ -1,6 +1,7 @@
+import { describe, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { AccessListEnvLinks } from './AccessListEnvLinks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -12,7 +13,6 @@ const org = 'ttd';
 
 const resourcePublishStatus = {
   policyVersion: null,
-  resourceVersion: '1',
   publishedVersions: [
     {
       version: '1',
@@ -37,8 +37,8 @@ const resourcePublishStatus = {
   ],
 };
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org: org,
     resourceId: resourceId,
@@ -46,8 +46,6 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('AccessListEnvLinks', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should show warning when resource is not published in some environments', async () => {
     renderAccessListEnvLinks();
 
@@ -71,7 +69,7 @@ describe('AccessListEnvLinks', () => {
 });
 
 const renderAccessListEnvLinks = () => {
-  const getResourcePublishStatus = jest
+  const getResourcePublishStatus = vi
     .fn()
     .mockImplementation(() => Promise.resolve(resourcePublishStatus));
   const allQueries: ServicesContextProps = {

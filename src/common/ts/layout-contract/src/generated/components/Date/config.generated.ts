@@ -1,14 +1,14 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface CompDateExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompDateExternal extends ComponentBase {
   type: 'Date';
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   format?: string;
   value: ExprValToActualOrExpr<ExprVal.String>;
@@ -49,4 +49,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DateSummaryOverridesWithRef;
 };
 
-// Source hash: a155b9371137cc5496a09cd23ba34e8862bd5996fdbcad2ab86fe67054370f80
+// Source hash: 11fdf3fcb0d1ba07c87f14003e66e91cbb9c56974f83b39202cc1c9b62a7ee4f

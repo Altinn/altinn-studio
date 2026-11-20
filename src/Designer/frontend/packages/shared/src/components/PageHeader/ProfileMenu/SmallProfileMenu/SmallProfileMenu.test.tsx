@@ -1,8 +1,9 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import { SmallProfileMenu } from './SmallProfileMenu';
 
 const mockUser = {
@@ -14,14 +15,14 @@ const mockUser = {
   userType: 1,
 };
 
-const mockUseUserQuery = jest.fn();
+const mockUseUserQuery = vi.fn();
 
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
+vi.mock('app-shared/hooks/queries', async () => ({
+  ...(await vi.importActual('app-shared/hooks/queries')),
   useUserQuery: () => mockUseUserQuery(),
 }));
 
-const mockMenuAction = jest.fn();
+const mockMenuAction = vi.fn();
 
 const menuItems: StudioProfileMenuGroup[] = [
   {
@@ -52,7 +53,6 @@ const menuItems: StudioProfileMenuGroup[] = [
 describe('SmallProfileMenu', () => {
   beforeEach(() => {
     mockUseUserQuery.mockReturnValue({ data: mockUser });
-    jest.clearAllMocks();
   });
 
   it('renders the hamburger menu trigger button', () => {

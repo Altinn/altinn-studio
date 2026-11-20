@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import type { EditTextResourceBindingsProps } from './EditTextResourceBindings';
 import { EditTextResourceBindings } from './EditTextResourceBindings';
 import { screen, waitFor } from '@testing-library/react';
@@ -8,12 +9,12 @@ import {
 } from '../../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {
@@ -90,7 +91,7 @@ describe('EditTextResourceBindings component', () => {
     const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
     const result = renderHookWithProviders(() => useTextResourcesQuery(org, app), {
       queries: {
-        getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
+        getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve(textLanguagesMock)),
         getTextResources: (_o, _a, lang) =>
           Promise.resolve<ITextResourcesWithLanguage>({
             language: lang,

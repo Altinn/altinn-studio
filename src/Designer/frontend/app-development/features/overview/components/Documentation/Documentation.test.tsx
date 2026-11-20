@@ -1,9 +1,10 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Documentation } from './Documentation';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 
 describe('Documentation', () => {
   it('renders component', async () => {

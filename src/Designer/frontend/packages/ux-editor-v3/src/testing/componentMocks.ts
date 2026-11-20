@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
@@ -83,7 +84,7 @@ const fileUploaderWithTagComponent: FormComponent<ComponentTypeV3.FileUploadWith
 const buttonComponent: FormComponent<ComponentTypeV3.Button> = {
   ...commonProps,
   type: ComponentTypeV3.Button,
-  onClickAction: jest.fn(),
+  onClickAction: vi.fn(),
 };
 const addressComponent: FormComponent<ComponentTypeV3.AddressComponent> = {
   ...commonProps,

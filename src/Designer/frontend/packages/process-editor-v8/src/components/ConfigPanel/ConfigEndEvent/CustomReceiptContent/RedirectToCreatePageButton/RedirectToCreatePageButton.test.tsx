@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { RedirectToCreatePageButton } from './RedirectToCreatePageButton';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -8,16 +9,12 @@ import {
   mockBpmnContextValue,
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('RedirectToCreatePageButton', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('Renders link with correct href', async () => {
     renderRedirectToCreatePageButton();
 

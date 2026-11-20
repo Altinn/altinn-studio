@@ -55,6 +55,13 @@ spec:
     # at most 8 queries at a time, 1GiB each, inside the 16Gi memory limit.
     search.maxConcurrentRequests: "8"
     search.maxMemoryPerQuery: 1GiB
+    # Results newer than this are always computed from raw data, and a sample
+    # arriving older than this clears the whole query result cache, every 5s
+    # while such samples keep coming. Delivery buffers and retries at every hop
+    # (the sources' Collector queues, vmagent's disk queue), so data minutes late
+    # is routine rather than an error, and the 5m default turned each late batch
+    # into a full cache reset.
+    search.cacheTimestampOffset: 30m
     # Every admin endpoint is open unless its auth key is set, so without these
     # anything that can reach this port in the cluster could delete series or
     # take snapshots. All of them use the same key, read from the mounted Secret
@@ -130,6 +137,7 @@ spec:
     dedup.minScrapeInterval: 1ms
     search.maxConcurrentRequests: "8"
     search.maxMemoryPerQuery: 1GiB
+    search.cacheTimestampOffset: 30m
     deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
@@ -187,6 +195,8 @@ spec:
   # itself. A service account that opts out of automounting does, and naming one
   # also stops the operator creating its own.
   serviceAccountName: vmagent-metrics-no-api-access
+  # Each replica is scraped by name, so a change here also changes the target
+  # list and the per-replica Services in self-monitoring.yaml.
   replicaCount: 2
   # The operator's own Service for an agent is headless, as a StatefulSet needs, so a
   # client resolving it connects to the first pod DNS returns. This second Service,
@@ -229,9 +239,15 @@ spec:
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
+        # The instance as well: vmagent-self (self-monitoring.yaml) carries the
+        # same name label, and a required anti-affinity term is also honored the
+        # other way round. The general pool is not zonal today, so the two cannot
+        # meet in a zone; should it become zonal, vmagent-self could take a zone
+        # first and leave this replica pending there after its next restart.
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: vmagent
+              app.kubernetes.io/instance: metrics
           topologyKey: topology.kubernetes.io/zone
 ---
 apiVersion: v1

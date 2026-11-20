@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SubExpressionContentProps } from './SubExpressionContent';
@@ -10,14 +11,14 @@ import {
 } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../../../../../types/global';
 import { DataSource } from '../../../../../../types/Expressions';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 const layoutSetName = layoutSet1NameMock;
@@ -27,9 +28,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('SubExpressionContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('renders function select when subExpression does not have function set', () => {
     render({
       props: {
@@ -63,7 +61,7 @@ describe('SubExpressionContent', () => {
     expect(comparableDataSourceSelectElement).toHaveValue('default');
   });
   it('calls onUpdateSubExpression when subExpression had existing value and dataSource is changed to DataSource.DataModel', async () => {
-    const onUpdateSubExpression = jest.fn();
+    const onUpdateSubExpression = vi.fn();
     render({
       props: {
         onUpdateSubExpression: onUpdateSubExpression,
@@ -97,7 +95,7 @@ describe('SubExpressionContent', () => {
     });
   });
   it('calls onUpdateSubExpression when subExpression had existing value and dataSourceValue is changed to a new string', async () => {
-    const onUpdateSubExpression = jest.fn();
+    const onUpdateSubExpression = vi.fn();
     render({
       props: {
         onUpdateSubExpression: onUpdateSubExpression,
@@ -147,7 +145,7 @@ describe('SubExpressionContent', () => {
     expect(selectComparableValueComponent).toHaveValue(subExpression0.comparableValue as string);
   });
   it('removes subExpression from expression object and renders nothing when remove-sub-expression is clicked', async () => {
-    const onRemoveSubExpression = jest.fn();
+    const onRemoveSubExpression = vi.fn();
     render({
       props: {
         onRemoveSubExpression: onRemoveSubExpression,
@@ -170,8 +168,8 @@ const render = ({
 }) => {
   const defaultProps: SubExpressionContentProps = {
     subExpression: subExpression0,
-    onUpdateSubExpression: jest.fn(),
-    onRemoveSubExpression: jest.fn(),
+    onUpdateSubExpression: vi.fn(),
+    onRemoveSubExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

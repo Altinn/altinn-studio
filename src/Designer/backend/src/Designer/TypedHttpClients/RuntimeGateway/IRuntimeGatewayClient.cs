@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -21,7 +23,22 @@ public interface IRuntimeGatewayClient
         AltinnEnvironment environment,
         CancellationToken cancellationToken
     );
-    Task<bool> IsAppDeployedWithGitOpsAsync(
+
+    /// <summary>
+    /// Gets the version of the app that runs in the environment's cluster, whichever Studio environment deployed it.
+    /// </summary>
+    /// <returns>The running deployment, or null when the app does not run there.</returns>
+    Task<RunningAppDeployment?> GetRunningAppDeployment(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Restarts the app in the environment's cluster by replacing its instances with new ones of the same version.
+    /// </summary>
+    Task<GatewayAppRestart> RestartApp(
         string org,
         string app,
         AltinnEnvironment environment,
@@ -30,6 +47,13 @@ public interface IRuntimeGatewayClient
     Task<IEnumerable<AlertRule>> GetAlertRulesAsync(
         string org,
         AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
+    Task<ReportMetrics> GetReportMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     );
     Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(
@@ -64,11 +88,122 @@ public interface IRuntimeGatewayClient
         int windowDays,
         CancellationToken cancellationToken
     );
+    Task<AppActivitySignalsResponse> GetAppActivitySignalsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int windowDays,
+        CancellationToken cancellationToken
+    );
     Task TriggerReconcileAsync(
         string org,
         string app,
         AltinnEnvironment environment,
         bool isUndeploy,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lists workflow collections for an app through the runtime gateway's workflow pass-through.
+    /// Three mutually exclusive modes: list (<paramref name="cursor"/>, <paramref name="pageSize"/>),
+    /// annotate (<paramref name="keys"/>, repeatable), and discover (<paramref name="failures"/>).
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowCollectionsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        IReadOnlyList<string>? keys,
+        string? failures,
+        string? cursor,
+        int? pageSize,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets a single workflow collection by key through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowCollectionAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string key,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Lists workflows for an app through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowsAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        string? collectionKey,
+        IReadOnlyList<string>? statuses,
+        IReadOnlyList<string>? labels,
+        string? role,
+        string? cursor,
+        int? pageSize,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Gets a single workflow by id through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> GetWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Resumes a terminal workflow through the runtime gateway's workflow pass-through.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> ResumeWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        bool cascade,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Nudges a parked (<c>Requeued</c>/<c>Waiting</c>) workflow through the runtime gateway's workflow
+    /// pass-through, so the engine re-executes it on its next fetch instead of when the backoff elapses.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> NudgeWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Fails a parked (<c>Requeued</c>/<c>Waiting</c>) workflow through the runtime gateway's workflow
+    /// pass-through, recording <paramref name="reason"/> as the parked step's final error entry.
+    /// The gateway/engine response is returned unmodified, whatever its status code; the caller
+    /// owns the returned <see cref="HttpResponseMessage"/> and must dispose it.
+    /// </summary>
+    Task<HttpResponseMessage> FailWorkflowAsync(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        Guid workflowId,
+        string reason,
         CancellationToken cancellationToken
     );
 }

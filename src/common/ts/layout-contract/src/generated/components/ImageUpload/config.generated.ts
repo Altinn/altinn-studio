@@ -4,7 +4,6 @@ import {
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -12,9 +11,12 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompImageUploadExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'ImageUpload';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   crop?: CropConfig;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsSimple;
@@ -33,9 +35,13 @@ export interface CropConfigRect {
   height?: number;
 }
 
+export interface ImageUploadSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type ImageUploadSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'ImageUpload' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & ImageUploadSummaryOverrides)
+  | ({ componentType: 'ImageUpload' } & ImageUploadSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -61,8 +67,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompImageUploadExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: ImageUploadSummaryOverrides;
   summaryOverridesWithRef: ImageUploadSummaryOverridesWithRef;
 };
 
-// Source hash: 08180b2b89c23af51df445790a7525188b725439bde0d99ed890408698d4addd
+// Source hash: 93afc210d59051eac1324bd063734e8d8187c0e55b1a54b556485931f6a6b926

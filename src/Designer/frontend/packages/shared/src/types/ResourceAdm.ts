@@ -60,7 +60,7 @@ export interface ResourceKeyword {
 }
 
 export interface Version {
-  version: string;
+  version: string | null;
   environment: string;
 }
 
@@ -74,7 +74,6 @@ export interface ResourceListItem {
 
 export interface ResourceVersionStatus {
   policyVersion?: string;
-  resourceVersion?: string;
   publishedVersions: Version[];
 }
 

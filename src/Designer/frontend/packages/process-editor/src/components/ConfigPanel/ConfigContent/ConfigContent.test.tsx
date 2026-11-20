@@ -1,6 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -13,8 +15,8 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
-import { useStudioRecommendedNextActionContext } from '@studio/components';
-import { screen, within } from '@studio/ui-test';
+import { useStudioRecommendedNextActionContext } from '@designer/components';
+import { screen, within } from '@designer/ui-test';
 
 const tasks = [
   {
@@ -35,34 +37,31 @@ const tasks = [
   },
 ];
 
-jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getElementsByType: jest.fn().mockReturnValue(tasks),
-        getAllElementIds: jest.fn().mockReturnValue(tasks.map((task) => task.id)),
+        getElementsByType: vi.fn().mockReturnValue(tasks),
+        getAllElementIds: vi.fn().mockReturnValue(tasks.map((task) => task.id)),
       };
     }),
   };
 });
 
-(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-  removeAction: jest.fn(),
-  addAction: jest.fn(),
-  shouldDisplayAction: jest.fn(),
+(useStudioRecommendedNextActionContext as Mock).mockReturnValue({
+  removeAction: vi.fn(),
+  addAction: vi.fn(),
+  shouldDisplayAction: vi.fn(),
 });
 
-jest.mock(
-  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+vi.mock(
+  '@designer/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
   () => ({
-    useStudioRecommendedNextActionContext: jest.fn(),
+    useStudioRecommendedNextActionContext: vi.fn(),
   }),
 );
 
 describe('ConfigContent', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render heading for selected task', () => {
     renderConfigContent();
     expect(
@@ -275,10 +274,10 @@ describe('ConfigContent', () => {
     });
 
     it('should show recommended action when task is data and is in recommended action queue', async () => {
-      const shouldDisplayAction = jest.fn().mockReturnValue(true);
-      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-        removeAction: jest.fn(),
-        addAction: jest.fn(),
+      const shouldDisplayAction = vi.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as Mock).mockReturnValue({
+        removeAction: vi.fn(),
+        addAction: vi.fn(),
         shouldDisplayAction,
       });
       renderConfigContent();

@@ -1,24 +1,23 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ExternalImageProps } from './ExternalImage';
 import { ExternalImage } from './ExternalImage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
-const onUrlChangeMock = jest.fn();
-const onUrlDeleteMock = jest.fn();
+const onUrlChangeMock = vi.fn();
+const onUrlDeleteMock = vi.fn();
 const imageOriginsFromLibrary = false;
 
 describe('ExternalImage', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('shows button to add url, with label as text content, by default when no url exists', () => {
     renderExternalImage();
     const urlButton = getUrlButton();
@@ -80,7 +79,7 @@ describe('ExternalImage', () => {
   it('shows "invalid url" error message when entering an invalid url', async () => {
     const user = userEvent.setup();
     const invalidUrl = 'invalidUrl';
-    const validateImageFromExternalUrlMock = jest
+    const validateImageFromExternalUrlMock = vi
       .fn()
       .mockImplementation(() => Promise.resolve('NotValidUrl'));
     renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
@@ -93,7 +92,7 @@ describe('ExternalImage', () => {
   it('shows "not an image" error message when entering a url that is not an image', async () => {
     const user = userEvent.setup();
     const notAnImageUrl = 'notAnImageUrl';
-    const validateImageFromExternalUrlMock = jest
+    const validateImageFromExternalUrlMock = vi
       .fn()
       .mockImplementation(() => Promise.resolve('NotAnImage'));
     renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
@@ -184,7 +183,7 @@ describe('ExternalImage', () => {
   it('should show error if validation failed', async () => {
     const user = userEvent.setup();
     const someUrl = 'someUrl';
-    const validateImageFromExternalUrlMock = jest.fn().mockImplementation(() => Promise.reject());
+    const validateImageFromExternalUrlMock = vi.fn().mockImplementation(() => Promise.reject());
     renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
     await inputUrlInField(user, someUrl);
     await waitForElementToBeRemoved(() => getValidationSpinner());

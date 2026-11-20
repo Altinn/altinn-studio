@@ -12,6 +12,7 @@ import {
     fmtTime,
     formatElapsed,
     formatSpan,
+    isAuxiliaryWorkflow,
 } from '../core/helpers.js';
 import {
     buildFilterText,
@@ -424,18 +425,18 @@ const countLabel = (count, total, countNoun) => {
  * @returns {string}
  */
 const groupHeaderHTML = (key, members, opts) => {
-    const head = members.find((m) => m.isHead !== false) ?? members[0];
+    const primary = members.find((m) => !isAuxiliaryWorkflow(m)) ?? members[0];
     let html = '<div class="chain-group-header">';
-    html += buildLabelsHTML(head, true);
+    html += buildLabelsHTML(primary, true);
     html += '<span class="header-spacer"></span>';
     html += `<span class="chain-count">${countLabel(members.length, opts.total, opts.countNoun)}</span>`;
     html += spanHTML(members);
     const agg = aggregateStatus(members);
     html += `<span class="status-pill ${escAttr(agg)}" style="animation:none">${esc(agg)}</span>`;
-    html += collectionButtonHTML(head, true);
+    html += collectionButtonHTML(primary, true);
     html += opts.hasHistory
         ? `<span class="chain-history-loaded" title="Showing the full workflow graph for this collection">full history</span>`
-        : `<a class="open-btn chain-history-btn" onclick="loadChainHistory(event,'${escJsArg(key)}','${escJsArg(head.databaseId)}','${escJsArg(head.namespace)}')" title="Load the full workflow graph for this collection (beyond the current window)">&#10227; history</a>`;
+        : `<a class="open-btn chain-history-btn" onclick="loadChainHistory(event,'${escJsArg(key)}','${escJsArg(primary.databaseId)}','${escJsArg(primary.namespace)}')" title="Load the full workflow graph for this collection (beyond the current window)">&#10227; history</a>`;
     html += '</div>';
     return html;
 };
@@ -476,9 +477,9 @@ export const buildGroupEl = (key, members, opts) => {
         // New members mean new edges the cache doesn't know about — refetch in the background.
         if (missing && !historyRefreshing.has(key)) {
             historyRefreshing.add(key);
-            const head = /** @type {Workflow} */ (members.at(-1));
+            const newest = /** @type {Workflow} */ (members.at(-1));
             window
-                .loadChainHistory(null, key, head.databaseId, head.namespace)
+                .loadChainHistory(null, key, newest.databaseId, newest.namespace)
                 .finally(() => historyRefreshing.delete(key));
         }
     } else {

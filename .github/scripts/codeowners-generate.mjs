@@ -20,6 +20,7 @@ const EXACT_SOURCE_FILES = [
   'global.json',
   'Chart.yaml',
   'pyproject.toml',
+  '.python-version',
   'requirements.txt',
   'requirements-dev.txt',
   'uv.lock',
@@ -63,7 +64,7 @@ const GROUPS = [
   {
     title: 'AI',
     owner: '@ErlingHauan',
-    roots: ['src/AI/agents', 'src/AI/augmenter-agent'],
+    roots: ['src/AI/assistant', 'src/AI/augmenter-agent'],
   },
   {
     title: 'Squad Kjøring',
@@ -83,6 +84,7 @@ const GROUPS = [
       'src/Runtime/common',
       'src/Runtime/devenv',
       'src/common/dotnet',
+      'src/common/go',
       'src/Designer/development/fake-ansattporten',
       'src/test/K6',
       'src/tools/health',
@@ -94,6 +96,7 @@ const GROUPS = [
     ],
     extraPaths: [
       '.github/workflows/cli-build-test.yaml',
+      '.github/workflows/common-go-build.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
       '.github/workflows/deploy-github-runners.yaml',
@@ -117,6 +120,7 @@ const GROUPS = [
       '.github/workflows/deployer-check.yaml',
       '.github/workflows/gitea-check-texts-file.yml',
       '.github/workflows/gitea-runner-test.yml',
+      '.github/workflows/github-runner-image-build.yaml',
       '.github/workflows/observability-proxy-build-test.yaml',
       '.github/workflows/release-studioctl.yaml',
       '.github/workflows/releaser-build-test.yml',

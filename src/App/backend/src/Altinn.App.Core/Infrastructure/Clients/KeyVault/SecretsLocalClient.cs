@@ -23,7 +23,7 @@ internal sealed class SecretsLocalClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public Task<byte[]> GetCertificateAsync(string certificateName)
+    public Task<byte[]> GetCertificate(string certificateName)
     {
         string token = GetTokenFromSecrets(certificateName);
         byte[] localCertBytes = Convert.FromBase64String(token);
@@ -31,7 +31,7 @@ internal sealed class SecretsLocalClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public Task<JsonWebKey> GetKeyAsync(string keyName)
+    public Task<JsonWebKey> GetKey(string keyName)
     {
         string token = GetTokenFromSecrets(keyName);
         // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
@@ -46,7 +46,7 @@ internal sealed class SecretsLocalClient : ISecretsClient
     }
 
     /// <inheritdoc />
-    public async Task<string> GetSecretAsync(string secretName)
+    public async Task<string> GetSecret(string secretName)
     {
         string token = GetTokenFromSecrets(secretName);
         return await Task.FromResult(token);

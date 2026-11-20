@@ -1,7 +1,15 @@
+import type { JSX } from 'react';
+
 import { ContainerComponent } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class AccordionGroupDef extends ContainerComponent<'AccordionGroup'> {
   protected readonly type = 'AccordionGroup';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 0c624eec89d4e7eed78f7b0765ba6b02c0f9b3da5928a1765904b4544fc4ed8a
+// Source hash: 2dce37454371398ba148bc617ee60b04c2ba2bd4971c1e995e4870aceccb2dda

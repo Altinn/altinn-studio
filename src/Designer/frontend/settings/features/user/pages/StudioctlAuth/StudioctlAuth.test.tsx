@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { StudioctlAuth } from './StudioctlAuth';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { User } from 'app-shared/types/Repository';
@@ -86,7 +86,6 @@ describe('StudioctlAuth', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,

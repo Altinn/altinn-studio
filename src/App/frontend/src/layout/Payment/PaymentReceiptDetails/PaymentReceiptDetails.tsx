@@ -3,10 +3,10 @@ import React from 'react';
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { usePaymentInformation } from 'src/core/queries/payment';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { getInstanceReferenceNumber } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import classes from 'src/layout/Payment/PaymentReceiptDetails/PaymentReceiptDetails.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
@@ -65,9 +65,10 @@ const PaymentInfoTable = ({ titleId, rows }: PaymentInfoTableProps) => (
 type PaymentReceiptDetailsProps = {
   title?: string;
   description?: string;
+  help?: string;
 };
 
-export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDetailsProps) => {
+export const PaymentReceiptDetails = ({ title, description, help }: PaymentReceiptDetailsProps) => {
   const selectedLanguage = useCurrentLanguage();
   const paymentInfo = usePaymentInformation();
   const instanceId = useLaxInstanceId();
@@ -193,6 +194,7 @@ export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDeta
         orderDetails={paymentInfo?.orderDetails}
         tableTitle={title}
         description={description}
+        help={help}
       />
     </div>
   );

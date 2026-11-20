@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IEditFormContainerProps } from './EditFormContainer';
@@ -16,12 +17,12 @@ import {
   layoutMock,
 } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { FormContainer } from '../../types/FormContainer';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 
@@ -50,11 +51,9 @@ const buttonGroupContainer: FormContainer = {
 };
 const nonEditableContainers = [accordionContainer, accordionGroupContainer, buttonGroupContainer];
 
-const handleContainerUpdateMock = jest.fn();
+const handleContainerUpdateMock = vi.fn();
 
 describe('EditFormContainer', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the component', async () => {
     await render();
 
@@ -123,10 +122,10 @@ describe('EditFormContainer', () => {
 });
 
 const waitForData = async () => {
-  const getFormLayoutsV3 = jest
+  const getFormLayoutsV3 = vi
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>(externalLayoutsMock));
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve<ILayoutSettings>(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore(

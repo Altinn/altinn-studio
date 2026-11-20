@@ -13,78 +13,23 @@ import {
 } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { queryOptions, useQuery } from '@tanstack/react-query';
 
+import { usePersonLookup } from 'src/core/queries/lookup';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { ComponentValidations } from 'src/features/validation/ComponentValidations';
-import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/PersonLookup/PersonLookupComponent.module.css';
-import { validatePersonLookupResponse, validateSsn } from 'src/layout/PersonLookup/validation';
+import { validateSsn } from 'src/layout/PersonLookup/validation';
+import { buildAriaDescribedBy } from 'src/utils/inputUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
-import { httpPost } from 'src/utils/network/networking';
-import { appPath } from 'src/utils/urls/appUrlHelper';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
-
-const personLookupQueries = {
-  lookup: (ssn: string, name: string) =>
-    queryOptions({
-      queryKey: [{ scope: 'personLookup', ssn, name }],
-      queryFn: () => fetchPerson(ssn, name),
-      enabled: false,
-      gcTime: 0,
-    }),
-};
-
-export type Person = {
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  ssn: string;
-};
-export type PersonLookupResponse = { success: false; personDetails: null } | { success: true; personDetails: Person };
-
-async function fetchPerson(
-  ssn: string,
-  name: string,
-): Promise<{ person: Person; error: null } | { person: null; error: string }> {
-  if (!ssn || !name) {
-    throw new Error('Missing ssn or name');
-  }
-  const body = { socialSecurityNumber: ssn, lastName: name };
-  const url = `${appPath}/api/v1/lookup/person`;
-
-  try {
-    const response = await httpPost(url, undefined, body);
-    const data = response.data;
-
-    if (!validatePersonLookupResponse(data)) {
-      return { person: null, error: 'person_lookup.validation_invalid_response_from_server' };
-    }
-
-    if (!data.success) {
-      return { person: null, error: 'person_lookup.validation_error_not_found' };
-    }
-
-    return { person: data.personDetails, error: null };
-  } catch (error) {
-    if (error.response.status === 403) {
-      return { person: null, error: 'person_lookup.validation_error_forbidden' };
-    }
-    if (error.response.status === 429) {
-      return { person: null, error: 'person_lookup.validation_error_too_many_requests' };
-    }
-
-    return { person: null, error: 'person_lookup.unknown_error' };
-  }
-}
 
 export function PersonLookupComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'PersonLookup'>) {
   const config = useComponentConfig(baseComponentId, 'PersonLookup');
@@ -97,14 +42,16 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     baseComponentId,
     overrideDisplay,
   });
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
   const [ssnErrors, setSsnErrors] = useState<string[]>();
   const [nameError, setNameError] = useState<string>();
 
-  const bindingValidations = useBindingValidationsFor<'PersonLookup'>(baseComponentId);
+  const validations = useUnifiedValidationsForNode(baseComponentId);
+  const ssnValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey === 'ssn');
+  const nameValidations = validations.filter((v) => 'bindingKey' in v && v.bindingKey !== 'ssn');
 
   const { langAsString } = useLanguage();
   const {
@@ -112,7 +59,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
-  const { data, refetch: performLookup, isFetching } = useQuery(personLookupQueries.lookup(tempSsn, tempName));
+  const { error: lookupError, lookup: performLookup, isFetching } = usePersonLookup(tempSsn, tempName);
 
   function handleValidateName(name: string) {
     if (name.length < 1) {
@@ -145,22 +92,22 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
       return;
     }
 
-    const { data } = await performLookup();
-    if (data?.person) {
+    const { person } = await performLookup();
+    if (person) {
       if (dataModelBindings.ssn) {
-        setValue('ssn', data.person.ssn);
+        setValue('ssn', person.ssn);
       }
       if (dataModelBindings.firstName) {
-        setValue('firstName', data.person.firstName);
+        setValue('firstName', person.firstName);
       }
       if (dataModelBindings.lastName) {
-        setValue('lastName', data.person.lastName);
+        setValue('lastName', person.lastName);
       }
       if (dataModelBindings.middleName) {
-        setValue('middleName', data.person.middleName || '');
+        setValue('middleName', person.middleName || '');
       }
       if (dataModelBindings.fullName) {
-        setValue('fullName', composeFullName(data.person));
+        setValue('fullName', composeFullName(person));
       }
     }
   }
@@ -203,8 +150,8 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
 
   const hasSuccessfullyFetched = !!ssn;
 
-  const invalidSsn = (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(bindingValidations?.ssn);
-  const invalidName = !!nameError || hasValidationErrors(bindingValidations?.fullName);
+  const invalidSsn = (ssnErrors?.length && ssnErrors?.length > 0) || hasValidationErrors(ssnValidations);
+  const invalidName = !!nameError || hasValidationErrors(nameValidations);
 
   return (
     <Fieldset
@@ -221,12 +168,17 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               htmlFor={`${componentId}_ssn`}
               label={langAsString('person_lookup.ssn_label')}
               required={required}
-              requiredIndicator={<RequiredIndicator required={required} />}
+              requiredIndicator={
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+              }
               optionalIndicator={
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               }
               description={
@@ -242,7 +194,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           <Field className={classes.ssn}>
             <NumericInput
               id={`${componentId}_ssn`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_ssn`) : undefined}
+              aria-describedby={buildAriaDescribedBy({
+                hasTitle: true,
+                hasDescription: hasSuccessfullyFetched,
+                descriptionId: getDescriptionId(`${componentId}_ssn`),
+                hasValidations: validations.length > 0,
+                validationsId: `${componentId}-validations`,
+              })}
               aria-label={langAsString('person_lookup.ssn_label')}
               value={hasSuccessfullyFetched ? ssn : tempSsn}
               required={required}
@@ -262,28 +220,27 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               pattern='[0-9]{11}'
               autoComplete='off'
             />
-            {(ssnErrors?.length && (
+            {ssnErrors?.length && (
               <ValidationMessage>
                 <Lang id={ssnErrors.join(' ')} />
               </ValidationMessage>
-            )) ||
-              (hasValidationErrors(bindingValidations?.ssn) && (
-                <ComponentValidations
-                  validations={bindingValidations?.ssn}
-                  baseComponentId={baseComponentId}
-                />
-              ))}
+            )}
           </Field>
           <div className={classes.nameLabel}>
             <Label
               htmlFor={`${componentId}_name`}
               required={required}
-              requiredIndicator={<RequiredIndicator required={required} />}
+              requiredIndicator={
+                <RequiredIndicator
+                  required={required}
+                  readOnly={readOnly}
+                />
+              }
               optionalIndicator={
                 <OptionalIndicator
                   required={required}
                   readOnly={readOnly}
-                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                  showOptionalMarking={showOptionalMarking}
                 />
               }
               label={langAsString(hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label')}
@@ -300,7 +257,13 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
           <Field className={classes.name}>
             <Input
               id={`${componentId}_name`}
-              aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${componentId}_name`) : undefined}
+              aria-describedby={buildAriaDescribedBy({
+                hasTitle: true,
+                hasDescription: hasSuccessfullyFetched,
+                descriptionId: getDescriptionId(`${componentId}_name`),
+                hasValidations: validations.length > 0,
+                validationsId: `${componentId}-validations`,
+              })}
               aria-label={langAsString(
                 hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label',
               )}
@@ -320,17 +283,11 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               }}
               autoComplete='family-name'
             />
-            {(nameError && (
+            {nameError && (
               <ValidationMessage>
                 <Lang id={nameError} />
               </ValidationMessage>
-            )) ||
-              (hasValidationErrors(bindingValidations?.fullName) && (
-                <ComponentValidations
-                  validations={bindingValidations?.fullName}
-                  baseComponentId={baseComponentId}
-                />
-              ))}
+            )}
           </Field>
           {!readOnly && (
             <div className={classes.submit}>
@@ -354,12 +311,12 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
               )}
             </div>
           )}
-          {data?.error && (
+          {lookupError && (
             <ValidationMessage
               data-size='sm'
               className={classes.apiError}
             >
-              <Lang id={data.error} />
+              <Lang id={lookupError} />
             </ValidationMessage>
           )}
         </div>

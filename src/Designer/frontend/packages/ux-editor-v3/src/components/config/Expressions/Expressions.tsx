@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import { ExpressionContent } from './ExpressionContent';
 import { useText } from '../../../hooks';
 import type { ExpressionProperty } from '../../../types/Expressions';

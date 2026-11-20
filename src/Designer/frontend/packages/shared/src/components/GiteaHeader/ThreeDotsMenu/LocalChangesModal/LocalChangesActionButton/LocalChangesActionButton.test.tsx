@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { Action, LocalChangesActionButtonProps } from './LocalChangesActionButton';
 import { LocalChangesActionButton } from './LocalChangesActionButton';
-import { TestFlaskIcon } from '@studio/icons';
+import { TestFlaskIcon } from '@designer/icons';
 import userEvent from '@testing-library/user-event';
 
 const mockLabel: string = 'Test label';
@@ -10,7 +11,7 @@ const mockDescription: string = 'Test description';
 const mockIcon: ReactNode = <TestFlaskIcon />;
 const mockText: string = 'Test text';
 
-const mockOnClick = jest.fn();
+const mockOnClick = vi.fn();
 
 const mockActionLink: Action = {
   type: 'link',
@@ -24,7 +25,6 @@ const mockActionButton: Action = {
 
 describe('LocalChangesActionButton', () => {
   const user = userEvent.setup();
-  afterEach(jest.clearAllMocks);
 
   const defaultProps: LocalChangesActionButtonProps = {
     label: mockLabel,

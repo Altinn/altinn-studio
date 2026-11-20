@@ -1,26 +1,190 @@
+# Follows the router in Altinn's environments (infra/observability/base/router.yaml), so telemetry
+# has the same attributes locally as there. The processors keep the router's names and order. Left
+# out: resource_detection/aks and k8s_attributes, which need a cluster, and filter/logs.
+# Also left out are the gateway's metric allowlist and tail sampling: localtest keeps every metric,
+# log level and trace, so a developer sees all their app emits.
 receivers:
   otlp:
     protocols:
+      # The receiver listens on localhost by default, which the published ports cannot reach.
       grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
 
 processors:
+  resource/environment:
+    attributes:
+      - key: deployment.environment.name
+        value: local
+        action: upsert
+  # SDK and process details that the router drops.
+  transform/drop:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - delete_key(datapoint.attributes, "process.command_args")
+          - delete_key(resource.attributes, "process.command_args")
+          - delete_key(datapoint.attributes, "instrumentationlibrary.name")
+          - delete_key(resource.attributes, "instrumentationlibrary.name")
+          - set(instrumentation_scope.name, "")
+          - set(instrumentation_scope.version, "")
+          - delete_key(datapoint.attributes, "network.peer.port")
+          - delete_key(resource.attributes, "network.peer.port")
+          - delete_key(datapoint.attributes, "network.protocol.version")
+          - delete_key(resource.attributes, "network.protocol.version")
+          - delete_key(datapoint.attributes, "os.description")
+          - delete_key(resource.attributes, "os.description")
+          - delete_key(datapoint.attributes, "os.type")
+          - delete_key(resource.attributes, "os.type")
+          - delete_key(datapoint.attributes, "process.executable.name")
+          - delete_key(resource.attributes, "process.executable.name")
+          - delete_key(datapoint.attributes, "process.executable.path")
+          - delete_key(resource.attributes, "process.executable.path")
+          - delete_key(datapoint.attributes, "process.owner")
+          - delete_key(resource.attributes, "process.owner")
+          - delete_key(datapoint.attributes, "process.pid")
+          - delete_key(resource.attributes, "process.pid")
+          - delete_key(datapoint.attributes, "process.runtime.description")
+          - delete_key(resource.attributes, "process.runtime.description")
+          - delete_key(datapoint.attributes, "process.runtime.name")
+          - delete_key(resource.attributes, "process.runtime.name")
+          - delete_key(datapoint.attributes, "process.runtime.version")
+          - delete_key(resource.attributes, "process.runtime.version")
+          - delete_key(datapoint.attributes, "telemetry.sdk.language")
+          - delete_key(resource.attributes, "telemetry.sdk.language")
+          - delete_key(datapoint.attributes, "telemetry.sdk.name")
+          - delete_key(resource.attributes, "telemetry.sdk.name")
+          - delete_key(datapoint.attributes, "telemetry.sdk.version")
+          - delete_key(resource.attributes, "telemetry.sdk.version")
+    trace_statements:
+      - context: span
+        statements:
+          - delete_key(span.attributes, "process.command_args")
+          - delete_key(resource.attributes, "process.command_args")
+          - delete_key(span.attributes, "instrumentationlibrary.name")
+          - delete_key(resource.attributes, "instrumentationlibrary.name")
+          - set(instrumentation_scope.name, "")
+          - set(instrumentation_scope.version, "")
+          - delete_key(span.attributes, "network.peer.port")
+          - delete_key(resource.attributes, "network.peer.port")
+          - delete_key(span.attributes, "network.protocol.version")
+          - delete_key(resource.attributes, "network.protocol.version")
+          - delete_key(span.attributes, "os.description")
+          - delete_key(resource.attributes, "os.description")
+          - delete_key(span.attributes, "os.type")
+          - delete_key(resource.attributes, "os.type")
+          - delete_key(span.attributes, "process.executable.name")
+          - delete_key(resource.attributes, "process.executable.name")
+          - delete_key(span.attributes, "process.executable.path")
+          - delete_key(resource.attributes, "process.executable.path")
+          - delete_key(span.attributes, "process.owner")
+          - delete_key(resource.attributes, "process.owner")
+          - delete_key(span.attributes, "process.pid")
+          - delete_key(resource.attributes, "process.pid")
+          - delete_key(span.attributes, "process.runtime.description")
+          - delete_key(resource.attributes, "process.runtime.description")
+          - delete_key(span.attributes, "process.runtime.name")
+          - delete_key(resource.attributes, "process.runtime.name")
+          - delete_key(span.attributes, "process.runtime.version")
+          - delete_key(resource.attributes, "process.runtime.version")
+          - delete_key(span.attributes, "telemetry.sdk.language")
+          - delete_key(resource.attributes, "telemetry.sdk.language")
+          - delete_key(span.attributes, "telemetry.sdk.name")
+          - delete_key(resource.attributes, "telemetry.sdk.name")
+          - delete_key(span.attributes, "telemetry.sdk.version")
+          - delete_key(resource.attributes, "telemetry.sdk.version")
+      - context: spanevent
+        statements:
+          - delete_key(spanevent.attributes, "process.command_args")
+          - delete_key(resource.attributes, "process.command_args")
+          - delete_key(spanevent.attributes, "instrumentationlibrary.name")
+          - delete_key(resource.attributes, "instrumentationlibrary.name")
+          - set(instrumentation_scope.name, "")
+          - set(instrumentation_scope.version, "")
+          - delete_key(spanevent.attributes, "network.peer.port")
+          - delete_key(resource.attributes, "network.peer.port")
+          - delete_key(spanevent.attributes, "network.protocol.version")
+          - delete_key(resource.attributes, "network.protocol.version")
+          - delete_key(spanevent.attributes, "os.description")
+          - delete_key(resource.attributes, "os.description")
+          - delete_key(spanevent.attributes, "os.type")
+          - delete_key(resource.attributes, "os.type")
+          - delete_key(spanevent.attributes, "process.executable.name")
+          - delete_key(resource.attributes, "process.executable.name")
+          - delete_key(spanevent.attributes, "process.executable.path")
+          - delete_key(resource.attributes, "process.executable.path")
+          - delete_key(spanevent.attributes, "process.owner")
+          - delete_key(resource.attributes, "process.owner")
+          - delete_key(spanevent.attributes, "process.pid")
+          - delete_key(resource.attributes, "process.pid")
+          - delete_key(spanevent.attributes, "process.runtime.description")
+          - delete_key(resource.attributes, "process.runtime.description")
+          - delete_key(spanevent.attributes, "process.runtime.name")
+          - delete_key(resource.attributes, "process.runtime.name")
+          - delete_key(spanevent.attributes, "process.runtime.version")
+          - delete_key(resource.attributes, "process.runtime.version")
+          - delete_key(spanevent.attributes, "telemetry.sdk.language")
+          - delete_key(resource.attributes, "telemetry.sdk.language")
+          - delete_key(spanevent.attributes, "telemetry.sdk.name")
+          - delete_key(resource.attributes, "telemetry.sdk.name")
+          - delete_key(spanevent.attributes, "telemetry.sdk.version")
+          - delete_key(resource.attributes, "telemetry.sdk.version")
+    log_statements:
+      - context: log
+        statements:
+          - delete_key(log.attributes, "process.command_args")
+          - delete_key(resource.attributes, "process.command_args")
+          - delete_key(log.attributes, "instrumentationlibrary.name")
+          - delete_key(resource.attributes, "instrumentationlibrary.name")
+          - set(instrumentation_scope.name, "")
+          - set(instrumentation_scope.version, "")
+          - delete_key(log.attributes, "network.peer.port")
+          - delete_key(resource.attributes, "network.peer.port")
+          - delete_key(log.attributes, "network.protocol.version")
+          - delete_key(resource.attributes, "network.protocol.version")
+          - delete_key(log.attributes, "os.description")
+          - delete_key(resource.attributes, "os.description")
+          - delete_key(log.attributes, "os.type")
+          - delete_key(resource.attributes, "os.type")
+          - delete_key(log.attributes, "process.executable.name")
+          - delete_key(resource.attributes, "process.executable.name")
+          - delete_key(log.attributes, "process.executable.path")
+          - delete_key(resource.attributes, "process.executable.path")
+          - delete_key(log.attributes, "process.owner")
+          - delete_key(resource.attributes, "process.owner")
+          - delete_key(log.attributes, "process.pid")
+          - delete_key(resource.attributes, "process.pid")
+          - delete_key(log.attributes, "process.runtime.description")
+          - delete_key(resource.attributes, "process.runtime.description")
+          - delete_key(log.attributes, "process.runtime.name")
+          - delete_key(resource.attributes, "process.runtime.name")
+          - delete_key(log.attributes, "process.runtime.version")
+          - delete_key(resource.attributes, "process.runtime.version")
+          - delete_key(log.attributes, "telemetry.sdk.language")
+          - delete_key(resource.attributes, "telemetry.sdk.language")
+          - delete_key(log.attributes, "telemetry.sdk.name")
+          - delete_key(resource.attributes, "telemetry.sdk.name")
+          - delete_key(log.attributes, "telemetry.sdk.version")
+          - delete_key(resource.attributes, "telemetry.sdk.version")
   batch:
     timeout: 5s
     send_batch_size: 10000
 
+# Every signal is exported as OTLP. VictoriaMetrics stores metrics under their OpenTelemetry
+# names and attributes ({"http.server.request.duration_count", "service.name"="..."}), as it does in prod.
 exporters:
-  otlp/tempo:
-    endpoint: monitoring_tempo:4317
-    tls:
-      insecure: true
-  otlphttp/loki:
-    endpoint: http://monitoring_loki:3100/otlp
-    tls:
-      insecure: true
-  prometheusremotewrite/mimir:
-    endpoint: http://monitoring_mimir:9009/api/v1/push
-    tls:
-      insecure: true
+  otlphttp/victoria-logs:
+    logs_endpoint: http://localtest-victoria-logs:9428/insert/opentelemetry/v1/logs
+    # The stream fields the observability proxy sets in Altinn's environments
+    # (src/observability-proxy, ObservabilitySignals.Logs). Without the header, every resource
+    # attribute becomes a stream field. The k8s.* fields are absent locally, which leaves service.name.
+    headers:
+      VL-Stream-Fields: k8s.cluster.name,k8s.namespace.name,service.name,k8s.pod.name
+  otlphttp/victoria-metrics:
+    metrics_endpoint: http://localtest-victoria-metrics:8428/opentelemetry/v1/metrics
+  otlphttp/victoria-traces:
+    traces_endpoint: http://localtest-victoria-traces:10428/insert/opentelemetry/v1/traces
 
 service:
   telemetry:
@@ -29,13 +193,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/tempo]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [otlphttp/victoria-traces]
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheusremotewrite/mimir]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [otlphttp/victoria-metrics]
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp/loki]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [otlphttp/victoria-logs]

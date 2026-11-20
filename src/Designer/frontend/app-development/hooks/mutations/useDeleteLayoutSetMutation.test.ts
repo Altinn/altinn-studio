@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { waitFor } from '@testing-library/react';
 import { useDeleteLayoutSetMutation } from './useDeleteLayoutSetMutation';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
@@ -25,7 +26,7 @@ describe('useDeleteLayoutSetMutation', () => {
 
   it('Invalidates AppValidation on success', async () => {
     const queryClientMock = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClientMock, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClientMock, 'invalidateQueries');
     const deleteLayoutSetResult = renderHookWithProviders(
       {},
       queryClientMock,

@@ -5,13 +5,12 @@ import {
   IDataModelReference,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompOrganizationLookupExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'OrganizationLookup';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -19,13 +18,20 @@ export interface CompOrganizationLookupExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: { orgnr: IDataModelReference; name?: IDataModelReference };
 }
 
+export interface OrganizationLookupSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type OrganizationLookupSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'OrganizationLookup' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & OrganizationLookupSummaryOverrides)
+  | ({ componentType: 'OrganizationLookup' } & OrganizationLookupSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -51,8 +57,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompOrganizationLookupExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: OrganizationLookupSummaryOverrides;
   summaryOverridesWithRef: OrganizationLookupSummaryOverridesWithRef;
 };
 
-// Source hash: d892acc561613d18838a93a6cfcedfa653c5848b5263474c0ef09ebdbcc34d58
+// Source hash: aaf544f2a62d5d5980c9b95d9474d913ae828d9471b115fa01a958b87131789b

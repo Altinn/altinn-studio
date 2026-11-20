@@ -1,16 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { screen } from '@testing-library/react';
 import { component1Mock } from '../../../testing/layoutMock';
 import { renderWithProviders } from '../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
-const mockHandleComponentUpdate = jest.fn();
+const mockHandleComponentUpdate = vi.fn();
 const schemaTextResourceKeys = ['title'];
 const textResources: ITextResource[] = [
   { id: '1', value: 'Text 1' },
@@ -19,8 +20,6 @@ const textResources: ITextResource[] = [
 ];
 
 describe('TextBindingMainConfig', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('return null if the schema of component does not have a title prop', () => {
     renderTextMainConfig({});
     const wrapper = screen.getByTestId('component-wrapper');
@@ -54,7 +53,7 @@ describe('TextBindingMainConfig', () => {
   });
 
   it('removes text resource binding title when it is deleted', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
     const component = {
       ...component1Mock,

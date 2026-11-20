@@ -22,16 +22,9 @@ internal static class BpmnBuilder
     /// <param name="id">The BPMN element id.</param>
     /// <param name="taskType">The <c>altinn:taskType</c> value.</param>
     /// <param name="actions">Process actions the task declares (the default <c>processAction</c> type).</param>
-    /// <param name="serverActions">Actions the task declares as <c>type="serverAction"</c>.</param>
-    public static string Task(string id, string taskType, string[]? actions = null, string[]? serverActions = null)
+    public static string Task(string id, string taskType, string[]? actions = null)
     {
-        var declared = string.Concat(
-            (actions ?? [])
-                .Select(a => $"<altinn:action>{a}</altinn:action>")
-                .Concat(
-                    (serverActions ?? []).Select(a => $"""<altinn:action type="serverAction">{a}</altinn:action>""")
-                )
-        );
+        var declared = string.Concat((actions ?? []).Select(a => $"<altinn:action>{a}</altinn:action>"));
         var actionsXml = declared.Length == 0 ? "" : $"\n          <altinn:actions>{declared}</altinn:actions>";
 
         return $"""
@@ -57,16 +50,23 @@ internal static class BpmnBuilder
             """;
 
     /// <summary>A pdf service task as the migrator emits it (serviceTask carrying taskType `pdf`).</summary>
-    public static string PdfServiceTask(string id) =>
-        $"""
+    /// <param name="autoPdfTaskId">The task the pdf task renders in automatic mode; null leaves out pdfConfig.</param>
+    public static string PdfServiceTask(string id, string? autoPdfTaskId = null)
+    {
+        var pdfConfig = autoPdfTaskId is null
+            ? ""
+            : $"\n          <altinn:pdfConfig><altinn:autoPdfTaskIds><altinn:taskId>{autoPdfTaskId}</altinn:taskId></altinn:autoPdfTaskIds></altinn:pdfConfig>";
+
+        return $"""
                 <bpmn:serviceTask id="{id}" name="Lag PDF">
                   <bpmn:extensionElements>
                     <altinn:taskExtension>
-                      <altinn:taskType>pdf</altinn:taskType>
+                      <altinn:taskType>pdf</altinn:taskType>{pdfConfig}
                     </altinn:taskExtension>
                   </bpmn:extensionElements>
                 </bpmn:serviceTask>
             """;
+    }
 
     public static string StartEvent(string id) => $"    <bpmn:startEvent id=\"{id}\" />";
 
@@ -99,13 +99,15 @@ internal static class BpmnBuilder
             }
             """;
 
-    public static string FormDataType(string id, string taskId, bool enablePdfCreation) =>
+    /// <param name="autoCreate">Whether <c>appLogic.autoCreate</c> is true; when false the property is left out.</param>
+    public static string FormDataType(string id, string taskId, bool enablePdfCreation, bool autoCreate = true) =>
         $$"""
                 {
                   "id": "{{id}}",
                   "taskId": "{{taskId}}",
                   "enablePdfCreation": {{(enablePdfCreation ? "true" : "false")}},
                   "appLogic": {
+                    {{(autoCreate ? "\"autoCreate\": true," : "")}}
                     "classRef": "Altinn.App.Models.{{id}}"
                   }
                 }

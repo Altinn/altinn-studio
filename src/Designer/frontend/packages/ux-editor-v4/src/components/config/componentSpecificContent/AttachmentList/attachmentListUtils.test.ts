@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { isSelectionValid } from './attachmentListUtils';
 import type { InternalDataTypesFormat } from './types';
 

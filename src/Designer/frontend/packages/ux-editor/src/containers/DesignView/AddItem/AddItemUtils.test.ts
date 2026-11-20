@@ -1,6 +1,8 @@
+import { describe, expect, it } from 'vitest';
 import { getComponentSelection } from './AddItemUtils';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import {
   allComponents,
   confOnScreenComponents,
@@ -13,19 +15,23 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../../../testing/layoutMock';
 
 const buttonGroupId = 'button-group';
+const unconfiguredContainerId = 'unconfigured-container';
+const unconfiguredContainerType = 'UnconfiguredContainer' as ComponentType;
 
 const createContainer = (id: string, type: ComponentType): FormContainer =>
-  ({ id, itemType: 'CONTAINER', type }) as FormContainer;
+  ({ id, type }) as FormContainer;
 
 const layout: IInternalLayout = {
   components: {},
   containers: {
     [BASE_CONTAINER_ID]: createContainer(BASE_CONTAINER_ID, ComponentType.Group),
     [buttonGroupId]: createContainer(buttonGroupId, ComponentType.ButtonGroup),
+    [unconfiguredContainerId]: createContainer(unconfiguredContainerId, unconfiguredContainerType),
   },
   order: {
     [BASE_CONTAINER_ID]: [],
     [buttonGroupId]: [],
+    [unconfiguredContainerId]: [],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -53,6 +59,30 @@ describe('AddItemUtils', () => {
         expect(shouldShowAllComponentsButton).toBe(true);
       });
 
+      it('offers the newly generated component types except beta components', () => {
+        const { availableComponents } = getComponentSelection(layout, BASE_CONTAINER_ID);
+        const types = availableTypes(availableComponents);
+
+        expect(types).not.toContain(ComponentType.AddToList);
+        expect(types).not.toContain(ComponentType.SimpleTable);
+        expect(types).toEqual(
+          expect.arrayContaining([
+            ComponentType.Audio,
+            ComponentType.Cards,
+            ComponentType.Date,
+            ComponentType.Number,
+            ComponentType.Option,
+            ComponentType.PDFPreviewButton,
+            ComponentType.SigneeList,
+            ComponentType.SigningActions,
+            ComponentType.SigningDocumentList,
+            ComponentType.Tabs,
+            ComponentType.TimePicker,
+            ComponentType.Video,
+          ]),
+        );
+      });
+
       it('limits both lists to the container valid child types', () => {
         const { quickAddComponents, availableComponents } = getComponentSelection(
           layout,
@@ -62,6 +92,15 @@ describe('AddItemUtils', () => {
           formItemConfigs[ComponentType.ButtonGroup].validChildTypes,
         );
         expect(Object.keys(availableComponents)).toEqual(['button']);
+      });
+
+      it('offers nothing for a container without a Designer config', () => {
+        const { quickAddComponents, availableComponents } = getComponentSelection(
+          layout,
+          unconfiguredContainerId,
+        );
+        expect(quickAddComponents).toEqual([]);
+        expect(availableComponents).toEqual({});
       });
     });
 
@@ -95,9 +134,7 @@ describe('AddItemUtils', () => {
 
       it('includes allowed components outside the standard taxonomy in the available list', () => {
         const { availableComponents } = getComponentSelection(layout, BASE_CONTAINER_ID, 'subform');
-        expect(availableTypes(availableComponents)).toContain(
-          CustomComponentType.CloseSubformButton,
-        );
+        expect(availableTypes(availableComponents)).toContain(ComponentPreset.CloseSubformButton);
       });
     });
   });

@@ -4,7 +4,6 @@ import {
   IDataModelBindingsSimple,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -12,9 +11,13 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CompDatepickerExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'Datepicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'bday';
@@ -36,9 +39,13 @@ export interface CompDatepickerExternal
   format?: string;
 }
 
+export interface DatepickerSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type DatepickerSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Datepicker' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & DatepickerSummaryOverrides)
+  | ({ componentType: 'Datepicker' } & DatepickerSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -64,8 +71,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompDatepickerExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: DatepickerSummaryOverrides;
   summaryOverridesWithRef: DatepickerSummaryOverridesWithRef;
 };
 
-// Source hash: 92490f5d42ac9a658807bcbf25092710cfc6f754093d0f01f7ddc99f0f3dd72e
+// Source hash: 51e13dcbd9fd71c0dfc75683a3e3c5c9c360606034524e297e4b222294d9844f

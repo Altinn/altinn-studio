@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -17,11 +18,9 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 internal sealed class ExpressionValidator : IValidator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
@@ -50,11 +49,11 @@ internal sealed class ExpressionValidator : IValidator
     public string TaskId => "*";
 
     /// <summary>
-    /// Only run for tasks that has layouts
+    /// Only run for tasks that have a data type with a validation configuration
     /// </summary>
     public bool ShouldRunForTask(string taskId) =>
         _appMetadata.ApplicationMetadata.DataTypes.Exists(dt =>
-            dt.TaskId == taskId
+            dt.IsBoundToTask(taskId)
             && dt.AppLogic?.ClassRef is not null
             && _appResourceService.GetValidationConfiguration(dt.Id) is not null
         );
@@ -378,7 +377,10 @@ internal sealed class ExpressionValidator : IValidator
         ILogger logger
     )
     {
-        using var expressionValidationConfigDocument = JsonDocument.Parse(validationConfig);
+        using var expressionValidationConfigDocument = JsonDocument.Parse(
+            validationConfig,
+            AppFileJson.DocumentOptions
+        );
         var expressionValidationDefinitions = new Dictionary<string, RawExpressionValidation>();
         var hasDefinitions = expressionValidationConfigDocument.RootElement.TryGetProperty(
             "definitions",

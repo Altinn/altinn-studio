@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import type { TextRowProps } from './TextRow';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { TextTableRowEntry } from './types';
-import { StudioTable } from '@studio/components';
+import { StudioTable } from '@designer/components';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -147,8 +147,6 @@ describe('TextRow', () => {
   });
 
   describe('Delete confirmation dialog', () => {
-    afterEach(vi.clearAllMocks);
-
     it('should open the confirmation dialog when clicking the delete button', async () => {
       const user = userEvent.setup();
       renderTextRow();

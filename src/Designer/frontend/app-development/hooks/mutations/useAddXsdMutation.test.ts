@@ -1,8 +1,9 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useAddXsdMutation } from './useAddXsdMutation';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const modelPath: string = 'modelPath';

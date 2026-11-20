@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useReplaceDataModelXsdMutation } from './useReplaceDataModelXsdMutation';
@@ -5,8 +7,7 @@ import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { app, org } from '@studio/testing/testids';
-import Mock = jest.Mock;
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
@@ -38,7 +39,7 @@ describe('useReplaceDataModelXsdMutation', () => {
 
   it('invalidates the model queries when the replacement is successful', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     await renderHook(queryClient);
 

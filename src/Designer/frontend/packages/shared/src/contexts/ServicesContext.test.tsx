@@ -1,10 +1,11 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { renderHook, screen, waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from './ServicesContext';
 import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -12,7 +13,7 @@ import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 const unknownErrorCode = 'unknownErrorCode';
 // Mocks:
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
     i18n: {
@@ -23,7 +24,7 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: any }) => textMock(i18nKey),
 }));
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 const wrapper = ({
   children,
@@ -45,7 +46,7 @@ describe('ServicesContext', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { ...originalLocation, assign: jest.fn() },
+      value: { ...originalLocation, assign: vi.fn() },
     });
   });
 
@@ -56,8 +57,8 @@ describe('ServicesContext', () => {
     });
   });
 
-  it('logs non-Axios errors to the console', async () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  it('logs errors that are not HTTP errors to the console', async () => {
+    const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderHook(
       () =>
         useQuery({
@@ -235,16 +236,14 @@ describe('ServicesContext', () => {
 
   it('Throws an error if used outside a ServiceContextProvider', () => {
     const renderHookFn = () => renderHook(() => useServicesContext());
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(renderHookFn).toThrow(
       'useServicesContext must be used within a ServicesContextProvider.',
     );
   });
 
   it('does not display error toast when request is cancelled', async () => {
-    const cancelledError = new Error('Request cancelled');
-    cancelledError.name = 'CanceledError';
-    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+    const cancelledError = new DOMException('Request cancelled', 'AbortError');
 
     const { result } = renderHook(
       () =>

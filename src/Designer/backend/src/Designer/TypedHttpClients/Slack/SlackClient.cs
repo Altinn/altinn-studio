@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Telemetry;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.Slack;
 
@@ -22,7 +23,9 @@ public class SlackClient(HttpClient httpClient) : ISlackClient
             MediaTypeNames.Application.Json
         );
 
-        using var response = await httpClient.PostAsync(webhookUrl, payloadContent, cancellationToken);
+        using var request = new HttpRequestMessage(HttpMethod.Post, webhookUrl) { Content = payloadContent };
+        request.MarkSecretUrlPath();
+        using var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 }

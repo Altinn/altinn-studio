@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { PdfConfig } from './PdfConfig';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { formLayoutSettingsMock, renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { AppContextProps } from '@altinn/ux-editor/AppContext';
@@ -15,11 +16,9 @@ import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor/testing/layo
 const selectedLayoutSet = layoutSet1NameMock;
 
 describe('PdfConfig', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('calls save on FormLayoutSettings when convertToPdf switch is clicked', async () => {
     const user = userEvent.setup();
-    const mutateLayoutSettings = jest.fn();
+    const mutateLayoutSettings = vi.fn();
     renderPdfConfig({ queries: { saveFormLayoutSettings: mutateLayoutSettings } });
     const convertFormLayoutToPdfSwitch = screen.getByLabelText(
       textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
@@ -34,7 +33,7 @@ describe('PdfConfig', () => {
   it('calls save on FormLayoutSettings when convertToFormLayout switch is clicked', async () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
-    const mutateLayoutSettings = jest.fn();
+    const mutateLayoutSettings = vi.fn();
     renderPdfConfig({
       layoutSettings: { pages: { order: [], pdfLayoutName: pdfLayoutNameMock } },
       appContextProps: { selectedFormLayoutName: pdfLayoutNameMock },

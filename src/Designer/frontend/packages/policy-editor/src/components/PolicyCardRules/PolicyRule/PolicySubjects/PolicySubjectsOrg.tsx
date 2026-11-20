@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { StudioDetails, StudioTabs } from '@studio/components';
+import { StudioDetails, StudioTabs } from '@designer/components';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicySubjects.module.css';
-import { Buildings3Icon } from '@studio/icons';
+import { Buildings3Icon } from '@designer/icons';
 import { PolicyAccessPackages } from '../PolicyAccessPackages';
 import { useTranslation } from 'react-i18next';
 import { RoleList } from './RoleList/RoleList';

@@ -1,11 +1,12 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
 import { createBpmnTestModeler } from '../../../../test/createBpmnTestModeler';
 
 describe('ConfigSequenceFlow', () => {
-  afterEach(jest.restoreAllMocks);
+  afterEach(vi.restoreAllMocks);
 
   it('adds and removes a condition in the BPMN', async () => {
     const user = userEvent.setup();
@@ -19,7 +20,7 @@ describe('ConfigSequenceFlow', () => {
     ]);
     expect((await moddle.toXML(flow.businessObject)).xml).toContain('bpmn:conditionExpression');
 
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     await user.click(screen.getByRole('button', { name: textMock('general.edit') }));
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(flow.businessObject.conditionExpression).toBeUndefined();

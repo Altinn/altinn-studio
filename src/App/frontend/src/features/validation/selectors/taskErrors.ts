@@ -9,7 +9,7 @@ import {
   type NodeVisibility,
   ValidationMask,
 } from 'src/features/validation/index';
-import { selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
+import { isValidationVisible, selectValidations, validationsOfSeverity } from 'src/features/validation/utils';
 import { useAllValidations } from 'src/features/validation/validationHooks';
 import type { FieldValidation } from 'src/features/validation';
 
@@ -24,8 +24,8 @@ export function useTaskErrors(): {
   formErrors: NodeRefValidation<AnyValidation<'error'>>[];
   taskErrors: BaseValidation<'error'>[];
 } {
-  const [backendValidationsByDataType, taskValidations, showAllUnboundValidations] = FormStore.raw.useMemoSelector(
-    (state) => {
+  const [backendValidationsByDataType, taskValidations, componentValidations, showAllUnboundValidations] =
+    FormStore.raw.useMemoSelector((state) => {
       const showAllUnboundValidations = state.validation.showAllUnboundValidations;
       return [
         showAllUnboundValidations
@@ -37,10 +37,10 @@ export function useTaskErrors(): {
             )
           : emptyBackendValidations,
         state.validation.state.task,
+        state.validation.state.component,
         showAllUnboundValidations,
       ] as const;
-    },
-  );
+    });
 
   const formErrorVisibility: NodeVisibility = showAllUnboundValidations ? 'showAll' : 'visible';
 
@@ -69,11 +69,18 @@ export function useTaskErrors(): {
       }
     }
 
+    // Errors linked to components that are not visible in the form
+    for (const validation of validationsOfSeverity(componentValidations, 'error')) {
+      if (isValidationVisible(validation, backendMask) && !boundErrorIds.has(validation.backendValidationId)) {
+        allBackendErrors.push(validation);
+      }
+    }
+
     // Task errors
     allBackendErrors.push(...validationsOfSeverity(taskValidations, 'error'));
 
     return allBackendErrors?.length ? allBackendErrors : emptyArray;
-  }, [backendValidationsByDataType, formErrors, showAllUnboundValidations, taskValidations]);
+  }, [backendValidationsByDataType, componentValidations, formErrors, showAllUnboundValidations, taskValidations]);
 
   return {
     formErrors,

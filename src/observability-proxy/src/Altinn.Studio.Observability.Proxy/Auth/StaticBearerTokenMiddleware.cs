@@ -1,5 +1,6 @@
 using Altinn.Studio.Observability.Proxy.Configuration;
 using Altinn.Studio.Observability.Proxy.Routing;
+using Altinn.Studio.Observability.Proxy.Telemetry;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Model;
 
@@ -13,25 +14,28 @@ namespace Altinn.Studio.Observability.Proxy.Auth;
 /// group, reaches nothing. Any proxy route is authenticated whatever its path, and so is anything
 /// else under the prefix. The order of the answers is 401 for a missing or unknown token, 404 for
 /// no route, 403 for a route group the token was not granted, and 404 for a read path outside the
-/// signal's allowlist, so only an authenticated caller learns which paths exist.
+/// read API's allowlist, so only an authenticated caller learns which paths exist.
 /// </summary>
 internal sealed class StaticBearerTokenMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly StaticBearerTokenAuthenticator _authenticator;
     private readonly IOptionsMonitor<ObservabilityProxyOptions> _options;
+    private readonly ObservabilityProxyMetrics _metrics;
     private readonly ILogger<StaticBearerTokenMiddleware> _logger;
 
     public StaticBearerTokenMiddleware(
         RequestDelegate next,
         StaticBearerTokenAuthenticator authenticator,
         IOptionsMonitor<ObservabilityProxyOptions> options,
+        ObservabilityProxyMetrics metrics,
         ILogger<StaticBearerTokenMiddleware> logger
     )
     {
         _next = next;
         _authenticator = authenticator;
         _options = options;
+        _metrics = metrics;
         _logger = logger;
     }
 
@@ -45,8 +49,17 @@ internal sealed class StaticBearerTokenMiddleware
             return;
         }
 
-        if (!_authenticator.TryAuthenticate(context.Request.Headers.Authorization, out var source))
+        ObservabilityProxyMetrics.TagRoute(context, route?.Config);
+
+        string? authorization = context.Request.Headers.Authorization;
+        if (!_authenticator.TryAuthenticate(authorization, out var source))
         {
+            _metrics.RecordAuthenticationFailure(
+                route?.Config,
+                StaticBearerTokenAuthenticator.HasBearerToken(authorization)
+                    ? ObservabilityProxyMetrics.UnknownToken
+                    : ObservabilityProxyMetrics.MissingBearerToken
+            );
             _logger.LogWarning(
                 "Rejected unauthenticated observability request. Method={Method} Path={Path}",
                 context.Request.Method,
@@ -56,6 +69,8 @@ internal sealed class StaticBearerTokenMiddleware
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return;
         }
+
+        ObservabilityProxyMetrics.TagSource(context, source);
 
         var routeGroup = ObservabilityReverseProxyConfig.RouteGroupOf(route?.Config);
         if (routeGroup is null)
@@ -71,8 +86,8 @@ internal sealed class StaticBearerTokenMiddleware
         }
 
         if (
-            ObservabilitySignal.ForReadRouteGroup(routeGroup) is { } signal
-            && !signal.AllowsRead(context.Request.Method, ReadPath(context))
+            ObservabilitySignal.ReadApiFor(routeGroup) is { } readApi
+            && !readApi.AllowsRead(context.Request.Method, ReadPath(context))
         )
         {
             Reject(context, source, routeGroup, "read path not allowed", StatusCodes.Status404NotFound);
@@ -92,7 +107,7 @@ internal sealed class StaticBearerTokenMiddleware
         await _next(context);
     }
 
-    /// <summary>The path below the signal's public read prefix, as the read route captured it.</summary>
+    /// <summary>The path below the read API's public prefix, as the read route captured it.</summary>
     private static string ReadPath(HttpContext context)
     {
         return "/" + context.Request.RouteValues[ObservabilityPaths.ReadPathRouteValue];

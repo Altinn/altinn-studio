@@ -2,18 +2,17 @@ using System.Net;
 using Altinn.App.Api.Tests.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_UserAccessTests : ApiTestBase
 {
     const string OrgId = "tdd";
     const string AppId = "contributer-restriction";
 
-    public DataController_UserAccessTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataController_UserAccessTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData("userInteractionUnspecified", false, HttpStatusCode.Created)]

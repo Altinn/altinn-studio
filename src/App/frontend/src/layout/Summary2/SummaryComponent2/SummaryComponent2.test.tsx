@@ -243,6 +243,76 @@ describe('SummaryComponent', () => {
     expect(screen.getByTestId('summary-single-value-component')).toBeInTheDocument();
   });
 
+  test.each([{ minimum: 1 }, { minimum: ['if', ['equals', 1, 1], 1, 'else', 0] }] satisfies {
+    minimum: CompExternal<'FileUpload'>['minNumberOfAttachments'];
+  }[])(
+    'should render an empty FileUpload when its minimum attachment count $minimum makes it required',
+    async ({ minimum }) => {
+      await render({
+        layout: {
+          FormLayout: {
+            data: {
+              layout: [
+                {
+                  id: 'FileUpload',
+                  type: 'FileUpload',
+                  displayMode: 'list',
+                  maxFileSizeInMB: 25,
+                  minNumberOfAttachments: minimum,
+                  maxNumberOfAttachments: 10,
+                },
+              ],
+            },
+          },
+        },
+        summary2Config: {
+          type: 'Summary2',
+          hideEmptyFields: true,
+          id: 'Summary2',
+          target: {
+            id: 'FileUpload',
+            type: 'component',
+          },
+        },
+      });
+
+      expect(document.querySelector('[data-summary-target="FileUpload"]')).toBeInTheDocument();
+    },
+  );
+
+  test('should ignore an unsupported required property on FileUpload', async () => {
+    await render({
+      layout: {
+        FormLayout: {
+          data: {
+            layout: [
+              {
+                id: 'FileUpload',
+                type: 'FileUpload',
+                displayMode: 'list',
+                maxFileSizeInMB: 25,
+                minNumberOfAttachments: 0,
+                maxNumberOfAttachments: 10,
+                required: true,
+              } as CompExternal,
+            ],
+          },
+        },
+      },
+      summary2Config: {
+        type: 'Summary2',
+        hideEmptyFields: true,
+        id: 'Summary2',
+        target: {
+          id: 'FileUpload',
+          type: 'component',
+        },
+      },
+    });
+
+    expect(document.querySelector('[data-summary-target="FileUpload"]')).not.toBeInTheDocument();
+  });
+
   test('should render component if its set to hide if empty, but the component is set to forceShow', async () => {
     await render({
       layout: {
@@ -576,8 +646,50 @@ describe('SummaryComponent', () => {
     expect(container).toHaveTextContent(emptyFieldText);
   });
 
+  test.each([undefined, { name: { width: '55%' }, profession: { width: '25%' } }])(
+    'List: preserves an unbound middle column in the summary (tableColumns: %j)',
+    async (tableColumns) => {
+      await render({
+        layout: {
+          FormLayout: {
+            data: {
+              layout: [
+                {
+                  id: 'List',
+                  type: 'List',
+                  dataListId: 'people',
+                  tableHeaders: { name: 'Name', age: 'Age', profession: 'Profession' },
+                  tableColumns,
+                  dataModelBindings: {
+                    group: { dataType: defaultDataTypeMock, field: 'people' },
+                    name: { dataType: defaultDataTypeMock, field: 'people.name' },
+                    profession: { dataType: defaultDataTypeMock, field: 'people.profession' },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        initialData: { people: [{ name: 'Kari', profession: 'Snekker' }] },
+        summary2Config: {
+          type: 'Summary2',
+          id: 'Summary2',
+          target: { type: 'component', id: 'List' },
+        },
+      });
+
+      expect(screen.getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual([
+        'Name',
+        'Age',
+        'Profession',
+      ]);
+      expect(screen.getAllByRole('cell').map((cell) => cell.textContent)).toEqual(['Kari', '', 'Snekker']);
+    },
+  );
+
   type IRenderProps = {
     currentPageId?: string;
+    initialData?: Record<string, unknown>;
     layout?: ILayoutCollection;
     validationIssues?: BackendValidationIssue[];
     summary2Config: CompSummary2External;
@@ -585,6 +697,7 @@ describe('SummaryComponent', () => {
 
   const render = async ({
     currentPageId,
+    initialData = {},
     layout = layoutMock(),
     validationIssues = [],
     summary2Config,
@@ -608,6 +721,7 @@ describe('SummaryComponent', () => {
         fetchFormBootstrapForInstance: async () =>
           getFormBootstrapMock((obj) => {
             obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialData = initialData;
             obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
           }),
       },

@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { TextComponent, type TextComponentProps } from './TextComponent';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { componentMocks } from '../../../../../../ux-editor/src/testing/componentMocks';
 import { screen } from '@testing-library/react';
-import { DataLookupFuncName, type StringExpression } from '@studio/components';
+import { DataLookupFuncName, type StringExpression } from '@designer/components';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const { Text: textComponent } = componentMocks;
 const expressionValue: StringExpression = [DataLookupFuncName.DataModel, 'hello', 'world'];
@@ -33,7 +34,7 @@ describe('TextComponent', () => {
 
   it('should call handleComponentChange with updated value when saving', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderTextComponent({ handleComponentChange });
     await openEditMode();
 
@@ -52,7 +53,7 @@ describe('TextComponent', () => {
 
   it('should close edit mode and not save value when cancel', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderTextComponent({ handleComponentChange });
     await openEditMode();
 
@@ -70,8 +71,8 @@ describe('TextComponent', () => {
 
   it('should clear value when delete is clicked', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const handleComponentChange = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderTextComponent({
       component: { ...textComponent, value: expressionValue },
       handleComponentChange,
@@ -92,7 +93,7 @@ const renderTextComponent = (props: Partial<TextComponentProps> = {}) => {
       ...textComponent,
       ...props.component,
     },
-    handleComponentChange: jest.fn(),
+    handleComponentChange: vi.fn(),
   };
 
   const combinedProps = { ...defaultProps, ...props };

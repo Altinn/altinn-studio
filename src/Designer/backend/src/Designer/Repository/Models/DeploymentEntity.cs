@@ -58,7 +58,12 @@ public class DeploymentEntity : BaseEntity
     /// Indicates whether this deployment has reached a final state (install/upgrade succeeded or failed)
     /// </summary>
     [JsonIgnore]
-    public bool HasFinalEvent => Events?.Any(e => s_finalEventTypes.Contains(e.EventType)) ?? false;
+    public bool HasFinalEvent => Events?.Any(e => IsFinalEventType(e.EventType)) ?? false;
+
+    /// <summary>
+    /// Whether an event is Flux's install, upgrade or uninstall result, which ends a deploy or undeploy.
+    /// </summary>
+    public static bool IsFinalEventType(DeployEventType eventType) => s_finalEventTypes.Contains(eventType);
 }
 
 public enum DeploymentType
@@ -106,6 +111,8 @@ public record DeployEvent
 public enum DeployEventType
 {
     PipelineScheduled,
+
+    // Retained for deserializing historical deployment events.
     DeprecatedPipelineScheduled,
     PipelineSucceeded,
     PipelineFailed,

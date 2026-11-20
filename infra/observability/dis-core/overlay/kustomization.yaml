@@ -1,0 +1,55 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: product-studio-obs
+
+resources:
+  - ../../base
+  - identity.yaml
+  - vault.yaml
+  - secrets.yaml
+
+# The collector images come from Altinn's mirror of ghcr.io, as the platform's own collector in
+# DIS Core does. Base keeps the tag, so a version bump there reaches DIS Core too.
+configurations:
+  - image-fields.yaml
+images:
+  - name: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib
+    newName: altinncr.azurecr.io/ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib
+
+patches:
+  - path: patches/router-config.yaml
+  - path: patches/gateway-config.yaml
+  - path: patches/gateway-victoria-volumes.yaml
+  - path: patches/network-policy.yaml
+  - path: patches/pods.yaml
+    target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
+  # The product's flux-applier may only create namespaced resources. Without the ClusterRole,
+  # k8s_attributes can't look up pods, so services describe their own pods, as pdf3's do.
+  - patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: otel-collector
+  - patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: otel-collector
+  # Removed rather than left unused, so the operator doesn't ask for the permissions they need.
+  # resource/environment sets k8s.cluster.name instead of resource_detection/aks.
+  - target:
+      group: opentelemetry.io
+      version: v1beta1
+      kind: OpenTelemetryCollector
+      name: otel-router
+    patch: |-
+      - op: remove
+        path: /spec/config/processors/k8s_attributes
+      - op: remove
+        path: /spec/config/processors/resource_detection~1aks

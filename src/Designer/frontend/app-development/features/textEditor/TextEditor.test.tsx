@@ -1,11 +1,12 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import TextEditor from './TextEditor';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
-import { deleteButtonId } from '@studio/testing/testids';
+import { deleteButtonId } from '@designer/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -21,7 +22,7 @@ const language1 = 'nb';
 const language2 = 'en';
 const languages = [language1, language2];
 
-const getTextResources = jest.fn().mockImplementation(() =>
+const getTextResources = vi.fn().mockImplementation(() =>
   Promise.resolve({
     resources: [
       {
@@ -31,22 +32,20 @@ const getTextResources = jest.fn().mockImplementation(() =>
     ],
   }),
 );
-const getTextLanguages = jest.fn().mockImplementation(() => Promise.resolve(languages));
+const getTextLanguages = vi.fn().mockImplementation(() => Promise.resolve(languages));
 
-const mockSetSearchParams = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockSetSearchParams = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useSearchParams: () => {
     return [new URLSearchParams({}), mockSetSearchParams];
   },
 }));
 
 // Need to mock the scrollIntoView function
-window.HTMLElement.prototype.scrollIntoView = jest.fn();
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 describe('TextEditor', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the component', async () => {
     renderTextEditor();
     await waitForElementToBeRemoved(() =>

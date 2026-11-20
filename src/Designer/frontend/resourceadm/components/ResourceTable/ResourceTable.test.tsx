@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ResourceTableProps } from './ResourceTable';
 import { ResourceTable } from './ResourceTable';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { LOCAL_RESOURCE_CHANGED_TIME } from '../../utils/resourceListUtils';
 
@@ -46,8 +47,8 @@ const mockResourceList: ResourceListItem[] = [
 ];
 
 describe('ResourceTable', () => {
-  const mockOnClickEditResource = jest.fn();
-  const mockOnClickImportResource = jest.fn();
+  const mockOnClickEditResource = vi.fn();
+  const mockOnClickImportResource = vi.fn();
 
   const defaultProps: ResourceTableProps = {
     list: mockResourceList,

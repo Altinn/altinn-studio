@@ -27,7 +27,7 @@
       ],
       "maxCount": 10,
       "minCount": 0,
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
@@ -44,7 +44,7 @@
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,

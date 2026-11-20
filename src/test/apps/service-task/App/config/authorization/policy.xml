@@ -106,19 +106,6 @@
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
-              >fail</xacml:AttributeValue
-            >
-            <xacml:AttributeDesignator
-              AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
-              Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action"
-              DataType="http://www.w3.org/2001/XMLSchema#string"
-              MustBePresent="false"
-            />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
               >reject</xacml:AttributeValue
             >
             <xacml:AttributeDesignator
@@ -246,21 +233,6 @@
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
             <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
               >complete</xacml:AttributeValue
-            >
-            <xacml:AttributeDesignator
-              AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
-              Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action"
-              DataType="http://www.w3.org/2001/XMLSchema#string"
-              MustBePresent="false"
-            />
-          </xacml:Match>
-        </xacml:AllOf>
-        <xacml:AllOf>
-          <!-- The workflow engine advances from Task_Fail out-of-band as the service owner,
-               using the custom task type's 'fail' action. -->
-          <xacml:Match MatchId="urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string"
-              >fail</xacml:AttributeValue
             >
             <xacml:AttributeDesignator
               AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"

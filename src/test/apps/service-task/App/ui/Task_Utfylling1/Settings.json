@@ -5,5 +5,10 @@
       "Side1"
     ]
   },
+  "components": {
+    "excludeFromPdf": [
+      "Paragraph-ExcludedFromPdf"
+    ]
+  },
   "defaultDataType": "model"
 }

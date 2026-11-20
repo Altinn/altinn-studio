@@ -43,11 +43,11 @@ function RunVisibleOptionsEffects({ valueType, node }: RunOptionEffectsProps) {
   const bindings = useDataModelBindingsFor(node.baseId);
   const dataModelBindings = bindings as IDataModelBindingsOptionsSimple | undefined;
   const groupBindings = bindings as IDataModelBindingsForGroupCheckbox | IDataModelBindingsForGroupMultiselect;
-  const { unsorted, isFetching, downstreamParameters } = useFetchOptions({ config });
+  const { unsorted, isFetching, downstreamParameters, error } = useFetchOptions({ config });
   const { options, preselectedOption } = useFilteredAndSortedOptions({ unsorted, valueType, config });
 
-  if (isFetching || isReadOnly) {
-    // No need to run effects while fetching or if the data has not been set yet
+  if (isFetching || isReadOnly || error) {
+    // Failed requests do not provide a valid option list for updating stored selections.
     return false;
   }
 

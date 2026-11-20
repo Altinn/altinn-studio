@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { ReactElement, ReactNode } from 'react';
 import type { RenderOptions } from '@testing-library/react';
 import { render, renderHook } from '@testing-library/react';
@@ -18,14 +19,14 @@ import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import {
   FeatureFlagsContextProvider,
   FeatureFlagMutationContextProvider,
-} from '@studio/feature-flags';
-import type { FeatureFlag, FeatureFlagMutationContextValue } from '@studio/feature-flags';
+} from '@designer/feature-flags';
+import type { FeatureFlag, FeatureFlagMutationContextValue } from '@designer/feature-flags';
 import type { UxEditorParams } from '../hooks/useUxEditorParams';
 import {
   app as testApp,
   layoutSet as testLayoutSet,
   org as testOrg,
-} from '@studio/testing/testids';
+} from '@designer/testing/testids';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -48,13 +49,13 @@ const defaultUxEditorParams: UxEditorParams = {
 
 const defaultPreviewContextProps: PreviewContextProps = {
   shouldReloadPreview: false,
-  doReloadPreview: jest.fn(),
-  previewHasLoaded: jest.fn(),
+  doReloadPreview: vi.fn(),
+  previewHasLoaded: vi.fn(),
 };
 
 const defaultFeatureFlagMutations: FeatureFlagMutationContextValue = {
-  addFlag: jest.fn(),
-  removeFlag: jest.fn(),
+  addFlag: vi.fn(),
+  removeFlag: vi.fn(),
 };
 
 type WrapperArgs = {

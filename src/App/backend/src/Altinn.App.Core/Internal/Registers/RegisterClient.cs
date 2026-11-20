@@ -123,10 +123,8 @@ internal sealed class RegisterClient : IRegisterClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return await JsonSerializerPermissive.DeserializeAsync<IReadOnlyList<Party>>(
-                    response.Content,
-                    cancellationToken
-                ) ?? [];
+            return await JsonSerializerPermissive.Deserialize<IReadOnlyList<Party>>(response.Content, cancellationToken)
+                ?? [];
         }
         else if (response.StatusCode == HttpStatusCode.NotFound)
         {

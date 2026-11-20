@@ -2,7 +2,6 @@ import {
   getCreateInstancesUrl,
   getDataListsUrl,
   getEnvironmentLoginUrl,
-  getHostname,
   getInstantiateUrl,
   getOptionsUrl,
   getSetSelectedPartyUrl,
@@ -142,51 +141,6 @@ describe('Frontend urlHelper.ts', () => {
         expect(getUpgradeAuthLevelUrl()).toBe(
           'https://ny.altinn.no/nivaaheving?tilbake=https%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&nivaa=hoyt',
         );
-      });
-    });
-
-    describe('getHostname', () => {
-      it('should return correct hostname when host has 5 domain parts', () => {
-        resetWindow({
-          host: 'my.ttd.apps.altinn.no',
-        });
-        expect(getHostname()).toEqual('apps.altinn.no');
-      });
-
-      it('should return correct hostname when host has 4 domain parts', () => {
-        resetWindow({
-          host: 'ttd.apps.altinn.no',
-        });
-
-        expect(getHostname()).toEqual('altinn.no');
-      });
-
-      it('should return correct hostname when host has 2 domain parts, and the first part is "altinn3local"', () => {
-        resetWindow({
-          host: 'local.altinn.cloud',
-        });
-        expect(getHostname()).toEqual('local.altinn.cloud');
-      });
-
-      it('should return correct hostname for new local test url', () => {
-        resetWindow({
-          host: 'local.altinn.cloud',
-        });
-        expect(getHostname()).toEqual('local.altinn.cloud');
-      });
-
-      it('should throw error when hostname has 3 parts', () => {
-        resetWindow({
-          host: 'apps.altinn.no',
-        });
-        expect(getHostname).toThrow('Unknown domain');
-      });
-
-      it('should throw error when hostname has too many parts', () => {
-        resetWindow({
-          host: 'too.many.host.parts.altinn.no',
-        });
-        expect(getHostname).toThrow('Unknown domain');
       });
     });
   });

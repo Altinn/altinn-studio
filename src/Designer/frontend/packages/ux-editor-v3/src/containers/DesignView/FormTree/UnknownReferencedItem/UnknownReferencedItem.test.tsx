@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { UnknownReferencedItemProps } from './UnknownReferencedItem';
 import { UnknownReferencedItem } from './UnknownReferencedItem';
 import { layoutMock } from '../../../../testing/layoutMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../testing/mocks';
 
@@ -36,7 +37,7 @@ describe('UnknownReferencedItem', () => {
 
   it('should delete reference when delete button is clicked', async () => {
     const user = userEvent.setup();
-    const mockedSaveFormLayout = jest.fn().mockImplementation(() => Promise.resolve());
+    const mockedSaveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
     renderUnknownReferencedItem({
       props: {
         id: 'unknown',

@@ -7,8 +7,10 @@ on:
       - 'Cargo.toml'
       - 'rust-toolchain.toml'
       - 'src/ci/github-runner/**'
+      - 'src/ci/sandbox-hosting/**'
       - 'src/tools/releaser/go.mod'
       - '.github/workflows/deploy-github-runners.yaml'
+      - '!**/*.md'
 
   workflow_dispatch:
 
@@ -320,6 +322,7 @@ jobs:
 
           RENDERED="$(kubectl kustomize .)"
           test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"
+          test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "wait-for-egress-policy") | .image' <<< "${RENDERED}")" = "${COORDINATOR_IMAGE}"
           test "$(yq -er '.spec.jobTargetRef.template.spec.containers[] | select(.name == "coordinator") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"
           test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .image' <<< "${RENDERED}")" = "${PREPARED_IMAGE}"
           test "$(yq -er '.spec.jobTargetRef.template.spec.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${RENDERED}")" = "${RUNNER_IMAGE}"

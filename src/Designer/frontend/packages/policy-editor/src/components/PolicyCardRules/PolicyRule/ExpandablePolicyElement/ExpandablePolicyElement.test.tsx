@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ExpandablePolicyElementProps } from './ExpandablePolicyElement';
 import { ExpandablePolicyElement } from './ExpandablePolicyElement';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   PolicyEditorContext,
   type PolicyEditorContextProps,
@@ -16,8 +16,6 @@ const mockTextChildren: string = 'Test Content';
 const mockChildren: React.ReactNode = <p>{mockTextChildren}</p>;
 
 describe('ExpandablePolicyElement', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders the component with the provided title and children', () => {
     renderExpandablePolicyElement({}, { usageType: 'resource' });
 

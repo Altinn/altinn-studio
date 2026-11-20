@@ -65,7 +65,7 @@ public class RunTest2
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
         data.Some.Data[1].Binding.Should().Be("binding");
         data.Some.Data[1].Binding2.Should().Be(2);
-        await LayoutEvaluator.RemoveHiddenDataAsync(state, RowRemovalOption.DeleteRow);
+        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow, evaluateRemoveWhenHidden: false);
 
         // Verify data was removed
         data.Some.Data.Should().BeNull();
@@ -92,6 +92,34 @@ public class RunTest2
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         hidden.Select(d => d.Field).Should().BeEquivalentTo(["some.data[1].binding2"]);
+    }
+
+    [Fact]
+    public async Task RemoveSingleRow_LegacyInit_SharesStateAcrossContexts()
+    {
+        var state = await LayoutTestUtils.GetLegacyLayoutModelTools(
+            new DataModel()
+            {
+                Some = new()
+                {
+                    NotRepeating = "showGroup",
+                    Data = new()
+                    {
+                        new() { Binding = "binding" },
+                        new() { Binding2 = 2, Binding3 = "hidden" },
+                    },
+                },
+            },
+            "Test2"
+        );
+
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        hidden.Select(d => d.Field).Should().BeEquivalentTo(["some.data[1].binding2"]);
+
+        // ["component", ...] lookups go through context.State, so a fresh state per call would regenerate all contexts
+        var contexts = (await state.GetComponentContexts()).SelectMany(c => c.Descendants).ToList();
+        Assert.NotEmpty(contexts);
+        Assert.All(contexts, context => Assert.Same(state, context.State));
     }
 }
 

@@ -1,0 +1,13 @@
+# The Azure identity the Vault (vault.yaml) belongs to. The collectors don't use it: they need no
+# Azure access, only the ingest token the Vault's SecretStore syncs.
+apiVersion: application.dis.altinn.cloud/v1alpha1
+kind: ApplicationIdentity
+metadata:
+  name: observability
+  annotations:
+    # Flux never deletes it, not even when it is removed from the manifests or the Kustomization
+    # observability is deleted. Deleting it deletes the managed identity the Vault and its
+    # SecretStore authenticate as, and a recreated one is a new principal. Removing it is a manual
+    # step.
+    kustomize.toolkit.fluxcd.io/prune: disabled
+spec: {}

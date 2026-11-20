@@ -1,17 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditPolicy } from './EditPolicy';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     org,
     app,
@@ -47,7 +48,7 @@ describe('EditPolicy', () => {
 
   it('sets the correct local storage item when the link is clicked', async () => {
     // As real navigations are not supported in jsdom, we need this mock to prevent errors
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 
     renderEditPolicy(<EditPolicy />);
     const user = userEvent.setup();

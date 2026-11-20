@@ -5,13 +5,12 @@ import {
   IDataModelReference,
   ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompPersonLookupExternal
-  extends ComponentBase, FormComponentProps, SummarizableComponentProps, LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps {
   type: 'PersonLookup';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
@@ -19,6 +18,9 @@ export interface CompPersonLookupExternal
     help?: ExprValToActualOrExpr<ExprVal.String>;
   } & TRBFormComp &
     TRBSummarizable;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForPersonLookup;
 }
@@ -31,9 +33,13 @@ export interface IDataModelBindingsForPersonLookup {
   firstName?: IDataModelReference;
 }
 
+export interface PersonLookupSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type PersonLookupSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'PersonLookup' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & PersonLookupSummaryOverrides)
+  | ({ componentType: 'PersonLookup' } & PersonLookupSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -59,8 +65,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompPersonLookupExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: PersonLookupSummaryOverrides;
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 2f994316153079ebe7bd1be0b295205ed4c55de53a5fe22808f59f98c9d6b15a
+// Source hash: e95b074dccf154616a30ff76c303f4f05a41e35d834899dc0497b04f4bf26ff8

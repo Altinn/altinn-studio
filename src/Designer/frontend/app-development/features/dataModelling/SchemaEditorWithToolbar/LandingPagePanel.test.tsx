@@ -1,12 +1,13 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { LandingPagePanelProps } from './LandingPagePanel';
 import { LandingPagePanel } from './LandingPagePanel';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/mocks';
 
 const landingPagePropsMock: LandingPagePanelProps = {
-  openCreateNew: jest.fn(),
+  openCreateNew: vi.fn(),
   canUseUploadXSDFeature: true,
 };
 

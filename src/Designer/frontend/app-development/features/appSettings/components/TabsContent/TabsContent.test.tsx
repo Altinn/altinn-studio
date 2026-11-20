@@ -1,12 +1,13 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TabsContent } from './TabsContent';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { SettingsTabId } from '../../types/SettingsTabId';
 import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import type { OrgList } from 'app-shared/types/OrgList';
 
 const tabs: SettingsPageTabId[] = [
@@ -19,10 +20,6 @@ const tabs: SettingsPageTabId[] = [
 ];
 
 describe('TabsContent', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it.each(tabs)('should render %s tab content when tabToDisplay is "%s"', async (tab) => {
     renderTabsContent(tab);
     expect(await findHeading(tab)).toBeInTheDocument();
@@ -58,7 +55,7 @@ const renderTabsContent = (initialEntries: string = '', orgList: OrgList = orgLi
       <ServicesContextProvider
         {...queriesMock}
         client={queryClient}
-        getOrgList={jest.fn().mockImplementation(() => Promise.resolve(orgList))}
+        getOrgList={vi.fn().mockImplementation(() => Promise.resolve(orgList))}
       >
         <TabsContent />
       </ServicesContextProvider>

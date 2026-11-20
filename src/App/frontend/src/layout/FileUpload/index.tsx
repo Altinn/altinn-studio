@@ -1,6 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
+
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { attachmentSelector, makeAttachmentNode } from 'src/features/attachments/tools';
@@ -13,6 +15,7 @@ import { validateMissingTagsForNode } from 'src/layout/FileUpload/Tag/useValidat
 import { validateAttachmentDataElements } from 'src/layout/FileUpload/useValidateAttachmentDataElements';
 import { validateMinNumberOfAttachmentsForNode } from 'src/layout/FileUpload/useValidateMinNumberOfAttachments';
 import { validateFileUploaderDataBindings } from 'src/layout/FileUpload/utils/useFileUploaderDataBindingsValidation';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, ComponentValidation } from 'src/features/validation';
 import type {
@@ -21,7 +24,7 @@ import type {
   PropsFromGenericComponent,
   ValidateComponent,
 } from 'src/layout';
-import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
+import type { CompExternal, ComponentLayoutValidationProps, IDataModelBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -38,6 +41,11 @@ export class FileUpload extends FileUploadDef implements ValidateComponent<'File
 
   renderDefaultValidations(): boolean {
     return false;
+  }
+
+  useIsRequired(config: CompExternal<'FileUpload'>): boolean {
+    const minimum = useEvalExpression(config.minNumberOfAttachments, Expressions.FileUpload.minNumberOfAttachments);
+    return minimum > 0;
   }
 
   useDisplayData(baseComponentId: string): string {

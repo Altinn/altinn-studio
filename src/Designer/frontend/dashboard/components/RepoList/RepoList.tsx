@@ -7,8 +7,8 @@ import {
   StudioTableLocalPagination,
   StudioTableRemotePagination,
   StudioParagraph,
-} from '@studio/components';
-import type { Columns, PaginationTexts, RemotePaginationProps } from '@studio/components';
+} from '@designer/components';
+import type { Columns, PaginationTexts, RemotePaginationProps } from '@designer/components';
 import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
@@ -20,6 +20,7 @@ export type RepoListProps = {
   isLoading: boolean;
   isServerSort?: boolean;
   totalRows?: number;
+  totalPages?: number;
   pageNumber?: number;
   pageSize?: DATAGRID_PAGE_SIZE_TYPE;
   pageSizeOptions?: Array<number>;
@@ -36,6 +37,7 @@ export const RepoList = ({
   isLoading,
   isServerSort = false,
   totalRows,
+  totalPages,
   pageNumber,
   pageSize = DATAGRID_DEFAULT_PAGE_SIZE,
   pageSizeOptions = DATAGRID_PAGE_SIZE_OPTIONS,
@@ -114,7 +116,7 @@ export const RepoList = ({
   const paginationProps: RemotePaginationProps = {
     currentPage: pageNumber,
     totalRows,
-    totalPages: Math.ceil(totalRows / pageSize),
+    totalPages: totalPages ?? Math.ceil(totalRows / pageSize),
     pageSize,
     pageSizeOptions,
     onPageChange: (page: number) => onPageChange(page),

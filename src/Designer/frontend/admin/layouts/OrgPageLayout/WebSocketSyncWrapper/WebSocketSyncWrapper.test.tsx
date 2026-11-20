@@ -1,34 +1,32 @@
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import type { ReactNode } from 'react';
 import { act, render } from '@testing-library/react';
 import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { syncAlertsUpdateWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { AlertsUpdated } from 'app-shared/types/api/AlertsUpdated';
 import { AlertsUpdatedQueriesInvalidator } from 'app-shared/queryInvalidator/AlertsUpdatedQueriesInvalidator';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-jest.mock('app-shared/hooks/useWebSocket', () => ({
-  useWebSocket: jest.fn(),
+vi.mock('app-shared/hooks/useWebSocket', () => ({
+  useWebSocket: vi.fn(),
 }));
-jest.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
+vi.mock('admin/hooks/useRequiredRoutePathsParams', () => ({
   useRequiredRoutePathsParams: () => ({ owner: org, app }),
 }));
 
 describe('WebSocketSyncWrapper', () => {
   beforeAll(() => {
-    jest.useFakeTimers({ advanceTimers: true });
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterAll(() => {
-    jest.useRealTimers();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('should invalidate queries by environment when a message with environment is received', async () => {
@@ -36,7 +34,7 @@ describe('WebSocketSyncWrapper', () => {
       environment: 'environment-123',
     };
     const queryClientMock = createQueryClientMock();
-    queryClientMock.invalidateQueries = jest.fn();
+    queryClientMock.invalidateQueries = vi.fn();
     AlertsUpdatedQueriesInvalidator.getInstance(queryClientMock, org, 0);
 
     const queryKeys = [
@@ -44,13 +42,13 @@ describe('WebSocketSyncWrapper', () => {
       [QueryKey.AppErrorMetrics, org, alertsUpdateMock.environment],
     ];
 
-    (useWebSocket as jest.Mock).mockImplementation(({ onWSMessageReceived }) => {
+    (useWebSocket as Mock).mockImplementation(({ onWSMessageReceived }) => {
       onWSMessageReceived(alertsUpdateMock);
     });
 
     renderWebSocketSyncWrapper(queryClientMock);
 
-    act(() => jest.advanceTimersByTime(1000));
+    act(() => vi.advanceTimersByTime(1000));
 
     queryKeys.forEach((queryKey) => {
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
@@ -60,7 +58,7 @@ describe('WebSocketSyncWrapper', () => {
   });
 
   it('should call useWebSocket with the correct parameters', () => {
-    (useWebSocket as jest.Mock).mockReturnValue({ onWSMessageReceived: jest.fn() });
+    (useWebSocket as Mock).mockReturnValue({ onWSMessageReceived: vi.fn() });
     renderWebSocketSyncWrapper();
 
     expect(useWebSocket).toHaveBeenCalledWith({

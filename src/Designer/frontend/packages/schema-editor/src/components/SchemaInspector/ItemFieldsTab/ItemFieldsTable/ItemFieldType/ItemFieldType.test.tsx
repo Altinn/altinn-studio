@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ItemFieldType } from './ItemFieldType';
 import type { ItemFieldTypeProps } from './ItemFieldType';
@@ -10,7 +10,7 @@ import {
   objectNodeMock,
 } from '../../../../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const defaultNode: UiSchemaNode = combinationNodeMock;
@@ -22,8 +22,6 @@ const objectTypeLabel = textMock('schema_editor.object');
 const combinationKindLabel = textMock('schema_editor.combination');
 
 describe('ItemFieldType', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render string type label', () => {
     renderItemFieldType({ fieldNode: stringDefinitionNodeMock });
     expect(screen.getByText(stringTypeLabel)).toBeInTheDocument();

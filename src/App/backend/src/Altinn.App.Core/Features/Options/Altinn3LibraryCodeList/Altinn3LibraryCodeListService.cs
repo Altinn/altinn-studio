@@ -34,7 +34,7 @@ internal sealed class Altinn3LibraryCodeListService : IAltinn3LibraryCodeListSer
     }
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetAppOptionsAsync(
+    public async Task<AppOptions> GetAppOptions(
         string org,
         string codeListId,
         string version,
@@ -43,12 +43,12 @@ internal sealed class Altinn3LibraryCodeListService : IAltinn3LibraryCodeListSer
     )
     {
         using var telemetry = _telemetry?.StartGetOptionsActivity();
-        var response = await GetCachedCodeListResponseAsync(org, codeListId, version, cancellationToken);
+        var response = await GetCachedCodeListResponse(org, codeListId, version, cancellationToken);
         return MapAppOptions(response, language);
     }
 
     /// <inheritdoc/>
-    public async Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponseAsync(
+    public async Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponse(
         string org,
         string codeListId,
         string? version,

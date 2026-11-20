@@ -1,18 +1,19 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { AddImageFromLibraryModal } from './AddImageFromLibraryModal';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { imagePath } from 'app-shared/api/paths';
 import userEvent from '@testing-library/user-event';
 import { WWWROOT_FILE_PATH } from '../../../constants';
 
-const onAddImageReferenceMock = jest.fn();
+const onAddImageReferenceMock = vi.fn();
 
-jest.mock('app-shared/api/paths');
+vi.mock('app-shared/api/paths');
 
 describe('AddImageFromLibraryModal', () => {
   it('renders modal', async () => {

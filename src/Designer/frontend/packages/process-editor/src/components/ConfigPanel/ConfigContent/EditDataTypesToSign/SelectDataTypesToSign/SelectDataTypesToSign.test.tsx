@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -18,7 +19,7 @@ import {
 createMock.mockImplementation((_, data) => data);
 
 const defaultSelectDataTypeProps: SelectDataTypesToSignProps = {
-  onClose: jest.fn(),
+  onClose: vi.fn(),
 };
 
 const signingTasks = [
@@ -54,11 +55,11 @@ const signingTasks = [
   },
 ];
 
-jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(function () {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getElementsByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: vi.fn().mockReturnValue(signingTasks),
       };
     }),
   };
@@ -90,8 +91,6 @@ describe('SelectDataTypesToSign', () => {
       dataTypes: [],
     };
   });
-
-  afterEach(jest.clearAllMocks);
 
   it('shows the current BPMN selection after an external change', async () => {
     const { rerender } = renderSelectDataTypesToSign(existingDataTypesProps);

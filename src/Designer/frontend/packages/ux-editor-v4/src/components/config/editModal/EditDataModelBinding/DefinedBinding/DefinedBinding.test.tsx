@@ -1,12 +1,13 @@
+import { describe, expect, it, vi } from 'vitest';
 import { DefinedBinding, type DefinedBindingProps } from './DefinedBinding';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const label = 'label';
@@ -16,7 +17,7 @@ const bindingKey = 'bindingKey';
 
 const defaultDefinedBindingProps: DefinedBindingProps = {
   label,
-  onClick: jest.fn(),
+  onClick: vi.fn(),
   internalBindingFormat: {
     field: dataModelField,
     dataType: dataModel,
@@ -45,10 +46,6 @@ const renderDefinedBinding = ({
 };
 
 describe('DefinedBinding', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render loading spinner', async () => {
     renderDefinedBinding();
     const loadingSpinnerLabel = textMock('ux_editor.modal_properties_loading');
@@ -129,7 +126,7 @@ const waitForLoadingToFinish = async () => {
 const renderWithDataModelAndMetadata = (modelName: string, fieldName: string) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppMetadataModelIds, org, app, false], [modelName]);
-  const getDataModelMetadata = jest
+  const getDataModelMetadata = vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve({ elements: { [fieldName]: { dataBindingName: fieldName, maxOccurs: 0 } } }),

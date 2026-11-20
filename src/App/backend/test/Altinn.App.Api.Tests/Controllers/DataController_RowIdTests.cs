@@ -11,7 +11,6 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -19,14 +18,14 @@ using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public sealed class DataControllerRowIdTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 501337;
 
-    public DataControllerRowIdTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public DataControllerRowIdTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Theory]
     [InlineData(ProcessStatus.Processing)]
@@ -490,7 +489,9 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
         var mutationClient = dataClient.As<IInstanceMutationClient>();
         var metadataInstanceClient = instanceClient.As<IInstanceClientWithStorageMetadata>();
         var pdp = new Mock<IPDP>(MockBehavior.Strict);
-        pdp.Setup(client => client.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+        pdp.Setup(client =>
+                client.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(new XacmlJsonResponse { Response = [new XacmlJsonResult { Decision = "Permit" }] });
 
         return GetRootedUserClient(
@@ -599,7 +600,11 @@ public sealed class DataControllerRowIdTests : ApiTestBase, IClassFixture<WebApp
                 AppId = $"{Org}/{App}",
                 Org = Org,
                 InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId.ToString() },
-                Process = new ProcessState { Status = status },
+                Process = new ProcessState
+                {
+                    Status = status,
+                    CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
+                },
                 Data =
                 [
                     new DataElement

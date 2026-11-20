@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
   addExpressionToFormItem,
@@ -11,8 +12,8 @@ import {
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
-import type { BooleanExpression } from '@studio/components';
-import { GeneralRelationOperator } from '@studio/components';
+import type { BooleanExpression } from '@designer/components';
+import { GeneralRelationOperator } from '@designer/components';
 
 describe('utils', () => {
   describe('expressionPropertiesOnFormItem', () => {

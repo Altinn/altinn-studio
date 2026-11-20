@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { EditAutocompleteProps } from './';
 import { EditAutocomplete } from './';
 import type { RenderResult } from '@testing-library/react';
@@ -16,7 +17,7 @@ const component: FormComponent<ComponentTypeV3.Input> = {
   propertyPath: 'definitions/inputComponent',
   dataModelBindings: {},
 };
-const handleComponentChange = jest.fn();
+const handleComponentChange = vi.fn();
 const defaultProps: EditAutocompleteProps = {
   handleComponentChange,
   component,

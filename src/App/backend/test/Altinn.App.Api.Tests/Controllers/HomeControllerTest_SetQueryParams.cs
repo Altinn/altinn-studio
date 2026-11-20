@@ -10,14 +10,13 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class HomeControllerTest_SetQueryParams : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -27,8 +26,8 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
     private readonly Mock<IPDP> _pdpMock = new(MockBehavior.Strict);
 
     // Constructor with common setup
-    public HomeControllerTest_SetQueryParams(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public HomeControllerTest_SetQueryParams(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {
@@ -260,7 +259,7 @@ public class HomeControllerTest_SetQueryParams : ApiTestBase, IClassFixture<WebA
         };
 
         _pdpMock
-            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()))
+            .Setup(pdp => pdp.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new XacmlJsonResponse()
                 {

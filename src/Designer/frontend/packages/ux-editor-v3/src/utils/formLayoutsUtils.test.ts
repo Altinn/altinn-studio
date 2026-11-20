@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { IFormLayouts } from '../types/global';
 import {
   addOrRemoveNavigationButtons,
@@ -15,7 +16,7 @@ describe('formLayoutsUtils', () => {
     it('Adds navigation buttons to all layouts if there are multiple layouts', async () => {
       const layout1Id = 'layout1';
       const layout2Id = 'layout2';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const layouts: IFormLayouts = {
         [layout1Id]: createEmptyLayout(),
         [layout2Id]: createEmptyLayout(),
@@ -35,7 +36,7 @@ describe('formLayoutsUtils', () => {
     it('Does not add navigation buttons to all layouts if there are two layouts when one of them is the receipt layout', async () => {
       const layoutId = 'layout1';
       const layoutReceiptId = 'receipt';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const layouts: IFormLayouts = {
         [layoutId]: createEmptyLayout(),
         [layoutReceiptId]: createEmptyLayout(),
@@ -57,12 +58,12 @@ describe('formLayoutsUtils', () => {
     it('Removes navigation button on regular layout if there are two layouts when one of them is the receipt layout', async () => {
       const layoutId = 'layout1';
       const layoutReceiptId = 'receipt';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
@@ -100,7 +101,7 @@ describe('formLayoutsUtils', () => {
       const layout1id = 'layout1';
       const layout2id = 'layout2';
       const layoutReceiptId = 'receipt';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const layouts: IFormLayouts = {
         [layout1id]: createEmptyLayout(),
         [layout2id]: createEmptyLayout(),
@@ -127,12 +128,12 @@ describe('formLayoutsUtils', () => {
 
     it('Removes navigation buttons from all layouts if there is only one layout', async () => {
       const layoutId = 'layout1';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
@@ -161,12 +162,12 @@ describe('formLayoutsUtils', () => {
     it('Removes navigation buttons from layout if there is only one layout AND a receipt layout', async () => {
       const layoutId = 'layout1';
       const layoutReceiptId = 'receipt';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
@@ -201,12 +202,12 @@ describe('formLayoutsUtils', () => {
     it('Does not add navigation buttons to layout if additional layout is receipt', async () => {
       const layoutId = 'layout1';
       const layoutReceiptId = 'receipt';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const navButtonsId = 'navButtons';
       const navButtonsComponent: FormButtonComponent = {
         id: navButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };
@@ -243,7 +244,7 @@ describe('formLayoutsUtils', () => {
     it('Does callback on layout if current layout is receipt and there is only one layout from before', async () => {
       const layoutId = 'layout1';
       const layoutReceiptId = 'receipt';
-      const callback = jest.fn();
+      const callback = vi.fn();
       const layouts: IFormLayouts = {
         [layoutId]: createEmptyLayout(),
         [layoutReceiptId]: createEmptyLayout(),

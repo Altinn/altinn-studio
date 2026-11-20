@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import { ScopeList } from './ScopeList';
 import type { ScopeListProps } from './ScopeList';
@@ -7,9 +8,9 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { defaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
 
 const scopeMock1: MaskinportenScope = {
@@ -46,8 +47,6 @@ const selectedScopesMock: MaskinportenScope[] = [scopeMock3, scopeMock4];
 const selectedDefaultScopesMock: MaskinportenScope[] = [scopeMock5, scopeMock4, scopeMock2];
 
 describe('ScopeList', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render description and help text', async () => {
     renderScopeList();
 
@@ -561,7 +560,7 @@ describe('ScopeList', () => {
 
   it('should display an error toast when the update fails', async () => {
     const user = userEvent.setup();
-    const updateSelectedMaskinportenScopes = jest
+    const updateSelectedMaskinportenScopes = vi
       .fn()
       .mockImplementation(() => Promise.reject({ response: {} }));
     renderScopeList({ queries: { updateSelectedMaskinportenScopes } });

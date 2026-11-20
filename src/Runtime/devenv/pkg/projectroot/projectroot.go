@@ -11,6 +11,9 @@ import (
 // Marker is the standard marker file for an Altinn Studio project root.
 const Marker = ".altinn-studio-project-root"
 
+// RepositoryMarker is the marker file at the root of the Altinn Studio repository.
+const RepositoryMarker = ".altinn-studio-root"
+
 var (
 	// ErrEmptyMarker is returned when searching with an empty marker name.
 	ErrEmptyMarker = errors.New("project root marker is empty")

@@ -1,16 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import type { DeleteModalProps } from './DeleteModal';
 import { DeleteModal } from './DeleteModal';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { renderWithProviders } from 'app-shared/components/GiteaHeader/mocks/renderWithProviders';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const defaultProps: DeleteModalProps = {
   app: app,
@@ -18,8 +19,6 @@ const defaultProps: DeleteModalProps = {
 };
 
 describe('DeleteModal', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Closes the dialog when the Cancel button is clicked', async () => {
     const user = userEvent.setup();
     await renderDeleteModal();
@@ -40,11 +39,11 @@ describe('DeleteModal', () => {
     Object.defineProperty(window, 'location', {
       value: {
         ...window.location,
-        reload: jest.fn(),
+        reload: vi.fn(),
       },
       writable: true,
     });
-    jest.spyOn(window.location, 'reload').mockImplementation(() => {});
+    vi.spyOn(window.location, 'reload').mockImplementation(() => {});
     const user = userEvent.setup();
     await renderDeleteModal();
     expect(getDeleteButton()).toBeDisabled();
@@ -56,7 +55,7 @@ describe('DeleteModal', () => {
 
   it('does not call the onClose function when the Delete button is clicked and an error is received', async () => {
     const user = userEvent.setup();
-    const mockDelete = jest.fn().mockImplementation(() => Promise.reject());
+    const mockDelete = vi.fn().mockImplementation(() => Promise.reject());
     await renderDeleteModal({ resetRepoChanges: mockDelete });
     expect(getDeleteButton()).toBeDisabled();
     await user.type(getNameField(), app);

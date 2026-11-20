@@ -1,8 +1,9 @@
+import { describe, expect, it } from 'vitest';
 import { renderHookWithProviders } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { waitFor } from '@testing-library/react';
 import { useAddDataTypeToAppMetadata } from './useAddDataTypeToAppMetadata';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const dataTypeId = 'paymentInformation-1234';
 const taskId = 'task_1';

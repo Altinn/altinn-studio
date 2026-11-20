@@ -9,7 +9,7 @@ import styles from './Calendar.module.css';
 import { DatePickerCalendar } from './DatePickerCalendar';
 import { DatePickerDialog } from './DatepickerDialog';
 import { DatePickerInput } from './DatePickerInput';
-import { getSaveFormattedDateString } from './utils/dateHelpers';
+import { getSaveFormattedDateString, strictParseISO } from './utils/dateHelpers';
 
 import 'react-day-picker/style.css';
 
@@ -48,8 +48,7 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const dateValue = new Date(value);
-  const dayPickerDate = isValidDate(dateValue) ? dateValue : undefined;
+  const dayPickerDate = strictParseISO(value) ?? undefined;
 
   const handleDayPickerSelect = (date: Date) => {
     if (date && isValidDate(date)) {
@@ -82,20 +81,22 @@ export const DatePickerControl: React.FC<DatePickerControlProps> = ({
           setIsDialogOpen={setIsDialogOpen}
           trigger={<CalendarIcon title={calendarIconTitle} />}
         >
-          <DatePickerCalendar
-            id={id}
-            locale={locale}
-            selectedDate={dayPickerDate}
-            onSelect={(date) => {
-              handleDayPickerSelect(date);
-              setIsDialogOpen(false);
-              inputRef.current?.focus();
-            }}
-            minDate={minDate}
-            maxDate={maxDate}
-            required={required}
-            DropdownCaption={DropdownCaption}
-          />
+          {isDialogOpen && (
+            <DatePickerCalendar
+              id={id}
+              locale={locale}
+              selectedDate={dayPickerDate}
+              onSelect={(date) => {
+                handleDayPickerSelect(date);
+                setIsDialogOpen(false);
+                inputRef.current?.focus();
+              }}
+              minDate={minDate}
+              maxDate={maxDate}
+              required={required}
+              DropdownCaption={DropdownCaption}
+            />
+          )}
         </DatePickerDialog>
       </div>
     </Flex>

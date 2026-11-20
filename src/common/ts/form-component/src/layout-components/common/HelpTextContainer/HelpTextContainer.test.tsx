@@ -21,8 +21,8 @@ describe('HelpTextContainer', () => {
   it('prefixes the given title for the accessible name', () => {
     render({ title: 'My labelname' });
 
-    // 'helptext.button_title_prefix' translates to 'Helptext for' in en.ts
-    expect(screen.getByRole('button', { name: /Helptext for My labelname/i })).toBeInTheDocument();
+    // 'helptext.button_title_prefix' translates to 'Help text for' in en.ts
+    expect(screen.getByRole('button', { name: /Help text for My labelname/i })).toBeInTheDocument();
   });
 
   it('renders the help text content inside the popover when opened', async () => {

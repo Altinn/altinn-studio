@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { DataSourceValueProps } from './DataSourceValue';
 import { DataSourceValue } from './DataSourceValue';
@@ -5,13 +6,9 @@ import { DataSource } from '../../../../../../types/Expressions';
 import { subExpression0 } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('DataSourceValue', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it.each([
     DataSource.ApplicationSettings,
     DataSource.Component,
@@ -85,7 +82,7 @@ const render = ({
   const defaultProps: DataSourceValueProps = {
     subExpression: subExpression0,
     currentDataSource: DataSource.Component,
-    specifyDataSourceValue: jest.fn(),
+    specifyDataSourceValue: vi.fn(),
     isComparableValue: false,
   };
   return renderWithMockStore({}, queries)(<DataSourceValue {...defaultProps} {...props} />);

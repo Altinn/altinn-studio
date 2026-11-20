@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { Query } from '@tanstack/react-query';
 import { isAppSpecificQuery, mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 

@@ -7,7 +7,6 @@ import {
   ISummaryOverridesCommon,
   LabeledComponentProps,
   LayoutStyle,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -15,6 +14,7 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CheckboxesSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
   displayType?: 'list' | 'string';
 }
 
@@ -23,14 +23,13 @@ export type CheckboxesSummaryOverridesWithRef =
   | ({ componentType: 'Checkboxes' } & CheckboxesSummaryOverrides);
 
 export interface CompCheckboxesExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    ISelectionComponentFull,
-    LabeledComponentProps {
+  extends ComponentBase, FormComponentProps, ISelectionComponentFull, LabeledComponentProps {
   type: 'Checkboxes';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsForGroupCheckbox;
   deletionStrategy?: 'soft' | 'hard';
@@ -72,4 +71,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: CheckboxesSummaryOverridesWithRef;
 };
 
-// Source hash: e827b19cb3d2972a5e565a1f5b6aba92903f1a416d2a7eaa1df8112ef25ccc3e
+// Source hash: 706a7790497272bd4d1e387bf2d9cceddd77fe459ae51b3c446d0f1b3c0d9979

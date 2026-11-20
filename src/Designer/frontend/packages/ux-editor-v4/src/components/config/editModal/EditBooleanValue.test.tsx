@@ -1,15 +1,16 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { EditBooleanValue } from './EditBooleanValue';
 import { renderWithProviders } from '../../../testing/mocks';
 
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
 
 const renderEditBooleanValue = ({
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
   value = false,
   propertyKey = 'required',
   componentOverrides = {},
@@ -42,7 +43,7 @@ describe('EditBooleanValue', () => {
   });
 
   it('should call onChange handler with the correct arguments', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditBooleanValue({ handleComponentChange });
     const inputElement = screen.getByLabelText(textMock('ux_editor.component_properties.required'));
 
@@ -83,7 +84,7 @@ describe('EditBooleanValue', () => {
   });
 
   it('should update value when propertyPath is set', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditBooleanValue({
       handleComponentChange,
       componentOverrides: {

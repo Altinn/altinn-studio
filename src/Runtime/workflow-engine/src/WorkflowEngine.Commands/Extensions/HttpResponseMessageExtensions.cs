@@ -1,7 +1,7 @@
 namespace WorkflowEngine.Commands.Extensions;
 
 /// <summary>
-/// Helpers over <see cref="HttpResponseMessage"/> used by command handlers when interpreting upstream responses.
+/// Helpers over <see cref="HttpResponseMessage"/> used by commands when interpreting upstream responses.
 /// </summary>
 public static class HttpResponseMessageExtensions
 {

@@ -1,7 +1,6 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Logic.DataProcessing;
-using Altinn.App.Logic.Pdf;
 using Altinn.App.Logic.Validation;
 using Microsoft.OpenApi;
 
@@ -9,7 +8,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
 {
     // Register your apps custom service implementations here.
     services.AddTransient<IDataProcessor, DataProcessor>();
-    services.AddTransient<IPdfFormatter, PdfFormatter>();
     services.AddTransient<IInstanceValidator, InstanceValidator>();
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
     services.AddTransient<IInstantiationValidator, InstantiationValidator>();

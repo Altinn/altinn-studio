@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 
 namespace Altinn.Studio.Observability.Proxy.Tests.Routing;
@@ -71,6 +72,58 @@ public sealed class ReverseProxyRoutingTests
         Assert.Equal("/select/logsql/query", response.Headers.GetValues("X-Observed-Path").Single());
     }
 
+    [Fact]
+    public async Task TracesLogsqlRoute_ReachesTheTraceStorageRoot()
+    {
+        await using var downstream = await TestWebApplication.StartDownstreamAsync();
+        await using var proxy = await TestWebApplication.StartProxyAsync(
+            QueryToken(("ObservabilityProxy:Downstreams:Storage:Traces:0", downstream.Address))
+        );
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/internal/observability/traces-logsql/select/logsql/stats_query"
+        );
+        request.Headers.Authorization = new("Bearer", "query-token");
+        request.Content = new StringContent(
+            "query=* | stats count()",
+            Encoding.UTF8,
+            "application/x-www-form-urlencoded"
+        );
+
+        using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal("/select/logsql/stats_query", response.Headers.GetValues("X-Observed-Path").Single());
+        Assert.Equal("platform-grafana", response.Headers.GetValues("X-Observed-Source").Single());
+    }
+
+    [Fact]
+    public async Task TracesLogsqlRoute_NeedsItsOwnRouteGroup()
+    {
+        await using var downstream = await TestWebApplication.StartDownstreamAsync();
+        await using var proxy = await TestWebApplication.StartProxyAsync(
+            new Dictionary<string, string?>
+            {
+                ["ObservabilityProxy:Downstreams:Storage:Traces:0"] = downstream.Address,
+                ["ObservabilityProxy:Authentication:Tokens:0:Token"] = "traces-token",
+                ["ObservabilityProxy:Authentication:Tokens:0:SourceIdentity"] = "tempo-only",
+                ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:0"] = "traces",
+            }
+        );
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/internal/observability/traces-logsql/select/logsql/query?query=*"
+        );
+        request.Headers.Authorization = new("Bearer", "traces-token");
+
+        using var response = await proxy.Client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Empty(downstream.ReceivedPaths);
+    }
+
     [Theory]
     [InlineData("traces", "/insert/opentelemetry/v1/traces")]
     [InlineData("metrics", "/opentelemetry/v1/metrics")]
@@ -109,6 +162,7 @@ public sealed class ReverseProxyRoutingTests
             ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:0"] = "traces",
             ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:1"] = "metrics",
             ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:2"] = "logs",
+            ["ObservabilityProxy:Authentication:Tokens:0:AllowedRouteGroups:3"] = "traces-logsql",
         };
     }
 }

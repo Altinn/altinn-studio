@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { render, screen } from '@testing-library/react';
 import { MergeConflictWarning, type MergeConflictWarningProps } from './MergeConflictWarning';
 import { MemoryRouter } from 'react-router-dom';
-import { org, app } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { org, app } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import {
@@ -15,13 +16,9 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const startUrl: string = `${APP_DEVELOPMENT_BASENAME}/test-org/test-app`;
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom'));
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom'));
 
 describe('MergeConflictWarning', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render merge conflict warning container', () => {
     renderMergeConflictWarning();
     const container = screen.getByRole('dialog');

@@ -1,12 +1,12 @@
 import type { MouseEvent, ReactNode } from 'react';
 import classes from './PageAccordion.module.css';
 import { NavigationMenu } from './NavigationMenu';
-import { accordionHeaderId, pageAccordionContentId } from '@studio/testing/testids';
-import { FilePdfIcon, TrashIcon } from '@studio/icons';
+import { accordionHeaderId, pageAccordionContentId } from '@designer/testing/testids';
+import { FilePdfIcon, TrashIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
-import { StudioButton, StudioDetails } from '@studio/components';
+import { StudioButton, StudioDetails } from '@designer/components';
 import { useDeletePageMutation } from '../../../hooks/mutations/useDeletePageMutation';
 import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageGroupOrder } from '../../../hooks/mutations/useChangePageGroupOrder';
@@ -102,7 +102,12 @@ export const PageAccordion = ({
       </StudioDetails>
       <div className={classes.navigationMenu}>
         {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
-        {showNavigationMenu && <NavigationMenu pageName={pageId} />}
+        {showNavigationMenu && (
+          <NavigationMenu
+            pageName={pageId}
+            title={t('general.options_for_item', { item: pageName || pageId })}
+          />
+        )}
         <StudioButton
           icon={<TrashIcon aria-hidden />}
           onClick={handleConfirmDelete}

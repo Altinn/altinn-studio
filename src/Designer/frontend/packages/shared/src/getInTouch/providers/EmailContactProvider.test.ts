@@ -1,4 +1,5 @@
-﻿import { EmailContactProvider } from 'app-shared/getInTouch/providers/EmailContactProvider';
+import { describe, expect, it } from 'vitest';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers/EmailContactProvider';
 
 describe('EmailContactProvider', () => {
   it('should return correct email based on selectedChannel', () => {

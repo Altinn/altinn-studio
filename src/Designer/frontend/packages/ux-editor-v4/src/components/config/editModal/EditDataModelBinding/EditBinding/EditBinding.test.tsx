@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import { dataModelMetadataResponseMock } from '@altinn/ux-editor-v4/testing/dataModelMock';
 import { EditBinding, type EditBindingProps } from './EditBinding';
@@ -7,11 +8,11 @@ import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor-v4/types/global';
 import { convertDataBindingToInternalFormat } from '@altinn/ux-editor-v4/utils/dataModelUtils';
 
@@ -26,8 +27,8 @@ const defaultEditBinding: EditBindingProps = {
   bindingKey: defaultBindingKey,
   component: componentMocks[ComponentType.Input],
   label: defaultLabel,
-  handleComponentChange: jest.fn(),
-  onSetDataModelSelectVisible: jest.fn(),
+  handleComponentChange: vi.fn(),
+  onSetDataModelSelectVisible: vi.fn(),
   internalBindingFormat: {
     field: defaultDataModelField,
     dataType: defaultDataModel,
@@ -96,10 +97,10 @@ const renderEditBinding = ({
   };
 };
 
-const getAppMetadataModelIdsMock = jest
+const getAppMetadataModelIdsMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve([defaultDataModel, secondDataModel]));
-const getDataModelMetadataMock = jest
+const getDataModelMetadataMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
 
@@ -225,7 +226,7 @@ describe('EditBinding', () => {
 
   it('should call handleComponentChange with new binding format when data model field is changed and saved', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditBinding({
       editBindingProps: {
         ...defaultEditBinding,
@@ -271,7 +272,7 @@ describe('EditBinding', () => {
 
   it('should call handleComponentChange with new binding format when data model is changed and saved', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditBinding({
       editBindingProps: {
         ...defaultEditBinding,
@@ -317,9 +318,9 @@ describe('EditBinding', () => {
   });
 
   it('should call handleComponentChange when click on delete button', async () => {
-    window.confirm = jest.fn(() => true);
+    window.confirm = vi.fn(() => true);
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     renderEditBinding({
       editBindingProps: {
         ...defaultEditBinding,
@@ -356,7 +357,7 @@ describe('EditBinding', () => {
 
   it('should close the EditBinding when clicking cancel', async () => {
     const user = userEvent.setup();
-    const onSetDataModelSelectVisible = jest.fn();
+    const onSetDataModelSelectVisible = vi.fn();
     renderEditBinding({
       editBindingProps: {
         ...defaultEditBinding,

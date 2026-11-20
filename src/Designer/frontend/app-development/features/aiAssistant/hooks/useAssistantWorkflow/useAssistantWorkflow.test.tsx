@@ -1,14 +1,11 @@
-import { act } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
+import { act, waitFor } from '@testing-library/react';
 import { QueryClient, type UseQueryResult } from '@tanstack/react-query';
-import type {
-  AgentResponse,
-  AssistantMessageEvent,
-  UserMessage,
-  WorkflowEvent,
-  WorkflowRequest,
-} from '@studio/assistant';
-import { MessageAuthor } from '@studio/assistant';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { AssistantMessageEvent, UserMessage, WorkflowEvent } from '@designer/assistant';
+import { MessageAuthor } from '@designer/assistant';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import type { AssistantThreadState } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from './useAssistantWorkflow';
 import { useAssistantWebSocket } from '../useAssistantWebSocket/useAssistantWebSocket';
@@ -17,38 +14,32 @@ import { renderHookWithProviders } from '../../../../test/mocks';
 import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-jest.mock('../useAssistantWebSocket/useAssistantWebSocket');
-jest.mock('app-shared/hooks/queries/useCurrentBranchQuery');
+vi.mock('../useAssistantWebSocket/useAssistantWebSocket');
+vi.mock('app-shared/hooks/queries/useCurrentBranchQuery');
 
-const mockUseAssistantWebSocket = useAssistantWebSocket as jest.MockedFunction<
+const mockUseAssistantWebSocket = useAssistantWebSocket as MockedFunction<
   typeof useAssistantWebSocket
 >;
-const mockUseCurrentBranchQuery = useCurrentBranchQuery as jest.MockedFunction<
+const mockUseCurrentBranchQuery = useCurrentBranchQuery as MockedFunction<
   typeof useCurrentBranchQuery
 >;
 
 describe('useAssistantWorkflow', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('skips workflow when message content is empty', async () => {
     const threads = createThreadState();
-    const startWorkflow = jest.fn();
+    const startWorkflow = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow,
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -71,11 +62,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -115,11 +102,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -148,11 +131,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -163,7 +142,7 @@ describe('useAssistantWorkflow', () => {
     // Controlled clock: the second run must start after the post-terminal
     // adoption grace window, like a real follow-up request does.
     let fakeNowMs = 500_000;
-    const nowSpy = jest.spyOn(performance, 'now').mockImplementation(() => fakeNowMs);
+    const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => fakeNowMs);
 
     const { result } = renderUseAssistantWorkflow(threads);
 
@@ -177,7 +156,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', traceId: 'trace-run-1', persistedMessageId: 'msg-1' },
+        data: { content: 'Svar', traceId: 'trace-run-1' },
       });
     });
 
@@ -203,11 +182,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -251,11 +226,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -284,84 +255,47 @@ describe('useAssistantWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
-  it('renders a server-persisted message without persisting a client-side copy', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+  it.each([{ eventId: 'event-1' }, { traceId: 'trace-1' }])(
+    'handles the copies of an answer with %o once, and gets the messages for each copy',
+    async (answerId) => {
+      const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+      const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
+      let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+      mockUseAssistantWebSocket.mockReturnValue({
+        connectionStatus: 'connected',
+        onAgentMessage: vi.fn((callback) => {
+          capturedOnAgentMessage = callback;
+        }),
+      });
+      mockUseCurrentBranchQuery.mockReturnValue({
+        data: createMockCurrentBranchInfo(),
+      } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAssistantWorkflow(threads);
+      const { result } = renderUseAssistantWorkflow(threads, { resetRepoChanges });
 
-    await act(async () => {
-      capturedOnAgentMessage!({
+      // Each Designer replica forwards its own copy of the event. The copy from a replica that could not
+      // save the answer can come first, so each copy gets the messages again.
+      const copyOfAnswer: AssistantMessageEvent = {
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: {
-          content: 'Svar',
-          mode: 'chat',
-          traceId: 'trace-1',
-          persistedMessageId: 'server-message-id',
-        },
+        data: { content: 'Svar', pushedBranch: 'assistant_thread-a', ...answerId },
+      };
+
+      await act(async () => {
+        capturedOnAgentMessage!(copyOfAnswer);
+        capturedOnAgentMessage!(copyOfAnswer);
       });
-    });
 
-    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
-    expect(threads.createMessage).not.toHaveBeenCalled();
-  });
-
-  it('persists a duplicated assistant_message event only once', async () => {
-    const threads = createThreadState({
-      selectedThreadId: 'thread-a',
-      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
-    });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    // The same event delivered twice — a stale second connection or HMR
-    // leftovers replay the exact payload, traceId included.
-    const duplicatedEvent: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-1', mode: 'chat' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(duplicatedEvent);
-      capturedOnAgentMessage!(duplicatedEvent);
-    });
-
-    expect(threads.createMessage).toHaveBeenCalledTimes(1);
-  });
+      expect(threads.refreshMessages).toHaveBeenCalledTimes(2);
+      expect(threads.createMessage).not.toHaveBeenCalled();
+      expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+      expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
+    },
+  );
 
   it('keeps the workflow active when the cancel request fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
       chatMessages: [
@@ -373,22 +307,20 @@ describe('useAssistantWorkflow', () => {
           allowAppChanges: true,
         },
       ],
-      deleteMessage: jest.fn().mockResolvedValue(undefined),
+      deleteMessage: vi.fn().mockResolvedValue(undefined),
     });
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn().mockRejectedValue(new Error('Hub disconnected')),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('Hub disconnected')),
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -399,99 +331,14 @@ describe('useAssistantWorkflow', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('dedupes a redelivered assistant_message that has an eventId but no traceId', async () => {
-    const threads = createThreadState({
-      selectedThreadId: 'thread-a',
-      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
-    });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    // Langfuse off, so the answer carries no traceId — eventId still identifies it.
-    const duplicatedEvent: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-a',
-      data: { content: 'Svar', eventId: 'event-1', mode: 'chat' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(duplicatedEvent);
-      capturedOnAgentMessage!(duplicatedEvent);
-    });
-
-    expect(threads.createMessage).toHaveBeenCalledTimes(1);
-  });
-
-  it('retries a redelivered assistant_message when the first persist failed', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const threads = createThreadState({
-      selectedThreadId: 'thread-a',
-      createMessage: jest
-        .fn()
-        .mockRejectedValueOnce(new Error('Persist failed'))
-        .mockResolvedValue({ id: 'persisted-message-id' }),
-    });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    const event: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'thread-a',
-      data: { content: 'Svar', traceId: 'trace-retry', mode: 'chat' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(event);
-    });
-    await act(async () => {
-      capturedOnAgentMessage!(event);
-    });
-
-    expect(threads.createMessage).toHaveBeenCalledTimes(2);
-    consoleErrorSpy.mockRestore();
-  });
-
   it('evicts the oldest dedupe keys so late duplicates of old runs are reprocessed', async () => {
+    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -499,14 +346,14 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAssistantWorkflow(threads);
+    renderUseAssistantWorkflow(threads, { resetRepoChanges });
 
     const dedupeCapacity = 200;
     const sendAssistantMessage = (traceId: string) =>
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', traceId, persistedMessageId: `msg-${traceId}` },
+        data: { content: 'Svar', traceId, pushedBranch: 'assistant_thread-a' },
       });
 
     await act(async () => {
@@ -514,14 +361,14 @@ describe('useAssistantWorkflow', () => {
         sendAssistantMessage(`trace-${index}`);
       }
     });
-    expect(threads.refreshMessages).toHaveBeenCalledTimes(dedupeCapacity + 1);
+    expect(resetRepoChanges).toHaveBeenCalledTimes(dedupeCapacity + 1);
 
     // trace-0 was evicted from the bounded set — a late duplicate is
     // processed again instead of leaking memory forever.
     await act(async () => {
       sendAssistantMessage('trace-0');
     });
-    expect(threads.refreshMessages).toHaveBeenCalledTimes(dedupeCapacity + 2);
+    expect(resetRepoChanges).toHaveBeenCalledTimes(dedupeCapacity + 2);
   });
 
   it('marks the workflow inactive on a terminal status event', async () => {
@@ -530,11 +377,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -560,53 +403,13 @@ describe('useAssistantWorkflow', () => {
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
   });
 
-  it('persists assistant message using thread ID, not backend session ID', async () => {
-    const threads = createThreadState({ selectedThreadId: 'database-thread-id' });
-
-    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
-        capturedOnAgentMessage = callback;
-      }),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    renderUseAssistantWorkflow(threads);
-
-    const assistantMessageEvent: AssistantMessageEvent = {
-      type: 'assistant_message',
-      session_id: 'database-thread-id',
-      data: { content: 'Assistant reply' },
-    };
-
-    await act(async () => {
-      capturedOnAgentMessage!(assistantMessageEvent);
-    });
-
-    expect(threads.createMessage).toHaveBeenCalledWith(
-      'database-thread-id',
-      expect.objectContaining({ role: MessageAuthor.Assistant, content: 'Assistant reply' }),
-    );
-  });
-
-  it('persists assistant message to the submission thread even when the user has switched to another thread', async () => {
+  it('refreshes the submission thread even when the user has switched to another thread', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -640,14 +443,8 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!(assistantMessageEvent);
     });
 
-    expect(threads.createMessage).toHaveBeenCalledWith(
-      'thread-a',
-      expect.objectContaining({
-        role: MessageAuthor.Assistant,
-        content: 'Assistant reply for thread A',
-      }),
-    );
-    expect(threads.createMessage).not.toHaveBeenCalledWith('thread-b', expect.anything());
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    expect(threads.refreshMessages).not.toHaveBeenCalledWith('thread-b');
   });
 
   it('routes workflow status updates by event session_id, leaving other threads untouched', async () => {
@@ -656,11 +453,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -706,11 +499,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -760,11 +549,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -797,25 +582,19 @@ describe('useAssistantWorkflow', () => {
 
   it('creates thread and starts workflow for new session', async () => {
     const threads = createThreadState();
-    const startWorkflow = jest.fn<Promise<AgentResponse>, [WorkflowRequest]>().mockResolvedValue({
-      accepted: false,
-      session_id: 'backend-session',
-      message: 'Rejected',
-    });
+    const startWorkflow = vi.fn().mockResolvedValue(undefined);
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow,
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
 
     const message: UserMessage = {
       role: MessageAuthor.User,
@@ -834,30 +613,131 @@ describe('useAssistantWorkflow', () => {
       'new-thread-id',
       expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
     );
-    expect(startWorkflow).toHaveBeenCalledWith(
+    expect(startWorkflow).toHaveBeenCalledWith(org, app, 'new-thread-id', expect.any(FormData));
+    const payload: FormData = startWorkflow.mock.calls[0][3];
+    expect(payload.get('goal')).toBe('Hello');
+    expect(payload.get('branch')).toBe('feature-branch');
+    expect(payload.get('allowAppChanges')).toBe('false');
+  });
+
+  it('keeps the message and saves the generic failure text after it when the workflow start fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let finishSavingUserMessage: () => void = () => {};
+    const createMessage = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishSavingUserMessage = () => resolve({ id: 'user-message-id' });
+          }),
+      )
+      .mockResolvedValue({ id: 'error-message-id' });
+    const threads = createThreadState({ selectedThreadId: 'thread-a', createMessage });
+    const startWorkflow = vi.fn().mockRejectedValue(new Error('assistant unavailable'));
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      onAgentMessage: vi.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
+
+    const message: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    let submission: Promise<void> = Promise.resolve();
+    await act(async () => {
+      submission = result.current.onSubmitMessage(message);
+    });
+
+    // The server sorts the messages in the order that it saves them.
+    // Thus the start waits until the server saves the message.
+    expect(startWorkflow).not.toHaveBeenCalled();
+    expect(createMessage).toHaveBeenCalledTimes(1);
+    expect(createMessage).toHaveBeenCalledWith(
+      'thread-a',
+      expect.objectContaining({ role: MessageAuthor.User, content: 'Hello' }),
+    );
+
+    await act(async () => {
+      finishSavingUserMessage();
+      await submission;
+    });
+
+    expect(createMessage).toHaveBeenCalledTimes(2);
+    expect(createMessage).toHaveBeenLastCalledWith(
+      'thread-a',
       expect.objectContaining({
-        session_id: 'new-thread-id',
-        goal: 'Hello',
-        org: 'testOrg',
-        app: 'testApp',
-        branch: 'feature-branch',
-        allow_app_changes: false,
+        role: MessageAuthor.Assistant,
+        content:
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.',
       }),
     );
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).not.toBe(true);
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('does not start the workflow when the message cannot be saved', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const createMessage = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('thread unavailable'))
+      .mockResolvedValue({ id: 'error-message-id' });
+    const threads = createThreadState({ selectedThreadId: 'thread-a', createMessage });
+    const startWorkflow = vi.fn();
+
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      onAgentMessage: vi.fn(),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: startWorkflow,
+    });
+
+    const message: UserMessage = {
+      role: MessageAuthor.User,
+      content: 'Hello',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    };
+
+    await act(async () => {
+      await result.current.onSubmitMessage(message);
+    });
+
+    expect(startWorkflow).not.toHaveBeenCalled();
+    expect(createMessage).toHaveBeenLastCalledWith(
+      'thread-a',
+      expect.objectContaining({
+        role: MessageAuthor.Assistant,
+        content:
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.',
+      }),
+    );
+    consoleErrorSpy.mockRestore();
   });
 
   it('stores a permission request on the active thread status and clears it when the user responds', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
-    const respondToPermission = jest.fn().mockResolvedValue(undefined);
+    const respondToPermission = vi.fn().mockResolvedValue(undefined);
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission,
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -865,7 +745,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -893,7 +775,10 @@ describe('useAssistantWorkflow', () => {
       await result.current.respondToPermission('req-1', true);
     });
 
-    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(respondToPermission).toHaveBeenCalledWith(org, app, 'thread-a', {
+      requestId: 'req-1',
+      granted: true,
+    });
     expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toBeUndefined();
   });
 
@@ -903,11 +788,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -930,16 +811,12 @@ describe('useAssistantWorkflow', () => {
 
   it('clears the prompt once when the user responds twice to the same request', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
-    const respondToPermission = jest.fn().mockResolvedValue(undefined);
+    const respondToPermission = vi.fn().mockResolvedValue(undefined);
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission,
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -947,7 +824,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -981,16 +860,12 @@ describe('useAssistantWorkflow', () => {
 
   it('keeps the permission prompt when sending the response fails', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
-    const respondToPermission = jest.fn().mockRejectedValue(new Error('Hub disconnected'));
+    const respondToPermission = vi.fn().mockRejectedValue(new Error('Hub disconnected'));
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn().mockResolvedValue({ accepted: true, session_id: 'thread-a' }),
-      cancelWorkflow: jest.fn(),
-      respondToPermission,
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -998,7 +873,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.onSubmitMessage({
@@ -1017,13 +894,16 @@ describe('useAssistantWorkflow', () => {
       });
     });
 
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await act(async () => {
       await result.current.respondToPermission('req-1', true);
     });
     consoleError.mockRestore();
 
-    expect(respondToPermission).toHaveBeenCalledWith('thread-a', 'req-1', true);
+    expect(respondToPermission).toHaveBeenCalledWith(org, app, 'thread-a', {
+      requestId: 'req-1',
+      granted: true,
+    });
     expect(result.current.workflowStatusByThread['thread-a']?.permissionRequest).toEqual({
       requestId: 'req-1',
       message: 'write_file: App/ui/Side1.json',
@@ -1036,11 +916,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1075,11 +951,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1102,7 +974,7 @@ describe('useAssistantWorkflow', () => {
       expect.objectContaining({
         role: MessageAuthor.Assistant,
         content:
-          'Beklager, noe gikk galt under behandlingen av forespørselen din. Vennligst prøv igjen.',
+          'Beklager, noe gikk galt under behandlingen av forespørselen din. Prøv igjen, eller ta kontakt med oss.',
       }),
     );
   });
@@ -1113,11 +985,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1143,21 +1011,19 @@ describe('useAssistantWorkflow', () => {
 
   it('does not send a permission response for an unknown request id', async () => {
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
-    const respondToPermission = jest.fn();
+    const respondToPermission = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission,
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      respondToAssistantPermission: respondToPermission,
+    });
 
     await act(async () => {
       await result.current.respondToPermission('stale-request-id', true);
@@ -1179,69 +1045,33 @@ describe('useAssistantWorkflow', () => {
         },
       ],
     });
-    const cancelWorkflow = jest.fn();
+    const cancelWorkflow = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow,
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: cancelWorkflow,
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
     });
 
     expect(threads.deleteMessage).toHaveBeenCalledWith('thread-1', 'message-1');
-    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
-  });
-
-  it('registers the session on this connection before cancelling', async () => {
-    const threads = createThreadState({ selectedThreadId: 'thread-1' });
-    const callOrder: string[] = [];
-    const registerSession = jest.fn(async () => {
-      callOrder.push('registerSession');
-    });
-    const cancelWorkflow = jest.fn(async () => {
-      callOrder.push('cancelWorkflow');
-    });
-
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow,
-      respondToPermission: jest.fn(),
-      registerSession,
-      onAgentMessage: jest.fn(),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    const { result } = renderUseAssistantWorkflow(threads);
-
-    await act(async () => {
-      await result.current.cancelCurrentWorkflow();
-    });
-
-    // A tab that adopted the run (or reloaded mid-run) has no session on its
-    // hub connection — cancel must (re)register first or the hub rejects it.
-    expect(registerSession).toHaveBeenCalledWith('testOrg', 'testApp', 'thread-1');
-    expect(callOrder).toEqual(['registerSession', 'cancelWorkflow']);
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
   });
 
   it('still cancels the workflow when deleting the pending message fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({
       selectedThreadId: 'thread-1',
-      deleteMessage: jest.fn().mockRejectedValue(new Error('delete failed')),
+      deleteMessage: vi.fn().mockRejectedValue(new Error('delete failed')),
       chatMessages: [
         {
           id: 'message-1',
@@ -1252,82 +1082,36 @@ describe('useAssistantWorkflow', () => {
         },
       ],
     });
-    const cancelWorkflow = jest.fn();
+    const cancelWorkflow = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow,
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: cancelWorkflow,
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
     });
 
-    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
     // The message was not deleted, so its content must not be restored to the composer.
     expect(result.current.cancelledMessageContent).toBeNull();
     consoleErrorSpy.mockRestore();
   });
 
-  it('puts the message back in the thread when session registration fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const threads = createThreadState({
-      selectedThreadId: 'thread-1',
-      deleteMessage: jest.fn().mockResolvedValue(undefined),
-      chatMessages: [
-        {
-          id: 'message-1',
-          role: MessageAuthor.User,
-          content: 'Please do this',
-          createdAt: new Date().toISOString(),
-          allowAppChanges: false,
-        },
-      ],
-    });
-    const cancelWorkflow = jest.fn();
-
-    mockUseAssistantWebSocket.mockReturnValue({
-      connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow,
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn().mockRejectedValue(new Error('hub unavailable')),
-      onAgentMessage: jest.fn(),
-    });
-    mockUseCurrentBranchQuery.mockReturnValue({
-      data: createMockCurrentBranchInfo(),
-    } as UseQueryResult<CurrentBranchInfo>);
-
-    const { result } = renderUseAssistantWorkflow(threads);
-
-    await act(async () => {
-      await result.current.cancelCurrentWorkflow();
-    });
-
-    // Registration failed, so the cancel never went out and the run continues.
-    expect(cancelWorkflow).not.toHaveBeenCalled();
-    expect(threads.createMessage).toHaveBeenCalledWith(
-      'thread-1',
-      expect.objectContaining({ role: MessageAuthor.User, content: 'Please do this' }),
-    );
-    consoleErrorSpy.mockRestore();
-  });
-
   it('keeps the prompt in the composer when restoring it to the thread also fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({
       selectedThreadId: 'thread-1',
-      deleteMessage: jest.fn().mockResolvedValue(undefined),
-      createMessage: jest.fn().mockRejectedValue(new Error('thread unavailable')),
+      deleteMessage: vi.fn().mockResolvedValue(undefined),
+      createMessage: vi.fn().mockRejectedValue(new Error('thread unavailable')),
       chatMessages: [
         {
           id: 'message-1',
@@ -1341,17 +1125,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn().mockRejectedValue(new Error('agents unreachable')),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -1363,10 +1145,10 @@ describe('useAssistantWorkflow', () => {
   });
 
   it('puts the message back in the thread when the cancel request fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({
       selectedThreadId: 'thread-1',
-      deleteMessage: jest.fn().mockResolvedValue(undefined),
+      deleteMessage: vi.fn().mockResolvedValue(undefined),
       chatMessages: [
         {
           id: 'message-1',
@@ -1380,17 +1162,15 @@ describe('useAssistantWorkflow', () => {
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn().mockRejectedValue(new Error('agents unreachable')),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
@@ -1425,46 +1205,40 @@ describe('useAssistantWorkflow', () => {
         },
       ],
     });
-    const cancelWorkflow = jest.fn();
+    const cancelWorkflow = vi.fn();
 
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow,
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn().mockResolvedValue(undefined),
-      onAgentMessage: jest.fn(),
+      onAgentMessage: vi.fn(),
     });
     mockUseCurrentBranchQuery.mockReturnValue({
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: cancelWorkflow,
+    });
 
     await act(async () => {
       await result.current.cancelCurrentWorkflow();
     });
 
     expect(threads.deleteMessage).not.toHaveBeenCalled();
-    expect(cancelWorkflow).toHaveBeenCalledWith('thread-1');
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
   });
 
-  it('resets the repository when the finished run belongs to this app', async () => {
-    const resetRepoChanges = jest.fn().mockResolvedValue(undefined);
+  it('checks out the branch that the finished run pushed', async () => {
+    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+    const checkoutBranch = vi.fn().mockResolvedValue({});
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
       chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
-      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
     });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1472,35 +1246,111 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    renderUseAssistantWorkflow(threads, { resetRepoChanges });
+    renderUseAssistantWorkflow(threads, { resetRepoChanges, checkoutBranch });
 
     await act(async () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-a',
-        data: { content: 'Svar', mode: 'edit' },
+        data: { content: 'Svar', pushedBranch: 'assistant_thread-a' },
       });
     });
 
-    expect(resetRepoChanges).toHaveBeenCalled();
+    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'assistant_thread-a'),
+    );
   });
 
-  it("does not reset this app's repository for a run belonging to another app", async () => {
-    const resetRepoChanges = jest.fn().mockResolvedValue(undefined);
+  it('checks out the pushed branch when the hook unmounts during the reset', async () => {
+    let finishReset: () => void = () => {};
+    const resetRepoChanges = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishReset = resolve;
+        }),
+    );
+    const checkoutBranch = vi.fn().mockResolvedValue({});
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
       chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
-      createMessage: jest.fn().mockResolvedValue({ id: 'persisted-message-id' }),
     });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    const { unmount } = renderUseAssistantWorkflow(threads, { resetRepoChanges, checkoutBranch });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar', pushedBranch: 'assistant_thread-a' },
+      });
+    });
+    expect(resetRepoChanges).toHaveBeenCalledTimes(1);
+
+    unmount();
+    finishReset();
+
+    await waitFor(() =>
+      expect(checkoutBranch).toHaveBeenCalledWith(org, app, 'assistant_thread-a'),
+    );
+  });
+
+  it('leaves the repository and branch as they were when the finished run pushed nothing', async () => {
+    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+    const checkoutBranch = vi.fn().mockResolvedValue({});
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      onAgentMessage: vi.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+
+    renderUseAssistantWorkflow(threads, { resetRepoChanges, checkoutBranch });
+
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'assistant_message',
+        session_id: 'thread-a',
+        data: { content: 'Svar' },
+      });
+    });
+
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    expect(resetRepoChanges).not.toHaveBeenCalled();
+    expect(checkoutBranch).not.toHaveBeenCalled();
+  });
+
+  it("does not reset this app's repository for a run belonging to another app", async () => {
+    const resetRepoChanges = vi.fn().mockResolvedValue(undefined);
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      chatThreads: [{ id: 'thread-a', title: 'Tråd A', createdAt: '2026-01-01T00:00:00Z' }],
+    });
+
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1514,7 +1364,7 @@ describe('useAssistantWorkflow', () => {
       capturedOnAgentMessage!({
         type: 'assistant_message',
         session_id: 'thread-from-other-app',
-        data: { content: 'Svar', mode: 'edit' },
+        data: { content: 'Svar', pushedBranch: 'assistant_thread-from-other-app' },
       });
     });
 
@@ -1532,11 +1382,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1568,11 +1414,7 @@ describe('useAssistantWorkflow', () => {
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn(),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1595,17 +1437,13 @@ describe('useAssistantWorkflow', () => {
   });
 
   it('restores the trail when the cancel request fails mid-run', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const threads = createThreadState({ selectedThreadId: 'thread-a' });
 
     let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
     mockUseAssistantWebSocket.mockReturnValue({
       connectionStatus: 'connected',
-      startWorkflow: jest.fn(),
-      cancelWorkflow: jest.fn().mockRejectedValue(new Error('Hub disconnected')),
-      respondToPermission: jest.fn(),
-      registerSession: jest.fn(),
-      onAgentMessage: jest.fn((callback) => {
+      onAgentMessage: vi.fn((callback) => {
         capturedOnAgentMessage = callback;
       }),
     });
@@ -1613,7 +1451,9 @@ describe('useAssistantWorkflow', () => {
       data: createMockCurrentBranchInfo(),
     } as UseQueryResult<CurrentBranchInfo>);
 
-    const { result } = renderUseAssistantWorkflow(threads);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      cancelAssistantWorkflow: vi.fn().mockRejectedValue(new Error('Hub disconnected')),
+    });
 
     await act(async () => {
       capturedOnAgentMessage!({
@@ -1633,19 +1473,166 @@ describe('useAssistantWorkflow', () => {
     expect(status?.message).toBe('Skanner repo');
     consoleErrorSpy.mockRestore();
   });
+
+  it('sends the cancel after the start request has answered', async () => {
+    const { result, start, cancelWorkflow } = await renderWithPendingStart();
+
+    let cancel: Promise<void>;
+    act(() => {
+      cancel = result.current.cancelCurrentWorkflow();
+    });
+    expect(result.current.workflowStatusByThread['thread-1']?.isActive).toBe(false);
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+
+    await act(async () => {
+      start.resolve();
+      await Promise.all([start.submit, cancel]);
+    });
+    expect(cancelWorkflow).toHaveBeenCalledWith(org, app, 'thread-1');
+  });
+
+  it('adopts a run that another tab starts after the start in this tab failed', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    let capturedOnAgentMessage: ((event: WorkflowEvent) => void) | null = null;
+    mockUseAssistantWebSocket.mockReturnValue({
+      connectionStatus: 'connected',
+      onAgentMessage: vi.fn((callback) => {
+        capturedOnAgentMessage = callback;
+      }),
+    });
+    mockUseCurrentBranchQuery.mockReturnValue({
+      data: createMockCurrentBranchInfo(),
+    } as UseQueryResult<CurrentBranchInfo>);
+    const { result } = renderUseAssistantWorkflow(threads, {
+      startAssistantWorkflow: vi.fn().mockRejectedValue(new Error('start failed')),
+    });
+
+    await act(async () => {
+      await result.current.onSubmitMessage({
+        role: MessageAuthor.User,
+        content: 'Lag et skjema',
+        createdAt: new Date().toISOString(),
+        allowAppChanges: false,
+      });
+    });
+    await act(async () => {
+      capturedOnAgentMessage!({
+        type: 'workflow_status',
+        session_id: 'thread-a',
+        data: { message: 'Skanner repo', tool_use_id: 'tool-1' },
+      });
+    });
+
+    expect(threads.refreshMessages).toHaveBeenCalledWith('thread-a');
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('sends no cancel when the start request fails while the message is deleted', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let finishDelete: () => void = () => {};
+    const deleteMessage = vi.fn(() => new Promise<void>((resolve) => (finishDelete = resolve)));
+    const { result, start, cancelWorkflow } = await renderWithPendingStart({
+      deleteMessage,
+      chatMessages: [
+        {
+          id: 'user-message-id',
+          role: MessageAuthor.User,
+          content: 'Lag et skjema',
+          createdAt: new Date().toISOString(),
+          allowAppChanges: false,
+        },
+      ],
+    });
+
+    let cancel: Promise<void>;
+    act(() => {
+      cancel = result.current.cancelCurrentWorkflow();
+    });
+    await waitFor(() => expect(deleteMessage).toHaveBeenCalled());
+    await act(async () => {
+      start.reject(new Error('start failed'));
+      await start.submit;
+    });
+    await act(async () => {
+      finishDelete();
+      await cancel;
+    });
+
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('sends no cancel when the start request fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, start, cancelWorkflow } = await renderWithPendingStart();
+
+    let cancel: Promise<void>;
+    act(() => {
+      cancel = result.current.cancelCurrentWorkflow();
+    });
+    await act(async () => {
+      start.reject(new Error('start failed'));
+      await Promise.all([start.submit, cancel]);
+    });
+
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
 });
+
+// Submits a message whose start request has not answered yet.
+const renderWithPendingStart = async (threadOverrides: Partial<AssistantThreadState> = {}) => {
+  const threads = createThreadState({ selectedThreadId: 'thread-1', ...threadOverrides });
+  let resolve: () => void;
+  let reject: (error: Error) => void;
+  const startRequest = new Promise<void>((resolveStart, rejectStart) => {
+    resolve = resolveStart;
+    reject = rejectStart;
+  });
+  const startWorkflow = vi.fn(() => startRequest);
+  const cancelWorkflow = vi.fn().mockResolvedValue(undefined);
+  mockUseAssistantWebSocket.mockReturnValue({
+    connectionStatus: 'connected',
+    onAgentMessage: vi.fn(),
+  });
+  mockUseCurrentBranchQuery.mockReturnValue({
+    data: createMockCurrentBranchInfo(),
+  } as UseQueryResult<CurrentBranchInfo>);
+  const { result } = renderUseAssistantWorkflow(threads, {
+    startAssistantWorkflow: startWorkflow,
+    cancelAssistantWorkflow: cancelWorkflow,
+  });
+
+  let submit: Promise<void>;
+  act(() => {
+    submit = result.current.onSubmitMessage({
+      role: MessageAuthor.User,
+      content: 'Lag et skjema',
+      createdAt: new Date().toISOString(),
+      allowAppChanges: false,
+    });
+  });
+  await waitFor(() => expect(startWorkflow).toHaveBeenCalled());
+
+  return {
+    result,
+    cancelWorkflow,
+    start: { submit, resolve, reject },
+  };
+};
 
 const createThreadState = (overrides: Partial<AssistantThreadState> = {}): AssistantThreadState => {
   const base: AssistantThreadState = {
     chatThreads: [],
     selectedThreadId: null,
     chatMessages: [],
-    selectThread: jest.fn(),
-    createThread: jest.fn().mockResolvedValue('new-thread-id'),
-    deleteThread: jest.fn(),
-    deleteMessage: jest.fn(),
-    createMessage: jest.fn(),
-    refreshMessages: jest.fn(),
+    selectThread: vi.fn(),
+    createThread: vi.fn().mockResolvedValue('new-thread-id'),
+    deleteThread: vi.fn(),
+    deleteMessage: vi.fn(),
+    createMessage: vi.fn().mockResolvedValue({ id: 'persisted-message-id' }),
+    refreshMessages: vi.fn(),
     ...overrides,
   };
   if (base.selectedThreadId && !overrides.chatThreads) {

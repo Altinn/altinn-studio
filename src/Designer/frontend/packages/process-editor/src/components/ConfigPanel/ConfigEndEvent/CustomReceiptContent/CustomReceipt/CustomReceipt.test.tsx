@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { CustomReceipt } from './CustomReceipt';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { BpmnContext } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';
@@ -10,7 +11,7 @@ import {
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -32,8 +33,6 @@ const defaultBpmnApiContextProps: BpmnApiContextProps = {
 };
 
 describe('CustomReceipt', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('hides the receipt name field', () => {
     renderCustomReceipt();
     expect(screen.queryByRole('button', { name: nameFieldLabel })).not.toBeInTheDocument();
@@ -41,7 +40,7 @@ describe('CustomReceipt', () => {
 
   it('calls "deleteLayoutSet" when clicking the delete button', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderCustomReceipt();
 
     const deleteButton = screen.getByRole('button', {

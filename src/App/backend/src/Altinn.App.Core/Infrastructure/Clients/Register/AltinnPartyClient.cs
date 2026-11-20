@@ -82,10 +82,7 @@ internal sealed class AltinnPartyClient : IAltinnPartyClient
 
         Party? party = response.StatusCode switch
         {
-            HttpStatusCode.OK => await JsonSerializerPermissive.DeserializeAsync<Party>(
-                response.Content,
-                cancellationToken
-            ),
+            HttpStatusCode.OK => await JsonSerializerPermissive.Deserialize<Party>(response.Content, cancellationToken),
             // Register's "no such party" answers: 401 for user tokens (which deliberately also
             // covers "not yours"), 404 for service owner tokens, 400 for an id that can't be a party.
             HttpStatusCode.Unauthorized or HttpStatusCode.NotFound or HttpStatusCode.BadRequest => null,
@@ -130,7 +127,7 @@ internal sealed class AltinnPartyClient : IAltinnPartyClient
 
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            return await JsonSerializerPermissive.DeserializeAsync<Party>(response.Content, cancellationToken);
+            return await JsonSerializerPermissive.Deserialize<Party>(response.Content, cancellationToken);
         }
 
         _logger.LogError(

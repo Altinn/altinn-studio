@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalSimpleComponentToInternal } from './externalSimpleComponentToInternal';

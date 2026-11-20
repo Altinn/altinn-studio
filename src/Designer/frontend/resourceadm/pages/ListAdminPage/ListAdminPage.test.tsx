@@ -1,7 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ListAdminPage } from './ListAdminPage';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -27,29 +29,29 @@ const accessListResultsPage2 = {
   nextPage: '',
 };
 
-const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockedNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
-  useParams: jest.fn(),
+  useParams: vi.fn(),
 }));
 
 describe('ListAdminPage', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should navigate to first available enviromnent if no environment is selected', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
     });
     renderListAdminPage();
 
-    expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
-      replace: true,
+    await waitFor(() => {
+      expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/tt02/`, {
+        replace: true,
+      });
     });
   });
 
   it('should show lists after environment is selected', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -59,14 +61,14 @@ describe('ListAdminPage', () => {
   });
 
   it('should change environment on toggle button click', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
     const user = userEvent.setup();
     renderListAdminPage();
 
-    const prodEnvButton = screen.getByText(textMock('resourceadm.deploy_prod_env'));
+    const prodEnvButton = await screen.findByText(textMock('resourceadm.deploy_prod_env'));
     await user.click(prodEnvButton);
 
     expect(mockedNavigate).toHaveBeenCalledWith(`/ttd/ttd-resources/accesslists/prod/`, {
@@ -75,7 +77,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should show create dialog when create new button is clicked', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -95,7 +97,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should load more lists when load more button is clicked', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -121,7 +123,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should show error when user does not have permission to edit access lists', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
       env: 'tt02',
     });
@@ -138,7 +140,7 @@ describe('ListAdminPage', () => {
   });
 
   it('should navigate back on back button click', async () => {
-    (useParams as jest.Mock).mockReturnValue({
+    (useParams as Mock).mockReturnValue({
       org: 'ttd',
     });
 
@@ -156,8 +158,8 @@ const renderListAdminPage = (isError?: boolean) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
     getAccessLists: isError
-      ? jest.fn().mockImplementationOnce(() => Promise.reject({ response: { status: 403 } }))
-      : jest
+      ? vi.fn().mockImplementationOnce(() => Promise.reject({ response: { status: 403 } }))
+      : vi
           .fn()
           .mockImplementationOnce(() => Promise.resolve(accessListResults))
           .mockImplementationOnce(() => Promise.resolve(accessListResultsPage2)),

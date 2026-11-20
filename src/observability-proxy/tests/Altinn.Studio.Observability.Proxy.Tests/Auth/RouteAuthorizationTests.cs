@@ -40,9 +40,17 @@ public sealed class RouteAuthorizationTests
             { "POST", "/internal/observability/logs/select/logsql/..%2F..%2Finsert%2Fjsonline", Query, 404 },
             { "POST", "/internal/observability/logs/select/logsql/%2e%2e%2F%2e%2e%2Finsert%2Fjsonline", Query, 404 },
             { "POST", "/internal/observability/otlp/v1%2Ftraces", Ingest, 404 },
+            {
+                "POST",
+                "/internal/observability/traces-logsql/select/logsql/..%2F..%2Finsert%2Fopentelemetry%2Fv1%2Ftraces",
+                Query,
+                404
+            },
             // Dot segments, plain or escaped, resolve before routing and land on another route.
             { "POST", "/internal/observability/logs/select/logsql/%2e%2e/%2e%2e/insert/jsonline", Query, 404 },
             { "POST", "/internal/observability/logs/select/logsql/../../insert/jsonline", Query, 404 },
+            { "GET", "/internal/observability/traces-logsql/select/logsql/../tempo/api/search", Query, 404 },
+            { "GET", "/internal/observability/traces-logsql/../traces/select/logsql/query", Query, 404 },
             { "POST", "/internal/observability/metrics/../otlp/v1/metrics", Query, 403 },
             { "POST", "/internal/observability/metrics/%2e%2e/otlp/v1/metrics", Query, 403 },
             { "POST", "/internal/observability/otlp/v1/../../metrics/api/v1/write", Query, 404 },

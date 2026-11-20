@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WithHoverAddButton, type WithHoverAddButtonProps } from './WithHoverAddButton';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { IInternalLayout } from '../../types/global';
 
 //Test data
@@ -16,12 +17,10 @@ function createLayoutWithContainer(containerId: string, containerType: string): 
     containers: {
       [BASE_CONTAINER_ID]: {
         type: null,
-        itemType: 'CONTAINER' as const,
         id: BASE_CONTAINER_ID,
       },
       [containerId]: {
         type: containerType,
-        itemType: 'CONTAINER' as const,
         id: containerId,
       } as any,
     },
@@ -42,7 +41,6 @@ const defaultProps: Omit<WithHoverAddButtonProps, 'children'> = {
     containers: {
       [BASE_CONTAINER_ID]: {
         type: null,
-        itemType: 'CONTAINER',
         id: BASE_CONTAINER_ID,
       },
     },

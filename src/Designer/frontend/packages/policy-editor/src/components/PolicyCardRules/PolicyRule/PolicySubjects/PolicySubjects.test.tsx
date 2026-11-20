@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { PolicyEditorContext } from '@altinn/policy-editor/contexts/PolicyEditorContext';
 import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -169,8 +169,6 @@ const subjects = [
 ];
 
 describe('PolicySubjects', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show subject checkbox checked when subject is added with urn', async () => {
     const user = userEvent.setup();
     renderPolicySubjects();

@@ -5,6 +5,10 @@ import type { IDataModelBindings } from 'src/layout/layout';
 export abstract class AddToListDef extends FormComponent<'AddToList'> {
   protected readonly type = 'AddToList';
 
+  declare renderSummary?: never;
+
+  declare renderSummary2?: never;
+
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
     baseComponentId: string,
@@ -13,4 +17,4 @@ export abstract class AddToListDef extends FormComponent<'AddToList'> {
   ): string[];
 }
 
-// Source hash: 795891038ac1d8702f3b9e33a5f5f13bc1c7e7df05af09baa61670a6b798cb97
+// Source hash: 49904c6df3219723c7c4781777867e44533ae396148ccde29a99e9f7dc53afdd

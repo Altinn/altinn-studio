@@ -370,7 +370,18 @@
         "taskId": {
           "type": "string",
           "title": "Task id",
-          "description": "A reference to the process element id of the task where this data element should be updated."
+          "description": "**Deprecated**: Use taskIds. Only v8 apps read it; `studioctl app upgrade v9` rewrites it to taskIds.\nThe process element id of the task that elements of this data type belong to.",
+          "deprecated": true
+        },
+        "taskIds": {
+          "type": ["array", "null"],
+          "title": "Task ids",
+          "description": "The process element ids of the tasks that elements of this data type belong to: the tasks where they can be created, changed and deleted through the app, where they are created automatically (appLogic.autoCreate), and at whose end they are validated. Null, missing or an empty list binds the data type to no task. v8 apps read taskId instead.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         },
         "maxSize": {
           "type": ["integer", "null"],
@@ -465,7 +476,7 @@
         "autoCreate": {
           "type": "boolean",
           "title": "Auto create",
-          "description": "A value indicating whether the data element should be automatically created once an instance moves into the process step indicated by taskId."
+          "description": "A value indicating whether the data element should be automatically created once an instance moves into a process step that the data type belongs to (taskIds)."
         },
         "classRef": {
           "type": "string",
@@ -560,7 +571,29 @@
           "type": "boolean",
           "title": "Include attachments",
           "description": "Gets or sets a boolean indicating if copying of attachments is enabled."
+        },
+        "includeDueBefore": {
+          "type": "boolean",
+          "title": "Include due before",
+          "description": "A value indicating if the due date (dueBefore) should be copied from the source instance. Requires app backend v8.13 or newer."
+        },
+        "includedDataValues": {
+          "type": "array",
+          "title": "Included data values",
+          "description": "The keys of the data values (dataValues) that should be copied from the source instance. Keys that also are derived from dataFields get the value recalculated from the copied form data. Requires app backend v8.13 or newer.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includedPresentationTexts": {
+          "type": "array",
+          "title": "Included presentation texts",
+          "description": "The keys of the presentation texts (presentationTexts) that should be copied from the source instance. Keys that also are derived from presentationFields get the value recalculated from the copied form data. Requires app backend v8.13 or newer.",
+          "items": {
+            "type": "string"
+          }
         }
+
       }
     },
     "Text": {

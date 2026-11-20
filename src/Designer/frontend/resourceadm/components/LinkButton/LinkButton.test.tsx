@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { LinkButtonProps } from './LinkButton';
 import { LinkButton } from './LinkButton';
 
 describe('LinkButton', () => {
-  const mockOnClick = jest.fn();
+  const mockOnClick = vi.fn();
 
   const defaultProps: LinkButtonProps = {
     page: 'about',

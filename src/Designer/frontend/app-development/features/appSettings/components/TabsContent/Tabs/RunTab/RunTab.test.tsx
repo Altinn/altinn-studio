@@ -1,24 +1,23 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { RunTab } from './RunTab';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import userEvent from '@testing-library/user-event';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('RunTab', () => {
-  afterEach(jest.clearAllMocks);
-
   it('initially displays spinner when loading data', () => {
     renderRunTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();
   });
 
   it('fetches app settings on mount', async () => {
-    const getAppSettings = jest.fn().mockImplementation(() =>
+    const getAppSettings = vi.fn().mockImplementation(() =>
       Promise.resolve<AppSettings>({
         undeployOnInactivity: false,
       }),
@@ -57,7 +56,7 @@ describe('RunTab', () => {
 
   it('persists the switch value when toggled', async () => {
     const user = userEvent.setup();
-    const updateAppSettings = jest.fn().mockImplementation(() => Promise.resolve());
+    const updateAppSettings = vi.fn().mockImplementation(() => Promise.resolve());
 
     await resolveAndWaitForSpinnerToDisappear({
       getAppSettings: () => Promise.resolve({ undeployOnInactivity: false }),
@@ -77,7 +76,7 @@ describe('RunTab', () => {
 
   it('disables the switch when user lacks deploy permission', async () => {
     const user = userEvent.setup();
-    const updateAppSettings = jest.fn().mockImplementation(() => Promise.resolve());
+    const updateAppSettings = vi.fn().mockImplementation(() => Promise.resolve());
 
     await resolveAndWaitForSpinnerToDisappear({
       getAppSettings: () => Promise.resolve({ undeployOnInactivity: false }),

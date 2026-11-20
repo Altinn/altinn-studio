@@ -1,11 +1,10 @@
+import { describe, expect, it } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useHasMergeConflict } from './useHasMergeConflict';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { mockRepoStatus } from '../../test/mocks/versionControlContextMock';
 
 describe('useHasMergeConflict', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should set hasMergeConflict to true when repoStatus.hasMergeConflict is true', () => {
     const { result } = renderHook(() =>
       useHasMergeConflict({ ...mockRepoStatus, hasMergeConflict: true }),
@@ -20,11 +19,11 @@ describe('useHasMergeConflict', () => {
     expect(result.current.hasMergeConflict).toBe(true);
   });
 
-  it('should set hasMergeConflict to true when repositoryStatus is CheckoutConflict', () => {
+  it('should set hasMergeConflict to false when repositoryStatus is CheckoutConflict', () => {
     const { result } = renderHook(() =>
       useHasMergeConflict({ ...mockRepoStatus, repositoryStatus: 'CheckoutConflict' }),
     );
-    expect(result.current.hasMergeConflict).toBe(true);
+    expect(result.current.hasMergeConflict).toBe(false);
   });
 
   it('should set hasMergeConflict to false when repoStatus.hasMergeConflict is false', () => {

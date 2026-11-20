@@ -1,10 +1,8 @@
+import { describe, expect, it } from 'vitest';
 import { render, renderHook, screen } from '@testing-library/react';
 import { BpmnContextProvider, useBpmnContext } from './BpmnContext';
 
 describe('BpmnContext', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render children', () => {
     render(
       <BpmnContextProvider>

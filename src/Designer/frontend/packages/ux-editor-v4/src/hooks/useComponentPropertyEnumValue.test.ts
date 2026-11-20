@@ -1,5 +1,6 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks/useComponentPropertyEnumValue';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
@@ -15,7 +16,7 @@ const customTextMockToHandleUndefined = (
     : '[mockedText(' + key + ')]';
 };
 
-jest.mock('react-i18next', () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: customTextMockToHandleUndefined,
   }),

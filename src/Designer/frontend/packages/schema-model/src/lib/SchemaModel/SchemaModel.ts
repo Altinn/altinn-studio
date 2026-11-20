@@ -14,13 +14,14 @@ import {
   isDefinition,
   isDefinitionPointer,
   isDefinitionRoot,
+  isDefinitionRootPointer,
   isFieldOrCombination,
   isNodeValidParent,
   isReference,
 } from '../utils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { ReferenceNode } from '../../types/ReferenceNode';
-import { ObjectUtils, ArrayUtils, StringUtils } from '@studio/pure-functions';
+import { ObjectUtils, ArrayUtils, StringUtils } from '@designer/pure-functions';
 import {
   createDefinitionPointer,
   createPropertyPointer,
@@ -414,7 +415,9 @@ export class SchemaModel extends SchemaModelBase {
     const parent = this.getParentNode(schemaPointer);
     this.deleteNodeWithChildrenRecursively(schemaPointer);
     // The names of combination children are their indices, so the remaining ones must be renumbered.
-    if (isCombination(parent)) this.synchronizeCombinationChildPointers(parent);
+    // Definitions are also children of the root node, which may be a combination, but they have names.
+    if (isCombination(parent) && !isDefinitionRootPointer(schemaPointer))
+      this.synchronizeCombinationChildPointers(parent);
     return this;
   }
 

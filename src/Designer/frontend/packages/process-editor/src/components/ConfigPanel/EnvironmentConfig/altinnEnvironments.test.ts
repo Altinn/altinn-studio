@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { isGlobalEnv, normalizeAltinnEnvironment } from './altinnEnvironments';
 
 describe('normalizeAltinnEnvironment', () => {

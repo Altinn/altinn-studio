@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import {
   formLayoutSettingsMock,
@@ -5,7 +6,7 @@ import {
   renderWithProviders,
 } from '../testing/mocks';
 import { FormDesigner } from './FormDesigner';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -16,12 +17,12 @@ import { externalLayoutsMock, layout1NameMock, pagesModelMock } from '../testing
 import { FormItemContext } from './FormItemContext';
 import { formItemContextProviderMock } from '../testing/formItemContextMocks';
 import { appContextMock } from '../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { user as userMock } from 'app-shared/mocks/mocks';
 
-jest.mock('app-shared/api/mutations', () => ({
-  createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
+vi.mock('app-shared/api/mutations', () => ({
+  createPreviewInstance: vi.fn().mockReturnValue(Promise.resolve({ id: 1 })),
 }));
 
 // Test data:
@@ -34,12 +35,12 @@ const user = userEvent.setup();
 const render = () => {
   const queryClient = createQueryClientMock();
   const queries = {
-    getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
-    getFormLayoutSettings: jest
+    getFormLayouts: vi.fn().mockImplementation(() => Promise.resolve(externalLayoutsMock)),
+    getFormLayoutSettings: vi
       .fn()
       .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
-    getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
-    getPages: jest.fn().mockImplementation(() => Promise.resolve(pagesModelMock)),
+    getInstanceIdForPreview: vi.fn().mockImplementation(() => Promise.resolve<string>('test')),
+    getPages: vi.fn().mockImplementation(() => Promise.resolve(pagesModelMock)),
   };
   queryClient.setQueryData(
     [QueryKey.DataModelMetadata, org, app, 'test-layout-set', dataModelName],
@@ -79,10 +80,6 @@ const dragAndDrop = (src: Element, dst: Element) => {
 };
 
 describe('FormDesigner', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should render the spinner', () => {
     render();
     expect(screen.getByLabelText(textMock('ux_editor.loading_form_layout'))).toBeInTheDocument();

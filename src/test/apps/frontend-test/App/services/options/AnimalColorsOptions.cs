@@ -6,7 +6,7 @@ namespace Altinn.App.services.options
     {
         public string Id => "animalColors";
 
-        public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+        public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
         {
 
             string? isForeign = keyValuePairs.GetValueOrDefault("foreign");

@@ -1,0 +1,8 @@
+# The AKS detector finds no cluster name outside Azure, so name the local one,
+# without overriding a name a detector did find.
+- op: add
+  path: /spec/config/processors/resource~1environment/attributes/-
+  value:
+    key: k8s.cluster.name
+    value: kind-local
+    action: insert

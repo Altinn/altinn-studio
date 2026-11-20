@@ -81,7 +81,18 @@
       {
         DataElementId: Guid_1,
         Data: {
-          ValueKind: Object
+          property1: 2,
+          property2: 2,
+          price: 200,
+          quantity: 1,
+          total: 200,
+          lines: [
+            {
+              altinnRowId: Guid_2,
+              label: total,
+              amount: 200
+            }
+          ]
         }
       }
     ],
@@ -94,6 +105,7 @@
       AppId: ttd/basic,
       Org: ttd,
       SelfLinks: {
+        Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>,
         Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>
       },
       VisibleAfter: DateTime_1,
@@ -123,9 +135,10 @@
           ContentType: application/xml,
           BlobStoragePath: ttd/basic/<instanceGuid>/data-elements/<blobVersionId[0]>,
           SelfLinks: {
+            Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
             Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
           },
-          Size: 200,
+          Size: 364,
           BlobVersionId: <blobVersionId[0]>,
           Locked: false,
           IsRead: false,

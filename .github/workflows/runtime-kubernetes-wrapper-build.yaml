@@ -8,6 +8,12 @@ on:
       - 'src/Runtime/kubernetes-wrapper/**'
       - '.github/workflows/runtime-kubernetes-wrapper-integrationtests-kind.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
 
 concurrency:

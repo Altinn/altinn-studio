@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../test/mocks';
 import { usePrefillMutation } from './usePrefillMutation';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -6,14 +7,14 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const modelPath = 'App/models/model.schema.json';
 const prefillConfig: PrefillConfig = { ER: { OrgNumber: 'orgNumberField' } };
 
 describe('usePrefillMutation', () => {
   it('Returns correct state and calls saveDataModelPrefill with the correct parameters', async () => {
-    const saveDataModelPrefill = jest.fn();
+    const saveDataModelPrefill = vi.fn();
     const {
       renderHookResult: { result },
     } = render({ saveDataModelPrefill });

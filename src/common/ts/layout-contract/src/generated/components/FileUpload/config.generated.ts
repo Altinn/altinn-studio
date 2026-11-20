@@ -5,24 +5,19 @@ import {
   IDataModelBindingsList,
   IDataModelBindingsSimple,
   ISelectionComponent,
+  ISummaryOverridesCommon,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export interface CompFileUploadExternal
-  extends
-    ComponentBase,
-    FormComponentProps,
-    SummarizableComponentProps,
-    LabeledComponentProps,
-    ISelectionComponent {
+  extends ComponentBase, FormComponentProps, LabeledComponentProps, ISelectionComponent {
   type: 'FileUpload';
   textResourceBindings?: { tagTitle?: ExprValToActualOrExpr<ExprVal.String> } & TRBFormComp &
-    TRBSummarizable &
-    TRBLabel;
+    TRBLabel &
+    TRBSummarizable;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsSimple | IDataModelBindingsList;
   maxFileSizeInMB: number;
@@ -32,7 +27,18 @@ export interface CompFileUploadExternal
   hasCustomFileEndings?: boolean;
   validFileEndings?: string | string[];
   alertOnDelete?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
 }
+
+export interface FileUploadSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
+export type FileUploadSummaryOverridesWithRef =
+  | ({ componentId: string } & FileUploadSummaryOverrides)
+  | ({ componentType: 'FileUpload' } & FileUploadSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -58,8 +64,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompFileUploadExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: FileUploadSummaryOverrides;
+  summaryOverridesWithRef: FileUploadSummaryOverridesWithRef;
 };
 
-// Source hash: f1c8cd80ad11b68cefb2dce4748a0892e71feb693661c94a39b7e106ce08d210
+// Source hash: f8087e46be3b83dc9c0fe67242d42ffa41c6d72c72369a58b8748eb9b3179b2b

@@ -1,0 +1,36 @@
+# Environment files
+.env
+.env.local
+.env.docker
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+
+# Pytest
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Claude
+.claude
+
+# IDE
+.vscode/
+# Build artifacts
+*.egg-info/
+
+# Debug trace dumps
+trace-*.json
+
+benchmarks/.env
+benchmarks/.playwright-auth.json
+
+benchmarks/reports/
+
+# Recorded runs (BASELINE.json is committed)
+benchmarks/runs/

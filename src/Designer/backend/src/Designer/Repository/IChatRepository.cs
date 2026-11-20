@@ -35,6 +35,18 @@ public interface IChatRepository
     );
 
     /// <summary>
+    /// Gets a thread that the developer created, in any app.
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="developer">The developer who created the thread.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task<ChatThreadEntity?> GetDeveloperThreadAsync(
+        Guid threadId,
+        string developer,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Creates a new chat thread.
     /// </summary>
     /// <param name="thread">The thread to create.</param>

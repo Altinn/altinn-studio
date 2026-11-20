@@ -1,16 +1,17 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { internalExpressionWithMultipleSubExpressions } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
 import type { SimpleExpressionProps } from './SimpleExpression';
 import { SimpleExpression } from './SimpleExpression';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../../../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
@@ -18,10 +19,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('SimpleExpression', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('displays two data source selector components from subExpressionContent when there are two subExpressions in the expression', () => {
     render({});
     const subExpressionDataSourceSelectors = screen.queryAllByLabelText(
@@ -53,9 +50,9 @@ const render = ({
 }) => {
   const defaultProps: SimpleExpressionProps = {
     expression: internalExpressionWithMultipleSubExpressions,
-    onRemoveSubExpression: jest.fn(),
-    onUpdateExpressionOperator: jest.fn(),
-    onUpdateSubExpression: jest.fn(),
+    onRemoveSubExpression: vi.fn(),
+    onUpdateExpressionOperator: vi.fn(),
+    onUpdateSubExpression: vi.fn(),
   };
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);

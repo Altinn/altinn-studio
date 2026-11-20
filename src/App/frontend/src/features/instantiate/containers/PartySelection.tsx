@@ -7,6 +7,8 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { AltinnParty } from 'src/components/altinnParty';
+import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
@@ -19,13 +21,11 @@ import {
   useSetHasSelectedParty,
   useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
-import { getHostname } from 'src/utils/urls/appUrlHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
@@ -46,6 +46,7 @@ export const PartySelection = () => {
   const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
+  const partiesSettingsUrl = platformLinkHref('ArbeidsflatePartiesUrl');
   const { langAsString } = useLanguage();
 
   const [filterString, setFilterString] = React.useState('');
@@ -229,7 +230,7 @@ export const PartySelection = () => {
                     ? 'party_selection.seeing_this_override'
                     : 'party_selection.seeing_this_preference'
                 }
-                params={[getHostname()]}
+                params={[partiesSettingsUrl]}
               />
             </Paragraph>
           </Flex>

@@ -1,12 +1,10 @@
 import React from 'react';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
-import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';
-import type { properties } from '../../../../testing/schemas/json/component/Link.schema.v1.json';
+import { getComponentDefinition } from '../../../../data/componentCatalog';
 
-type LinkMainProperties = (keyof typeof properties)[];
-const linkMainProperties: LinkMainProperties = ['style'];
+const linkMainProperties = ['style'];
 
 type LinkMainConfigProps = {
   component: FormItem<ComponentType.Link>;
@@ -19,13 +17,13 @@ export const LinkMainConfig = ({
   handleComponentChange,
   className,
 }: LinkMainConfigProps): React.ReactElement => {
-  const { data: schema } = useComponentSchemaQuery(component.type);
+  const properties = getComponentDefinition(component.type)?.properties ?? {};
 
   return (
     <ConfigStringProperties
       component={component}
       handleComponentUpdate={handleComponentChange}
-      schema={schema}
+      properties={properties}
       stringPropertyKeys={linkMainProperties}
       className={className}
     />

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithMockStore } from '../../testing/mocks';
@@ -5,7 +6,7 @@ import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
@@ -142,7 +143,7 @@ describe('FormComponentConfig', () => {
       schema: InputSchema,
       editFormId: '',
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
       hideUnsupported: false,
     };
     return renderWithMockStore({}, queries)(<FormComponentConfig {...defaultProps} {...props} />);

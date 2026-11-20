@@ -14,7 +14,7 @@ public class Altinn3LibraryCodeListServiceTests
     private const string ExpectedUri = $"{Org}/code_lists/{CodeListId}/{Version}.json";
 
     [Fact]
-    public async Task GetCachedCodeListResponseAsync_TwoCallsRequestingDifferentHybridCacheKeys_ShouldCallMessageHandlerTwice()
+    public async Task GetCachedCodeListResponse_TwoCallsRequestingDifferentHybridCacheKeys_ShouldCallMessageHandlerTwice()
     {
         // Arrange
         const string codeListIdTwo = "SomeOtherCodeListId";
@@ -29,7 +29,7 @@ public class Altinn3LibraryCodeListServiceTests
         {
             var altinn3LibraryCodeListService =
                 scope.ServiceProvider.GetRequiredService<IAltinn3LibraryCodeListService>();
-            await altinn3LibraryCodeListService.GetCachedCodeListResponseAsync(
+            await altinn3LibraryCodeListService.GetCachedCodeListResponse(
                 Org,
                 CodeListId,
                 Version,
@@ -45,7 +45,7 @@ public class Altinn3LibraryCodeListServiceTests
         {
             var altinn3LibraryCodeListService =
                 scope.ServiceProvider.GetRequiredService<IAltinn3LibraryCodeListService>();
-            await altinn3LibraryCodeListService.GetCachedCodeListResponseAsync(
+            await altinn3LibraryCodeListService.GetCachedCodeListResponse(
                 Org,
                 codeListIdTwo,
                 Version,
@@ -61,7 +61,7 @@ public class Altinn3LibraryCodeListServiceTests
     }
 
     [Fact]
-    public async Task GetCachedCodeListResponseAsync_RequestsWithTheSameParametersTwice_ShouldCallMessageHandlerOnce()
+    public async Task GetCachedCodeListResponse_RequestsWithTheSameParametersTwice_ShouldCallMessageHandlerOnce()
     {
         // Arrange
         await using var fixture = Fixture.Create();
@@ -73,7 +73,7 @@ public class Altinn3LibraryCodeListServiceTests
         {
             var altinn3LibraryCodeListService =
                 scope.ServiceProvider.GetRequiredService<IAltinn3LibraryCodeListService>();
-            await altinn3LibraryCodeListService.GetCachedCodeListResponseAsync(
+            await altinn3LibraryCodeListService.GetCachedCodeListResponse(
                 Org,
                 CodeListId,
                 Version,
@@ -88,7 +88,7 @@ public class Altinn3LibraryCodeListServiceTests
         using (var scope = serviceProvider.CreateScope())
         {
             var optionsProvider = scope.ServiceProvider.GetRequiredService<IAltinn3LibraryCodeListService>();
-            await optionsProvider.GetCachedCodeListResponseAsync(Org, CodeListId, Version, CancellationToken.None);
+            await optionsProvider.GetCachedCodeListResponse(Org, CodeListId, Version, CancellationToken.None);
 
             // Still only 1 call because of caching
             Assert.Equal(1, fixture.MockHandler.CallCount);

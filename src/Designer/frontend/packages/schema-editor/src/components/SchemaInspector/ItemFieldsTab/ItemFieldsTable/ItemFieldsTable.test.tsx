@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ItemFieldsTableProps } from './ItemFieldsTable';
 import { ItemFieldsTable } from './ItemFieldsTable';
@@ -13,7 +13,7 @@ import {
 import type { RenderWithProvidersData } from '../../../../../test/renderWithProviders';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../../../test/mocks/uiSchemaMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const selectedItemPointer = '#/properties/test';
@@ -62,8 +62,6 @@ describe('ItemFieldsTable', () => {
   beforeAll(() => {
     validateTestUiSchema(uiSchema);
   });
-
-  afterEach(vi.clearAllMocks);
 
   it('render inputs and delete buttons correctly for all fields', async () => {
     const user = userEvent.setup();

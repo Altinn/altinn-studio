@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Scope } from './utils/ValidateNavigationUtils';
 import {
@@ -5,7 +6,7 @@ import {
   type ValidateNavigationConfigProps,
 } from './ValidateNavigationConfig';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const undefinedLabel = textMock('ux_editor.settings.navigation_validation_button_rule_undefined');
 const allTasksCardLabel = textMock('ux_editor.settings.navigation_validation_all_tasks_card_label');
@@ -70,8 +71,8 @@ const openCard = async (user: UserEvent, label?: string) => {
 const renderValidateNavigationConfig = (props: Partial<ValidateNavigationConfigProps> = {}) => {
   const defaultProps: ValidateNavigationConfigProps = {
     scope: Scope.AllTasks,
-    onSave: jest.fn(),
-    onDelete: jest.fn(),
+    onSave: vi.fn(),
+    onDelete: vi.fn(),
     config: undefined,
   };
   return render(<ValidateNavigationConfig {...defaultProps} {...props} />);

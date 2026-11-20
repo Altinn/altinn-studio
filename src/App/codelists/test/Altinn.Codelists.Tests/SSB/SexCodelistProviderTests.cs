@@ -9,7 +9,7 @@ namespace Altinn.Codelists.Tests.SSB;
 public class SexCodelistProviderTests
 {
     [Fact]
-    public async Task GetAppOptionsAsync_EnumProvided_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_EnumProvided_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider(
@@ -18,7 +18,7 @@ public class SexCodelistProviderTests
             httpClientMock
         );
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(2, appOptions.Options.Count);
@@ -26,12 +26,12 @@ public class SexCodelistProviderTests
     }
 
     [Fact]
-    public async Task GetAppOptionsAsync_IdProvided_ShouldReturnListOfCodes()
+    public async Task GetAppOptions_IdProvided_ShouldReturnListOfCodes()
     {
         var httpClientMock = new ClassificationsHttpClientMock(Options.Create(new ClassificationSettings()));
         IAppOptionsProvider appOptionsProvider = new ClassificationCodelistProvider("sex", 2, httpClientMock);
 
-        var appOptions = await appOptionsProvider.GetAppOptionsAsync("nb", new Dictionary<string, string>());
+        var appOptions = await appOptionsProvider.GetAppOptions("nb", new Dictionary<string, string>());
 
         Assert.NotNull(appOptions.Options);
         Assert.Equal(2, appOptions.Options.Count);

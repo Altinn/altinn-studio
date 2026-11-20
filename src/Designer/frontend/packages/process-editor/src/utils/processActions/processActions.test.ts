@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getPredefinedActions, isActionAvailable, isActionRequiredForTask } from './processActions';
 
 describe('processActionsUtils', () => {

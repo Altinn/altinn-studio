@@ -87,7 +87,7 @@ wait_for_docker() {
 }
 
 # Called by the signal/exit trap through cleanup.
-# shellcheck disable=SC2329
+# shellcheck disable=SC2317,SC2329
 terminate_process() {
   local name="$1"
   local pid="$2"
@@ -126,7 +126,7 @@ runner_pid=""
 dockerd_pid=""
 
 # Called by name from the trap below.
-# shellcheck disable=SC2329
+# shellcheck disable=SC2317,SC2329
 cleanup() {
   terminate_process runner "${runner_pid:-}"
   terminate_process dockerd "${dockerd_pid:-}"

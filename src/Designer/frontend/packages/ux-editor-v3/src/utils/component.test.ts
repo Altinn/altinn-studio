@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { IOption } from '../types/global';
 import {
   addOptionToComponent,

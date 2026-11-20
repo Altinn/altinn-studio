@@ -1,9 +1,10 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { useValidationOnNavigationMutation } from './useValidationOnNavigationMutation';
 import type { ExternalConfigState } from '../../components/Settings/SettingsNavigation/ValidateNavigation/utils/ValidateNavigationTypes';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { waitFor } from '@testing-library/react';
 
 describe('useSaveValidationOnNavigation', () => {

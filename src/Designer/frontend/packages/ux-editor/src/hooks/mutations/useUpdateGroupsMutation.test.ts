@@ -1,16 +1,14 @@
-import { org, app } from '@studio/testing/testids';
+import { describe, expect, it, vi } from 'vitest';
+import { org, app } from '@designer/testing/testids';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useUpdateGroupsMutation } from './useUpdateGroupsMutation';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-const invalidateQueriesMock = jest.fn();
+const invalidateQueriesMock = vi.fn();
 
 describe('useUpdateGroupsMutation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
   const renderUseUpdateGroupsMutation = (
     org: string,
     app: string,

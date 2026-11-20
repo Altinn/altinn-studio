@@ -6,9 +6,9 @@ import {
   ArrowDownIcon,
   FolderPlusIcon,
   FolderIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';
 import { useChangePageOrderMutation } from '../../../../hooks/mutations/useChangePageOrderMutation';
 import { useChangePageGroupOrder } from '@altinn/ux-editor/hooks/mutations/useChangePageGroupOrder';
@@ -20,6 +20,7 @@ import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export type NavigationMenuProps = {
   pageName: string;
+  title: string;
 };
 
 /**
@@ -27,10 +28,11 @@ export type NavigationMenuProps = {
  *    Displays the buttons to move a page accordion up or down, edit the name and delete the page
  *
  * @property {string}[pageName] - The name of the page
+ * @property {string}[title] - The title and accessible name of the button that opens the menu
  *
  * @returns {JSX.Element} - The rendered component
  */
-export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element => {
+export const NavigationMenu = ({ pageName, title }: NavigationMenuProps): JSX.Element => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
@@ -114,6 +116,7 @@ export const NavigationMenu = ({ pageName }: NavigationMenuProps): JSX.Element =
       <StudioDropdown
         icon={<MenuElipsisVerticalIcon className={classes.ellipsisIcon} />}
         triggerButtonVariant='tertiary'
+        triggerButtonTitle={title}
       >
         <StudioDropdown.List>
           <StudioDropdown.Item>

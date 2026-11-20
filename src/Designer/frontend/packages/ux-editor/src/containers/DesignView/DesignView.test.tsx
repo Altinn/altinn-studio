@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { StudioDragAndDrop } from '@studio/components';
+import { StudioDragAndDrop } from '@designer/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -20,9 +21,9 @@ import {
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
@@ -31,10 +32,6 @@ const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('displays the correct number of accordions', () => {
     renderDesignView({});
 
@@ -133,7 +130,7 @@ describe('DesignView', () => {
 
   it('Renders the page accordion as a pdfAccordion when pdfLayoutName is set', () => {
     const pdfLayoutName = 'pdfLayoutName';
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     renderDesignView({
       layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
       externalLayout: { [pdfLayoutName]: layout1Mock },
@@ -141,6 +138,24 @@ describe('DesignView', () => {
     const pdfAccordionButton = screen.getByText(pdfLayoutName);
     expect(pdfAccordionButton).toBeInTheDocument();
     consoleWarnSpy.mockRestore();
+  });
+
+  it('lists the PDF page and lets a page be added when the folder has only a PDF page', async () => {
+    const user = userEvent.setup();
+    const pdfLayoutName = 'PdfLayout';
+    renderDesignView({
+      layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
+      externalLayout: { [pdfLayoutName]: layout1Mock },
+      pagesModel: { pages: [], pdfLayoutName },
+    });
+
+    await user.click(screen.getByText(pdfLayoutName));
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(pdfLayoutName);
+
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.pages_add') }));
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${1}`,
+    });
   });
 
   it('does not render Accordion when pagesModel has no pages', () => {
@@ -183,7 +198,7 @@ describe('DesignView', () => {
 
 type renderDesignViewParams = {
   layoutSettings?: ILayoutSettings;
-  externalLayout?: FormLayoutsResponse;
+  externalLayout?: SerializedFormLayoutsResponse;
   pagesModel?: PagesModel;
 };
 
@@ -205,11 +220,11 @@ const renderDesignView = ({
 
   const appContextWithGroupsMock = {
     ...appContextMock,
-    setSelectedGroupName: jest.fn(),
+    setSelectedGroupName: vi.fn(),
   };
 
   return renderWithProviders(
-    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={vi.fn()} onAdd={vi.fn()}>
       <FormItemContextProvider>
         <AppContext.Provider value={appContextWithGroupsMock}>
           <DesignView />

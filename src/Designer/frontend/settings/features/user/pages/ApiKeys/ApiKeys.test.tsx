@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiKeys } from './ApiKeys';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
@@ -81,8 +81,6 @@ const getDeleteButton = (name: string) =>
   screen.getByRole('button', { name: textMock('settings.api_keys.delete', { name }) });
 
 describe('ApiKeys', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the open dialog button', () => {
     renderApiKeys();
     expect(getOpenDialogButton()).toBeInTheDocument();

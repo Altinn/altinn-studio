@@ -1,13 +1,14 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditNameAction, type EditNameActionProps } from './EditNameAction';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ITextResources } from 'app-shared/types/global';
 
 const currentName = 'konnichiwa';
@@ -30,8 +31,6 @@ const textResources: ITextResources = {
 };
 
 describe('EditNameAction', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render the task type in the text area if no name is set', async () => {
     const taskWithoutName: TaskNavigationGroup = {
       taskType: 'data',
@@ -84,7 +83,7 @@ describe('EditNameAction', () => {
 
   it('should use a new text resource id when the selected text resource is cleared', async () => {
     const user = userEvent.setup();
-    const handleUpdateTaskNavigationGroup = jest.fn();
+    const handleUpdateTaskNavigationGroup = vi.fn();
     renderEditNameAction({ task: { taskType: 'data' }, handleUpdateTaskNavigationGroup });
 
     await clickEditNameButton();
@@ -141,8 +140,8 @@ const renderEditNameAction = (props: Partial<EditNameActionProps> = {}) => {
     },
     tasks: [],
     index: 0,
-    handleUpdateTaskNavigationGroup: jest.fn(),
-    setPopoverOpen: jest.fn(),
+    handleUpdateTaskNavigationGroup: vi.fn(),
+    setPopoverOpen: vi.fn(),
   };
 
   const queryClient = createQueryClientMock();

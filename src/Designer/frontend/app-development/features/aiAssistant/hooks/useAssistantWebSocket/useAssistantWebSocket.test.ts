@@ -1,17 +1,17 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import type { WorkflowEvent } from '@studio/assistant';
+import type { WorkflowEvent } from '@designer/assistant';
 import { useAssistantWebSocket } from './useAssistantWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
-const mockInvoke = jest.fn();
 type MockConnection = {
-  on: jest.Mock;
-  off: jest.Mock;
-  invoke: jest.Mock;
+  on: Mock;
+  off: Mock;
   state: string;
-  onreconnecting: jest.Mock;
-  onreconnected: jest.Mock;
-  onclose: jest.Mock;
+  onreconnecting: Mock;
+  onreconnected: Mock;
+  onclose: Mock;
 };
 // A fresh connection object per test: the hook registers its dispatcher once
 // per connection (WeakSet), so reusing one object across tests would leak
@@ -23,18 +23,17 @@ let mockConnections: Array<MockConnection>;
 let mockWhenStarted: () => Promise<void> = () => new Promise<void>(() => {});
 
 const createMockConnection = (state = 'Connected'): MockConnection => ({
-  on: jest.fn(),
-  off: jest.fn(),
-  invoke: mockInvoke,
+  on: vi.fn(),
+  off: vi.fn(),
   state,
-  onreconnecting: jest.fn(),
-  onreconnected: jest.fn(),
-  onclose: jest.fn(),
+  onreconnecting: vi.fn(),
+  onreconnected: vi.fn(),
+  onclose: vi.fn(),
 });
 
-jest.mock('app-shared/websockets/WSConnector', () => ({
+vi.mock('app-shared/websockets/WSConnector', () => ({
   WSConnector: {
-    getInstance: jest.fn(() => ({
+    getInstance: vi.fn(() => ({
       get connections() {
         return mockConnections;
       },
@@ -43,17 +42,13 @@ jest.mock('app-shared/websockets/WSConnector', () => ({
   },
 }));
 
-const mockGetInstance = WSConnector.getInstance as jest.Mock;
+const mockGetInstance = WSConnector.getInstance as Mock;
 
 describe('useAssistantWebSocket', () => {
   beforeEach(() => {
     mockConnection = createMockConnection();
     mockConnections = [mockConnection];
     mockWhenStarted = () => new Promise<void>(() => {});
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('acquires the shared hub connection and reports connected', () => {
@@ -155,7 +150,7 @@ describe('useAssistantWebSocket', () => {
   });
 
   it('keeps delivering to other subscribers when one of them throws', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result: first } = renderUseAssistantWebSocket();
     const { result: second } = renderUseAssistantWebSocket();
     first.current.onAgentMessage(() => {
@@ -190,66 +185,6 @@ describe('useAssistantWebSocket', () => {
     });
 
     expect(received).toEqual([]);
-  });
-
-  describe('respondToPermission', () => {
-    it('sends the permission response over the hub connection', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAssistantWebSocket();
-
-      await result.current.respondToPermission('session-1', 'request-1', true);
-
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'RespondToPermission',
-        'session-1',
-        'request-1',
-        true,
-      );
-    });
-
-    it('rethrows when the hub invocation fails', async () => {
-      mockInvoke.mockRejectedValue(new Error('Hub disconnected'));
-      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-      const { result } = renderUseAssistantWebSocket();
-
-      await expect(
-        result.current.respondToPermission('session-1', 'request-1', false),
-      ).rejects.toThrow('Hub disconnected');
-
-      consoleError.mockRestore();
-    });
-
-    it('throws when there is no active hub connection', async () => {
-      mockConnections = [];
-      const { result } = renderUseAssistantWebSocket();
-
-      await expect(
-        result.current.respondToPermission('session-1', 'request-1', true),
-      ).rejects.toThrow('No active SignalR connection to assistant hub');
-      expect(mockInvoke).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('cancelWorkflow', () => {
-    it('sends the cancellation over the hub connection', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAssistantWebSocket();
-
-      await result.current.cancelWorkflow('session-1');
-
-      expect(mockInvoke).toHaveBeenCalledWith('CancelWorkflow', 'session-1');
-    });
-  });
-
-  describe('registerSession', () => {
-    it('registers the session over the hub connection', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      const { result } = renderUseAssistantWebSocket();
-
-      await result.current.registerSession('testOrg', 'testApp', 'thread-1');
-
-      expect(mockInvoke).toHaveBeenCalledWith('RegisterSession', 'testOrg', 'testApp', 'thread-1');
-    });
   });
 });
 

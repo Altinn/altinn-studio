@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { ConfigCustomFileEndingProps } from './ConfigCustomFileEnding';
@@ -5,14 +6,28 @@ import { componentMocks } from '../../../testing/componentMocks';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { getPropertyByRole } from './testConfigUtils';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('ConfigCustomFileEnding', () => {
-  it('should call handleComponentUpdate with updated component', async () => {
-    const handleComponentUpdateMock = jest.fn();
+  it('should show the switch for a broker file transfer', () => {
     renderConfigCustomFileEnding({
       props: {
         component: {
-          ...componentMocks.Input,
+          id: 'brokerFileTransfer',
+          type: ComponentType.BrokerFileTransfer,
+          resourceId: 'broker-resource',
+        },
+      },
+    });
+    expect(getPropertyByRole('switch', 'hasCustomFileEndings')).toBeInTheDocument();
+  });
+
+  it('should call handleComponentUpdate with updated component', async () => {
+    const handleComponentUpdateMock = vi.fn();
+    renderConfigCustomFileEnding({
+      props: {
+        component: {
+          ...componentMocks.FileUpload,
           hasCustomFileEndings: false,
         },
         handleComponentUpdate: handleComponentUpdateMock,
@@ -30,11 +45,11 @@ describe('ConfigCustomFileEnding', () => {
   });
 
   it('should clear validFileEndings when hasCustomFileEndings is toggled to false', async () => {
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigCustomFileEnding({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.FileUpload,
           hasCustomFileEndings: true,
           validFileEndings: ['.txt'],
         },
@@ -60,10 +75,10 @@ describe('ConfigCustomFileEnding', () => {
     props?: Partial<ConfigCustomFileEndingProps>;
     queries?: Partial<ServicesContextProps>;
   }) => {
-    const { Input: inputComponent } = componentMocks;
+    const { FileUpload: fileUploadComponent } = componentMocks;
     const defaultProps: ConfigCustomFileEndingProps = {
-      component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      component: fileUploadComponent,
+      handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<ConfigCustomFileEnding {...defaultProps} {...props} />, {
       queries,

@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { DeployProps } from './Deploy';
 import { Deploy } from './Deploy';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { appRelease } from 'app-shared/mocks/mocks';
@@ -61,8 +62,8 @@ const imageOptions: ImageOption[] = [
 
 const render = (props?: Partial<DeployProps>, queries?: Partial<ServicesContextProps>) => {
   return renderWithProviders({
-    getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve(['tt02'])),
-    getAppReleases: jest.fn().mockImplementation(() =>
+    getDeployPermissions: vi.fn().mockImplementation(() => Promise.resolve(['tt02'])),
+    getAppReleases: vi.fn().mockImplementation(() =>
       Promise.resolve({
         results: appReleases,
       }),
@@ -81,7 +82,7 @@ describe('DeploymentActions', () => {
     render(
       {},
       {
-        getDeployPermissions: jest
+        getDeployPermissions: vi
           .fn()
           .mockImplementation(() => Promise.reject(createApiErrorMock())),
       },
@@ -140,7 +141,7 @@ describe('DeploymentActions', () => {
     const user = userEvent.setup();
 
     const queries: Partial<ServicesContextProps> = {
-      createDeployment: jest.fn().mockRejectedValue(createApiErrorMock()),
+      createDeployment: vi.fn().mockRejectedValue(createApiErrorMock()),
     };
     render({}, queries);
     await waitForElementToBeRemoved(() =>

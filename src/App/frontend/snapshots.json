@@ -165,6 +165,7 @@
       "CustomSecondary": null,
       "CustomMode": null,
       "ChooseExtraPages": null,
+      "FailReferenceOptions": null,
       "Numeric": null,
       "MapData": {
         "Location": "",
@@ -256,7 +257,7 @@
       "spesifikasjonsnummer": 12392,
       "useBothRepGroups": false,
       "hideRowValue": 99999999,
-      "sumAll": 0,
+      "sumAll": 1,
       "sumAboveLimit": 0,
       "numAboveLimit": 0,
       "blankettnummer": "RF-1366",
@@ -280,6 +281,7 @@
         },
         "OversiktOverEndringene-grp-9788": [
           {
+            "CalculatedChange": 1,
             "gruppeid": 9788,
             "SkattemeldingEndringEtterFristPost-datadef-37130": null,
             "SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131": {
@@ -333,7 +335,19 @@
       "NumPets": 0,
       "HiddenPets": null,
       "PetSortOrder": null,
-      "PetsUseOptionComponent": null
+      "PetsUseOptionComponent": null,
+      "ChangeList": [
+        1
+      ],
+      "ChangeSummary": {
+        "Total": 1,
+        "Rows": 1
+      },
+      "ChangeRows": [
+        {
+          "Change": 1
+        }
+      ]
     },
     "likert": {
       "Questions": [

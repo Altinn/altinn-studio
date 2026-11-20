@@ -8,12 +8,13 @@ import {
   ILabelSettings,
   ISummaryOverridesCommon,
   ITableColumnProperties,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
-export interface CompRepeatingGroupExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompRepeatingGroupExternal extends ComponentBase {
   type: 'RepeatingGroup';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     description?: ExprValToActualOrExpr<ExprVal.String>;
@@ -73,6 +74,7 @@ export interface IGroupEditProperties {
 }
 
 export interface RepeatingGroupSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
   display?: 'table' | 'full';
 }
 
@@ -108,4 +110,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RepeatingGroupSummaryOverridesWithRef;
 };
 
-// Source hash: 98bdfd5ae7e2c9beb74938129b7ad2f90b38386425ad24053d2a4750c25b4a82
+// Source hash: 72144f041af224e4edfa25e324d159084cb2973cf840307e84a0dc7b88c455bc

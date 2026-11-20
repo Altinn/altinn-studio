@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { EnumListProps } from './EnumList';
 import { EnumList } from './EnumList';
@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import type { FieldNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockEnums: string[] = ['a', 'b', 'c'];
 
@@ -17,8 +17,6 @@ const defaultProps: EnumListProps = {
 const mockSaveDataModel = vi.fn();
 
 describe('EnumList', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('renders the description about enum being empty when there is no enums on the field node', () => {
     renderEnumList();
 

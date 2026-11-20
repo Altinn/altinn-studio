@@ -2,19 +2,26 @@ name: Build and deploy Apps Storybook with preview
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - 'src/common/ts/form-component/**'
       - '.github/workflows/apps-storybook-preview.yaml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  # Shared with cleanup so closing a PR cancels any preview build still running.
+  group: apps-storybook-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   build-and-deploy:
-    if: ${{ github.event.action != 'closed' && !github.event.pull_request.draft }}
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     name: Build and deploy preview
     permissions:
@@ -48,14 +55,3 @@ jobs:
           api_location: ""
           output_location: ""
           skip_app_build: true
-
-  close-preview:
-    if: ${{ github.event.action == 'closed' }}
-    runs-on: ubuntu-latest
-    name: Close preview
-    steps:
-      - name: Close preview environment in Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 #v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.APPS_DEV_STORYBOOK }}
-          action: "close"

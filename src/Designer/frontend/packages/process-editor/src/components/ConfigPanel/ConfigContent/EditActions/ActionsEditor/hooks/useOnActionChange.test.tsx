@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import type { ChangeEvent } from 'react';
 import { renderHook } from '@testing-library/react';
 import { useActionHandler } from './useOnActionChange';
@@ -9,7 +11,7 @@ import {
 } from '../../../../../../utils/bpmnModeler/BpmnActionModeler';
 import { BpmnConfigPanelFormContextProvider } from '../../../../../../contexts/BpmnConfigPanelContext';
 
-jest.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
+vi.mock('../../../../../../utils/bpmnModeler/BpmnActionModeler');
 
 const actionElementMock: Action = {
   $type: 'altinn:Action',
@@ -18,8 +20,8 @@ const actionElementMock: Action = {
 
 describe('useOnActionChange', () => {
   it('should add action to task if no actions is already defined', async () => {
-    const addNewActionToTaskMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    const addNewActionToTaskMock = vi.fn();
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         hasActionsAlready: false,
         addNewActionToTask: addNewActionToTaskMock,
@@ -45,8 +47,8 @@ describe('useOnActionChange', () => {
   });
 
   it('should update action name on action element if actions is already defined', async () => {
-    const updateActionNameOnActionElementMock = jest.fn();
-    (BpmnActionModeler as jest.Mock).mockImplementation(function () {
+    const updateActionNameOnActionElementMock = vi.fn();
+    (BpmnActionModeler as Mock).mockImplementation(function () {
       return {
         hasActionsAlready: true,
         updateActionNameOnActionElement: updateActionNameOnActionElementMock,

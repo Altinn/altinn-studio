@@ -10,7 +10,9 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
@@ -18,6 +20,7 @@ using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -26,11 +29,14 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </summary>
 public class ApplicationMetadataService : IApplicationMetadataService
 {
+    private const string EnableFileScanPropertyName = "enableFileScan";
+
     private readonly ILogger<ApplicationMetadataService> _logger;
     private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IGiteaClient _giteaClient;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Constructor
@@ -40,12 +46,14 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="httpContextAccessor">The http context accessor</param>
     /// <param name="giteaClient">The gitea client</param>
+    /// <param name="appVersionService">The app version service</param>
     public ApplicationMetadataService(
         ILogger<ApplicationMetadataService> logger,
         IAltinnStorageAppMetadataClient storageAppMetadataClient,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IHttpContextAccessor httpContextAccessor,
-        IGiteaClient giteaClient
+        IGiteaClient giteaClient,
+        IAppVersionService appVersionService
     )
     {
         _logger = logger;
@@ -53,6 +61,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _httpContextAccessor = httpContextAccessor;
         _giteaClient = giteaClient;
+        _appVersionService = appVersionService;
     }
 
     /// <inheritdoc/>
@@ -129,7 +138,25 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task CreateApplicationMetadata(string org, string app, string appTitle)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string id = ApplicationHelper.GetFormattedApplicationId(org, app);
+        DataType modelDataType = new()
+        {
+            Id = "model",
+            AllowedContentTypes = new List<string>() { "application/xml" },
+            AppLogic = new ApplicationLogic()
+            {
+                AutoCreate = true,
+                ClassRef = "Altinn.App.Models.model.model",
+                AllowAnonymousOnStateless = false,
+                AutoDeleteOnProcessEnd = false,
+            },
+            MaxCount = 1,
+            MinCount = 1,
+            EnableFileScan = false,
+            ValidationErrorOnPendingFileScan = false,
+        };
+        modelDataType.BindToTask("Task_1", _appVersionService.IsV9App(editingContext));
         ApplicationMetadata appMetadata = new(id)
         {
             Id = id,
@@ -147,23 +174,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = new List<string>() { "application/pdf" },
                 },
-                new()
-                {
-                    Id = "model",
-                    AllowedContentTypes = new List<string>() { "application/xml" },
-                    AppLogic = new ApplicationLogic()
-                    {
-                        AutoCreate = true,
-                        ClassRef = "Altinn.App.Models.model.model",
-                        AllowAnonymousOnStateless = false,
-                        AutoDeleteOnProcessEnd = false,
-                    },
-                    TaskId = "Task_1",
-                    MaxCount = 1,
-                    MinCount = 1,
-                    EnableFileScan = false,
-                    ValidationErrorOnPendingFileScan = false,
-                },
+                modelDataType,
             },
             PartyTypesAllowed = new PartyTypesAllowed(),
         };
@@ -193,26 +204,40 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <inheritdoc/>
     public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
     {
-        DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
+        DataType attachmentDataType = DeserializeNewAttachmentDataType(applicationMetadata);
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
-        existingApplicationMetadata.DataTypes.Add(formMetadata);
+        existingApplicationMetadata.DataTypes.Add(attachmentDataType);
 
         await UpdateApplicationMetaDataLocally(org, app, existingApplicationMetadata);
+    }
+
+    private static DataType DeserializeNewAttachmentDataType(string attachmentMetadataJson)
+    {
+        JObject attachmentMetadata = JObject.Parse(attachmentMetadataJson);
+
+        attachmentMetadata[EnableFileScanPropertyName] = GetEnableFileScanOrDefault(attachmentMetadata);
+        return attachmentMetadata.ToObject<DataType>();
     }
 
     /// <inheritdoc/>
     public async Task UpdateMetadataForAttachment(string org, string app, string applicationMetadata)
     {
-        dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
-        string attachmentId = attachmentMetadata.GetValue("id").Value;
+        JObject attachmentMetadata = JObject.Parse(applicationMetadata);
+        string attachmentId = attachmentMetadata.GetValue("id")?.Value<string>();
+        if (string.IsNullOrEmpty(attachmentId))
+        {
+            throw new ArgumentException("Attachment metadata must contain an id.");
+        }
+
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
         DataType applicationForm =
-            existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
-        applicationForm.AllowedContentTypes = new List<string>();
+            existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId)
+            ?? new DataType { EnableFileScan = GetEnableFileScanOrDefault(attachmentMetadata) };
+        applicationForm.AllowedContentTypes = [];
 
         if (attachmentMetadata.GetValue("fileType") != null)
         {
-            string fileTypes = attachmentMetadata.GetValue("fileType").Value;
+            string fileTypes = attachmentMetadata.GetValue("fileType")!.Value<string>();
             string[] fileType = fileTypes.Split(",");
 
             foreach (string type in fileType)
@@ -221,15 +246,19 @@ public class ApplicationMetadataService : IApplicationMetadataService
             }
         }
 
-        applicationForm.Id = attachmentMetadata.GetValue("id").Value;
-        applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
-        applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
-        applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
+        applicationForm.Id = attachmentId;
+        applicationForm.MaxCount = attachmentMetadata.GetValue("maxCount")?.Value<int?>() ?? 0;
+        applicationForm.MinCount = attachmentMetadata.GetValue("minCount")?.Value<int?>() ?? 0;
+        applicationForm.MaxSize = attachmentMetadata.GetValue("maxSize")?.Value<int?>();
 
         await DeleteMetadataForAttachment(org, app, attachmentId);
         string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
         await AddMetadataForAttachment(org, app, metadataAsJson);
     }
+
+    private static bool GetEnableFileScanOrDefault(JObject attachmentMetadata) =>
+        attachmentMetadata.GetValue(EnableFileScanPropertyName, StringComparison.OrdinalIgnoreCase)?.Value<bool?>()
+        ?? true;
 
     /// <inheritdoc/>
     public async Task<bool> DeleteMetadataForAttachment(string org, string app, string id)
@@ -258,13 +287,13 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task UpdateApplicationMetadataInStorageAsync(
         string org,
         string app,
+        string appMetadataJson,
         string shortCommitId,
         string envName,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string appMetadataJson = await GetApplicationMetadataJsonFromSpecificReference(org, app, shortCommitId);
         await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId);
     }
 

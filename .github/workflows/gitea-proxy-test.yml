@@ -7,6 +7,12 @@ on:
       - 'src/gitea-proxy/**'
       - '.github/workflows/gitea-proxy-test.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
@@ -23,13 +29,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install hurl
-        run: |
-          HURL_VERSION=8.0.1
-          curl -fsSL "https://github.com/Orange-OpenSource/hurl/releases/download/${HURL_VERSION}/hurl_${HURL_VERSION}_amd64.deb" -o /tmp/hurl.deb
-          sudo dpkg -i /tmp/hurl.deb
-          hurl --version
-
       - name: Run proxy integration tests
-        run: make test
+        env:
+          HURL_IMAGE: ghcr.io/orange-opensource/hurl:8.0.1@sha256:49a02dc39d7084e5a6e8c57e2d4754ef102e4ee3761a02ef6dc0e305ab1a832d
+        # Host networking lets Hurl reach the proxy ports published by Compose.
+        run: |
+          make test HURL="docker run --rm --network host --volume \"$PWD:/tests:ro\" --workdir /tests $HURL_IMAGE"
         working-directory: src/gitea-proxy/test

@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useGetAvailableOrgResourcesQuery } from './useGetAvailableOrgResourcesQuery';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
@@ -21,7 +22,7 @@ const availableCodeListsToImport: ExternalResource[] = [externalCodeList1, exter
 
 describe('useGetAvailableOrgResourcesQuery', () => {
   it('Calls getAvailableResourcesFromOrg without type parameter and returns the data', async () => {
-    const getAvailableResourcesFromOrg = jest
+    const getAvailableResourcesFromOrg = vi
       .fn()
       .mockImplementation(() => Promise.resolve(availableCodeListsToImport));
 
@@ -35,7 +36,7 @@ describe('useGetAvailableOrgResourcesQuery', () => {
   });
 
   it('Calls getAvailableResourcesFromOrg with type parameter and returns the data', async () => {
-    const getAvailableResourcesFromOrg = jest
+    const getAvailableResourcesFromOrg = vi
       .fn()
       .mockImplementation(() => Promise.resolve(availableCodeListsToImport));
 

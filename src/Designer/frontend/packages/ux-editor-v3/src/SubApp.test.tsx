@@ -1,17 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { SubApp } from './SubApp';
 import { render, screen, within } from '@testing-library/react';
 
 const providerTestId = 'provider';
 const appTestId = 'app';
-jest.mock('./AppContext', () => ({
+vi.mock('./AppContext', () => ({
   AppContext: {
     Provider: ({ children }: { children: ReactNode }) => {
       return <div data-testid={providerTestId}>{children}</div>;
     },
   },
 }));
-jest.mock('./App', () => ({
+vi.mock('./App', () => ({
   App: () => {
     return <div data-testid={appTestId}>App</div>;
   },

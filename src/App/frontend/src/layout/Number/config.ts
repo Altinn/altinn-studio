@@ -21,6 +21,8 @@ export const Config = new CG.component({
   },
 })
   .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(new CG.prop('formatting', CG.common('IFormatting').optional()))
   .addProperty(

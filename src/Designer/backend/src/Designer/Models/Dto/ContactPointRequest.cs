@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Altinn.Studio.Designer.Models.ContactPoints;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -10,4 +11,5 @@ public class ContactPointRequest
     public bool IsActive { get; set; }
     public List<string> Environments { get; set; } = [];
     public required List<ContactMethodRequest> Methods { get; set; }
+    public ReportFrequency ReportFrequency { get; set; }
 }

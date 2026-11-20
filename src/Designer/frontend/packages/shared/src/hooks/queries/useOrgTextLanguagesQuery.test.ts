@@ -1,12 +1,13 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from '../../mocks/queriesMock';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { useOrgTextLanguagesQuery } from './useOrgTextLanguagesQuery';
 
 describe('useOrgTextLanguagesQuery', () => {
-  it('calls getOrgTextLanguages with the correct parameters', () => {
-    render();
+  it('calls getOrgTextLanguages with the correct parameters', async () => {
+    await render();
     expect(queriesMock.getOrgTextLanguages).toHaveBeenCalledWith(org);
   });
 });

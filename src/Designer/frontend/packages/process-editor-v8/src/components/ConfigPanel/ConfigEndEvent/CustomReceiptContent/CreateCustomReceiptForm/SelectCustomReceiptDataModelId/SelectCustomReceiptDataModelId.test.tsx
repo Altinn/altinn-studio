@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   SelectCustomReceiptDataModelId,
   type SelectCustomReceiptDataModelIdProps,
 } from './SelectCustomReceiptDataModelId';
 import { render, screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import {
@@ -17,7 +18,7 @@ import {
 } from '../../../../../../../test/mocks/bpmnContextMock';
 
 const mockError: string = 'Error';
-const mockOnChange = jest.fn();
+const mockOnChange = vi.fn();
 const mockAllDataModelIds: string[] = ['model1', 'model2'];
 
 const defaultProps: SelectCustomReceiptDataModelIdProps = {
@@ -26,8 +27,6 @@ const defaultProps: SelectCustomReceiptDataModelIdProps = {
 };
 
 describe('SelectCustomReceiptDataModelId', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('calls onChange function when an option is selected', async () => {
     const user = userEvent.setup();
     renderSelectCustomReceiptDataModelId({

@@ -29,6 +29,10 @@ Session.vim
 ## AI settings
 **/.claude/settings.local.json
 
+## Harness skill directories; skills are maintained in agents/_skills
+/.claude/skills/
+/.agents/skills/
+
 # Local scratch space for notes, TODOs, plans etc..
 .notes/*
 !.notes/.gitkeep
@@ -128,6 +132,3 @@ src/Designer/backend/tests/Designer.Tests/_TestData/Remote/**/test-repo_*/**
 /src/tools/altinn-fleet-stats/altinn-apps-cloned-*/
 **/fleet-*.sqlite*
 scripts/spellcheck/.cache/
-
-# Altinn app frontend bundle copied into Designer wwwroot for local v9 preview dev (built artifact)
-src/Designer/backend/src/Designer/wwwroot/altinn-app-frontend/

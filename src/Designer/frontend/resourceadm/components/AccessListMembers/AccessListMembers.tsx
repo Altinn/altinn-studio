@@ -17,9 +17,9 @@ import {
   StudioRadioGroup,
   useStudioRadioGroup,
   StudioTextfield,
-} from '@studio/components';
-import { useDebounce } from '@studio/hooks';
-import { PlusIcon } from '@studio/icons';
+} from '@designer/components';
+import { useDebounce } from '@designer/hooks';
+import { PlusIcon } from '@designer/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
 import { isOrgNrString } from '../../utils/stringUtils';

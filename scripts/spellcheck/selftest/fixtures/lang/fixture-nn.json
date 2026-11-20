@@ -5,6 +5,7 @@
   "planted.duplicate": "Berre ein gong",
   "planted.empty_in_nb": "Ikkje tom",
   "planted.empty_ok": "Ikkje tom her",
+  "planted.english_glossary_ok": "Kvar mottakar får ein kopi",
   "planted.glossary_ok": "Altinn og Maskinporten er tilgjengelege",
   "planted.loanword_ok": "Sjå dashboard for status",
   "planted.norwegian_typo": "Skriv inn Gateadrese her",
@@ -12,5 +13,6 @@
   "planted.organisation_key_ok": "Vel farge",
   "planted.param_mismatch": "Bruk {{count}} teikn",
   "planted.typo_in_en": "Du får svar snart",
+  "planted.unknown_typo_in_en": "Ein ukjend feil oppstod",
   "planted.us_spelling": "Vel farge"
 }

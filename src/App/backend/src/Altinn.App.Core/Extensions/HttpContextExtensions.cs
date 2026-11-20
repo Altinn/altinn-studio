@@ -38,7 +38,7 @@ public static class HttpContextExtensions
     /// <param name="maxLength">The longest body to read</param>
     /// <returns>byte array or null if maxLength is exceeded and the actual length</returns>
     /// <exception cref="InvalidOperationException"></exception>
-    internal static async Task<(byte[]?, long actualLength)> ReadBodyAsByteArrayAsync(
+    internal static async Task<(byte[]?, long actualLength)> ReadBodyAsByteArray(
         this HttpRequest request,
         long? maxLength
     )

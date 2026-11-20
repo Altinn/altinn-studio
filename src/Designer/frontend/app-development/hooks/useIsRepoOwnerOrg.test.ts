@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { repository } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Org } from 'app-shared/types/OrgList';
 import type { Repository } from 'app-shared/types/Repository';
-import { org, app } from '@studio/testing/testids';
+import { org, app } from '@designer/testing/testids';
 import { useIsRepoOwnerOrg } from './useIsRepoOwnerOrg';
 
 describe('useIsRepoOwnerOrg', () => {

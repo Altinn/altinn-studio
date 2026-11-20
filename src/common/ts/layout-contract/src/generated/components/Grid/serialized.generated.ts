@@ -1,19 +1,20 @@
+import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   GridRows,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
 export type CompGridSerialized = {
   type: 'Grid';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   rows: GridRows;
   dataModelBindings?: undefined;
 } & ComponentBase &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 9a3c11007e87db06594a6963bd92e39f0ae9add8ce761f111637be5821b6039c
+// Source hash: 7b215691ce9bcfb47ff34e575982f4277e098c8032774f70f6c7a5a799fb4d1f

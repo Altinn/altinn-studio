@@ -1,15 +1,19 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { EnvironmentConfigProvider, useEnvironmentConfig } from './EnvironmentConfigContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import axios from 'axios';
+import { get } from 'app-shared/utils/networking';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
-jest.mock('axios');
-const axiosMock = axios as jest.Mocked<typeof axios>;
+vi.mock('app-shared/utils/networking', async () => ({
+  ...(await vi.importActual('app-shared/utils/networking')),
+  get: vi.fn(),
+}));
+const getMock = vi.mocked(get);
 
-jest.mock('app-shared/api/paths', () => ({
-  envFilePath: jest.fn(() => '/designer/api/v1/environment'),
+vi.mock('app-shared/api/paths', () => ({
+  envFilePath: vi.fn(() => '/designer/api/v1/environment'),
 }));
 
 const TestComponent = () => {
@@ -37,16 +41,12 @@ const renderWithProvider = () => {
 };
 
 describe('EnvironmentConfigContext', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should fetch and provide environment config successfully', async () => {
     const mockEnvironment: AltinnStudioEnvironment = {
       aiConnectionString: 'test-ai-connection-string',
     };
 
-    axiosMock.get.mockResolvedValueOnce({ data: mockEnvironment });
+    getMock.mockResolvedValueOnce(mockEnvironment);
 
     renderWithProvider();
 
@@ -60,8 +60,8 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should handle fetch errors gracefully', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    axiosMock.get.mockRejectedValueOnce(new Error('Network error'));
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    getMock.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithProvider();
 
@@ -78,8 +78,8 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should handle null response data', async () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    axiosMock.get.mockResolvedValueOnce({ data: null });
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    getMock.mockResolvedValueOnce(null);
 
     renderWithProvider();
 
@@ -91,7 +91,7 @@ describe('EnvironmentConfigContext', () => {
   });
 
   it('should throw error when useEnvironmentConfig is used outside provider', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     expect(() => {
       render(<TestComponent />);
@@ -106,7 +106,7 @@ describe('EnvironmentConfigContext', () => {
     };
 
     const queryClient = createQueryClientMock();
-    axiosMock.get.mockResolvedValueOnce({ data: mockEnvironment });
+    getMock.mockResolvedValueOnce(mockEnvironment);
 
     const { rerender } = render(
       <QueryClientProvider client={queryClient}>
@@ -130,6 +130,6 @@ describe('EnvironmentConfigContext', () => {
       </QueryClientProvider>,
     );
 
-    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(getMock).toHaveBeenCalledTimes(1);
   });
 });

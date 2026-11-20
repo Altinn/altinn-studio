@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -6,7 +7,7 @@ import type { IInternalLayout } from '../../types/global';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { baseContainerIdMock, layout1NameMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutName = layout1NameMock;
@@ -48,8 +49,6 @@ const newLayout: IInternalLayout = {
 };
 
 describe('useFormLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls saveFormLayout with correct arguments and payload', async () => {
     await renderAndMutate(newLayout);
     expect(queriesMock.saveFormLayout).toHaveBeenCalledTimes(1);

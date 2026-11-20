@@ -1,13 +1,13 @@
+import { afterEach, describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../testing/mocks';
 import { SettingsTabs } from './SettingsTabs';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 
 describe('SettingsTabs', () => {
   afterEach(() => {
-    jest.clearAllMocks();
     typedLocalStorage.removeItem('featureFlags');
   });
 

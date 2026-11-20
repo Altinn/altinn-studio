@@ -1,7 +1,8 @@
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { describe, expect, it } from 'vitest';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useUserNameAndOrg } from './useUserNameAndOrg';
 import type { User, Repository } from 'app-shared/types/Repository';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 
 const mockUser: User = {
   avatar_url: '',

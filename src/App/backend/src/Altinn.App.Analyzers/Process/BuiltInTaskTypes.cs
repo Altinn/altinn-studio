@@ -8,7 +8,7 @@ namespace Altinn.App.Analyzers.Process;
 internal static class BuiltInTaskTypes
 {
     /// <summary>
-    /// Types implemented as <c>IServiceTask</c> or <c>IPipelineServiceTask</c>, declared as a <c>bpmn:serviceTask</c> element.
+    /// Types implemented as <c>IServiceTask</c>, declared as a <c>bpmn:serviceTask</c> element.
     /// </summary>
     internal static readonly ImmutableHashSet<string> ServiceTasks = ImmutableHashSet.Create(
         StringComparer.Ordinal,
@@ -16,6 +16,17 @@ internal static class BuiltInTaskTypes
         "subformPdf",
         "eFormidling",
         "fiksArkiv"
+    );
+
+    /// <summary>
+    /// Service task types that always conclude with <c>ServiceTaskResult.Success()</c> and no action. fiksArkiv is
+    /// not one: it concludes with the actions its settings configure.
+    /// </summary>
+    internal static readonly ImmutableHashSet<string> ServiceTasksWithoutAction = ImmutableHashSet.Create(
+        StringComparer.Ordinal,
+        "pdf",
+        "subformPdf",
+        "eFormidling"
     );
 
     /// <summary>

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
@@ -11,9 +12,9 @@ import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQ
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 
 // Test data:
@@ -28,12 +29,12 @@ const component: FormComponent<ComponentTypeV3.Panel> = {
   showIcon: false,
 };
 
-const mockHandleComponentChange = jest.fn();
+const mockHandleComponentChange = vi.fn();
 
 const user = userEvent.setup();
 
 const waitForData = async () => {
-  const getFormLayoutSettings = jest
+  const getFormLayoutSettings = vi
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
   const formLayoutsResult = renderHookWithMockStore()(() =>
@@ -58,8 +59,6 @@ const render = async () => {
 };
 
 describe('PanelComponent', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should call handleComponentChange with showIcon property set to true when the showIcon checkbox is clicked', async () => {
     await render();
 

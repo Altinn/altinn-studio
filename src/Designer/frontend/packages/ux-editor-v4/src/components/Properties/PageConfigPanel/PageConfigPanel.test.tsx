@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
@@ -5,7 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
 import {
   layout1NameMock,
@@ -13,7 +14,7 @@ import {
   pagesModelMock,
 } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { ItemType } from '../ItemType';
 
 // Test data
@@ -43,10 +44,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('PageConfigPanel', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('render heading with layout page name when layout is selected', async () => {
     const newSelectedPage = layout1NameMock;
     renderPageConfigPanel(newSelectedPage);
@@ -83,7 +80,7 @@ describe('PageConfigPanel', () => {
       const modal = screen.getByRole('dialog');
       expect(modal).toBeInTheDocument();
     });
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 });
 

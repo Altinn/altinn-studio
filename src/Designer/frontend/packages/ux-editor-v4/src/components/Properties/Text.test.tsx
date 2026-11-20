@@ -1,6 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
 import { Text } from './Text';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import {
   component1IdMock,
@@ -15,14 +16,18 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('../../testing/componentSchemaMocks', () => ({
+vi.mock('../../testing/componentSchemaMocks', async () => ({
   componentSchemaMocks: {
-    ...jest.requireActual('../../testing/componentSchemaMocks').componentSchemaMocks,
+    ...(
+      await vi.importActual<{ componentSchemaMocks: typeof componentSchemaMocks }>(
+        '../../testing/componentSchemaMocks',
+      )
+    ).componentSchemaMocks,
     CustomComponentType: {},
   },
 }));
@@ -54,8 +59,6 @@ const textResourceBindingsPropertiesForComponentType = (componentType: string) =
   Object.keys(componentSchemaMocks[componentType].properties.textResourceBindings.properties);
 
 describe('TextTab', () => {
-  afterEach(jest.clearAllMocks);
-
   describe('when editing a container', () => {
     const props = {
       formItemId: container1IdMock,

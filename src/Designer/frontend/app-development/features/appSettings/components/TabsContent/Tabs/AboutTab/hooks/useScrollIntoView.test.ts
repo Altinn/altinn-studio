@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useScrollIntoView } from './useScrollIntoView';
 import type { MutableRefObject } from 'react';
 
 describe('useScrollIntoView', () => {
   it('should call scrollIntoView when condition is true and ref is valid', () => {
-    const scrollIntoView = jest.fn();
+    const scrollIntoView = vi.fn();
     const ref = {
       current: { scrollIntoView },
     } as unknown as MutableRefObject<HTMLDivElement>;
@@ -19,7 +20,7 @@ describe('useScrollIntoView', () => {
   });
 
   it('should not call scrollIntoView when condition is false', () => {
-    const scrollIntoView = jest.fn();
+    const scrollIntoView = vi.fn();
     const ref = {
       current: { scrollIntoView },
     } as unknown as MutableRefObject<HTMLDivElement>;

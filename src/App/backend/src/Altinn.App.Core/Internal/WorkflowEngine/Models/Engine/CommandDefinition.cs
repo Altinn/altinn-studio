@@ -6,14 +6,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 /// <summary>
 /// Describes a command to be executed by the workflow engine.
 /// The engine stores and routes commands but does not interpret them —
-/// a registered command handler handles execution based on <see cref="Type"/>.
+/// the engine runs the registered command that matches <see cref="Type"/>.
 /// </summary>
 internal sealed record CommandDefinition
 {
     private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// The command type discriminator. Matched against registered command handlers (e.g. "app", "webhook").
+    /// The command type discriminator. Matched against the engine's registered commands (e.g. "app", "webhook").
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -36,7 +36,7 @@ internal sealed record CommandDefinition
 
     /// <summary>
     /// Command-specific data. The engine deserializes this into the type
-    /// declared by the matching command handler.
+    /// declared by the matching command.
     /// </summary>
     [JsonPropertyName("data")]
     public JsonElement? Data { get; init; }

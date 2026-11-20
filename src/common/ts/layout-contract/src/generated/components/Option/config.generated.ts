@@ -1,16 +1,15 @@
+import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import {
   ComponentBase,
   ISelectionComponent,
   ISummaryOverridesCommon,
-  SummarizableComponentProps,
   TRBLabel,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
-import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
-export interface CompOptionExternal
-  extends ComponentBase, ISelectionComponent, SummarizableComponentProps {
+export interface CompOptionExternal extends ComponentBase, ISelectionComponent {
   type: 'Option';
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: TRBSummarizable & TRBLabel;
   value: ExprValToActualOrExpr<ExprVal.String>;
   direction?: 'horizontal' | 'vertical';
@@ -50,4 +49,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: OptionSummaryOverridesWithRef;
 };
 
-// Source hash: dca483461766e2d8ec6677b76ea1f800863e7e746266bb4ec1087a07c1071897
+// Source hash: de3b312f6b152cd76483fbc48efb747782cfe572d681508fc2f5e348fb8bcbd6

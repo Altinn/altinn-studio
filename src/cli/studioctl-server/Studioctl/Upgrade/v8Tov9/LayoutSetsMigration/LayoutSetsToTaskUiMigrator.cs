@@ -232,7 +232,7 @@ internal sealed class LayoutSetsToTaskUiMigrator
     /// the set of <c>layoutSet</c> ids they reference. Malformed files, and JSON that is not a layout, are
     /// skipped.
     /// </summary>
-    private static HashSet<string> CollectSubformLayoutSetReferences(string uiPath)
+    internal static HashSet<string> CollectSubformLayoutSetReferences(string uiPath)
     {
         var refs = new HashSet<string>(StringComparer.Ordinal);
         foreach (var setFolder in Directory.GetDirectories(uiPath))

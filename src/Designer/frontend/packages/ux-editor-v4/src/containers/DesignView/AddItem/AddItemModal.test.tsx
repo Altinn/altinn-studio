@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddItemModal, type AddItemModalProps } from './AddItemModal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { renderWithProviders } from '../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('AddItemModal', () => {
   it('should render add item modal', () => {
@@ -50,7 +51,7 @@ const renderAddItemModal = (props: Partial<AddItemModalProps>) => {
       customDataProperties: {},
       customRootProperties: {},
     },
-    onAddComponent: jest.fn(),
+    onAddComponent: vi.fn(),
     availableComponents: {
       formComponents: [],
     },

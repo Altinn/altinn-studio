@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { DeployResourcePageProps } from './DeployResourcePage';
 import { DeployResourcePage } from './DeployResourcePage';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -42,11 +43,11 @@ const mockValidatePolicyData4: Validation = {
 const mockValidateResourceData2: Validation = { status: 400, errors: ['resource.title'] };
 
 const mockResourceVersionText: string = '2';
-const mockNavigateToPageWithError = jest.fn();
-const mockOnSaveVersion = jest.fn();
+const mockNavigateToPageWithError = vi.fn();
+const mockOnSaveVersion = vi.fn();
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useParams: () => ({
     resourceId: mockResourceId,
     org: mockOrg,
@@ -62,8 +63,6 @@ const defaultProps: DeployResourcePageProps = {
 };
 
 describe('DeployResourcePage', () => {
-  afterEach(jest.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderDeployResourcePage();
 

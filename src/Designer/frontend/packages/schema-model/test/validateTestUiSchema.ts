@@ -1,3 +1,4 @@
+import { expect, it, test } from 'vitest';
 import type { UiSchemaNodes } from '../src';
 import { FieldType, ObjectKind, ROOT_POINTER } from '../src';
 import { getPointers } from '../src/lib/mappers/getPointers';
@@ -11,7 +12,7 @@ import {
   isNotTheRootNode,
   isTheRootNode,
 } from '../src/lib/utils';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 /** Verifies that there is a root node */
 export const hasRootNode = (uiSchema: UiSchemaNodes) =>

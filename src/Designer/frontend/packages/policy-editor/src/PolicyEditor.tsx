@@ -21,7 +21,7 @@ import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccess
 import { PolicyRulesEditor } from './components/PolicyRulesEditor';
 import { PolicyEditorTabs } from './components/PolicyEditorTabs';
 import { ConsentResourcePolicyRulesEditor } from './components/ConsentResourcePolicyRulesEditor';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 
 export type PolicyEditorProps = {
   policy: Policy;
@@ -64,8 +64,15 @@ export const PolicyEditor = ({
     onSave({ ...policy, rules: policyEditorRules });
   };
 
-  const handleSavePolicyAuthLevel = (authLevel: RequiredAuthLevel) => {
-    onSave({ ...policy, requiredAuthenticationLevelEndUser: authLevel });
+  const handleSavePolicyAuthLevel = (
+    authLevel: RequiredAuthLevel,
+    systemUserAuthLevel: RequiredAuthLevel | undefined,
+  ) => {
+    onSave({
+      ...policy,
+      requiredAuthenticationLevelEndUser: authLevel,
+      requiredAuthenticationLevelSystemUser: systemUserAuthLevel,
+    });
   };
 
   return (
@@ -84,6 +91,7 @@ export const PolicyEditor = ({
       <div className={classes.policyEditor}>
         <SecurityLevelSelect
           requiredAuthenticationLevelEndUser={policy.requiredAuthenticationLevelEndUser}
+          requiredAuthenticationLevelSystemUser={policy.requiredAuthenticationLevelSystemUser}
           onSave={handleSavePolicyAuthLevel}
         />
         <StudioHeading level={4} data-size='xs' className={classes.heading}>

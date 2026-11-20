@@ -1,5 +1,6 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { type BpmnApiContextProps, BpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { BpmnContext } from '../../../../contexts/BpmnContext';
@@ -27,8 +28,6 @@ const defaultProps: EditDataTypesProps = {
 };
 
 describe('EditDataTypes', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should display a button to add data model when task has no data model', () => {
     renderEditDataTypes({
       bpmnApiContextProps: { layoutSets: layoutSetsWithoutDataTypeConnection },

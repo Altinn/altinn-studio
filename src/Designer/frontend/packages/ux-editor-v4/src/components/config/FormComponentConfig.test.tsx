@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { FormComponentConfigProps } from './FormComponentConfig';
 import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithProviders } from '../../testing/mocks';
@@ -5,7 +6,7 @@ import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
@@ -169,7 +170,7 @@ describe('FormComponentConfig', () => {
 
   it('should call updateComponent with false value when checking a default true property switch', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderFormComponentConfig({
       schema: DatepickerSchema,
       handleComponentUpdate: handleComponentUpdateMock,
@@ -207,7 +208,7 @@ describe('FormComponentConfig', () => {
       schema: InputSchema,
       editFormId: '',
       component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<FormComponentConfig {...defaultProps} {...props} />);
   };

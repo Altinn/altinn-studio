@@ -1,12 +1,12 @@
-import { StudioProperty, StudioSpinner } from '@studio/components';
-import { LinkIcon } from '@studio/icons';
+import { StudioProperty, StudioSpinner } from '@designer/components';
+import { LinkIcon } from '@designer/icons';
 import classes from './DefinedBinding.module.css';
 import { useTranslation } from 'react-i18next';
 import {
   getDataModelFields,
   validateSelectedDataField,
 } from '@altinn/ux-editor/utils/dataModelUtils';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { ExplicitDataModelBinding } from '@altinn/ux-editor/types/global';
 

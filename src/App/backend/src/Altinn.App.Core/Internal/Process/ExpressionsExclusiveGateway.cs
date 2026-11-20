@@ -44,7 +44,7 @@ internal sealed class ExpressionsExclusiveGateway : IProcessExclusiveGateway
     public string GatewayId { get; } = "AltinnExpressionsExclusiveGateway";
 
     /// <inheritdoc />
-    public async Task<List<SequenceFlow>> FilterAsync(
+    public async Task<List<SequenceFlow>> Filter(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
         IInstanceDataAccessor dataAccessor,
@@ -122,18 +122,5 @@ internal sealed class ExpressionsExclusiveGateway : IProcessExclusiveGateway
         reader.Read();
         var expressionFromCondition = ExpressionConverter.ReadStatic(ref reader, _jsonSerializerOptions);
         return expressionFromCondition;
-    }
-
-    /// <summary>
-    /// Legacy method kept for backwards compatibility
-    /// </summary>
-    Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
-        List<SequenceFlow> outgoingFlows,
-        Instance instance,
-        ProcessGatewayInformation processGatewayInformation
-    )
-    {
-        //TODO: Remove when obsolete method is removed from interface in v9
-        throw new NotImplementedException();
     }
 }

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import { useUpdateSharedResourcesMutation } from './useUpdateSharedResourcesMutation';
 import type { UpdateSharedResourcesRequest } from '../../types/api/UpdateSharedResourcesRequest';
@@ -21,7 +22,7 @@ const payload: UpdateSharedResourcesRequest = {
 
 describe('useUpdateSharedResourcesMutation', () => {
   it('Calls updateSharedResources with correct arguments and payload', async () => {
-    const updateSharedResources = jest.fn();
+    const updateSharedResources = vi.fn();
     const { result } = renderHookWithProviders(
       () => useUpdateSharedResourcesMutation(orgName, path),
       {
@@ -37,7 +38,7 @@ describe('useUpdateSharedResourcesMutation', () => {
 
   it('Sets the shared resources cache for the given organization', async () => {
     const queryClient = createQueryClientMock();
-    const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
     const { result } = renderHookWithProviders(
       () => useUpdateSharedResourcesMutation(orgName, path),
       {

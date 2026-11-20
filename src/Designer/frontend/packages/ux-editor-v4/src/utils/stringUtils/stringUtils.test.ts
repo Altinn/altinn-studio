@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { arrayToString, stringToArray } from './stringUtils';
 
 describe('stringToArray', () => {

@@ -3,7 +3,7 @@ import {
   StudioAlert,
   StudioToggleableTextfieldSchema,
   type SchemaValidationError,
-} from '@studio/components';
+} from '@designer/components';
 import classes from './EditComponentIdRow.module.css';
 import { idExists } from '../../../../utils/formLayoutsUtils';
 import { useTranslation } from 'react-i18next';
@@ -52,9 +52,10 @@ export const EditComponentIdRow = ({
   const dataTypeWithNameExists = (id: string) => {
     if (
       component.type === ComponentType.FileUpload ||
-      component.type === ComponentType.FileUploadWithTag
+      component.type === ComponentType.FileUploadWithTag ||
+      component.type === ComponentType.ImageUpload
     ) {
-      return appMetadata.dataTypes?.find(
+      return appMetadata?.dataTypes?.find(
         (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
       );
     }

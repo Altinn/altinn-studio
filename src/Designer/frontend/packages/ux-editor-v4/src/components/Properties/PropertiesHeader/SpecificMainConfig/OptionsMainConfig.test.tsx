@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { OptionsMainConfig } from './OptionsMainConfig';
 import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { SelectionComponentType } from '@altinn/ux-editor-v4/types/FormComponent';
 
 const optionsComponent: FormItem = {
@@ -19,10 +20,6 @@ const optionsComponent: FormItem = {
 
 describe('ComponentMainConfig', () => {
   describe('Options', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('should render options config', async () => {
       render(optionsComponent);
       expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
@@ -30,7 +27,7 @@ describe('ComponentMainConfig', () => {
 
     it('should call handleComponentChange when changing target', async () => {
       const user = userEvent.setup();
-      const handleComponentChange = jest.fn();
+      const handleComponentChange = vi.fn();
       render(optionsComponent, handleComponentChange);
       await user.click(await referenceTab());
       await user.type(referenceIdInput(), 't');
@@ -46,7 +43,7 @@ const referenceIdInput = () =>
 
 const render = (
   component: FormItem<ComponentType.Checkboxes>,
-  handleComponentChange: (component: FormItem<SelectionComponentType>) => void = jest.fn(),
+  handleComponentChange: (component: FormItem<SelectionComponentType>) => void = vi.fn(),
 ) => {
   renderWithProviders(
     <OptionsMainConfig component={component} handleComponentChange={handleComponentChange} />,

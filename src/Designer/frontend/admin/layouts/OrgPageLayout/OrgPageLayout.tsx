@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { useOrganizationsQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { NotFound } from '../../components/NotFound/NotFound';
 import { OrgContext } from '../../contexts/OrgContext';

@@ -1,5 +1,6 @@
 /**
- * The hunspell dictionaries the Norwegian spell check runs against.
+ * The hunspell dictionaries the Norwegian and English spell checks run
+ * against.
  *
  * These are the LibreOffice Norwegian dictionaries (derived from Norsk
  * Ordbank), pinned to an immutable commit of LibreOffice/dictionaries and
@@ -12,7 +13,9 @@
  * check time and are not distributed with any product artifact.
  *
  * en_GB is loaded alongside the Norwegian dictionaries so English loanwords
- * in Norwegian UI text ("dashboard", "token") are not reported.
+ * in Norwegian UI text ("dashboard", "token") are not reported. On its own,
+ * it checks the English values of registry groups marked `english: 'en-gb'`;
+ * en_US checks the few marked `'en-us'` (text following an en-US upstream).
  */
 
 export const DICTIONARY_SOURCE = {
@@ -46,12 +49,22 @@ export const DICTIONARY_FILES = {
     path: 'en/en_GB.dic',
     sha256: '04e90f34f5263bf26780e9c4a442e9ad16584e227af49ddd1b3b21b01df5b29c',
   },
+  'en_US.aff': {
+    path: 'en/en_US.aff',
+    sha256: 'e746c882dd6f303c2c46e7452804b9201115a6942cfeb15f18f8edf774d2e24e',
+  },
+  'en_US.dic': {
+    path: 'en/en_US.dic',
+    sha256: 'f0b1a234bd178bdd01875b2a392a9647f888b8fe879f79c52aae62c2759b3647',
+  },
 };
 
 /** hunspell -d arguments (base path without extension), per language. */
 export const DICTIONARY_FOR_LANG = {
   nb: ['nb_NO', 'en_GB'],
   nn: ['nn_NO', 'en_GB'],
+  'en-gb': ['en_GB'],
+  'en-us': ['en_US'],
 };
 
 export const rawUrl = (file) =>

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { onEntryShowKey, updateOnEntryShow } from './utils';
 

@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { PrefillConfig } from 'app-shared/types/PrefillConfig';
 import { PrefillSource } from 'app-shared/types/PrefillConfig';
 import type { FieldNode } from '@altinn/schema-model';
@@ -31,8 +31,6 @@ const fieldNodeMock: FieldNode = {
 };
 
 describe('PrefillSection', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders with no source selected when there is no existing prefill mapping', () => {
     render();
     expect(

@@ -18,6 +18,10 @@ export class GenerateIntersection<U extends CodeGenerator<any>[]> extends Descri
     return this.types;
   }
 
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return this.types;
+  }
+
   expressionDescriptors(): ExpressionDescriptorEntry[] {
     return this.types.flatMap((type) => type.expressionDescriptors());
   }

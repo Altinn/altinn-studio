@@ -1,17 +1,16 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ToggleAddComponentPoc } from './ToggleAddComponentPoc';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 
 // Mocks:
-const addFlag = jest.fn();
-const removeFlag = jest.fn();
+const addFlag = vi.fn();
+const removeFlag = vi.fn();
 
 describe('ToggleAddComponentPoc', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('should render the component', () => {
     renderToggleAddComponentPoc();
     expect(screen.getByText('Prøv nytt design')).toBeInTheDocument();

@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { EditImage } from './EditImage';
 import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../../../testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
@@ -11,16 +12,13 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { QueryClient } from '@tanstack/react-query';
 
-const handleComponentChangeMock = jest.fn();
+const handleComponentChangeMock = vi.fn();
 const imageComponentMock = componentMocks[ComponentType.Image];
 
 describe('EditImage', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('renders tabs for adding image and for pasting url', () => {
     renderEditImage();
     const { addImageTab, pasteUrlTab } = getTabs();

@@ -3,7 +3,7 @@ using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.CodeRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.DockerfileRewriters;
 using Altinn.Studio.Cli.Upgrade.Backend.v7Tov8.ProcessRewriter;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
-using Microsoft.Build.Locator;
+using Altinn.Studio.StudioctlServer.Platform;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -105,8 +105,7 @@ internal static class BackendUpgrade
     {
         await UpgradeConsole.Out.WriteLineAsync("Trying to upgrade references and using in code");
 
-        if (!MSBuildLocator.IsRegistered)
-            MSBuildLocator.RegisterDefaults();
+        MSBuildRegistration.EnsureRegistered();
         var workspace = MSBuildWorkspace.Create();
         var project = await workspace.OpenProjectAsync(projectFile);
         var comp = await project.GetCompilationAsync();

@@ -1,9 +1,14 @@
+import React, { createContext, useContext } from 'react';
 import { useSearchParams } from 'react-router';
+import type { PropsWithChildren } from 'react';
 
 import { SearchParams } from 'src/core/routing/types';
 import { preventFocusAndScrollResetOptions } from 'src/features/navigation/navigationOptions';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { useCookieState } from 'src/hooks/useCookieState';
+
+const CurrentLanguageContext = createContext<string | undefined>(undefined);
+CurrentLanguageContext.displayName = 'CurrentLanguage';
 
 /**
   URL search param = temporary override (e.g., shared link)
@@ -37,7 +42,28 @@ export function useSetCurrentLanguage() {
  * Determines the current language based on the url, cookie or user's
  * profile preferences within the available languages of the app
  */
-export function useCurrentLanguage() {
+export function CurrentLanguageProvider({ children }: PropsWithChildren) {
+  const existingLanguage = useContext(CurrentLanguageContext);
+  if (existingLanguage !== undefined) {
+    return children;
+  }
+  return <ResolvedCurrentLanguageProvider>{children}</ResolvedCurrentLanguageProvider>;
+}
+
+function ResolvedCurrentLanguageProvider({ children }: PropsWithChildren) {
+  const currentLanguage = useResolvedCurrentLanguage();
+  return <CurrentLanguageContext.Provider value={currentLanguage}>{children}</CurrentLanguageContext.Provider>;
+}
+
+export function useCurrentLanguage(): string {
+  const language = useContext(CurrentLanguageContext);
+  if (language === undefined) {
+    throw new Error('CurrentLanguageProvider is missing');
+  }
+  return language;
+}
+
+function useResolvedCurrentLanguage() {
   const [searchParams] = useSearchParams();
   const availableLanguages = getAvailableLanguages();
 

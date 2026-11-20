@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WithHoverAddButton, type WithHoverAddButtonProps } from './WithHoverAddButton';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { IInternalLayout } from '../../types/global';
 
 //Test data

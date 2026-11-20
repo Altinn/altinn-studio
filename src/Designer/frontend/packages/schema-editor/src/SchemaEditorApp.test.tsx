@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render as rtlRender, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { jsonMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 import { jsonSchemaMock } from '../test/mocks/jsonSchemaMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { organization, user as mockUser } from 'app-shared/mocks/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -42,8 +42,6 @@ export const render = (services?: Partial<ServicesContextProps>) => {
 };
 
 describe('SchemaEditorApp', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders a tree view of the schema model', () => {
     render();
     expect(screen.getByRole('tree')).toBeInTheDocument();

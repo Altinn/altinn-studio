@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { SetupTabInputFields } from './SetupTabInputFields';
@@ -5,16 +7,16 @@ import type { SetupTabInputFieldsProps } from './SetupTabInputFields';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 
-jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
-const updateAppMetadataMutation = jest.fn();
-const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
+vi.mock('app-development/hooks/mutations/useAppMetadataMutation');
+const updateAppMetadataMutation = vi.fn();
+const mockUpdateAppMetadataMutation = useAppMetadataMutation as MockedFunction<
   typeof useAppMetadataMutation
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
@@ -22,8 +24,6 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('SetupTabInputFields', () => {
-  afterEach(jest.clearAllMocks);
-
   it('does not display an error message when validTo is a later date than validFrom', () => {
     renderSetupTabInputFields();
     const errorText = screen.queryByText(textMock('app_settings.setup_tab_start_before_end'));

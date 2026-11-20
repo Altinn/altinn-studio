@@ -54,8 +54,8 @@ var components = map[string]*Component{
 	},
 	"app": {
 		Name:          "app",
-		ChangelogPath: "src/App/backend/CHANGELOG.md",
-		SourcePath:    "src/App/backend",
+		ChangelogPath: "src/App/CHANGELOG.md",
+		SourcePath:    "src/App",
 		Builder:       nil, // registered by the releaser CLI
 	},
 }

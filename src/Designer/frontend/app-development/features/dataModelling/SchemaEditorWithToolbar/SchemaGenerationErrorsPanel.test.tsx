@@ -1,15 +1,16 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../test/mocks';
 import type { SchemaGenerationErrorsPanelProps } from './SchemaGenerationErrorsPanel';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const schemaGenerationErrorMessages = ['custom error message', 'another custom error message'];
 const defaultProps: SchemaGenerationErrorsPanelProps = {
-  onCloseErrorsPanel: jest.fn(),
+  onCloseErrorsPanel: vi.fn(),
   schemaGenerationErrorMessages,
 };
 
@@ -65,7 +66,7 @@ describe('SchemaGenerationErrorsPanel', () => {
   });
 
   it('Calls onCloseErrorsPanel when close button is clicked', async () => {
-    const mockOnCloseErrorsPanel = jest.fn();
+    const mockOnCloseErrorsPanel = vi.fn();
     render({}, { ...defaultProps, onCloseErrorsPanel: mockOnCloseErrorsPanel });
     const closeErrorPanelButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(closeErrorPanelButton);

@@ -1,16 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PageHeader, type PageHeaderProps } from './PageHeader';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { app } from '@studio/testing/testids';
+import { app } from '@designer/testing/testids';
 import { type PageHeaderContextProps } from 'app-development/contexts/PageHeaderContext/PageHeaderContext';
 import { pageHeaderContextMock, previewContextMock } from 'app-development/test/headerMocks';
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { useMediaQuery } from '@designer/hooks/src/hooks/useMediaQuery';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
-jest.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 const defaultProps: PageHeaderProps = {
   showSubMenu: true,
@@ -18,8 +20,6 @@ const defaultProps: PageHeaderProps = {
 };
 
 describe('PageHeader', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('should render the app title when on a large screen', () => {
     renderPageHeader();
 
@@ -30,7 +30,7 @@ describe('PageHeader', () => {
   });
 
   it('should render the small header menu on a small screen', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
 
     renderPageHeader();
 
@@ -39,14 +39,14 @@ describe('PageHeader', () => {
   });
 
   it('should render the subheader when showSubMenu is true', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
     renderPageHeader();
 
     expect(screen.getByRole('link', { name: textMock('top_menu.preview') })).toBeInTheDocument();
   });
 
   it('should not render the subheader when showSubMenu is fasle', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
     renderPageHeader({ componentProps: { showSubMenu: false } });
 
     expect(
@@ -55,7 +55,7 @@ describe('PageHeader', () => {
   });
 
   it('should not render the subheader when showSubMenu is false and isRepoError is true', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
     renderPageHeader({ componentProps: { isRepoError: true } });
 
     expect(

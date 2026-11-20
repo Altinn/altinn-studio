@@ -1,7 +1,10 @@
+using Altinn.Studio.Common.Telemetry;
+using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Instrumentation.AspNetCore;
+using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -12,68 +15,37 @@ internal static class TelemetryExtensions
 {
     public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
     {
+        // TODO: record failures as error.type on the span and an ERROR log instead of exception
+        // span events, and turn off RecordException (https://github.com/Altinn/altinn-studio/issues/21073).
+        builder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(options =>
+        {
+            options.RecordException = true;
+            options.Filter = static ctx => !HubsEndpointExtensions.IsHubConnection(ctx.Request);
+            options.EnrichWithHttpResponse = RootSpan.Enrich;
+        });
+        builder.Services.Configure<HttpClientTraceInstrumentationOptions>(ConfigureHttpClientTracing);
+        builder.Services.Configure<OpenTelemetryLoggerOptions>(options => options.IncludeScopes = true);
+
         builder
-            .Services.AddOpenTelemetry()
+            .Services.AddAltinnStudioOpenTelemetry(builder.Configuration, typeof(TelemetryExtensions).Assembly)
             .WithTracing(tracing =>
-            {
                 tracing
                     .AddSource(ServiceTelemetry.Source.Name)
-                    .AddAspNetCoreInstrumentation(options =>
+                    .AddEntityFrameworkCoreInstrumentation()
+                    .AddQuartzInstrumentation(options =>
                     {
                         options.RecordException = true;
-                        options.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
-                        options.EnrichWithHttpResponse = static (activity, response) =>
-                        {
-                            var routeValues = response.HttpContext.Request.RouteValues;
-                            if (
-                                TryResolveRouteValue(routeValues, "org", out var org)
-                                || TryResolveRouteValue(routeValues, "orgName", out org)
-                            )
-                            {
-                                activity.SetTag("org", org);
-                            }
-
-                            if (
-                                TryResolveRouteValue(routeValues, "app", out var app)
-                                || TryResolveRouteValue(routeValues, "repo", out app)
-                                || TryResolveRouteValue(routeValues, "repository", out app)
-                            )
-                            {
-                                activity.SetTag("app", app);
-                            }
-                        };
+                        options.Enrich = RootSpan.EnrichJobRun;
                     })
-                    .AddHttpClientInstrumentation(options => options.RecordException = true)
-                    .AddEntityFrameworkCoreInstrumentation()
-                    .AddQuartzInstrumentation(options => options.RecordException = true)
-                    .AddRedisInstrumentation()
-                    .AddOtlpExporter();
-            })
-            .WithMetrics(metrics =>
-            {
-                metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddOtlpExporter();
-            })
-            .WithLogging(
-                logging => logging.AddOtlpExporter(),
-                options =>
-                {
-                    options.IncludeFormattedMessage = true;
-                    options.IncludeScopes = true;
-                }
-            );
+            )
+            .WithMetrics(metrics => metrics.AddMeter(ServiceTelemetry.MeterName));
 
         return builder;
     }
 
-    private static bool TryResolveRouteValue(RouteValueDictionary routeValues, string key, out string value)
+    internal static void ConfigureHttpClientTracing(HttpClientTraceInstrumentationOptions options)
     {
-        value = string.Empty;
-        return routeValues.TryGetValue(key, out var rawValue)
-            && rawValue?.ToString() is { Length: > 0 } parsedValue
-            && (value = parsedValue) != null;
+        options.RecordException = true;
+        options.EnrichWithHttpRequestMessage = SecretUrlPath.Redact;
     }
 }

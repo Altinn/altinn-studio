@@ -1,16 +1,13 @@
+import { describe, expect, it } from 'vitest';
 import { useAddPageToGroup } from './useAddPageToGroup';
 import type { PagesModel, PagesModelWithPageGroups } from 'app-shared/types/api/dto/PagesModel';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderHookWithProviders } from '../../../../ux-editor-v4/src/testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 
 describe('useAddPageToGroup', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should add a page to the group and call the mutation', async () => {
     const mockPagesModel: PagesModel = {
       groups: [{ order: [{ id: textMock('ux_editor.page') + '1' }] }],

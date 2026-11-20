@@ -1,7 +1,8 @@
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
-/// Everything a migration job has to say. Any to-do message means a manual follow-up is required to finish the migration successfully; warnings are just informational.
+/// Everything a migration job has to say. Any to-do message means a manual follow-up is required to finish the
+/// migration successfully; a warning is something the user should look at; info is an outcome that needs no action.
 /// </summary>
 internal sealed record MigrationResult(IReadOnlyList<UpgradeMessage> Messages)
 {
@@ -25,6 +26,12 @@ internal sealed record MigrationResult(IReadOnlyList<UpgradeMessage> Messages)
 /// <summary>Utility functions for building a migrator's message list.</summary>
 internal static class UpgradeMessageListExtensions
 {
+    public static void Info(this List<UpgradeMessage> messages, string text) =>
+        messages.Add(new UpgradeMessage(text, UpgradeMessageStatus.Info));
+
+    public static void Ok(this List<UpgradeMessage> messages, string text) =>
+        messages.Add(new UpgradeMessage(text, UpgradeMessageStatus.Ok));
+
     public static void Warn(this List<UpgradeMessage> messages, string text) =>
         messages.Add(new UpgradeMessage(text, UpgradeMessageStatus.Warning));
 

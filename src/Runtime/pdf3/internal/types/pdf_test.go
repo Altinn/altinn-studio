@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -256,5 +257,28 @@ func TestPdfRequest_Validate_AllFormats(t *testing.T) {
 				t.Errorf("Validate() should pass for format %s, got error: %v", format, err)
 			}
 		})
+	}
+}
+
+var errTestCause = errors.New("cause")
+
+func TestPDFError_Error(t *testing.T) {
+	cause := errTestCause
+	tests := map[string]struct {
+		err  *PDFError
+		want string
+	}{
+		"type only":         {NewPDFError(ErrTimeout, "", nil), ErrTimeout.Error()},
+		"with message":      {NewPDFError(ErrTimeout, "page load", nil), ErrTimeout.Error() + ": page load"},
+		"with cause":        {NewPDFError(ErrTimeout, "", cause), ErrTimeout.Error() + ": cause"},
+		"message and cause": {NewPDFError(ErrTimeout, "page load", cause), ErrTimeout.Error() + ": page load: cause"},
+	}
+	for name, tt := range tests {
+		if got := tt.err.Error(); got != tt.want {
+			t.Errorf("%s: Error() = %q, want %q", name, got, tt.want)
+		}
+	}
+	if got := NewPDFError(ErrQueueFull, "", nil).ErrorType(); got != "queue_full" {
+		t.Errorf("ErrorType() = %q, want queue_full", got)
 	}
 }

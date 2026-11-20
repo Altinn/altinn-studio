@@ -16,15 +16,15 @@ import {
   GavelSoundBlockIcon,
   InformationSquareIcon,
   UploadIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { deepCompare, validateResource } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioContentMenu, StudioSpinner } from '@studio/components';
-import type { StudioContentMenuButtonTabProps } from '@studio/components';
+import { StudioContentMenu, StudioSpinner } from '@designer/components';
+import type { StudioContentMenuButtonTabProps } from '@designer/components';
 import { useGetConsentTemplates } from '../../hooks/queries/useGetConsentTemplates';
 
 /**

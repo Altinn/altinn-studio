@@ -1,12 +1,13 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { queriesMock } from '../../mocks/queriesMock';
 import { useUploadOrgCodeListMutation } from './useUploadOrgCodeListMutation';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
 import type { CodeListWithTextResources } from '../../types/CodeListWithTextResources';
-import { FileUtils } from '@studio/pure-functions';
+import { FileUtils } from '@designer/pure-functions';
 
 // Test data:
 const fileName = 'fileName';
@@ -29,8 +30,6 @@ const codeListResponse: CodeListsResponse = [
 ];
 
 describe('useUploadOrgCodeListMutation', () => {
-  beforeEach(jest.clearAllMocks);
-
   it('Calls uploadOrgCodeList with correct parameters', async () => {
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org));
     await result.current.mutateAsync(file);
@@ -40,7 +39,7 @@ describe('useUploadOrgCodeListMutation', () => {
 
   it('Replaces cache with api response', async () => {
     const queryClient = createQueryClientMock();
-    const uploadOrgCodeList = jest.fn(() => Promise.resolve(codeListResponse));
+    const uploadOrgCodeList = vi.fn(() => Promise.resolve(codeListResponse));
     const { result } = renderHookWithProviders(() => useUploadOrgCodeListMutation(org), {
       queryClient,
       queries: { uploadOrgCodeList },

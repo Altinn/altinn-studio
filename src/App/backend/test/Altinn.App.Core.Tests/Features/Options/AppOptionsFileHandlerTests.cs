@@ -40,7 +40,7 @@ public sealed class AppOptionsFileHandlerTests : IDisposable
         );
         var handler = CreateHandler();
 
-        var options = await handler.ReadOptionsFromFileAsync("land");
+        var options = await handler.ReadOptionsFromFile("land");
 
         Assert.NotNull(options);
         Assert.Collection(
@@ -65,7 +65,7 @@ public sealed class AppOptionsFileHandlerTests : IDisposable
     {
         var handler = CreateHandler();
 
-        Assert.Null(await handler.ReadOptionsFromFileAsync("missing"));
+        Assert.Null(await handler.ReadOptionsFromFile("missing"));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class AppOptionsFileHandlerTests : IDisposable
         WriteOptions("land", "[]");
         var handler = CreateHandler();
 
-        Assert.Null(await handler.ReadOptionsFromFileAsync("../options/land"));
-        Assert.Null(await handler.ReadOptionsFromFileAsync("../config/applicationmetadata"));
+        Assert.Null(await handler.ReadOptionsFromFile("../options/land"));
+        Assert.Null(await handler.ReadOptionsFromFile("../config/applicationmetadata"));
     }
 }

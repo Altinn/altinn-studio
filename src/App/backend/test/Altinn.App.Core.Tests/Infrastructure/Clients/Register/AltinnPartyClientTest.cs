@@ -253,7 +253,8 @@ internal static class AltinnPartyClientTestExtensions
                     logLevel,
                     It.IsAny<EventId>(),
                     It.Is<It.IsAnyType>(
-                        (value, _) => partialMessage == null || value.ToString()!.Contains(partialMessage)
+                        (value, _) =>
+                            partialMessage == null || (value != null && value.ToString()!.Contains(partialMessage))
                     ),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()

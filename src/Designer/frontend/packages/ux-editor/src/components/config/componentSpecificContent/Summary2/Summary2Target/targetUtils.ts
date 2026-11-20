@@ -1,8 +1,8 @@
 import type { IFormLayouts, IInternalLayout } from '@altinn/ux-editor/types/global';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import type { Summary2TargetConfig } from 'app-shared/types/ComponentSpecificConfig';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { Summary2TargetConfig } from '@altinn/ux-editor/types/Summary2Config';
 import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 
 const excludedComponents = [

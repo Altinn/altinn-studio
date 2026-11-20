@@ -4,7 +4,6 @@ import {
   ISelectionComponentFull,
   LabeledComponentProps,
   LayoutStyle,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -15,6 +14,10 @@ import { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/
 export type CompRadioButtonsSerialized = {
   type: 'RadioButtons';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsOptionsSimple;
   layout?: LayoutStyle;
@@ -23,8 +26,7 @@ export type CompRadioButtonsSerialized = {
   showAsCard?: boolean;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   ISelectionComponentFull &
   LabeledComponentProps;
 
-// Source hash: d2f106bb2c71a6705dcabff8d98372cbde4357919a4a77f2fc886cdec77c5bde
+// Source hash: 7b9f656004d6efa39ee49531dabaff0e9e6bbd5eacb2b92c89c6fd30571cd73b

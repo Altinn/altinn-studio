@@ -1,9 +1,10 @@
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { getRequired } from 'src/utils/layout/getRequired';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import { getLabelSettings, useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { GenericComponentOverrideDisplay } from 'src/layout/FormComponentContext';
 
 export interface LabelData {
@@ -27,22 +28,14 @@ export function useLabelData({
   overrideDisplay: GenericComponentOverrideDisplay | undefined;
 }): LabelData {
   const config = useComponentConfig(baseComponentId);
-  const readOnly = useEvalExpression(
-    'readOnly' in config ? config.readOnly : undefined,
-    CommonExpressions.FormComponentProps.readOnly,
-  );
-  const evaluatedRequired = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
-  const required = getRequired(config.type, evaluatedRequired);
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
+  const required = useComponentIsRequired(config);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
   const componentId = useIndexedId(baseComponentId);
-  const showOptionalMarking =
-    config.type === 'Custom' || !('labelSettings' in config) || config.labelSettings?.optionalIndicator !== false;
+  const showOptionalMarking = useShowOptionalIndicator(getLabelSettings(config));
 
   const shouldShowLabel =
     (overrideDisplay?.renderLabel ?? true) && overrideDisplay?.renderedInTable !== true && !!title;

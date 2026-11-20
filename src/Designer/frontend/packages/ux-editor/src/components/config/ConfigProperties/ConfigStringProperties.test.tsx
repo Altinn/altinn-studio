@@ -1,7 +1,8 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigStringProperties, type ConfigStringPropertiesProps } from './ConfigStringProperties';
 import { componentMocks } from '../../../testing/componentMocks';
-import InputSchema from '../../../testing/schemas/json/component/Input.schema.v1.json';
+import type { PropertyDefinition } from '@app/layout-contract';
 import { screen } from '@testing-library/react';
 import {
   cancelConfigAndVerify,
@@ -11,7 +12,11 @@ import {
 } from './testConfigUtils';
 import userEvent from '@testing-library/user-event';
 
-const defaultProperty = 'someStringProperty';
+const defaultProperty = 'variant';
+const properties: Record<string, PropertyDefinition> = {
+  [defaultProperty]: { type: 'string', required: false },
+  displayMode: { type: 'string', required: false },
+};
 
 describe('ConfigStringProperties', () => {
   it(`should render property text for the ${defaultProperty} property`, async () => {
@@ -34,18 +39,18 @@ describe('ConfigStringProperties', () => {
 
   it('should call handleComponentUpdate when saving a new value', async () => {
     const user = userEvent.setup();
-    const handleComponentUpdate = jest.fn();
+    const handleComponentUpdate = vi.fn();
     renderConfigStringProperties({ handleComponentUpdate });
     await openConfigAndVerify({ user, property: defaultProperty });
 
     const textBox = getPropertyByRole('textbox', defaultProperty);
     await user.clear(textBox);
-    await user.type(textBox, 'descending');
+    await user.type(textBox, 'search');
     await saveConfigChanges(user);
 
     expect(handleComponentUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        someStringProperty: 'descending',
+        variant: 'search',
       }),
     );
   });
@@ -60,12 +65,12 @@ describe('ConfigStringProperties', () => {
 
 const renderConfigStringProperties = (props: Partial<ConfigStringPropertiesProps> = {}) => {
   const defaultProps: ConfigStringPropertiesProps = {
-    schema: InputSchema,
+    properties,
     component: {
       ...componentMocks.Input,
-      someStringProperty: '',
+      variant: 'text',
     },
-    handleComponentUpdate: jest.fn(),
+    handleComponentUpdate: vi.fn(),
     stringPropertyKeys: [defaultProperty],
   };
   return renderWithProviders(<ConfigStringProperties {...defaultProps} {...props} />);

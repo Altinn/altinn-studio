@@ -29,14 +29,6 @@
   min-height: 400px;
 }
 
-.appCreateReleaseTitle {
-  display: flex;
-  flex-direction: column;
-  font-weight: 500;
-  font-size: 1.2rem;
-  line-height: 2.2rem;
-}
-
 .appCreateReleaseStatusButton {
   color: #1eaef7;
 }
@@ -56,6 +48,8 @@
 
 .versionSubHeader {
   display: flex;
+  align-items: flex-start;
+  gap: var(--ds-size-2);
   padding: var(--release-panel-padding);
   justify-content: space-between;
 }

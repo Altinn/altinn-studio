@@ -155,8 +155,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   };
 
   if (renderAsSummary) {
-    const RenderSummary =
-      'renderSummary' in layoutComponent ? layoutComponent.renderSummary.bind(layoutComponent) : null;
+    const RenderSummary = layoutComponent.renderSummary?.bind(layoutComponent) ?? null;
     if (!RenderSummary) {
       return null;
     }

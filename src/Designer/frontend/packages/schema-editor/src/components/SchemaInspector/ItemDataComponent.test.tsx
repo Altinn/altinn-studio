@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import { ItemDataComponent } from './ItemDataComponent';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import { fireEvent, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import {
   fieldNode1Mock,
   nodeWithCustomPropsMock,
@@ -41,8 +41,6 @@ const renderItemDataComponent = (
 };
 
 describe('ItemDataComponent', () => {
-  afterEach(vi.clearAllMocks);
-
   test('"Multiple answers" checkbox should appear if selected item is field', async () => {
     renderItemDataComponent(fieldNode1Mock);
     expect(await screen.findByLabelText(textMock('schema_editor.multiple_answers'))).toBeDefined();
@@ -56,8 +54,7 @@ describe('ItemDataComponent', () => {
 
   test('Model is saved when "multiple answers" checkbox is checked', async () => {
     renderItemDataComponent(toggableNodeMock);
-    const checkbox = screen.queryByLabelText(textMock('schema_editor.multiple_answers'));
-    if (checkbox === null) fail();
+    const checkbox = screen.getByLabelText(textMock('schema_editor.multiple_answers'));
     await user.click(checkbox);
     expect(saveDataModel).toHaveBeenCalledTimes(1);
   });
@@ -76,7 +73,6 @@ describe('ItemDataComponent', () => {
   test('Model is saved when "nullable" checkbox is checked', async () => {
     renderItemDataComponent();
     const checkbox = screen.getByLabelText(textMock('schema_editor.nullable'));
-    if (checkbox === null) fail();
     await user.click(checkbox);
     expect(saveDataModel).toHaveBeenCalledTimes(1);
   });

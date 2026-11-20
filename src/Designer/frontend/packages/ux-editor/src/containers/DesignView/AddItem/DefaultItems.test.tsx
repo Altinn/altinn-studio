@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DefaultItems, type DefaultItemsProps } from './DefaultItems';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { CircleFillIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { CircleFillIcon } from '@designer/icons';
+import { StudioButton } from '@designer/components';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 const availableComponents = [
@@ -45,7 +46,7 @@ describe('DefaultItems', () => {
 const renderDefaultItems = (props: Partial<DefaultItemsProps>) => {
   const defaultProps: DefaultItemsProps = {
     availableComponents,
-    onAddItem: jest.fn(),
+    onAddItem: vi.fn(),
     showAllButton: <StudioButton>Show all</StudioButton>,
   };
   return renderWithProviders(<DefaultItems {...defaultProps} />);

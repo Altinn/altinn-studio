@@ -1,9 +1,10 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { EmptyTextField } from './EmptyTextField';
 import { component1IdMock } from '../../../../../../testing/layoutMock';
 import { userEvent } from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { Summary2OverrideConfig } from '@altinn/ux-editor/types/Summary2Config';
 
 describe('EmptyTextField', () => {
   it('Should display textfield when openbutton is clicked', async () => {
@@ -54,7 +55,7 @@ const emptyTextFieldTextBox = () =>
     name: /ux_editor.component_properties.summary.override.empty_field_text/i,
   });
 
-const onChangeMock = jest.fn();
+const onChangeMock = vi.fn();
 
 const render = () => {
   const override: Summary2OverrideConfig = {

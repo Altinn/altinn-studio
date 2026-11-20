@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   addComponent,
   addContainer,
@@ -26,7 +27,7 @@ import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/l
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import {
   component3_1_1Id,
   component3_1Id,
@@ -137,7 +138,7 @@ describe('formLayoutUtils', () => {
       const navigationButtonsComponent: FormComponent<ComponentTypeV3.NavigationButtons> = {
         id: navigationButtonsId,
         itemType: 'COMPONENT',
-        onClickAction: jest.fn(),
+        onClickAction: vi.fn(),
         type: ComponentTypeV3.NavigationButtons,
         dataModelBindings: {},
       };

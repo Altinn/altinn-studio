@@ -1,65 +1,32 @@
-## Health utility
+# Health
 
-Utility for running health checks across clusters (that the logged in user has access to).
+Health runs checks and commands across many Kubernetes clusters at once, such as all runtime clusters in tt02 and
+production. It finds the clusters through Azure Resource Graph, keeps a kubeconfig context for each, and calls
+`kubectl`, `helm` and `flux` against them.
 
-Run it from `src/tools/health`.
+It needs Go, `kubectl`, and `az` logged in to an account with access to the clusters. Run `az graph query -h` once to
+install the Resource Graph extension if `az` asks for it.
 
-- Must have `az` CLI installed, logged into ai-dev account (that has access to relevant env)
-- Must have `kubectl` CLI installed (this tool will fetch creds for you if you don't have them)
-- Must have Go 1.26.4 installed
+## Usage
+
+Run `go run cmd/main.go help` from `src/tools/health` for the commands and examples, and `<command> -h` for a
+command's flags. Start with `init <environments>` to fetch credentials for the clusters.
+
+- `exec` asks before it runs a command on the clusters, and `--dry-run` only shows what it would run. It prints each
+  cluster's output in one row, with line breaks and tabs escaped, so select specific fields for compact output.
+- For an HTTPRoute, `status` shows each backend's weight. Git sets the weights, such as for
+  [pdf3's route](../../Runtime/pdf3/README.md#dis-core).
+
+## Refresh and prune contexts
+
+For tt02, scope discovery to the account that is logged in: the dev account for `ttd`, and the prod account for other
+owners. With the `aze` account wrapper:
 
 ```sh
-# Run this to trigger prompt for az cli extension installation
-# We use graph query to more efficiently query available clusters
-az graph query -h
+aze dev -- go run cmd/main.go init --prune -s ttd tt02
+aze prod -- go run cmd/main.go init --prune --exclude-service-owner ttd tt02
 ```
 
-### Usage
-
-```sh
-$ make help
-Usage: make [target]
-
-Available targets:
-  help            Show this help message
-  build           Build all packages
-
-CLI usage:
-usage: go run cmd/main.go <command> [arguments]
-
-Available commands:
-  help            Print CLI usage
-  init            Discover clusters and configure credentials
-  status          Check status of resources across clusters
-  set-weight      Update HTTPRoute weights
-  exec            Execute kubectl/helm/flux commands across clusters
-
-Examples:
-  # Discover clusters and fetch credentials (single or multiple environments)
-  go run cmd/main.go init tt02
-  go run cmd/main.go init at22,at24
-  go run cmd/main.go init -s ttd tt02,prod
-  go run cmd/main.go init --kubeconfig ./kubeconfigs/tt02.yaml tt02
-
-  # Check resource status
-  go run cmd/main.go status tt02 hr traefik/altinn-traefik
-  go run cmd/main.go status tt02 ks runtime-pdf3/pdf3-app
-  go run cmd/main.go status at22,at24 dep runtime-pdf3/pdf3-proxy
-  go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
-
-  # Update HTTPRoute weights
-  go run cmd/main.go set-weight tt02 pdf/pdf3-migration 50 50
-  go run cmd/main.go set-weight at22,at24 pdf/pdf3-migration 0 100
-  go run cmd/main.go set-weight --dry-run tt02,prod pdf/pdf3-migration 0 100
-
-  # Execute commands across clusters
-  go run cmd/main.go exec tt02 kubectl get pods -n default
-  go run cmd/main.go exec at22,at24 flux get kustomizations -A
-  go run cmd/main.go exec -s ttd prod,tt02 helm list -A
-
-Run 'go run cmd/main.go <command> -h' for more information on a specific command.
-```
-
-By default, `init` reads contexts from `$HOME/.kube/config` and lets Azure CLI use its default
-credentials destination. Pass `--kubeconfig PATH` to inspect contexts in a specific file and write
-new credentials to that same file. The custom file may be new, but its parent directory must exist.
+Clusters that your account cannot see look the same as deleted clusters, so review the removals before you confirm
+`--prune`. It saves a `<kubeconfig>.backup-*` first, and removes only cluster and user entries that no other context
+uses.

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithMockStore } from '../../testing/mocks';
@@ -9,7 +10,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock'
 import type { AppContextProps } from '../../AppContext';
 import type { RefObject } from 'react';
 import { createRef } from 'react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutName = layout1NameMock;
@@ -51,8 +52,6 @@ const newLayout: IInternalLayout = {
 };
 
 describe('useFormLayoutMutation', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Calls saveFormLayoutV3 with correct arguments and payload', async () => {
     await renderAndMutate(newLayout);
     expect(queriesMock.saveFormLayoutV3).toHaveBeenCalledTimes(1);
@@ -83,7 +82,7 @@ describe('useFormLayoutMutation', () => {
   });
 
   it('Reloads preview iframe', async () => {
-    const reload = jest.fn();
+    const reload = vi.fn();
     const previewIframeRefMock = createRef<HTMLIFrameElement>();
     const previewIframeRef: RefObject<HTMLIFrameElement> = {
       current: {

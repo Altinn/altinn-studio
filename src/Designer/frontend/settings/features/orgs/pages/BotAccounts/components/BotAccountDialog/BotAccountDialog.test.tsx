@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { BotAccountDialog } from './BotAccountDialog';
@@ -56,8 +56,6 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('general
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 
 describe('BotAccountDialog', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('renders the create title when not editing', () => {
     renderBotAccountDialog();
     expect(

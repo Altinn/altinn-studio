@@ -1,8 +1,9 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ResourceNameAndIdProps } from './ResourceNameAndId';
 import { ResourceNameAndId } from './ResourceNameAndId';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockTitleLabel = 'TitleLabel';
 const mockIdLabel = 'IdLabel';
@@ -23,8 +24,8 @@ const cancelEditButtonText = textMock('resourceadm.dashboard_resource_name_and_i
 });
 
 describe('ResourceNameAndId', () => {
-  const mockHandleEditTitle = jest.fn();
-  const mockHandleIdInput = jest.fn();
+  const mockHandleEditTitle = vi.fn();
+  const mockHandleIdInput = vi.fn();
 
   const defaultProps: ResourceNameAndIdProps = {
     titleLabel: mockTitleLabel,

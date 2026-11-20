@@ -1,18 +1,20 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { MockedFunction } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { AboutTab } from './AboutTab';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { UseMutationResult } from '@tanstack/react-query';
 
-jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
-const updateAppMetadataMutation = jest.fn();
-const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
+vi.mock('app-development/hooks/mutations/useAppMetadataMutation');
+const updateAppMetadataMutation = vi.fn();
+const mockUpdateAppMetadataMutation = useAppMetadataMutation as MockedFunction<
   typeof useAppMetadataMutation
 >;
 mockUpdateAppMetadataMutation.mockReturnValue({
@@ -20,15 +22,13 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('AboutTab', () => {
-  afterEach(jest.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderAboutTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();
   });
 
   it('fetches applicationMetadata on mount', () => {
-    const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve({}));
     renderAboutTab({ getAppMetadata });
     expect(getAppMetadata).toHaveBeenCalledTimes(1);
   });
@@ -73,7 +73,7 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
+  const getAppMetadata = vi.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   renderAboutTab({
     getAppMetadata,

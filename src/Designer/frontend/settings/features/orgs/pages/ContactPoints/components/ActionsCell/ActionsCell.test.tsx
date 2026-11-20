@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ActionsCell } from './ActionsCell';
-import { StudioTable } from '@studio/components';
+import { StudioTable } from '@designer/components';
 
 const defaultProps = {
   onEdit: vi.fn(),
@@ -30,8 +30,6 @@ const getDeleteButton = () =>
   });
 
 describe('ActionsCell', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls onEdit when edit button is clicked', async () => {
     const user = userEvent.setup();
     const onEdit = vi.fn();

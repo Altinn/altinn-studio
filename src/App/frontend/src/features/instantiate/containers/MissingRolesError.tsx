@@ -1,15 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router';
 
+import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 export function MissingRolesError() {
   const { langAsString } = useLanguage();
   const selectedParty = useSelectedParty();
+  const accessManagementUrl = platformLinkHref('AccessManagementUrl');
+  const rolesAndRightsHelpUrl = platformLinkHref('RolesAndRightsHelpUrl');
 
   return (
     <InstantiationErrorPage
@@ -36,7 +38,7 @@ export function MissingRolesError() {
           <span>
             <Lang
               id='instantiate.authorization_error_check_rights'
-              params={[getHostname()]}
+              params={[accessManagementUrl]}
             />
           </span>
           <br />
@@ -44,7 +46,7 @@ export function MissingRolesError() {
           <span>
             <Lang
               id='instantiate.authorization_error_info_rights'
-              params={[getHostname()]}
+              params={[rolesAndRightsHelpUrl]}
             />
           </span>
           <span>

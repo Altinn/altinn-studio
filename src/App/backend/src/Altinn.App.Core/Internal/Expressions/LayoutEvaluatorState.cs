@@ -66,6 +66,11 @@ public class LayoutEvaluatorState
     public IInstanceDataAccessor DataAccessor { get; }
 
     /// <summary>
+    /// Whether a component model was loaded, which it is not for a task without layouts
+    /// </summary>
+    internal bool HasComponentModel => _componentModel is not null;
+
+    /// <summary>
     /// Get a hierarchy of the different contexts in the component model (remember to iterate <see cref="ComponentContext.ChildContexts" />)
     /// </summary>
     public async Task<List<ComponentContext>> GetComponentContexts()

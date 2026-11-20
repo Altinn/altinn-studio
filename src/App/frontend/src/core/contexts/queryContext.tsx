@@ -1,16 +1,15 @@
 import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import type { UseQueryResult } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 
 import { createContext } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import type { LaxContextProps, StrictContextProps } from 'src/core/contexts/context';
 
-type Err = Error | AxiosError;
-type QueryResult<T> = Pick<UseQueryResult<T, Err>, 'data' | 'isPending' | 'error'>;
+type Err = Error | HttpError;
+type QueryResult<T> = { data: T | undefined; isPending: boolean; error: Err | null };
 type QueryResultOptional<T> = QueryResult<T> & { enabled: boolean };
 type Query<Req extends boolean, QueryData> = () => Req extends true
   ? QueryResult<QueryData>

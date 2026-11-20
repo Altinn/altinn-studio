@@ -1,5 +1,6 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../../../types/FormItem';
@@ -9,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { OptionTabs } from './OptionTabs';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -17,8 +18,6 @@ const queryClient = createQueryClientMock();
 queryClient.setQueryData([QueryKey.TextResources, org, app], { nb: [], nn: [], en: [] });
 
 describe('OptionTabs', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should render component', () => {
     renderOptionTabs();
     expect(screen.getByText(textMock('ux_editor.options.tab_code_list'))).toBeInTheDocument();
@@ -160,7 +159,7 @@ type RenderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.Ra
 
 function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps = {},
-  handleComponentChange = jest.fn(),
+  handleComponentChange = vi.fn(),
   queries = {},
   optionListIdsFromLibrary = [],
 }: RenderOptionTabsProps<T> = {}) {

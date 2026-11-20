@@ -35,6 +35,7 @@ const { Provider, useCtx } = createContext<FormDataWriteProxies>({
     cancelSave: defaultProxy as Proxy<'cancelSave'>,
     saveFinished: defaultProxy as Proxy<'saveFinished'>,
     setLeafValue: defaultProxy as Proxy<'setLeafValue'>,
+    setLeafValueInList: defaultProxy as Proxy<'setLeafValueInList'>,
     appendToListUnique: defaultProxy as Proxy<'appendToListUnique'>,
     appendToList: defaultProxy as Proxy<'appendToList'>,
     removeIndexFromList: defaultProxy as Proxy<'removeIndexFromList'>,

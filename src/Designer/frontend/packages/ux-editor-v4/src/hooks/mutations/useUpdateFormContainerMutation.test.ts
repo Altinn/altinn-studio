@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
@@ -17,7 +18,7 @@ import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const selectedLayoutName = layout1NameMock;
@@ -67,10 +68,10 @@ describe('useUpdateFormContainerMutation', () => {
 });
 
 const renderAndWaitForData = async () => {
-  const getFormLayouts = jest
+  const getFormLayouts = vi
     .fn()
     .mockImplementation(() => Promise.resolve<FormLayoutsResponse>(externalLayoutsMock));
-  const getRuleConfig = jest
+  const getRuleConfig = vi
     .fn()
     .mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfigMock));
   const formLayoutsResult = renderHookWithProviders(

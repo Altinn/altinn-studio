@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
@@ -7,7 +8,7 @@ import {
 import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from '../../enums/HeaderMenuItemKey';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import type { NavigationMenuItem } from '../../types/NavigationMenuItem';
 import { ADMIN_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 
@@ -118,7 +119,7 @@ describe('headerMenuUtils', () => {
   describe('mapNavigationMenuToProfileMenu', () => {
     const buttonItem: NavigationMenuItem = {
       itemName: 'Button Item',
-      action: { type: 'button', onClick: jest.fn() },
+      action: { type: 'button', onClick: vi.fn() },
     };
     const linkItem: NavigationMenuItem = {
       itemName: 'Link Item',

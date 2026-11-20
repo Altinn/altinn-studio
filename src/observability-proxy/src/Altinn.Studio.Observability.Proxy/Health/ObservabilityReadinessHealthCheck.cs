@@ -35,18 +35,18 @@ internal sealed class ObservabilityReadinessHealthCheck : IHealthCheck
         {
             if (!IsAbsoluteHttpAddress(options.Downstreams.Agents.For(signal)))
             {
-                return Unhealthy($"The {signal.RouteGroup} agent address is invalid.");
+                return Unhealthy($"The {signal.Name} agent address is invalid.");
             }
 
             var storage = options.Downstreams.Storage.For(signal);
             if (storage.Count == 0)
             {
-                return Unhealthy($"No {signal.RouteGroup} storage addresses are configured.");
+                return Unhealthy($"No {signal.Name} storage addresses are configured.");
             }
 
             if (!storage.All(IsAbsoluteHttpAddress))
             {
-                return Unhealthy($"A {signal.RouteGroup} storage address is invalid.");
+                return Unhealthy($"A {signal.Name} storage address is invalid.");
             }
         }
 
