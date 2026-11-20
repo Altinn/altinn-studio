@@ -44,7 +44,6 @@ internal sealed class CleanupGeneratedFromTask : IWorkflowEngineCommand
         foreach (var dataElement in dataElements)
         {
             instanceDataMutator.RemoveDataElement(dataElement);
-            instance.Data?.Remove(dataElement);
         }
 
         return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());

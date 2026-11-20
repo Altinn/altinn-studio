@@ -100,8 +100,8 @@ public class CleanupGeneratedFromTaskTests
         mutatorMock.Verify(x => x.RemoveDataElement(taskGeneratedElement), Times.Once);
         mutatorMock.Verify(x => x.RemoveDataElement(otherTaskElement), Times.Never);
         mutatorMock.Verify(x => x.RemoveDataElement(untaggedElement), Times.Never);
-        Assert.DoesNotContain(taskGeneratedElement, instance.Data);
-        Assert.Contains(otherTaskElement, instance.Data);
+        // Instance.Data holds what Storage has, so the element stays there until the save deletes it.
+        Assert.Equal([taskGeneratedElement, otherTaskElement, untaggedElement], instance.Data);
     }
 
     [Fact]

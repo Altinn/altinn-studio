@@ -41,7 +41,10 @@ internal sealed class CalculationDataAccessor(
                 }
             );
         }
+        // This test double builds its own instance, which no mutator saves.
+#pragma warning disable ALTINNAPP0503
         Instance.Data.Add(dataElement);
+#pragma warning restore ALTINNAPP0503
         _data.Add(dataElement.Id, model);
     }
 
