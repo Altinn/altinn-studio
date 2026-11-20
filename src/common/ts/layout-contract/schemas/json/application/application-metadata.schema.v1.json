@@ -176,7 +176,7 @@
         "confirm": {
           "type": "boolean",
           "title": "Confirm",
-          "description": "If true, the app confirms the instance as complete for the service owner when the process ends. The app owner's policy must grant the complete action."
+          "description": "If true, the app confirms the instance as complete for the service owner when the process ends. The app's policy must grant the service owner the complete action."
         }
       }
     },

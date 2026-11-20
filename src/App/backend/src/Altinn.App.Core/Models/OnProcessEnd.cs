@@ -8,7 +8,7 @@ namespace Altinn.App.Core.Models;
 public class OnProcessEnd
 {
     /// <summary>
-    /// Confirms the instance as complete for the service owner. The app owner's policy must grant the
+    /// Confirms the instance as complete for the service owner. The app's policy must grant the service owner the
     /// <c>complete</c> action, which Storage checks against the end event.
     /// </summary>
     [JsonProperty(PropertyName = "confirm")]

@@ -104,7 +104,11 @@ the same decision.
   with the ended state and the move to `idle`.
 - With `onProcessEnd.confirm`, a step after the process has ended confirms the instance as complete for the service
   owner, so Storage checks the `complete` grant against the end event. It runs before the release, because Storage
-  refuses a confirmation in the save that hard-deletes the instance.
+  refuses a confirmation in the save that hard-deletes the instance. The confirmation matters with
+  `autoDeleteOnProcessEnd` too: Storage's cleanup removes a hard-deleted instance whose process has ended only once
+  the instance carries a confirmation. A confirmation that Storage refuses, for example because the policy lacks the
+  grant at the end event, fails the callback, and the engine retries the step. Once it gives up, the ended instance
+  stays `processing` until the grant is fixed and the workflow is [resumed](#recovering-from-failures).
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)
