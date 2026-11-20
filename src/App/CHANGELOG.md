@@ -14,6 +14,34 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 
+### Fixed
+
+- An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
+
+## [9.0.0-preview.14] - 2026-11-20
+
+### Changed
+
+- On phones and tablets, List shows each row's columns stacked in one cell, also when read-only and in Summary2, instead of a table that is cut off. `tableHeadersMobile` chooses which columns it shows. Sorting controls remain in the desktop view. ([#22000](https://github.com/Altinn/altinn-studio/pull/22000))
+- Breaking: a number or boolean the data model cannot hold empty gets its property initializer, or `0` or `false` without one, when it is removed, such as hidden data, or set to null with `IFormDataWrapper.Set`. Removing it gave `0` or `false` before, and `Set` with null failed. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Rows a calculation writes into a list of objects merge into the row with the same `altinnRowId`, as copied rows have, and otherwise by position. A list with duplicate row ids, or ids on only some rows, is logged as an error and not written. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Expressions read text with spaces around a number, such as `" 12 "`, as that number, in the form and on the server. A comma is still not a decimal separator, and the error now says so. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Expressions on the server read text as a boolean only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- The form and server convert calculated values to the field's type as they convert expression arguments: ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+  - a value that does not fit, such as `true` in a number field, is not written
+  - `null` in a required number or boolean gives its property initializer, or `0`, on the server
+  - a list of numbers with a `null` item is not written
+- `["dataModel", ...]` in the form gives an object, or the rows of a list, with every property the data model has, as `null` where the data has no value, as on the server. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A calculation that fails to evaluate on the server, such as `["if", "yes", 1]` on text that is not a boolean, no longer fails the save: the error is logged, the field keeps its value and the other calculations run. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+
+### Fixed
+
+- A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A calculation for an item in a list at the top of the data model, such as `numbers[1]`, sets that item in the form. It made a separate field named `numbers[1]` before. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Typing an invalid or unfinished date, such as `32.13.2026` or `12.12`, into a `Datepicker` bound to a `DateTime` field shows an invalid date message instead of crashing the form. ([Altinn/app-frontend-react#4180](https://github.com/Altinn/app-frontend-react/issues/4180))
+
 ## [9.0.0-preview.13] - 2026-11-19
 
 ### Added
