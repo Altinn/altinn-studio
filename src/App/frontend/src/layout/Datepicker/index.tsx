@@ -80,6 +80,16 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   /**
    * Avoid duplicate validation message.
    */
+  private static invalidDataFormatFilter(validation: BaseValidation): boolean {
+    return !(
+      validation.source === FrontendValidationSource.InvalidData &&
+      validation.message.key === 'validation_errors.pattern'
+    );
+  }
+
+  /**
+   * Avoid duplicate validation message.
+   */
   private static schemaFormatMinimumFilter(validation: BaseValidation): boolean {
     return !(
       validation.source === FrontendValidationSource.Schema &&
@@ -98,7 +108,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   }
 
   getValidationFilters(baseComponentId: string, layoutLookups: LayoutLookups): ValidationFilterFunction[] {
-    const filters = [Datepicker.schemaFormatFilter];
+    const filters = [Datepicker.schemaFormatFilter, Datepicker.invalidDataFormatFilter];
     const component = layoutLookups.getComponent(baseComponentId, 'Datepicker');
 
     if (component.minDate) {
