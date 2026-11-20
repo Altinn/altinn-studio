@@ -9,7 +9,7 @@ public sealed class SuccessfulServiceTask : IServiceTask
 {
     public string Type => "write";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     public Task<ServiceTaskResult> Execute(StageContext context)
     {

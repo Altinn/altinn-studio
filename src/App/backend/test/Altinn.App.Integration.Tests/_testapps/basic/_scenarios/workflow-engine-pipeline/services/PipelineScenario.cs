@@ -20,7 +20,7 @@ public sealed class ThreePartPipelineTask : IServiceTask
 {
     public string Type => "pipeline";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(ReserveResources)
             .Stage(
@@ -32,7 +32,7 @@ public sealed class ThreePartPipelineTask : IServiceTask
                     RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 3),
                 }
             )
-            .Finally(ConfirmOrder);
+            .Stage(ConfirmOrder);
 
     private Task<StageResult> ReserveResources(StageContext context)
     {

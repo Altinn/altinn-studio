@@ -15,7 +15,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailbox;
 
 /// <summary>
 /// A task answered by messages: "SendToArchive" opens the mailbox and publishes its address, and the
-/// exchange is concluded by <see cref="PipelineBuilder.ConcludeOnReplies"/> — two
+/// exchange is concluded by a <c>HandleReplies</c> whose handlers end the task — two
 /// messages, the first answered with <see cref="ServiceTaskExchangeResult.AwaitNextReply"/> and the
 /// second concluding the task. Two messages rather than one is deliberate: only an exchange that
 /// continues past its first message exercises the relay's successor path (enqueue a successor
@@ -53,7 +53,7 @@ public sealed class ArchivingServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(PrepareDocuments)
             .Stage(
@@ -66,7 +66,7 @@ public sealed class ArchivingServiceTask : IServiceTask
                 out MailboxHandle archive
             )
             .Stage(RecordDispatch)
-            .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
+            .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
     private Task<StageResult> PrepareDocuments(StageContext context)
     {

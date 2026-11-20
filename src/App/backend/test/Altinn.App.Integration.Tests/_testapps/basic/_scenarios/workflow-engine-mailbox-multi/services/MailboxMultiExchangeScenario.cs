@@ -15,9 +15,9 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailboxMulti;
 
 /// <summary>
 /// Two mailbox exchanges in one task, answered one after the other: "SendToArchive" opens the first,
-/// a <see cref="PipelineBuilder.HandleReplies"/> handler answers it <em>without</em>
+/// a <c>HandleReplies</c> whose handlers carry on answers it <em>without</em>
 /// concluding the task, and the segment that handler's conclusion starts opens the second
-/// ("SendToJournal") which <see cref="PipelineBuilder.ConcludeOnReplies"/> ends the task on.
+/// ("SendToJournal"), which a <c>HandleReplies</c> whose handlers end the task answers.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -56,12 +56,12 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(SendToArchive, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle archive)
             .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed)
             .Stage(SendToJournal, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle journal)
-            .ConcludeOnReplies(journal, onMessage: HandleJournalMessage, onClosed: HandleJournalClosed);
+            .HandleReplies(journal, onMessage: HandleJournalMessage, onClosed: HandleJournalClosed);
 
     private Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
     {
@@ -159,7 +159,7 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 /// <summary>
 /// The same two exchanges with <strong>both sends up front</strong> and neither handler concluding the
 /// task: <c>Stage(Alpha) → Stage(Beta) → HandleReplies(Alpha) → HandleReplies(Beta) → Stage(RecordOutcome)
-/// → Finally(...)</c>.
+/// → Stage(ConfirmBoth)</c>.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -184,7 +184,7 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 /// <item>
 /// <description>
 /// <strong>A continuation that concludes the task itself.</strong> The last segment ends in
-/// <see cref="PipelineBuilder.Finally"/> rather than an exchange, so the concluding step runs
+/// a <c>Stage</c> whose work ends the task rather than an exchange, so the concluding step runs
 /// on a continuation workflow and the process advances from there — the path the plan expects to work
 /// with no controller change.
 /// </description>
@@ -215,14 +215,14 @@ public sealed class UpfrontExchangesServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(SendAlpha, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle alpha)
             .Stage(SendBeta, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle beta)
             .HandleReplies(alpha, onMessage: HandleAlphaMessage, onClosed: HandleAlphaClosed)
             .HandleReplies(beta, onMessage: HandleBetaMessage, onClosed: HandleBetaClosed)
             .Stage(RecordOutcome)
-            .Finally(ConfirmBoth);
+            .Stage(ConfirmBoth);
 
     private Task<ServiceTaskOpeningStageResult> SendAlpha(StageContext context, ServiceTaskMailbox mailbox)
     {

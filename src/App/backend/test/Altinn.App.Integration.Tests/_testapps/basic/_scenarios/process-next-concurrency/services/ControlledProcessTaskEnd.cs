@@ -21,7 +21,7 @@ public sealed class ControlledProcessTaskEnd : IProcessTask
 
     public string Type => AltinnTaskTypes.Data;
 
-    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) =>
         pipeline
             .Stage(async _ =>
             {
@@ -29,8 +29,7 @@ public sealed class ControlledProcessTaskEnd : IProcessTask
                 _entered.TrySetResult();
                 await _release.Task;
                 return StageResult.Completed();
-            })
-            .Build();
+            });
 
     public static void Release()
     {

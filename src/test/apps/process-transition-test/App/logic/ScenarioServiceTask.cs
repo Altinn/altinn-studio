@@ -9,7 +9,7 @@ namespace Altinn.App.Logic;
 /// <summary>
 /// Post-commit lever for the forward transition (<c>path == "postCommit"</c>), implemented as a
 /// pipeline service task with one stage: <c>PrepareScenario</c> completes first, then the
-/// <c>Finally</c> (<c>RunScenario</c>) reads the TransitionControl levers and runs the scenario.
+/// stage that ends the task (<c>RunScenario</c>) reads the TransitionControl levers and runs the scenario.
 /// Once <c>PrepareScenario</c> completes, its completion is recorded durably. Later retries,
 /// deferral re-checks and resumes re-run only <c>RunScenario</c>, exercising the multi-stage
 /// contract (expansion, dispatch by stage index, per-stage durability) through the public API.
@@ -38,10 +38,10 @@ public sealed class ScenarioServiceTask : IServiceTask
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(PrepareScenario, new ProcessStepOptions { WaitBudget = TimeSpan.FromMinutes(5) })
-            .Finally(RunScenario, new ProcessStepOptions { WaitBudget = ScenarioWaitBudget });
+            .Stage(RunScenario, new ProcessStepOptions { WaitBudget = ScenarioWaitBudget });
 
     /// <summary>
     /// Defers while a browser test holds the instance, so assertions about waiting UI do not

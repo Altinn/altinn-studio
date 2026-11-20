@@ -35,7 +35,7 @@ namespace Altinn.App.logic.Pdf
 
         public string Type => "pdfIfRequested";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public async Task<ServiceTaskResult> Execute(StageContext context)
         {
