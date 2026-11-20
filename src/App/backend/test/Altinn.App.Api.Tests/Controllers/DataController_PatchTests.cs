@@ -1403,6 +1403,33 @@ public class DataControllerPatchTests : ApiTestBase
     }
 
     [Fact]
+    public async Task Patch_WhenAProcessorReplacesTheForm_LaterProcessorsAndTheResponseUseTheReplacement()
+    {
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IDataProcessor>();
+            services.AddSingleton<IDataWriteProcessor>(new DataController_PutTests.ReplacingDataWriteProcessor());
+            services.AddSingleton<IDataWriteProcessor>(new DataController_PutTests.EditingDataWriteProcessor());
+        };
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        var newModel = Assert.IsType<JsonElement>(parsedResponse.NewDataModel).Deserialize<Skjema>();
+        Assert.Equal("Replaced", newModel?.Melding?.Name);
+        Assert.Equal("Edited after the replacement", newModel?.Melding?.Random);
+        string stored = TestData.GetDataElementBlobContnet(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+        Assert.Contains("<name>Replaced</name>", stored);
+        Assert.Contains("<random>Edited after the replacement</random>", stored);
+    }
+
+    [Fact]
     public async Task RunPatch_MutateDataInValidator_Errors()
     {
         OverrideEnvironment = "Development";

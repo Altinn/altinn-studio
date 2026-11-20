@@ -6,7 +6,7 @@
 public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_CalculationTestModelFormDataWrapper
     : global::Altinn.App.Core.Internal.Data.IFormDataWrapper
 {
-    private readonly global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel _dataModel;
+    private global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel _dataModel;
 
     public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel);
 
@@ -21,6 +21,17 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Calculat
             ?? throw new global::System.InvalidCastException(
                 $"Attempted to cast data model of type Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel to {typeof(T).FullName}"
             );
+    }
+
+    public void ReplaceBackingData(object dataModel)
+    {
+        if (dataModel?.GetType() != typeof(global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel))
+        {
+            throw new global::System.ArgumentException(
+                $"Data model must be of type Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel, (was {dataModel?.GetType().FullName ?? "null"})"
+            );
+        }
+        _dataModel = (global::Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel)dataModel;
     }
 
     public Altinn_App_SourceGenerator_Integration_Tests_Models_CalculationTestModelFormDataWrapper(

@@ -6,7 +6,7 @@
 public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
     : global::Altinn.App.Core.Internal.Data.IFormDataWrapper
 {
-    private readonly global::Altinn.App.SourceGenerator.Tests.Skjema _dataModel;
+    private global::Altinn.App.SourceGenerator.Tests.Skjema _dataModel;
 
     public global::System.Type BackingDataType => typeof(global::Altinn.App.SourceGenerator.Tests.Skjema);
 
@@ -21,6 +21,17 @@ public sealed class Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper
             ?? throw new global::System.InvalidCastException(
                 $"Attempted to cast data model of type Altinn.App.SourceGenerator.Tests.Skjema to {typeof(T).FullName}"
             );
+    }
+
+    public void ReplaceBackingData(object dataModel)
+    {
+        if (dataModel?.GetType() != typeof(global::Altinn.App.SourceGenerator.Tests.Skjema))
+        {
+            throw new global::System.ArgumentException(
+                $"Data model must be of type Altinn.App.SourceGenerator.Tests.Skjema, (was {dataModel?.GetType().FullName ?? "null"})"
+            );
+        }
+        _dataModel = (global::Altinn.App.SourceGenerator.Tests.Skjema)dataModel;
     }
 
     public Altinn_App_SourceGenerator_Tests_SkjemaFormDataWrapper(

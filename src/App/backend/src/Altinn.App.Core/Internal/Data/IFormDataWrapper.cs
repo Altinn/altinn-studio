@@ -43,6 +43,16 @@ public interface IFormDataWrapper
         where T : class;
 
     /// <summary>
+    /// Replace the backing data model with <paramref name="dataModel"/>, which the wrapper then holds without a copy.
+    /// </summary>
+    /// <remarks>
+    /// Like reassigning any other object in the data model: references to the previous model are no longer the form.
+    /// The model must be of exactly the type the wrapper was created for, since storage serializes only that type.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If <paramref name="dataModel"/> is null or not of exactly the type of the data model</exception>
+    void ReplaceBackingData(object dataModel);
+
+    /// <summary>
     /// Get the value at the given path from the data model
     /// </summary>
     /// <param name="path">The dotted path to use (including inline indexes)</param>
