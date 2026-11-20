@@ -20,18 +20,6 @@ internal static class ServiceTaskElementMigration
     private static readonly XNamespace _bpmnNs = "http://www.omg.org/spec/BPMN/20100524/MODEL";
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
-    /// <summary>
-    /// The types of <c>BuiltInTaskTypes.ServiceTasks</c> in Altinn.App.Analyzers. Compared as written, like the
-    /// analyzer and the v9 app: a type that differs in case or whitespace resolves to no built-in task there.
-    /// </summary>
-    private static readonly IReadOnlySet<string> _builtInServiceTaskTypes = new HashSet<string>(StringComparer.Ordinal)
-    {
-        "pdf",
-        "subformPdf",
-        "eFormidling",
-        "fiksArkiv",
-    };
-
     public static async Task<MigrationResult> Migrate(string projectFolder)
     {
         var messages = new List<UpgradeMessage>();
@@ -60,7 +48,7 @@ internal static class ServiceTaskElementMigration
         var tasks = document
             .Descendants(_bpmnNs + TaskName)
             .Select(task => (Element: task, Type: TaskType(task)))
-            .Where(task => task.Type is not null && _builtInServiceTaskTypes.Contains(task.Type))
+            .Where(task => task.Type is not null && BuiltInTaskTypes.ServiceTasks.Contains(task.Type))
             .ToList();
         if (tasks.Count == 0)
             return new MigrationResult(messages);
