@@ -381,6 +381,8 @@ internal sealed partial class CalculationExpressionConverter
             var strict = op is "StrictEquality" or "StrictInequality";
             if (strict && (left.Kind is Kind.Null or Kind.Undefined || right.Kind is Kind.Null or Kind.Undefined))
             {
+                if (left.MayBeUndefined || right.MayBeUndefined)
+                    throw new NotSupportedException("Strict equality distinguishes a computed undefined from null.");
                 JsonNode? strictEqual;
                 if (left.Kind is Kind.Null or Kind.Undefined && right.Kind is Kind.Null or Kind.Undefined)
                     strictEqual = JsonValue.Create(left.Kind == right.Kind);
