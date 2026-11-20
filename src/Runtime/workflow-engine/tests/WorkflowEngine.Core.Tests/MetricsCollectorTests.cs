@@ -345,7 +345,7 @@ public class MetricsCollectorTests
     }
 
     [Fact]
-    public async Task TheHealthReasonGauge_HasASeriesForEachConditionInTheHealthMasks_At1WhileItHolds()
+    public async Task TheHealthReasonGauge_HasASeriesForEachConditionInTheDegradedMask_At1WhileItHolds()
     {
         using var meters = new MeterCollector();
 
@@ -359,14 +359,7 @@ public class MetricsCollectorTests
         meters.RecordObservableInstruments();
 
         Assert.Equal(
-            new Dictionary<string, long>(StringComparer.Ordinal)
-            {
-                ["unhealthy"] = 0,
-                ["stopped"] = 0,
-                ["queue_full"] = 1,
-                ["disabled"] = 0,
-                ["database_unavailable"] = 1,
-            },
+            new Dictionary<string, long>(StringComparer.Ordinal) { ["queue_full"] = 1, ["database_unavailable"] = 1 },
             meters.ByTag("altinn.workflow_engine.health.reason", "altinn.workflow_engine.reason")
         );
     }

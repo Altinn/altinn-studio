@@ -48,56 +48,6 @@ public class EngineHealthCheckTests
     }
 
     [Fact]
-    public async Task CheckHealthAsync_Unhealthy_ReturnsUnhealthy()
-    {
-        // Arrange
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Unhealthy);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
-        Assert.Equal("Engine is unhealthy", result.Description);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_Stopped_ReturnsUnhealthy()
-    {
-        // Arrange
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Stopped);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_Disabled_ReturnsDegraded()
-    {
-        // Arrange
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Disabled);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert
-        Assert.Equal(HealthStatus.Degraded, result.Status);
-        Assert.Equal("Engine is degraded", result.Description);
-    }
-
-    [Fact]
     public async Task CheckHealthAsync_QueueFull_ReturnsDegraded()
     {
         // Arrange
@@ -111,22 +61,6 @@ public class EngineHealthCheckTests
 
         // Assert
         Assert.Equal(HealthStatus.Degraded, result.Status);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_UnhealthyTakesPrecedenceOverDegraded()
-    {
-        // Arrange — both unhealthy and degraded flags set
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Unhealthy | EngineHealthStatus.QueueFull);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert — unhealthy should win
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
     }
 
     [Fact]

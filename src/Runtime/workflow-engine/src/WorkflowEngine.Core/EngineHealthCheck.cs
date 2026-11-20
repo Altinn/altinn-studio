@@ -43,12 +43,10 @@ internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrency
             },
         };
 
-        var result = status.ToHealthLevel() switch
-        {
-            EngineHealthLevel.Unhealthy => HealthCheckResult.Unhealthy("Engine is unhealthy", data: data),
-            EngineHealthLevel.Degraded => HealthCheckResult.Degraded("Engine is degraded", data: data),
-            _ => HealthCheckResult.Healthy("Engine is operational", data: data),
-        };
+        var result =
+            status.ToHealthLevel() == EngineHealthLevel.Degraded
+                ? HealthCheckResult.Degraded("Engine is degraded", data: data)
+                : HealthCheckResult.Healthy("Engine is operational", data: data);
 
         return Task.FromResult(result);
     }

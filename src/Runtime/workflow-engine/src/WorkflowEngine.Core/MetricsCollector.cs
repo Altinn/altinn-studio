@@ -31,12 +31,12 @@ internal sealed class MetricsCollector(
     private const int _overdueMailboxCountCap = 10_000;
 
     /// <summary>
-    /// The flags that make the engine degraded or unhealthy, each with the reason the health gauge reports it under.
+    /// The flags that make the engine degraded, each with the reason the health gauge reports it under.
     /// </summary>
     private static readonly (EngineHealthStatus Flag, string Reason)[] _healthReasonFlags =
     [
         .. Enum.GetValues<EngineHealthStatus>()
-            .Where(flag => (flag & (HealthStatusExtensions.DegradedMask | HealthStatusExtensions.UnhealthyMask)) != 0)
+            .Where(flag => (flag & HealthStatusExtensions.DegradedMask) != 0)
             .Select(flag => (flag, JsonNamingPolicy.SnakeCaseLower.ConvertName(flag.ToString()))),
     ];
 

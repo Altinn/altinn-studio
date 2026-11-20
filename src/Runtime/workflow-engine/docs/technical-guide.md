@@ -911,18 +911,16 @@ status, and `/api/v1/health/live` answers `200` while the process runs. The vers
 redirect never runs the readiness check.
 
 The Engine check is degraded while the engine's queue is full or the database is unavailable
-(`HealthStatusExtensions.ToHealthLevel`). The health status also has disabled, stopped and unhealthy flags, which would
-make the check degraded or unhealthy, but the engine sets none of them. The response includes worker, connection and
-queue counts. Probes are left out of the HTTP request metrics and the traces.
+(`HealthStatusExtensions.ToHealthLevel`), and healthy otherwise. The response includes worker, connection and queue
+counts. Probes are left out of the HTTP request metrics and the traces.
 
-The gauge `altinn.workflow_engine.health.status` reports the Engine check's level. The endpoints can still answer
-Unhealthy through the Database check: in a database outage the gauge reads 1 (degraded) while `/api/v1/health` answers
-Unhealthy. The engine notices an outage when its own fetch of work fails: at once if the database refuses connections,
-and only after the fetch times out if it stops answering. `altinn.workflow_engine.health.reason` says why: one series
-per flag in `HealthStatusExtensions.DegradedMask` and `UnhealthyMask`, at 1 while it holds and 0 otherwise. Only
-`queue_full` and `database_unavailable` occur today. Both gauges read the engine's status when the metrics are
-exported, not in the metrics collector's pass: in a database outage the pass's first database read fails, or is held
-until it times out, and nothing retries it.
+The gauge `altinn.workflow_engine.health.status` reports the Engine check's level: 0 healthy, 1 degraded. The endpoints
+can still answer Unhealthy through the Database check: in a database outage the gauge reads 1 while `/api/v1/health`
+answers Unhealthy. The engine notices an outage when its own fetch of work fails: at once if the database refuses
+connections, and only after the fetch times out if it stops answering. `altinn.workflow_engine.health.reason` says why
+the engine is degraded, with one series for `queue_full` and one for `database_unavailable`, at 1 while it holds and 0
+otherwise. Both gauges read the engine's status when the metrics are exported, not in the metrics collector's pass: in
+a database outage the pass's first database read fails, or is held until it times out, and nothing retries it.
 
 ## Configuration
 

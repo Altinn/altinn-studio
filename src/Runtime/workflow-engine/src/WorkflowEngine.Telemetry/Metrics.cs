@@ -566,19 +566,19 @@ public static class Metrics
     private static Func<IEnumerable<(string Reason, bool Holds)>>? _readHealthReasons;
 
     /// <summary>
-    /// Gauge of overall engine health (0=healthy, 1=degraded, 2=unhealthy), read from the engine whenever the metrics
-    /// are exported. See <see cref="ObserveHealth"/>.
+    /// Gauge of overall engine health (0=healthy, 1=degraded), read from the engine whenever the metrics are
+    /// exported. See <see cref="ObserveHealth"/>.
     /// </summary>
     public static readonly ObservableGauge<long> HealthStatus = Meter.CreateObservableGauge<long>(
         "altinn.workflow_engine.health.status",
         static () => _readHealthStatus is { } read ? [new Measurement<long>(read())] : [],
-        description: "Engine health: 0=healthy, 1=degraded, 2=unhealthy"
+        description: "Engine health: 0=healthy, 1=degraded"
     );
 
     /// <summary>
-    /// Gauge of why the engine is degraded or unhealthy: one measurement per condition that can make it so, tagged
-    /// with <c>altinn.workflow_engine.reason</c> (such as <c>queue_full</c> or <c>database_unavailable</c>), 1 while
-    /// the condition holds and 0 otherwise. Read like <see cref="HealthStatus"/>.
+    /// Gauge of why the engine is degraded: one measurement per condition that can make it so, tagged with
+    /// <c>altinn.workflow_engine.reason</c> (<c>queue_full</c> or <c>database_unavailable</c>), 1 while the condition
+    /// holds and 0 otherwise. Read like <see cref="HealthStatus"/>.
     /// </summary>
     public static readonly ObservableGauge<long> HealthReasons = Meter.CreateObservableGauge<long>(
         "altinn.workflow_engine.health.reason",
@@ -590,7 +590,7 @@ public static class Metrics
                         new KeyValuePair<string, object?>(TelemetryAttributes.Reason, r.Reason)
                     ))
                 : [],
-        description: "1 while the condition in altinn.workflow_engine.reason makes the engine degraded or unhealthy, else 0"
+        description: "1 while the condition in altinn.workflow_engine.reason makes the engine degraded, else 0"
     );
 
     private static long _activeWorkflowsCount;
@@ -807,7 +807,7 @@ public static class Metrics
 
     /// <summary>
     /// Sets where <see cref="HealthStatus"/> and <see cref="HealthReasons"/> read the engine's health: the health
-    /// level, and every condition that can make the engine degraded or unhealthy, whether it holds or not.
+    /// level, and every condition that can make the engine degraded, whether it holds or not.
     /// </summary>
     /// <remarks>
     /// Read when the metrics are exported rather than set by the metrics collector's pass: in a database outage the
