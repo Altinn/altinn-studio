@@ -1,484 +1,144 @@
 ---
 name: studio-data-model
-description: 'How Altinn data models work: JSON Schema conventions, C# class generation, binding names, and the datamodel sync workflow. Load before creating or changing anything under App/models/.'
+description: "Data models under App/models: the JSON schema that the C# class and XSD are generated from, the data type and classRef in applicationmetadata.json, binding paths, naming rules and the constraints Studio supports."
 ---
 
-# ALTINN DATAMODEL STRUCTURE AND RULES
+## App version
 
-## CRITICAL REQUIREMENT
+The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the
+app's version. Before you change
+anything, read [references/v8.md](references/v8.md) for a v8 app or [references/v9.md](references/v9.md) for a v9 app.
 
-When working with Altinn datamodels, change **ONLY** the `.schema.json` file, then call `altinn_datamodel_sync` with its path. Altinn Studio Designer then generates the `.cs` and `.xsd` files and adds or updates the model's data type in `App/config/applicationmetadata.json`, exactly as "Generate model" in Studio does. **Never write or edit the `.cs` or `.xsd` file yourself.**
+## How the files fit together
 
-**IMPORTANT:** A new app made in Studio has **ONE** data model, and its files are named `model`:
+An app can have any number of data models, with any valid name. Many apps have more than one, and only about one app
+in four has a model called `model`. Read the data types in `applicationmetadata.json` to find an app's models.
 
-- `model.cs`
-- `model.schema.json`
-- `model.xsd`
+For a data type with the id `soknad`:
 
-**Keep the C# class name and the XML root element of an existing model.** The JSON schema sets them in two different ways:
+- `App/models/soknad.schema.json` is the source. The frontend validates input against it.
+- `App/models/soknad.cs` is the C# class, generated from the schema. The backend reads and validates form data with
+  it, and app code uses it.
+- `App/models/soknad.xsd` is the XML schema, generated from the schema. It describes the data in XML, for example
+  for systems that receive it.
+- `App/models/soknad.prefill.json` and `soknad.validation.json` are optional configuration for the same data type.
+  The `studio-prefill` and `studio-validation` skills cover them.
 
-- The C# class name is the root type name. If the root refers to a type in `$defs` or `definitions` through a `oneOf` with one `$ref`, the root type name is the name of that type. If the root has its own `properties`, the root type name is the `@xsdRootElement` value. Do not put a `$ref` directly on the root, because Designer cannot generate the model from such a schema.
-- The XML root element is the `@xsdRootElement` value.
-
-A new class name breaks the app's C# code. A new root element changes the XML of the data the app stores. So in an existing model, do not change `@xsdRootElement`, do not rename the type that the root refers to, and do not move the root properties into or out of a `$defs` type. A new data model needs a root type name that no other data model in the app uses.
-
-## FILE STRUCTURES
-
-### 1. C# MODEL FILE (model.cs)
-
-**Structure:**
-
-- Namespace: `Altinn.App.Models.[ModelName]`
-- Class declaration with `[XmlRoot]` attribute
-- Properties with serialization attributes:
-  - `[XmlElement]` with name and order
-  - `[Required]` if property is mandatory
-  - `[JsonProperty]` and `[JsonPropertyName]`
-
-**Example:**
-
-```csharp
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-using System.Xml.Serialization;
-using Newtonsoft.Json;
-
-namespace Altinn.App.Models.ModelName
-{
-  [XmlRoot(ElementName="ModelName")]
-  public class ModelName
-  {
-    [XmlElement("propertyName", Order = 1)]
-    [Required]
-    [JsonProperty("propertyName")]
-    [JsonPropertyName("propertyName")]
-    public string propertyName { get; set; }
-  }
-}
-```
-
-### 2. JSON SCHEMA FILE (model.schema.json)
-
-**Structure:**
-
-- `$schema` and `$id` declarations
-- `@xsdNamespaces` and `@xsdSchemaAttributes` sections
-- `@xsdRootElement`, the XML root element, matching the model name for a new model
-- `"required"` array listing mandatory properties
-- `"properties"` object defining each property with its type
-- `"$defs"` section for reusable data type definitions
-- `"$ref"` references to link to defined types
-
-**Example:**
+The app finds the schema, the XSD and the configuration files by the data type id, and the C# class by `classRef`. Name
+all of them after the data type id, as Studio does. The data type looks like this, with the task binding that the
+version file describes:
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://altinn-repositories:3000/org/repo/App/models/ModelName.schema.json",
-  "info": {
-    "rootNode": ""
-  },
-  "@xsdNamespaces": {
-    "xsd": "http://www.w3.org/2001/XMLSchema",
-    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-    "seres": "http://seres.no/xsd/forvaltningsdata"
-  },
-  "@xsdSchemaAttributes": {
-    "AttributeFormDefault": "Unqualified",
-    "ElementFormDefault": "Qualified",
-    "BlockDefault": "None",
-    "FinalDefault": "None"
-  },
-  "@xsdRootElement": "ModelName",
-  "type": "object",
-  "required": ["propertyName"],
-  "properties": {
-    "propertyName": {
-      "type": "string"
-    },
-    "complexProperty": {
-      "$ref": "#/$defs/ComplexType"
-    }
-  },
-  "$defs": {
-    "ComplexType": {
-      "properties": {
-        "subProperty": {
-          "@xsdType": "string",
-          "type": "string"
-        }
-      }
-    }
-  }
+  "id": "soknad",
+  "allowedContentTypes": ["application/xml"],
+  "appLogic": { "autoCreate": true, "classRef": "Altinn.App.Models.Soknad.Soknad" },
+  "maxCount": 1,
+  "minCount": 1
 }
 ```
 
-### 3. XML SCHEMA FILE (model.xsd)
-
-**Structure:**
-
-- XML declaration and namespace definitions
-- `xs:annotation` section with `rootNode` attribute
-- `xs:element` with the model name
-- `xs:complexType` with `xs:sequence` of property elements
-- Each property as `xs:element` with type and `minOccurs` attributes
-
-**Example:**
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns:seres="http://seres.no/xsd/forvaltningsdata"
-            xmlns:xs="http://www.w3.org/2001/XMLSchema"
-            attributeFormDefault="unqualified"
-            elementFormDefault="qualified"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xs:annotation>
-    <xs:documentation>
-      <xsd:attribute name="rootNode" fixed="" />
-    </xs:documentation>
-  </xs:annotation>
-  <xs:element name="ModelName">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="propertyName" type="xs:string" />
-        <xs:element minOccurs="0" name="optionalProperty" type="xs:string" />
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-</xsd:schema>
-```
-
-## DATA TYPES AND REFERENCES
-
-### 1. Using $defs for Reusable Data Types
-
-The `$defs` section allows you to define reusable data types within your JSON schema. This promotes consistency and reduces duplication.
-
-**Structure:**
-
-```json
-"$defs": {
-  "TypeName": {
-    "properties": {
-      "propertyName": {
-        "@xsdType": "string",
-        "type": "string",
-        "@xsdMinOccurs": 0
-      }
-    }
-  }
-}
-```
-
-### 2. Using $ref to Reference Defined Types
-
-Use `$ref` to reference types defined in the `$defs` section or external schemas.
-
-**Internal Reference:**
-
-```json
-"complexProperty": {
-  "$ref": "#/$defs/ComplexType"
-}
-```
-
-**Array of References:**
-
-```json
-"arrayProperty": {
-  "type": "array",
-  "items": {
-    "$ref": "#/$defs/ItemType"
-  },
-  "@xsdMinOccurs": 0,
-  "@xsdMaxOccurs": "unbounded"
-}
-```
-
-### 3. Common Data Type Patterns
-
-**Enumeration Types:**
-
-```json
-"$defs": {
-  "StatusType": {
-    "@xsdType": "string",
-    "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
-    "type": "string",
-    "enum": [
-      "Active",
-      "Inactive",
-      "Pending"
-    ]
-  }
-}
-```
-
-**Restricted String Types:**
-
-```json
-"$defs": {
-  "PersonName": {
-    "@xsdType": "string",
-    "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
-    "type": "string",
-    "maxLength": 175,
-    "minLength": 1
-  }
-}
-```
-
-**Complex Object Types:**
-
-```json
-"$defs": {
-  "Address": {
-    "properties": {
-      "street": {
-        "@xsdType": "string",
-        "type": "string",
-        "@xsdMinOccurs": 0
-      },
-      "city": {
-        "@xsdType": "string",
-        "type": "string",
-        "@xsdMinOccurs": 0
-      },
-      "postalCode": {
-        "@xsdType": "string",
-        "type": "string",
-        "@xsdMinOccurs": 0
-      }
-    }
-  }
-}
-```
-
-### 4. XSD Attributes for JSON Schema
-
-**Common XSD Attributes:**
-
-- `@xsdType`: Specifies the XSD type (e.g., "string", "boolean", "integer")
-- `@xsdMinOccurs`: Controls if element is optional (0) or required (omit attribute)
-- `@xsdMaxOccurs`: For arrays, use "unbounded" for unlimited items
-- `@xsdStructure`: Use "XmlSchemaSimpleTypeRestriction" for enums and restricted types
-
-## POLYMORPHISM AND OOB CONCEPTS
-
-### 1. Using $defs for Reusable Data Types
-
-The `$defs` section allows you to define reusable data types within your JSON schema. This promotes consistency and reduces duplication.
-
-**Structure:**
-
-```json
-"$defs": {
-  "TypeName": {
-    "properties": {
-      "propertyName": {
-        "@xsdType": "string",
-        "type": "string",
-        "@xsdMinOccurs": 0
-      }
-    }
-  }
-}
-```
-
-### 2. Using $ref to Reference Defined Types
-
-Use `$ref` to reference types defined in the `$defs` section following standard object-oriented programming principles.
-
-**Internal Reference:**
-
-```json
-"complexProperty": {
-  "$ref": "#/$defs/ComplexType"
-}
-```
-
-**Array of References:**
-
-```json
-"arrayProperty": {
-  "type": "array",
-  "items": {
-    "$ref": "#/$defs/ItemType"
-  },
-  "@xsdMinOccurs": 0,
-  "@xsdMaxOccurs": "unbounded"
-}
-```
-
-### 3. Root Model Definition with oneOf
-
-Some data models use `oneOf` at the root level to reference the main data structure:
-
-```json
-"@xsdRootElement": "model",
-"type": "object",
-"oneOf": [
-  {
-    "$ref": "#/$defs/MainDataModel"
-  }
-],
-"$defs": {
-  "MainDataModel": {
-    "properties": {
-      "surveyField1": {
-        "@xsdType": "string",
-        "type": "string"
-      },
-      "surveyField2": {
-        "$ref": "#/$defs/ComplexType"
-      }
-    }
-  }
-}
-```
-
-This ensures there is only one instance of the main `model` object representing the entire app's data.
-
-### 4. Common Data Type Patterns
-
-**Enumeration Types:**
-
-```json
-"$defs": {
-  "StatusType": {
-    "@xsdType": "string",
-    "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
-    "type": "string",
-    "enum": ["Active", "Inactive", "Pending"]
-  }
-}
-```
-
-**Restricted String Types:**
-
-```json
-"$defs": {
-  "PersonName": {
-    "@xsdType": "string",
-    "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
-    "type": "string",
-    "maxLength": 175,
-    "minLength": 1
-  }
-}
-```
-
-## TYPE MAPPINGS
-
-| Base Type | C# Type  | JSON Schema Type | XSD Type    |
-| --------- | -------- | ---------------- | ----------- |
-| string    | string   | string           | xs:string   |
-| integer   | int      | integer          | xs:integer  |
-| number    | decimal  | number           | xs:decimal  |
-| boolean   | bool     | boolean          | xs:boolean  |
-| date      | DateTime | string           | xs:date     |
-| datetime  | DateTime | string           | xs:dateTime |
-| array     | List<T>  | array            | complex     |
-| object    | Class    | object/$ref      | complex     |
-
-## NAMING CONVENTIONS
-
-### 1. Model Names:
-
-- Use PascalCase (e.g., "TaxReport")
-- Must be consistent across all three files
-- `@xsdRootElement` becomes the root element in XSD, and the root type name becomes the class name in C#
-
-### 2. Property Names:
-
-- Use camelCase (e.g., "firstName")
-- Must be consistent across all three files
-- Used as property name in C#, property key in JSON schema, and element name in XSD
-
-### 3. Data Type Names in $defs:
-
-- Use PascalCase (e.g., "PersonDetails", "AddressInfo")
-- Should be descriptive and follow object-oriented naming principles
-- Avoid generic names like "Type1" or "Data"
-
-## VALIDATION RULES
-
-You write the JSON schema part of each rule. The generated C# and XSD files follow from it.
-
-### 1. Required Properties:
-
-- C#: Add `[Required]` attribute
-- JSON Schema: Include in "required" array
-- XSD: Omit `minOccurs="0"` attribute
-
-### 2. Optional Properties:
-
-- C#: No `[Required]` attribute
-- JSON Schema: Add `"@xsdMinOccurs": 0` attribute
-- XSD: Add `minOccurs="0"` attribute
-
-### 3. Array Properties:
-
-- C#: Use `List<T>` type
-- JSON Schema: Use `"type": "array"` with `"items"` containing `$ref` or type definition
-- XSD: Use `maxOccurs="unbounded"` for unlimited items
-
-### 4. Property Order:
-
-- C#: Specify in Order parameter of `[XmlElement]`
-- XSD: Maintain same sequence order
-- JSON Schema: Order not enforced but recommended for consistency
-
-## EDITING GUIDELINES
-
-### 1. Adding a Data Type:
-
-- Add new definition in `$defs` section of JSON schema
-- Use consistent naming across all files
-
-### 2. Adding a Property:
-
-- Use `$ref` in JSON schema if referencing a defined type
-- Add to "required" array in JSON schema if mandatory
-
-### 3. Removing a Property:
-
-- Update "required" array in JSON schema if it was mandatory
-- Remove unused type definitions from `$defs` if no longer referenced
-
-### 4. Modifying a Property:
-
-- Update type using the type mapping table
-- If changing from simple type to complex type, create new `$defs` entry and use `$ref`
-
-### 5. Working with References:
-
-- Always use `$ref` when referencing types defined in `$defs`
-- Keep `$defs` section organized and avoid duplicate type definitions
-- Use descriptive names for reusable types to improve maintainability
-
-**REMEMBER:** Change the `.schema.json` file, then call `altinn_datamodel_sync`. If it reports an error, such as a C# compiler error, fix the JSON schema and call it again. Never change the `.cs` or `.xsd` file to make the error go away.
-
-## MANDATORY VALIDATION CHECKLIST
-
-Before finalizing any Altinn datamodel generation, **VERIFY ALL** of the following:
-
-### JSON Schema Validation:
-
-- [ ] All properties have appropriate `@xsdType` annotations
-- [ ] Optional properties have `@xsdMinOccurs: 0`
-- [ ] Arrays have `@xsdMaxOccurs: "unbounded"`
-- [ ] Enums have `@xsdStructure: "XmlSchemaSimpleTypeRestriction"`
-- [ ] All `$ref` references point to valid `$defs` entries
-- [ ] `@xsdRootElement` and the root type name of an existing model are unchanged
-
-### Cross-File Consistency:
-
-- [ ] `altinn_datamodel_sync` reported success after the last change to the JSON schema
-- [ ] Property names identical across all three files
-- [ ] Required properties match in all files
-- [ ] Data types correspond according to mapping table
-- [ ] Property order in C# matches XSD sequence
-- [ ] Complex types exist in all relevant files
+- `appLogic.classRef` is the full name of the C# class. Studio writes `Altinn.App.Models.<Class>.<Class>`, where
+  `<Class>` is the name of the root's type without hyphens. When the root refers to a definition through a `oneOf`
+  with a single `$ref`, as most uploaded XSDs do, that is the definition's name. Otherwise it is the
+  `@xsdRootElement`. Studio Designer refuses a `$ref` directly on the root. Older models use
+  `Altinn.App.Models.<Class>`, and Studio keeps that form for a model that has it.
+- The data type names the task the model belongs to: `"taskId": "Task_1"` in v8 and `"taskIds": ["Task_1"]` in v9.
+  Users can change the data during that task. When the task ends, the app locks the data element, and later tasks
+  can only read it.
+- With `appLogic.autoCreate: true`, the app creates the data element when the task starts. Without it, something
+  else creates the element, such as a user who adds a subform entry. A stateless form's model names no task.
+- Several data types can share a task. The version file says which one is the default for the task's pages.
+- The `studio-app-settings` skill covers the other data type settings.
+
+## Change the schema, then the C# class and the XSD
+
+The schema is the source of the C# class and the XSD. Studio Designer generates both from it with the DataModeling
+library, `src/Designer/backend/src/DataModeling` in the altinn-studio repository. Studio's data model editor saves the
+schema as you edit, but writes the two files only when you click **Generer modell**. While they are behind the schema,
+it shows "Du har endringer som ikke er generert". Until the C# class matches the schema, the backend uses the old one.
+
+- If you have a tool that generates the files with Studio Designer, as the Studio assistant does, change only the
+  schema and call the tool after every change. Never write the `.cs` or `.xsd` yourself. When generation fails, for
+  example with a C# compiler error, fix the schema and generate again.
+- Otherwise, as in a local clone of the app, change the schema, the C# class and the XSD together. Write the two files
+  as Studio Designer would generate them. Follow the app's existing `.cs` and `.xsd` files, and the DataModeling
+  library where they show no example. For instance, Studio Designer gives each class that an array holds an
+  `AltinnRowId` property.
+- In both cases, put nothing in the C# class that the schema does not describe. Generating the model in Studio later
+  replaces both files.
+- Generation also sets `classRef`, and adds the data type when it is missing. When you write the files yourself, set
+  `classRef` and add the data type yourself. Studio adds a new data type that names no task. Connect it to a task in
+  Studio's process editor, or bind it to the task and set the task's default data model yourself as the version file
+  says.
+
+## Binding paths
+
+Layouts, texts, expressions and prefill all point at a field with the same path:
+
+- The path starts below the root element and joins property names with dots: `person.fornavn`. Use the property
+  names from the JSON schema, not the C# names.
+- A component binds to its task's default data model with the path alone, and to another model with
+  `{ "dataType": "<data type id>", "field": "<path>" }`.
+- A repeating group binds to the list, such as `personer`. Components in the group bind to the full path without an
+  index, such as `personer.fornavn`.
+- When you rename or move a field, search `App/` for the old path. Layouts, text variables, expressions,
+  `prefill.json`, validation configuration and C# code can all use it.
+
+## Names
+
+Studio's editor checks these rules, and generation depends on them:
+
+- A model's name, which is its data type id and file name, starts with an ASCII letter in either case, followed by
+  ASCII letters, digits and `_`. It has at most 100 characters, is not a C# keyword, and differs from every other
+  model and data type in the app, ignoring case.
+- `@xsdRootElement` names the root element in XML. The C# class is named after the root's type, as `classRef`
+  above describes. Two models in one app may share a root element, but not a class name. Both C# files would
+  declare the same class, so the app would not build, and Studio refuses such a model.
+- Keep the `@xsdRootElement` of an existing model. After a change, the app can no longer read the data of instances
+  created before it. Change it only when the user says that no instance has data in the model, for example because
+  the app has never been deployed.
+- Renaming the C# class breaks every place in the app's C# code that uses it, until you rename it there too. Renaming
+  the definition the root refers to renames the class, and so does moving the root's properties into or out of
+  `$defs`.
+- A property name starts with a letter, where `æ`, `ø` and `å` count, followed by letters, digits, `_` and `-`. It is
+  not a C# keyword and is unique among its siblings. Studio Designer drops `-` from the C# name and keeps the full
+  name in JSON and XML.
+
+## Constraints Studio supports
+
+Studio's editor writes these keywords:
+
+- `required` on an object's properties
+- `enum`
+- on strings: `minLength`, `maxLength`, `pattern` and `format`, such as `date`
+- on numbers and integers: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum` and `multipleOf`
+- on arrays: `minItems` and `maxItems`
+
+- The frontend validates them from the JSON schema, except `required`, which it ignores. To make the user fill in a
+  field, set `required` on the component, as the `studio-validation` skill describes.
+- Studio Designer turns the lengths, `pattern` and the ranges into attributes on the C# class, so the backend
+  validates them too.
+- Studio Designer handles a fixed set of keywords. On the root and on objects it stops with an error at others, such
+  as `if` and `additionalProperties`. On a single field it ignores them, so the backend does not check them.
+- Put reusable types in `$defs` and refer to them with `$ref` inside the same file.
+- Keep the `@xsd` keywords a schema already has. Studio needs them to produce the same XSD again.
+
+## Restricted data and Altinn 2 models
+
+- Data that only the service owner may read or write goes in a data type of its own, with its own access rules. See
+  [Beskyttede data (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/restricted-data/) or
+  [Beskyttede data (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/data/restricted-data/).
+- For an XSD from SERES or Altinn 2, upload it in Studio's data model editor rather than writing the schema. See
+  [Overgang fra Seres](https://docs.altinn.studio/nb/altinn-studio/v8/guides/altinn-2/seres-migration/).
+
+## Before you finish
+
+- The schema, the C# file and the XSD are named after the data type id, and `classRef` names the class that the C#
+  file declares.
+- The C# class and the XSD match the current schema.
+- Each data model has a C# class name of its own.
+- An existing model has the `@xsdRootElement` it had, unless the user said that no instance has data in it.
+- The app's C# code uses the current class names.
+- Every binding, text variable, expression and prefill target that used a changed path uses the new one.
+- Every task ID in a data type's `taskId` or `taskIds` names a task in `App/config/process/process.bpmn`.

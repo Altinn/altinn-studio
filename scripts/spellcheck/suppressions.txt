@@ -187,6 +187,24 @@ designet
 # product decision, not a spelling fix. Each family below is part of the
 # app-facing surface (PublicApi snapshots) or mirrors a platform contract.
 
+# The Studio Assistant's skills name the shipped v8 spellings an agent finds in
+# a v8 app, and what v9 renamed them to: IFileAnalyser, the Maskinporten and
+# Correspondence Authorisation members, and the OrganisationLookup component and
+# its text key. Prose in the skills stays enforced through the identifier scope.
+@identifiers CorrespondenceAuthorisation IFileAnalyser OrganisationLookup organisation_lookup_orgnr UseMaskinportenAltinnAuthorisation UseMaskinportenAuthorisation
+@paths src/AI/assistant/agents/skills/**
+Analyser
+Authorisation
+Organisation
+organisation
+
+# The partyTypesAllowed key `organisation` in applicationmetadata.json, and the
+# v8 IFileAnalyser method `Analyse`, which the skills quote as written.
+@identifiers Analyse organisation
+@paths src/AI/assistant/agents/skills/studio-app-settings/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md
+Analyse
+organisation
+
 # The OrganisationOrPersonIdentifier nested record `Organisation`, the
 # SystemUser/MaskinportenTokenRequest `Organisation` properties and their
 # pattern-match locals, the platform Register/Storage members
@@ -215,11 +233,27 @@ mis
 @paths src/App/frontend/src/features/devtools/utils/layoutSchemaValidation.ts
 lik
 
+# The Studio Assistant's skills quote Norwegian text verbatim, since agents must
+# match it: Studio's UI texts ("Generer modell"), the chat titles of the skills,
+# docs page titles ("Slik oppgraderer du appen fra v8 til v9").
+@paths src/AI/assistant/agents/skills/studio-app-development/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v8.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md src/AI/assistant/agents/skills/studio-app-settings/references/v9.md src/AI/assistant/agents/skills/studio-data-model/SKILL.md src/AI/assistant/agents/skills/studio-docs/SKILL.md src/AI/assistant/agents/skills/studio-integrations/SKILL.md src/AI/assistant/agents/skills/studio-integrations/references/v8.md src/AI/assistant/agents/skills/studio-integrations/references/v9.md src/AI/assistant/agents/skills/studio-layouts/references/v9.md src/AI/assistant/agents/skills/studio-process/SKILL.md src/AI/assistant/agents/skills/studio-process/references/v9.md
+Lage
+Prosess
+appen
+modell
+prosess
+ser
+
 # Norwegian working notes for the augmenter agent.
 @paths src/AI/augmenter-agent/TODO-coderabbit.md
 foldes
 prosess
 som
+
+# The Studio Assistant's policy skill gives an example rule description in
+# Norwegian, worded like the rules in the app template.
+@paths src/AI/assistant/agents/skills/studio-policy/SKILL.md
+Gir
 
 # The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
 # so the old spellings are its working data: the rename map, the rewrite

@@ -1,44 +1,108 @@
 ---
 name: studio-docs
-description: Navigate the official Altinn documentation (docs.altinn.studio). Load when you need information the other skills don't cover — APIs, process/BPMN, signing, payment, authorization details, deployment, or anything unfamiliar. Has a curated page index.
+description: Find the right page on docs.altinn.studio for v8 and v9 Altinn Studio apps, Authorization, access packages and the other Altinn products. Use when you need the official docs on something no other skill covers.
 ---
 
-# Altinn documentation navigation
+The docs on docs.altinn.studio are the source of truth for what a feature does and how to configure it.
 
-Also read [references/v9.md](references/v9.md) for a v9 app.
+## Search the index
 
-The official docs live at https://docs.altinn.studio. A curated index
-of the most useful pages is in [references/llms.txt](references/llms.txt) —
-one line per page: `[Title](https://…): one-line description`.
+`https://docs.altinn.studio/nb/llms.txt` lists every page, one line each, with a title, a URL and usually a short
+description. It is about 270 KB and covers every Altinn product, so search it for what you need instead of reading it
+whole.
 
-## How to find something
+Search the section that matches the question:
 
-1. Load the index and scan it for the page(s) matching your
-   question.
-2. `web_fetch` the page URL **copied verbatim from the index**. Never
-   construct or guess a docs URL — the site's paths don't follow a
-   guessable pattern and guesses 404.
-3. If one page references another you need, fetch that too — batch
-   independent fetches in one turn.
+- v8 apps: `/nb/altinn-studio/v8/`. How-to guides are under `guides/`, and configuration and components under
+  `reference/`.
+- v9 apps: `/nb/altinn-studio/v9/`. The v9 pages exist only in Norwegian. Most pages are under `develop-a-service/`,
+  and these sections hold most of the rest:
+  - `manage-a-service/`: deploying and undeploying, the runtime environment, firewall and outgoing IP addresses,
+    monitoring, access management and maintenance
+  - `test-a-service/`: testing locally, with test users and the app's APIs, and in the test environment
+  - `plan-a-service/`: service design, texts and tone of voice, and accessibility
+  - `getting-started/`: a Studio user, studioctl and local development
+  - `receive-data/`: sending the submitted data on with eFormidling and Fiks Arkiv
+  - `examples-and-patterns/`: a solution of several apps that work together, and how to test it
+- Other products have sections of their own, such as Authorization under `/nb/authorization/`, with access packages
+  under `/nb/authorization/what-do-you-get/accesspackages/`. The first list in the index, *Hovedseksjoner*, names
+  every product section.
 
-## Component examples (canonical layouts)
+The paths are in English and most titles and descriptions in Norwegian, so try both: `validation` for the path,
+`validering` for the title. The studio-app-development skill says how to tell a v8 app from a v9 app.
 
-For real-world examples of every layout component type, the
-`ttd/component-library` app is the canonical source (publicly cloneable:
-`https://altinn.studio/repos/ttd/component-library.git` — for
-environments with shell access; the agent loop has none). In the loop,
-use `altinn_layout_props` for the authoritative property list.
+There is also an English index, `https://docs.altinn.studio/en/llms.txt`. It has no v9 pages, so never use it for a
+v9 app.
 
-## Tips
+Where a shell is available, one way to search is:
 
-- Fetch pages in English (`/en/` URLs) — the index links there; the
-  Norwegian mirror has the same structure under `/nb/`.
-- Don't fetch more than you need; each page is a full document. The
-  index descriptions are usually enough to pick the single right page.
-- If the index has no matching entry, the section landing pages are
-  safe URLs to fetch:
-  https://docs.altinn.studio/en/altinn-studio/ (Studio),
-  https://docs.altinn.studio/en/api/ (APIs),
-  https://docs.altinn.studio/en/app-template/ (app architecture).
-- If the docs genuinely don't cover it, proceed with your best
-  Altinn knowledge instead of fetching more URLs.
+```sh
+curl -s https://docs.altinn.studio/nb/llms.txt | grep 'altinn-studio/v9/' | grep -i 'signing'
+```
+
+## Fetch the page
+
+- Take every URL from the index. Never build or guess one. The v8 and v9 sections are organized differently, and a
+  wrong path returns a 404 page.
+- Fetch the URL exactly as the index gives it, ending in `index.md`. It returns the page as Markdown, which is
+  shorter than the HTML page.
+- Links inside a page are paths, such as `/nb/altinn-studio/v8/reference/...` or
+  `{{< relref "/altinn-studio/v9/..." >}}`. Search the index for the path to get the URL.
+- Skip pages under `parkinglot/`. They are waiting for a permanent place.
+- Read the pages one at a time, and stop when you have the answer.
+
+Some pages lack content in their Markdown:
+
+- A section page holds only `{{<children />}}`. Search the index for URLs that start with the section's path to see
+  its pages.
+- A v9 component page holds only `{{< component-props "..." >}}`, so its properties are not in the Markdown. They
+  are in the layout schema. The studio-layouts skill says which schema URL to read.
+- Some pages take part of their text from another file with `{{% insert "content/..." %}}`, and that text is not in
+  the Markdown. If the index has a page for the inserted file's folder, fetch it. If not, which is the usual case,
+  tell the user that part of the page is in another file, and give them the page link. Do not build a URL to the
+  file.
+- The start pages hold only navigation. `/nb/altinn-studio/index.md` is in the index but returns 404.
+
+## When the docs do not cover it
+
+If the index has no page on the topic, or the pages you read do not answer the question, tell the user that the docs
+do not cover it. Do not fetch more pages to look for it.
+
+## v9 apps
+
+The v9 docs start with [Hvorfor v9?](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/), which explains why
+v9 exists and what it changes, and
+[the upgrade guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/), which explains how to upgrade
+and the main changes the upgrade makes in an app. Link both when a user asks about v9 or about upgrading from v8. The
+guide leaves out smaller changes, such as API renames and removed layout settings. `studioctl app upgrade v9` prints
+each change it makes and what it leaves to the developer.
+
+## Example apps
+
+The docs show few complete layouts. These apps have a page for each layout component:
+
+- v8: `ttd/component-library` in Altinn Studio, at `https://altinn.studio/repos/ttd/component-library`. Sign in to
+  Altinn Studio to read it.
+- v9: a v9 copy of the same app, at
+  `https://github.com/Altinn/altinn-studio/tree/main/src/test/apps/component-library`. The app frontend's tests run
+  against it.
+
+Read them for examples, and check what you copy against the version of the app you change. If you cannot read GitHub
+or sign in to Altinn Studio, do not try to fetch them. Read the component's properties from the layout schema
+instead, and give the user the link.
+
+## Before you finish
+
+- Every docs URL you give the user comes from the index, without `index.md`, so that it opens the page in a browser.
+- The pages you relied on match the version of the user's app.
+
+## Docs
+
+- [Altinn Studio v8](https://docs.altinn.studio/nb/altinn-studio/v8/): the start page for people who browse the v8
+  docs.
+- [Altinn Studio v9](https://docs.altinn.studio/nb/altinn-studio/v9/): the start page for people who browse the v9
+  docs.
+- [Hvorfor v9?](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/): why v9 exists and what it changes for
+  service owners and app developers.
+- [Slik oppgraderer du appen fra v8 til v9](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/): how
+  to upgrade, and the main changes the upgrade makes in an app.
