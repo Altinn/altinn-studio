@@ -14,9 +14,6 @@ namespace Studioctl.Tests.Upgrade.v8Tov9.ProcessHooks;
 internal static class StorageCallStubs
 {
     public const string HookPath = "logic/Hook.cs";
-
-    /// <summary>The reason a form write that stays is a to-do.</summary>
-    public const string NoReplaceFormData = "the mutator has no member that replaces a form";
     public const string MetadataPath = "config/applicationmetadata.json";
 
     public const string IOnTaskStartingHandler = ProcessHookStubs.IOnTaskStartingHandler;
@@ -348,6 +345,7 @@ internal static class StorageCallStubs
                 BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, List<KeyValueEntry>? metadata = null);
                 BinaryDataChange UpdateBinaryDataElement(DataElementIdentifier dataElementIdentifier, string contentType, ReadOnlyMemory<byte> bytes);
                 void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
+                Task<T> ReplaceFormData<T>(DataElementIdentifier dataElementIdentifier, T model) where T : class;
             }
 
             public interface IInstantiationProcessor
