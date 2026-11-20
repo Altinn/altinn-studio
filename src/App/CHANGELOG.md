@@ -14,6 +14,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- On phones and tablets, List shows each row's columns stacked in one cell, also when read-only and in Summary2, instead of a table that is cut off. `tableHeadersMobile` chooses which columns it shows. Sorting controls remain in the desktop view. ([#22000](https://github.com/Altinn/altinn-studio/pull/22000))
 - Breaking: a number or boolean the data model cannot hold empty gets its property initializer, or `0` or `false` without one, when it is removed, such as hidden data, or set to null with `IFormDataWrapper.Set`. Removing it gave `0` or `false` before, and `Set` with null failed. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - Rows a calculation writes into a list of objects merge into the row with the same `altinnRowId`, as copied rows have, and otherwise by position. A list with duplicate row ids, or ids on only some rows, is logged as an error and not written. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - Expressions read text with spaces around a number, such as `" 12 "`, as that number, in the form and on the server. A comma is still not a decimal separator, and the error now says so. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
