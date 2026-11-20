@@ -44,6 +44,7 @@ COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/setting
 COPY src/common/ts/package.json ./src/common/ts/
 COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
+COPY src/common/ts/http-client/package.json ./src/common/ts/http-client/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
 COPY src/common/ts/layout-contract/package.json ./src/common/ts/layout-contract/
 
@@ -85,7 +86,7 @@ RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 # The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
 # at the repository folder without a second path convention. rsync will not create intermediate
 # directories, hence the mkdir.
-FROM alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS app-template-release
+FROM alpine@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS app-template-release
 RUN apk add --no-cache rsync
 RUN mkdir -p /app-template-release/v8 /app-template-release/v9
 

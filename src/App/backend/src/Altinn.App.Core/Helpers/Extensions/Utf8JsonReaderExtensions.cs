@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace Altinn.App.Core.Helpers.Extensions;
@@ -13,7 +14,7 @@ internal static class Utf8JsonReaderExtensions
         Copy(ref reader, writer);
         writer.Flush();
 
-        return System.Text.Encoding.UTF8.GetString(stream.ToArray());
+        return Encoding.UTF8.GetString(stream.ToArray());
     }
 
     private static void Copy(ref Utf8JsonReader reader, Utf8JsonWriter writer)
@@ -21,8 +22,7 @@ internal static class Utf8JsonReaderExtensions
         switch (reader.TokenType)
         {
             case JsonTokenType.None:
-                writer.WriteNullValue();
-                break;
+                throw new JsonException("Reader is not initialized");
             case JsonTokenType.StartObject:
                 writer.WriteStartObject();
                 while (reader.Read())
@@ -41,8 +41,12 @@ internal static class Utf8JsonReaderExtensions
                             writer.WriteEndObject();
                             return;
                         default:
-                            throw new JsonException($"Something is wrong, did not expect {reader.TokenType} here2");
+                            throw new JsonException($"Something is wrong, did not expect {reader.TokenType} here");
                     }
+                }
+                if (reader.TokenType != JsonTokenType.EndObject)
+                {
+                    throw new JsonException("Something is wrong, did not find end of object");
                 }
                 break;
             case JsonTokenType.StartArray:
@@ -52,15 +56,34 @@ internal static class Utf8JsonReaderExtensions
                     Copy(ref reader, writer);
                 }
                 writer.WriteEndArray();
+                if (reader.TokenType != JsonTokenType.EndArray)
+                {
+                    throw new JsonException("Something is wrong, did not find end of array");
+                }
                 break;
             case JsonTokenType.Comment:
                 writer.WriteCommentValue(reader.ValueSpan);
                 break;
             case JsonTokenType.String:
-                writer.WriteStringValue(reader.ValueSpan);
+                if (reader.ValueIsEscaped || reader.HasValueSequence)
+                {
+                    // Utf8JsonWriter can't write raw escaped strings, so we need to get the actual string value
+                    writer.WriteStringValue(reader.GetString());
+                }
+                else
+                {
+                    writer.WriteStringValue(reader.ValueSpan);
+                }
                 break;
             case JsonTokenType.Number:
-                writer.WriteNumberValue(reader.GetDouble());
+                if (reader.HasValueSequence)
+                {
+                    writer.WriteRawValue(reader.ValueSequence);
+                }
+                else
+                {
+                    writer.WriteRawValue(reader.ValueSpan);
+                }
                 break;
             case JsonTokenType.True:
                 writer.WriteBooleanValue(true);

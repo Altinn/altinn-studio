@@ -1,0 +1,107 @@
+{
+  "name": "A string result is parsed into a number field",
+  "dataModel": {
+    "decimal": 1
+  },
+  "testCases": [
+    {
+      "name": "integer",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "12"
+        }
+      ],
+      "expects": {
+        "decimal": 12
+      }
+    },
+    {
+      "name": "decimal",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "1.5"
+        }
+      ],
+      "expects": {
+        "decimal": 1.5
+      }
+    },
+    {
+      "name": "negative",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "-3"
+        }
+      ],
+      "expects": {
+        "decimal": -3
+      }
+    },
+    {
+      "name": "not a number keeps the previous value",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "abc"
+        }
+      ],
+      "expects": {
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "empty string keeps the previous value",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": ""
+        }
+      ],
+      "expects": {
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "comma is not a decimal or thousands separator",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "1,5"
+        }
+      ],
+      "expects": {
+        "decimal": 1
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "surrounding spaces are ignored",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": " 12 "
+        }
+      ],
+      "expects": {
+        "decimal": 12
+      }
+    },
+    {
+      "name": "exponent",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": "1.5e3"
+        }
+      ],
+      "expects": {
+        "decimal": 1500
+      }
+    }
+  ]
+}

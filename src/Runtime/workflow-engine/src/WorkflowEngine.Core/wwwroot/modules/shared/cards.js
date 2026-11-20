@@ -7,7 +7,6 @@ import {
     escJsArg,
     formatElapsed,
     fmtTime,
-    fmtNamespace,
     abbrevGuids,
     isAuxiliaryWorkflow,
     buildTraceUrl,
@@ -155,7 +154,7 @@ export const buildLabelsHTML = (wf, interactive) => {
             : `<span class="${cls}" title="${escAttr(key)}">${esc(display)}</span>`;
     const sep = `<span class="seg-sep">/</span>`;
 
-    let html = seg('namespace', wf.namespace, fmtNamespace(wf.namespace), 'seg key');
+    let html = seg('namespace', wf.namespace, wf.namespace, 'seg key');
     const instance = wf.labels?.processNextInstanceGuid;
     if (instance) {
         // Abbreviated for display so headers don't wrap; tooltip, filter, and copy keep the full id.

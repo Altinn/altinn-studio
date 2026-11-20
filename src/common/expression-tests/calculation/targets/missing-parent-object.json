@@ -1,0 +1,17 @@
+{
+  "name": "Missing parent objects are created for a field",
+  "dataModel": {},
+  "calculations": [
+    {
+      "field": "object.nested.text",
+      "expression": "created"
+    }
+  ],
+  "expects": {
+    "object": {
+      "nested": {
+        "text": "created"
+      }
+    }
+  }
+}

@@ -11,9 +11,21 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` warns about every feedback task: instances waiting in one when the first v9 version is deployed may not move on by themselves, so deploy it in a quiet period. ([#21261](https://github.com/Altinn/altinn-studio/pull/21261))
+
+### Fixed
+
+- `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
+
+## [0.1.0-preview.34] - 2026-11-20
+
+### Added
+
 - `studioctl app upgrade v9` reports navigation validation settings that may behave differently or need review, including CustomButton actions configured in layouts. TODOs identify what to review and test. Your settings are kept. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
 - `studioctl env up --port <port>` serves localtest on a port other than 8000, and `run`, `app env` and `env status` use that port until `env down` or `env reset`. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
-- `studioctl app upgrade v9` warns about every feedback task: instances waiting in one when the first v9 version is deployed may not move on by themselves, so deploy it in a quiet period. ([#21261](https://github.com/Altinn/altinn-studio/pull/21261))
+- `studioctl app upgrade v9` migrates calculations: ([#21928](https://github.com/Altinn/altinn-studio/pull/21928))
+    - converts `calculations` in `models/*.calculation.json` to the v9 list, keeping comments and formatting. A file whose calculations would not load in v9, such as one without an `expression`, is left as it is and reported as a TODO that says what to fix
+    - reports app code that calls the removed `IAppResources.GetCalculationConfiguration`
 
 ### Changed
 
@@ -22,6 +34,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade v9` adds PDF service tasks only where v8 made a PDF ([#21998](https://github.com/Altinn/altinn-studio/pull/21998)):
+    - none when nothing in the app creates the task's data type
+    - on the `sign` branch of a gateway after a signing task
+    - a to-do instead for other gateways routing on `gatewayAction`
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21843](https://github.com/Altinn/altinn-studio/pull/21843))
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH

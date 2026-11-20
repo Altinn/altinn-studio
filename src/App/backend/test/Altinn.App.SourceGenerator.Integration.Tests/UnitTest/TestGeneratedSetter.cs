@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -92,6 +95,184 @@ public class TestGeneratedSetter
     }
 
     [Theory]
+    [InlineData("eierAdresse", """{"gate":"new-street","postnummer":1234,"poststed":null}""")]
+    [InlineData("skjemainnhold[1].adresse", """{"gate":"new-street","postnummer":1234,"poststed":"by"}""")]
+    [InlineData("skjemainnhold[1].tidligere-adresse", """[{"gate":"a","postnummer":1,"poststed":null}]""")]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1]", """{"gate":"b","postnummer":2,"poststed":null}""")]
+    [InlineData("skjemainnhold[1].withListOfInt", "[1,2,3]")]
+    public void TestSet_WholeListsAndObjects_BothImplementations(string path, string json)
+    {
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.True(generatedWrapper.Set(path, JsonNode.Parse(json)!), $"Source-generated Set failed for path: {path}");
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.True(reflectionWrapper.Set(path, JsonNode.Parse(json)!), $"Reflection Set failed for path: {path}");
+
+        Assert.Equal(json, JsonSerializer.Serialize(generatedWrapper.Get(path)));
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
+    }
+
+    [Theory]
+    [InlineData("eierAdresse")] // nullable object
+    [InlineData("skjemainnhold[1].tidligere-adresse")] // nullable list
+    [InlineData("skjemainnhold[1].withListOfString")] // nullable-oblivious list
+    [InlineData("skjemainnhold[0]")] // nullable list element
+    [InlineData("skjemainnhold[1].tidligere-adresse[0]")] // non-nullable object element
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[0]")] // non-nullable string element
+    public void TestSet_NullIntoListsAndObjects_BothImplementations(string path)
+    {
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.True(generatedWrapper.Set(path, ExpressionValue.Null), $"Source-generated Set failed for path: {path}");
+        Assert.Null(generatedWrapper.Get(path));
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.True(reflectionWrapper.Set(path, ExpressionValue.Null), $"Reflection Set failed for path: {path}");
+        Assert.Null(reflectionWrapper.Get(path));
+
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
+    }
+
+    [Fact]
+    public void TestSet_NullIntoValueTypeElement_BothImplementations()
+    {
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+
+        foreach (var wrapper in new[] { generatedWrapper, reflectionWrapper })
+        {
+            Assert.True(wrapper.Set("skjemainnhold[1].withListOfInt", JsonNode.Parse("[1,2]")!));
+            Assert.False(wrapper.Set("skjemainnhold[1].withListOfInt[0]", ExpressionValue.Null));
+            Assert.Equal(1, wrapper.Get("skjemainnhold[1].withListOfInt[0]"));
+        }
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
+    }
+
+    public static TheoryData<string, string, int> EmptyValueTypeCases() =>
+        new()
+        {
+            { "null", "valueTypes.integer", 0 },
+            { "undefined", "valueTypes.integer", 0 },
+            { "removed", "valueTypes.integer", 0 },
+            { "null", "valueTypes.numberDefaultFive", 5 },
+            { "undefined", "valueTypes.numberDefaultFive", 5 },
+            { "removed", "valueTypes.numberDefaultFive", 5 },
+        };
+
+    /// <summary>
+    /// A non-nullable value type that is set to null or removed gets the value it has in a new object, as when JSON
+    /// without the property is deserialized, which includes the value of a property initializer
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(EmptyValueTypeCases))]
+    public void TestSet_EmptyIntoNonNullableValueType_BothImplementations(string how, string path, int expected)
+    {
+        foreach (var wrapperKind in new[] { "generated", "reflection" })
+        {
+            var model = new CalculationTestModel
+            {
+                ValueTypes = new() { Integer = 3, NumberDefaultFive = 7 },
+            };
+            IFormDataWrapper wrapper =
+                wrapperKind == "generated"
+                    ? new Altinn_App_SourceGenerator_Integration_Tests_Models_CalculationTestModelFormDataWrapper(
+                        model,
+                        null!
+                    )
+                    : new ReflectionFormDataWrapper(model, null!);
+            switch (how)
+            {
+                case "null":
+                    Assert.True(wrapper.Set(path, ExpressionValue.Null), wrapperKind);
+                    break;
+                case "undefined":
+                    Assert.True(wrapper.Set(path, ExpressionValue.Undefined), wrapperKind);
+                    break;
+                default:
+                    wrapper.RemoveField(path, Altinn.App.Core.Helpers.RowRemovalOption.SetToNull);
+                    break;
+            }
+            Assert.Equal(expected, wrapper.Get(path));
+            var deserialized = JsonSerializer.Deserialize<CalculationTestModel>("""{"valueTypes":{}}""")!;
+            Assert.Equal(
+                path.EndsWith("Five", System.StringComparison.Ordinal)
+                    ? deserialized.ValueTypes!.NumberDefaultFive
+                    : deserialized.ValueTypes!.Integer,
+                expected
+            );
+        }
+    }
+
+    [Theory]
+    [InlineData("skjemainnhold", """{"navn":"appended"}""", 4)]
+    [InlineData("skjemainnhold", "null", 4)] // nullable row
+    [InlineData("skjemainnhold[1].tidligere-adresse", """{"gate":"appended"}""", 3)]
+    [InlineData("skjemainnhold[1].tidligere-adresse", "null", 3)] // null is added, as Set accepts it for reference types
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags", "\"tag3\"", 3)]
+    [InlineData("skjemainnhold[0].tidligere-adresse", """{"gate":"first"}""", 1)] // null list is created
+    [InlineData("skjemainnhold[1].withListOfInt", "4", 1)] // null nullable-oblivious list is created
+    [InlineData("skjemainnhold[1].withListOfInt", "\"5\"", 1)] // converted like Set converts
+    public void TestAddRow_BothImplementations(string path, string json, int expectedCount)
+    {
+        var rowPath = $"{path}[{expectedCount - 1}]";
+        var value = ExpressionValue.FromJsonString(json);
+
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.True(generatedWrapper.AddRow(path, value), $"Source-generated AddRow failed for path: {path}");
+        Assert.Equal(expectedCount, Assert.IsAssignableFrom<ICollection>(generatedWrapper.Get(path)).Count);
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.True(reflectionWrapper.AddRow(path, value), $"Reflection AddRow failed for path: {path}");
+        Assert.Equal(expectedCount, Assert.IsAssignableFrom<ICollection>(reflectionWrapper.Get(path)).Count);
+
+        Assert.Equal(
+            JsonSerializer.Serialize(reflectionWrapper.Get(rowPath)),
+            JsonSerializer.Serialize(generatedWrapper.Get(rowPath))
+        );
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
+    }
+
+    [Theory]
+    [InlineData("", "{}")] // empty path
+    [InlineData("not-exists", "{}")] // non-existent path
+    [InlineData("skjemanummer", "\"x\"")] // a string, not a list
+    [InlineData("eierAdresse", "{}")] // an object, not a list
+    [InlineData("skjemainnhold[0]", "{}")] // a row, not a list
+    [InlineData("skjemainnhold[0].navn", "\"x\"")] // a property of a row, not a list
+    [InlineData("skjemainnhold[99].tidligere-adresse", "{}")] // out of bounds index on the way
+    [InlineData("skjemainnhold[2].tidligere-adresse", "{}")] // null item on the way
+    [InlineData("skjemainnhold[1].withCollection", "{}")] // not an indexable list
+    [InlineData("skjemainnhold[1].tidligere-adresse", "\"text\"")] // wrong kind of value
+    [InlineData("skjemainnhold[1].withListOfInt", "null")] // null into a value type
+    [InlineData("skjemainnhold[1].withListOfInt", "\"text\"")] // wrong kind of value
+    public void TestAddRow_InvalidPathsAndValues_BothImplementations(string path, string json)
+    {
+        var value = ExpressionValue.FromJsonString(json);
+
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.False(generatedWrapper.AddRow(path, value), $"Source-generated AddRow succeeded for path: {path}");
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.False(reflectionWrapper.AddRow(path, value), $"Reflection AddRow succeeded for path: {path}");
+
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
+    }
+
+    [Theory]
     [InlineData("skjemainnhold[0].alder", "25")] // string to int
     [InlineData("skjemainnhold[0].alder", 30.5)] // double to int
     [InlineData("skjemainnhold[0].deltar", "true")] // string to bool
@@ -160,6 +341,8 @@ public class TestGeneratedSetter
     [InlineData("not-exists")] // non-existent path
     [InlineData("skjemanummer.not-exists")] // invalid nested path on primitive
     [InlineData("skjemainnhold[99].navn")] // out of bounds index - returns false
+    [InlineData("skjemainnhold[3]")] // index after the last row - use AddRow to append
+    [InlineData("skjemainnhold[3].navn")]
     [InlineData("skjemainnhold[0].not-exists")] // non-existent property
     [InlineData("skjemainnhold[1].adresse.not-exists")] // non-existent nested property
     [InlineData("skjemainnhold[2].navn")] // null item in list (Might reconsider this test case)
@@ -178,6 +361,27 @@ public class TestGeneratedSetter
 
         // Both should have the same behavior
         Assert.Equal(generatedResult, reflectionResult);
+    }
+
+    [Theory]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[0].x", "\"new-tag\"")]
+    [InlineData("skjemainnhold[1].tidligere-adresse[1].tags[1].x", "{}")]
+    public void TestSet_PathPastPrimitiveListElement_FailsInBothImplementations(string path, string json)
+    {
+        // A primitive element has no properties, so the path does not exist and the element must not be written
+        var value = ExpressionValue.FromJsonString(json);
+
+        var generatedSkjema = CreateTestSkjema();
+        IFormDataWrapper generatedWrapper =
+            new Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper(generatedSkjema, null!);
+        Assert.False(generatedWrapper.Set(path, value), $"Source-generated Set succeeded for path: {path}");
+
+        var reflectionSkjema = CreateTestSkjema();
+        IFormDataWrapper reflectionWrapper = new ReflectionFormDataWrapper(reflectionSkjema, null!);
+        Assert.False(reflectionWrapper.Set(path, value), $"Reflection Set succeeded for path: {path}");
+
+        Assert.Equal(JsonSerializer.Serialize(CreateTestSkjema()), JsonSerializer.Serialize(generatedSkjema));
+        Assert.Equal(JsonSerializer.Serialize(reflectionSkjema), JsonSerializer.Serialize(generatedSkjema));
     }
 
     [Fact]

@@ -1,0 +1,20 @@
+{
+  "name": "Two rows with the same id are logged and leave the list as it is",
+  "dataModel": {
+    "rows": []
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 1],
+        ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 2]
+      ]
+    }
+  ],
+  "expects": {
+    "rows": []
+  },
+  "expectsErrors": ["altinnRowId a0000000-0000-4000-8000-000000000001"]
+}

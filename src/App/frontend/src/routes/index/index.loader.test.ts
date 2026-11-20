@@ -2,6 +2,7 @@ import { type LoaderFunctionArgs, redirect, RouterContextProvider } from 'react-
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
 import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
@@ -75,9 +76,7 @@ describe('index clientLoader', () => {
       onEntry: { show: 'new-instance' },
     });
     vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(mutations.createInstance.mock).mockRejectedValue(
-      Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
-    );
+    vi.mocked(mutations.createInstance.mock).mockRejectedValue(createHttpErrorMock(410, undefined, 'Gone'));
 
     const result = await clientLoader(createLoaderArgs());
 

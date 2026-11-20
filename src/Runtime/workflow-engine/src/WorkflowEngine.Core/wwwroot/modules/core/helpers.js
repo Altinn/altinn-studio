@@ -44,21 +44,6 @@ export const escJsArg = (s) =>
 export const isAuxiliaryWorkflow = (wf) => wf.isHead === false;
 
 /**
- * Decode a namespace for display. Namespaces are URL-encoded for use as routing
- * path segments (e.g. `ttd%2fworkflow-engine-test`), so decode for human display.
- * Keep the raw value for filtering, data attributes, and API calls.
- * @param {string} ns
- */
-export const fmtNamespace = (ns) => {
-    if (!ns) return ns;
-    try {
-        return decodeURIComponent(ns);
-    } catch {
-        return ns;
-    }
-};
-
-/**
  * Abbreviate GUID runs ("N" format 32-char hex, or dashed "D" format) to their first
  * 8 chars for compact display. Works on bare GUIDs and on strings that embed them
  * (e.g. a collection key like `process-next:<guid>:Form:2`). Keep the full value for

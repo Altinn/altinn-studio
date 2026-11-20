@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 
 import { CustomButton } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { isAxiosError } from 'axios';
+import { isHttpError } from '@studio/http-client';
 import type * as CBTypes from '@app/layout-contract/generated/components/CustomButton/config.generated';
 
 import { useServerActionMutation } from 'src/core/queries/actions';
@@ -29,6 +29,9 @@ import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
 
 type FormDataLocking = ReturnType<typeof FormStore.data.useLocking>;
 type FormDataLock = Awaited<ReturnType<FormDataLocking>>;
+
+/** The body of a failed server action, with a text resource key for the message to show. */
+type ActionErrorBody = { error?: { message?: string } } | undefined;
 
 type UseHandleClientActions = {
   handleClientActions: (actions: CBTypes.ClientAction[]) => Promise<void>;
@@ -153,7 +156,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const isAnyProcessing = useIsAnyProcessing();
   const instanceLocked = FormStore.useIsInstanceLocked();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const { getPageValidation } = usePageValidation(baseComponentId);
+  const { pageValidation } = usePageValidation(baseComponentId);
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
   const getScrollPosition = React.useCallback(
     () => document.querySelector(`[data-componentid="${componentId}"]`)?.getClientRects().item(0)?.y,
@@ -186,7 +189,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
     performProcess(async () => {
       for (const action of config.actions) {
         const isBackwardNavigation = isClientAction(action) && action.id === 'previousPage';
-        const validation = action.validation ?? (isBackwardNavigation ? undefined : getPageValidation());
+        const validation = action.validation ?? (isBackwardNavigation ? undefined : pageValidation);
         if (validation) {
           const prevScrollPosition = getScrollPosition();
           const page = layoutLookups.componentToPage[baseComponentId];
@@ -205,7 +208,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
           try {
             await handleServerAction(action);
           } catch (error) {
-            if (isAxiosError(error) && error.response?.data?.error?.message !== undefined) {
+            if (isHttpError<ActionErrorBody>(error) && error.response?.data?.error?.message !== undefined) {
               toast(<Lang id={error.response.data.error.message} />, { type: 'error' });
             } else {
               toast(<Lang id='custom_actions.general_error' />, { type: 'error' });

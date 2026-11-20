@@ -1,0 +1,16 @@
+{
+  "name": "An object result for a string field is not written",
+  "dataModel": {
+    "text": "unchanged"
+  },
+  "calculations": [
+    {
+      "field": "text",
+      "expression": ["object", "first", "Ola", "last", "Nordmann"]
+    }
+  ],
+  "expects": {
+    "text": "unchanged"
+  },
+  "expectsWarnings": ["text.first", "text.last"]
+}
