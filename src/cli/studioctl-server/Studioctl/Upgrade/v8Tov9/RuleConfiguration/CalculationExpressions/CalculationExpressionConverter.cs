@@ -239,6 +239,12 @@ internal sealed partial class CalculationExpressionConverter
                         JsonValue.Create(text),
                         Kind.String
                     ),
+                    int
+                    or long
+                    or double
+                    or float
+                        when !double.IsFinite(System.Convert.ToDouble(literal.Value, CultureInfo.InvariantCulture)) =>
+                        throw new NotSupportedException("Non-finite numeric literal."),
                     int or long or double or float => new(
                         JsonValue.Create(
                             System.Convert.ToDouble(literal.Value, System.Globalization.CultureInfo.InvariantCulture)

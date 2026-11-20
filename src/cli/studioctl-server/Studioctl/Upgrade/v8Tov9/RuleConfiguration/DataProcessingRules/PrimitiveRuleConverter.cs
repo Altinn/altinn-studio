@@ -282,6 +282,11 @@ internal sealed class PrimitiveRuleConverter(
                 null => "null",
                 string value => Quote(value),
                 bool value => value ? "true" : "false",
+                int
+                or long
+                or double
+                or float when !double.IsFinite(System.Convert.ToDouble(literal.Value, CultureInfo.InvariantCulture)) =>
+                    throw new NotSupportedException("Non-finite numeric literal."),
                 int or long or double or float => System
                     .Convert.ToDouble(literal.Value, CultureInfo.InvariantCulture)
                     .ToString("R", CultureInfo.InvariantCulture) + "d",
