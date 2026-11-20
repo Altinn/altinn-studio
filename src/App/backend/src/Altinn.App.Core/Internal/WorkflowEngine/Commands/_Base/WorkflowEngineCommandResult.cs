@@ -50,7 +50,8 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
     /// which almost always means the app's policy is missing a service-owner grant rather than that
     /// anything transient happened. Recorded here because only the caught exception can tell, and
     /// explained where the app and task are known (see <see cref="ServiceOwnerAuthorizationDiagnostics"/>).
-    /// It deliberately does not affect the retry classification.
+    /// It deliberately does not affect the retry classification, because a transient failure in Altinn
+    /// Authorization can reach the app as the same 403.
     /// </summary>
     public readonly bool ServiceOwnerAuthorizationDenied;
 
@@ -70,7 +71,7 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
             exception.GetType().Name,
             nonRetryable: false,
             exception,
-            serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(exception)
+            serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsForbidden(exception)
         );
 
     /// <summary>
