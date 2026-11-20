@@ -678,6 +678,43 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         );
     }
 
+    /// <summary>
+    /// With a semantic model only: by spelling alone, the app's own <c>PipelineBuilder.Lifecycle</c> cannot be told
+    /// from the Altinn one.
+    /// </summary>
+    [Fact]
+    public void DefineTakingTheAppsOwnLookalikeBuilder_DoesNotCountAsADefinition()
+    {
+        Write(
+            "logic/LookalikeTask.cs",
+            Usings
+                + """
+                namespace Shapes
+                {
+                    public abstract class PipelineBuilder
+                    {
+                        public sealed class Lifecycle { }
+                    }
+                }
+
+                public class LookalikeTask : IProcessTask
+                {
+                    public string Type => "lookalike";
+
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
+
+                    public void DefineStart(Shapes.PipelineBuilder.Lifecycle pipeline) { }
+                }
+                """
+        );
+
+        var result = Migrate(semantic: true);
+
+        Assert.Empty(result.Warnings);
+        Assert.Contains("Added a DefineStart", Assert.Single(result.Todos));
+        AssertCompilesAgainstV9ExceptPortStubs(1);
+    }
+
     [Theory]
     [InlineData(true, "private void DefineStart(PipelineBuilder.Lifecycle pipeline) { }")]
     [InlineData(false, "private void DefineStart(PipelineBuilder.Lifecycle pipeline) { }")]
