@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose pipeline
-/// is just its conclusion, <c>Finally(Execute)</c> — every test here runs that pipeline end to end. The
+/// is just its conclusion, <c>Stage(Execute)</c> — every test here runs that pipeline end to end. The
 /// multi-stage dispatch is covered by <see cref="ExecuteServiceTaskStageTests"/>.
 /// </summary>
 public class ExecuteServiceTaskTests
@@ -34,7 +34,7 @@ public class ExecuteServiceTaskTests
 
         public string Type => "myServiceTask";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -526,7 +526,7 @@ public class ExecuteServiceTaskTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }

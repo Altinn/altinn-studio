@@ -1,4 +1,3 @@
-using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 
 namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks;
@@ -14,8 +13,8 @@ public class NoOpProcessTasksTests
     {
         var task = (IProcessTask)Activator.CreateInstance(taskType)!;
 
-        Assert.Empty(task.DefineStart(new PipelineBuilder()).Stages);
-        Assert.Empty(task.DefineEnd(new PipelineBuilder()).Stages);
-        Assert.Empty(task.DefineAbandon(new PipelineBuilder()).Stages);
+        Assert.Empty(task.ResolvePipeline(LifecyclePhase.Start).Stages);
+        Assert.Empty(task.ResolvePipeline(LifecyclePhase.End).Stages);
+        Assert.Empty(task.ResolvePipeline(LifecyclePhase.Abandon).Stages);
     }
 }

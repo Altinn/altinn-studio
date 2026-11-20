@@ -173,7 +173,7 @@ public sealed class SigningProcessTaskTests : IDisposable
             .Callback(() => calls.Add("notify"))
             .Returns(Task.CompletedTask);
 
-        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineStart(new PipelineBuilder()).Stages;
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.ResolvePipeline(LifecyclePhase.Start).Stages;
 
         Assert.Equal(3, stages.Count);
         Assert.All(stages, stage => Assert.Equal(TimeSpan.FromMinutes(5), stage.StepOptions?.MaxExecutionTime));
@@ -196,7 +196,7 @@ public sealed class SigningProcessTaskTests : IDisposable
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("Task_1")).Returns(altinnTaskExtension);
 
         // The stages are the same with or without delegation, since steps are dispatched by position.
-        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineStart(new PipelineBuilder()).Stages;
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.ResolvePipeline(LifecyclePhase.Start).Stages;
 
         Assert.Equal(3, stages.Count);
         foreach (PipelineStage.Plain stage in stages)
@@ -277,7 +277,7 @@ public sealed class SigningProcessTaskTests : IDisposable
             .Returns(Task.CompletedTask)
             .Verifiable(Times.Once);
 
-        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineEnd(new PipelineBuilder()).Stages;
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.ResolvePipeline(LifecyclePhase.End).Stages;
 
         Assert.Equal(2, stages.Count);
         Assert.Equal(TimeSpan.FromMinutes(5), stages[0].StepOptions?.MaxExecutionTime);
@@ -310,7 +310,7 @@ public sealed class SigningProcessTaskTests : IDisposable
         await RunAbandon(dataMutator.Object);
 
         _signingServiceMock.VerifyAll();
-        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineAbandon(new PipelineBuilder()).Stages;
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.ResolvePipeline(LifecyclePhase.Abandon).Stages;
         Assert.Equal(TimeSpan.FromMinutes(5), Assert.Single(stages).StepOptions?.MaxExecutionTime);
     }
 
@@ -430,10 +430,10 @@ public sealed class SigningProcessTaskTests : IDisposable
     }
 
     private Task<StageResult> RunEnd(IInstanceDataMutator dataMutator) =>
-        Run(_signingProcessTask.DefineEnd(new PipelineBuilder()), dataMutator);
+        Run(_signingProcessTask.ResolvePipeline(LifecyclePhase.End), dataMutator);
 
     private Task<StageResult> RunAbandon(IInstanceDataMutator dataMutator) =>
-        Run(_signingProcessTask.DefineAbandon(new PipelineBuilder()), dataMutator);
+        Run(_signingProcessTask.ResolvePipeline(LifecyclePhase.Abandon), dataMutator);
 
     /// <summary>Runs the stages in order, as the engine would, stopping at the first that does not complete.</summary>
     private static async Task<StageResult> Run(ProcessTaskPipeline pipeline, IInstanceDataMutator dataMutator)

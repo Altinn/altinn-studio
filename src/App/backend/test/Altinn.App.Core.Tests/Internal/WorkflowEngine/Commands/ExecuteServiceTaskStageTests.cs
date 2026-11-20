@@ -20,7 +20,7 @@ public class ExecuteServiceTaskStageTests
 {
     /// <summary>
     /// A send→poll pipeline whose behavior each test scripts via delegates: the stage at item
-    /// index 0 dispatches, and the Finally — item index 1 — awaits the receipt and concludes.
+    /// index 0 dispatches, and the ending stage — item index 1 — awaits the receipt and concludes.
     /// </summary>
     private sealed class ShippingTask : IServiceTask
     {
@@ -32,8 +32,8 @@ public class ExecuteServiceTaskStageTests
         public Func<StageContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(ctx => OnSend(ctx)).Stage(ctx => OnAwait(ctx));
     }
 
     private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
@@ -185,7 +185,7 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task ConclusionIndex_RunsTheFinally_AndAdvancesTheProcess()
+    public async Task ConclusionIndex_RunsTheEndingStage_AndAdvancesTheProcess()
     {
         var command = CreateCommand(new ShippingTask());
 
@@ -197,7 +197,7 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task Finally_SuccessWithAction_CarriesTheAction()
+    public async Task EndingStage_SuccessWithAction_CarriesTheAction()
     {
         var task = new ShippingTask
         {
@@ -213,9 +213,9 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
-    public async Task Finally_Defer_ReturnsDeferredResult()
+    public async Task EndingStage_Defer_ReturnsDeferredResult()
     {
-        // The Finally is where a send-then-poll pipeline waits.
+        // The ending stage is where a send-then-poll pipeline waits.
         var task = new ShippingTask
         {
             OnAwait = _ =>
@@ -277,7 +277,7 @@ public class ExecuteServiceTaskStageTests
 
         public string Type => "shipping";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -363,7 +363,7 @@ public class ExecuteServiceTaskStageTests
     {
         public string Type => "shipping";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
@@ -375,6 +375,6 @@ public class ExecuteServiceTaskStageTests
                     (_, _) => Task.FromResult<StageExchangeResult>(StageExchangeResult.AwaitNextReply()),
                     (_, _) => Task.FromResult(StageResult.Completed())
                 )
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+                .Stage(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 }

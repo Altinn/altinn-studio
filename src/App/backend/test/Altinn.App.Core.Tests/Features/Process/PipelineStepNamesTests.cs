@@ -8,7 +8,7 @@ public class PipelineStepNamesTests
     {
         public string Type => "simple";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
@@ -69,11 +69,11 @@ public class PipelineStepNamesTests
     [Fact]
     public void Builder_NamesEveryItemAfterItsMethod()
     {
-        ProcessTaskPipeline lifecycle = new PipelineBuilder()
+        ProcessTaskPipeline lifecycle = new PipelineBuilder.Lifecycle()
             .Stage(SendToArchive)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Build();
-        ServiceTaskPipeline execute = new PipelineBuilder().Stage(GeneratePDFReceipt).Finally(ConfirmOrder);
+            .ToPipeline();
+        ServiceTaskPipeline execute = new PipelineBuilder.ServiceTask().Stage(GeneratePDFReceipt).Stage(ConfirmOrder);
 
         Assert.Equal(["Send to archive", null], lifecycle.Stages.Select(stage => stage.DisplayName));
         Assert.Equal(["Generate PDF receipt", "Confirm order"], execute.Items.Select(item => item.DisplayName));
@@ -97,9 +97,9 @@ public class PipelineStepNamesTests
     [Fact]
     public void Builder_NamesAReplyHandlerAfterBothItsMethods()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(RequestApproval, new MailboxOptions { Timeout = TimeSpan.FromDays(1) }, out MailboxHandle approval)
-            .ConcludeOnReplies(approval, OnDecision, OnClosed);
+            .HandleReplies(approval, OnDecision, OnClosed);
 
         Assert.Equal(["Request approval", "On decision / On closed"], pipeline.Items.Select(item => item.DisplayName));
     }
@@ -107,7 +107,7 @@ public class PipelineStepNamesTests
     [Fact]
     public void Builder_SimpleServiceTask_ConcludesWithoutAName()
     {
-        ServiceTaskPipeline pipeline = new SimpleTask().DefineExecute(new PipelineBuilder());
+        ServiceTaskPipeline pipeline = new SimpleTask().DefineExecute(new PipelineBuilder.ServiceTask());
 
         Assert.Null(Assert.Single(pipeline.Items).DisplayName);
     }

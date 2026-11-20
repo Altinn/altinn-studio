@@ -62,7 +62,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
         {
             pipeline.Stage(
                 (context, mailbox) =>
@@ -78,7 +78,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                 pipeline.Stage(_ => Task.FromResult(StageResult.Completed()));
             }
 
-            return pipeline.ConcludeOnReplies(
+            return pipeline.HandleReplies(
                 archive,
                 (context, reply) => Task.FromResult(onMessage(context, reply)),
                 (context, reason) => Task.FromResult(onClosed(context, reason))

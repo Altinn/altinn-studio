@@ -209,10 +209,10 @@ public class MailboxRelayFrontierTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+                .HandleReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>Two exchanges: the first answered mid-pipeline, so concluding it starts a continuation.</summary>
@@ -220,7 +220,7 @@ public class MailboxRelayFrontierTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -230,7 +230,7 @@ public class MailboxRelayFrontierTests
                 )
                 .Stage(PlainStage)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(journal, OnMessage, OnClosed);
+                .HandleReplies(journal, OnMessage, OnClosed);
     }
 
     /// <summary>
@@ -241,7 +241,7 @@ public class MailboxRelayFrontierTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle alpha)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle beta)
@@ -250,7 +250,7 @@ public class MailboxRelayFrontierTests
                     (_, _) => Task.FromResult<StageExchangeResult>(StageResult.Completed()),
                     (_, _) => Task.FromResult(StageResult.Completed())
                 )
-                .ConcludeOnReplies(beta, OnMessage, OnClosed);
+                .HandleReplies(beta, OnMessage, OnClosed);
     }
 
     /// <summary>

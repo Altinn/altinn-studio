@@ -41,7 +41,7 @@ public class ExecuteServiceTaskMailboxTests
         /// <summary>The address handed to the stage that opens the mailbox.</summary>
         public ServiceTaskMailbox? SentTo { get; private set; }
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
                     (context, mailbox) =>
@@ -54,7 +54,7 @@ public class ExecuteServiceTaskMailboxTests
                     out MailboxHandle archive
                 )
                 .Stage(Record<StageResult>("RecordDispatch", StageResult.Completed()))
-                .ConcludeOnReplies(
+                .HandleReplies(
                     archive,
                     onMessage: Record<ServiceTaskExchangeResult, ServiceTaskReply>(
                         "OnMessage",
@@ -85,14 +85,14 @@ public class ExecuteServiceTaskMailboxTests
 
         public Dictionary<string, StageContext> Seen { get; } = new(StringComparer.Ordinal);
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(context =>
                 {
                     Seen["SendStage"] = context;
                     return Task.FromResult(StageResult.Completed());
                 })
-                .Finally(context =>
+                .Stage(context =>
                 {
                     Seen["Finally"] = context;
                     return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
@@ -299,7 +299,7 @@ public class ExecuteServiceTaskMailboxTests
     /// <summary>
     /// The reply terminal reached with nothing to answer — a step naming an item that answers messages,
     /// handed no target. One general rule, whichever route produced it: an engine that omitted the
-    /// target, or a redeploy that turned a <c>Finally</c> into a reply terminal while this workflow was
+    /// target, or a redeploy that turned an ending <c>Stage</c> into a reply terminal while this workflow was
     /// in flight, so its primary workflow's concluding step now names a handler.
     /// </summary>
     [Fact]
@@ -364,10 +364,10 @@ public class ExecuteServiceTaskMailboxTests
         public Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
             (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(OnSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle archive)
-                .ConcludeOnReplies(
+                .HandleReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
                     (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
@@ -383,7 +383,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
@@ -392,7 +392,7 @@ public class ExecuteServiceTaskMailboxTests
                 )
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .ConcludeOnReplies(
+                .HandleReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
                     (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
@@ -600,7 +600,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success())),
@@ -608,7 +608,7 @@ public class ExecuteServiceTaskMailboxTests
                     out MailboxHandle archive
                 )
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .ConcludeOnReplies(
+                .HandleReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
                     (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())

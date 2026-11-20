@@ -20,18 +20,18 @@ public class WorkflowStepSetTests
 
     /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
     private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
-        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        new PipelineBuilder.ServiceTask().Stage(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
     /// <summary>The lifecycle pipeline every task type without its own definition forwards to.</summary>
     private static ProcessTaskPipeline SingleStagePipeline() =>
-        new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
+        new PipelineBuilder.Lifecycle().Stage(_ => Task.FromResult(StageResult.Completed())).ToPipeline();
 
     private static ProcessTaskPipeline ThreeStagePipeline(ProcessStepOptions? middleOptions = null) =>
-        new PipelineBuilder()
+        new PipelineBuilder.Lifecycle()
             .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Stage(_ => Task.FromResult(StageResult.Completed()), middleOptions)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Build();
+            .ToPipeline();
 
     [Fact]
     public void GetTaskStartSteps_ServiceTaskInstantiation_RoutesStepsToTheCorrectLists()
@@ -169,9 +169,9 @@ public class WorkflowStepSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
-                StartPipeline = new PipelineBuilder()
+                StartPipeline = new PipelineBuilder.Lifecycle()
                     .Stage(_ => Task.FromResult(StageResult.Completed()), options)
-                    .Build(),
+                    .ToPipeline(),
                 ServiceTask = null,
                 StartingHook = null,
                 IsInitialTaskStart = false,
@@ -249,7 +249,7 @@ public class WorkflowStepSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
-                StartPipeline = new PipelineBuilder().Build(),
+                StartPipeline = new PipelineBuilder.Lifecycle().ToPipeline(),
                 ServiceTask = null,
                 StartingHook = null,
                 IsInitialTaskStart = false,
@@ -278,11 +278,11 @@ public class WorkflowStepSetTests
     [Fact]
     public void GetTaskEndSteps_StagesComposedFromNamedMethods_LabelEachStepWithTheMethodName()
     {
-        ProcessTaskPipeline pipeline = new PipelineBuilder()
+        ProcessTaskPipeline pipeline = new PipelineBuilder.Lifecycle()
             .Stage(StoreReceipt)
             .Stage(RevokeSigneeRights)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Build();
+            .ToPipeline();
 
         List<PlannedStep> stageSteps = WorkflowStepSet
             .GetTaskEndSteps("Task_1", pipeline, endingHook: null)
@@ -297,10 +297,10 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_ItemsComposedFromNamedMethods_GoByTheMethodNames()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
+            .Stage(FinalWork);
 
         // The step that mints the mailbox stays unnamed; the stage that sends from it goes by its method.
         Assert.Equal([null, "Send stage"], WorkflowStepSet.PlanSegment("archiving", pipeline).Steps.Select(StepName));
@@ -317,9 +317,9 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_UnnamedLambdas_CarryNoLabels()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+            .Stage(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         Assert.All(WorkflowStepSet.PlanSegment("signing", pipeline).Steps, step => Assert.Null(step.StepName));
     }
@@ -377,11 +377,11 @@ public class WorkflowStepSetTests
         var send = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
         var handler = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
         var conclusion = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(4) };
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(PlainStage, stage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive, send)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
-            .Finally(FinalWork, conclusion);
+            .Stage(FinalWork, conclusion);
 
         ServiceTaskSegmentPlan primary = WorkflowStepSet.PlanSegment("archiving", pipeline);
         ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
@@ -396,10 +396,10 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_SingleExchangePipeline_EndsMainOnTheSendAndAnswersItInAWorkflowOfItsOwn()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .ConcludeOnReplies(archive, OnMessage, OnClosed);
+            .HandleReplies(archive, OnMessage, OnClosed);
 
         ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
 
@@ -419,7 +419,7 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_PipelineWithNoExchange_EndsWithTheConcludingStepAndNoReceive()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask().Stage(PlainStage).Stage(FinalWork);
 
         ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("signing", pipeline);
 
@@ -475,15 +475,15 @@ public class WorkflowStepSetTests
         Assert.Null(plan.ReceiveOpeningIndex);
     }
 
-    /// <summary>A mid-pipeline reply with trailing stages, ended by an ordinary <c>Finally</c>.</summary>
+    /// <summary>A mid-pipeline reply with trailing stages, ended by an ordinary ending <c>Stage</c>.</summary>
     [Fact]
     public void PlanSegment_AfterTheLastHandler_EndsWithTheConclusion()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Stage(PlainStage)
-            .Finally(FinalWork);
+            .Stage(FinalWork);
 
         ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
 
@@ -499,11 +499,11 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_APlainStageBeforeAHandler_EndsItsRunAndTheHandlerRunsAlone()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(PlainStage)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
+            .Stage(FinalWork);
 
         ServiceTaskSegmentPlan send = WorkflowStepSet.PlanSegment("archiving", pipeline);
         Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(send));
@@ -533,11 +533,11 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_EndsAtAMailboxOpeningStage_EvenWithStagesComposedAfterIt()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(PlainStage)
-            .ConcludeOnReplies(archive, OnMessage, OnClosed);
+            .HandleReplies(archive, OnMessage, OnClosed);
 
         ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
 
@@ -567,11 +567,11 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_UpFrontSends_RidesOneSegmentPerSend_ThenOnePerHandler()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .ConcludeOnReplies(journal, OnMessage, OnClosed);
+            .HandleReplies(journal, OnMessage, OnClosed);
 
         ServiceTaskSegmentPlan first = WorkflowStepSet.PlanSegment("archiving", pipeline);
         Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(first));
@@ -602,12 +602,12 @@ public class WorkflowStepSetTests
     [Fact]
     public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheSegments()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(journal, OnSegmentMessage, OnSegmentClosed)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
+            .Stage(FinalWork);
 
         // Each send ends a segment and parks on nothing; the receive workflows come after them, journal's
         // first because its handler is composed first.
@@ -679,10 +679,10 @@ public class WorkflowStepSetTests
     }
 
     private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
-        new PipelineBuilder()
+        new PipelineBuilder.ServiceTask()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
-            .ConcludeOnReplies(journal, OnMessage, OnClosed);
+            .HandleReplies(journal, OnMessage, OnClosed);
 }

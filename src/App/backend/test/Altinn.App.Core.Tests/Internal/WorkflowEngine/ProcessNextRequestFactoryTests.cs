@@ -1372,27 +1372,28 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute, options);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(Execute, options);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally, each with its own
-    /// timeout, and the poll's 48 h wait budget on the Finally alone.
+    /// A send→poll pipeline used by the expansion tests: one stage plus the ending stage, each with its own
+    /// timeout, and the poll's 48 h wait budget on the ending stage alone.
     /// </summary>
     private sealed class SigningTask : IServiceTask
     {
         public string Type => "signing";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
                     _ => Task.FromResult(StageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
                 )
-                .Finally(
+                .Stage(
                     _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
                     new ProcessStepOptions
                     {
@@ -1503,16 +1504,16 @@ public class ProcessNextRequestFactoryTests
 
     /// <summary>
     /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
-    /// shown to resolve the <c>Finally</c>'s options.
+    /// shown to resolve the ending stage's options.
     /// </summary>
     private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .ConcludeOnReplies(
+                .HandleReplies(
                     archive,
                     OnMessage,
                     OnClosed,
@@ -1529,7 +1530,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(PlainStage)
                 .Stage(
@@ -1539,7 +1540,7 @@ public class ProcessNextRequestFactoryTests
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) }
                 )
                 .Stage(PlainStage)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+                .HandleReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>
@@ -1552,7 +1553,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -1562,7 +1563,7 @@ public class ProcessNextRequestFactoryTests
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) }
                 )
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(
+                .HandleReplies(
                     journal,
                     OnMessage,
                     OnClosed,
@@ -2651,7 +2652,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "staged";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Stage(
@@ -2661,8 +2662,7 @@ public class ProcessNextRequestFactoryTests
                         MaxExecutionTime = TimeSpan.FromMinutes(5),
                         RetryStrategy = ProcessStepRetryStrategy.Exponential(TimeSpan.FromSeconds(2), maxRetries: 7),
                     }
-                )
-                .Build();
+                );
     }
 
     [Fact]

@@ -151,11 +151,11 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .Stage(Plain)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+                .HandleReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>Drift: the pipeline composes a plain stage where this workflow expects a declaring one.</summary>
@@ -163,7 +163,8 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Stage(Plain).Finally(Conclude);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(Plain).Stage(Conclude);
     }
 
     /// <summary>Drift: nothing composes at this index at all.</summary>
@@ -171,8 +172,8 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Stage(Send, _threeDays, out MailboxHandle archive).ConcludeOnReplies(archive, OnMessage, OnClosed);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(Send, _threeDays, out MailboxHandle archive).HandleReplies(archive, OnMessage, OnClosed);
     }
 
     private static MintMailbox CreateCommand(IServiceTask serviceTask, IWorkflowEngineClient client)

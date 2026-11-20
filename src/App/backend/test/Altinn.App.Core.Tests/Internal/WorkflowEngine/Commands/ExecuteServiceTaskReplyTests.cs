@@ -74,7 +74,7 @@ public class ExecuteServiceTaskReplyTests
 
         public StageContext? Stage { get; private set; }
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
@@ -86,7 +86,7 @@ public class ExecuteServiceTaskReplyTests
                     Stage = context;
                     return Task.FromResult(StageResult.Completed());
                 })
-                .ConcludeOnReplies(
+                .HandleReplies(
                     archive,
                     onMessage: (context, reply) =>
                     {
@@ -126,7 +126,7 @@ public class ExecuteServiceTaskReplyTests
 
         public StageContext? Conclusion { get; private set; }
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -143,7 +143,7 @@ public class ExecuteServiceTaskReplyTests
                     }
                 )
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .Finally(context =>
+                .Stage(context =>
                 {
                     Conclusion = context;
                     return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
@@ -165,7 +165,7 @@ public class ExecuteServiceTaskReplyTests
 
         public List<string> Answered { get; } = [];
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -182,7 +182,7 @@ public class ExecuteServiceTaskReplyTests
                     }
                 )
                 .Stage(Send, _threeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(
+                .HandleReplies(
                     journal,
                     onMessage: (_, _) =>
                     {
@@ -206,10 +206,10 @@ public class ExecuteServiceTaskReplyTests
 
         public StageContext? Conclusion { get; private set; }
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .Finally(context =>
+                .Stage(context =>
                 {
                     Conclusion = context;
                     return Task.FromResult(Verdict);

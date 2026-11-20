@@ -235,10 +235,10 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
+                .HandleReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>The item index of the journal-opening stage in <see cref="ArchiveThenJournalTask"/>.</summary>
@@ -258,13 +258,13 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
                 .Stage(PlainStage, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(7) })
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(
+                .HandleReplies(
                     journal,
                     OnMessage,
                     OnClosed,
@@ -272,17 +272,17 @@ public class MailboxRelayTests
                 );
     }
 
-    /// <summary>The mid-pipeline reply followed by trailing stages and an ordinary <c>Finally</c>.</summary>
+    /// <summary>The mid-pipeline reply followed by trailing stages and an ordinary ending <c>Stage</c>.</summary>
     private sealed class ArchiveThenRecordTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
                 .Stage(PlainStage)
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+                .Stage(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 
     /// <summary>
@@ -293,12 +293,12 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-                .ConcludeOnReplies(journal, OnMessage, OnClosed);
+                .HandleReplies(journal, OnMessage, OnClosed);
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class MailboxRelayTests
     /// </summary>
     private static readonly ServiceTaskPipeline _archivingPipeline = new ArchivingTask().ResolvePipeline();
 
-    /// <summary>The mid-pipeline reply followed by a trailing stage and an ordinary <c>Finally</c>.</summary>
+    /// <summary>The mid-pipeline reply followed by a trailing stage and an ordinary ending <c>Stage</c>.</summary>
     private static readonly ServiceTaskPipeline _archiveThenRecordPipeline =
         new ArchiveThenRecordTask().ResolvePipeline();
 

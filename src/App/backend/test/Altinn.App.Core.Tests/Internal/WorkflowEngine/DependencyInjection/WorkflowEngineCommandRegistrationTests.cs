@@ -138,19 +138,19 @@ public class WorkflowEngineCommandRegistrationTests
     /// A process task lifecycle pipeline. Every stage count plans the same command key, so one stage suffices.
     /// </summary>
     private static ProcessTaskPipeline CreateLifecyclePipeline() =>
-        new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
+        new PipelineBuilder.Lifecycle().Stage(_ => Task.FromResult(StageResult.Completed())).ToPipeline();
 
     private static ServiceTaskPipeline CreatePipeline() =>
-        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        new PipelineBuilder.ServiceTask().Stage(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
     private static ServiceTaskPipeline CreateMailboxPipeline() =>
-        new PipelineBuilder()
+        new PipelineBuilder.ServiceTask()
             .Stage(
                 (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                 new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
                 out MailboxHandle handle
             )
-            .ConcludeOnReplies(
+            .HandleReplies(
                 handle,
                 (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
                 (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())

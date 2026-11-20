@@ -366,7 +366,7 @@ public sealed partial class ProcessEngineTest
     {
         public string Type => ServiceTaskWithoutWorkflowType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 }

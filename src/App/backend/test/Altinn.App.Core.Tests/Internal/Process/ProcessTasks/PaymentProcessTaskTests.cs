@@ -486,13 +486,13 @@ public class PaymentProcessTaskTests
     }
 
     private Task<StageResult> RunStart(IInstanceDataMutator dataMutator) =>
-        Run(_paymentProcessTask.DefineStart(new PipelineBuilder()), dataMutator);
+        Run(_paymentProcessTask.ResolvePipeline(LifecyclePhase.Start), dataMutator);
 
     private Task<StageResult> RunEnd(IInstanceDataMutator dataMutator) =>
-        Run(_paymentProcessTask.DefineEnd(new PipelineBuilder()), dataMutator);
+        Run(_paymentProcessTask.ResolvePipeline(LifecyclePhase.End), dataMutator);
 
     private Task<StageResult> RunAbandon(IInstanceDataMutator dataMutator) =>
-        Run(_paymentProcessTask.DefineAbandon(new PipelineBuilder()), dataMutator);
+        Run(_paymentProcessTask.ResolvePipeline(LifecyclePhase.Abandon), dataMutator);
 
     /// <summary>Runs the stages in order, as the engine would, stopping at the first that does not complete.</summary>
     private static async Task<StageResult> Run(ProcessTaskPipeline pipeline, IInstanceDataMutator dataMutator)
