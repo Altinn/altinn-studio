@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- In apps with more than one pod, a process transition no longer fails and leaves the instance in `processing` shortly after the platform rotates the app's callback codes. Notification condition checks and Nets payment webhooks no longer fail then either. ([#21872](https://github.com/Altinn/altinn-studio/issues/21872))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed

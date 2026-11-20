@@ -10,7 +10,8 @@ namespace Altinn.App.Core.Features.Notifications.SecretProvider;
 internal interface INotificationConditionSecretProvider
 {
     /// <summary>
-    /// Gets the secret used for signing JWT tokens for notification condition endpoints.
+    /// Gets the secret used for signing JWT tokens for notification condition endpoints: the code
+    /// <see cref="AppCodeRotation.SelectSigningCode"/> picks, so that every pod knows it before any pod signs with it.
     /// </summary>
     AppCode GetSigningSecret();
 
@@ -21,9 +22,13 @@ internal interface INotificationConditionSecretProvider
 }
 
 /// <inheritdoc />
-internal sealed class NotificationConditionSecretProvider(IOptionsMonitor<AppCodesSettings> options)
-    : INotificationConditionSecretProvider
+internal sealed class NotificationConditionSecretProvider(
+    IOptionsMonitor<AppCodesSettings> options,
+    TimeProvider? timeProvider = null
+) : INotificationConditionSecretProvider
 {
+    private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+
     /// <inheritdoc />
     public AppCode GetSigningSecret()
     {
@@ -32,7 +37,11 @@ internal sealed class NotificationConditionSecretProvider(IOptionsMonitor<AppCod
             throw new NotificationConditionSecretNotFoundException(
                 "AppCodes:Monthly is not configured. Ensure the app-codes secret is mounted."
             );
-        return codes[0];
+        return AppCodeRotation.SelectSigningCode(codes, _timeProvider.GetUtcNow())
+            ?? throw new NotificationConditionSecretNotFoundException(
+                "AppCodes:NotificationCallback contains only expired codes. At least one non-expired code is "
+                    + "required to sign notification condition tokens."
+            );
     }
 
     public IReadOnlyList<AppCode> GetValidationSecrets()

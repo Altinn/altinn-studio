@@ -7,13 +7,19 @@ namespace WorkflowEngine.Core.Tests;
 /// Tripwire for the token-lifetime bound: callback tokens are minted once at enqueue and never refresh, so a
 /// receive workflow's worst-case lifetime must fit inside the signing app-code's guaranteed remaining validity
 /// (operator rotation policy in <c>src/Runtime/operator/internal/controller/appcodesync/controller.go</c>:
-/// 365d acceptance − 24d rotation = 341d). Raising the wait budget, the mailbox timeout or retention past the
-/// floor would otherwise surface only as receivers failing to authenticate weeks after enqueue.
+/// 365d acceptance − 24d rotation = 341d, less the hour an app waits before it signs with a new code, from
+/// <c>AppCodeRotation.SigningGracePeriod</c> in <c>src/App/backend</c>). Raising the wait budget, the mailbox
+/// timeout or retention past the floor would otherwise surface only as receivers failing to authenticate weeks
+/// after enqueue.
 /// </summary>
 public class CallbackTokenLifetimeInvariantTests
 {
-    /// <summary>The operator's acceptance window (365d) minus its rotation interval (24d).</summary>
-    private static readonly TimeSpan _guaranteedTokenValidityAtEnqueue = TimeSpan.FromDays(341);
+    /// <summary>
+    /// The operator's acceptance window (365d) minus its rotation interval (24d) and the app's signing grace
+    /// period (1h): right after a rotation the app still signs with the previous code, which is then up to
+    /// 24d 1h old.
+    /// </summary>
+    private static readonly TimeSpan _guaranteedTokenValidityAtEnqueue = TimeSpan.FromDays(341) - TimeSpan.FromHours(1);
 
     /// <summary>
     /// The worst-case lifetime of a receive workflow, from its own enqueue: park for the mailbox's lifetime,
