@@ -58,7 +58,7 @@ public class ProcessNextRequestFactoryTests
         bool registerEvents = true,
         Action<IServiceCollection>? configureServices = null,
         IWorkflowCallbackTokenGenerator? callbackTokenGenerator = null,
-        bool confirmOnProcessEnd = false,
+        OnProcessEnd? onProcessEnd = null,
         params IServiceTask[] serviceTasks
     )
     {
@@ -91,12 +91,7 @@ public class ProcessNextRequestFactoryTests
         var appMetadataMock = new Mock<IAppMetadata>();
         appMetadataMock
             .Setup(x => x.ApplicationMetadata)
-            .Returns(
-                new ApplicationMetadata(TestInstance.AppId)
-                {
-                    OnProcessEnd = confirmOnProcessEnd ? new OnProcessEnd { Confirm = true } : null,
-                }
-            );
+            .Returns(new ApplicationMetadata(TestInstance.AppId) { OnProcessEnd = onProcessEnd });
 
         return new ProcessNextRequestFactory(
             appImplFactory,
@@ -1121,7 +1116,7 @@ public class ProcessNextRequestFactoryTests
     {
         var factory = CreateFactory(
             configureServices: services => AddHookHandler(services, typeof(IOnProcessEndedHandler)),
-            confirmOnProcessEnd: true
+            onProcessEnd: new OnProcessEnd { Confirm = true }
         );
 
         var bundle = await factory.CreateDependent(
@@ -1144,6 +1139,26 @@ public class ProcessNextRequestFactoryTests
                 EnqueueAuxiliaryWorkflows.Key,
             ],
             keys[^6..]
+        );
+    }
+
+    [Fact]
+    public async Task Create_TaskToEndTransition_WithOnProcessEndConfirmFalse_PlansNoConfirmation()
+    {
+        var factory = CreateFactory(onProcessEnd: new OnProcessEnd { Confirm = false });
+
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            CreateTaskToEndTransition(),
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        Assert.Equal(
+            [DeleteDataOnProcessEnd.Key, ReleaseProcessingStatus.Key, EnqueueAuxiliaryWorkflows.Key],
+            ExtractCommandKeys(bundle)[^3..]
         );
     }
 
