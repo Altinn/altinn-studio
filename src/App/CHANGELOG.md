@@ -10,6 +10,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.14] - 2026-11-20
+
 ### Changed
 
 - Breaking: a number or boolean the data model cannot hold empty gets its property initializer, or `0` or `false` without one, when it is removed, such as hidden data, or set to null with `IFormDataWrapper.Set`. Removing it gave `0` or `false` before, and `Set` with null failed. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
