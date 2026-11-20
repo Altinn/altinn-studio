@@ -198,7 +198,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
 
-        if (instance.Process?.CurrentTask is not { ElementId: { Length: > 0 } currentTaskId } currentTask)
+        ProcessElementInfo? currentTask = instance.Process?.CurrentTask;
+        string? currentTaskId = currentTask?.ElementId;
+        if (currentTask is null || string.IsNullOrEmpty(currentTaskId))
         {
             // Not started, or ended: there is no current task to annotate, so don't query the
             // engine. Known gap: the final (task -> end) transition's post-commit steps still run
