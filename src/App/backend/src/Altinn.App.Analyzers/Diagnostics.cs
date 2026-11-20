@@ -25,6 +25,14 @@ public static class Diagnostics
             "IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe"
         );
 
+        public static readonly DiagnosticDescriptor StorageClientInProcessHook = Warning(
+            "ALTINNAPP0501",
+            Category.CodeSmells,
+            "Storage client used in process transition code",
+            "'{0}.{1}' writes to or reads from Storage directly in '{2}', which can run while the process is "
+                + "transitioning. {3}."
+        );
+
         // '{0}' is "Method 'Name'", "Local function 'Name'" or "This lambda".
         public static readonly DiagnosticDescriptor AsyncVoid = Error(
             "ALTINNAPP0502",
@@ -32,6 +40,15 @@ public static class Diagnostics
             "Async method returns void",
             "{0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an "
                 + "exception it throws cannot be caught and stops the app. Return Task instead, and await it."
+        );
+
+        // '{0}' is "Instance" or "DataElement", and '{2}' lists the properties from InstanceSaveProperties.
+        public static readonly DiagnosticDescriptor InstancePropertyNotSaved = Warning(
+            "ALTINNAPP0503",
+            Category.CodeSmells,
+            "Instance property the instance data mutator does not save",
+            "'{0}.{1}' is not saved by the instance data mutator: a save throws on a change to it, or ignores one "
+                + "that Storage makes itself. Only these are saved: {2}."
         );
     }
 

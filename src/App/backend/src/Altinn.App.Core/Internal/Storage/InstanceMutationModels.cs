@@ -49,19 +49,19 @@ internal sealed class StorageInstanceMutationCreateDataElement
     public string? Filename { get; init; }
 
     [JsonProperty(PropertyName = "refs")]
-    public List<Guid>? Refs { get; init; }
+    public IReadOnlyList<Guid>? Refs { get; init; }
 
     [JsonProperty(PropertyName = "generatedFromTask")]
     public string? GeneratedFromTask { get; init; }
 
     [JsonProperty(PropertyName = "metadata")]
-    public List<KeyValueEntry>? Metadata { get; init; }
+    public IReadOnlyList<KeyValueEntry>? Metadata { get; init; }
 
     [JsonProperty(PropertyName = "userDefinedMetadata")]
-    public List<KeyValueEntry>? UserDefinedMetadata { get; init; }
+    public IReadOnlyList<KeyValueEntry>? UserDefinedMetadata { get; init; }
 
     [JsonProperty(PropertyName = "tags")]
-    public List<string>? Tags { get; init; }
+    public IReadOnlyList<string>? Tags { get; init; }
 
     [JsonProperty(PropertyName = "locked")]
     public bool? Locked { get; init; }
@@ -85,19 +85,19 @@ internal sealed class StorageInstanceMutationUpdateDataElement
     public string? Filename { get; init; }
 
     [JsonProperty(PropertyName = "refs")]
-    public List<Guid>? Refs { get; init; }
+    public IReadOnlyList<Guid>? Refs { get; init; }
 
     [JsonProperty(PropertyName = "generatedFromTask")]
     public string? GeneratedFromTask { get; init; }
 
     [JsonProperty(PropertyName = "metadata")]
-    public List<KeyValueEntry>? Metadata { get; init; }
+    public IReadOnlyList<KeyValueEntry>? Metadata { get; init; }
 
     [JsonProperty(PropertyName = "userDefinedMetadata")]
-    public List<KeyValueEntry>? UserDefinedMetadata { get; init; }
+    public IReadOnlyList<KeyValueEntry>? UserDefinedMetadata { get; init; }
 
     [JsonProperty(PropertyName = "tags")]
-    public List<string>? Tags { get; init; }
+    public IReadOnlyList<string>? Tags { get; init; }
 
     [JsonProperty(PropertyName = "deleteStatus")]
     public DeleteStatus? DeleteStatus { get; init; }

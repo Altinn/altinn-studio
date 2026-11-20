@@ -13,9 +13,15 @@ namespace Altinn.App.Core.Features;
 /// and also indicate that it is OK to mutate the models
 /// </summary>
 /// <remarks>
-/// Changes to <c>Instance.DataValues</c> and <c>Instance.PresentationTexts</c> are saved with the other changes.
-/// Only the keys that changed are sent, and a key set to null or an empty string is removed. Changing a key that
-/// <c>dataFields</c> or <c>presentationFields</c> in applicationmetadata.json derives fails the save.
+/// Changes to <see cref="IInstanceDataAccessor.Instance"/> are saved too: its <c>DataValues</c> and
+/// <c>PresentationTexts</c>, and the <c>Tags</c>, <c>Metadata</c>, <c>UserDefinedMetadata</c>, <c>Refs</c> and
+/// <c>Filename</c> of its data elements and of the elements this mutator adds. Only the data values and presentation
+/// texts that changed are sent, and a key set to null or an empty string is removed. Collecting the changes for a save
+/// throws for a change to anything else on the instance or its elements, other than the properties Storage writes
+/// itself, such as <c>IsRead</c> and <c>LastChanged</c>, and for a key that <c>dataFields</c> or
+/// <c>presentationFields</c> in applicationmetadata.json derives. It also throws when an element was added to or
+/// removed from <c>Instance.Data</c> other than through this mutator. Build check ALTINNAPP0503 reports changes to the
+/// properties that are not saved.
 /// </remarks>
 public interface IInstanceDataMutator : IInstanceDataAccessor
 {

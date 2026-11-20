@@ -21,6 +21,7 @@
     <Using Include="Microsoft.CodeAnalysis.Diagnostics" />
     <Using Include="Microsoft.CodeAnalysis.CSharp.Syntax" />
 
+    <Compile Include="../Altinn.App.Core/Internal/Data/InstanceSaveProperties.cs" Link="Shared/InstanceSaveProperties.cs" />
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>

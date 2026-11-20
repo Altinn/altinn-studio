@@ -617,9 +617,10 @@ internal sealed class FormBootstrapService
         }
 
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
-        // The save sends the data values and presentation texts the read hooks changed on the instance, with or
-        // without a form data change.
-        bool hasInstanceFieldChanges = dataAccessor.HasInstanceFieldChanges();
+        if (!changes.HasChanges)
+        {
+            return;
+        }
 
         var persistableChanges = changes
             .AllChanges.Where(c =>
@@ -627,12 +628,26 @@ internal sealed class FormBootstrapService
                 && c.DataType.IsWritableInCurrentTask(dataAccessor.Instance)
             )
             .ToList();
-        if (persistableChanges.Count == 0 && !hasInstanceFieldChanges)
+        // Metadata follows the same rule: an added element's goes with it, and an existing element's needs the
+        // element to be unlocked and writable in the current task.
+        var persistableMetadataChanges = changes
+            .DataElementMetadataChanges.Where(entry =>
+                persistableChanges.Exists(change => change.DataElementIdentifier == entry.Key)
+                || dataAccessor.Instance.Data.Find(dataElement => dataElement.Id == entry.Key.Id)
+                    is { Locked: false } dataElement
+                    && dataAccessor.GetDataType(dataElement.DataType).IsWritableInCurrentTask(dataAccessor.Instance)
+            )
+            .ToDictionary();
+        var filteredChanges = new DataElementChanges(
+            persistableChanges,
+            changes.InstanceFieldChanges,
+            persistableMetadataChanges
+        );
+        if (!filteredChanges.HasChanges)
         {
             return;
         }
 
-        var filteredChanges = new DataElementChanges(persistableChanges);
         try
         {
             await dataAccessor.SaveChanges(filteredChanges);

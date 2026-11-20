@@ -13,6 +13,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
+- Data processors, process hooks, service tasks and `IInstantiationProcessor` can change the tags, metadata, user-defined metadata, refs and filename of the data elements on `IInstanceDataMutator.Instance`, and of the elements the mutator adds. The changes are saved with the user's save, the process transition or the instantiation. ([#21970](https://github.com/Altinn/altinn-studio/pull/21970))
+- Build check `ALTINNAPP0501` (warning) reports calls to `IDataClient`, `IInstanceClient` and `IDataService` in process hooks, service tasks and `IInstantiationProcessor.DataCreation`, where Storage refuses direct writes while the process is transitioning. Use the `IInstanceDataMutator` from the context instead. ([#21970](https://github.com/Altinn/altinn-studio/pull/21970))
+
+### Changed
+
+- Breaking: Changing any other property of `IInstanceDataMutator.Instance` or its data elements, such as `DueBefore` or `Locked`, or adding items to `Instance.Data` or removing them without `RemoveDataElement`, now fails the save. Remove the change, or make it outside the process transition. Build check `ALTINNAPP0503` reports it. ([#21970](https://github.com/Altinn/altinn-studio/pull/21970))
 
 ### Fixed
 

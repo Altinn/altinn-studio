@@ -91,10 +91,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private bool _stagedProcessingRelease;
     private bool _stagedInstanceDeletion;
     private bool _stagedCompleteConfirmation;
-    private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
 
-    // The instance as Storage last returned it. A save sends the data values and presentation texts the app has
-    // changed on Instance since then.
+    // The instance as Storage last returned it. A save sends what the app has changed on Instance since then.
     private byte[] _instanceSnapshot;
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
@@ -340,7 +338,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         FormDataChange change = new FormDataChange(
             type: ChangeType.Created,
-            dataElement: CreateStagedDataElement(dataType, contentType),
+            dataElement: CreateStagedDataElement(new DataElementIdentifier(Guid.NewGuid()), dataType, contentType),
             dataType: dataType,
             contentType: contentType,
             currentFormDataWrapper: FormDataWrapperFactory.Create(model, dataType, null),
@@ -378,7 +376,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         BinaryDataChange change = new BinaryDataChange(
             type: ChangeType.Created,
-            dataElement: CreateStagedDataElement(dataType, contentType, filename),
+            dataElement: CreateStagedDataElement(
+                new DataElementIdentifier(Guid.NewGuid()),
+                dataType,
+                contentType,
+                filename,
+                metadata
+            ),
             dataType: dataType,
             fileName: filename,
             contentType: contentType,
@@ -542,20 +546,32 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
+    // A user save leaves its creations tracked, with the saved element on the instance.
+    private bool IsUnsavedCreation(DataElementIdentifier dataElementIdentifier) =>
+        !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
+        && _changesForCreation.Any(change => change.DataElementIdentifier == dataElementIdentifier);
+
     private DataElementChange? GetChangeForCreation(DataElementIdentifier dataElementIdentifier) =>
         _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier);
 
     private FormDataChange? GetFormDataChangeForCreation(DataElementIdentifier dataElementIdentifier) =>
         GetChangeForCreation(dataElementIdentifier) as FormDataChange;
 
-    private DataElement CreateStagedDataElement(DataType dataType, string contentType, string? filename = null) =>
+    private DataElement CreateStagedDataElement(
+        DataElementIdentifier dataElementIdentifier,
+        DataType dataType,
+        string contentType,
+        string? filename = null,
+        List<KeyValueEntry>? metadata = null
+    ) =>
         new()
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = dataElementIdentifier.Id,
             InstanceGuid = _instanceGuid == Guid.Empty ? null : _instanceGuid.ToString(),
             DataType = dataType.Id,
             ContentType = contentType,
             Filename = filename,
+            Metadata = metadata?.Select(entry => new KeyValueEntry { Key = entry.Key, Value = entry.Value }).ToList(),
         };
 
     /// <summary>
@@ -630,15 +646,295 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedCompleteConfirmation = true;
     }
 
-    internal void UpdateInstanceDataValue(string key, string? value)
+    internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
+
+    /// <summary>
+    /// Whether a save would write a data element change, a change the app made on <see cref="Instance"/> or a
+    /// complete confirmation. Lock statuses, instance deletion and process state are not checked.
+    /// </summary>
+    internal bool HasStagedChanges() => GetDataElementChanges(false).HasChanges || _stagedCompleteConfirmation;
+
+    // Process state is staged through UpdateProcessState, and elements through the data element members. Storage
+    // changes the last changed properties on its own, as it does for elements.
+    private static readonly HashSet<string> _instancePropertiesNotChecked =
+    [
+        .. InstanceSaveProperties.Instance,
+        nameof(Instance.Process),
+        nameof(Instance.Data),
+        nameof(Instance.LastChanged),
+        nameof(Instance.LastChangedBy),
+    ];
+
+    // Storage changes these on its own, for example when someone opens the element, and SigningUserAction puts
+    // Storage's elements on the instance.
+    private static readonly HashSet<string> _dataElementPropertiesNotChecked =
+    [
+        .. InstanceSaveProperties.DataElement,
+        nameof(DataElement.LastChanged),
+        nameof(DataElement.LastChangedBy),
+        nameof(DataElement.IsRead),
+        nameof(DataElement.FileScanResult),
+    ];
+
+    /// <summary>
+    /// Compares <see cref="Instance"/> with the instance Storage last returned, and finds the data values,
+    /// presentation texts and element metadata that a save sends.
+    /// </summary>
+    /// <exception cref="InstanceChangeNotSavableException">
+    /// when the app changed something a save cannot send, or a key derived from <c>dataFields</c> or
+    /// <c>presentationFields</c>, which the save would overwrite
+    /// </exception>
+    private (
+        InstanceFieldChanges Instance,
+        Dictionary<DataElementIdentifier, DataElementMetadataChange> DataElementMetadata
+    ) GetInstanceChanges()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        _stagedInstanceDataValues[key] = value;
+        Instance previous = ReadInstanceSnapshot();
+        InstanceFieldChanges instanceFieldChanges = GetChangedInstanceFields(previous);
+
+        ThrowIfElementsAddedOrRemoved(previous);
+
+        var dataElementMetadata = new Dictionary<DataElementIdentifier, DataElementMetadataChange>();
+        foreach (DataElement previousElement in previous.Data ?? [])
+        {
+            // An element the mutator deletes is not updated, so its changes do not matter. The app may also have
+            // removed it from Instance.Data.
+            if (_changesForDeletion.Any(change => change.DataElementIdentifier.Id == previousElement.Id))
+            {
+                continue;
+            }
+            DataElement current = _instance.Data.First(dataElement => dataElement.Id == previousElement.Id);
+
+            if (GetChangedMetadata(previousElement, current) is { } change)
+            {
+                dataElementMetadata[current] = change;
+            }
+        }
+
+        foreach (DataElementChange creation in _changesForCreation)
+        {
+            if (IsUnsavedCreation(creation.DataElementIdentifier) && GetCreatedMetadata(creation) is { } created)
+            {
+                dataElementMetadata[creation.DataElementIdentifier] = created;
+            }
+        }
+
+        return (instanceFieldChanges, dataElementMetadata);
     }
 
-    internal IReadOnlyDictionary<string, string?> StagedInstanceDataValues => _stagedInstanceDataValues;
+    // Instance.Data holds the elements Storage has. The mutator stages additions and deletions on its own, and a save
+    // sends only those. An element removed with RemoveDataElement may also be removed from Instance.Data.
+    private void ThrowIfElementsAddedOrRemoved(Instance previous)
+    {
+        var previousIds = (previous.Data ?? []).Select(dataElement => dataElement.Id).ToHashSet(StringComparer.Ordinal);
+        var currentIds = (_instance.Data ?? []).Select(dataElement => dataElement.Id).ToHashSet(StringComparer.Ordinal);
+        if (currentIds.Except(previousIds).FirstOrDefault() is { } added)
+        {
+            throw new InstanceChangeNotSavableException(
+                $"Data element {added} was added to Instance.Data, but a save only creates elements added with AddFormDataElement or AddBinaryDataElement."
+            );
+        }
+        if (
+            previousIds
+                .Except(currentIds)
+                .FirstOrDefault(id => !_changesForDeletion.Any(change => change.DataElementIdentifier.Id == id)) is
+            { } removed
+        )
+        {
+            throw new InstanceChangeNotSavableException(
+                $"Data element {removed} was removed from Instance.Data, but a save only deletes elements removed with RemoveDataElement."
+            );
+        }
+    }
 
-    internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
+    /// <summary>
+    /// Puts elements that Storage created outside this unit of work on <see cref="Instance"/>, as Storage has them.
+    /// </summary>
+    /// <remarks>
+    /// Elements already on the instance are kept as they are, with the app's changes to them.
+    /// </remarks>
+    internal void AddDataElementsCreatedByStorage(IEnumerable<DataElement> storageDataElements)
+    {
+        Instance previous = ReadInstanceSnapshot();
+        previous.Data ??= [];
+        foreach (DataElement storageDataElement in storageDataElements)
+        {
+            if (!previous.Data.Exists(dataElement => dataElement.Id == storageDataElement.Id))
+            {
+                previous.Data.Add(storageDataElement);
+                Instance.Data.Add(storageDataElement);
+            }
+        }
+
+        _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(previous);
+    }
+
+    private Instance ReadInstanceSnapshot() =>
+        JsonSerializer.Deserialize<Instance>(_instanceSnapshot)
+        ?? throw new InvalidOperationException("Failed to read the instance snapshot");
+
+    private InstanceFieldChanges GetChangedInstanceFields(Instance previous)
+    {
+        ThrowIfChanged(previous, _instance, _instancePropertiesNotChecked, "Instance");
+
+        var dataValues = GetChangedEntries(previous.DataValues, _instance.DataValues);
+        ThrowIfDerived(dataValues, _appMetadata.DataFields, "Data value", "DataValues", "dataFields");
+        var presentationTexts = GetChangedEntries(previous.PresentationTexts, _instance.PresentationTexts);
+        ThrowIfDerived(
+            presentationTexts,
+            _appMetadata.PresentationFields,
+            "Presentation text",
+            "PresentationTexts",
+            "presentationFields"
+        );
+
+        return new InstanceFieldChanges(dataValues, presentationTexts);
+    }
+
+    private static Dictionary<string, string?> GetChangedEntries(
+        Dictionary<string, string?>? previous,
+        Dictionary<string, string?>? current
+    )
+    {
+        // Storage removes a key sent as null or empty, so an empty value is sent as a removal.
+        var changes = new Dictionary<string, string?>(StringComparer.Ordinal);
+        foreach (var (key, value) in current ?? [])
+        {
+            string? currentValue = string.IsNullOrEmpty(value) ? null : value;
+            string? previousValue = previous?.GetValueOrDefault(key) is { Length: > 0 } stored ? stored : null;
+            if (currentValue != previousValue)
+            {
+                changes[key] = currentValue;
+            }
+        }
+
+        foreach (string key in previous?.Keys ?? Enumerable.Empty<string>())
+        {
+            if (current?.ContainsKey(key) is not true)
+            {
+                changes[key] = null;
+            }
+        }
+
+        return changes;
+    }
+
+    private static void ThrowIfDerived(
+        IReadOnlyDictionary<string, string?> changes,
+        List<DataField>? derivedFields,
+        string description,
+        string instanceProperty,
+        string metadataProperty
+    )
+    {
+        foreach (var (key, value) in changes)
+        {
+            if (derivedFields?.Exists(field => field.Id == key) is true)
+            {
+                string change = value is null ? "removed from" : "set in";
+                throw new InstanceChangeNotSavableException(
+                    $"{description} '{key}' was {change} Instance.{instanceProperty}, but it is derived from {metadataProperty} in applicationmetadata.json, and the save would overwrite it; remove it from {metadataProperty} or set the model field it is derived from."
+                );
+            }
+        }
+    }
+
+    private static void ThrowIfChanged<T>(T previous, T current, HashSet<string> propertiesNotChecked, string owner)
+    {
+        foreach (var property in typeof(T).GetProperties())
+        {
+            if (
+                property.CanRead
+                && !propertiesNotChecked.Contains(property.Name)
+                && !JsonSerializer
+                    .SerializeToUtf8Bytes(property.GetValue(previous))
+                    .AsSpan()
+                    .SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(property.GetValue(current)))
+            )
+            {
+                throw new InstanceChangeNotSavableException(
+                    $"{owner}.{property.Name} was changed, but a save only sends changes to the instance's DataValues and PresentationTexts and to the Tags, Metadata, UserDefinedMetadata, Refs and Filename of its data elements."
+                );
+            }
+        }
+    }
+
+    private DataElementMetadataChange? GetChangedMetadata(DataElement previous, DataElement current)
+    {
+        ThrowIfChanged(previous, current, _dataElementPropertiesNotChecked, $"DataElement {current.Id}");
+        if (current.Filename is null && previous.Filename is not null)
+        {
+            throw new InstanceChangeNotSavableException(
+                $"DataElement {current.Id}.Filename was set to null, but Storage cannot remove a filename."
+            );
+        }
+
+        var change = new DataElementMetadataChange(
+            ListEquals(previous.Tags, current.Tags) ? null : current.Tags ?? [],
+            KeyValueEntriesEqual(previous.Metadata, current.Metadata) ? null : current.Metadata ?? [],
+            KeyValueEntriesEqual(previous.UserDefinedMetadata, current.UserDefinedMetadata)
+                ? null
+                : current.UserDefinedMetadata ?? [],
+            ListEquals(previous.Refs, current.Refs) ? null : current.Refs ?? [],
+            current.Filename == previous.Filename ? null : current.Filename
+        );
+        if (!change.HasChanges)
+        {
+            return null;
+        }
+
+        ThrowIfReferringToUnsavedCreation(change);
+        return change;
+    }
+
+    // Checks the element the add returned against the element as the add staged it, and sends all its metadata.
+    private DataElementMetadataChange? GetCreatedMetadata(DataElementChange creation)
+    {
+        DataElement current =
+            creation.DataElement
+            ?? throw new InvalidOperationException(
+                $"Data element {creation.DataElementIdentifier.Id} is added without a staged element"
+            );
+        DataElement staged = CreateStagedDataElement(
+            creation.DataElementIdentifier,
+            creation.DataType,
+            creation.ContentType,
+            (creation as BinaryDataChange)?.FileName,
+            (creation as BinaryDataChange)?.Metadata
+        );
+        _ = GetChangedMetadata(staged, current);
+
+        var created = new DataElementMetadataChange(
+            current.Tags is { Count: > 0 } ? current.Tags : null,
+            current.Metadata,
+            current.UserDefinedMetadata,
+            current.Refs,
+            current.Filename
+        );
+        return created.HasChanges ? created : null;
+    }
+
+    private static bool ListEquals<T>(List<T>? previous, List<T>? current) =>
+        (previous ?? []).SequenceEqual(current ?? []);
+
+    private static bool KeyValueEntriesEqual(List<KeyValueEntry>? previous, List<KeyValueEntry>? current) =>
+        ListEquals(
+            previous?.Select(entry => (entry.Key, entry.Value)).ToList(),
+            current?.Select(entry => (entry.Key, entry.Value)).ToList()
+        );
+
+    private void ThrowIfReferringToUnsavedCreation(DataElementMetadataChange change)
+    {
+        foreach (Guid reference in change.Refs ?? [])
+        {
+            if (IsUnsavedCreation(new DataElementIdentifier(reference)))
+            {
+                throw new InstanceChangeNotSavableException(
+                    $"Data element {reference} is added in this unit of work and cannot be referred to: its id is assigned when the instance is saved"
+                );
+            }
+        }
+    }
 
     /// <summary>
     /// Captures all form data from the cache for state transport.
@@ -688,7 +984,18 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
+    /// <remarks>
+    /// The result also holds what the app changed on <see cref="Instance"/> since Storage last returned it, which a
+    /// save of the result sends.
+    /// </remarks>
     public DataElementChanges GetDataElementChanges(bool initializeAltinnRowId)
+    {
+        List<DataElementChange> changes = GetChangedDataElements(initializeAltinnRowId);
+        var (instanceChanges, dataElementMetadataChanges) = GetInstanceChanges();
+        return new DataElementChanges(changes, instanceChanges, dataElementMetadataChanges);
+    }
+
+    private List<DataElementChange> GetChangedDataElements(bool initializeAltinnRowId)
     {
         if (HasAbandonIssues)
         {
@@ -791,7 +1098,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
         changes.AddRange(_changesForDeletion);
 
-        return new DataElementChanges(changes);
+        return changes;
     }
 
     private static void ValidateBinaryData(DataType dataType, string contentType, ReadOnlyMemory<byte> bytes)
@@ -879,8 +1186,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ApplyStagedProcessState(mutationPlan.Request);
         ApplyStagedInstanceDeletion(mutationPlan.Request);
         ApplyStagedCompleteConfirmation(mutationPlan.Request);
-        ApplyInstanceFieldChanges(mutationPlan.Request);
-        ApplyStagedInstanceDataValues(mutationPlan.Request);
+        ApplyInstanceFieldChanges(mutationPlan.Request, changes.InstanceFieldChanges);
         if (!mutationPlan.HasMutations)
         {
             return WorkflowAggregateSaveOutcome.NothingToSave;
@@ -978,6 +1284,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private AggregateMutationPlan BuildAggregateMutationPlan(DataElementChanges changes)
     {
+        IReadOnlyDictionary<DataElementIdentifier, DataElementMetadataChange> dataElementMetadata =
+            changes.DataElementMetadataChanges;
         var request = new StorageInstanceMutationRequest();
         var contentParts = new Dictionary<string, StorageInstanceMutationContent>(StringComparer.Ordinal);
         var createdChanges = new List<DataElementChange>();
@@ -1012,6 +1320,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         lockStatusDataTypeIds.Add(change.DataType.Id);
                     }
                     plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+                    DataElementMetadataChange? createdMetadata = dataElementMetadata.GetValueOrDefault(
+                        change.DataElementIdentifier
+                    );
 
                     request.CreateDataElements.Add(
                         new StorageInstanceMutationCreateDataElement
@@ -1019,9 +1330,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             DataType = change.DataType.Id,
                             ContentPartName = contentPartName,
                             ContentType = change.ContentType,
-                            Filename = (change as BinaryDataChange)?.FileName,
+                            Filename = createdMetadata?.Filename,
+                            Refs = createdMetadata?.Refs,
                             GeneratedFromTask = (change as BinaryDataChange)?.GeneratedFromTask,
-                            Metadata = (change as BinaryDataChange)?.Metadata,
+                            Metadata = createdMetadata?.Metadata,
+                            UserDefinedMetadata = createdMetadata?.UserDefinedMetadata,
+                            Tags = createdMetadata?.Tags,
                             Locked = hasLocked ? locked : null,
                         }
                     );
@@ -1051,6 +1365,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         lockStatusDataTypeIds.Add(change.DataType.Id);
                     }
                     plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+                    DataElementMetadataChange? changedMetadata = dataElementMetadata.GetValueOrDefault(
+                        change.DataElementIdentifier
+                    );
 
                     request.UpdateDataElements.Add(
                         new StorageInstanceMutationUpdateDataElement
@@ -1068,14 +1385,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                                     && reference.ValueType == ReferenceType.Task
                                 )
                                 ?.Value,
-                            Filename = change switch
-                            {
-                                BinaryDataChange binaryDataChange => binaryDataChange.FileName,
-                                FormDataChange => change.DataElement.Filename,
-                                _ => throw new UnreachableException(
-                                    "ChangeType.Updated must be a form or binary data change"
-                                ),
-                            },
+                            Filename = change.DataElement.Filename,
+                            Metadata = changedMetadata?.Metadata,
+                            UserDefinedMetadata = changedMetadata?.UserDefinedMetadata,
+                            Tags = changedMetadata?.Tags,
                             Locked = hasLocked ? locked : null,
                         }
                     );
@@ -1103,6 +1416,30 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 default:
                     throw new UnreachableException($"Unknown data element change type {change.Type}");
             }
+        }
+
+        foreach (var (dataElementIdentifier, changedMetadata) in dataElementMetadata)
+        {
+            if (plannedDataElementIdentifiers.Contains(dataElementIdentifier))
+            {
+                continue;
+            }
+
+            // Storage refuses two operations on one element, so a pending lock status goes with the metadata.
+            bool? lockedUpdate = null;
+            if (pendingLockStatuses.TryGetValue(dataElementIdentifier, out bool locked))
+            {
+                lockStatusDataElementIdentifiers.Add(dataElementIdentifier);
+                lockStatusDataTypeIds.Add(this.GetDataType(dataElementIdentifier).Id);
+                if (GetDataElement(dataElementIdentifier).Locked != locked)
+                {
+                    lockedUpdate = locked;
+                }
+            }
+
+            plannedDataElementIdentifiers.Add(dataElementIdentifier);
+            request.UpdateDataElements.Add(CreateMetadataUpdate(dataElementIdentifier, changedMetadata, lockedUpdate));
+            authenticationMethods.Add(GetAuthenticationMethod(dataElementIdentifier));
         }
 
         foreach (var (dataElementIdentifier, locked) in pendingLockStatuses)
@@ -1177,111 +1514,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         request.AddCompleteConfirmation = _stagedCompleteConfirmation;
     }
 
-    private void ApplyInstanceFieldChanges(StorageInstanceMutationRequest request)
+    private static void ApplyInstanceFieldChanges(StorageInstanceMutationRequest request, InstanceFieldChanges changes)
     {
-        var (dataValues, presentationTexts) = GetInstanceFieldChanges();
-        foreach (var (key, value) in dataValues)
+        foreach (var (key, value) in changes.DataValues)
         {
             request.DataValues[key] = value;
         }
 
-        foreach (var (key, value) in presentationTexts)
+        foreach (var (key, value) in changes.PresentationTexts)
         {
             request.PresentationTexts[key] = value;
-        }
-    }
-
-    /// <summary>
-    /// Compares <see cref="Instance"/> with the data values and presentation texts Storage last returned, and finds
-    /// the keys the app has changed. A null value removes the key.
-    /// </summary>
-    /// <exception cref="InstanceChangeNotSavableException">
-    /// when the app changed a key derived from <c>dataFields</c> or <c>presentationFields</c>, which the save would
-    /// overwrite
-    /// </exception>
-    private (
-        Dictionary<string, string?> DataValues,
-        Dictionary<string, string?> PresentationTexts
-    ) GetInstanceFieldChanges()
-    {
-        Instance previous = ReadInstanceSnapshot();
-        var dataValues = GetChangedEntries(previous.DataValues, _instance.DataValues);
-        ThrowIfDerived(dataValues, _appMetadata.DataFields, "Data value", "DataValues", "dataFields");
-        var presentationTexts = GetChangedEntries(previous.PresentationTexts, _instance.PresentationTexts);
-        ThrowIfDerived(
-            presentationTexts,
-            _appMetadata.PresentationFields,
-            "Presentation text",
-            "PresentationTexts",
-            "presentationFields"
-        );
-
-        return (dataValues, presentationTexts);
-    }
-
-    private Instance ReadInstanceSnapshot() =>
-        JsonSerializer.Deserialize<Instance>(_instanceSnapshot)
-        ?? throw new InvalidOperationException("Failed to read the instance snapshot");
-
-    internal bool HasInstanceFieldChanges()
-    {
-        var (dataValues, presentationTexts) = GetInstanceFieldChanges();
-        return dataValues.Count > 0 || presentationTexts.Count > 0;
-    }
-
-    private static Dictionary<string, string?> GetChangedEntries(
-        Dictionary<string, string?>? previous,
-        Dictionary<string, string?>? current
-    )
-    {
-        // Storage removes a key sent as null or empty, so an empty value is sent as a removal.
-        var changes = new Dictionary<string, string?>(StringComparer.Ordinal);
-        foreach (var (key, value) in current ?? [])
-        {
-            string? currentValue = string.IsNullOrEmpty(value) ? null : value;
-            string? previousValue = previous?.GetValueOrDefault(key) is { Length: > 0 } stored ? stored : null;
-            if (currentValue != previousValue)
-            {
-                changes[key] = currentValue;
-            }
-        }
-
-        foreach (string key in previous?.Keys ?? Enumerable.Empty<string>())
-        {
-            if (current?.ContainsKey(key) is not true)
-            {
-                changes[key] = null;
-            }
-        }
-
-        return changes;
-    }
-
-    private static void ThrowIfDerived(
-        Dictionary<string, string?> changes,
-        List<DataField>? derivedFields,
-        string description,
-        string instanceProperty,
-        string metadataProperty
-    )
-    {
-        foreach (var (key, value) in changes)
-        {
-            if (derivedFields?.Exists(field => field.Id == key) is true)
-            {
-                string change = value is null ? "removed from" : "set in";
-                throw new InstanceChangeNotSavableException(
-                    $"{description} '{key}' was {change} Instance.{instanceProperty}, but it is derived from {metadataProperty} in applicationmetadata.json, and the save would overwrite it; remove it from {metadataProperty} or set the model field it is derived from."
-                );
-            }
-        }
-    }
-
-    private void ApplyStagedInstanceDataValues(StorageInstanceMutationRequest request)
-    {
-        foreach (var (key, value) in _stagedInstanceDataValues)
-        {
-            request.DataValues[key] = value;
         }
     }
 
@@ -1314,7 +1556,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedProcessingRelease = false;
         _stagedInstanceDeletion = false;
         _stagedCompleteConfirmation = false;
-        _stagedInstanceDataValues.Clear();
     }
 
     private void ClearCommittedAggregateState()
@@ -1353,6 +1594,22 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         return pendingDataTypeLockStatuses.TryGetValue(change.DataType.Id, out locked);
     }
+
+    private static StorageInstanceMutationUpdateDataElement CreateMetadataUpdate(
+        DataElementIdentifier dataElementIdentifier,
+        DataElementMetadataChange changedMetadata,
+        bool? locked
+    ) =>
+        new()
+        {
+            DataElementId = dataElementIdentifier.Guid,
+            Filename = changedMetadata.Filename,
+            Refs = changedMetadata.Refs,
+            Metadata = changedMetadata.Metadata,
+            UserDefinedMetadata = changedMetadata.UserDefinedMetadata,
+            Tags = changedMetadata.Tags,
+            Locked = locked,
+        };
 
     private static void AddContentPart(
         Dictionary<string, StorageInstanceMutationContent> contentParts,
@@ -1819,11 +2076,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private StorageAuthenticationMethod GetAuthenticationMethod(DataType dataType) =>
         _authenticationMethodOverrides.GetValueOrDefault(dataType, _defaultAuthenticationMethod);
 
-    internal void VerifyDataElementsUnchangedSincePreviousChanges(DataElementChanges previousChanges)
+    internal void VerifyUnchangedSincePreviousChanges(DataElementChanges previousChanges)
     {
-        using var activity = _telemetry?.StartVerifyDataElementsUnchangedSincePreviousChanges();
-        var changes = GetDataElementChanges(initializeAltinnRowId: false);
-        if (changes.AllChanges.Count != previousChanges.AllChanges.Count)
+        using var activity = _telemetry?.StartVerifyUnchangedSincePreviousChanges();
+        List<DataElementChange> changes = GetChangedDataElements(initializeAltinnRowId: false);
+        if (changes.Count != previousChanges.AllChanges.Count)
         {
             throw new InvalidOperationException("Number of data elements have changed by validators");
         }
@@ -1831,7 +2088,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         foreach (var previousChange in previousChanges.AllChanges)
         {
             var currentChange =
-                changes.AllChanges.FirstOrDefault(c => c.DataElement?.Id == previousChange.DataElement?.Id)
+                changes.FirstOrDefault(c => c.DataElement?.Id == previousChange.DataElement?.Id)
                 ?? throw new InvalidOperationException("Number of data elements have changed by validators");
 
             var equal = (currentChange, previousChange) switch
@@ -1853,27 +2110,28 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
-        // The save took a new snapshot of the instance, so a difference now was made by validators.
-        Dictionary<string, string?> dataValues;
-        Dictionary<string, string?> presentationTexts;
+        // The save took a new snapshot of the instance, so anything that differs from it now was changed by validators.
+        InstanceFieldChanges instanceChanges;
+        Dictionary<DataElementIdentifier, DataElementMetadataChange> dataElementMetadataChanges;
         try
         {
-            (dataValues, presentationTexts) = GetInstanceFieldChanges();
+            (instanceChanges, dataElementMetadataChanges) = GetInstanceChanges();
         }
         catch (InstanceChangeNotSavableException exception)
         {
             throw new InvalidOperationException("The instance has been changed by validators", exception);
         }
 
-        if (dataValues.Count > 0 || presentationTexts.Count > 0)
+        if (instanceChanges.HasChanges || dataElementMetadataChanges.Count > 0)
         {
             throw new InvalidOperationException(
                 "The instance has been changed by validators: "
                     + string.Join(
                         ", ",
                         [
-                            .. dataValues.Keys.Select(key => $"data value '{key}'"),
-                            .. presentationTexts.Keys.Select(key => $"presentation text '{key}'"),
+                            .. instanceChanges.DataValues.Keys.Select(key => $"data value '{key}'"),
+                            .. instanceChanges.PresentationTexts.Keys.Select(key => $"presentation text '{key}'"),
+                            .. dataElementMetadataChanges.Keys.Select(id => $"metadata of data element {id.Id}"),
                         ]
                     )
             );

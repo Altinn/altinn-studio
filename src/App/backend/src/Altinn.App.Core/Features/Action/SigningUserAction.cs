@@ -6,6 +6,7 @@ using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -149,7 +150,15 @@ internal class SigningUserAction : IUserAction
                 authenticationMethod: null,
                 CancellationToken.None
             );
-            context.DataMutator.Instance.Data = instance.Data;
+            if (context.DataMutator is InstanceDataUnitOfWork unitOfWork)
+            {
+                unitOfWork.AddDataElementsCreatedByStorage(instance.Data);
+            }
+            else
+            {
+                // Other mutators, such as test doubles, take Storage's elements as they are.
+                context.DataMutator.Instance.Data = instance.Data;
+            }
         }
         catch (PlatformHttpException)
         {

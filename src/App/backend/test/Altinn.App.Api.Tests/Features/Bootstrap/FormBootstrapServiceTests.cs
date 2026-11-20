@@ -1032,7 +1032,8 @@ public class FormBootstrapServiceTests
     }
 
     [Theory]
-    // The data values are saved even when the element is locked, as they are not part of it.
+    // The data values are saved even when the element is locked, as they are not part of it. A locked element's
+    // metadata is not saved, as its form data is not.
     [InlineData(false)]
     [InlineData(true)]
     public async Task GetInstanceFormBootstrap_PersistsReadHookInstanceChanges_WithoutAFormDataChange(bool locked)
@@ -1041,7 +1042,13 @@ public class FormBootstrapServiceTests
         var appMetadata = CreateAppMetadata("model");
 
         SetupMocks(appMetadata);
-        SetupMutatingReadHook(hookInstance => hookInstance.DataValues = new() { ["read"] = "yes" });
+        SetupMutatingReadHook(
+            (hookInstance, dataElement) =>
+            {
+                hookInstance.DataValues = new() { ["read"] = "yes" };
+                dataElement.Tags = ["read"];
+            }
+        );
         StorageInstanceMutationRequest? request = null;
         _mutationClient
             .Setup(x =>
@@ -1074,7 +1081,14 @@ public class FormBootstrapServiceTests
 
         Assert.NotNull(request);
         Assert.Equal(new Dictionary<string, string?> { ["read"] = "yes" }, request.DataValues);
-        Assert.Empty(request.UpdateDataElements);
+        if (locked)
+        {
+            Assert.Empty(request.UpdateDataElements);
+        }
+        else
+        {
+            Assert.Equal(["read"], Assert.Single(request.UpdateDataElements).Tags);
+        }
     }
 
     [Fact]
@@ -1233,7 +1247,7 @@ public class FormBootstrapServiceTests
         );
     }
 
-    private void SetupMutatingReadHook(Action<Instance>? changeInstance = null)
+    private void SetupMutatingReadHook(Action<Instance, DataElement>? changeInstance = null)
     {
         _formDataReader
             .Setup(x =>
@@ -1250,7 +1264,7 @@ public class FormBootstrapServiceTests
             .ReturnsAsync(
                 (
                     Instance instance,
-                    DataElement _,
+                    DataElement dataElement,
                     object appModel,
                     bool _,
                     string? _,
@@ -1264,7 +1278,7 @@ public class FormBootstrapServiceTests
                     }
                     else
                     {
-                        changeInstance(instance);
+                        changeInstance(instance, dataElement);
                     }
                     return appModel;
                 }
