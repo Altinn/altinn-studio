@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.Options;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -211,8 +214,9 @@ public class OptionsController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Route("change-name/{optionsListId}")]
-    public ActionResult UpdateOptionsListId(
+    public async Task<ActionResult> UpdateOptionsListId(
         string org,
         string repo,
         [FromRoute] string optionsListId,
@@ -223,6 +227,12 @@ public class OptionsController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+        // Components refer to the code list by its id, and nothing updates them when the id changes.
+        if (await _optionListReferenceService.IsOptionListInUse(editingContext, optionsListId, cancellationToken))
+        {
+            return OptionListInUseConflict();
+        }
+
         try
         {
             _optionsService.UpdateOptionsListId(editingContext, optionsListId, newOptionsListId, cancellationToken);
@@ -283,6 +293,7 @@ public class OptionsController : ControllerBase
     [HttpDelete]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Route("{optionsListId}")]
     public async Task<ActionResult> DeleteOptionsList(
         string org,
@@ -303,11 +314,22 @@ public class OptionsController : ControllerBase
         );
         if (optionsListExists)
         {
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            if (await _optionListReferenceService.IsOptionListInUse(editingContext, optionsListId, cancellationToken))
+            {
+                return OptionListInUseConflict();
+            }
+
             _optionsService.DeleteOptionsList(org, repo, developer, optionsListId);
         }
 
         return Ok($"The options file {optionsListId}.json has been deleted.");
     }
+
+    private ObjectResult OptionListInUseConflict() =>
+        Conflict(
+            ProblemDetailsUtils.GenerateProblemDetails(OptionsErrorCodes.OptionListInUse, HttpStatusCode.Conflict)
+        );
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]

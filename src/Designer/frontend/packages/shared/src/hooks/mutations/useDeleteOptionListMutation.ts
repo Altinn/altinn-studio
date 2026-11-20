@@ -15,6 +15,10 @@ export const useDeleteOptionListMutation = (org: string, app: string, meta?: Mut
       void queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org, app] });
       void queryClient.removeQueries({ queryKey: [QueryKey.OptionList, org, app, optionListId] });
     },
+    // The backend refuses to delete a code list that a component uses, so the usages known here may be outdated.
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListsUsage, org, app] });
+    },
     meta,
   });
 };

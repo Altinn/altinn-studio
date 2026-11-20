@@ -31,8 +31,19 @@ describe('mapToCodeListUsages', () => {
     ]);
   });
 
-  it('maps undefined optionListUsages to empty array', () => {
-    const codeListUsages = mapToCodeListUsages(undefined);
+  it('maps an empty list of optionListUsages to an empty array', () => {
+    const codeListUsages = mapToCodeListUsages([]);
     expect(codeListUsages).toEqual([]);
+  });
+
+  it.each([undefined, null])('maps %s optionListUsages to undefined', (optionListUsages) => {
+    const codeListUsages = mapToCodeListUsages(optionListUsages);
+    expect(codeListUsages).toBeUndefined();
+  });
+
+  it('maps optionListUsages that are not a list to undefined', () => {
+    const notAList = '' as unknown as OptionListReferences;
+    const codeListUsages = mapToCodeListUsages(notAList);
+    expect(codeListUsages).toBeUndefined();
   });
 });

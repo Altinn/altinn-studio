@@ -32,6 +32,10 @@ export const useUpdateOptionListIdMutation = (org: string, app: string) => {
       queryClient.removeQueries({ queryKey: [QueryKey.OptionList, org, app, optionListId] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] });
     },
+    // The backend refuses to rename a code list that a component uses, so the usages known here may be outdated.
+    onError: () => {
+      void queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListsUsage, org, app] });
+    },
   });
 };
 

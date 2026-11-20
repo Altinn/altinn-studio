@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ public class GetOptionListsReferencesTests
     const string RepoWithUsedOptions = "app-with-options";
     const string RepoWithUnusedOptions = "app-with-layoutsets";
     const string RepoWithoutOptions = "empty-app";
+    const string V9RepoWithUsedOptions = "app-with-options-v9";
 
     public GetOptionListsReferencesTests(WebApplicationFactory<Program> factory)
         : base(factory) { }
@@ -85,6 +87,49 @@ public class GetOptionListsReferencesTests
 
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Equivalent(expectedResponseList, responseList);
+    }
+
+    [Fact]
+    public async Task GetOptionListsReferences_Returns200OK_WithReferencesInUiFolders_WhenAppIsV9()
+    {
+        string apiUrl = $"/designer/api/ttd/{V9RepoWithUsedOptions}/options/usage";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        List<OptionListReference> responseList = JsonSerializer.Deserialize<List<OptionListReference>>(responseBody);
+
+        OptionListReference expectedFruitsReference = new()
+        {
+            OptionListId = "fruits",
+            OptionListIdSources =
+            [
+                new OptionListIdSource
+                {
+                    ComponentIds = ["dropdown-using-fruits", "checkboxes-using-fruits"],
+                    LayoutName = "Side1",
+                    LayoutSetId = "Task_1",
+                    TaskId = "Task_1",
+                    TaskType = "data",
+                },
+                new OptionListIdSource
+                {
+                    ComponentIds = ["dropdown-in-signing-task"],
+                    LayoutName = "Side1",
+                    LayoutSetId = "Task_2",
+                    TaskId = "Task_2",
+                    TaskType = "signing",
+                },
+            ],
+        };
+
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        Assert.Equal(["colors", "fruits"], responseList.Select(reference => reference.OptionListId).Order());
+        Assert.Equivalent(
+            expectedFruitsReference,
+            responseList.Single(reference => reference.OptionListId == "fruits"),
+            strict: true
+        );
     }
 
     [Fact]

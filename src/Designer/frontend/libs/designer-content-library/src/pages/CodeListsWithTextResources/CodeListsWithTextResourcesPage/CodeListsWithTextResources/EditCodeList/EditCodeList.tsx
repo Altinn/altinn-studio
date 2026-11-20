@@ -30,6 +30,7 @@ export type EditCodeListProps = {
   onUpdateTextResource: (textResource: TextResource) => void;
   codeListNames: string[];
   codeListSources: CodeListIdSource[];
+  codeListsUsagesUnknown?: boolean;
   textResources?: TextResource[];
 };
 
@@ -43,6 +44,7 @@ export function EditCodeList({
   onUpdateTextResource,
   codeListNames,
   codeListSources,
+  codeListsUsagesUnknown = false,
   textResources = [],
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
@@ -58,13 +60,17 @@ export function EditCodeList({
   const handleDeleteCodeList = (): void => onDeleteCodeList(codeListTitle);
 
   const codeListHasUsages = codeListSources.length > 0;
-  const isCodeListEditable = codeListSources.length === 0;
+  // Components refer to the code list by its id, so it is neither deleted nor renamed while a component might use it.
+  const lockReason: LockReason | undefined = getLockReason(
+    codeListsUsagesUnknown,
+    codeListHasUsages,
+  );
 
   return (
     <div className={classes.editCodeList}>
       <EditCodeListTitle
         codeListTitle={codeListTitle}
-        isCodeListEditable={isCodeListEditable}
+        lockReason={lockReason}
         codeListNames={codeListNames}
         onUpdateCodeListId={onUpdateCodeListId}
       />
@@ -77,6 +83,7 @@ export function EditCodeList({
         textResources={textResources}
       />
       <CodeListButtons
+        lockReason={lockReason}
         codeListHasUsages={codeListHasUsages}
         codeListSources={codeListSources}
         onDeleteCodeList={handleDeleteCodeList}
@@ -85,6 +92,17 @@ export function EditCodeList({
     </div>
   );
 }
+
+type LockReason = 'usagesUnknown' | 'inUse';
+
+function getLockReason(usagesUnknown: boolean, hasUsages: boolean): LockReason | undefined {
+  if (usagesUnknown) return 'usagesUnknown';
+  if (hasUsages) return 'inUse';
+  return undefined;
+}
+
+const usagesUnknownTextKey =
+  'app_content_library.code_lists_with_text_resources.code_list_usages_unknown';
 
 export const updateCodeListWithMetadata = (
   currentCodeListWithMetadata: CodeListWithMetadata,
@@ -95,14 +113,14 @@ export const updateCodeListWithMetadata = (
 
 type EditCodeListTitleProps = {
   codeListTitle: string;
-  isCodeListEditable: boolean;
+  lockReason: LockReason | undefined;
   codeListNames: string[];
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
 };
 
 function EditCodeListTitle({
   codeListTitle,
-  isCodeListEditable,
+  lockReason,
   codeListNames,
   onUpdateCodeListId,
 }: EditCodeListTitleProps): React.ReactElement {
@@ -119,7 +137,12 @@ function EditCodeListTitle({
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 
-  return isCodeListEditable ? (
+  const disabledTitleKey =
+    lockReason === 'usagesUnknown'
+      ? usagesUnknownTextKey
+      : 'app_content_library.code_lists_with_text_resources.code_list_edit_id_disabled_title';
+
+  return !lockReason ? (
     <StudioToggleableTextfield
       customValidation={handleValidateCodeListId}
       label={t('app_content_library.code_lists_with_text_resources.code_list_edit_id_label')}
@@ -131,9 +154,7 @@ function EditCodeListTitle({
     />
   ) : (
     <StudioDisplayTile
-      title={t(
-        'app_content_library.code_lists_with_text_resources.code_list_edit_id_disabled_title',
-      )}
+      title={t(disabledTitleKey)}
       label={t('app_content_library.code_lists_with_text_resources.code_list_edit_id_label')}
       value={codeListTitle}
       icon={<KeyVerticalIcon />}
@@ -143,6 +164,7 @@ function EditCodeListTitle({
 }
 
 type CodeListButtonsProps = {
+  lockReason: LockReason | undefined;
   codeListHasUsages: boolean;
   codeListSources: CodeListIdSource[];
   onDeleteCodeList: (codeListId: string) => void;
@@ -150,22 +172,21 @@ type CodeListButtonsProps = {
 };
 
 function CodeListButtons({
+  lockReason,
   codeListHasUsages,
   codeListSources,
   onDeleteCodeList,
   codeListTitle,
 }: CodeListButtonsProps): React.ReactElement {
   const { t } = useTranslation();
-  const deleteButtonTitle = codeListHasUsages
-    ? t('app_content_library.code_lists_with_text_resources.code_list_delete_disabled_title')
-    : t('app_content_library.code_lists_with_text_resources.code_list_delete_enabled_title');
+  const deleteButtonTitle = t(getDeleteButtonTitleKey(lockReason));
 
   return (
     <div className={classes.buttons}>
       <StudioDeleteButton
         onDelete={() => onDeleteCodeList(codeListTitle)}
         title={deleteButtonTitle}
-        disabled={codeListHasUsages}
+        disabled={!!lockReason}
         confirmMessage={t(
           'app_content_library.code_lists_with_text_resources.code_list_delete_confirm',
           {
@@ -178,6 +199,17 @@ function CodeListButtons({
       {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
     </div>
   );
+}
+
+function getDeleteButtonTitleKey(lockReason: LockReason | undefined): string {
+  switch (lockReason) {
+    case 'usagesUnknown':
+      return usagesUnknownTextKey;
+    case 'inUse':
+      return 'app_content_library.code_lists_with_text_resources.code_list_delete_disabled_title';
+    default:
+      return 'app_content_library.code_lists_with_text_resources.code_list_delete_enabled_title';
+  }
 }
 
 export type ShowCodeListUsagesSourcesModalProps = {
