@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
-- Building two chains on one `PipelineBuilder`, or adding a stage after the pipeline has ended, now fails app startup, naming the task, instead of running the other chain's stages or dropping the stage. Compose each alternative as a complete chain in its own branch.
+- Building two chains on one `PipelineBuilder`, or adding a stage after the pipeline has ended, now fails app startup, naming the task, instead of running the other chain's stages or dropping the stage. Compose each alternative as a complete chain in its own branch. ([#22039](https://github.com/Altinn/altinn-studio/pull/22039))
 
 ## [9.0.0-preview.14] - 2026-11-20
 
