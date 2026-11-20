@@ -148,7 +148,12 @@ internal sealed partial class CalculationExpressionConverter
     {
         if (TryReadSelectionEvery(call, values, out var every))
             return every;
-        if (call.Callee is Identifier helperName && _helpers.TryGetValue(helperName.Name, out var helper))
+        if (
+            call.Callee is Identifier helperName
+            && !values.ContainsKey(helperName.Name)
+            && _parameter != helperName.Name
+            && _helpers.TryGetValue(helperName.Name, out var helper)
+        )
             return ReadHelper(helperName.Name, helper, call, values);
         if (call.Callee is Identifier builtin && !values.ContainsKey(builtin.Name) && _parameter != builtin.Name)
         {
