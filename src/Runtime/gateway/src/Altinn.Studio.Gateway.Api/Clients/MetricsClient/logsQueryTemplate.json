@@ -1,7 +1,7 @@
 {
     "tables": ["requests"],
     "timeContextWhereClause": "| where timestamp between (datetime({from}) .. datetime({to}))",
-    "filterWhereClause": "| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= 500 | where cloud_RoleName in ({app_Names}) | where operation_Name in ({operation_Names}) | order by timestamp desc",
+    "filterWhereClause": "| where success == false | where client_Type != 'Browser' | where toint(resultCode) >= {lowest_Failed_Status_Code} | where cloud_RoleName in ({app_Names}) | where operation_Name in ({operation_Names}) | order by timestamp desc",
     "originalParams": {
         "eventTypes": [
             {
@@ -37,19 +37,7 @@
                     "name": "request/resultCode",
                     "draftKey": "request/resultCode"
                 },
-                "values": [
-                    "500",
-                    "501",
-                    "502",
-                    "503",
-                    "504",
-                    "505",
-                    "506",
-                    "507",
-                    "508",
-                    "510",
-                    "511"
-                ],
+                "values": ["{resultCodes}"],
                 "operator": {
                     "label": "=",
                     "value": "==",

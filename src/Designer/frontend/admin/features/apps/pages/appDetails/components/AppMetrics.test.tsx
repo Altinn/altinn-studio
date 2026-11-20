@@ -263,6 +263,29 @@ describe('AppMetrics', () => {
       expect(screen.getByRole('alert')).toHaveAttribute('data-color', 'success');
     });
 
+    it('should show the count for the whole range rather than the sum of its buckets', () => {
+      const queryClient = createQueryClientMock();
+
+      // Two instances failed, one of them in both buckets.
+      const mockData = [
+        {
+          name: 'failed_workflow_callback_requests',
+          timestamps: [Date.UTC(2024, 0, 1), Date.UTC(2024, 0, 2)],
+          counts: [2, 1],
+          count: 2,
+          bucketSize: 5,
+        },
+      ];
+
+      queryClient.setQueryData([QueryKey.AppErrorMetrics, org, env, app, range], mockData);
+
+      renderAppMetrics(queryClient);
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        `2${textMock('admin.metrics.failed_workflow_callback_requests')}`,
+      );
+    });
+
     it('should render a danger alert when errors', () => {
       const queryClient = createQueryClientMock();
 
