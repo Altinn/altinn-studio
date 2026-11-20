@@ -10,6 +10,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.CalculationExpressi
 // including assignments and branch-local returns. Unsupported JS semantics stay in C#.
 internal sealed partial class CalculationExpressionConverter
 {
+    private const int ExecutionStepLimit = 4096;
+    private const int ExpandedNodeLimit = 8000;
+    private const int ExpandedDepthLimit = 48;
+    private const double MinimumDecimalMagnitude = 1e-28;
+
     private enum Kind
     {
         Number,
@@ -83,7 +88,7 @@ internal sealed partial class CalculationExpressionConverter
             if (type?.TrimEnd('?') is "int" or "long")
             {
                 _integerInputs.Add(path);
-                _integerBounds[path] = type.TrimEnd('?') == "int" ? 2147483648d : 9223372036854775808d;
+                _integerBounds[path] = type.TrimEnd('?') == "int" ? -(double)int.MinValue : -(double)long.MinValue;
             }
             var kind = type?.TrimEnd('?') switch
             {
@@ -120,7 +125,7 @@ internal sealed partial class CalculationExpressionConverter
 
     private Value Execute(IReadOnlyList<Statement> statements, Dictionary<string, Value> values)
     {
-        if (++_steps > 4096)
+        if (++_steps > ExecutionStepLimit)
             throw new NotSupportedException("Calculation would produce an excessively large expression.");
         if (statements.Count == 0)
             return new(null, Kind.Undefined);
@@ -217,7 +222,7 @@ internal sealed partial class CalculationExpressionConverter
 
     private Value Read(Expression? expression, Dictionary<string, Value> values)
     {
-        if (++_steps > 4096)
+        if (++_steps > ExecutionStepLimit)
             throw new NotSupportedException("Calculation would produce an excessively large expression.");
         switch (expression)
         {
@@ -530,7 +535,10 @@ internal sealed partial class CalculationExpressionConverter
             return true;
         // Bounds describe nonzero magnitudes. A possible zero numerator is harmless,
         // but a nonzero quotient must not disappear at the backend's decimal precision.
-        if (MinimumMagnitude(numerator) is not { } numeratorMinimum || numeratorMinimum / denominatorMaximum < 1e-28)
+        if (
+            MinimumMagnitude(numerator) is not { } numeratorMinimum
+            || numeratorMinimum / denominatorMaximum < MinimumDecimalMagnitude
+        )
             return false;
         // Small constant quotients can also round to a different nonzero value.
         return numerator is not JsonValue
@@ -577,7 +585,7 @@ internal sealed partial class CalculationExpressionConverter
         if (expression is not JsonArray { Count: > 0 } call)
             return null;
         if (call[0]?.GetValue<string>() == "dataModel")
-            return _decimalInputs.Contains(call[1]?.GetValue<string>() ?? "") ? 1e-28 : null;
+            return _decimalInputs.Contains(call[1]?.GetValue<string>() ?? "") ? MinimumDecimalMagnitude : null;
         if (call[0]?.GetValue<string>() == "plus")
         {
             var operands = call.Skip(1)
@@ -818,7 +826,7 @@ internal sealed partial class CalculationExpressionConverter
         var count = 1;
         while (pending.TryPop(out var current))
         {
-            if (++count > 8000 || current.Depth > 48)
+            if (++count > ExpandedNodeLimit || current.Depth > ExpandedDepthLimit)
                 throw new NotSupportedException("Expanded calculation exceeds the size limit.");
             if (current.Node is JsonArray array)
                 foreach (var child in array.OfType<JsonNode>())
