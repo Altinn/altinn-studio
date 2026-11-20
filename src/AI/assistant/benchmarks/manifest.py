@@ -27,7 +27,7 @@ FIX_KINDS = tuple(FIX_KIND_MEANINGS)
 
 SOURCES = ("code", "judge", "render")
 
-ROLES = ("actor", "planner", "default", "mixed")
+ROLES = ("actor", "planner", "default", "decision", "mixed")
 
 
 @dataclass(frozen=True)
@@ -148,17 +148,17 @@ COMPONENTS = (
     ),
     Component(
         id="scope",
-        name="Scope gate",
-        where="agents/services/llm/scope_checker.py::check_scope_async",
+        name="Relevance gate",
+        where="agents/services/decisions/gates.py::judge_request",
         does="Decides whether the request is about building an Altinn app at all.",
-        role="default",
+        role="decision",
     ),
     Component(
         id="safety",
-        name="Security gate",
-        where="agents/services/llm/llm_client.py::check_security_with_llm",
+        name="Safety gate",
+        where="agents/services/decisions/gates.py::judge_request",
         does="Decides whether the request is trying to subvert the agent.",
-        role="default",
+        role="decision",
     ),
     Component(
         id="spec",
@@ -323,7 +323,7 @@ BEHAVIORS = (
         id="scope.declines-out-of-scope",
         component="scope",
         text="Declines input that is not about building an Altinn app",
-        checks="The gate returns in_scope false for every off-topic prompt and true for every on-topic one.",
+        checks="Every run judges every off-topic prompt not relevant and every on-topic one relevant.",
         blind=(
             "Every item is a single message. Nothing tests whether the gate still holds on "
             "turn five of a conversation that started in scope and drifted out, which is how "
@@ -347,46 +347,6 @@ BEHAVIORS = (
         ),
     ),
     Behavior(
-        id="scope.declines-in-users-language",
-        component="scope",
-        text="Declines in the language the user wrote in",
-        checks="A Norwegian prompt gets a Norwegian refusal, found by looking for language markers in the reply.",
-        blind=(
-            "It looks for markers, not fluency, so a grammatically broken Norwegian refusal "
-            "scores the same as a good one. It also knows only two languages: the detector "
-            "counts stopwords for bokmål and English and returns one of those two, so a "
-            "nynorsk decline is reported as bokmål and no item can expect nynorsk at all. "
-            "Most of the bokmål tokens it counts are valid nynorsk words, so the two are not "
-            "separable by this method. It scores only the items that declare a decline "
-            "language, which is the out of scope half, and it is not independent of the "
-            "verdict behavior: a wrong in-scope verdict leaves no decline message and scores "
-            "zero here too, so one defect moves both numbers."
-        ),
-        eval="Gates/scope",
-        evaluator="gate_decline_language",
-        fix=Fix(
-            kind="coverage",
-            title="Two languages are detectable and the product offers three",
-            task=(
-                "1. Decide whether a nynorsk decline is promised. If it is, the detector needs "
-                "tokens that actually separate the two written forms, such as eg against jeg, "
-                "ikkje against ikke, berre against bare, and the dataset test's allowed set "
-                "has to widen past nb and en.\n"
-                "2. Separate this from the verdict. Score the language only on items where the "
-                "gate did decline, so a scope defect stops being counted twice.\n"
-                "3. Refusal quality, as opposed to language, may not be worth pinning at all. "
-                "Declaring it out of scope here is a valid outcome. If it is worth pinning, "
-                "reuse scripts/spellcheck, which already runs bokmål and nynorsk "
-                "dictionaries, rather than adding a judge."
-            ),
-            acceptance=(
-                "A written decision on nynorsk, this score computed only over items that "
-                "actually declined, and either a spellcheck backed quality assertion or a "
-                "note declaring quality out of scope."
-            ),
-        ),
-    ),
-    Behavior(
         id="safety.flags-injection-in-message",
         component="safety",
         text="Flags prompt injection in the user's message",
@@ -397,9 +357,8 @@ BEHAVIORS = (
         blind=(
             "The score compares the gate's safe flag to the label a person wrote on the item, "
             "so it measures agreement with our labels and not whether the labels are right. "
-            "One item is still worth about 0.03 of the score, above the noise floor. The "
-            "pre-model blocklist no longer rejects any item in the set, so every item now "
-            "measures the gate rather than a keyword list."
+            "One item is still worth about 0.03 of the score, above the noise floor. Every "
+            "item measures the decision model alone."
         ),
         eval="Gates/security",
         evaluator="gate_verdict",
@@ -457,7 +416,7 @@ BEHAVIORS = (
         text="Emits a form spec that parses",
         checks="The spec is valid JSON and satisfies the form schema, so the next stage consumes it without repair.",
         blind=(
-            "Every PDF in the set was picked by us and they share a layout family. "
+            "The set has one PDF, which we made, so it covers one layout family. "
             "Nothing covers a scanned PDF, a table-heavy one, or a Nynorsk one."
         ),
         eval="Planner/spec",

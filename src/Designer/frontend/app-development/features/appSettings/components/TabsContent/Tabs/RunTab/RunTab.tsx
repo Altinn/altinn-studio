@@ -6,7 +6,7 @@ import {
   StudioParagraph,
   StudioSwitch,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { TabPageHeader } from '../../TabPageHeader';
 import { TabPageWrapper } from '../../TabPageWrapper';
 import { LoadingTabData } from '../../LoadingTabData';

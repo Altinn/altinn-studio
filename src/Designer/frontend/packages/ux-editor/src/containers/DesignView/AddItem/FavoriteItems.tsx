@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import classes from './FavoriteItems.module.css';
-import { StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioHeading, StudioParagraph } from '@designer/components';
 import { ComponentButton } from './ComponentButton';
 import { getTitleByComponentType } from '@altinn/ux-editor/utils/language';
 import { generateComponentId } from '@altinn/ux-editor/utils/generateId';

@@ -2,7 +2,7 @@ import React from 'react';
 import classes from './MergeConflict.module.css';
 import { useTranslation } from 'react-i18next';
 import { repoDownloadPath } from 'app-shared/api/paths';
-import { StudioButton, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioHeading, StudioLink, StudioParagraph } from '@designer/components';
 import { useResetRepositoryMutation } from '../../hooks/mutations';
 
 type MergeConflictProps = {

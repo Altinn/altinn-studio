@@ -7,9 +7,9 @@ import {
   StudioTag,
   StudioParagraph,
   StudioLabel,
-} from '@studio/components';
+} from '@designer/components';
 import type { ContactPoint, ContactPointField } from 'app-shared/types/AppConfig';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useScrollAndFocusOnParamTarget } from '../../hooks/useScrollAndFocusOnParamTarget';
 import classes from './ContactPointsTable.module.css';

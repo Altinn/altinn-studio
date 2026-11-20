@@ -3,7 +3,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useUpdateLayoutSetIdMutation } from './useUpdateLayoutSetIdMutation';
 import { waitFor } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutSetIdToUpdate = 'oldLayoutSetName';

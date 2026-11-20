@@ -510,8 +510,7 @@ public class AuthenticatedTests
                         {
                             var claim = jwtToken.Payload.Single(c => c.Key == "authorization_details");
                             var json = Assert.IsType<JsonElement>(claim.Value);
-                            var authDetails = AuthorizationDetailsClaim.Parse(json);
-                            var systemUserDetails = Assert.IsType<SystemUserAuthorizationDetailsClaim>(authDetails);
+                            var systemUserDetails = SystemUserAuthorizationDetailsClaim.Parse(json);
                             var systemUserOrgNo = OrganizationNumber.Parse(systemUserDetails.SystemUserOrg.Id);
                             Assert.Equal(orgNo, systemUserOrgNo.Get(OrganizationNumberFormat.Local));
                             return Task.FromResult<Party>(

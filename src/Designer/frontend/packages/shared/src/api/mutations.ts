@@ -87,6 +87,9 @@ import {
   chatMessagesPath,
   chatMessagePath,
   chatFeedbackPath,
+  assistantWorkflowPath,
+  assistantWorkflowCancelPath,
+  assistantWorkflowPermissionPath,
   taskNavigationGroupPath,
   layoutSetsV4Path,
   publishResourcePolicyPath,
@@ -95,6 +98,7 @@ import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload
 import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
+import type { AssistantPermissionResponsePayload } from 'app-shared/types/api/AssistantWorkflow';
 import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
 import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api/ChatThread';
@@ -294,3 +298,6 @@ export const createChatMessage = (org: string, app: string, threadId: string, pa
 export const deleteChatMessage = (org: string, app: string, threadId: string, messageId: string) => del(chatMessagePath(org, app, threadId, messageId));
 export const sendChatFeedback = (org: string, app: string, traceId: string, payload: ChatFeedbackPayload) => put(chatFeedbackPath(org, app, traceId), payload);
 export const clearChatFeedback = (org: string, app: string, traceId: string) => del(chatFeedbackPath(org, app, traceId));
+export const startAssistantWorkflow = (org: string, app: string, threadId: string, payload: FormData) => post<void, FormData>(assistantWorkflowPath(org, app, threadId), payload);
+export const cancelAssistantWorkflow = (org: string, app: string, threadId: string) => post(assistantWorkflowCancelPath(org, app, threadId));
+export const respondToAssistantPermission = (org: string, app: string, threadId: string, payload: AssistantPermissionResponsePayload) => post<void, AssistantPermissionResponsePayload>(assistantWorkflowPermissionPath(org, app, threadId), payload);

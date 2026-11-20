@@ -4,8 +4,8 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getEnvLabel, type EnvId } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import { StudioSpinner, StudioAlert, StudioParagraph, StudioList } from '@studio/components';
-import { ArrowForwardIcon } from '@studio/icons';
+import { StudioSpinner, StudioAlert, StudioParagraph, StudioList } from '@designer/components';
+import { ArrowForwardIcon } from '@designer/icons';
 import classes from './AccessListEnvLinks.module.css';
 import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 import classes from './ComponentButton.module.css';
 
 type ComponentButtonProps = {

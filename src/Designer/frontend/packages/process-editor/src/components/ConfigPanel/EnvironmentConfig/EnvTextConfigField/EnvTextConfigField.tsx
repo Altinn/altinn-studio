@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioTextfield } from '@studio/components';
-import { usePropState } from '@studio/hooks';
+import { StudioTextfield } from '@designer/components';
+import { usePropState } from '@designer/hooks';
 import type { EnvironmentEntry } from '../types';
 import type { EnvironmentValueControlProps } from '../EnvironmentConfigField';
 import { EnvironmentConfigField } from '../EnvironmentConfigField';

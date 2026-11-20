@@ -10,7 +10,7 @@ import { useSchemaEditorAppContext } from '../../../../../hooks/useSchemaEditorA
 import { useTypeName } from './hooks/useTypeName';
 import { useKindName } from './hooks/useKindName';
 import classes from './ItemFieldType.module.css';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 
 export type ItemFieldTypeProps = {
   fieldNode: UiSchemaNode;

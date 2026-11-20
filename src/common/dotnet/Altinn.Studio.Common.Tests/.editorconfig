@@ -1,0 +1,4 @@
+# Merged with the .editorconfig of src/common/dotnet, which has the rules the shared projects have in common.
+[*.cs]
+# CA1707: Test names separate the member under test from the behavior with an underscore
+dotnet_diagnostic.CA1707.severity = none

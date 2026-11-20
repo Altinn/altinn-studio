@@ -27,9 +27,9 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
-  const { getPageValidation } = usePageValidation(baseComponentId);
+  const { pageValidation } = usePageValidation(baseComponentId);
   // Inherited validation applies only to forward navigation.
-  const validationOnForward = config.validateOnForward ?? getPageValidation();
+  const validationOnForward = config.validateOnForward ?? pageValidation;
   const validationOnBackward = config.validateOnBackward;
 
   const getNavigationIsPrevented = useGetNavigationIsPrevented();

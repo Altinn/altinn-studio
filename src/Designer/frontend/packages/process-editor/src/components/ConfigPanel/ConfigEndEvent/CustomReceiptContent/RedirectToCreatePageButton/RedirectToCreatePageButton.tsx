@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './RedirectToCreatePageButton.module.css';
-import { PencilWritingIcon } from '@studio/icons';
-import { StudioButton, StudioRedirectBox } from '@studio/components';
+import { PencilWritingIcon } from '@designer/icons';
+import { StudioButton, StudioRedirectBox } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

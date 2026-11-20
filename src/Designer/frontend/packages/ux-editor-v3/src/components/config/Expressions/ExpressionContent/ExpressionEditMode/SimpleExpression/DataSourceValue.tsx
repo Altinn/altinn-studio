@@ -11,7 +11,7 @@ import {
 import { useText } from '../../../../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../../hooks/useAppContext';
-import { StudioSelect, StudioTextfield, StudioToggleGroup } from '@studio/components';
+import { StudioSelect, StudioTextfield, StudioToggleGroup } from '@designer/components';
 
 export interface DataSourceValueProps {
   subExpression: SubExpression;

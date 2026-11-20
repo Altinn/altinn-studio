@@ -14,7 +14,7 @@ These pages explain the service at four levels. Each level goes one step deeper.
 Each module page starts with the code paths it describes, so update the page when you change that code.
 
 - [API layer](modules/api.md)
-- [Graph: gates, intake, spec and the loop node](modules/graph.md)
+- [Graph: request gate, intake, spec and the loop node](modules/graph.md)
 - [Core loop and model adapters](modules/core-loop.md)
 - [Tools](modules/tools.md)
 - [Prompt and skills](modules/prompt-and-skills.md)
@@ -25,4 +25,4 @@ Each module page starts with the code paths it describes, so update the page whe
 - [Traces and usage](modules/observability.md)
 - [Benchmarks](modules/benchmarks.md)
 
-[Assistant skills](skills.md) says which skills the assistant loads and how to add one.
+[AGENTS.md](AGENTS.md) has the rules for writing these pages.

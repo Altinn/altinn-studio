@@ -1,0 +1,29 @@
+{
+  "name": "An object result sets the properties it contains and leaves the others alone",
+  "dataModel": {
+    "object": {
+      "text": "old",
+      "decimal": 1,
+      "nested": {
+        "text": "n",
+        "decimal": 2
+      }
+    }
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "text", "new"]
+    }
+  ],
+  "expects": {
+    "object": {
+      "text": "new",
+      "decimal": 1,
+      "nested": {
+        "text": "n",
+        "decimal": 2
+      }
+    }
+  }
+}

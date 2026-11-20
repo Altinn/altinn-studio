@@ -15,7 +15,7 @@ script.js
 /testing/playwright/test-results
 
 *storybook.log
-/libs/studio-components/storybook-static/*
+/libs/designer-components/storybook-static/*
 
 # Vite build output
 dist/

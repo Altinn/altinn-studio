@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './CustomReceipt.module.css';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton } from '@designer/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';

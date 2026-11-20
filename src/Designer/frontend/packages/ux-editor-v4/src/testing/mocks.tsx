@@ -19,14 +19,14 @@ import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import {
   FeatureFlagsContextProvider,
   FeatureFlagMutationContextProvider,
-} from '@studio/feature-flags';
-import type { FeatureFlag, FeatureFlagMutationContextValue } from '@studio/feature-flags';
+} from '@designer/feature-flags';
+import type { FeatureFlag, FeatureFlagMutationContextValue } from '@designer/feature-flags';
 import type { UxEditorParams } from '../hooks/useUxEditorParams';
 import {
   app as testApp,
   layoutSet as testLayoutSet,
   org as testOrg,
-} from '@studio/testing/testids';
+} from '@designer/testing/testids';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {

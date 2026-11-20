@@ -9,7 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { Route, Routes } from 'react-router-dom';
 import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 const mockedNavigate = vi.fn();
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({

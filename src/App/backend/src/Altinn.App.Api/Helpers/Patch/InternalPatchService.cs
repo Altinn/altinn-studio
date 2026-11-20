@@ -348,9 +348,8 @@ internal class InternalPatchService
 
             return model;
         }
-        catch (JsonException e) when (e.Message.Contains("could not be mapped to any .NET member contained in type"))
+        catch (JsonException e)
         {
-            // Give better feedback when the issue is that the patch contains a path that does not exist in the model
             return e.Message;
         }
     }

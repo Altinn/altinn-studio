@@ -5,7 +5,7 @@ import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryR
 import type { RepoListProps } from './RepoList';
 import { RepoList } from './RepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { type ProviderData, renderWithProviders } from '../../testing/mocks';

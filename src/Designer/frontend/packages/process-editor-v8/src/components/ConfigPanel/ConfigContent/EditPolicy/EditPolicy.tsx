@@ -1,11 +1,11 @@
-import { StudioAlert, StudioLink, StudioRedirectBox } from '@studio/components';
+import { StudioAlert, StudioLink, StudioRedirectBox } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { ShieldLockIcon } from '@studio/icons';
+import { ShieldLockIcon } from '@designer/icons';
 import classes from './EditPolicy.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { LocalStorageKey } from 'app-shared/enums/LocalStorageKey';
 
 export const EditPolicy = () => {

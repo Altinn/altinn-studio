@@ -5,7 +5,7 @@ import { Navigation } from './Navigation';
 import { News } from './News';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
-import { StudioLink, StudioPageImageBackgroundContainer } from '@studio/components';
+import { StudioLink, StudioPageImageBackgroundContainer } from '@designer/components';
 
 export default function Overview() {
   const { t } = useTranslation();

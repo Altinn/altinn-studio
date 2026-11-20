@@ -3,14 +3,14 @@ import {
   StudioHeading,
   StudioIconTextfield,
   StudioRecommendedNextAction,
-} from '@studio/components';
+} from '@designer/components';
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,
 } from '../../../../utils/language';
 import type { AddedItem } from '../types';
 import { useTranslation } from 'react-i18next';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 import classes from './ItemInfo.module.css';
 
 export type ItemInfoProps = {

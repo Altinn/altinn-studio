@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { VariablesProps } from './Variables';
 import { Variables } from './Variables';
 import { screen, render as rtlRender } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const renderVariables = (props: Partial<VariablesProps> = {}) => {
   const allProps: VariablesProps = {

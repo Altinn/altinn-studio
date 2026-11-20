@@ -3,13 +3,13 @@ import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { EditDataModelBinding, type EditDataModelBindingProps } from './EditDataModelBinding';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
 
 const defaultEditDataModelingBinding: EditDataModelBindingProps<any> = {

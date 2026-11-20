@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { focusManager } from '@tanstack/react-query';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RunningAppStatus } from 'app-shared/types/api/RunningApp';
 import { renderHookWithProviders } from '../../test/mocks';

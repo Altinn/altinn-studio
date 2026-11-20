@@ -19,6 +19,17 @@ internal static class BuiltInTaskTypes
     );
 
     /// <summary>
+    /// Service task types that always conclude with <c>ServiceTaskResult.Success()</c> and no action. fiksArkiv is
+    /// not one: it concludes with the actions its settings configure.
+    /// </summary>
+    internal static readonly ImmutableHashSet<string> ServiceTasksWithoutAction = ImmutableHashSet.Create(
+        StringComparer.Ordinal,
+        "pdf",
+        "subformPdf",
+        "eFormidling"
+    );
+
+    /// <summary>
     /// Types implemented as an <c>IProcessTask</c> that is not a service task, declared as a <c>bpmn:task</c> element.
     /// </summary>
     internal static readonly ImmutableHashSet<string> ProcessTasks = ImmutableHashSet.Create(

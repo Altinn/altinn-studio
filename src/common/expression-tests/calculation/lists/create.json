@@ -1,0 +1,21 @@
+{
+  "name": "A list of objects creates the list when it is missing",
+  "dataModel": {
+    "decimal": 3
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "total", ["dataModel", "decimal"]]]
+    }
+  ],
+  "expects": {
+    "decimal": 3,
+    "rows": [
+      {
+        "altinnRowId": "<new>",
+        "total": 3
+      }
+    ]
+  }
+}
