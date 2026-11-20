@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
+- Building two chains on one `PipelineBuilder`, or adding a stage after `Finally`, `ConcludeOnReplies` or `Build`, now fails app startup, naming the task, instead of running the other chain's stages or dropping the stage. Compose each alternative in its own branch, such as `return enabled ? pipeline.Stage(Send).Finally(Await) : pipeline.Finally(Execute);`.
 
 ## [9.0.0-preview.14] - 2026-11-20
 
