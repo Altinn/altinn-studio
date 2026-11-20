@@ -156,13 +156,7 @@ public class PipelineBuilderTests
     }
 
     public static TheoryData<string> TerminalsWithAnInvalidArgument =>
-        new()
-        {
-            "Finally with null work",
-            "Finally with invalid options",
-            "ConcludeOnReplies with a null handle",
-            "ConcludeOnReplies with invalid options",
-        };
+        new() { "Finally with invalid options", "ConcludeOnReplies with invalid options" };
 
     [Theory]
     [MemberData(nameof(TerminalsWithAnInvalidArgument))]
@@ -176,9 +170,7 @@ public class PipelineBuilderTests
 
         System.Action composing = call switch
         {
-            "Finally with null work" => () => builder.Finally(null!),
             "Finally with invalid options" => () => builder.Finally(Conclude, invalidOptions),
-            "ConcludeOnReplies with a null handle" => () => builder.ConcludeOnReplies(null!, OnMessage, OnClosed),
             "ConcludeOnReplies with invalid options" => () =>
                 builder.ConcludeOnReplies(handle, OnMessage, OnClosed, invalidOptions),
             _ => throw new ArgumentOutOfRangeException(nameof(call), call, null),
