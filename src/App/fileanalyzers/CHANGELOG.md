@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The "file type not allowed" error from the MIME type validator is now in the user's language. Change it with the text key `validation_errors.file_content_type_not_allowed`, which can use parameters such as `filename`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Altinn.FileAnalyzers now targets .NET 11 and requires `Altinn.App.Core` 9.0.0-preview.10 or later. Move your app to `net11.0` and upgrade `Altinn.App.Core` before taking this version.
 
+### Fixed
+
+- The MIME type validator no longer rejects files such as `.xls`, `.ppt` and `.xml` whose content matches their extension, when the content type Studio sets for the extension, such as `application/vnd.ms-excel`, is allowed. ([#21700](https://github.com/Altinn/altinn-studio/pull/21700))
+
 ## [9.0.0-preview.1] - 2026-09-09
 
 ### Changed
