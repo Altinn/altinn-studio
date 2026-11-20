@@ -425,6 +425,35 @@ describe('RepeatingGroupContainer', () => {
     expect(closeButtons).toHaveLength(1);
   });
 
+  it('keeps expression-based edit labels while row errors are visible', async () => {
+    await render({
+      container: {
+        validateOnSaveRow: ['All'],
+        textResourceBindings: {
+          editButtonOpen: ['if', ['equals', ['dataModel', 'Group.prop1'], 'value1'], 'button.open', 'else', ''],
+          editButtonClose: 'button.close',
+        },
+      },
+      validationIssues: [
+        {
+          customTextKey: 'Feltet er feil',
+          field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    // Empty evaluated labels still fall back to the default for the other rows.
+    expect(screen.getAllByRole('button', { name: /Rediger/i })).toHaveLength(2);
+    await userEvent.click(screen.getByRole('button', { name: /New open text/i }));
+    await userEvent.click(screen.getByRole('button', { name: /New close text/i }));
+    expect(await screen.findByRole('button', { name: /Feil i rad 1. Vis meldinger/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /New close text/i })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByRole('button', { name: /Rett feil her/i })).not.toBeInTheDocument();
+  });
+
   it('should notify screen readers via a live region when a row is deleted', async () => {
     await render({ numRows: 3 });
 

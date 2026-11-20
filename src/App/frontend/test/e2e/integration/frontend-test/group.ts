@@ -707,7 +707,7 @@ describe('Group', () => {
     cy.get('#group-mainGroup table th').eq(1).should('have.text', 'newValue title');
 
     const getRows = () => cy.get(appFrontend.group.mainGroupTableBody).find('tr');
-    getRows().eq(0).find('td').last().should('contain.text', 'Rediger');
+    getRows().eq(0).findByTestId('repeating-group-edit-button').should('contain.text', 'Rediger');
     getRows().eq(3).find('td').eq(4).should('contain.text', 'Lagre og lukk');
     getRows().eq(3).find('td').eq(5).should('contain.text', 'Slett');
 

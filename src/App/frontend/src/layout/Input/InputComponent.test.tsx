@@ -13,6 +13,24 @@ import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 describe('InputComponent', () => {
+  it('describes table inputs with visible validations while omitting their hidden label description', async () => {
+    await render({
+      component: {
+        required: true,
+        showValidations: ['Required'],
+        textResourceBindings: { title: 'Input label', description: 'Hidden table description' },
+      },
+      renderer: (props) => (
+        <InputComponent
+          {...props}
+          overrideDisplay={{ renderedInTable: true }}
+        />
+      ),
+    });
+
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-describedby', 'mock-id-validations');
+  });
+
   it.each([
     { severity: BackendValidationSeverity.Error, hasError: true },
     { severity: BackendValidationSeverity.Warning, hasError: false },

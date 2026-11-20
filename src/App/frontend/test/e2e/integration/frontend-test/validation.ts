@@ -634,7 +634,7 @@ describe('Validation', () => {
     });
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 6);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -647,7 +647,7 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page is still visible
+    cy.get(appFrontend.navMenuButtons).should('have.length', 6); // 'hide' page is still visible
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
@@ -667,7 +667,7 @@ describe('Validation', () => {
     );
 
     cy.goto('group');
-    cy.get(appFrontend.navMenuButtons).should('have.length', 5);
+    cy.get(appFrontend.navMenuButtons).should('have.length', 6);
 
     cy.gotoNavPage('hide');
     cy.get(appFrontend.group.sendersName).type('tull og tøys'); // Causes validation error
@@ -680,8 +680,10 @@ describe('Validation', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
     cy.findByRole('button', { name: /Neste/ }).click();
-    cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is now invisible
+    cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page is now invisible
     cy.get(appFrontend.errorReport).should('not.exist');
+    cy.navPage('Validering i grupper').should('have.attr', 'aria-current', 'page');
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
     cy.get(appFrontend.sendinButton).click();
@@ -908,11 +910,19 @@ describe('Validation', () => {
     cy.get(appFrontend.group.comments).should('be.visible'); // Required field in the nested group
     // The page validation mask also applies to the nested group row now that its required field is visible,
     // and the main group row reports deep validations for its descendants.
-    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
-    cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow)
+      .findByTestId('row-validation-indicator')
+      .should('have.attr', 'data-color', 'danger');
+    cy.get(appFrontend.group.row(1).tableRow)
+      .findByTestId('row-validation-indicator')
+      .should('have.attr', 'data-color', 'danger');
     cy.get(appFrontend.group.saveMainGroup).click({ force: true });
-    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
-    cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow)
+      .findByTestId('row-validation-indicator')
+      .should('have.attr', 'data-color', 'danger');
+    cy.get(appFrontend.group.row(1).tableRow)
+      .findByTestId('row-validation-indicator')
+      .should('have.attr', 'data-color', 'danger');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.errorReport).should('contain.text', 'Du må fylle ut kommentar');
 
@@ -920,16 +930,20 @@ describe('Validation', () => {
     cy.gotoNavPage('prefill');
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).should('be.visible');
     cy.gotoNavPage('repeating');
-    cy.get(appFrontend.group.row(1).tableRow).should('contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).tableRow)
+      .findByTestId('row-validation-indicator')
+      .should('have.attr', 'data-color', 'danger');
     cy.get(appFrontend.group.row(1).editBtn).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).should('contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow)
+      .findByTestId('row-validation-indicator')
+      .should('have.attr', 'data-color', 'danger');
 
     // Filling out the comment fixes the problem and lets us navigate to the next page
     cy.get(appFrontend.group.row(1).nestedGroup.row(0).editBtn).click();
     cy.get(appFrontend.group.comments).type('hello world');
     cy.get(appFrontend.group.saveMainGroup).click();
-    cy.get(appFrontend.group.row(1).tableRow).should('not.contain.text', 'Rett feil her');
+    cy.get(appFrontend.group.row(1).tableRow).findByTestId('row-validation-indicator').should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.navButtons).contains('button', 'Neste').click();

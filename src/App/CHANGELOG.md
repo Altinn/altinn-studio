@@ -45,6 +45,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: “Back to summary” and “Back to page” now follow “Next” validation by default. Set `validateOnBackToSummary` to `{ "page": "current", "show": [] }` to skip return validation. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#returknapper-følger-valideringen-for-neste), [Altinn/app-frontend-react#1862](https://github.com/Altinn/app-frontend-react/issues/1862))
 
+### Changed
+
+- Repeating groups keep their configured edit-button text and show separate validation indicators. Users can open row messages to navigate to affected fields; editable table rows show their messages together below the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853), [#19946](https://github.com/Altinn/altinn-studio/issues/19946))
+
 ### Fixed
 
 - Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
