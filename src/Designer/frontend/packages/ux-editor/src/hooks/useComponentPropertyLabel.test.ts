@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useComponentPropertyLabel } from './useComponentPropertyLabel';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('useComponentPropertyLabel', () => {
   it('Returns a function that returns the property name', () => {

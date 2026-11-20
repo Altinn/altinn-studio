@@ -29,7 +29,7 @@ import {
   StudioParagraph,
   StudioAlert,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 
 export interface IEditFormContainerProps {
   editFormId: string;

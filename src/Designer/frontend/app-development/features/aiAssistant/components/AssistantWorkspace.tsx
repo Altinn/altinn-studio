@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { Assistant } from '@studio/assistant';
+import { Assistant } from '@designer/assistant';
 import { useAssistant, useAssistantTexts } from '../hooks';
 import { Preview } from './Preview';
 import { FileBrowser } from './FileBrowser';

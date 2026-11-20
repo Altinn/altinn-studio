@@ -5,8 +5,8 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { renderWithProviders } from '../../../test/mocks';
 import { Preview } from './Preview';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
 vi.mock('app-shared/utils/previewAvailability', () => ({

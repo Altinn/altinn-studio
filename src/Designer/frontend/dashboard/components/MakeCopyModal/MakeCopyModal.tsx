@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react';
-import { StudioDialog, StudioHeading } from '@studio/components';
-import { useForwardedRef } from '@studio/hooks';
+import { StudioDialog, StudioHeading } from '@designer/components';
+import { useForwardedRef } from '@designer/hooks';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
 import type { HttpError } from 'app-shared/utils/networking';

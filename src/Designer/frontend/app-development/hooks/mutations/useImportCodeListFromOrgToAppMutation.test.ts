@@ -4,7 +4,7 @@ import {
   convertTextResourceResponseToCacheFormat,
 } from './useImportCodeListFromOrgToAppMutation';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
-import { org, app } from '@studio/testing/testids';
+import { org, app } from '@designer/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
 

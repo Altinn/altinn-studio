@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
-import { StudioButton, StudioSpinner } from '@studio/components';
-import { ArrowsCirclepathIcon } from '@studio/icons';
+import { StudioButton, StudioSpinner } from '@designer/components';
+import { ArrowsCirclepathIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { QueryKey } from 'app-shared/types/QueryKey';
 

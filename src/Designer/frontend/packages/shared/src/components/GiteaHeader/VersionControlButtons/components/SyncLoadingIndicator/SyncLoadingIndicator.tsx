@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioHeading } from '@studio/components';
+import { StudioSpinner, StudioHeading } from '@designer/components';
 
 export type SyncLoadingIndicatorProps = {
   heading: string;

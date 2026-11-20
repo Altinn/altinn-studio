@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioFormGroup, StudioList, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioFormGroup, StudioList, StudioParagraph } from '@designer/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import {
   EnvBooleanConfigField,

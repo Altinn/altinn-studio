@@ -27,8 +27,8 @@ export enum DateFlags {
   OneYearFromNow = 'oneYearFromNow',
 }
 
-export const DatepickerMinDateDefault = '1900-01-01T00:00:00Z';
-export const DatepickerMaxDateDefault = '2100-01-01T23:59:59Z';
+export const DatepickerMinDateDefault = '1900-01-01';
+export const DatepickerMaxDateDefault = '2100-01-01';
 export const DatepickerFormatDefault = 'dd.MM.yyyy';
 export const PrettyDateAndTime = 'dd.MM.yyyy / HH:mm';
 

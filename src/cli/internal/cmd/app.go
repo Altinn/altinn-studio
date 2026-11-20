@@ -29,6 +29,7 @@ import (
 // AppCommand implements the 'app' subcommand.
 type AppCommand struct {
 	out     *ui.Output
+	cfg     *config.Config
 	logs    *appLogsCommand
 	ps      *AppPsCommand
 	run     *RunCommand
@@ -92,6 +93,7 @@ func NewAppCommand(cfg *config.Config, out *ui.Output) *AppCommand {
 	service := appsvc.NewService(cfg)
 	return &AppCommand{
 		out:     out,
+		cfg:     cfg,
 		logs:    newAppLogsCommand(cfg, out, service),
 		ps:      newAppPsCommand(cfg, out, service),
 		run:     newRunCommand(cfg, out, service),
@@ -309,7 +311,10 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 		}
 	}
 
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	topology, err := envlocaltest.RecordedTopology(c.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest port: %w", err)
+	}
 	spec, err := c.service.BuildDotnetRunSpec(
 		ctx,
 		result.AppRoot,

@@ -8,8 +8,8 @@ import {
   pagesModelMock,
 } from '../../../../testing/layoutMock';
 import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { app, org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

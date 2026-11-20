@@ -1,11 +1,11 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
 import classes from './ResourceDeployStatus.module.css';
-import { ArrowRightIcon } from '@studio/icons';
+import { ArrowRightIcon } from '@designer/icons';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import { LinkButton } from '../LinkButton';
-import { StudioAlert, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioParagraph } from '@designer/components';
 
 export type ResourceDeployStatusProps = {
   /**

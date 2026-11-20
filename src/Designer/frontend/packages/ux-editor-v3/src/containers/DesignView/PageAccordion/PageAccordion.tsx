@@ -3,15 +3,15 @@ import { useCallback } from 'react';
 import classes from './PageAccordion.module.css';
 import cn from 'classnames';
 import { NavigationMenu } from './NavigationMenu';
-import { pageAccordionContentId } from '@studio/testing/testids';
-import { TrashIcon } from '@studio/icons';
+import { pageAccordionContentId } from '@designer/testing/testids';
+import { TrashIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks/useAppContext';
 import { firstAvailableLayout } from '../../../utils/formLayoutsUtils';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
-import { StudioButton, StudioDetails } from '@studio/components';
+import { StudioButton, StudioDetails } from '@designer/components';
 import { useDeleteLayout } from './useDeleteLayout';
 
 export type PageAccordionProps = {

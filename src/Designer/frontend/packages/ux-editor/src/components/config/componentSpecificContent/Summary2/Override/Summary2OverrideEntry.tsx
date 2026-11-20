@@ -1,4 +1,4 @@
-import { CheckmarkIcon } from '@studio/icons';
+import { CheckmarkIcon } from '@designer/icons';
 import type { Summary2OverrideConfig } from '@altinn/ux-editor/types/Summary2Config';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ import {
   StudioProperty,
   StudioCard,
   StudioDivider,
-} from '@studio/components';
+} from '@designer/components';
 
 type Summary2OverrideEntryProps = {
   index: number;

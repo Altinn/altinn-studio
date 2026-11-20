@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { Navigation } from './Navigation';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 vi.mock('app-development/hooks/useIsRepoOwnerOrg', () => ({
   useIsRepoOwnerOrg: () => true,

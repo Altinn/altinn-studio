@@ -2,10 +2,10 @@ import type { ReactElement } from 'react';
 import classes from './PreviewButton.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioLinkButton, StudioPageHeader } from '@studio/components';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioLinkButton, StudioPageHeader } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { PlayFillIcon } from '@studio/icons';
+import { PlayFillIcon } from '@designer/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useSearchParams } from 'react-router-dom';
 

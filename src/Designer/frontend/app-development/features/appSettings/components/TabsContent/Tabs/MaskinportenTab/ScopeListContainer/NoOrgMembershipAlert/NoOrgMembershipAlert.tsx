@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioParagraph } from '@designer/components';
 
 export function NoOrgMembershipAlert(): ReactElement {
   const { t } = useTranslation();

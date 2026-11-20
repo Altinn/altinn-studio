@@ -1,16 +1,9 @@
-import type { AgentResponse, AssistantMessageData } from '@studio/assistant';
+import type { AssistantMessageData } from '@designer/assistant';
 
 export type RejectionTexts = {
   heading: string;
   suggestionsLabel: string;
 };
-
-export function formatRejectionMessage(result: AgentResponse, texts: RejectionTexts): string {
-  return formatRejectedEventMessage(
-    { message: result.message, suggestions: result.parsed_intent?.suggestions },
-    texts,
-  );
-}
 
 export function formatRejectedEventMessage(
   data: { message?: string; suggestions?: string[] },

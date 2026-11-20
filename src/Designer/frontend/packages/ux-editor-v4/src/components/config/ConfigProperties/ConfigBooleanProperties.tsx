@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditBooleanValue } from '../editModal/EditBooleanValue';
-import { StudioProperty } from '@studio/components';
-import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
+import { StudioProperty } from '@designer/components';
+import { ChevronDownIcon, ChevronUpIcon } from '@designer/icons';
 import classes from './ConfigBooleanProperties.module.css';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { SchemaConfigProps } from './types';

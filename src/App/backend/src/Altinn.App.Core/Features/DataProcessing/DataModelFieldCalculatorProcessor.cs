@@ -23,7 +23,7 @@ internal sealed class DataModelFieldCalculatorProcessor : IDataWriteProcessor
     /// </summary>
     /// <param name="instanceDataMutator">Object to fetch data elements not included in changes</param>
     /// <param name="taskId">The current task ID</param>
-    /// <param name="changes">Not used in this context</param>
+    /// <param name="changes">The changes, so that elements being created are calculated too</param>
     /// <param name="language">Not used in this context</param>
     public async Task ProcessDataWrite(
         IInstanceDataMutator instanceDataMutator,
@@ -32,6 +32,6 @@ internal sealed class DataModelFieldCalculatorProcessor : IDataWriteProcessor
         string? language
     )
     {
-        await _dataModelFieldCalculator.Calculate(instanceDataMutator, taskId);
+        await _dataModelFieldCalculator.Calculate(instanceDataMutator, taskId, changes);
     }
 }

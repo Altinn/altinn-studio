@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { get, HttpError } from 'app-shared/utils/networking';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { get } from 'app-shared/utils/networking';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { GuidePage } from './GuidePage';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
 vi.mock('app-shared/utils/networking', async () => ({
   ...(await vi.importActual('app-shared/utils/networking')),
@@ -49,7 +50,7 @@ describe('GuidePage', () => {
   });
 
   it('should show login guide when user is not authenticated and guide is not skipped', async () => {
-    vi.mocked(get).mockRejectedValue(new HttpError({ status: 401, data: null }));
+    vi.mocked(get).mockRejectedValue(createHttpErrorMock(401, null));
 
     renderGuidePage();
 

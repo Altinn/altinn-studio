@@ -36,6 +36,12 @@ describe('formItemConfig', () => {
     expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
   });
 
+  it('should not include BrokerFileTransfer when feature flag is not enabled', () => {
+    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(
+      ComponentType.BrokerFileTransfer,
+    );
+  });
+
   // The add-component panel lists these by type, so a missing config would fall back to a generic one.
   it.each([...new Set([...Object.values(allComponents).flat(), ...defaultComponents])])(
     '%s in the add-component panel has a config',

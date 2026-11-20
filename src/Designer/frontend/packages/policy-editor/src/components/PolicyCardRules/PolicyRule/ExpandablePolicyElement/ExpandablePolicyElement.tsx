@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import React, { useState } from 'react';
 import classes from './ExpandablePolicyElement.module.css';
-import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
+import { ChevronDownIcon, ChevronUpIcon } from '@designer/icons';
 import { PolicyEditorDropdownMenu } from './PolicyEditorDropdownMenu';
 import { useTranslation } from 'react-i18next';
-import { StudioParagraph, StudioLabelAsParagraph } from '@studio/components';
+import { StudioParagraph, StudioLabelAsParagraph } from '@designer/components';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 
 export type ExpandablePolicyElementProps = {

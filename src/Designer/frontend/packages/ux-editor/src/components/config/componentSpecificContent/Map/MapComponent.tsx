@@ -1,5 +1,5 @@
 import React, { type JSX } from 'react';
-import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
+import { PlusCircleIcon, XMarkIcon } from '@designer/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from 'app-shared/components/FormField';
 import {
@@ -10,7 +10,7 @@ import { useText } from '../../../../hooks';
 import { stringToArray, arrayToString } from '../../../../utils/stringUtils';
 import classes from './MapComponent.module.css';
 import type { MapLayer } from '@app/layout-contract/generated/components/Map/config.generated';
-import { StudioButton, StudioProperty, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioProperty, StudioTextfield } from '@designer/components';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import cn from 'classnames';
 

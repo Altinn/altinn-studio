@@ -8,7 +8,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, layoutSet, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@designer/testing/testids';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 const providerTestId = 'provider';

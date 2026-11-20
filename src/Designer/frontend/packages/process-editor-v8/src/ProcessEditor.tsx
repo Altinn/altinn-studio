@@ -5,7 +5,7 @@ import {
   StudioPageError,
   StudioRecommendedNextActionContextProvider,
   StudioPageSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { Canvas } from './components/Canvas';
 import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';

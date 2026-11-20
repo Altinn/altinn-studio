@@ -5,7 +5,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { renderHookWithProviders } from '../../../../test/mocks';
 import { usePreviewLayoutMetadata } from './usePreviewLayoutMetadata';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const layoutSetName = 'form-layout-set';
 const taskId = 'Task_1';

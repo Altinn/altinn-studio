@@ -11,7 +11,7 @@ import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 // Test data:

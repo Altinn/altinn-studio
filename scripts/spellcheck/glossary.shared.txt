@@ -112,6 +112,7 @@ xml
 yml
 
 # Identifiers and placeholders quoted verbatim in UI text
+allconfirmeddownloaded  # an Altinn Broker file transfer status
 applicationmetadata
 componentref
 deletionstrategy

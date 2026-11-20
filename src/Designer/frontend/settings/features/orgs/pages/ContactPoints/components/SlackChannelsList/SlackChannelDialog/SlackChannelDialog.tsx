@@ -10,7 +10,7 @@ import {
   StudioParagraph,
   StudioFormActions,
   StudioSelect,
-} from '@studio/components';
+} from '@designer/components';
 import type { ReportFrequency } from 'app-shared/types/ContactPoint';
 import { reportFrequencies } from 'app-shared/types/ContactPoint';
 import classes from './SlackChannelDialog.module.css';

@@ -24,6 +24,15 @@ public static class Diagnostics
             "HttpContextAccessor dangerous usage",
             "IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe"
         );
+
+        // '{0}' is "Method 'Name'", "Local function 'Name'" or "This lambda".
+        public static readonly DiagnosticDescriptor AsyncVoid = Error(
+            "ALTINNAPP0502",
+            Category.CodeSmells,
+            "Async method returns void",
+            "{0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an "
+                + "exception it throws cannot be caught and stops the app. Return Task instead, and await it."
+        );
     }
 
     public static class FormDataWrapperGenerator
@@ -383,6 +392,22 @@ public static class Diagnostics
             "Subform PDF service task names a UI folder it cannot render",
             "Subform PDF service task '{0}' renders the subform UI folder '{1}' named in "
                 + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
+        );
+
+        // A gateway after a service task gets the action the service task concludes with
+        // (ProcessNextContinuation), not the user's, and a failed service task can only be resumed, not left through
+        // process/next with an action. The types this rule names never conclude with one; fiksArkiv and an app's own
+        // service task types may. '{1}' names the conditions that read the action, and '{3}' is the task's type.
+        public static readonly DiagnosticDescriptor GatewayActionAfterServiceTask = Error(
+            "ALTINNAPP1030",
+            Category.Process,
+            "Exclusive gateway routes on gatewayAction right after a service task that returns no action",
+            "Exclusive gateway '{0}' reads [\"gatewayAction\"] in {1}, but directly follows service task '{2}'. A "
+                + "gateway after a service task sees the action the service task returns, and a '{3}' task returns "
+                + "none, so [\"gatewayAction\"] is always null there: not the action of the task before, and not "
+                + "'reject', since a failed service task can only be retried. Move service task '{2}' after the "
+                + "gateway, onto the branch that needs it, or remove the gateway if it only takes the user back from "
+                + "a failed service task."
         );
 
         // The app never evaluates the default's condition, and also fails to start on one, so a condition that

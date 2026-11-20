@@ -26,6 +26,29 @@
     },
     "property3": {
       "type": "string"
+    },
+    "price": {
+        "type": "number"
+    },
+    "quantity": {
+        "type": "number"
+    },
+    "total": {
+        "type": "number"
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      }
     }
   },
   "required": [

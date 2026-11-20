@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useId } from 'react';
-import { StudioRadio, StudioRadioGroup } from '@studio/components';
+import { StudioRadio, StudioRadioGroup } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentEntry } from '../types';
 import type { EnvironmentValueControlProps } from '../EnvironmentConfigField';

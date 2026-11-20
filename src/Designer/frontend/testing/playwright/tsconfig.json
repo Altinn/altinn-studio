@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "types": ["node"],
     "paths": {
-      "@studio/testing/*": ["../*"]
+      "@designer/testing/*": ["../*"]
     }
   }
 }

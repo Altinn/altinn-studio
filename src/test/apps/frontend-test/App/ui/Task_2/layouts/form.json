@@ -1256,6 +1256,7 @@
       },
       {
         "id": "toSummary",
+        "validateOnBackToSummary": { "page": "current", "show": [] },
         "type": "NavigationButtons",
         "textResourceBindings": {
           "next": "Neste"
