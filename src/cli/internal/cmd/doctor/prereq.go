@@ -14,11 +14,12 @@ import (
 	"altinn.studio/studioctl/internal/osutil"
 )
 
-func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
+func (s *Service) collectPrerequisites(ctx context.Context, app *App) *Prerequisites {
 	var prerequisites Prerequisites
 
-	dotnetValue, dotnetErr := s.probeDotnet(ctx)
+	dotnetValue, dotnetRequirement, dotnetErr := s.probeDotnet(ctx, app)
 	prerequisites.DotnetValue = dotnetValue
+	prerequisites.DotnetRequirement = dotnetRequirement
 	prerequisites.Dotnet = Check{
 		Error: errorString(dotnetErr),
 		OK:    dotnetErr == nil,
@@ -46,21 +47,6 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 	}
 
 	return &prerequisites
-}
-
-func (s *Service) probeDotnet(ctx context.Context) (string, error) {
-	output, err := s.runVersionOutput(ctx, "dotnet")
-	if err != nil {
-		return "", fmt.Errorf("checking dotnet version: %w", err)
-	}
-
-	version := strings.TrimSpace(string(output))
-	major := extractMajorVersion(version)
-	if major < minDotnetMajorVersion {
-		return version, errDotnetVersionTooOld
-	}
-
-	return version, nil
 }
 
 func (s *Service) probeContainerRuntime(

@@ -167,12 +167,19 @@ internal sealed class ProvisionedSecrets : IDisposable
 
     /// <summary>
     /// The message for a value nobody set. Shared with <see cref="ProvisionedSecretFile"/>, which resolves the
-    /// file names and reports a missing one the same way.
+    /// file names and reports a missing one the same way. When the app tried to import the value from studioctl
+    /// and failed, the message gives studioctl's reason instead of the general advice.
     /// </summary>
     /// <param name="key">The configuration key that was not set.</param>
-    internal static string MissingValueMessage(string key) =>
-        $"'{key}' is not set, and the app libraries need it to read the secrets the platform provisions. "
-        + WhereTheValueComesFrom;
+    /// <param name="configuration">The app's own configuration.</param>
+    internal static string MissingValueMessage(string key, IConfiguration configuration)
+    {
+        string missing =
+            $"'{key}' is not set, and the app libraries need it to read the secrets the platform provisions. ";
+        return StudioctlAppEnvironment.ImportFailure(configuration) is { } failure
+            ? missing + "A local run gets it from studioctl, and the app could not import it: " + failure
+            : missing + WhereTheValueComesFrom;
+    }
 
     /// <summary>
     /// The directory the secrets are read from, which every environment is required to name.
@@ -184,7 +191,7 @@ internal sealed class ProvisionedSecrets : IDisposable
         string? directory = configuration[DirectoryKey];
         if (string.IsNullOrWhiteSpace(directory))
         {
-            throw new ApplicationConfigException(MissingValueMessage(DirectoryKey));
+            throw new ApplicationConfigException(MissingValueMessage(DirectoryKey, configuration));
         }
 
         return directory;

@@ -45,6 +45,10 @@ internal sealed class RegisterApp
         {
             return RegisterAppResult.NotFound(ex.Message);
         }
+        catch (LocaltestUnavailableException ex)
+        {
+            return RegisterAppResult.LocaltestUnavailable(ex.Message);
+        }
     }
 }
 
@@ -65,6 +69,9 @@ internal sealed record RegisterAppResult(RegisterAppResultKind Kind, Uri? BaseUr
         new(RegisterAppResultKind.InvalidRequest, null, message);
 
     public static RegisterAppResult NotFound(string message) => new(RegisterAppResultKind.NotFound, null, message);
+
+    public static RegisterAppResult LocaltestUnavailable(string message) =>
+        new(RegisterAppResultKind.LocaltestUnavailable, null, message);
 }
 
 internal enum RegisterAppResultKind
@@ -72,4 +79,5 @@ internal enum RegisterAppResultKind
     Registered,
     InvalidRequest,
     NotFound,
+    LocaltestUnavailable,
 }

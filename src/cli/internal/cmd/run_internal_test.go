@@ -137,6 +137,40 @@ func TestRegisterAppWithStartupMonitor_MonitorDeadlineReportsDiscoveryStatus(t *
 	}
 }
 
+// An app that started while the environment is down must not be reported ready: run fails and names the command
+// that starts the environment.
+func TestRegisterAppWithStartupMonitor_UnreachableLocaltestNamesEnvUp(t *testing.T) {
+	t.Parallel()
+
+	client := appStartupClientStub{
+		registerAppFunc: func(context.Context, studioctlserver.AppRegistration) (string, error) {
+			return "", studioctlserver.ErrLocaltestUnavailable
+		},
+	}
+	registration := studioctlserver.AppRegistration{AppID: "ttd/app", HostPort: 5005}
+	monitor := func(context.Context) error { return nil }
+
+	baseURL, err := registerAppWithStartupMonitor(
+		t.Context(),
+		client,
+		registration,
+		monitor,
+		time.Minute,
+		portAppRegistrationTimeoutError("ttd/app", 5005, time.Minute),
+	)
+
+	if baseURL != "" {
+		t.Fatalf("registerAppWithStartupMonitor() baseURL = %q, want none", baseURL)
+	}
+	if !errors.Is(err, studioctlserver.ErrLocaltestUnavailable) {
+		t.Fatalf("registerAppWithStartupMonitor() error = %v, want %v", err, studioctlserver.ErrLocaltestUnavailable)
+	}
+	want := "localtest is not reachable: run '" + osutil.CurrentBin() + " env up'"
+	if err.Error() != want {
+		t.Fatalf("registerAppWithStartupMonitor() error = %q, want %q", err, want)
+	}
+}
+
 func TestAppStartupTimeoutError_ContextCancelledDuringStatusReturnsRunStopped(t *testing.T) {
 	t.Parallel()
 

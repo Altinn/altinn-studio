@@ -105,7 +105,7 @@ internal sealed record ProvisionedSecretFile(string FileNameKey, string SectionN
         if (string.IsNullOrWhiteSpace(value))
         {
             fileName = null;
-            error = ProvisionedSecrets.MissingValueMessage(FileNameKey);
+            error = ProvisionedSecrets.MissingValueMessage(FileNameKey, configuration);
 
             return false;
         }

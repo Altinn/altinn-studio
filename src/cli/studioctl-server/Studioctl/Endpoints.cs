@@ -82,6 +82,10 @@ internal static class Endpoints
             ),
             RegisterAppResultKind.InvalidRequest => Results.BadRequest(new CommandResponse(result.Message)),
             RegisterAppResultKind.NotFound => Results.NotFound(new CommandResponse(result.Message)),
+            RegisterAppResultKind.LocaltestUnavailable => Results.Json(
+                new CommandResponse(result.Message),
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            ),
             _ => Results.StatusCode(StatusCodes.Status500InternalServerError),
         };
     }

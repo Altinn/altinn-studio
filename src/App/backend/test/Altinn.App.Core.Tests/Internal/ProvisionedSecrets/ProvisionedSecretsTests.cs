@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
@@ -231,6 +232,35 @@ public sealed class ProvisionedSecretsTests
 
         Assert.Contains(missingKey, exception.Message, StringComparison.Ordinal);
         Assert.Contains("studioctl app run", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// An app started from an IDE asked studioctl for these values, and studioctl is installed but failed. The
+    /// failure names studioctl's reason rather than the advice to have studioctl on PATH.
+    /// </summary>
+    [Theory]
+    [InlineData(ProvisionedSecrets.DirectoryKey)]
+    [InlineData("RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME")]
+    public void FromConfiguration_Throws_NamingWhyStudioctlFailed_WhenTheImportFailed(string missingKey)
+    {
+        using var tempDirectory = new TempDirectory();
+        const string importFailure = "'studioctl app env' exited with code 1: no Altinn app found";
+        Dictionary<string, string?> values = new()
+        {
+            [ProvisionedSecrets.DirectoryKey] = tempDirectory.Path,
+            [_maskinporten.FileNameKey] = _maskinportenFileName,
+            [_appCodes.FileNameKey] = _appCodesFileName,
+            [StudioctlAppEnvironment.ImportFailureKey] = importFailure,
+        };
+        values.Remove(missingKey);
+
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
+            ProvisionedSecrets.FromConfiguration(new ConfigurationBuilder().AddInMemoryCollection(values).Build())
+        );
+
+        Assert.Contains(missingKey, exception.Message, StringComparison.Ordinal);
+        Assert.EndsWith(importFailure, exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("on PATH", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

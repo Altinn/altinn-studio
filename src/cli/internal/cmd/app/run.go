@@ -110,7 +110,7 @@ func (s *Service) BuildDotnetRunSpec(
 	topology envtopology.Local,
 	opts DotnetRunOptions,
 ) (DotnetRunSpec, error) {
-	projectPath, err := appProjectPath(appPath)
+	projectPath, err := ProjectPath(appPath)
 	if err != nil {
 		return DotnetRunSpec{}, err
 	}
@@ -191,7 +191,9 @@ func DotnetAppRunCommand(targetPath string, args []string) (string, []string) {
 	return targetPath, runArgs
 }
 
-func appProjectPath(appPath string) (string, error) {
+// ProjectPath returns the one project file in an app's App directory. Exported because doctor reads the .NET SDK
+// the app needs from it.
+func ProjectPath(appPath string) (string, error) {
 	projectPaths, err := filepath.Glob(filepath.Join(appPath, "App", "*.csproj"))
 	if err != nil {
 		return "", fmt.Errorf("find app project: %w", err)

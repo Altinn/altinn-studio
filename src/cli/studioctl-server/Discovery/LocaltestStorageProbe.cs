@@ -23,6 +23,8 @@ internal sealed class LocaltestStorageProbe
         _logger = logger;
     }
 
+    public Uri? BaseUri => _baseUri;
+
     public async Task<LocaltestStorageProbeResult> ProbeApplicationMetadata(
         string appId,
         CancellationToken cancellationToken

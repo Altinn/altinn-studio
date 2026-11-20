@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- An app started with `dotnet run` or from an IDE that cannot get its local configuration from studioctl now fails with studioctl's own error, instead of only "'RUNTIME_APP_SECRETS_DIR' is not set" and the advice to put studioctl on PATH. A slow studioctl gets up to 10 seconds instead of 3. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed

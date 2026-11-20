@@ -405,3 +405,32 @@ func setModTime(t *testing.T, path string, modTime time.Time) {
 		t.Fatalf("set modtime %q: %v", path, err)
 	}
 }
+
+func TestRegisterAppReportsUnreachableLocaltest(t *testing.T) {
+	t.Parallel()
+
+	client := &Client{
+		cfg: testConfig(t),
+		http: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				if req.URL.Path != registerPath {
+					t.Fatalf("request path = %s, want %s", req.URL.Path, registerPath)
+				}
+				return &http.Response{
+					StatusCode: http.StatusServiceUnavailable,
+					Status:     "503 Service Unavailable",
+					Body: io.NopCloser(strings.NewReader(
+						`{"message":"app started, but localtest at http://127.0.0.1:8000/ could not be reached"}`,
+					)),
+					Header:  make(http.Header),
+					Request: req,
+				}, nil
+			}),
+		},
+	}
+
+	_, err := client.RegisterApp(t.Context(), AppRegistration{AppID: "ttd/app", HostPort: 5005, TimeoutSeconds: 30})
+	if !errors.Is(err, ErrLocaltestUnavailable) {
+		t.Fatalf("RegisterApp() error = %v, want %v", err, ErrLocaltestUnavailable)
+	}
+}

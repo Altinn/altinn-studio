@@ -50,6 +50,7 @@ type Service struct {
 	debugf          func(format string, args ...any)
 	lookPath        func(file string) (string, error)
 	versionOutput   func(ctx context.Context, name string, args ...string) ([]byte, error)
+	dotnetVersionIn func(ctx context.Context, dir string) ([]byte, error)
 	containerDetect func(ctx context.Context) (container.ContainerClient, error)
 }
 
@@ -86,19 +87,21 @@ type Check struct {
 	OK    bool   `json:"ok"`
 }
 
-// Prerequisites contains prerequisite check details.
+// Prerequisites contains prerequisite check details. Inside an app, Dotnet checks the SDK the app needs, which
+// DotnetRequirement describes; outside one it checks the lowest SDK any app needs, and DotnetRequirement is nil.
 type Prerequisites struct {
-	DotnetValue       string          `json:"-"`
-	ContainerValue    string          `json:"-"`
-	WindowsValue      string          `json:"-"`
-	ContainerResolved string          `json:"containerResolved,omitempty"`
-	ContainerHost     string          `json:"containerHost,omitempty"`
-	ContainerClient   string          `json:"containerClient,omitempty"`
-	ContainerServer   string          `json:"containerServer,omitempty"`
-	ContainerTools    []ContainerTool `json:"containerTools,omitempty"`
-	Windows           *Check          `json:"windows,omitempty"`
-	Dotnet            Check           `json:"dotnet"`
-	Container         Check           `json:"container"`
+	DotnetValue       string             `json:"-"`
+	ContainerValue    string             `json:"-"`
+	WindowsValue      string             `json:"-"`
+	ContainerResolved string             `json:"containerResolved,omitempty"`
+	ContainerHost     string             `json:"containerHost,omitempty"`
+	ContainerClient   string             `json:"containerClient,omitempty"`
+	ContainerServer   string             `json:"containerServer,omitempty"`
+	ContainerTools    []ContainerTool    `json:"containerTools,omitempty"`
+	Windows           *Check             `json:"windows,omitempty"`
+	DotnetRequirement *DotnetRequirement `json:"dotnetRequirement,omitempty"`
+	Dotnet            Check              `json:"dotnet"`
+	Container         Check              `json:"container"`
 }
 
 // ContainerTool describes one detected container-related tool on PATH.
@@ -154,6 +157,7 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 		debugf:          debugf,
 		lookPath:        exec.LookPath,
 		versionOutput:   commandVersionOutput,
+		dotnetVersionIn: dotnetVersionInDir,
 		containerDetect: container.Detect,
 	}
 }
@@ -164,7 +168,7 @@ func (s *Service) BuildReport(ctx context.Context) Report {
 	return Report{
 		CLI:           &CLI{Version: s.cfg.Version.String()},
 		System:        buildSystem(ctx),
-		Prerequisites: s.collectPrerequisites(ctx),
+		Prerequisites: s.collectPrerequisites(ctx, appReport),
 		Auth:          s.buildAuth(),
 		App:           appReport,
 		Disk:          s.buildDisk(appReport),

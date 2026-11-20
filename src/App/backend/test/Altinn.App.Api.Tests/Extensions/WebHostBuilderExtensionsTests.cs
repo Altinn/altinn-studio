@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
 using Altinn.App.Core.Internal;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
@@ -173,6 +175,123 @@ public sealed class WebHostBuilderExtensionsTests
             startInfo.ArgumentList
         );
         Assert.DoesNotContain("--random-host-port=false", startInfo.ArgumentList);
+        // studioctl's error is shown as text, so it must not come with color codes.
+        Assert.Equal("1", startInfo.Environment["NO_COLOR"]);
+    }
+
+    [Fact]
+    public void Import_StudioctlPrintsItsEnvironment_ReturnsIt()
+    {
+        using var tempDirectory = new TempDirectory(_outputHelper);
+        string output = Path.Join(tempDirectory.Path, "env.json");
+        File.WriteAllText(output, """{"PlatformSettings__ApiStorageEndpoint":"http://local.altinn.cloud:8000/"}""");
+
+        StudioctlImport import = StudioctlLocalConfiguration.Import(
+            Shell(unix: $"cat '{output}'", windows: $"type {output}"),
+            _importTimeout
+        );
+
+        Assert.Null(import.Failure);
+        Assert.Equal("http://local.altinn.cloud:8000/", import.Values["PlatformSettings__ApiStorageEndpoint"]);
+    }
+
+    [Fact]
+    public void Import_StudioctlFails_KeepsWhatItPrinted()
+    {
+        StudioctlImport import = StudioctlLocalConfiguration.Import(
+            Shell(
+                unix: "echo 'no Altinn app found: run from an app directory' >&2; exit 1",
+                windows: "echo no Altinn app found: run from an app directory 1>&2 & exit /b 1"
+            ),
+            _importTimeout
+        );
+
+        Assert.Empty(import.Values);
+        Assert.NotNull(import.Failure);
+        Assert.StartsWith("'studioctl app env' exited with code 1: ", import.Failure, StringComparison.Ordinal);
+        Assert.Contains("no Altinn app found: run from an app directory", import.Failure, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Import_StudioctlIsNotOnPath_SaysSo()
+    {
+        ProcessStartInfo startInfo = StudioctlLocalConfiguration.CreateStartInfo("/apps/test/App/App.csproj");
+        startInfo.FileName = $"studioctl-missing-{Guid.NewGuid():N}";
+
+        StudioctlImport import = StudioctlLocalConfiguration.Import(startInfo, _importTimeout);
+
+        Assert.NotNull(import.Failure);
+        Assert.StartsWith("studioctl could not be started", import.Failure, StringComparison.Ordinal);
+        Assert.Contains("PATH", import.Failure, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Import_StudioctlDoesNotFinish_StopsItAndSaysSo()
+    {
+        StudioctlImport import = StudioctlLocalConfiguration.Import(
+            Shell(unix: "sleep 30", windows: "ping -n 30 127.0.0.1 > nul"),
+            TimeSpan.FromMilliseconds(500)
+        );
+
+        Assert.NotNull(import.Failure);
+        Assert.StartsWith("'studioctl app env' did not finish within", import.Failure, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Import_StudioctlPrintsSomethingElse_SaysSo()
+    {
+        StudioctlImport import = StudioctlLocalConfiguration.Import(
+            Shell(unix: "echo 'A new version is available'", windows: "echo A new version is available"),
+            _importTimeout
+        );
+
+        Assert.Equal("'studioctl app env' printed something other than a JSON object.", import.Failure);
+    }
+
+    /// <summary>
+    /// The <c>dotnet run</c> path when studioctl fails: the app does not start, and the failure gives
+    /// studioctl's reason rather than the advice to install studioctl.
+    /// </summary>
+    [Fact]
+    public void FailedImport_IsWhatTheStartupFailureNames()
+    {
+        StudioctlImport import = StudioctlLocalConfiguration.Import(
+            Shell(
+                unix: "echo 'legacy localtest is running' >&2; exit 1",
+                windows: "echo legacy localtest is running 1>&2 & exit /b 1"
+            ),
+            _importTimeout
+        );
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection([new(StudioctlAppEnvironment.ImportFailureKey, import.Failure)])
+            .Build();
+
+        var exception = Assert.Throws<ApplicationConfigException>(() =>
+            ProvisionedSecrets.FromConfiguration(configuration)
+        );
+
+        Assert.Contains(ProvisionedSecrets.DirectoryKey, exception.Message, StringComparison.Ordinal);
+        Assert.Contains("legacy localtest is running", exception.Message, StringComparison.Ordinal);
+    }
+
+    private static readonly TimeSpan _importTimeout = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Runs a script in the platform's shell, standing in for studioctl.
+    /// </summary>
+    private static ProcessStartInfo Shell(string unix, string windows)
+    {
+        bool isWindows = OperatingSystem.IsWindows();
+        ProcessStartInfo startInfo = new(isWindows ? "cmd.exe" : "/bin/sh")
+        {
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        startInfo.ArgumentList.Add(isWindows ? "/c" : "-c");
+        startInfo.ArgumentList.Add(isWindows ? windows : unix);
+        return startInfo;
     }
 
     /// <summary>
