@@ -1,4 +1,4 @@
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './StatusFilter.module.css';

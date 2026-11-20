@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCenter, StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioCenter, StudioAlert, StudioParagraph } from '@designer/components';
 
 export type TabDataErrorProps = {
   children: ReactNode;

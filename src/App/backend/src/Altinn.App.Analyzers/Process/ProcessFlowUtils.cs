@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using Altinn.App.Analyzers.Utils;
+using NanoJsonReader;
 
 namespace Altinn.App.Analyzers.Process;
 
@@ -117,6 +118,11 @@ internal static class ProcessFlowUtils
                     )
                 );
                 continue;
+            }
+
+            if (node.Name == ProcessFile.ServiceTask)
+            {
+                CheckGatewayActionAfterServiceTask(node, nodeId, leaving);
             }
 
             // GetNextElements adds nothing for a flow to nowhere, so such a flow fails only when no other one leads
@@ -308,6 +314,63 @@ internal static class ProcessFlowUtils
             return taken;
         }
 
+        // A gateway that a service task of these types leads to sees no action (see the diagnostic). Like the
+        // runtime, this leaves out the default's condition.
+        void CheckGatewayActionAfterServiceTask(XElement serviceTask, string serviceTaskId, List<XElement> leaving)
+        {
+            var taskType = serviceTask
+                .Element(ProcessFile.ExtensionElements)
+                ?.Element(ProcessFile.TaskExtension)
+                ?.Element(ProcessFile.TaskType)
+                ?.Value;
+            if (taskType is null || !BuiltInTaskTypes.ServiceTasksWithoutAction.Contains(taskType))
+            {
+                return;
+            }
+
+            var checkedGateways = new HashSet<XElement>();
+            foreach (var flow in leaving)
+            {
+                if (
+                    flow.Attribute("targetRef")?.Value is not { } targetRef
+                    || !graph.NodesById.TryGetValue(targetRef, out var targets)
+                    || targets[0].Name != ProcessFile.ExclusiveGateway
+                    || !checkedGateways.Add(targets[0])
+                )
+                {
+                    continue;
+                }
+
+                var gateway = targets[0];
+                var defaultId = gateway.Attribute("default")?.Value;
+                var readers = graph
+                    .ListedFlows(gateway)
+                    .Where(f =>
+                        Id(f) != defaultId
+                        && f.Element(ProcessFile.ConditionExpression) is { } condition
+                        && ReadsGatewayAction(condition.Value)
+                    )
+                    .ToList();
+                if (readers.Count == 0)
+                {
+                    continue;
+                }
+
+                diagnostics.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.GatewayActionAfterServiceTask,
+                        LocationOf(gateway),
+                        targetRef,
+                        readers.Count == 1
+                            ? $"the condition on {FlowName(readers[0])}"
+                            : $"the conditions on sequence flows {string.Join(", ", readers.Select(FlowReference))}",
+                        serviceTaskId,
+                        taskType
+                    )
+                );
+            }
+        }
+
         void ReportGatewayMismatch(XElement gateway, string gatewayId, string problem) =>
             diagnostics.Add(
                 Diagnostic.Create(Diagnostics.Process.GatewayOutgoingMismatch, LocationOf(gateway), gatewayId, problem)
@@ -448,6 +511,51 @@ internal static class ProcessFlowUtils
     }
 
     private static string? Id(XElement element) => ProcessGraph.Id(element);
+
+    /// <summary>
+    /// Whether the condition calls <c>["gatewayAction"]</c> anywhere. An expression is a JSON array whose first item
+    /// names the function, and the runtime parses the name as an enum, ignoring surrounding whitespace
+    /// (<c>ExpressionConverter</c>). A condition that is not valid JSON fails at runtime whatever it reads, so it is
+    /// not counted; the whole condition is read before answering, since the reader finds a syntax error only when it
+    /// gets there.
+    /// </summary>
+    internal static bool ReadsGatewayAction(string condition)
+    {
+        try
+        {
+            return CallsGatewayAction(JsonValue.Parse(condition));
+        }
+        catch (NanoJsonException)
+        {
+            return false;
+        }
+
+        static bool CallsGatewayAction(JsonValue value)
+        {
+            if (value.Type != JsonType.Array)
+            {
+                return false;
+            }
+
+            var calls = false;
+            var first = true;
+            foreach (var item in value.GetArrayValues())
+            {
+                if (first && item.Type == JsonType.String && item.GetString().Trim() == "gatewayAction")
+                {
+                    calls = true;
+                }
+
+                first = false;
+                if (CallsGatewayAction(item))
+                {
+                    calls = true;
+                }
+            }
+
+            return calls;
+        }
+    }
 
     private static string FlowName(XElement flow) =>
         Id(flow) is { } id ? $"sequence flow '{id}'" : "a sequence flow without an id";

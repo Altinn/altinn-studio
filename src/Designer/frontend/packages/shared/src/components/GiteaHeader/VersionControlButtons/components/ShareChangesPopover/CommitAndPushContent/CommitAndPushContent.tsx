@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classes from './CommitAndPushContent.module.css';
 import { useTranslation } from 'react-i18next';
 import { useVersionControlButtonsContext } from '../../../context';
-import { StudioButton, StudioHeading, StudioParagraph, StudioTextarea } from '@studio/components';
+import { StudioButton, StudioHeading, StudioParagraph, StudioTextarea } from '@designer/components';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { FileChangesInfoModal } from './FileChangesInfoModal';
 

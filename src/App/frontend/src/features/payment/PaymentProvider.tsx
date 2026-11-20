@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-import type { AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 
 import { Loader } from 'src/core/loading/Loader';
 import { usePaymentInformation, usePerformPayActionMutation } from 'src/core/queries/payment';
@@ -14,7 +14,7 @@ import { useShallowMemo } from 'src/hooks/useShallowMemo';
 
 type PaymentContextProps = {
   performPayment: () => void;
-  paymentError: AxiosError | null;
+  paymentError: HttpError | null;
 };
 
 type PaymentContextProvider = {

@@ -1,4 +1,4 @@
-"""Running the single-turn gate prompts through the SDK."""
+"""Running a single-turn prompt, such as the intake planner, through the SDK."""
 
 from __future__ import annotations
 
@@ -57,54 +57,7 @@ def gate_verdict(*, output: Any = None, expected_output: Any = None, **_: Any) -
                 + (f"matches {hit!r}" if hit else f"matches none of {wanted}"),
             )
         ]
-
-    for field in ("in_scope", "safe"):
-        if field in expected:
-            actual = verdict.get(field)
-            return [
-                Evaluation(
-                    name="gate_verdict",
-                    value=1.0 if actual == expected[field] else 0.0,
-                    data_type="BOOLEAN",
-                    comment=f"{field}={actual}, expected {expected[field]}",
-                )
-            ]
     return []
-
-
-def decline_language(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
-    """A decline has to be in the user's language."""
-    wanted = (expected_output or {}).get("decline_language")
-    if not wanted:
-        return []
-    verdict = (output or {}).get("verdict") if isinstance(output, dict) else None
-    message = (verdict or {}).get("decline_message") or ""
-    if not message.strip():
-        return [
-            Evaluation(
-                name="gate_decline_language",
-                value=0.0,
-                data_type="BOOLEAN",
-                comment="declined with no message, which the prompt requires",
-            )
-        ]
-
-    lowered = f" {message.lower()} "
-    norwegian = sum(
-        token in lowered for token in (" jeg ", " kan ", " ikke ", " hjelpe ", " med ", " deg ", " og ", " å ")
-    )
-    english = sum(
-        token in lowered for token in (" i ", " can ", " only ", " help ", " with ", " you ", " and ", " the ")
-    )
-    detected = "nb" if norwegian > english else "en"
-    return [
-        Evaluation(
-            name="gate_decline_language",
-            value=1.0 if detected == wanted else 0.0,
-            data_type="BOOLEAN",
-            comment=f"looks like {detected}, expected {wanted}: {message[:60]!r}",
-        )
-    ]
 
 
 def required_keys(*, output: Any = None, expected_output: Any = None, **_: Any) -> list[Evaluation]:
@@ -133,7 +86,7 @@ def required_keys(*, output: Any = None, expected_output: Any = None, **_: Any) 
     ]
 
 
-ITEM_EVALUATORS: list[ItemEvaluator] = [gate_verdict, decline_language, required_keys]
+ITEM_EVALUATORS: list[ItemEvaluator] = [gate_verdict, required_keys]
 
 
 @dataclass
@@ -185,7 +138,6 @@ def _user(text: str):
 
 
 SCORE_NAMES = (
-    "gate_decline_language",
     "gate_required_keys",
     "gate_verdict",
 )

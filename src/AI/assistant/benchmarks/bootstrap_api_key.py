@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import re
 import secrets
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 
 DESIGNER_CONTAINER = "studio-designer"
@@ -23,6 +25,19 @@ def _docker_exec(container: str, *command: str) -> str:
     return result.stdout
 
 
+def _docker_read_file(container: str, path: str) -> str:
+    # The Designer image has no shell or `cat`, so `docker exec` cannot read a file in it.
+    result = subprocess.run(["docker", "cp", f"{container}:{path}", "-"], capture_output=True)
+    if result.returncode != 0:
+        sys.exit(f"docker cp from {container} failed: {result.stderr.decode(errors='replace').strip()}")
+    with tarfile.open(fileobj=io.BytesIO(result.stdout)) as archive:
+        member = archive.next()
+        content = archive.extractfile(member) if member else None
+        if content is None:
+            sys.exit(f"docker cp from {container} returned no file for {path}")
+        return content.read().decode()
+
+
 def _sql(query: str) -> str:
     return _docker_exec(DB_CONTAINER, *DB_ARGS, query).strip()
 
@@ -34,7 +49,7 @@ def _sql_literal(value: str) -> str:
 def _hash_salt() -> str:
     # appsettings.json is JSONC (comments allowed) — regex-extract the one
     # value we need instead of parsing the whole document.
-    content = _docker_exec(DESIGNER_CONTAINER, "cat", "/app/appsettings.json")
+    content = _docker_read_file(DESIGNER_CONTAINER, "/app/appsettings.json")
     match = re.search(r'"HashSalt"\s*:\s*"([^"]+)"', content)
     if not match:
         sys.exit("ApiKeySettings.HashSalt not found in the designer container's appsettings.json")

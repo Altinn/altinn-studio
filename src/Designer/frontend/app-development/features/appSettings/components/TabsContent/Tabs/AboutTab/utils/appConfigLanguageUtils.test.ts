@@ -5,7 +5,7 @@ import {
 } from './appConfigLanguageUtils';
 import type { AppConfigFormError } from 'app-shared/types/AppConfigFormError';
 import type { ValidLanguage } from 'app-shared/types/SupportedLanguages';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('appConfigLanguageUtils', () => {
   describe('mapLanguageKeyToLanguageText', () => {

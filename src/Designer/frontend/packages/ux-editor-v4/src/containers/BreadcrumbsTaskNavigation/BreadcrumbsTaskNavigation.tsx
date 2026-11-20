@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import classes from './BreadcrumbsTaskNavigation.module.css';
-import { StudioBreadcrumbs } from '@studio/components';
-import { UrlUtils } from '@studio/pure-functions';
+import { StudioBreadcrumbs } from '@designer/components';
+import { UrlUtils } from '@designer/pure-functions';
 import { useTranslation } from 'react-i18next';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 

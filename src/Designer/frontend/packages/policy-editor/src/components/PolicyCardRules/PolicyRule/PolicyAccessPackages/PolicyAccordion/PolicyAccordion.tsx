@@ -1,7 +1,7 @@
 import type { ReactNode, ReactElement } from 'react';
 import { useId, useState } from 'react';
-import { StudioButton } from '@studio/components';
-import { ChevronUpIcon, ChevronDownIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { ChevronUpIcon, ChevronDownIcon } from '@designer/icons';
 import classes from './PolicyAccordion.module.css';
 
 export type PolicyAccordionProps = {

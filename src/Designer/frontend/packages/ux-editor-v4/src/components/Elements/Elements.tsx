@@ -12,8 +12,8 @@ import {
   StudioHeading,
   StudioSpinner,
   StudioParagraph,
-} from '@studio/components';
-import { SidebarLeftIcon } from '@studio/icons';
+} from '@designer/components';
+import { SidebarLeftIcon } from '@designer/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';

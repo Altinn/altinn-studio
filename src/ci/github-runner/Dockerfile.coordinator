@@ -10,27 +10,30 @@ WORKDIR /source
 COPY rust-toolchain.toml ./
 RUN rustup toolchain install --no-self-update \
     && rustc --version
-COPY Cargo.toml Cargo.lock ./
-COPY src/ci/github-runner/coordinator src/ci/github-runner/coordinator
+# The build context holds the Cargo workspace and nothing else.
+COPY . .
 RUN cargo build \
     --locked \
     --release \
-    --manifest-path src/ci/github-runner/coordinator/Cargo.toml \
+    --bins \
+    --package github-runner-coordinator \
+    --package sandbox-hosting \
     && strip --strip-unneeded \
       /source/target/release/coordinator \
       /source/target/release/sandbox-image
 
 FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac AS runtime-bundle
 
-ARG MICROSANDBOX_RUNTIME_VERSION=0.7.4-digdir.3
-
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /runtime
-RUN runtime_tag="v${MICROSANDBOX_RUNTIME_VERSION}" \
-    && release_url="https://github.com/digdir/microsandbox/releases/download/${runtime_tag}" \
+# The microsandbox crate in Cargo.lock drives this runtime, so download the runtime release of the same version.
+COPY Cargo.lock ./
+RUN runtime_version="$(awk '$0 == "name = \"microsandbox\"" { found = 1; next } found && /^version = / { gsub(/"/, "", $3); print $3; exit }' Cargo.lock)" \
+    && test -n "${runtime_version}" \
+    && release_url="https://github.com/digdir/microsandbox/releases/download/v${runtime_version}" \
     && curl --fail --location --retry 5 --output microsandbox-linux-x86_64.tar.gz \
       "${release_url}/microsandbox-linux-x86_64.tar.gz" \
     && curl --fail --location --retry 5 --output checksums.sha256 \

@@ -19,7 +19,7 @@ import {
 } from './PageRouterErrorBoundary';
 import { GiteaRoutePaths } from '../enums/GiteaRoutePaths';
 import { NavigateToLatestCommitInGitea } from '../features/navigateToLatestCommitInGitea';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner } from '@designer/components';
 
 const BASE_PATH = '/:org/:app';
 

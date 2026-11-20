@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import classes from './PreviewLimitationsInfo.module.css';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert } from '@studio/components';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { StudioAlert } from '@designer/components';
+import { typedLocalStorage } from '@designer/pure-functions';
 import { RemindChoiceDialog } from '../RemindChoiceDialog/RemindChoiceDialog';
 
 export const PreviewLimitationsInfo = () => {

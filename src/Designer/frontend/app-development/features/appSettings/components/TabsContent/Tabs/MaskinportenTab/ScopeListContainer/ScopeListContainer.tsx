@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@designer/components';
 import { isHttpError } from 'app-shared/utils/networking';
 import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQuery';
 import { useTranslation } from 'react-i18next';

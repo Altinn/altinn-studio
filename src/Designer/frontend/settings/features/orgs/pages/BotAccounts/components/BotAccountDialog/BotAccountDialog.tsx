@@ -9,7 +9,7 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioFormActions,
-} from '@studio/components';
+} from '@designer/components';
 import { useCreateBotAccountMutation } from '../../hooks/useCreateBotAccountMutation';
 import { useUpdateBotAccountMutation } from '../../hooks/useUpdateBotAccountMutation';
 import classes from './BotAccountDialog.module.css';

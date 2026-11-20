@@ -2,16 +2,16 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PreviewButton } from './PreviewButton';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/hooks';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { useMediaQuery } from '@designer/hooks';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { pageHeaderContextMock, previewContextMock } from 'app-development/test/headerMocks';
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 vi.mock('app-shared/navigation/PackagesRouter');
 
 const layoutMock: string = 'layout1';

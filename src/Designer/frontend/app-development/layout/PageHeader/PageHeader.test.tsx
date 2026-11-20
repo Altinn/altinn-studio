@@ -2,17 +2,17 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { PageHeader, type PageHeaderProps } from './PageHeader';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { app } from '@studio/testing/testids';
+import { app } from '@designer/testing/testids';
 import { type PageHeaderContextProps } from 'app-development/contexts/PageHeaderContext/PageHeaderContext';
 import { pageHeaderContextMock, previewContextMock } from 'app-development/test/headerMocks';
 import { PreviewContext } from 'app-shared/contexts/PreviewContext';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { useMediaQuery } from '@designer/hooks/src/hooks/useMediaQuery';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 const defaultProps: PageHeaderProps = {
   showSubMenu: true,

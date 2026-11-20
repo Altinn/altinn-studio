@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
-import { PencilIcon, TrashIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PencilIcon, TrashIcon } from '@designer/icons';
 import classes from './OptionListButtons.module.css';
 
 type OptionListButtonsProps = {

@@ -1,0 +1,22 @@
+{
+  "name": "An expression that fails to evaluate logs an error and keeps the previous value",
+  "dataModel": {
+    "decimal": 42,
+    "text": "old"
+  },
+  "calculations": [
+    {
+      "field": "decimal",
+      "expression": ["if", "yes", 1, "else", 2]
+    },
+    {
+      "field": "text",
+      "expression": "calculated"
+    }
+  ],
+  "expects": {
+    "decimal": 42,
+    "text": "calculated"
+  },
+  "expectsErrors": ["Expected boolean, got value \"yes\""]
+}

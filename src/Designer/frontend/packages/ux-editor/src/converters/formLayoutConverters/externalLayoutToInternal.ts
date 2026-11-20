@@ -17,7 +17,7 @@ import { externalSimpleComponentToInternal } from '../simpleComponentConverters'
 import type { FormComponent } from '../../types/FormComponent';
 import type { FormContainer } from '../../types/FormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { externalContainerComponentToInternal } from '../containerComponentConverters';
 import { findPageIndexInChildList, removePageIndexPrefix } from './pageIndexUtils';
 import {

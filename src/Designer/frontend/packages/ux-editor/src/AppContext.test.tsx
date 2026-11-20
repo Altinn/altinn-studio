@@ -12,7 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useAppContext } from './hooks';
 import type { QueryClient } from '@tanstack/react-query';
 import { layout1NameMock } from './testing/layoutMock';
-import { app, layoutSet, org } from '@studio/testing/testids';
+import { app, layoutSet, org } from '@designer/testing/testids';
 import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
 import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 import { AppRouter } from './testing/mocks';

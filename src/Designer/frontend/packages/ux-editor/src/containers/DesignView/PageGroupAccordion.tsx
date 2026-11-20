@@ -9,7 +9,7 @@ import {
   StudioPopover,
   StudioDeleteButton,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 import {
   MenuElipsisVerticalIcon,
   FolderIcon,
@@ -17,7 +17,7 @@ import {
   TrashIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import {
   duplicatedIdsExistsInLayout,
@@ -28,7 +28,7 @@ import { useDeletePageGroupMutation } from '@altinn/ux-editor/hooks/mutations/us
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
 import { useAppContext } from '../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { pageGroupAccordionHeader } from '@studio/testing/testids';
+import { pageGroupAccordionHeader } from '@designer/testing/testids';
 import cn from 'classnames';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import { usePagesQuery } from 'app-shared/hooks/queries/usePagesQuery';

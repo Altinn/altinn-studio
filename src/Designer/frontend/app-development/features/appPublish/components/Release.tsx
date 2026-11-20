@@ -1,14 +1,14 @@
 import classes from './Release.module.css';
-import { DateUtils } from '@studio/pure-functions';
+import { DateUtils } from '@designer/pure-functions';
 import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { gitCommitPath } from 'app-shared/api/paths';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@designer/components';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { CheckmarkCircleIcon, ExclamationmarkTriangleIcon } from '@studio/icons';
+import { CheckmarkCircleIcon, ExclamationmarkTriangleIcon } from '@designer/icons';
 
 interface IReleaseComponent {
   release: AppRelease;

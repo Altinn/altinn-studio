@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import { SmallProfileMenu } from './SmallProfileMenu';
 
 const mockUser = {

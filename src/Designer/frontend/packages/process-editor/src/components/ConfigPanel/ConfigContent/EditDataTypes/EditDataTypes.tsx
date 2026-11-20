@@ -1,7 +1,7 @@
-import { StudioProperty } from '@studio/components';
-import { useResetState } from '@studio/hooks';
+import { StudioProperty } from '@designer/components';
+import { useResetState } from '@designer/hooks';
 import { useTranslation } from 'react-i18next';
-import { LinkIcon } from '@studio/icons';
+import { LinkIcon } from '@designer/icons';
 import { SelectDataTypes } from './SelectDataTypes';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 

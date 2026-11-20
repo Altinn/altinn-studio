@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioList } from '@studio/components';
+import { StudioList } from '@designer/components';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { FilenameTextResource } from '../FilenameTextResource';
 import { useSubformPdfConfig } from './useSubformPdfConfig';

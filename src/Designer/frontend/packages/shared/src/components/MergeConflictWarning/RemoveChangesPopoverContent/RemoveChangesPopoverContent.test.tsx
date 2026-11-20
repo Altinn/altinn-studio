@@ -6,8 +6,8 @@ import {
   type RemoveChangesPopoverContentProps,
 } from './RemoveChangesPopoverContent';
 import { MemoryRouter } from 'react-router-dom';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   ServicesContextProvider,

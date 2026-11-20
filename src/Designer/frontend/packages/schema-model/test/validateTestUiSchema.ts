@@ -12,7 +12,7 @@ import {
   isNotTheRootNode,
   isTheRootNode,
 } from '../src/lib/utils';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 /** Verifies that there is a root node */
 export const hasRootNode = (uiSchema: UiSchemaNodes) =>

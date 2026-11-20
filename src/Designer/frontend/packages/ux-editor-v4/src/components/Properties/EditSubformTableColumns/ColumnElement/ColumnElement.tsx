@@ -3,7 +3,7 @@ import { useState } from 'react';
 import classes from './ColumnElement.module.css';
 import type { TableColumn } from '../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@designer/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ConfigContentContainer } from './ConfigContentContainer';
 import { BpmnContext, type BpmnContextProps } from '../../../contexts/BpmnContext';
 import { mockBpmnContextValue } from '../../../../test/mocks/bpmnContextMock';

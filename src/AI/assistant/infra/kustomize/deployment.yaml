@@ -55,11 +55,6 @@ spec:
                 secretKeyRef:
                   name: altinn-altinity-agents-eso-secret
                   key: LANGFUSE_PUBLIC_KEY
-            - name: LANGFUSE_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: altinn-altinity-agents-eso-secret
-                  key: LANGFUSE_BASE_URL
             - name: LANGFUSE_ENABLED
               value: "true"
             - name: LANGFUSE_ENVIRONMENT
