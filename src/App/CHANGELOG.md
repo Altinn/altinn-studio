@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 
 ## [9.0.0-preview.14] - 2026-11-20
@@ -36,6 +37,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - A calculation for an item in a list at the top of the data model, such as `numbers[1]`, sets that item in the form. It made a separate field named `numbers[1]` before. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Typing an invalid or unfinished date, such as `32.13.2026` or `12.12`, into a `Datepicker` bound to a `DateTime` field shows an invalid date message instead of crashing the form. ([Altinn/app-frontend-react#4180](https://github.com/Altinn/app-frontend-react/issues/4180))
 
 ## [9.0.0-preview.13] - 2026-11-19
 

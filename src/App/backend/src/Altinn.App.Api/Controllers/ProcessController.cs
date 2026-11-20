@@ -221,8 +221,9 @@ public class ProcessController : ControllerBase
                 return ProcessChangeResponse(result, dto);
             }
 
+            // The instance after the transition, so the workflow annotation describes the process it answers with.
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
-                instance,
+                result.MutatedInstance ?? instance,
                 result.ProcessStateChange.NewProcessState,
                 User,
                 cancellationToken: cancellationToken
@@ -299,6 +300,10 @@ public class ProcessController : ControllerBase
             );
 
             return ProcessChangeResponse(result, appProcessState);
+        }
+        catch (WorkflowSubmissionFailedException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            return ConcurrentTransitionConflict(exception);
         }
         catch (PlatformHttpException e)
         {
