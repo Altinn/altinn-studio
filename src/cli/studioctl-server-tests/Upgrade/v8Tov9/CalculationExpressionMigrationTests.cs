@@ -850,6 +850,11 @@ public sealed class CalculationExpressionMigrationTests
         );
         Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
         Assert.Equal(schema, app.Read("models/model.schema.json"));
+        if (body == "return null;")
+            Assert.Equal(
+                "[\"if\",true,null,\"else\",null]",
+                Calculations(app)["result"]?["expression"]?.ToJsonString()
+            );
     }
 
     [Fact]
