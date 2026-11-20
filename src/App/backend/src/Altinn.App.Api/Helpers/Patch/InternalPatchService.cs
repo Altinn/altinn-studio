@@ -145,8 +145,8 @@ internal class InternalPatchService
             }
 
             var newModel = newModelResult.Ok;
-            // Reset dataAccessor to provide the patched model.
             var dataType = dataAccessor.GetDataType(dataElementIdentifier);
+            // Reset dataAccessor to provide the patched model.
             formData.ReplaceBackingData(newModel);
 
             changesAfterPatch.Add(

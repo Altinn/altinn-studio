@@ -50,19 +50,12 @@ public class TestReplaceBackingData
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void ReplaceBackingData_WithASubtype_HoldsItAndStillAcceptsTheBaseType(bool reflection)
+    public void ReplaceBackingData_WithASubtype_Throws(bool reflection)
     {
         var original = new Skjema();
-        var derived = new DerivedSkjema { Skjemanummer = "derived" };
         IFormDataWrapper wrapper = CreateWrapper(original, reflection);
 
-        wrapper.ReplaceBackingData(derived);
-
-        Assert.Same(derived, wrapper.BackingData<Skjema>());
-        Assert.Equal("derived", wrapper.Get("skjemanummer"));
-
-        var again = new Skjema();
-        wrapper.ReplaceBackingData(again);
-        Assert.Same(again, wrapper.BackingData<Skjema>());
+        Assert.Throws<ArgumentException>(() => wrapper.ReplaceBackingData(new DerivedSkjema()));
+        Assert.Same(original, wrapper.BackingData<Skjema>());
     }
 }

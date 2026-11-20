@@ -45,11 +45,13 @@ public static class SourceTextGenerator
 
                 public void ReplaceBackingData(object dataModel)
                 {
-                    _dataModel =
-                        dataModel as {{rootNode.TypeName}}
-                        ?? throw new global::System.ArgumentException(
+                    if (dataModel?.GetType() != typeof({{rootNode.TypeName}}))
+                    {
+                        throw new global::System.ArgumentException(
                             $"Data model must be of type {{rootNode.FullName}}, (was {dataModel?.GetType().FullName ?? "null"})"
                         );
+                    }
+                    _dataModel = ({{rootNode.TypeName}})dataModel;
                 }
 
                 public {{className}}(

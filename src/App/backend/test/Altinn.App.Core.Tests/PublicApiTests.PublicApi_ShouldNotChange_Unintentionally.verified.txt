@@ -1545,6 +1545,10 @@ namespace Altinn.App.Core.Features
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
     }
+    public static class IInstanceDataMutatorExtensions
+    {
+        public static System.Threading.Tasks.Task ReplaceFormData(this Altinn.App.Core.Features.IInstanceDataMutator dataMutator, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model) { }
+    }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
     {

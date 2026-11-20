@@ -25,11 +25,13 @@ public sealed class Altinn_App_SourceGenerator_Integration_Tests_Models_Complain
 
     public void ReplaceBackingData(object dataModel)
     {
-        _dataModel =
-            dataModel as global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint
-            ?? throw new global::System.ArgumentException(
+        if (dataModel?.GetType() != typeof(global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint))
+        {
+            throw new global::System.ArgumentException(
                 $"Data model must be of type Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint, (was {dataModel?.GetType().FullName ?? "null"})"
             );
+        }
+        _dataModel = (global::Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint)dataModel;
     }
 
     public Altinn_App_SourceGenerator_Integration_Tests_Models_ComplaintFormDataWrapper(

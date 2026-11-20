@@ -46,7 +46,7 @@ public interface IInstanceDataAccessor
     /// <remarks>
     /// On an <see cref="IInstanceDataMutator"/>, <see cref="IFormDataWrapper.ReplaceBackingData"/> replaces the form data of the element.
     /// </remarks>
-    /// <returns>The deserialized data model for this data element</returns>
+    /// <returns>The wrapper around the deserialized data model for this data element</returns>
     /// <exception cref="InvalidOperationException">when identifier does not exist in instance.Data with an applogic data type</exception>
     Task<IFormDataWrapper> GetFormDataWrapper(DataElementIdentifier dataElementIdentifier);
 

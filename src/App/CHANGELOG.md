@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Data processors, process hooks and service tasks can replace a form's whole data model with `(await dataMutator.GetFormDataWrapper(element)).ReplaceBackingData(model)`. Later reads and data processors see the new object.
+- Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 
 ## [9.0.0-preview.13] - 2026-11-19
 

@@ -221,21 +221,17 @@ public class ActionsController : ControllerBase
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
-        // Ensure that the data mutator has the previous binary data for the data elements
-        // that were updated so that it shows up in diff for validation
-        // and ensures that it gets saved to storage
+        // Replace the forms returned in the deprecated UpdatedDataModels, so that they are saved to storage
+        // and the diff against the previous binary data reaches validation and the frontend
         if (result.UpdatedDataModels is { Count: > 0 })
         {
             await Task.WhenAll(
-                result.UpdatedDataModels.Select(row => dataMutator.GetFormData(new DataElementIdentifier(row.Key)))
+                result.UpdatedDataModels.Select(async row =>
+                    (await dataMutator.GetFormDataWrapper(new DataElementIdentifier(row.Key))).ReplaceBackingData(
+                        row.Value
+                    )
+                )
             );
-            foreach (var (elementId, data) in result.UpdatedDataModels)
-            {
-                // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
-                // we still need to return it to the frontend, but we assume it was already saved to storage
-                var formData = await dataMutator.GetFormDataWrapper(new DataElementIdentifier(elementId));
-                formData.ReplaceBackingData(data);
-            }
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 

@@ -5,7 +5,6 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -364,32 +363,31 @@ public class DataController_PutTests : ApiTestBase
 
         var responseText = await response.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(responseText);
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        responseText.Should().Contain("Replaced").And.Contain("Edited after the replacement");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Replaced", responseText);
+        Assert.Contains("Edited after the replacement", responseText);
         string stored = TestData.GetDataElementBlobContnet(org, app, instanceOwnerPartyId, instanceId, dataGuid);
-        stored.Should().Contain("<name>Replaced</name>").And.Contain("<random>Edited after the replacement</random>");
+        Assert.Contains("<name>Replaced</name>", stored);
+        Assert.Contains("<random>Edited after the replacement</random>", stored);
 
         TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, instanceId);
     }
 
-    private sealed class ReplacingDataWriteProcessor : IDataWriteProcessor
+    internal sealed class ReplacingDataWriteProcessor : IDataWriteProcessor
     {
-        public async Task ProcessDataWrite(
+        public Task ProcessDataWrite(
             IInstanceDataMutator instanceDataMutator,
             string taskId,
             DataElementChanges changes,
             string? language
-        )
-        {
-            foreach (FormDataChange change in changes.FormDataChanges)
-            {
-                IFormDataWrapper formData = await instanceDataMutator.GetFormDataWrapper(change.DataElementIdentifier);
-                formData.ReplaceBackingData(new Skjema { Melding = new Dummy { Name = "Replaced" } });
-            }
-        }
+        ) =>
+            instanceDataMutator.ReplaceFormData(
+                Assert.Single(changes.FormDataChanges).DataElementIdentifier,
+                new Skjema { Melding = new Dummy { Name = "Replaced" } }
+            );
     }
 
-    private sealed class EditingDataWriteProcessor : IDataWriteProcessor
+    internal sealed class EditingDataWriteProcessor : IDataWriteProcessor
     {
         public Task ProcessDataWrite(
             IInstanceDataMutator instanceDataMutator,

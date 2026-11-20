@@ -25,11 +25,13 @@ public sealed class Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper
 
     public void ReplaceBackingData(object dataModel)
     {
-        _dataModel =
-            dataModel as global::Altinn.App.SourceGenerator.Tests.Empty
-            ?? throw new global::System.ArgumentException(
+        if (dataModel?.GetType() != typeof(global::Altinn.App.SourceGenerator.Tests.Empty))
+        {
+            throw new global::System.ArgumentException(
                 $"Data model must be of type Altinn.App.SourceGenerator.Tests.Empty, (was {dataModel?.GetType().FullName ?? "null"})"
             );
+        }
+        _dataModel = (global::Altinn.App.SourceGenerator.Tests.Empty)dataModel;
     }
 
     public Altinn_App_SourceGenerator_Tests_EmptyFormDataWrapper(
