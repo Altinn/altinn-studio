@@ -222,24 +222,6 @@ public class ServiceTaskPipelineMailboxTests
     }
 
     [Fact]
-    public void HandleAnsweredTwice_Throws()
-    {
-        var builder = new PipelineBuilder();
-        builder.Stage(Send, _threeDays, out MailboxHandle handle);
-        builder.ConcludeOnReplies(handle, Handle, Closed);
-
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            builder.ConcludeOnReplies(handle, Handle, Closed)
-        );
-
-        Assert.Contains(
-            $"The mailbox opened at index {handle.OpeningIndex} is already answered",
-            exception.Message,
-            StringComparison.Ordinal
-        );
-    }
-
-    [Fact]
     public void HandleAnsweredTwiceByHandleReplies_Throws()
     {
         var builder = new PipelineBuilder();
@@ -300,31 +282,6 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
         Assert.Contains("nothing answers it", exception.Message, StringComparison.Ordinal);
         Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), exception.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void FinallyAfterAReplyTerminal_StillThrowsBecauseThatAnswerLeftWithItsOwnPipeline()
-    {
-        // The one test that pins the difference between "answered by a handler in this pipeline" and "answered
-        // by a terminal, in the pipeline that terminal returned". Collapse the builder's mark to a plain bool
-        // and this composition starts succeeding, handing back a pipeline that opens a mailbox and answers it
-        // nowhere — every other test here passes either way.
-        var builder = new PipelineBuilder();
-        builder.Stage(Send, _threeDays, out MailboxHandle handle);
-        builder.ConcludeOnReplies(handle, Handle, Closed);
-
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-            builder.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()))
-        );
-
-        // And it says what actually went wrong — two pipelines from one builder — rather than telling the author
-        // to answer a mailbox they just answered.
-        Assert.Contains(
-            $"The mailbox opened at index {handle.OpeningIndex} is answered by an earlier ConcludeOnReplies",
-            exception.Message,
-            StringComparison.Ordinal
-        );
-        Assert.Contains("returns a different pipeline", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

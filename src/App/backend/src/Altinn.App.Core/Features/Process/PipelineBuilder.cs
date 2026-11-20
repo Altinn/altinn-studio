@@ -10,17 +10,23 @@ namespace Altinn.App.Core.Features.Process;
 /// <see cref="Internal.Process.ProcessTasks.IProcessTask.DefineStart"/>, <c>DefineEnd</c> or <c>DefineAbandon</c>
 /// and ends with <see cref="Build"/>: those stages run inside the transition and never advance the process, so
 /// there is no conclusion, and no mailbox either. Composition mistakes throw from the composing call and fail app
-/// startup. Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
+/// startup. A builder composes one pipeline: once a terminal has been called, every further call on it throws.
+/// Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </summary>
 public sealed class PipelineBuilder
 {
     private readonly List<PipelineItem> _items = [];
 
     /// <summary>
-    /// The mailboxes this builder has issued handles for, each carrying what answers it. A fresh builder per
+    /// The mailboxes this builder has issued handles for, each marked once a handler answers it. A fresh builder per
     /// <c>DefineExecute</c> call, so this is one pipeline's whole set.
     /// </summary>
     private readonly List<IssuedMailbox> _mailboxes = [];
+
+    /// <summary>
+    /// The terminal that ended this builder, or null while it is still composing.
+    /// </summary>
+    private string? _endedBy;
 
     /// <summary>
     /// Not constructible by apps: a <c>DefineExecute</c> spreading its composition over two builders could lose a
@@ -42,6 +48,7 @@ public sealed class PipelineBuilder
     /// </param>
     public PipelineBuilder Stage(Func<StageContext, Task<StageResult>> work, ProcessStepOptions? options = null)
     {
+        ThrowIfEnded(nameof(Stage));
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
         _items.Add(new PipelineStage.Plain(work, options) { DisplayName = PipelineStepNames.FromMethod(work) });
@@ -70,6 +77,7 @@ public sealed class PipelineBuilder
         ProcessStepOptions? options = null
     )
     {
+        ThrowIfEnded(nameof(Stage));
         ArgumentNullException.ThrowIfNull(work);
         ArgumentNullException.ThrowIfNull(mailbox);
         mailbox.Validate();
@@ -105,7 +113,9 @@ public sealed class PipelineBuilder
     /// </param>
     /// <param name="options">Optional execution options for the step each execution of these handlers runs as.</param>
     /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
-    /// <exception cref="InvalidOperationException"><paramref name="handle"/> is already answered.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="handle"/> is already answered, or the builder has already ended.
+    /// </exception>
     public PipelineBuilder HandleReplies(
         MailboxHandle handle,
         Func<StageContext, ServiceTaskReply, Task<StageExchangeResult>> onMessage,
@@ -113,12 +123,13 @@ public sealed class PipelineBuilder
         ProcessStepOptions? options = null
     )
     {
+        ThrowIfEnded(nameof(HandleReplies));
         ArgumentNullException.ThrowIfNull(handle);
         ArgumentNullException.ThrowIfNull(onMessage);
         ArgumentNullException.ThrowIfNull(onClosed);
         options?.Validate();
 
-        ClaimMailbox(handle, MailboxAnswer.Segment);
+        ClaimMailbox(handle);
         _items.Add(
             new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options)
             {
@@ -135,6 +146,7 @@ public sealed class PipelineBuilder
     /// </summary>
     public ProcessTaskPipeline Build()
     {
+        End(nameof(Build));
         if (_mailboxes.Count > 0)
         {
             throw new InvalidOperationException(
@@ -163,7 +175,7 @@ public sealed class PipelineBuilder
     /// <see cref="ProcessStepOptions.WaitBudget"/> here, on the step that waits.
     /// </param>
     /// <exception cref="InvalidOperationException">
-    /// A mailbox this pipeline opens is left unanswered.
+    /// A mailbox this pipeline opens is left unanswered, or the builder has already ended.
     /// </exception>
     public ServiceTaskPipeline Finally(
         Func<StageContext, Task<ServiceTaskResult>> work,
@@ -172,8 +184,9 @@ public sealed class PipelineBuilder
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
+        End(nameof(Finally));
 
-        RequireEveryMailboxAnswered(nameof(Finally), answeredHere: null);
+        RequireEveryMailboxAnswered(nameof(Finally));
 
         return new ServiceTaskPipeline(
             _items,
@@ -199,8 +212,8 @@ public sealed class PipelineBuilder
     /// </param>
     /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
     /// <exception cref="InvalidOperationException">
-    /// <paramref name="handle"/> is already answered, or another mailbox this pipeline opens is left
-    /// unanswered.
+    /// <paramref name="handle"/> is already answered, another mailbox this pipeline opens is left unanswered, or
+    /// the builder has already ended.
     /// </exception>
     public ServiceTaskPipeline ConcludeOnReplies(
         MailboxHandle handle,
@@ -213,9 +226,10 @@ public sealed class PipelineBuilder
         ArgumentNullException.ThrowIfNull(onMessage);
         ArgumentNullException.ThrowIfNull(onClosed);
         options?.Validate();
+        End(nameof(ConcludeOnReplies));
 
-        ClaimMailbox(handle, MailboxAnswer.Terminal);
-        RequireEveryMailboxAnswered(nameof(ConcludeOnReplies), answeredHere: handle);
+        ClaimMailbox(handle);
+        RequireEveryMailboxAnswered(nameof(ConcludeOnReplies));
 
         return new ServiceTaskPipeline(
             _items,
@@ -227,10 +241,39 @@ public sealed class PipelineBuilder
     }
 
     /// <summary>
+    /// Ends the builder at the terminal being called, once its arguments are valid and before it changes anything,
+    /// so a terminal that throws after that leaves nothing half-composed for a later call to finish.
+    /// </summary>
+    private void End(string terminal)
+    {
+        ThrowIfEnded(terminal);
+        _endedBy = terminal;
+    }
+
+    /// <summary>
+    /// Refuses a call on a builder whose pipeline has already ended. A second chain built on the same builder would
+    /// otherwise also take every stage composed for the first, and a stage added after the ending would never run.
+    /// </summary>
+    private void ThrowIfEnded(string call)
+    {
+        if (_endedBy is null)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"The pipeline was already ended by {_endedBy}, so {call} cannot add to it. A builder composes one "
+                + "pipeline and ends it once: a second ending would also take every stage composed before the "
+                + "first, and a stage added after the ending would never run. Compose each alternative as a "
+                + "complete chain in its own branch, so that only the chain you return is built."
+        );
+    }
+
+    /// <summary>
     /// Claims the mailbox <paramref name="handle"/> names for the handler being composed: the two things the
     /// type system cannot say — that the handle came from this builder, and that nothing answers it yet.
     /// </summary>
-    private void ClaimMailbox(MailboxHandle handle, MailboxAnswer answer)
+    private void ClaimMailbox(MailboxHandle handle)
     {
         if (!ReferenceEquals(handle.Owner, this))
         {
@@ -244,7 +287,7 @@ public sealed class PipelineBuilder
 
         // Owned by this builder, so this builder issued it, so it is registered.
         IssuedMailbox mailbox = _mailboxes.Single(m => ReferenceEquals(m.Handle, handle));
-        if (mailbox.Answer is not MailboxAnswer.None)
+        if (mailbox.IsAnswered)
         {
             throw new InvalidOperationException(
                 $"The mailbox opened at index {handle.OpeningIndex} is already answered by an earlier "
@@ -254,63 +297,37 @@ public sealed class PipelineBuilder
             );
         }
 
-        mailbox.Answer = answer;
+        mailbox.IsAnswered = true;
     }
 
     /// <summary>
-    /// The completeness check both terminals run: a terminal is the end of the composition, so a mailbox
-    /// still waiting for its handler here is waiting for a call that will never be made. An earlier
-    /// terminal's answer does not count — it belongs to the pipeline that terminal returned.
+    /// The completeness check both terminals run: a terminal is the end of the composition, so a mailbox still
+    /// waiting for its handler here is waiting for a call that will never be made.
     /// </summary>
-    private void RequireEveryMailboxAnswered(string terminal, MailboxHandle? answeredHere)
+    private void RequireEveryMailboxAnswered(string terminal)
     {
-        IssuedMailbox? unanswered = _mailboxes.FirstOrDefault(m =>
-            m.Answer is not MailboxAnswer.Segment && !ReferenceEquals(m.Handle, answeredHere)
-        );
+        IssuedMailbox? unanswered = _mailboxes.FirstOrDefault(m => !m.IsAnswered);
         if (unanswered is null)
         {
             return;
         }
 
-        int openingIndex = unanswered.Handle.OpeningIndex;
         throw new InvalidOperationException(
-            unanswered.Answer is MailboxAnswer.Terminal
-                ? $"The mailbox opened at index {openingIndex} is answered by an earlier {nameof(ConcludeOnReplies)}, but "
-                    + $"that answer is the conclusion of the pipeline that call returned — and this {terminal} "
-                    + "returns a different pipeline, in which nothing answers it. A DefineExecute composes one terminal "
-                    + "and returns it; two terminals on one builder are two pipelines, and the one left behind "
-                    + "takes its exchange's answer with it."
-                : $"A mailbox is opened at index {openingIndex}, but nothing answers it, and this pipeline ends "
-                    + $"here with {terminal}: the messages that come back would have no handler, and nothing in "
-                    + $"this pipeline would ever read them. Answer it before the pipeline ends — with "
-                    + $"{nameof(HandleReplies)} to carry on afterwards, or with {nameof(ConcludeOnReplies)} to end "
-                    + "there — passing the handle the stage handed out."
+            $"A mailbox is opened at index {unanswered.Handle.OpeningIndex}, but nothing answers it, and this "
+                + $"pipeline ends here with {terminal}: the messages that come back would have no handler, and "
+                + "nothing in this pipeline would ever read them. Answer it before the pipeline ends — with "
+                + $"{nameof(HandleReplies)} to carry on afterwards, or with {nameof(ConcludeOnReplies)} to end "
+                + "there — passing the handle the stage handed out."
         );
     }
 
-    /// <summary>One mailbox this builder issued a handle for, and what answers it.</summary>
+    /// <summary>
+    /// One mailbox this builder issued a handle for, and whether a handler answers it.
+    /// </summary>
     private sealed class IssuedMailbox(MailboxHandle handle)
     {
         internal MailboxHandle Handle { get; } = handle;
 
-        internal MailboxAnswer Answer { get; set; }
-    }
-
-    /// <summary>What answers a mailbox — and, for a terminal, where that answer lives.</summary>
-    private enum MailboxAnswer
-    {
-        None,
-
-        /// <summary>
-        /// A <see cref="HandleReplies"/> handler answers it — an item, traveling with every pipeline this
-        /// builder can still return.
-        /// </summary>
-        Segment,
-
-        /// <summary>
-        /// A terminal answers it, and that answer is the conclusion of the one pipeline that terminal
-        /// returned.
-        /// </summary>
-        Terminal,
+        internal bool IsAnswered { get; set; }
     }
 }

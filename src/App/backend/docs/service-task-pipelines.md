@@ -35,8 +35,9 @@ every callback (to dispatch), and at app startup (to validate). It must be cheap
 side-effect free — the work happens inside the stages when the engine runs them.
 
 The builder validates eagerly: a null delegate, invalid options, a mailbox handle from another pipeline, a
-handle answered twice, or a mailbox left unanswered at the terminal all throw from the composing call and
-fail **app startup**, not a callback days later.
+handle answered twice, a mailbox left unanswered at the terminal, or any call after the terminal all throw from the
+composing call and fail **app startup**, not a callback days later. A builder composes one pipeline, so to choose
+between shapes, compose each as a complete chain in its own branch and build only the one you return.
 
 App startup also checks the other side of the same invariant, in `process.bpmn`. Every task there must
 carry a non-blank `<altinn:taskType>`, and that type must name something the app resolves: one of the
