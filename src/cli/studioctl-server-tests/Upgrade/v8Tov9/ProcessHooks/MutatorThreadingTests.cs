@@ -468,7 +468,7 @@ public sealed class MutatorThreadingTests : IDisposable
                     "public async Task SetStatus() => await dataClient.Update(instance, instance.Data[0]);",
                 ],
                 [
-                    "IDataClient.Update still writes to Storage directly in ProcessTaskEnd.End: the upgrade could not tell which instance instance refers to. If it is this instance, use IDataClient.Update outside the transition (the mutator cannot save element metadata), since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition.",
+                    "IDataClient.Update still writes to Storage directly in ProcessTaskEnd.End: the upgrade could not tell which instance instance refers to. If it is this instance, use dataMutator.UpdateDataElementMetadata, since v9 refuses direct writes to it while the process is transitioning; if it is another instance, keep the call out of the transition.",
                     $"FormDataHelper.SetStatus writes to Storage with IDataClient.Update and {LeftInAConstructedHelper}",
                 ]
             },

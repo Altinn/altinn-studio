@@ -108,8 +108,7 @@ internal static class KnownPackageMembers
             null,
             Writes: true,
             "sets element metadata with IDataClient.Update",
-            "set the metadata outside the process transition, such as in a data processor of the forms' task, since the "
-                + "instance data mutator cannot save element metadata",
+            "set the metadata with dataMutator.UpdateDataElementMetadata in an IOnTaskEndingHandler of the forms' task",
             null,
             new ProcessEndFormWrite(
                 "XsdMetadataGenerator.End",
@@ -191,11 +190,9 @@ internal static class KnownPackageMembers
             "SetTag",
             Writes: true,
             "replaces the element's tags with IDataClient.Update",
-            "remove the obsolete member; use InstanceExtensions.AddTagToAttachments and save the tags outside the process "
-                + "transition",
-            "call InstanceExtensions.AddTagToAttachments and save the returned elements' tags with IDataClient.Update "
-                + "outside the process transition, such as in a data processor, since the instance data mutator cannot "
-                + "save element metadata"
+            "remove the obsolete member; use InstanceExtensions.AddTagToAttachments and dataMutator.UpdateDataElementMetadata",
+            "call InstanceExtensions.AddTagToAttachments and save the returned elements' tags with "
+                + "dataMutator.UpdateDataElementMetadata"
         ),
         new(
             "Dibk.Ftpb.Altinn.Pdf",
@@ -230,11 +227,9 @@ internal static class KnownPackageMembers
             "SetTag",
             Writes: true,
             "replaces the element's tags with IDataClient.Update",
-            "remove the obsolete member; use InstanceExtensions.AddTagToAttachments and save the tags outside the process "
-                + "transition",
-            "call InstanceExtensions.AddTagToAttachments and save the returned elements' tags with IDataClient.Update "
-                + "outside the process transition, such as in a data processor, since the instance data mutator cannot "
-                + "save element metadata"
+            "remove the obsolete member; use InstanceExtensions.AddTagToAttachments and dataMutator.UpdateDataElementMetadata",
+            "call InstanceExtensions.AddTagToAttachments and save the returned elements' tags with "
+                + "dataMutator.UpdateDataElementMetadata"
         ),
         new(
             "Dibk.Ftpb.Common.AltinnApps",
