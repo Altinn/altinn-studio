@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Removed
+
+- Breaking: `IAppEvents` is removed. Version 9 never called it, so an implementation did nothing. Move the code in `OnEndAppEvent` to an `IOnProcessEndedHandler`. `studioctl app upgrade v9` reports each use. ([#21877](https://github.com/Altinn/altinn-studio/pull/21877))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed

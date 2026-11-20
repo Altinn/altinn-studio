@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` reports each use of `IAppEvents`, which version 9 removes, and says how to move the code to an `IOnProcessEndedHandler`. ([#21877](https://github.com/Altinn/altinn-studio/pull/21877))
+
 ## [0.1.0-preview.34] - 2026-11-20
 
 ### Added
