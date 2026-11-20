@@ -557,9 +557,6 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData(Normalize + "return Number((obj.a + obj.b).toFixed(2));", "{}", 0)]
     [InlineData(Normalize + "return Number((obj.a + obj.b).toFixed(2));", "{\"a\":12.34,\"b\":5.67}", 18.01)]
     [InlineData(Normalize + "return Number((obj.a + obj.b).toFixed(2));", "{\"a\":12345.67,\"b\":0}", 12345.67)]
-    [InlineData(Normalize + "return Math.round((obj.a + obj.b) * 100) / 100;", "{}", 0)]
-    [InlineData(Normalize + "return Math.round((obj.a + obj.b) * 100) / 100;", "{\"a\":12.34,\"b\":5.67}", 18.01)]
-    [InlineData(Normalize + "return Math.round((obj.a + obj.b) * 100) / 100;", "{\"a\":12345.67,\"b\":0}", 12345.67)]
     public void NumericRounding_UsesExpressionRoundingAndReturnsANumber(string body, string inputs, double expected)
     {
         using var app = CreateApp();
@@ -574,6 +571,9 @@ public sealed class CalculationExpressionMigrationTests
         using var app = CreateApp();
         Assert.Throws<NotSupportedException>(() =>
             Convert(app, Normalize + "return Math.round(obj.a + obj.b);", Rule("calculate", "result"))
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            Convert(app, "return Math.round(obj.a * 100) / 100;", Rule("calculate", "result"))
         );
     }
 
