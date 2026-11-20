@@ -146,7 +146,17 @@ describe('calculations in the form store', () => {
     });
 
     const data = store.getState().data.models[defaultDataTypeMock].currentData;
-    expect('wrappedNullableNumber' in data ? data.wrappedNullableNumber : null).toBeNull();
+    expect(data).toMatchObject({ wrappedNullableNumber: null });
+  });
+
+  it('loads the migrated constant-null expression and clears an existing target', async () => {
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'wrappedNullableNumber', expression: ['if', true, null, 'else', null] }] },
+      { wrappedNullableNumber: 1 },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toMatchObject({
+      wrappedNullableNumber: null,
+    });
   });
 
   it('preserves stored values when a PDF previews another task with calculations', async () => {

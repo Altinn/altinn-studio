@@ -120,6 +120,7 @@ public sealed class CalculationExpressionMigrationTests
     {
         using var app = CreateApp();
         var expression = Convert(app, body, Rule("calculate", "result"));
+        Assert.NotNull(expression);
         Assert.Null(Evaluate(expression, new JsonObject()));
     }
 
