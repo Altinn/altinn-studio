@@ -14,7 +14,8 @@ internal sealed record CurrentTasks(IReadOnlyList<string> Tasks, bool AfterEnd, 
 /// may be created, changed or deleted only while one of those tasks is current, in a process transition too; after
 /// the process ended only the delete of an <c>autoDeleteOnProcessEnd</c> type passes. The current task follows from
 /// the entry: task end and abandon run in the task being left, task start in the entered one, service tasks in their
-/// own task and process end in none.
+/// own task, <c>DataCreation</c> at the start of each task that has an <c>autoCreate</c> data type and process end in
+/// none.
 /// </summary>
 internal sealed class TaskBinding(ProcessHookPortContext context, WindowReach reach)
 {
@@ -45,6 +46,7 @@ internal sealed class TaskBinding(ProcessHookPortContext context, WindowReach re
             var entered = entry.Kind switch
             {
                 WindowEntryKind.Hook => TaskIdsAt(entry, rewrite.Method, node),
+                WindowEntryKind.DataCreation => AutoCreateTasks(),
                 _ => ServiceTaskTasks(entry),
             };
             if (entered is null)
@@ -257,6 +259,23 @@ internal sealed class TaskBinding(ProcessHookPortContext context, WindowReach re
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// The tasks whose <c>autoCreate</c> data types v9 creates when they start, with <c>DataCreation</c>; <c>null</c>
+    /// when none.
+    /// </summary>
+    private List<string>? AutoCreateTasks()
+    {
+        List<string> tasks =
+        [
+            .. context
+                .DataTypes.Values.Where(static dataType => dataType.AutoCreate)
+                .SelectMany(static dataType => dataType.TaskIds)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal),
+        ];
+        return tasks.Count > 0 ? tasks : null;
     }
 
     /// <summary>The tasks whose <c>altinn:taskType</c> is the service task's <c>Type</c>, a constant in its class.</summary>

@@ -63,6 +63,11 @@ internal sealed class MethodRewrite(IMethodSymbol method, MemberBody body, IRead
 
     public List<AddedElement> Added { get; } = [];
 
+    /// <summary>The data types whose authentication was overridden already.</summary>
+    public HashSet<string> OverriddenDataTypes { get; } = new(StringComparer.Ordinal);
+
+    public bool InDataCreation => Entries.Any(static entry => entry.Kind == WindowEntryKind.DataCreation);
+
     public bool InCallback => Entries.Any(static entry => entry.InCallback);
 
     public string LineEnding => SyntaxEditing.LineEnding(File.Root);

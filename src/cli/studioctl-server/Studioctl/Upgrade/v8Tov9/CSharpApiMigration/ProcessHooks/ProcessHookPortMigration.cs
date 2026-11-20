@@ -12,7 +12,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 /// </summary>
 /// <remarks>
 /// <p>The Storage calls of the code a moved hook runs go to the instance data mutator (<see cref="StorageCallPort"/>),
-/// as do those of v8 service tasks: v9 refuses direct writes while the process is transitioning. The removed-API check lists what is left. A hook the port cannot move gets a to-do
+/// as do those of <c>IInstantiationProcessor.DataCreation</c> and v8 service tasks: v9 refuses direct writes while
+/// the process is transitioning. The removed-API check lists what is left. A hook the port cannot move gets a to-do
 /// saying why.</p>
 /// <p>Binds against the app's v8 compilation, so it runs before any rewrite that moves names the compilation knows,
 /// and does nothing without one. Everything is found before anything is written; each file is then written once.</p>
