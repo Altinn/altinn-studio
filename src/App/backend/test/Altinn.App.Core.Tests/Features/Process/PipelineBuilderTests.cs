@@ -113,6 +113,48 @@ public class PipelineBuilderTests
         Assert.Contains("already ended by Finally", thrown.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AConcludeOnRepliesThatThrows_StillEndsTheBuilder()
+    {
+        // The case ending early exists for: ConcludeOnReplies marks its mailbox answered before it finds another one
+        // unanswered. Were the builder still open, a caller that caught this could answer the other mailbox and end
+        // with Finally, returning a pipeline in which nothing answers the first.
+        var builder = new PipelineBuilder();
+        builder.Stage(Send, _threeDays, out MailboxHandle first).Stage(Send, _threeDays, out MailboxHandle second);
+        Assert.Throws<InvalidOperationException>(() => builder.ConcludeOnReplies(first, OnMessage, OnClosed));
+
+        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
+            builder.HandleReplies(second, OnSegmentMessage, OnSegmentClosed)
+        );
+
+        Assert.Contains("already ended by ConcludeOnReplies", thrown.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ABuildThatThrows_StillEndsTheBuilder()
+    {
+        var builder = new PipelineBuilder();
+        builder.Stage(Send, _threeDays, out MailboxHandle handle);
+        Assert.Throws<InvalidOperationException>(() => builder.Build());
+
+        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
+            builder.ConcludeOnReplies(handle, OnMessage, OnClosed)
+        );
+
+        Assert.Contains("already ended by Build", thrown.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Build_EndsTheBuilder()
+    {
+        var builder = new PipelineBuilder();
+        builder.Stage(Plain).Build();
+
+        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() => builder.Stage(Plain));
+
+        Assert.Contains("already ended by Build", thrown.Message, StringComparison.Ordinal);
+    }
+
     public static TheoryData<string> TerminalsWithAnInvalidArgument =>
         new()
         {
