@@ -78,12 +78,24 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   }
 
   /**
-   * Avoid duplicate validation message.
+   * Hide the generic message for text that does not fit a date-time field only when the Datepicker's own invalid date
+   * message replaces it. Backend code can write a date to the field while the typed text is still invalid, such as
+   * when it fills an empty date with a default. The Datepicker then validates that date, and the generic message is
+   * all that tells the user.
    */
-  private static invalidDataFormatFilter(validation: BaseValidation): boolean {
+  private static invalidDataFormatFilter(
+    validation: BaseValidation,
+    _index: number,
+    validations: BaseValidation[],
+  ): boolean {
     return !(
       validation.source === FrontendValidationSource.InvalidData &&
-      validation.message.key === 'validation_errors.pattern'
+      validation.message.key === 'validation_errors.pattern' &&
+      validations.some(
+        (other) =>
+          other.source === FrontendValidationSource.Component &&
+          other.message.key === 'date_picker.invalid_date_message',
+      )
     );
   }
 
