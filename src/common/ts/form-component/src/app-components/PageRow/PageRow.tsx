@@ -2,7 +2,7 @@ import type { PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component/app-components/Flex/Flex';
 
-/** A row of the form page, the way the app lays out its components. */
+/** A row of components on a form or PDF page. */
 export function PageRow({ children }: PropsWithChildren) {
   return (
     <Flex container spacing={6} alignItems='flex-start'>

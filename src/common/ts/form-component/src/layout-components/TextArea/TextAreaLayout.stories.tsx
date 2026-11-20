@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 import { ComponentGridItem } from '@app/form-component/app-components/ComponentGridItem';
-import { PageRow, withComponentGrid } from '@app/form-component/layout-components/common/storybook';
+import { PageRow } from '@app/form-component/app-components/PageRow';
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';

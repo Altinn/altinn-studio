@@ -12,6 +12,7 @@ export * from './FatalError';
 export * from './Flex';
 export * from './FullWidthWrapper';
 export * from './Input';
+export * from './PageRow';
 export * from './Panel';
 export * from './hooks';
 export * from './Pagination';
