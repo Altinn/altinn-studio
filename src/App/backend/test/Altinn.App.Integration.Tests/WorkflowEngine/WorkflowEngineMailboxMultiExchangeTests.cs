@@ -26,15 +26,15 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// <item>
 /// <description>
 /// <c>Task_Sequential</c> — the plan's shape: <c>Stage(SendToArchive) → HandleReplies(archive) →
-/// Stage(SendToJournal) → ConcludeOnReplies(journal)</c>. The second send rides the continuation, so this
-/// is where the continuation's identity, steps and deadline clock are pinned.
+/// Stage(SendToJournal) → HandleReplies(journal)</c>, where the journal's handlers end the task. The second send
+/// rides the continuation, so this is where the continuation's identity, steps and deadline clock are pinned.
 /// </description>
 /// </item>
 /// <item>
 /// <description>
 /// <c>Task_Upfront</c> — both sends up front and neither handler concluding the task:
 /// <c>Stage(Alpha) → Stage(Beta) → HandleReplies(Alpha) → HandleReplies(Beta) → Stage(RecordOutcome) →
-/// Finally</c>. Three things only this shape can show: a conclusion choosing one of <em>two</em> carried
+/// Stage(ConfirmBoth)</c>. Three things only this shape can show: a conclusion choosing one of <em>two</em> carried
 /// mailboxes to close, a continuation whose segment is empty, and a continuation that concludes the task
 /// itself and advances the process from there.
 /// </description>
@@ -496,7 +496,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 3"
         );
 
-        // The last segment ends in the pipeline's Finally rather than an exchange, so the concluding step
+        // The last segment ends in a stage that ends the task rather than an exchange, so the concluding step
         // runs here, on a continuation - and the process advanced off it through the ordinary controller
         // path, which is what reaching EndEvent_1 above proves. No receive-enqueue step trails it.
         Assert.Equal(
