@@ -598,9 +598,9 @@ internal sealed class ProcessNextRequestFactory
             ? task.ResolvePipeline(phase)
             : _unresolvedTaskPipeline;
 
-    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder()
+    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder.Lifecycle()
         .Stage(_ => Task.FromResult(StageResult.Completed()))
-        .Build();
+        .ToPipeline();
 
     /// <summary>
     /// The <typeparamref name="THandler"/> that runs for the task, which plans the task's hook step with the

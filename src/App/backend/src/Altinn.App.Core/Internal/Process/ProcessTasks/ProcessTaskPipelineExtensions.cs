@@ -20,26 +20,27 @@ internal enum LifecyclePhase
 internal static class ProcessTaskPipelineExtensions
 {
     /// <summary>
-    /// The pipeline the task composes for the phase, from a fresh builder. Throws when the task's method returns null,
-    /// which no honest implementation does (the builder is the only source of a pipeline) but an unstubbed mock does:
-    /// at startup that is a finding naming the task and the phase, at run time a failed step.
+    /// The pipeline the task composes for the phase, on a fresh builder.
     /// </summary>
     public static ProcessTaskPipeline ResolvePipeline(this IProcessTask task, LifecyclePhase phase)
     {
-        var builder = new PipelineBuilder();
-        ProcessTaskPipeline? pipeline = phase switch
+        var builder = new PipelineBuilder.Lifecycle();
+        switch (phase)
         {
-            LifecyclePhase.Start => task.DefineStart(builder),
-            LifecyclePhase.End => task.DefineEnd(builder),
-            LifecyclePhase.Abandon => task.DefineAbandon(builder),
-            _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, null),
-        };
+            case LifecyclePhase.Start:
+                task.DefineStart(builder);
+                break;
+            case LifecyclePhase.End:
+                task.DefineEnd(builder);
+                break;
+            case LifecyclePhase.Abandon:
+                task.DefineAbandon(builder);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+        }
 
-        return pipeline
-            ?? throw new InvalidOperationException(
-                $"{task.GetType().Name}.Define{phase} returned null — a process task must return the pipeline "
-                    + "composed from the supplied builder."
-            );
+        return builder.ToPipeline();
     }
 
     /// <summary>The phase as the engine's messages name it: <c>start</c>, <c>end</c> or <c>abandon</c>.</summary>

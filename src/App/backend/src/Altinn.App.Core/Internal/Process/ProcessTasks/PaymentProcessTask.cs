@@ -68,15 +68,13 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-        pipeline.Stage(CleanupAnyExistingPayment).Build();
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(CleanupAnyExistingPayment);
 
     /// <inheritdoc/>
-    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(StoreReceipt).Build();
+    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(StoreReceipt);
 
     /// <inheritdoc/>
-    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
-        pipeline.Stage(CleanupAnyExistingPayment).Build();
+    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(CleanupAnyExistingPayment);
 
     /// <summary>
     /// Stores the receipt of a completed payment. One stage: whether a receipt is due is read from the stored

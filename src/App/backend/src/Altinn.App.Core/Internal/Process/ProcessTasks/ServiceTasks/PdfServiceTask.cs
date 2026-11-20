@@ -45,7 +45,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc />
     public string Type => "pdf";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     /// <inheritdoc />
     public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)

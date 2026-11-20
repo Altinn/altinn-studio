@@ -69,7 +69,7 @@ internal sealed class SubformPdfServiceTask(
         return [];
     }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     /// <summary>
     /// The data type of the subform's entries: the <c>defaultDataType</c> of the subform's UI folder, which the

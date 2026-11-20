@@ -4,11 +4,11 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// A service task: the work the workflow engine runs durably when the process enters a BPMN service task,
-/// composed as a pipeline in <see cref="DefineExecute"/>. A task that does one thing is a pipeline of just the
-/// conclusion — <c>pipeline.Finally(Execute)</c>. A task with several consecutive units of work — dispatch
-/// then await, or a series of API calls — gives each unit its own durable stage ahead of the conclusion. The
-/// conclusion is a final step for work that finishes by itself or by polling, or a reply terminal for work
-/// answered by a message into a mailbox a stage opened.
+/// composed as a pipeline in <see cref="DefineExecute"/>. A task that does one thing is a pipeline of one step that
+/// ends it — <c>pipeline.Stage(Execute)</c>. A task with several consecutive units of work — dispatch then await,
+/// or a series of API calls — gives each unit its own durable stage ahead of the step that ends the task, which is
+/// either work that finishes by itself or by polling, or the replies to a message sent into a mailbox a stage
+/// opened.
 /// </summary>
 /// <remarks>
 /// Each stage runs as its own workflow-engine step, and a completed stage never runs again.
@@ -19,10 +19,11 @@ namespace Altinn.App.Core.Features.Process;
 public interface IServiceTask : IProcessTask
 {
     /// <summary>
-    /// Defines the pipeline the task runs between its start and its end: zero or more <c>Stage</c> calls, ended
-    /// by exactly one terminal — <c>Finally</c>, or <c>ConcludeOnReplies</c> when a stage opened a mailbox. Each
-    /// call takes the step's options, such as its timeout and retry strategy. Called at enqueue, on every
-    /// callback, and at app startup, so it must be cheap, deterministic and side-effect free.
+    /// Defines the pipeline the task runs between its start and its end: steps that carry on, ended by exactly one
+    /// step that ends the task. What a step's work returns decides which it is: <see cref="StageResult"/> carries on,
+    /// <see cref="ServiceTaskResult"/> ends the task. Each call takes the step's options, such as its timeout and
+    /// retry strategy. Called at enqueue, on every callback, and at app startup, so it must be cheap, deterministic
+    /// and side-effect free.
     /// </summary>
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline);
 }

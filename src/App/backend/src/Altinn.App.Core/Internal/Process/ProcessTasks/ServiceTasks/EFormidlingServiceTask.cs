@@ -101,10 +101,10 @@ internal sealed class EFormidlingServiceTask : IServiceTask
     /// age fails with its verdict rather than ours.
     /// </para>
     /// </remarks>
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(SendShipment)
-            .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
+            .Stage(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
 
     /// <summary>
     /// Dispatches the shipment to the integrasjonspunkt. Completing this stage is what makes the
