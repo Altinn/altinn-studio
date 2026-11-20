@@ -1,0 +1,28 @@
+{
+  "name": "A fractional number is stored with the digits of its shortest round-trip text",
+  "comment": "Both sides store the shortest text that reads back to the same double. The backend used to convert the double to a decimal with every digit of its binary value, so 0.3 became 0.2999999999999999888977697537.",
+  "dataModel": {
+    "decimal": 0,
+    "otherDecimal": 0,
+    "nullableDecimal": 0
+  },
+  "calculations": [
+    {
+      "field": "decimal",
+      "expression": ["plus", 0.1, 0.2]
+    },
+    {
+      "field": "otherDecimal",
+      "expression": 1.1
+    },
+    {
+      "field": "nullableDecimal",
+      "expression": 0.30000000000000004
+    }
+  ],
+  "expects": {
+    "decimal": 0.3,
+    "otherDecimal": 1.1,
+    "nullableDecimal": 0.30000000000000004
+  }
+}

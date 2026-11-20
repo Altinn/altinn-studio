@@ -1,0 +1,21 @@
+{
+  "name": "The properties of an object result are converted to the types of the fields",
+  "dataModel": {
+    "object": {
+      "text": "old",
+      "decimal": 1
+    }
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "text", 12, "decimal", "34"]
+    }
+  ],
+  "expects": {
+    "object": {
+      "text": "12",
+      "decimal": 34
+    }
+  }
+}

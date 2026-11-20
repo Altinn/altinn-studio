@@ -273,6 +273,13 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
 
         if (groupIndex is null)
         {
+            // A field that cannot hold null is set to the value it has in a new object, as RemoveField does
+            if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && IsNonNullableValueType(prop))
+            {
+                prop.SetValue(container, GetEmptyValue(container, prop));
+                return true;
+            }
+
             // Setting a simple property
             if (!value.TryDeserialize(prop.PropertyType, out var convertedValue))
             {
@@ -590,11 +597,32 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         }
         else
         {
-            // Set property to null
-            var nullValue = property.PropertyType.GetTypeInfo().IsValueType
-                ? Activator.CreateInstance(property.PropertyType)
-                : null;
-            property.SetValue(containingObject, nullValue);
+            property.SetValue(containingObject, GetEmptyValue(containingObject, property));
         }
+    }
+
+    private static bool IsNonNullableValueType(PropertyInfo property) =>
+        property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) is null;
+
+    /// <summary>
+    /// The value an empty property gets, such as when null is set or the property is removed. That is null, except
+    /// for a value type that cannot hold null, which gets the value it has in a new object, as when JSON without the
+    /// property is deserialized. The generated wrapper does the same.
+    /// </summary>
+    private static object? GetEmptyValue(object container, PropertyInfo property)
+    {
+        if (!IsNonNullableValueType(property))
+        {
+            return null;
+        }
+
+        var type = container.GetType();
+        var canBeCreated =
+            !type.IsAbstract
+            && type.GetConstructor(Type.EmptyTypes) is not null
+            && !type.IsDefined(typeof(System.Runtime.CompilerServices.RequiredMemberAttribute), inherit: true);
+        return canBeCreated
+            ? property.GetValue(Activator.CreateInstance(type))
+            : Activator.CreateInstance(property.PropertyType);
     }
 }

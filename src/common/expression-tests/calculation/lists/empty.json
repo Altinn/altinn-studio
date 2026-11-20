@@ -1,0 +1,26 @@
+{
+  "name": "An empty list removes every row",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      }
+    ],
+    "numbers": [1, 2]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list"]
+    },
+    {
+      "field": "numbers",
+      "expression": ["list"]
+    }
+  ],
+  "expects": {
+    "rows": [],
+    "numbers": []
+  }
+}
