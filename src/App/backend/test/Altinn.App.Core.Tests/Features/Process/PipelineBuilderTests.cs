@@ -206,70 +206,45 @@ public class PipelineBuilderTests
     }
 
     [Fact]
-    public void AConcludeOnRepliesThatThrows_StillEndsTheBuilder()
+    public void AnEndingHandleRepliesThatThrows_StillEndsTheBuilder()
     {
-        // The case ending early exists for: ConcludeOnReplies marks its mailbox answered before it finds another one
-        // unanswered. Were the builder still open, a caller that caught this could answer the other mailbox and end
-        // with Finally, returning a pipeline in which nothing answers the first.
-        var builder = new PipelineBuilder();
+        // The case ending early exists for: an ending HandleReplies marks its mailbox answered before it finds another
+        // one unanswered. Were the builder still open, a caller that caught this could answer the other mailbox and
+        // end with a Stage, returning a pipeline in which nothing answers the first.
+        var builder = new PipelineBuilder.ServiceTask();
         builder.Stage(Send, _threeDays, out MailboxHandle first).Stage(Send, _threeDays, out MailboxHandle second);
-        Assert.Throws<InvalidOperationException>(() => builder.ConcludeOnReplies(first, OnMessage, OnClosed));
+        Assert.Throws<InvalidOperationException>(() => builder.HandleReplies(first, OnMessage, OnClosed));
 
         InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
             builder.HandleReplies(second, OnSegmentMessage, OnSegmentClosed)
         );
 
-        Assert.Contains("already ended by ConcludeOnReplies", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains(EndedByReplies, thrown.Message, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void ABuildThatThrows_StillEndsTheBuilder()
-    {
-        var builder = new PipelineBuilder();
-        builder.Stage(Send, _threeDays, out MailboxHandle handle);
-        Assert.Throws<InvalidOperationException>(() => builder.Build());
-
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() =>
-            builder.ConcludeOnReplies(handle, OnMessage, OnClosed)
-        );
-
-        Assert.Contains("already ended by Build", thrown.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Build_EndsTheBuilder()
-    {
-        var builder = new PipelineBuilder();
-        builder.Stage(Plain).Build();
-
-        InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(() => builder.Stage(Plain));
-
-        Assert.Contains("already ended by Build", thrown.Message, StringComparison.Ordinal);
-    }
-
-    public static TheoryData<string> TerminalsWithAnInvalidArgument =>
-        new() { "Finally with invalid options", "ConcludeOnReplies with invalid options" };
+    public static TheoryData<string> EndingsWithInvalidOptions =>
+        new() { "Stage with invalid options", "HandleReplies with invalid options" };
 
     [Theory]
-    [MemberData(nameof(TerminalsWithAnInvalidArgument))]
-    public void ATerminalWithAnInvalidArgument_AfterTheBuilderEnded_SaysTheBuilderEnded(string call)
+    [MemberData(nameof(EndingsWithInvalidOptions))]
+    public void AnEndingWithInvalidOptions_AfterTheBuilderEnded_SaysTheBuilderEnded(string call)
     {
-        // Stage and HandleReplies check the ending before their arguments; the terminals check it after. So a
-        // second ending with a bad argument reports the argument, and only once that is fixed the real mistake.
-        var builder = new PipelineBuilder();
-        builder.Stage(Send, _threeDays, out MailboxHandle handle).ConcludeOnReplies(handle, OnMessage, OnClosed);
+        // Every call checks the ending before its arguments, so a second ending with a bad argument reports the
+        // ending, the real mistake, rather than the argument.
+        var builder = new PipelineBuilder.ServiceTask();
+        builder.Stage(Send, _threeDays, out MailboxHandle handle).HandleReplies(handle, OnMessage, OnClosed);
         var invalidOptions = new ProcessStepOptions { WaitBudget = TimeSpan.Zero };
 
         System.Action composing = call switch
         {
-            "Finally with invalid options" => () => builder.Finally(Conclude, invalidOptions),
-            "ConcludeOnReplies with invalid options" => () =>
-                builder.ConcludeOnReplies(handle, OnMessage, OnClosed, invalidOptions),
+            "Stage with invalid options" => () => builder.Stage(Conclude, invalidOptions),
+            "HandleReplies with invalid options" => () =>
+                builder.HandleReplies(handle, OnMessage, OnClosed, invalidOptions),
             _ => throw new ArgumentOutOfRangeException(nameof(call), call, null),
         };
 
         InvalidOperationException thrown = Assert.Throws<InvalidOperationException>(composing);
 
-        Assert.Contains("already ended by ConcludeOnReplies", thrown.Message, StringComparison.Ordinal);
+        Assert.Contains(EndedByReplies, thrown.Message, StringComparison.Ordinal);
     }
 }
