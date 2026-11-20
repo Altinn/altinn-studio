@@ -18,7 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: Changing any other property of `IInstanceDataMutator.Instance` or its data elements, such as `DueBefore` or `Locked`, or adding or removing items in `Instance.Data`, now fails the save. Remove the change, or make it outside the process transition. Build check `ALTINNAPP0503` reports it. ([#21970](https://github.com/Altinn/altinn-studio/pull/21970))
+- Breaking: Changing any other property of `IInstanceDataMutator.Instance` or its data elements, such as `DueBefore` or `Locked`, or adding items to `Instance.Data` or removing them without `RemoveDataElement`, now fails the save. Remove the change, or make it outside the process transition. Build check `ALTINNAPP0503` reports it. ([#21970](https://github.com/Altinn/altinn-studio/pull/21970))
 
 ### Fixed
 

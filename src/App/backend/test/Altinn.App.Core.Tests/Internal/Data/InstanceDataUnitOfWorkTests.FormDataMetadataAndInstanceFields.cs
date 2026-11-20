@@ -556,6 +556,21 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task RemoveDataElement_AndRemovingItFromInstanceData_SendsTheDelete()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        DataElement dataElement = setup.DataMutator.GetDataElement(setup.DataElement);
+
+        setup.DataMutator.RemoveDataElement(dataElement);
+        setup.DataMutator.Instance.Data.Remove(dataElement);
+        await SaveChanges(setup);
+
+        StorageInstanceMutationRequest mutation = GetSingleMutation(setup);
+        Assert.Empty(mutation.UpdateDataElements);
+        Assert.Equal(Guid.Parse(setup.DataElement.Id), Assert.Single(mutation.DeleteDataElements).DataElementId);
+    }
+
+    [Fact]
     public async Task AddDataElementsCreatedByStorage_AddsTheNewElements_AndKeepsTheAppsChanges()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());

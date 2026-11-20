@@ -38,6 +38,10 @@ public class InstancePropertyNotSavedAnalyzerTests
     [InlineData("instance.Data.Add(dataElement)", "Instance.Data")]
     [InlineData("instance.Data.RemoveAll(d => d.Id == dataElement.Id)", "Instance.Data")]
     [InlineData("instance.CompleteConfirmations.Clear()", "Instance.CompleteConfirmations")]
+    [InlineData("instance.Data?.Remove(dataElement)", "Instance.Data")]
+    [InlineData("instance?.Data.Add(dataElement)", "Instance.Data")]
+    [InlineData("instance?.Data?.Add(dataElement)", "Instance.Data")]
+    [InlineData("instance.CompleteConfirmations?.Clear()", "Instance.CompleteConfirmations")]
     public async Task Reports_A_Change_To_A_Property_The_Save_Does_Not_Send(string change, string property)
     {
         var diagnostics = await Analyze(Method(change));
@@ -69,6 +73,9 @@ public class InstancePropertyNotSavedAnalyzerTests
     [InlineData("dataElement.Metadata.Add(new KeyValueEntry())")]
     [InlineData("instance.Data.Find(d => d.Id == dataElement.Id)")]
     [InlineData("new List<DataElement>(instance.Data).Add(dataElement)")]
+    [InlineData("instance.DataValues?.Remove(\"key\")")]
+    [InlineData("dataElement?.Tags?.Add(\"tag\")")]
+    [InlineData("instance.Data?.Find(d => d.Id == dataElement.Id)")]
     public async Task Does_Not_Report_A_Property_The_Save_Sends_Or_A_Read(string assignment)
     {
         var diagnostics = await Analyze(Method(assignment));

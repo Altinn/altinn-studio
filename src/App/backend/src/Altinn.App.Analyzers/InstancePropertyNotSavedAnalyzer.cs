@@ -11,8 +11,8 @@ namespace Altinn.App.Analyzers;
 /// The types and saved properties come from <see cref="InstanceSaveProperties"/>, which is shared with
 /// Altinn.App.Core. The mutator's instance is passed to many app interfaces, so changes are reported anywhere in the
 /// app, not only on the mutator's instance. A change is an assignment to the property, or a call that changes the
-/// collection it holds, such as <c>instance.Data.Add(dataElement)</c>. Object initializers build a new object, so
-/// they are not reported.
+/// collection it holds, such as <c>instance.Data.Add(dataElement)</c> or <c>instance.Data?.Remove(dataElement)</c>.
+/// Object initializers build a new object, so they are not reported.
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class InstancePropertyNotSavedAnalyzer : DiagnosticAnalyzer
@@ -109,7 +109,7 @@ public sealed class InstancePropertyNotSavedAnalyzer : DiagnosticAnalyzer
 
             // An indexer, such as instance.Data[0] = dataElement, changes the collection the property holds.
             var changed = propertyReference.Property.IsIndexer
-                ? propertyReference.Instance as IPropertyReferenceOperation
+                ? Receiver(propertyReference.Instance) as IPropertyReferenceOperation
                 : propertyReference;
             ReportIfNotSaved(context, changed, types);
         }
@@ -126,8 +126,28 @@ public sealed class InstancePropertyNotSavedAnalyzer : DiagnosticAnalyzer
             && invocation.TargetMethod.ContainingNamespace?.ToDisplayString() == "System.Collections.Generic"
         )
         {
-            ReportIfNotSaved(context, invocation.Instance as IPropertyReferenceOperation, types);
+            ReportIfNotSaved(context, Receiver(invocation.Instance) as IPropertyReferenceOperation, types);
         }
+    }
+
+    // In instance.Data?.Remove(dataElement), the call's receiver stands for instance.Data, the operation the
+    // conditional access tests for null.
+    private static IOperation? Receiver(IOperation? operation)
+    {
+        if (operation is not IConditionalAccessInstanceOperation)
+        {
+            return operation;
+        }
+
+        for (IOperation child = operation; child.Parent is { } parent; child = parent)
+        {
+            if (parent is IConditionalAccessOperation conditionalAccess && conditionalAccess.WhenNotNull == child)
+            {
+                return conditionalAccess.Operation;
+            }
+        }
+
+        return null;
     }
 
     private static void ReportIfNotSaved(

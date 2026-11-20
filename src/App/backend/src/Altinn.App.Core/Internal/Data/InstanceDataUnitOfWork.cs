@@ -697,12 +697,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         var dataElementMetadata = new Dictionary<DataElementIdentifier, DataElementMetadataChange>();
         foreach (DataElement previousElement in previous.Data ?? [])
         {
-            // An element the mutator deletes is not updated, so its changes do not matter.
-            DataElement current = _instance.Data.First(dataElement => dataElement.Id == previousElement.Id);
+            // An element the mutator deletes is not updated, so its changes do not matter. The app may also have
+            // removed it from Instance.Data.
             if (_changesForDeletion.Any(change => change.DataElementIdentifier.Id == previousElement.Id))
             {
                 continue;
             }
+            DataElement current = _instance.Data.First(dataElement => dataElement.Id == previousElement.Id);
 
             if (GetChangedMetadata(previousElement, current) is { } change)
             {
@@ -722,7 +723,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     // Instance.Data holds the elements Storage has. The mutator stages additions and deletions on its own, and a save
-    // sends only those.
+    // sends only those. An element removed with RemoveDataElement may also be removed from Instance.Data.
     private void ThrowIfElementsAddedOrRemoved(Instance previous)
     {
         var previousIds = (previous.Data ?? []).Select(dataElement => dataElement.Id).ToHashSet(StringComparer.Ordinal);
@@ -733,7 +734,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 $"Data element {added} was added to Instance.Data, but a save only creates elements added with AddFormDataElement or AddBinaryDataElement."
             );
         }
-        if (previousIds.Except(currentIds).FirstOrDefault() is { } removed)
+        if (
+            previousIds
+                .Except(currentIds)
+                .FirstOrDefault(id => !_changesForDeletion.Any(change => change.DataElementIdentifier.Id == id)) is
+            { } removed
+        )
         {
             throw new InstanceChangeNotSavableException(
                 $"Data element {removed} was removed from Instance.Data, but a save only deletes elements removed with RemoveDataElement."
