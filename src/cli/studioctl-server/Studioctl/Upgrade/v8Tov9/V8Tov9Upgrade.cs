@@ -219,6 +219,11 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
+        // Before every step that reads the process (the Maskinporten scopes, the PDF, eFormidling and Fiks Arkiv
+        // migrations, the feedback task check), so they see these tasks as the service tasks they are in v9.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskElements(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(scanner, projectFolder));
 
@@ -2023,6 +2028,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error replacing taskId with taskIds in applicationmetadata.json", ex);
+        }
+    }
+
+    /// <summary>
+    /// Changes the bpmn:task elements that carry a built-in service task type into the bpmn:serviceTask elements
+    /// v9 requires for them.
+    /// </summary>
+    static async Task<int> MigrateServiceTaskElements(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Service task elements");
+        try
+        {
+            var result = await ServiceTaskElementMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No built-in service task type on a bpmn:task element",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error changing service task elements", ex);
         }
     }
 
