@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioFieldset, StudioSelect, StudioTextfield } from '@studio/components';
+import { StudioFieldset, StudioSelect, StudioTextfield } from '@designer/components';
 import type { PrefillMapping } from '@altinn/schema-model';
 import {
   mergePrefillConfig,

@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import DataModelingContainer from './DataModelingContainer';
-import { dataModelingContainerId } from '@studio/testing/testids';
+import { dataModelingContainerId } from '@designer/testing/testids';
 
 describe('DataModelingContainer', () => {
   it('should render data modeling container', () => {

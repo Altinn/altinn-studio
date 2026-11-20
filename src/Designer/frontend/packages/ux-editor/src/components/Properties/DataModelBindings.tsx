@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
-import { StudioProperty, StudioSwitch, StudioAlert } from '@studio/components';
+import { StudioProperty, StudioSwitch, StudioAlert } from '@designer/components';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';

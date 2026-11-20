@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { CreateSubformMode, type CreateSubformModeProps } from './CreateSubformMode';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const dataModelIds = ['dataModel1', 'dataModel2'];

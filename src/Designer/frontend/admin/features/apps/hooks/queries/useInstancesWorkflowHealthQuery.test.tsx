@@ -5,7 +5,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { get } from 'app-shared/utils/networking';
 import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import {

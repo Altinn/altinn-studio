@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { BotAccountsList } from './BotAccountsList';
 import type { BotAccount } from 'app-shared/types/BotAccount';

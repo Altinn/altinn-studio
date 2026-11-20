@@ -83,7 +83,7 @@ internal static class ServiceCollectionExtensions
                 contextLifetime: ServiceLifetime.Transient,
                 optionsLifetime: ServiceLifetime.Singleton
             );
-            services.AddDbContextFactory<EngineDbContext>(
+            services.AddPooledDbContextFactory<EngineDbContext>(
                 (sp, options) =>
                 {
                     options.UseNpgsql(

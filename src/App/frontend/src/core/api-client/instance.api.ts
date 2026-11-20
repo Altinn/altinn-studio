@@ -1,4 +1,4 @@
-import { axiosInstance } from 'src/core/axiosInstance';
+import { appClient } from 'src/core/httpClient';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance, IProcess } from 'src/types/shared';
 
@@ -27,14 +27,14 @@ export const instanceApi = {
     instanceOwnerPartyId: string;
     instanceGuid: string;
   }): Promise<IInstanceWithProcess> {
-    const { data: instance } = await axiosInstance.get<IInstanceWithProcess>(
+    const { data: instance } = await appClient.get<IInstanceWithProcess>(
       `/instances/${instanceOwnerPartyId}/${instanceGuid}/enriched`,
     );
     return instance;
   },
 
   async getActiveInstances({ partyId }: { partyId: string }): Promise<ISimpleInstance[]> {
-    const { data } = await axiosInstance.get<ISimpleInstance[]>(`/instances/${partyId}/active`);
+    const { data } = await appClient.get<ISimpleInstance[]>(`/instances/${partyId}/active`);
     return data;
   },
 
@@ -49,7 +49,7 @@ export const instanceApi = {
       instanceOwnerPartyId: String(instanceOwnerPartyId),
       language,
     });
-    const { data: createdInstance } = await axiosInstance.post<IInstanceWithProcess>(`/instances?${params}`);
+    const { data: createdInstance } = await appClient.post<IInstanceWithProcess>(`/instances?${params}`);
     return createdInstance;
   },
 
@@ -61,10 +61,7 @@ export const instanceApi = {
     language?: string;
   }): Promise<IInstanceWithProcess> {
     const params = new URLSearchParams({ language });
-    const { data: createdInstance } = await axiosInstance.post<IInstanceWithProcess>(
-      `/instances/create?${params}`,
-      data,
-    );
+    const { data: createdInstance } = await appClient.post<IInstanceWithProcess>(`/instances/create?${params}`, data);
     return createdInstance;
   },
 };

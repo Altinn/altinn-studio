@@ -1,5 +1,5 @@
 import type { FormItem } from '../../../../types/FormItem';
-import type { BooleanExpression, Expression } from '@studio/components';
+import type { BooleanExpression, Expression } from '@designer/components';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
 import { getBooleanExpressionProperties } from '../../../../data/componentCatalog';
 

@@ -4,7 +4,7 @@ import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProvider
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { useValidationOnNavigationMutation } from './useValidationOnNavigationMutation';
 import type { ExternalConfigState } from '../../components/Settings/SettingsNavigation/ValidateNavigation/utils/ValidateNavigationTypes';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { waitFor } from '@testing-library/react';
 
 describe('useSaveValidationOnNavigation', () => {

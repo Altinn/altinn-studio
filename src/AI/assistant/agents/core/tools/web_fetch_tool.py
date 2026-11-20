@@ -1,6 +1,6 @@
 """`web_fetch` — fetch a documentation page from an allowlisted domain.
 
-Exists so the model can follow the `altinn-docs` skill's llms.txt index:
+Exists so the model can follow the `studio-docs` skill's llms.txt index:
 scan the index, pick the relevant page, fetch it.  Deliberately narrow:
 
   * Allowlisted hosts only (docs.altinn.studio, altinncdn.no) — this is
@@ -49,7 +49,7 @@ class WebFetchTool(Tool[WebFetchArgs]):
     description = (
         "Fetch a page from the official Altinn documentation "
         "(docs.altinn.studio) or an official schema (altinncdn.no).  Use "
-        "together with the `altinn-docs` skill: load the skill, scan its "
+        "together with the `studio-docs` skill: load the skill, scan its "
         "llms.txt index for the right page, then fetch that page's URL.  "
         "HTML is reduced to readable text."
     )
@@ -117,7 +117,7 @@ async def _fetch(url: str) -> httpx.Response | ToolResult:
         status = exc.response.status_code
         hint = ""
         if status == 404:
-            hint = "  Do not guess URLs — load `skill(altinn-docs)` and use a URL verbatim from its index."
+            hint = "  Do not guess URLs — load `skill(studio-docs)` and use a URL verbatim from its index."
         return ToolResult(
             content=f"HTTP {status} fetching {exc.response.url}.{hint}",
             is_error=True,

@@ -1,5 +1,5 @@
 import { useId, type ReactElement } from 'react';
-import { StudioButton, StudioDialog, StudioHeading, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioDialog, StudioHeading, StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { RunningApp } from 'app-shared/types/api/RunningApp';

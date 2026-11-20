@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
 import { usePdfConfig } from '../usePdfConfig';
 import { filterCurrentTaskIds, getAvailableTasks } from '../utils';

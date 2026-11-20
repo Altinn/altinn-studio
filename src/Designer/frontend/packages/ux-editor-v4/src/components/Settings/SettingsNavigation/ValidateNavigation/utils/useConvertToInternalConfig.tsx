@@ -1,4 +1,4 @@
-import type { StudioSuggestionItem } from '@studio/components';
+import type { StudioSuggestionItem } from '@designer/components';
 import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor-v4/hooks';
 

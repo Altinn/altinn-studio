@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Release } from './Release';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 

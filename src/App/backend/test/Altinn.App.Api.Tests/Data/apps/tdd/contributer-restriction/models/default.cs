@@ -95,6 +95,14 @@ public class Dummy
     public decimal? HiddenRange { get; set; }
 
     public bool ShouldSerializeHiddenRange() => HiddenRange.HasValue;
+
+    /// <summary>
+    /// default.calculation.json sets this to "Hello {melding.name}" to test that the calculation is applied to the field.
+    /// </summary>
+    [XmlElement("calculated-fixed-value", IsNullable = true, Order = 15)]
+    [JsonProperty("calculated-fixed-value")]
+    [JsonPropertyName("calculated-fixed-value")]
+    public string? CalculatedFixedValue { get; set; }
 }
 
 public class TagWithAttribute

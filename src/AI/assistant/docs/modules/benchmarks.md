@@ -2,7 +2,7 @@
 
 Code: `src/AI/assistant/benchmarks/`, `.github/workflows/assistant-evals.yaml`
 
-The workbench answers one question: "I changed something. What did the change do?" It has six parts: the manifest, the evals, the check command, the run history with the baseline, the datasets, and the CI gate.
+The workbench answers one question: "I changed something. What did the change do?" Its parts are the manifest, the evals, the check command, the run history with the baseline, the datasets and the CI gate.
 
 For how to run it, refer to [benchmarks/EVALS.md](../../benchmarks/EVALS.md). For the end to end benchmark and its prerequisites, refer to [benchmarks/README.md](../../benchmarks/README.md).
 
@@ -12,60 +12,23 @@ Code: `src/AI/assistant/benchmarks/manifest.py`, `src/AI/assistant/benchmarks/re
 
 `manifest.py` declares what the agent must do, as components and behaviors. A behavior is **pinned** when a dataset and an evaluator score it. A behavior that nothing scores is a **gap**. The report shows the gaps on purpose, so that a person sees what no eval checks. Each behavior also states what its eval cannot see, and a fix task with acceptance criteria. The report turns these into a prompt for a coding agent. `python -m benchmarks.runner behaviors` prints the current list.
 
-```mermaid
-classDiagram
-  Component "1" --> "*" Behavior
-  Behavior "*" --> "0..1" Eval
-  Behavior "1" --> "1" Fix
-  class Component {
-    id
-    where
-    role
-  }
-  class Behavior {
-    id
-    checks
-    blind
-    evaluator
-  }
-  class Eval {
-    name
-    kind
-    file
-  }
-  class Fix {
-    kind
-    task
-    acceptance
-  }
-```
+`src/AI/assistant/benchmarks/registry.py` lists each eval and its kind.
 
-_The manifest model. `check` runs only the evals that a pinned behavior claims._
+## Five kinds of eval
 
-| Eval                         | Kind       | What it runs                                     |
-| ---------------------------- | ---------- | ------------------------------------------------ |
-| `Gates/scope`                | prompt     | The scope prompt on one question                 |
-| `Gates/security`             | prompt     | The security prompt, scored on the safe verdict  |
-| `Planner/intake`             | prompt     | The intake prompt, scored on the intent family   |
-| `Planner/spec`               | planner    | The spec prompt on a real PDF                    |
-| `Loop/traces`                | generation | One actor turn, replayed from a production trace |
-| `Benchmarks/forms`           | e2e        | A full agent run that builds an app              |
-| `Redteam/indirect-injection` | prompt     | Orphan: the corpus exists, but no runner uses it |
+Code: `src/AI/assistant/benchmarks/decisions.py`, `src/AI/assistant/benchmarks/gates.py`, `src/AI/assistant/benchmarks/planner.py`, `src/AI/assistant/benchmarks/generation.py`, `src/AI/assistant/benchmarks/agent_task.py`
 
-## Four kinds of eval
-
-Code: `src/AI/assistant/benchmarks/gates.py`, `src/AI/assistant/benchmarks/planner.py`, `src/AI/assistant/benchmarks/generation.py`, `src/AI/assistant/benchmarks/agent_task.py`
-
-The kinds differ in how much of the agent they run. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
+The kinds differ in how much of the agent they run. A decision eval sends a request to the request gate of production `RUNS` times, because the decision model does not always give the same probability. A prompt eval is one model call with no tools. A generation eval replays one decision point: the conversation, the recorded system prompt and the tool list go to the model, but the tools do not run. Only the e2e eval runs tools, pushes a branch and renders pages.
 
 ```mermaid
 flowchart LR
-  P["prompt: one gate call"] --> L["planner: one planner call with a file"]
+  D["decision: the request gate, three runs"] --> P["prompt: one intake call"]
+  P --> L["planner: one planner call with a file"]
   L --> G["generation: one actor turn, tools do not run"]
   G --> E["e2e: full run, tools run, pages render"]
 ```
 
-_From the fastest kind to the most complete kind. An e2e item takes minutes. A prompt item takes seconds._
+_From the fastest kind to the most complete kind. An e2e item takes minutes. A decision or prompt item takes seconds._
 
 The e2e eval compares the committed app with a structural rubric: the number of pages, the minimum number of input components, the expected field titles and the navigation. The rubric does not list file names, because two correct runs can use different IDs. The browser render check and the render-fix loop are off by default (`BENCH_PREVIEW_CHECK`, `BENCH_RENDER_FIX`).
 
@@ -89,7 +52,7 @@ Code: `src/AI/assistant/benchmarks/runner.py`, `src/AI/assistant/benchmarks/chec
 flowchart TD
   A["Select the evals that pinned behaviors claim"] --> B["Run each eval as a Langfuse experiment"]
   B --> C["Map the item scores onto behaviors"]
-  C --> D["Record the provenance, 10 axes"]
+  C --> D["Record the provenance"]
   D --> E["Compare and write workbench.html"]
 ```
 
@@ -99,7 +62,7 @@ _The steps of `runner check`._
 
 Code: `src/AI/assistant/benchmarks/provenance.py`, `src/AI/assistant/benchmarks/runstore.py`, `src/AI/assistant/benchmarks/diff.py`, `src/AI/assistant/benchmarks/remote.py`
 
-Each run records 10 axes, for example the code commit, the models, the prompt versions and digests of the actor prompt and the tool schemas. Seven axes block a comparison: environment, prompt versions, actor prompt digest, tool schema digest, dataset version, evaluator versions and judge model. If one of them is different and the developer did not declare it with `--under-test`, the comparison stops.
+Each run records its provenance as axes, for example the code commit, the models, the prompt versions and digests of the actor prompt and the tool schemas. Some axes block a comparison. If one of them is different and the developer did not declare it with `--under-test`, the comparison stops. `BLOCKING_AXES` in `src/AI/assistant/benchmarks/provenance.py` lists them.
 
 The runs live in Langfuse. The folder `src/AI/assistant/benchmarks/runs/` is only a local cache. The choice of baseline lives in git, in `BASELINE.json`. The reason: to adopt a baseline is a decision, and a decision must be in a reviewed commit. A score change smaller than 0.02 is noise. The report also shows when an output changed but the score did not.
 

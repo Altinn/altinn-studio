@@ -5,7 +5,7 @@ import {
   StudioParagraph,
   StudioSpinner,
   StudioTable,
-} from '@studio/components';
+} from '@designer/components';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useFetchMoreResults } from 'admin/features/apps/hooks/useFetchMoreResults';

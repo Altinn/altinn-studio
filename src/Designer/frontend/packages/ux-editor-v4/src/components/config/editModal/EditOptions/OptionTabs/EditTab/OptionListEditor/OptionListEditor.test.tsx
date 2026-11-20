@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import userEvent from '@testing-library/user-event';
 import type { QueryClient } from '@tanstack/react-query';
@@ -23,8 +23,8 @@ import {
   createPublishedCodeListReferenceString,
   latestVersionString,
 } from '../../utils/published-code-list-reference-utils';
-import { FeatureFlag } from '@studio/feature-flags';
-import { screen } from '@studio/ui-test';
+import { FeatureFlag } from '@designer/feature-flags';
+import { screen } from '@designer/ui-test';
 
 // Mocks:
 vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597

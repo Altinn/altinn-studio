@@ -49,18 +49,18 @@ cites.
 
 ## The pieces
 
-|                                                            |                                                                     |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| `manifest.py`                                              | the agent: components, behaviors, what pins them, what nothing pins |
-| `registry.py`                                              | the evals: datasets, kinds, what is live                            |
-| `provenance.py`                                            | the ten axes a run records, and which of them block a comparison    |
-| `runstore.py`                                              | runs as files, the baseline marker, the three-run series            |
-| `diff.py`                                                  | what moved, in scores and in outputs                                |
-| `check.py`                                                 | the orchestration: run the evals, map scores onto behaviors         |
-| `report.py`, `report_html.py`                              | the page                                                            |
-| `datasets/*.jsonl`                                         | the items, version controlled                                       |
-| `harvest.py`                                               | rebuilds items from production traces                               |
-| `gates.py`, `generation.py`, `planner.py`, `agent_task.py` | how each kind of eval runs                                          |
+|                                                                            |                                                                     |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `manifest.py`                                                              | the agent: components, behaviors, what pins them, what nothing pins |
+| `registry.py`                                                              | the evals: datasets, kinds, what is live                            |
+| `provenance.py`                                                            | the ten axes a run records, and which of them block a comparison    |
+| `runstore.py`                                                              | runs as files, the baseline marker, the three-run series            |
+| `diff.py`                                                                  | what moved, in scores and in outputs                                |
+| `check.py`                                                                 | the orchestration: run the evals, map scores onto behaviors         |
+| `report.py`, `report_html.py`                                              | the page                                                            |
+| `datasets/*.jsonl`                                                         | the items, version controlled                                       |
+| `harvest.py`                                                               | rebuilds items from production traces                               |
+| `decisions.py`, `gates.py`, `generation.py`, `planner.py`, `agent_task.py` | how each kind of eval runs                                          |
 
 ## A run records what it ran against
 
@@ -140,10 +140,14 @@ python -m benchmarks.runner status                        # repo against Langfus
 Two different questions, with two different answers.
 
 **The runs live in Langfuse.** Every dataset run of one `check` carries the same `check_id`
-in its metadata, along with all ten axes. `remote.fetch()` rebuilds a whole invocation from
+in its metadata, along with the axes. `remote.fetch()` rebuilds a whole invocation from
 there, item scores and item outputs included, so a machine that has never run the harness
 still compares against the same baseline as everyone else. The files in `benchmarks/runs/`
 are a cache: instant, and gone with the machine.
+
+The dataset axis is not in the metadata, because Langfuse writes the metadata when the first
+eval starts, and the items are known only when the last one ends. `remote.fetch()` computes
+it from the items.
 
 **Which run is the baseline lives in git**, as `BASELINE.json`, and is committed.
 
@@ -292,17 +296,17 @@ python -m benchmarks.runner impact                    # against origin/main
 python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline is missing
 ```
 
-| Change                                                                                                  | Axis         | Consequence                                                                                               |
-| ------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
-| `benchmarks/datasets/*`                                                                                 | dataset      | **re-baseline**, the items every score is computed over                                                   |
-| `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators   | **re-baseline**, how something is scored                                                                  |
-| `agents/prompts/*`                                                                                      | prompts      | **re-baseline**, a published prompt                                                                       |
-| any file that changes the `actor_prompt` digest                                                         | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
-| any file that changes the `tools` digest                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill text                                  |
-| `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*`                           | code         | check, the baseline stays valid                                                                           |
-| `shared/config/base_config.py`                                                                          | models       | check, the baseline stays valid                                                                           |
-| `benchmarks/manifest.py`                                                                                | manifest     | check, declaring a behavior changes no score                                                              |
-| anything else, and all tests                                                                            |              | nothing                                                                                                   |
+| Change                                                                                                                  | Axis         | Consequence                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `benchmarks/datasets/*`                                                                                                 | dataset      | **re-baseline**, the items every score is computed over                                                   |
+| `benchmarks/decisions.py`, `gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators   | **re-baseline**, how something is scored                                                                  |
+| `agents/prompts/*`                                                                                                      | prompts      | **re-baseline**, a published prompt                                                                       |
+| any file that changes the `actor_prompt` digest                                                                         | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
+| any file that changes the `tools` digest                                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill files                                 |
+| `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*`                                           | code         | check, the baseline stays valid                                                                           |
+| `shared/config/base_config.py`                                                                                          | models       | check, the baseline stays valid                                                                           |
+| `benchmarks/manifest.py`                                                                                                | manifest     | check, declaring a behavior changes no score                                                              |
+| anything else, and all tests                                                                                            |              | nothing                                                                                                   |
 
 No path rule is necessary for `actor_prompt` and `tools`. The gate calls
 `provenance.digests()`, which `runner check` also records. Then it compares the result with
@@ -311,7 +315,7 @@ file moves a digest. The `actor_prompt` digest hashes what `build_system_prompt`
 each app version profile, in write mode and in read-only mode, with the skill listing. The
 session values, such as the goal and the date, are fixed placeholders. Thus each section and
 template of the system prompt counts. The `tools` digest hashes the tool
-schemas, and the skill text for each app version. A digest that fails, or that the baseline
+schemas, and every file of every skill. A digest that fails, or that the baseline
 did not record, is not equal. The difference can come from this change, or from an earlier
 change on main. In both cases `runner check` refuses the comparison, so the gate fails.
 
@@ -359,7 +363,7 @@ and Langfuse is a projection of it, so the two cannot drift.
 
 **Prove a score is stable.** Every pinned check is deterministic code, so a score is
 repeatable given the same model output. The model output is not: across the runs in
-`benchmarks/runs`, `scope.declines-in-users-language` has landed anywhere between 0.533 and
+`benchmarks/runs`, the retired `scope.declines-in-users-language` has landed anywhere between 0.533 and
 1.000 and the retired `confidence.band-matches-outcome` between 0.500 and 0.967, on unchanged code and
 an unchanged model, because one item is a large share of a small dataset. The noise floor is
 a single global number and cannot express that, so read a small dataset's movement as noise

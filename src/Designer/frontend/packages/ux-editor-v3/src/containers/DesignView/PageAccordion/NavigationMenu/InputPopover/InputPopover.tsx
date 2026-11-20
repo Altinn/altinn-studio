@@ -3,14 +3,14 @@ import React, { useState, useRef } from 'react';
 import classes from './InputPopover.module.css';
 import { useTranslation } from 'react-i18next';
 import { getPageNameErrorKey } from '../../../../../utils/designViewUtils';
-import { PencilIcon } from '@studio/icons';
+import { PencilIcon } from '@designer/icons';
 import {
   StudioDropdown,
   StudioPopover,
   StudioTextfield,
   StudioButton,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 
 export type InputPopoverProps = {
   disabled: boolean;

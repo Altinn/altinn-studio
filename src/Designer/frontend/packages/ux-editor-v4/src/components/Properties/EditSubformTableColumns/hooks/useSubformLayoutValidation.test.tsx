@@ -3,7 +3,7 @@ import { useSubformLayoutValidation } from './useSubformLayoutValidation';
 import { renderHookWithProviders } from '@altinn/ux-editor-v4/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
 import { componentMocks } from '@altinn/ux-editor-v4/testing/componentMocks';
 

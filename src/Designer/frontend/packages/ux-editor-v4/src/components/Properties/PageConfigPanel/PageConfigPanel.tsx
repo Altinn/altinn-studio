@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
-import { StudioDetails } from '@studio/components';
-import { FileIcon } from '@studio/icons';
+import { StudioDetails } from '@designer/components';
+import { FileIcon } from '@designer/icons';
 import { useText, useFormLayouts } from '../../../hooks';
 import { useTextResourcesSelector } from 'app-shared/hooks';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';

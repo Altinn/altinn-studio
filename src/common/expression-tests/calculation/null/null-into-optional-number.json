@@ -1,0 +1,21 @@
+{
+  "name": "A null result clears an optional number that the schema does not mark as nullable",
+  "dataModel": {
+    "decimal": 3,
+    "boolean": true
+  },
+  "calculations": [
+    {
+      "field": "decimal",
+      "expression": ["if", false, 1, "else", null]
+    },
+    {
+      "field": "boolean",
+      "expression": ["if", false, 1, "else", null]
+    }
+  ],
+  "expects": {
+    "decimal": null,
+    "boolean": null
+  }
+}

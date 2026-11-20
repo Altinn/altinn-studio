@@ -1,0 +1,22 @@
+{
+  "name": "A calculation that reads a field calculated later sees the previous value",
+  "dataModel": {
+    "decimal": 4,
+    "otherDecimal": 1
+  },
+  "calculations": [
+    {
+      "field": "text",
+      "expression": ["dataModel", "otherDecimal"]
+    },
+    {
+      "field": "otherDecimal",
+      "expression": ["dataModel", "decimal"]
+    }
+  ],
+  "expects": {
+    "decimal": 4,
+    "otherDecimal": 4,
+    "text": "1"
+  }
+}

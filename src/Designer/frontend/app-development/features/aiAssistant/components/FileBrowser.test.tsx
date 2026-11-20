@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { get } from 'app-shared/utils/networking';
 import { renderWithProviders } from '../../../test/mocks';
 import { FileBrowser } from './FileBrowser';
@@ -11,7 +11,7 @@ vi.mock('app-shared/utils/networking', () => ({ get: vi.fn() }));
 
 // Like the real react-i18next, t stays the same between renders, so FileBrowser does not load the root folder again.
 vi.mock('react-i18next', async () => {
-  const { textMock: translate } = await import('@studio/testing/mocks/i18nMock');
+  const { textMock: translate } = await import('@designer/testing/mocks/i18nMock');
   const t = (key: string): string => translate(key);
   return { useTranslation: () => ({ t }) };
 });

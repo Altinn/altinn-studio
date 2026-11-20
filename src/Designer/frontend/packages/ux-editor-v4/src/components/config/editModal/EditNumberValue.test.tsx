@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { EditNumberValue } from './EditNumberValue';
 import { renderWithProviders, renderHookWithProviders } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../../testing/appContextMock';

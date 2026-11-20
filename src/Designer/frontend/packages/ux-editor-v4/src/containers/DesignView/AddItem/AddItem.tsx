@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import React, { useState } from 'react';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { getDefaultChildComponentsForContainer } from '../../../utils/formLayoutUtils';

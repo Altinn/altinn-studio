@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import type { ReceiptContentProps } from './ReceiptContent';
 import { ReceiptContent } from './ReceiptContent';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { FormLayoutPage } from '../../../types/FormLayoutPage';
 import {
   component1Mock,
@@ -20,10 +20,10 @@ import {
 } from '../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
-import { StudioDragAndDrop } from '@studio/components';
+import { StudioDragAndDrop } from '@designer/components';
 import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 

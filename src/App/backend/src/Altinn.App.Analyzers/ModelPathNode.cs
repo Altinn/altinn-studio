@@ -21,9 +21,13 @@ public record ModelPathNode
         ModelPathNode[]? properties = null,
         string? listType = null,
         bool isNullableList = false,
-        bool isIndexableList = true
+        bool isIndexableList = true,
+        bool isNonNullableValueType = false,
+        bool hasInitialValue = false
     )
     {
+        IsNonNullableValueType = isNonNullableValueType;
+        HasInitialValue = hasInitialValue;
         CSharpName = cSharpName;
         JsonName = jsonName;
         ListType = listType;
@@ -82,6 +86,25 @@ public record ModelPathNode
     public bool IsIndexableList { get; }
 
     public string? ListTypeWithNullable => IsNullableList ? $"{ListType}?" : ListType;
+
+    /// <summary>
+    /// A property that is a value type, such as int or bool, and not Nullable&lt;T&gt;, so it cannot hold null
+    /// </summary>
+    public bool IsNonNullableValueType { get; }
+
+    /// <summary>
+    /// A non-nullable value type property that may not be default in a new object of its class, because the property
+    /// has an initializer or custom accessors, or the class has a constructor. Generated code can create the class.
+    /// </summary>
+    public bool HasInitialValue { get; }
+
+    /// <summary>
+    /// The value an empty <paramref name="child"/> of this type gets, such as when null is set or the property is
+    /// removed: the value it has in a new object, as when JSON without the property is deserialized. That includes
+    /// the value of a property initializer.
+    /// </summary>
+    public string DefaultValueOf(ModelPathNode child) =>
+        child.HasInitialValue ? $"new {TypeName}().{child.CSharpName}" : "default";
 
     /// <summary>
     /// Indicates whether the type represented by this node is to be treated as primitive immutable value.

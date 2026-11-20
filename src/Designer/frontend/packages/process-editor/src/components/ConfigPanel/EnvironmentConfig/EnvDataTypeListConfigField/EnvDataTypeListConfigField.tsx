@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
-import { ArrayUtils } from '@studio/pure-functions';
+import { StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
+import { ArrayUtils } from '@designer/pure-functions';
 import { useTranslation } from 'react-i18next';
 import type { EnvironmentEntry } from '../types';
 import type { EnvironmentValueControlProps } from '../EnvironmentConfigField';

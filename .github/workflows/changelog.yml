@@ -3,10 +3,12 @@ name: Changelog - validate
 # Validates the Keep a Changelog structure of every changed CHANGELOG.md in the
 # repository, regardless of which project or component owns it. Driven entirely
 # by the releaser's `validate-changelogs` command, so any new project's
-# changelog is covered automatically with no changes to this workflow.
+# changelog is covered automatically with no changes to this workflow. Only runs
+# on pull requests targeting main.
 
 on:
   pull_request:
+    branches: [main]
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - '**/CHANGELOG.md'

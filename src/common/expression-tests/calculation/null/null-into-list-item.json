@@ -1,0 +1,64 @@
+{
+  "name": "A null item in a list of a non-nullable value type is not written",
+  "comment": "A list of numbers or booleans whose items cannot be null is a list of a non-nullable value type in the C# model, such as List<decimal>. An item has no property initializer to take a value from, so both sides warn and keep the list as it is. A list whose items can be null takes null.",
+  "dataModel": {
+    "numbers": [1, 2],
+    "nullableNumbers": [1, 2]
+  },
+  "testCases": [
+    {
+      "name": "list with a null item",
+      "calculations": [
+        {
+          "field": "numbers",
+          "expression": ["list", 3, null]
+        }
+      ],
+      "expects": {
+        "numbers": [1, 2],
+        "nullableNumbers": [1, 2]
+      },
+      "expectsWarnings": ["numbers"]
+    },
+    {
+      "name": "null into an item",
+      "calculations": [
+        {
+          "field": "numbers[1]",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "numbers": [1, 2],
+        "nullableNumbers": [1, 2]
+      },
+      "expectsWarnings": ["numbers[1]"]
+    },
+    {
+      "name": "list with a null item, where items can be null",
+      "calculations": [
+        {
+          "field": "nullableNumbers",
+          "expression": ["list", 3, null]
+        }
+      ],
+      "expects": {
+        "numbers": [1, 2],
+        "nullableNumbers": [3, null]
+      }
+    },
+    {
+      "name": "null into an item that can be null",
+      "calculations": [
+        {
+          "field": "nullableNumbers[1]",
+          "expression": ["if", false, 1, "else", null]
+        }
+      ],
+      "expects": {
+        "numbers": [1, 2],
+        "nullableNumbers": [1, null]
+      }
+    }
+  ]
+}

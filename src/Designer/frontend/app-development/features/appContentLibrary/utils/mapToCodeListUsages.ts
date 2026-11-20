@@ -1,5 +1,5 @@
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
-import type { CodeListReference } from '@studio/content-library';
+import type { CodeListReference } from '@designer/content-library';
 
 /**
  * Returns `undefined` when the usages are not a list, as when the response is empty,

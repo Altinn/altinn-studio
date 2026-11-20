@@ -30,7 +30,7 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 ## Checks
 
 `uv sync` also installs the development tools. CI runs these in
-[altinity-build-test.yaml](../../../.github/workflows/altinity-build-test.yaml), then starts the server and checks
+[assistant-build-test.yaml](../../../.github/workflows/assistant-build-test.yaml), then starts the server and checks
 `/health`:
 
 ```bash
