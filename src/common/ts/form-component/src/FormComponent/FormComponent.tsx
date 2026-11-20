@@ -1,4 +1,5 @@
-import React, { type ChangeEvent, useId, useState } from 'react';
+import { useId, useState } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
 
 import { FormComponentActionType } from '@app/form-component/types/FormComponentActionType';
 import type { FormComponentProps } from '@app/form-component/types/FormComponentProps';
@@ -7,7 +8,7 @@ export function FormComponent({
   title,
   dataModelBinding,
   onAction,
-}: FormComponentProps): React.ReactElement {
+}: FormComponentProps): ReactElement {
   const inputId = useId();
   const [value, setValue] = useState('');
 

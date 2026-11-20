@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { ComponentProps } from 'react';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -27,7 +28,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: React.ComponentProps<typeof Pagination>) => {
+const Wrapper = (args: ComponentProps<typeof Pagination>) => {
   const [currentPage, setCurrentPage] = useState(args.currentPage ?? 1);
   const [pageSize, setPageSize] = useState(args.pageSize);
   return (

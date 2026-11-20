@@ -1,5 +1,4 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { CSSProperties, FC, PropsWithChildren, ReactNode } from 'react';
 
 import { useIsMobile } from '@app/form-component/app-components/hooks/useDeviceWidths';
 import { Heading } from '@digdir/designsystemet-react';
@@ -19,8 +18,8 @@ export type PanelProps = PropsWithChildren<{
   variant: PanelVariant;
   showIcon?: boolean;
   forceMobileLayout?: boolean;
-  title?: React.ReactNode;
-  style?: React.CSSProperties;
+  title?: ReactNode;
+  style?: CSSProperties;
   className?: string;
 }>;
 
@@ -44,7 +43,7 @@ function PanelIcon({ isMobileLayout, variant }: PanelIconProps) {
   }
 }
 
-export const Panel: React.FC<PanelProps> = ({
+export const Panel: FC<PanelProps> = ({
   variant,
   showIcon = false,
   forceMobileLayout = false,

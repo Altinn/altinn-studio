@@ -1,7 +1,7 @@
-import type React from 'react';
+import type { MutableRefObject, Ref, RefCallback, RefObject } from 'react';
 
 export class RefsUtils {
-  public static merge<T>(...refs: Array<React.Ref<T> | undefined>): React.RefCallback<T> {
+  public static merge<T>(...refs: Array<Ref<T> | undefined>): RefCallback<T> {
     return (element: T | null) => {
       refs.forEach((ref) => {
         RefsUtils.setRef(ref, element);
@@ -9,7 +9,7 @@ export class RefsUtils {
     };
   }
 
-  private static setRef<T>(ref: React.Ref<T> | undefined, value: T | null): void {
+  private static setRef<T>(ref: Ref<T> | undefined, value: T | null): void {
     if (!ref) {
       return;
     }
@@ -20,15 +20,15 @@ export class RefsUtils {
     }
 
     if (RefsUtils.isRefObject(ref)) {
-      (ref as React.MutableRefObject<T | null>).current = value;
+      (ref as MutableRefObject<T | null>).current = value;
     }
   }
 
-  private static isCallbackRef<T>(ref: React.Ref<T>): ref is React.RefCallback<T> {
+  private static isCallbackRef<T>(ref: Ref<T>): ref is RefCallback<T> {
     return typeof ref === 'function';
   }
 
-  private static isRefObject<T>(ref: React.Ref<T>): ref is React.RefObject<T> {
+  private static isRefObject<T>(ref: Ref<T>): ref is RefObject<T> {
     return typeof ref === 'object' && ref !== null && 'current' in ref;
   }
 }

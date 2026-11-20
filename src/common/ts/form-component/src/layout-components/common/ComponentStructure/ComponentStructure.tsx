@@ -1,5 +1,4 @@
-import React from 'react';
-import type { PropsWithChildren, ReactNode } from 'react';
+import type { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 
 import { Flex, type IGridStyling } from '@app/form-component/app-components/Flex';
 
@@ -16,7 +15,7 @@ export interface IComponentStructureProps {
   /** Class name for the outer container element. */
   className?: string;
   /** Inline style for the inner content wrapper (the element wrapping the children). */
-  contentStyle?: React.CSSProperties;
+  contentStyle?: CSSProperties;
   /** Validation messages to render. When provided, a dedicated validation area is rendered. */
   validationMessages?: ReactNode;
 }

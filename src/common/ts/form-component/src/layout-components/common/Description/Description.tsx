@@ -1,5 +1,4 @@
-import React from 'react';
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
 import cn from 'classnames';
@@ -7,7 +6,7 @@ import cn from 'classnames';
 import classes from './Description.module.css';
 
 export type DescriptionProps = {
-  description: React.ReactNode;
+  description: ReactNode;
   componentId?: string;
 } & HTMLAttributes<HTMLSpanElement>;
 

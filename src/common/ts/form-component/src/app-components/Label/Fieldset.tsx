@@ -1,4 +1,5 @@
-import React, { type JSX, type PropsWithChildren, type ReactElement } from 'react';
+import { useId } from 'react';
+import type { JSX, PropsWithChildren, ReactElement } from 'react';
 
 import { Flex } from '@app/form-component/app-components/Flex/Flex';
 import {
@@ -43,7 +44,7 @@ export function Fieldset({
   size = 'md',
   optionalIndicator,
 }: PropsWithChildren<FieldsetProps>) {
-  const generatedId = React.useId();
+  const generatedId = useId();
   const baseId = id ?? `fieldset-${generatedId}`;
   const legendId = `${baseId}-legend`;
   const descriptionId = `${baseId}-description`;
