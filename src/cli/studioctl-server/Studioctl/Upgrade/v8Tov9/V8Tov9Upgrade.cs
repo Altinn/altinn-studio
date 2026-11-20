@@ -1213,9 +1213,8 @@ internal static class V8Tov9Upgrade
 
         try
         {
-            var result = new ProcessHookPortMigration(scanner, ProcessHookPortContext.Read(projectFolder)).Migrate(
-                cancellationToken
-            );
+            var context = ProcessHookPortContext.Read(projectFolder);
+            var result = new ProcessHookPortMigration(scanner, context).Migrate(cancellationToken);
             return ReportMigrationResult(
                 result,
                 cleanText: "No v8 process hooks or Storage calls to port",

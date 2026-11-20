@@ -4,9 +4,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 
-/// <summary>A hook method moved to its v9 signature.</summary>
+/// <summary>
+/// A hook method moved to its v9 signature. <see cref="CompatLocals"/> maps each v8 parameter the body still uses to
+/// the local that now holds it.
+/// </summary>
 /// <param name="ShouldRunForTask">The filter to insert before the method, for a family that has one.</param>
-internal sealed record PortedMethod(MethodDeclarationSyntax Rewritten, MethodDeclarationSyntax? ShouldRunForTask);
+internal sealed record PortedMethod(
+    MethodDeclarationSyntax Rewritten,
+    MethodDeclarationSyntax? ShouldRunForTask,
+    string ContextName,
+    IReadOnlyDictionary<HookParameterRole, string> CompatLocals
+);
 
 /// <summary>
 /// Moves a v8 hook method to its v9 signature: the context replaces the parameters, the body reads what it used from
@@ -95,6 +103,7 @@ internal static class HookMethodPort
         var family = hook.Family;
         var contextName = ContextName(original);
         var locals = new List<StatementSyntax>();
+        var compatLocals = new Dictionary<HookParameterRole, string>();
         for (var i = 0; i < family.V8Parameters.Count; i++)
         {
             var role = family.V8Parameters[i];
@@ -111,6 +120,7 @@ internal static class HookMethodPort
             locals.Add(
                 SyntaxFactory.ParseStatement($"{parameter.Type} {parameter.Identifier.Text} = {contextName}.{path};")
             );
+            compatLocals[role] = parameter.Identifier.Text;
         }
 
         var method = WithHandlerResults(original, hook.Model, lineEnding);
@@ -141,7 +151,7 @@ internal static class HookMethodPort
             method = method.WithLeadingTrivia(remainder.Insert(0, SyntaxFactory.EndOfLine(lineEnding)));
         }
 
-        return new PortedMethod(method, filter);
+        return new PortedMethod(method, filter, contextName, compatLocals);
     }
 
     /// <summary>
