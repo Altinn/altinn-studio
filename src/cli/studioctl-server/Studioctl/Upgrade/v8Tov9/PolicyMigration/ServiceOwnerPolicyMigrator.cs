@@ -37,9 +37,9 @@ internal sealed class ServiceOwnerPolicyMigrator
 
     /// <summary>
     /// Actions the engine needs in any process state (read/write) and at the end event (complete).
-    /// <c>complete</c> is required unconditionally rather than only for the task types that mark
-    /// instances complete, so a migrated policy ends up with the same org rules a freshly generated
-    /// v9 app has - and service owners generally want to confirm received instances anyway.
+    /// <c>complete</c> is required unconditionally rather than only for apps that confirm instances at
+    /// process end, so a migrated policy ends up with the same org rules a freshly generated v9 app
+    /// has - and service owners generally want to confirm received instances anyway.
     /// </summary>
     private static readonly string[] _requiredActions = ["read", "write", "complete"];
 

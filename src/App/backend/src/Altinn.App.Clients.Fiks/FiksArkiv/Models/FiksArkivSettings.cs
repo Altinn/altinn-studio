@@ -256,19 +256,6 @@ public sealed record FiksArkivSuccessHandlingSettings
     public string? Action { get; set; }
 
     /// <summary>
-    /// Should we mark the instance as `completed` once the archive has confirmed the record?
-    /// Defaults to <c>true</c>.
-    /// </summary>
-    /// <remarks>
-    /// The confirmation is sent before the process advances, because advancing can end the process and
-    /// an ended process can take the instance with it.
-    /// </remarks>
-    [JsonPropertyName("markInstanceComplete")]
-    public bool MarkInstanceComplete { get; set; } = DefaultMarkInstanceComplete;
-
-    internal const bool DefaultMarkInstanceComplete = true;
-
-    /// <summary>
     /// Gets the action if set to an actual value, otherwise returns null.
     /// </summary>
     /// <remarks><c>IOptions</c> can on occasion deserialize null as empty string, which is undesirable.</remarks>

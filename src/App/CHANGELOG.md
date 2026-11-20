@@ -14,6 +14,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 - `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
+- Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+
+### Changed
+
+- Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
 ### Fixed
 
