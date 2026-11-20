@@ -12,9 +12,9 @@ process state from the backend's API, and renders the forms for each step of the
 - The layout components define their configuration in code. `yarn gen` writes the layout schemas, types and component
   documentation from it into [layout-contract](../../common/ts/layout-contract), which Designer uses as well. Run it
   after you change a component's `config.ts` or the generators in [src/codegen](src/codegen), and commit the result.
-  CI runs `yarn gen:check`, which fails when the committed output is out of date.
-- Rendering code is moving into the shared [form packages](../../common/ts/form-component/README.md), so Designer can
-  render forms too.
+  CI runs `yarn gen:check`, which fails when the committed output is out of date. The
+  [layout README](src/layout/README.md) describes how the components work.
+- Rendering code is moving into the shared [form packages](../../common/ts/form-component/README.md).
 
 ## Development
 
