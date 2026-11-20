@@ -108,7 +108,8 @@ the same decision.
   `autoDeleteOnProcessEnd` too: Storage's cleanup removes a hard-deleted instance whose process has ended only once
   the instance carries a confirmation. A confirmation that Storage refuses, for example because the policy lacks the
   grant at the end event, fails the callback, and the engine retries the step. Once it gives up, the ended instance
-  stays `processing` until the grant is fixed and the workflow is [resumed](#recovering-from-failures).
+  stays `processing` until the grant is fixed and an operator resumes the workflow, since `process/resume` refuses an
+  ended process. See [known gaps](#known-gaps).
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)
@@ -203,6 +204,8 @@ retention period, which bounds how long a resume is possible.
 - A failed primary workflow leaves the instance stuck until someone calls `process/resume`. It resumes the failed
   workflow with cascade, so the condemned workflows run too, and waits like `process/next`. The frontend offers the
   user a retry when a service task failed. Other failures show the support reference, and an operator resumes them.
+  `process/resume` refuses an ended process, so a failure in the process-end steps is resumed with the engine's resume
+  API instead. See [known gaps](#known-gaps).
 - A failed auxiliary workflow means lost events or a lost notification. Only the engine's
   [failure alert](../../../Runtime/workflow-engine/docs/technical-guide.md#alerting-on-terminal-failures) shows it,
   with `is_head="false"`. An operator resumes it with the engine's resume API, which is always valid since it carries
@@ -284,8 +287,9 @@ app does not guard against it. Names would not help either, since a redeploy can
   state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
   fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
   committed.
-- An ended process reports `idle` without asking the engine. A failure after the commit of the final transition
-  therefore shows only in the failure alert.
+- An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
+  after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
+  workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).
 - The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
