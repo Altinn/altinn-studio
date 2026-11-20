@@ -135,8 +135,15 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     /// Apps load the app frontend from here through a crossorigin script tag, and the dev tools in an app list the
     /// versions, so browsers must be allowed to read the responses from any origin, as they could from altinncdn.no
     /// in v4. The wildcard never allows credentials, so a Studio session cannot be used from another origin.
+    /// The header is set when the response starts, because the exception handler clears the headers before it
+    /// writes a 502, and a browser should see that 502 rather than a CORS error.
     /// </summary>
-    private void AllowAnyOrigin() => Response.Headers.AccessControlAllowOrigin = "*";
+    private void AllowAnyOrigin() =>
+        Response.OnStarting(() =>
+        {
+            Response.Headers.AccessControlAllowOrigin = "*";
+            return Task.CompletedTask;
+        });
 
     private static AppDistLayer LayerFor(string path) =>
         path.StartsWith(SchemasLayerPathPrefix, StringComparison.Ordinal) ? AppDistLayer.Schemas : AppDistLayer.Content;

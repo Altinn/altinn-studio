@@ -181,6 +181,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
         using HttpResponseMessage response = await HttpClient.GetAsync(FileUrl(Version, LayoutSchemaPath));
 
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.Equal(["*"], response.Headers.GetValues("Access-Control-Allow-Origin"));
     }
 
     [Fact]

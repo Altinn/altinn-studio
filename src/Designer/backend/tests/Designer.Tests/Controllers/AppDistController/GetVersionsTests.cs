@@ -81,5 +81,6 @@ public class GetVersionsTests
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.Equal(["*"], response.Headers.GetValues("Access-Control-Allow-Origin"));
     }
 }
