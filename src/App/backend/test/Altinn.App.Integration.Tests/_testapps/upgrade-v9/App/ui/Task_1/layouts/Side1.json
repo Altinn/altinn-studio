@@ -1,0 +1,25 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "property1-input",
+        "type": "Input",
+        "textResourceBindings": { "title": "appName" },
+        "dataModelBindings": { "simpleBinding": "property1" },
+        "required": true
+      },
+      {
+        "id": "property2-input",
+        "type": "Input",
+        "textResourceBindings": { "title": "appName" },
+        "dataModelBindings": { "simpleBinding": "property2" }
+      },
+      {
+        "id": "submit",
+        "type": "Button",
+        "textResourceBindings": { "title": "appName" }
+      }
+    ]
+  }
+}
