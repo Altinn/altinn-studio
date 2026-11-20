@@ -38,25 +38,25 @@ internal sealed class TwoHandlersInOneChainTask : IServiceTask
 {
     public string Type => "twoHandlersInOneChain";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle archive)
             .HandleReplies(archive, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(archive, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .Finally(MailboxHandlers.Conclude);
+            .Stage(MailboxHandlers.Conclude);
 }
 
-// Violates ALTINNAPP0702: the mixed case - a segment handler and then the terminal, same handle. Declared
+// Violates ALTINNAPP0702: the mixed case - a carry-on and then an ending HandleReplies, same handle. Declared
 // with `out var`, the form app code is likeliest to write, so the declaration match is pinned for both forms.
 internal sealed class HandledThenConcludedTask : IServiceTask
 {
     public string Type => "handledThenConcluded";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out var journal)
             .HandleReplies(journal, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .ConcludeOnReplies(journal, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+            .HandleReplies(journal, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
 }
 
 // Violates ALTINNAPP0702: still one straight line, spread over statements rather than one chain.
@@ -64,15 +64,15 @@ internal sealed class TwoHandlersInSequenceTask : IServiceTask
 {
     public string Type => "twoHandlersInSequence";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle registry
         );
         builder = builder.HandleReplies(registry, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
-        return builder.ConcludeOnReplies(registry, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(registry, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -81,10 +81,10 @@ internal sealed class ForgottenMailboxTask : IServiceTask
 {
     public string Type => "forgottenMailbox";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle forgotten)
-            .Finally(MailboxHandlers.Conclude);
+            .Stage(MailboxHandlers.Conclude);
 }
 
 // Fine: two exchanges, each answered once - the shape this phase exists to allow.
@@ -92,12 +92,12 @@ internal sealed class TwoExchangesTask : IServiceTask
 {
     public string Type => "twoExchanges";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle first)
             .HandleReplies(first, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle second)
-            .ConcludeOnReplies(second, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+            .HandleReplies(second, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
 }
 
 // Fine to this analyzer: a handle handed to a helper is answered somewhere it cannot follow, so the
@@ -106,18 +106,18 @@ internal sealed class HelperAnsweredTask : IServiceTask
 {
     public string Type => "helperAnswered";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaHelper
         );
         builder = Attach(builder, viaHelper);
-        return builder.ConcludeOnReplies(viaHelper, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(viaHelper, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 
-    private static PipelineBuilder Attach(PipelineBuilder builder, MailboxHandle handle) =>
+    private static PipelineBuilder.ServiceTask Attach(PipelineBuilder.ServiceTask builder, MailboxHandle handle) =>
         builder.HandleReplies(handle, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
 }
 
@@ -128,16 +128,16 @@ internal sealed class FieldAnsweredTask : IServiceTask
 
     public string Type => "fieldAnswered";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaField
         );
         _stored = viaField;
         builder = builder.HandleReplies(_stored, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
-        return builder.ConcludeOnReplies(_stored, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(_stored, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -148,9 +148,9 @@ internal sealed class BranchedAnswerTask : IServiceTask
 
     public bool EndOnTheExchange { get; set; }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle conditional
@@ -158,16 +158,12 @@ internal sealed class BranchedAnswerTask : IServiceTask
 
         if (EndOnTheExchange)
         {
-            return builder.ConcludeOnReplies(
-                conditional,
-                MailboxHandlers.OnFinalMessage,
-                MailboxHandlers.OnFinalClosed
-            );
+            return builder.HandleReplies(conditional, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
         }
 
         return builder
             .HandleReplies(conditional, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .Finally(MailboxHandlers.Conclude);
+            .Stage(MailboxHandlers.Conclude);
     }
 }
 
@@ -177,16 +173,16 @@ internal sealed class ReusedLocalTask : IServiceTask
 {
     public string Type => "reusedLocal";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle reused
         );
         builder = builder.HandleReplies(reused, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         builder = builder.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out reused);
-        return builder.ConcludeOnReplies(reused, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(reused, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -196,17 +192,16 @@ internal sealed class LambdaAnsweredTask : IServiceTask
 {
     public string Type => "lambdaAnswered";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaLambda
         );
-        Func<PipelineBuilder, PipelineBuilder> attach = b =>
+        Func<PipelineBuilder.ServiceTask, PipelineBuilder.ServiceTask> attach = b =>
             b.HandleReplies(viaLambda, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
-        return attach(builder)
-            .ConcludeOnReplies(viaLambda, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return attach(builder).HandleReplies(viaLambda, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -216,8 +211,8 @@ internal sealed class DiscardedHandleTask : IServiceTask
 {
     public string Type => "discardedHandle";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-        pipeline.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out _).Finally(MailboxHandlers.Conclude);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+        pipeline.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out _).Stage(MailboxHandlers.Conclude);
 }
 
 // Fine: both answers share a basic block, but it is one the method may never enter, and the pipeline the
@@ -228,9 +223,9 @@ internal sealed class UnreachedBranchTask : IServiceTask
 
     public bool AnswerTwice { get; set; }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle once
@@ -242,7 +237,7 @@ internal sealed class UnreachedBranchTask : IServiceTask
             builder = builder.HandleReplies(once, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         }
 
-        return builder.ConcludeOnReplies(once, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(once, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -253,9 +248,9 @@ internal sealed class UnreachedLoopTask : IServiceTask
 
     public IEnumerable<int> Repeats { get; set; } = Array.Empty<int>();
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle perRepeat
@@ -267,7 +262,7 @@ internal sealed class UnreachedLoopTask : IServiceTask
             builder = builder.HandleReplies(perRepeat, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         }
 
-        return builder.ConcludeOnReplies(perRepeat, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(perRepeat, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -277,9 +272,9 @@ internal sealed class RefAliasedTask : IServiceTask
 {
     public string Type => "refAliased";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaAlias
@@ -288,7 +283,7 @@ internal sealed class RefAliasedTask : IServiceTask
         ref MailboxHandle alias = ref viaAlias;
         builder = builder.HandleReplies(viaAlias, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         alias = other;
-        return builder.ConcludeOnReplies(viaAlias, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(viaAlias, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -297,9 +292,9 @@ internal sealed class DeconstructedTask : IServiceTask
 {
     public string Type => "deconstructed";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle viaTuple
@@ -307,7 +302,7 @@ internal sealed class DeconstructedTask : IServiceTask
         builder = builder.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle spare);
         builder = builder.HandleReplies(viaTuple, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed);
         (viaTuple, _) = (spare, 0);
-        return builder.ConcludeOnReplies(viaTuple, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+        return builder.HandleReplies(viaTuple, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -319,7 +314,7 @@ internal sealed class AfterBranchMergeTask : IServiceTask
 
     public bool Urgent { get; set; }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
         MailboxOptions options;
         if (Urgent)
@@ -335,7 +330,7 @@ internal sealed class AfterBranchMergeTask : IServiceTask
             .Stage(MailboxHandlers.Send, options, out MailboxHandle afterMerge)
             .HandleReplies(afterMerge, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(afterMerge, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .Finally(MailboxHandlers.Conclude);
+            .Stage(MailboxHandlers.Conclude);
     }
 }
 
@@ -346,14 +341,14 @@ internal sealed class AfterNullCoalesceTask : IServiceTask
 
     public ProcessStepOptions Overrides { get; set; }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
         ProcessStepOptions steps = Overrides ?? new ProcessStepOptions();
         return pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle afterCoalesce, steps)
             .HandleReplies(afterCoalesce, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(afterCoalesce, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .Finally(MailboxHandlers.Conclude);
+            .Stage(MailboxHandlers.Conclude);
     }
 }
 
@@ -363,28 +358,28 @@ internal sealed class InsideUsingTask : IServiceTask
 {
     public string Type => "insideUsing";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
         using var scope = new StringReader("");
         return pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle insideUsing)
             .HandleReplies(insideUsing, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
             .HandleReplies(insideUsing, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .Finally(MailboxHandlers.Conclude);
+            .Stage(MailboxHandlers.Conclude);
     }
 }
 
 // Fine: this composes a valid pipeline. The first HandleReplies answers the exchange, the second one's throw is
-// swallowed, and Finally is satisfied - so a catch is the one construct that lets an execution enter the block,
-// throw inside it, and return anyway. Reachability alone cannot see that, which is why a try with a handler is
-// refused outright.
+// swallowed, and the ending Stage is satisfied - so a catch is the one construct that lets an execution enter the
+// block, throw inside it, and return anyway. Reachability alone cannot see that, which is why a handler guarding
+// the block counts as a way onward.
 internal sealed class SwallowedThrowTask : IServiceTask
 {
     public string Type => "swallowedThrow";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle insideTry
@@ -400,7 +395,7 @@ internal sealed class SwallowedThrowTask : IServiceTask
             // The builder has already refused the second handler; the exchange is answered exactly once.
         }
 
-        return builder.Finally(MailboxHandlers.Conclude);
+        return builder.Stage(MailboxHandlers.Conclude);
     }
 }
 
@@ -413,9 +408,9 @@ internal sealed class HandlerReturnsTask : IServiceTask
 
     public string Raw { get; set; } = "not a number";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle handled
@@ -427,12 +422,12 @@ internal sealed class HandlerReturnsTask : IServiceTask
         }
         catch (FormatException)
         {
-            return builder.ConcludeOnReplies(handled, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+            return builder.HandleReplies(handled, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
         }
 
         return builder
             .HandleReplies(handled, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .ConcludeOnReplies(handled, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+            .HandleReplies(handled, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -446,9 +441,9 @@ internal sealed class FilteredHandlerTask : IServiceTask
 
     public bool Recover { get; set; }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle filtered
@@ -460,12 +455,12 @@ internal sealed class FilteredHandlerTask : IServiceTask
         }
         catch (FormatException) when (Recover)
         {
-            return builder.ConcludeOnReplies(filtered, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+            return builder.HandleReplies(filtered, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
         }
 
         return builder
             .HandleReplies(filtered, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
-            .ConcludeOnReplies(filtered, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
+            .HandleReplies(filtered, MailboxHandlers.OnFinalMessage, MailboxHandlers.OnFinalClosed);
     }
 }
 
@@ -475,9 +470,9 @@ internal sealed class RethrowingCatchTask : IServiceTask
 {
     public string Type => "rethrowingCatch";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
     {
-        PipelineBuilder builder = pipeline.Stage(
+        PipelineBuilder.ServiceTask builder = pipeline.Stage(
             MailboxHandlers.Send,
             MailboxHandlers.Options(),
             out MailboxHandle rethrown
@@ -493,6 +488,6 @@ internal sealed class RethrowingCatchTask : IServiceTask
             throw;
         }
 
-        return builder.Finally(MailboxHandlers.Conclude);
+        return builder.Stage(MailboxHandlers.Conclude);
     }
 }
