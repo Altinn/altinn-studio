@@ -64,25 +64,6 @@ public sealed class IndexPageGeneratorTests : IDisposable
         Assert.False(generator.HasLegacyIndexCshtml);
     }
 
-    [Theory]
-    [InlineData(true, "<script src=\"/ttd/app/altinn-app-frontend/altinn-app-frontend.js\" crossorigin></script>")]
-    [InlineData(false, "<script src=\"/ttd/app/altinn-app-frontend/altinn-app-frontend.js\"></script>")]
-    public async Task App_frontend_script_has_crossorigin_unless_turned_off(bool crossOrigin, string expectedScriptTag)
-    {
-        var generator = CreateGenerator();
-        var globalState = new BootstrapGlobalResponse
-        {
-            ApplicationMetadata = new ApplicationMetadata("ttd/app"),
-            Ui = new UiConfiguration { Folders = [] },
-            AvailableLanguages = [],
-            PlatformFrontendSettings = new PlatformFrontendSettings(),
-        };
-
-        var html = await generator.Generate("ttd", "app", globalState, appFrontendScriptCrossOrigin: crossOrigin);
-
-        Assert.Contains(expectedScriptTag, html);
-    }
-
     [Fact]
     public void Legacy_index_page_is_detected()
     {

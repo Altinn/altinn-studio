@@ -1,18 +1,21 @@
-import React, { useId, useState } from 'react';
+import React, { useState } from 'react';
 
-import { Button, Input } from '@app/form-component';
-import { Fieldset, ValidationMessage } from '@digdir/designsystemet-react';
+import { Button, Spinner } from '@app/form-component';
+import comboboxClasses from '@app/form-component/styles/combobox.module.css';
+import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 
+import { useAppFrontendVersionsQuery } from 'src/core/queries/appFrontendVersions';
 import {
-  frontendVersionsUrl,
   getFrontendVersionFromUrl,
   getUrlWithFrontendVersion,
-  isValidFrontendVersion,
 } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
 import { isDev } from 'src/utils/isDev';
+import { optionFilter } from 'src/utils/options';
 
 const description = 'Siden lastes på nytt med versjonen i adressen. Virker bare i utviklings- og testmiljø.';
-const versionsLinkText = 'Se tilgjengelige versjoner (åpnes i ny fane)';
+const loadingText = 'Henter versjonene som er publisert';
+const errorText = 'Kunne ikke hente versjonene som er publisert.';
+const emptyText = 'Ingen versjoner funnet';
 
 /**
  * Hidden in production, where the backend ignores the parameter. isDev() knows localtest, TT02 and Studio by their
@@ -26,61 +29,57 @@ export function VersionSwitcher() {
 }
 
 function VersionSwitcherField() {
-  const [version, setVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
-  const [error, setError] = useState<string | undefined>(undefined);
-  const errorId = useId();
+  const { versions, isLoading, isError } = useAppFrontendVersionsQuery();
+  const [selectedVersion, setSelectedVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
 
   function switchVersion() {
-    const trimmed = version.trim();
-    if (!isValidFrontendVersion(trimmed)) {
-      setError('Skriv et versjonsnummer, for eksempel 9.0.0-preview.12');
-      return;
+    if (selectedVersion) {
+      window.location.assign(getUrlWithFrontendVersion(window.location.href, selectedVersion));
     }
-    window.location.assign(getUrlWithFrontendVersion(window.location.href, trimmed));
   }
 
   return (
     <Fieldset style={{ width: 250 }}>
       <Fieldset.Legend>Frontend versjon</Fieldset.Legend>
       <Fieldset.Description>{description}</Fieldset.Description>
-      <Input
-        aria-label='Frontend versjon'
-        size='sm'
-        value={version}
-        placeholder='9.0.0-preview.12'
-        error={error}
-        aria-describedby={error ? errorId : undefined}
-        onChange={(e) => {
-          setVersion(e.target.value);
-          setError(undefined);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            switchVersion();
-          }
-        }}
-      />
-      {error && (
-        <ValidationMessage
-          id={errorId}
-          data-size='sm'
-        >
-          {error}
-        </ValidationMessage>
+      {isLoading ? (
+        <Spinner aria-label={loadingText} />
+      ) : isError ? (
+        <p>{errorText}</p>
+      ) : (
+        <>
+          <Suggestion
+            multiple={false}
+            filter={optionFilter}
+            data-size='sm'
+            selected={selectedVersion ? { value: selectedVersion, label: selectedVersion } : undefined}
+            className={comboboxClasses.container}
+            style={{ width: '100%' }}
+          >
+            <Suggestion.Input aria-label='Frontend versjon' />
+            <Suggestion.List>
+              <Suggestion.Empty>{emptyText}</Suggestion.Empty>
+              {versions.map((version) => (
+                <Suggestion.Option
+                  key={version}
+                  value={version}
+                  label={version}
+                  onClick={() => setSelectedVersion(version)}
+                >
+                  {version}
+                </Suggestion.Option>
+              ))}
+            </Suggestion.List>
+          </Suggestion>
+          <Button
+            size='sm'
+            disabled={!selectedVersion}
+            onClick={switchVersion}
+          >
+            Bytt versjon
+          </Button>
+        </>
       )}
-      <a
-        href={frontendVersionsUrl}
-        target='_blank'
-        rel='noopener noreferrer'
-      >
-        {versionsLinkText}
-      </a>
-      <Button
-        size='sm'
-        onClick={switchVersion}
-      >
-        Bytt versjon
-      </Button>
     </Fieldset>
   );
 }

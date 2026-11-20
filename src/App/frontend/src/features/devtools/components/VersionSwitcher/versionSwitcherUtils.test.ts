@@ -1,25 +1,7 @@
 import {
   getFrontendVersionFromUrl,
   getUrlWithFrontendVersion,
-  isValidFrontendVersion,
 } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
-
-describe('isValidFrontendVersion', () => {
-  it.each(['9.0.0', '9.0.0-preview.12', '4.37.0-pr.6091.receipt-no-data-elements.daa8e9dc'])('accepts %s', (v) => {
-    expect(isValidFrontendVersion(v)).toBe(true);
-  });
-
-  it.each(['', '9', '9.0', 'v9.0.0', '9.0.0-', 'https://evil.example/x', '../9.0.0', '9.0.0?x=1', '٩.٠.٠'])(
-    'rejects %s',
-    (v) => {
-      expect(isValidFrontendVersion(v)).toBe(false);
-    },
-  );
-
-  it('rejects too long versions', () => {
-    expect(isValidFrontendVersion(`9.0.0-${'a'.repeat(100)}`)).toBe(false);
-  });
-});
 
 describe('getFrontendVersionFromUrl', () => {
   it('reads the version from the address', () => {
@@ -28,10 +10,10 @@ describe('getFrontendVersionFromUrl', () => {
     );
   });
 
-  it('returns an empty string when the parameter is there more than once', () => {
+  it('uses the first value when the parameter is there more than once, like the backend', () => {
     expect(
       getFrontendVersionFromUrl('http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.0&frontendVersion=9.0.1'),
-    ).toBe('');
+    ).toBe('9.0.0');
   });
 
   it('returns an empty string without the parameter', () => {

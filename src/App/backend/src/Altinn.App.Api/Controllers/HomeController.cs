@@ -120,15 +120,10 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
-            // Only a single value counts. StringValues.ToString() skips empty values, so a repeated parameter could
-            // otherwise pass as one version.
-            var frontendVersionValues = Request.Query[FrontendVersionOverride.QueryParameterName];
-            string? frontendVersionAssetBaseUrl = FrontendVersionOverride.GetAssetBaseUrl(
-                frontendVersionValues.Count == 1 ? frontendVersionValues.ToString() : null,
-                AltinnEnvironments.GetHostingEnvironment(_env)
-            );
+            // Like lang, a repeated parameter counts with its first value.
+            string? frontendVersion = Request.Query[FrontendVersionOverride.QueryParameterName].FirstOrDefault();
             string? appFrontendAssetBaseUrlOverride =
-                frontendVersionAssetBaseUrl
+                FrontendVersionOverride.GetAssetBaseUrl(frontendVersion, AltinnEnvironments.GetHostingEnvironment(_env))
                 ?? (
                     _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
                         ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
@@ -140,9 +135,7 @@ public class HomeController : Controller
                 _appId.Org,
                 _appId.App,
                 appGlobalState,
-                appFrontendAssetBaseUrlOverride,
-                // app-dist sends no CORS headers, so the browser refuses a crossorigin script from it.
-                appFrontendScriptCrossOrigin: frontendVersionAssetBaseUrl is null
+                appFrontendAssetBaseUrlOverride
             );
             return Content(html, "text/html; charset=utf-8");
         }

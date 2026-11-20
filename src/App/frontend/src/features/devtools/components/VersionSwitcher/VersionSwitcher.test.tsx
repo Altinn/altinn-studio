@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitcher/VersionSwitcher';
+import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import type { QueryOverrides } from 'src/test/renderWithProviders';
 
 describe('VersionSwitcher', () => {
   const originalLocation = window.location;
@@ -12,6 +14,14 @@ describe('VersionSwitcher', () => {
   function setLocation(href: string) {
     const { hostname } = new URL(href);
     Object.defineProperty(window, 'location', { configurable: true, value: { href, hostname, assign } });
+  }
+
+  function renderSwitcher(overrides: QueryOverrides = {}) {
+    const { wrapper } = createQueryTestWrapper({
+      queries: { fetchAppFrontendVersions: async () => ['9.0.0-preview.12', '9.0.0-preview.13'] },
+      ...overrides,
+    });
+    return render(<VersionSwitcher />, { wrapper });
   }
 
   beforeEach(() => {
@@ -24,49 +34,53 @@ describe('VersionSwitcher', () => {
 
   it('is hidden in production, where the backend ignores the parameter', () => {
     setLocation('https://ttd.apps.altinn.no/ttd/app/');
-    render(<VersionSwitcher />);
+    renderSwitcher();
 
-    expect(screen.queryByRole('textbox', { name: 'Frontend versjon' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Frontend versjon')).not.toBeInTheDocument();
   });
 
-  it('shows the version from the address', () => {
-    setLocation('http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.0-preview.10');
-    render(<VersionSwitcher />);
+  it('lists the published versions, newest first', async () => {
+    setLocation('http://local.altinn.cloud/ttd/app/');
+    renderSwitcher();
 
-    expect(screen.getByRole('textbox', { name: 'Frontend versjon' })).toHaveValue('9.0.0-preview.10');
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Frontend versjon' }));
+
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      '9.0.0-preview.13',
+      '9.0.0-preview.12',
+    ]);
   });
 
-  it('reloads the page with the version in the address', async () => {
+  it('shows the version from the address', async () => {
+    setLocation('http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.0-preview.12');
+    renderSwitcher();
+
+    expect(await screen.findByRole('combobox', { name: 'Frontend versjon' })).toHaveValue('9.0.0-preview.12');
+  });
+
+  it('reloads the page with the chosen version in the address', async () => {
     setLocation('http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1');
-    render(<VersionSwitcher />);
+    renderSwitcher();
 
-    await userEvent.type(screen.getByRole('textbox', { name: 'Frontend versjon' }), '9.0.0-preview.12');
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Frontend versjon' }));
+    await userEvent.click(screen.getByRole('option', { name: '9.0.0-preview.13' }));
     await userEvent.click(screen.getByRole('button', { name: 'Bytt versjon' }));
 
     expect(assign).toHaveBeenCalledWith(
-      'http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1?frontendVersion=9.0.0-preview.12',
+      'http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1?frontendVersion=9.0.0-preview.13',
     );
   });
 
-  it('shows an error and stays on the page when the version is not a version number', async () => {
+  it('says so when the versions cannot be fetched', async () => {
     setLocation('http://local.altinn.cloud/ttd/app/');
-    render(<VersionSwitcher />);
+    renderSwitcher({
+      queries: {
+        fetchAppFrontendVersions: async () => {
+          throw new Error('app-dist is down');
+        },
+      },
+    });
 
-    await userEvent.type(screen.getByRole('textbox', { name: 'Frontend versjon' }), 'https://evil.example/x');
-    await userEvent.click(screen.getByRole('button', { name: 'Bytt versjon' }));
-
-    expect(assign).not.toHaveBeenCalled();
-    expect(screen.getByRole('textbox', { name: 'Frontend versjon' })).toHaveAccessibleDescription(
-      'Skriv et versjonsnummer, for eksempel 9.0.0-preview.12',
-    );
-  });
-
-  it('links to the list of versions in a new tab', () => {
-    setLocation('http://local.altinn.cloud/ttd/app/');
-    render(<VersionSwitcher />);
-
-    const link = screen.getByRole('link', { name: 'Se tilgjengelige versjoner (åpnes i ny fane)' });
-    expect(link).toHaveAttribute('href', 'https://altinn.studio/designer/app-dist/versions');
-    expect(link).toHaveAttribute('target', '_blank');
+    expect(await screen.findByText('Kunne ikke hente versjonene som er publisert.')).toBeInTheDocument();
   });
 });
