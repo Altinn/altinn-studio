@@ -146,7 +146,16 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
             authenticationMethod ?? _defaultAuthenticationMethod,
             cancellationToken
         );
-        generatorRequest.Cookies.Add(new PdfGeneratorCookieOptions { Value = tokenValue, Domain = uri.Host });
+        // Only the browser needs the token, to send it to the app. HttpOnly keeps script on the page from reading it.
+        // The trace cookies above stay readable, since the frontend reads them from document.cookie.
+        generatorRequest.Cookies.Add(
+            new PdfGeneratorCookieOptions
+            {
+                Value = tokenValue,
+                Domain = uri.Host,
+                HttpOnly = true,
+            }
+        );
 
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
         using StringContent stringContent = new(requestContent, Encoding.UTF8, "application/json");

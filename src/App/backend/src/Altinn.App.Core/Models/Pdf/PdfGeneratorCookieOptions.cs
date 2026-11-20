@@ -24,4 +24,9 @@ internal class PdfGeneratorCookieOptions
     /// The cookie sameSite settings.
     /// </summary>
     public string SameSite { get; } = "Lax";
+
+    /// <summary>
+    /// Whether the browser hides the cookie from script on the page.
+    /// </summary>
+    public bool HttpOnly { get; init; }
 }

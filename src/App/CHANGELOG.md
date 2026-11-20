@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- The token cookie that the app sends to the PDF service is now `HttpOnly`, so script on the page it renders cannot read the token. ([#21917](https://github.com/Altinn/altinn-studio/pull/21917))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed
