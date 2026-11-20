@@ -1,0 +1,58 @@
+{
+  "name": "Nested repeating groups resolve every row, and the first positional argument is the resolved field",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000001"
+          }
+        ]
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000002"
+          },
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000003"
+          }
+        ]
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows.children.text",
+      "expression": ["argv", 0]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+            "text": "rows[0].children[0].text"
+          }
+        ]
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000002",
+            "text": "rows[1].children[0].text"
+          },
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000003",
+            "text": "rows[1].children[1].text"
+          }
+        ]
+      }
+    ]
+  }
+}

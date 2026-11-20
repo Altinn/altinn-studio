@@ -49,18 +49,18 @@ cites.
 
 ## The pieces
 
-|                                                            |                                                                     |
-| ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| `manifest.py`                                              | the agent: components, behaviors, what pins them, what nothing pins |
-| `registry.py`                                              | the evals: datasets, kinds, what is live                            |
-| `provenance.py`                                            | the ten axes a run records, and which of them block a comparison    |
-| `runstore.py`                                              | runs as files, the baseline marker, the three-run series            |
-| `diff.py`                                                  | what moved, in scores and in outputs                                |
-| `check.py`                                                 | the orchestration: run the evals, map scores onto behaviors         |
-| `report.py`, `report_html.py`                              | the page                                                            |
-| `datasets/*.jsonl`                                         | the items, version controlled                                       |
-| `harvest.py`                                               | rebuilds items from production traces                               |
-| `gates.py`, `generation.py`, `planner.py`, `agent_task.py` | how each kind of eval runs                                          |
+|                                                                            |                                                                     |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `manifest.py`                                                              | the agent: components, behaviors, what pins them, what nothing pins |
+| `registry.py`                                                              | the evals: datasets, kinds, what is live                            |
+| `provenance.py`                                                            | the ten axes a run records, and which of them block a comparison    |
+| `runstore.py`                                                              | runs as files, the baseline marker, the three-run series            |
+| `diff.py`                                                                  | what moved, in scores and in outputs                                |
+| `check.py`                                                                 | the orchestration: run the evals, map scores onto behaviors         |
+| `report.py`, `report_html.py`                                              | the page                                                            |
+| `datasets/*.jsonl`                                                         | the items, version controlled                                       |
+| `harvest.py`                                                               | rebuilds items from production traces                               |
+| `decisions.py`, `gates.py`, `generation.py`, `planner.py`, `agent_task.py` | how each kind of eval runs                                          |
 
 ## A run records what it ran against
 
@@ -296,17 +296,17 @@ python -m benchmarks.runner impact                    # against origin/main
 python -m benchmarks.runner impact --strict           # exit 1 if a re-baseline is missing
 ```
 
-| Change                                                                                                  | Axis         | Consequence                                                                                               |
-| ------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
-| `benchmarks/datasets/*`                                                                                 | dataset      | **re-baseline**, the items every score is computed over                                                   |
-| `benchmarks/gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators   | **re-baseline**, how something is scored                                                                  |
-| `agents/prompts/*`                                                                                      | prompts      | **re-baseline**, a published prompt                                                                       |
-| any file that changes the `actor_prompt` digest                                                         | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
-| any file that changes the `tools` digest                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill files                                 |
-| `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*`                           | code         | check, the baseline stays valid                                                                           |
-| `shared/config/base_config.py`                                                                          | models       | check, the baseline stays valid                                                                           |
-| `benchmarks/manifest.py`                                                                                | manifest     | check, declaring a behavior changes no score                                                              |
-| anything else, and all tests                                                                            |              | nothing                                                                                                   |
+| Change                                                                                                                  | Axis         | Consequence                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `benchmarks/datasets/*`                                                                                                 | dataset      | **re-baseline**, the items every score is computed over                                                   |
+| `benchmarks/decisions.py`, `gates.py`, `planner.py`, `generation.py`, `evaluators.py`, `outputs.py`, `preview_check.py` | evaluators   | **re-baseline**, how something is scored                                                                  |
+| `agents/prompts/*`                                                                                                      | prompts      | **re-baseline**, a published prompt                                                                       |
+| any file that changes the `actor_prompt` digest                                                                         | actor_prompt | **re-baseline**, the actor's system prompt for every app version and session mode, with the skill listing |
+| any file that changes the `tools` digest                                                                                | tools        | **re-baseline**, the tool schemas the actor is shown, and the skill files                                 |
+| `agents/core/*`, `agents/services/*`, `agents/workflows/*`, `agents/altinn/*`                                           | code         | check, the baseline stays valid                                                                           |
+| `shared/config/base_config.py`                                                                                          | models       | check, the baseline stays valid                                                                           |
+| `benchmarks/manifest.py`                                                                                                | manifest     | check, declaring a behavior changes no score                                                              |
+| anything else, and all tests                                                                                            |              | nothing                                                                                                   |
 
 No path rule is necessary for `actor_prompt` and `tools`. The gate calls
 `provenance.digests()`, which `runner check` also records. Then it compares the result with
@@ -363,7 +363,7 @@ and Langfuse is a projection of it, so the two cannot drift.
 
 **Prove a score is stable.** Every pinned check is deterministic code, so a score is
 repeatable given the same model output. The model output is not: across the runs in
-`benchmarks/runs`, `scope.declines-in-users-language` has landed anywhere between 0.533 and
+`benchmarks/runs`, the retired `scope.declines-in-users-language` has landed anywhere between 0.533 and
 1.000 and the retired `confidence.band-matches-outcome` between 0.500 and 0.967, on unchanged code and
 an unchanged model, because one item is a large share of a small dataset. The noise floor is
 a single global number and cannot express that, so read a small dataset's movement as noise

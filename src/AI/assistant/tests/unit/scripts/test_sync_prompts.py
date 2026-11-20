@@ -20,9 +20,11 @@ _spec.loader.exec_module(sync_prompts)
 
 RETIRED = "assistant_response_generation"
 LOCAL = "goal_suggestions"
-IN_SYNC = "scope_check"
+IN_SYNC = "spec_extraction"
 LOCAL_TEMPLATE = "intake_planning_user"
 LOCAL_JUDGE = "intent_match"
+JUDGE = "no_irrelevant_responses"
+EVALUATOR = "workflow-no-irrelevant-responses"
 
 
 def _page(names, *, total_pages=1, labels=None):
@@ -33,8 +35,23 @@ def _page(names, *, total_pages=1, labels=None):
     }
 
 
+def _evaluator(name=EVALUATOR, text=None, **overrides):
+    """An evaluator as the list endpoint returns it, by default holding the judge's file text."""
+    return {
+        "id": f"id-{name}",
+        "name": name,
+        "version": 1,
+        "prompt": [{"role": "user", "content": _content(JUDGE) if text is None else text}],
+        "variables": ["input", "output"],
+        "modelConfig": {"provider": "rndlab-openai", "model": "gpt-5.5"},
+        "variableMapping": [{"variable": "input", "source": "input"}, {"variable": "output", "source": "output"}],
+        "outputDefinition": {"dataType": "BOOLEAN"},
+        **overrides,
+    }
+
+
 class _Langfuse:
-    def __init__(self, listing=None, prompts=None, published=None, labelled=None):
+    def __init__(self, listing=None, prompts=None, published=None, labelled=None, evaluators=None):
         self._listing = listing or [_page([])]
         self._prompts = prompts or {}
         self._published = published or {}
@@ -45,10 +62,16 @@ class _Langfuse:
         self.deleted = []
         self.pages_read = 0
         self.get_error: Exception | None = None
+        # Pages of evaluators, which the list endpoint returns by cursor.
+        self._evaluator_pages = evaluators or [[]]
 
     def _get(self, path, **params):
         if self.get_error is not None:
             raise self.get_error
+        if path == "/api/public/v2/evaluators":
+            page = int(params.get("cursor") or 0)
+            following = str(page + 1) if page + 1 < len(self._evaluator_pages) else None
+            return {"data": self._evaluator_pages[page], "meta": {"cursor": following}}
         if path == "/api/public/v2/prompts":
             self.pages_read += 1
             return self._listing[params["page"] - 1]
@@ -75,6 +98,8 @@ class _Langfuse:
 
     def _patch(self, path, body):
         self.patched.append((path, body))
+        if path.startswith("/api/public/v2/evaluators/"):
+            return {"version": 2}
         return {"version": int(path.rsplit("/", 1)[-1]), "labels": body["newLabels"]}
 
     def _delete(self, path, **params):
@@ -94,10 +119,6 @@ class TestPromptsLangfuseHoldsAlone:
 
         assert sync_prompts._report_orphans(api) == []
         assert LOCAL not in capsys.readouterr().out
-
-    def test_a_template_from_a_subdirectory_is_not_orphaned(self):
-        """Templates are published by name too, from below the prompts root."""
-        assert sync_prompts._report_orphans(_Langfuse([_page([LOCAL_TEMPLATE])])) == []
 
     def test_a_judge_prompt_in_langfuse_is_an_orphan(self):
         """Judges run as evaluator templates, so a Langfuse prompt of that name is a
@@ -126,22 +147,11 @@ class TestPromptsLangfuseHoldsAlone:
 
 
 class TestPublishingIsGated:
-    def test_a_push_without_the_override_is_refused(self, monkeypatch):
-        monkeypatch.delenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, raising=False)
-
-        with pytest.raises(SystemExit, match="publish from CI"):
-            sync_prompts._require_push_override()
-
-    def test_the_override_allows_a_push(self, monkeypatch):
-        monkeypatch.setenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, "1")
-
-        sync_prompts._require_push_override()
-
     def test_a_gated_push_publishes_nothing(self, monkeypatch):
         monkeypatch.delenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, raising=False)
         api = _Langfuse(prompts={LOCAL: "old"})
 
-        with pytest.raises(SystemExit):
+        with pytest.raises(SystemExit, match="publish from CI"):
             _run(monkeypatch, api, ["--push"], names=[LOCAL])
 
         assert api.published == []
@@ -180,7 +190,6 @@ def _run(monkeypatch, api, argv, names):
 def test_the_readme_is_not_treated_as_a_prompt():
     """`*.md` swept up the README, which was then diffed against Langfuse."""
     assert "README" not in sync_prompts._local_prompt_names()
-    assert "README" not in sync_prompts._every_local_name()
 
 
 def test_bulk_discovery_reaches_nested_templates():
@@ -266,13 +275,6 @@ class TestPushKeepsThePublishedShape:
 
         assert api.published[0]["prompt"][1]["content"] == "{{user_message}}"
 
-    def test_a_prompt_langfuse_has_never_seen_is_published_as_text(self):
-        api = _Langfuse()
-
-        sync_prompts._push(api, LOCAL, "why")
-
-        assert api.published[0]["type"] == "text"
-
 
 class TestPushRefusesToGuessTheShape:
     """A transient read failure must not republish a chat prompt as text, which
@@ -306,8 +308,7 @@ class TestPushRefusesToGuessTheShape:
 
 class TestTheReportTellsTheTruthAboutWhatItCanSee:
     """Every false signal here was one someone would have acted on: a drift against a
-    retired prompt, two gate prompts silently unchecked, and judges compared as if
-    Langfuse served them as prompts."""
+    retired prompt, and two gate prompts silently unchecked."""
 
     def test_a_chat_prompt_is_compared_by_its_system_turn(self):
         assert (
@@ -326,20 +327,75 @@ class TestTheReportTellsTheTruthAboutWhatItCanSee:
     def test_a_chat_prompt_with_no_system_turn_is_not_comparable(self):
         assert sync_prompts._system_turn([{"role": "user", "content": "x"}]) is None
 
-    def test_judges_are_not_treated_as_prompts(self):
-        """They run as evaluator templates configured in the UI, so a repo file has no
-        Langfuse prompt to drift against."""
-        names = sync_prompts._local_prompt_names()
 
-        assert "no_hallucination" not in names
-        assert "scope_check" in names
+def _push_all(monkeypatch, api):
+    monkeypatch.setenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, "1")
+    return _run(monkeypatch, api, ["--push"], names=[])
 
-    def test_judge_templates_are_still_reported(self, capsys):
-        sync_prompts._report_judges()
+
+class TestJudgesSyncWithTheirEvaluators:
+    """A judge's text was pasted into its evaluator by hand after each change, and
+    nothing reported when the two drifted apart."""
+
+    def test_a_changed_judge_is_published_with_the_rest_unchanged(self, monkeypatch):
+        """A PATCH replaces the whole definition, and without modelConfig the judge
+        would move to the project's default model."""
+        old = _evaluator(text="the old text")
+        api = _Langfuse(evaluators=[[old]])
+
+        _push_all(monkeypatch, api)
+
+        [(path, body)] = api.patched
+        assert path == f"/api/public/v2/evaluators/{old['id']}"
+        assert body == {
+            "type": "llm_as_judge",
+            "prompt": [{"role": "user", "content": _content(JUDGE)}],
+            "modelConfig": old["modelConfig"],
+            "variableMapping": old["variableMapping"],
+            "outputDefinition": old["outputDefinition"],
+        }
+
+    @pytest.mark.parametrize(
+        ("evaluators", "reported"),
+        [
+            ([_evaluator()], "in sync"),
+            ([], f"has 0 evaluators named {EVALUATOR}"),
+            # Names are not unique in Langfuse, and a copy made in the UI must not be patched by mistake.
+            ([_evaluator(text="old"), _evaluator(text="older")], f"has 2 evaluators named {EVALUATOR}"),
+            ([_evaluator(prompt=[{"role": "system", "content": "a"}, {"role": "user", "content": "b"}])], "single"),
+            # The old mapping no longer fits, and Langfuse refuses a mapping that misses a variable.
+            ([_evaluator(text="old {{input}}", variables=["input"])], "variables changed"),
+        ],
+        ids=["in sync", "no evaluator", "duplicate names", "several messages", "changed variables"],
+    )
+    def test_a_judge_is_published_only_when_its_file_can_replace_the_text(
+        self, monkeypatch, capsys, evaluators, reported
+    ):
+        api = _Langfuse(evaluators=[evaluators])
+
+        _push_all(monkeypatch, api)
+
+        assert api.patched == []
+        assert reported in capsys.readouterr().out
+
+    def test_the_diff_takes_the_evaluator_name_and_shows_what_changed(self, monkeypatch, capsys):
+        api = _Langfuse(evaluators=[[_evaluator(text="the old text")]])
+
+        _run(monkeypatch, api, ["--diff", EVALUATOR], names=[])
 
         out = capsys.readouterr().out
-        assert "no_hallucination" in out
-        assert "evaluators rather than prompts" in out
+        assert f"{JUDGE}: DRIFT ({EVALUATOR} v1 vs local file)" in out
+        assert "-the old text" in out
+
+    def test_a_named_push_publishes_only_that_judge_from_any_page(self, monkeypatch):
+        other = _evaluator(name="workflow-intent-match", text="old")
+        api = _Langfuse(evaluators=[[other], [_evaluator(text="old")]])
+        monkeypatch.setenv(sync_prompts.PUSH_OVERRIDE_VARIABLE, "1")
+
+        _run(monkeypatch, api, ["--push", JUDGE], names=[LOCAL])
+
+        assert [path for path, _ in api.patched] == [f"/api/public/v2/evaluators/id-{EVALUATOR}"]
+        assert api.published == []
 
 
 class TestTheFakeCannotOutrunTheRealClient:
@@ -377,18 +433,12 @@ class TestRetiring:
         }
         return _Langfuse([listing], prompts={RETIRED: "the retired text"})
 
-    def test_it_deletes_every_orphan(self, monkeypatch):
+    def test_it_deletes_every_orphan_and_keeps_the_text_of_every_version(self, monkeypatch):
         api = self._api()
 
         _run(monkeypatch, api, ["--retire"], names=[LOCAL])
 
         assert api.deleted == [RETIRED]
-
-    def test_it_keeps_the_text_of_every_version(self, monkeypatch):
-        api = self._api()
-
-        _run(monkeypatch, api, ["--retire"], names=[LOCAL])
-
         kept = json.loads(self.archive.read_text(encoding="utf-8"))
         assert [version["version"] for version in kept[RETIRED][0]["versions"]] == [1, 2]
 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { Button, Pagination, useIsMobileOrTablet } from '@app/form-component';
-import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
+import { BaseTable, Button, Pagination, useIsMobileOrTablet } from '@app/form-component';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
@@ -93,22 +93,29 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
       >
         <Lang id='instance_selection.left_of' />
       </Heading>
-      <Table
+      <BaseTable
         id='instance-selection-mobile-table'
-        className={classes.table}
+        topBorderOnSmallScreens
+        headerBackground='gray'
+        headerDivider='light'
+        headerPadding='large'
+        rowDivider='light'
+        cellPadding='medium'
+        footerBackground='gray'
+        lookReachesNestedTables='all'
       >
-        <Table.Body>
+        <BaseTable.Body>
           {paginatedInstances.map((instance) => (
-            <Table.Row key={instance.id}>
-              <Table.Cell className={classes.mobileTableCell}>
+            <BaseTable.Row key={instance.id}>
+              <BaseTable.Cell className={classes.mobileTableCell}>
                 <dl className={classes.instanceDetails}>
                   <dt>{langAsString('instance_selection.last_changed')}:</dt>
                   <dd>{getDateDisplayString(instance.lastChanged)}</dd>
                   <dt>{langAsString('instance_selection.changed_by')}:</dt>
                   <dd>{instance.lastChangedBy}</dd>
                 </dl>
-              </Table.Cell>
-              <Table.Cell>
+              </BaseTable.Cell>
+              <BaseTable.Cell>
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
@@ -121,14 +128,14 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     <PencilIcon fontSize='1rem' />
                   </Button>
                 </div>
-              </Table.Cell>
-            </Table.Row>
+              </BaseTable.Cell>
+            </BaseTable.Row>
           ))}
-        </Table.Body>
+        </BaseTable.Body>
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
-            <Table.Row>
-              <Table.Cell colSpan={2}>
+            <BaseTable.Row>
+              <BaseTable.Cell colSpan={2}>
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
                     id='instance-selection'
@@ -146,37 +153,44 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     onPageSizeChange={(value) => handleRowsPerPageChanged(value)}
                   />
                 </div>
-              </Table.Cell>
-            </Table.Row>
+              </BaseTable.Cell>
+            </BaseTable.Row>
           </tfoot>
         )}
-      </Table>
+      </BaseTable>
     </>
   );
 
   const renderTable = () => (
     <div className={classes.tableContainer}>
-      <Table
+      <BaseTable
         id='instance-selection-table'
-        className={classes.table}
+        topBorderOnSmallScreens
+        headerBackground='gray'
+        headerDivider='light'
+        headerPadding='large'
+        rowDivider='light'
+        cellPadding='medium'
+        footerBackground='gray'
+        lookReachesNestedTables='all'
       >
-        <Table.Head id='instance-selection-table-header'>
-          <Table.Row>
-            <Table.HeaderCell>
+        <BaseTable.Head id='instance-selection-table-header'>
+          <BaseTable.Row>
+            <BaseTable.HeaderCell>
               <Lang id='instance_selection.last_changed' />
-            </Table.HeaderCell>
-            <Table.HeaderCell>
+            </BaseTable.HeaderCell>
+            <BaseTable.HeaderCell>
               <Lang id='instance_selection.changed_by' />
-            </Table.HeaderCell>
-            <Table.HeaderCell />
-          </Table.Row>
-        </Table.Head>
-        <Table.Body id='instance-selection-table-body'>
+            </BaseTable.HeaderCell>
+            <BaseTable.HeaderCell />
+          </BaseTable.Row>
+        </BaseTable.Head>
+        <BaseTable.Body id='instance-selection-table-body'>
           {paginatedInstances.map((instance: ISimpleInstance) => (
-            <Table.Row key={instance.id}>
-              <Table.Cell>{getDateDisplayString(instance.lastChanged)}</Table.Cell>
-              <Table.Cell>{instance.lastChangedBy}</Table.Cell>
-              <Table.Cell className={classes.buttonCell}>
+            <BaseTable.Row key={instance.id}>
+              <BaseTable.Cell>{getDateDisplayString(instance.lastChanged)}</BaseTable.Cell>
+              <BaseTable.Cell>{instance.lastChangedBy}</BaseTable.Cell>
+              <BaseTable.Cell className={classes.buttonCell}>
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
@@ -190,14 +204,14 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     />
                   </Button>
                 </div>
-              </Table.Cell>
-            </Table.Row>
+              </BaseTable.Cell>
+            </BaseTable.Row>
           ))}
-        </Table.Body>
+        </BaseTable.Body>
         {instances.length > rowsPerPageOptions[0] && (
           <tfoot>
-            <Table.Row>
-              <Table.Cell colSpan={3}>
+            <BaseTable.Row>
+              <BaseTable.Cell colSpan={3}>
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     id='instance-selection'
@@ -216,11 +230,11 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
                     setCurrentPage={setCurrentPage}
                   />
                 </div>
-              </Table.Cell>
-            </Table.Row>
+              </BaseTable.Cell>
+            </BaseTable.Row>
           </tfoot>
         )}
-      </Table>
+      </BaseTable>
     </div>
   );
 

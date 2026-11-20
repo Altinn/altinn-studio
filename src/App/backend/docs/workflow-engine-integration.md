@@ -196,6 +196,20 @@ retention period, which bounds how long a resume is possible.
   its own state. `process/resume` never targets it. A failure in the process-end steps holds back that transition's
   auxiliary workflows until a resume.
 
+## Service tasks without workflow
+
+v8 ran a service task in the request that entered it. When the task failed, it left the instance idle in the task and
+ran the task again on the next `process/next`. v9 keeps the instance processing through a service task, so an idle
+instance in a service task, with no workflow running or failed, comes from v8: a service task without workflow.
+
+- Reads report the task as failed, with the task as target and no failure, so the frontend offers its retry.
+- `process/next` and `process/resume` start the task again, as a transition from the task to a new visit of it that
+  starts the task without ending it. It runs as any transition into a service task: the task-start hooks and stages
+  run a second time, `CleanupGeneratedFromTask` replaces what an earlier run generated, and the process goes on after
+  the task.
+- As in v8, `process/next` with a reject the BPMN allows from the task abandons it without running it, and any other
+  action than `write` or the task type is refused with a 409.
+
 ## Mailboxes
 
 A mailbox lets a service task wait for a message instead of polling. The

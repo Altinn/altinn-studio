@@ -21,7 +21,7 @@ ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
 ALTINNAPP0800 | Authorization | Error | Service owner is missing required authorization
 ALTINNAPP0801 | Authorization | Warning | Service owner authorization could not be verified
 ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
-ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type
+ALTINNAPP0901 | Metadata | Error | presentationFields/dataFields entry references an unknown data type
 ALTINNAPP0902 | Metadata | Error | autoDeleteOnProcessEnd combined with preventInstanceDeletionForDays
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
 ALTINNAPP1002 | Process | Warning | PDF service task lists an entry that adds nothing to its PDF
@@ -48,3 +48,4 @@ ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the 
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
 ALTINNAPP1024 | Process | Error | Subform PDF service task names a UI folder it cannot render
 ALTINNAPP1026 | Process | Error | PDF service task's pdfLayoutName names a layout that does not exist
+ALTINNAPP1030 | Process | Error | Exclusive gateway routes on gatewayAction right after a service task that returns no action

@@ -17,6 +17,7 @@ export function getGlobalPageSettingsMock(): GlobalPageSettings {
     taskNavigation: [],
     navigationTitle: undefined,
     validationOnNavigation: undefined,
+    validateOnBackToSummary: undefined,
     hideAppNameInPdf: false,
   };
 }
