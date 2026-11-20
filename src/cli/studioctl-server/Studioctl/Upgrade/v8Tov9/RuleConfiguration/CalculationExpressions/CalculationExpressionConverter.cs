@@ -13,7 +13,6 @@ internal sealed partial class CalculationExpressionConverter
     private const int ExecutionStepLimit = 4096;
     private const int ExpandedNodeLimit = 8000;
     private const int ExpandedDepthLimit = 48;
-    private const double MinimumDecimalMagnitude = 1e-28;
 
     private enum Kind
     {
@@ -44,10 +43,6 @@ internal sealed partial class CalculationExpressionConverter
     private IReadOnlyDictionary<string, IReadOnlyList<string>> _selectionOptions =
         new Dictionary<string, IReadOnlyList<string>>();
     private readonly Dictionary<string, Value> _selections = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _integerInputs = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, double> _integerBounds = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _floatingPointInputs = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _decimalInputs = new(StringComparer.Ordinal);
     public bool MayReturnNull { get; private set; }
 
     public JsonNode? Convert(
@@ -69,10 +64,6 @@ internal sealed partial class CalculationExpressionConverter
         _helpers.Clear();
         _activeHelpers.Clear();
         _selections.Clear();
-        _integerInputs.Clear();
-        _integerBounds.Clear();
-        _floatingPointInputs.Clear();
-        _decimalInputs.Clear();
         _selectionOptions = selectionOptions ?? new Dictionary<string, IReadOnlyList<string>>();
         foreach (var statement in body.Body)
             ValidateDeclarations(statement, 0);
@@ -82,15 +73,6 @@ internal sealed partial class CalculationExpressionConverter
             if (string.IsNullOrEmpty(path))
                 continue;
             var type = types.ResolveType(path);
-            if (type?.TrimEnd('?') is "double" or "float")
-                _floatingPointInputs.Add(path);
-            if (type?.TrimEnd('?') == "decimal")
-                _decimalInputs.Add(path);
-            if (type?.TrimEnd('?') is "int" or "long")
-            {
-                _integerInputs.Add(path);
-                _integerBounds[path] = type.TrimEnd('?') == "int" ? -(double)int.MinValue : -(double)long.MinValue;
-            }
             var kind = type?.TrimEnd('?') switch
             {
                 "int" or "long" or "decimal" or "double" or "float" => Kind.Number,
@@ -358,24 +340,6 @@ internal sealed partial class CalculationExpressionConverter
     private Value Binary(BinaryExpression binary, Value left, Value right)
     {
         var op = binary.Operator.ToString();
-        if (
-            op
-                is "Equality"
-                    or "Inequality"
-                    or "StrictEquality"
-                    or "StrictInequality"
-                    or "GreaterThan"
-                    or "GreaterThanOrEqual"
-                    or "LessThan"
-                    or "LessThanOrEqual"
-            && (
-                NumericComparisonSafety.MayChangeBoundary(left.Expression, _integerInputs, IntegerBound)
-                || NumericComparisonSafety.MayChangeBoundary(right.Expression, _integerInputs, IntegerBound)
-            )
-        )
-            throw new NotSupportedException(
-                "Fractional arithmetic in a comparison can change JavaScript boundary decisions."
-            );
         if (op is "Equality" or "Inequality" or "StrictEquality" or "StrictInequality")
         {
             var strict = op is "StrictEquality" or "StrictInequality";
@@ -493,20 +457,10 @@ internal sealed partial class CalculationExpressionConverter
             "LessThanOrEqual" => "lessThanEq",
             _ => throw new NotSupportedException($"Operator '{op}' requires C# conversion."),
         };
-        if (op == "Multiplication")
-            RequireSafeProduct(a.Expression, b.Expression);
         if (op == "Division" && !b.NonZero)
             throw new NotSupportedException("Division is not guarded against a zero denominator.");
         if (op == "Division" && JsonNode.DeepEquals(a.Expression, b.Expression))
             return new(JsonValue.Create(1), Kind.Number, NonZero: true);
-        if (op == "Division" && (HasFloatingPointInput(a.Expression) || HasFloatingPointInput(b.Expression)))
-            throw new NotSupportedException(
-                "Floating-point model inputs can underflow the backend's decimal division; keep this calculation in C#."
-            );
-        if (op == "Division" && !DivisionStaysInDecimalRange(a.Expression, b.Expression))
-            throw new NotSupportedException(
-                "Division operands cannot be proven safe in backend decimal arithmetic; keep this calculation in C#."
-            );
         // Expression arguments are eager. An unreachable branch must remain safe to evaluate.
         var denominator =
             op == "Division"
@@ -521,30 +475,6 @@ internal sealed partial class CalculationExpressionConverter
             Call(function, a.Expression, denominator),
             function is "greaterThan" or "greaterThanEq" or "lessThan" or "lessThanEq" ? Kind.Boolean : Kind.Number
         );
-    }
-
-    private void RequireSafeProduct(JsonNode? left, JsonNode? right)
-    {
-        if (
-            MaximumMagnitude(left) is not { } a
-            || MaximumMagnitude(right) is not { } b
-            || !double.IsFinite(a * b)
-            || a >= (double)decimal.MaxValue
-            || b >= (double)decimal.MaxValue
-            || a * b >= (double)decimal.MaxValue
-            || (
-                a > 0
-                && b > 0
-                && (
-                    MinimumMagnitude(left) is not { } minimumA
-                    || MinimumMagnitude(right) is not { } minimumB
-                    || minimumA * minimumB < MinimumDecimalMagnitude
-                )
-            )
-        )
-            throw new NotSupportedException(
-                "Multiplication cannot be proven safe in backend decimal arithmetic; keep this calculation in C#."
-            );
     }
 
     private static void ReserveBuiltinBindings(IReadOnlyList<Statement> statements, Dictionary<string, Value> values)
@@ -569,118 +499,6 @@ internal sealed partial class CalculationExpressionConverter
                     );
                     break;
             }
-    }
-
-    private bool HasFloatingPointInput(JsonNode? node) =>
-        node is JsonArray { Count: > 0 } call
-        && (
-            (
-                call[0]?.GetValue<string>() == "dataModel"
-                && _floatingPointInputs.Contains(call[1]?.GetValue<string>() ?? "")
-            ) || call.Skip(1).Any(HasFloatingPointInput)
-        );
-
-    private bool DivisionStaysInDecimalRange(JsonNode? numerator, JsonNode? denominator)
-    {
-        if (
-            MaximumMagnitude(numerator) is not { } numeratorMaximum
-            || MaximumMagnitude(denominator) is not { } denominatorMaximum
-            || MinimumMagnitude(denominator) is not { } denominatorMinimum
-            || !double.IsFinite(numeratorMaximum)
-            // decimal.MaxValue rounds up when represented as a double.
-            || numeratorMaximum >= (double)decimal.MaxValue
-            || denominatorMaximum >= (double)decimal.MaxValue
-            || numeratorMaximum / denominatorMinimum >= (double)decimal.MaxValue
-        )
-            return false;
-        if (numeratorMaximum == 0)
-            return true;
-        // Bounds describe nonzero magnitudes. A possible zero numerator is harmless,
-        // but a nonzero quotient must not disappear at the backend's decimal precision.
-        if (
-            MinimumMagnitude(numerator) is not { } numeratorMinimum
-            || numeratorMinimum / denominatorMaximum < MinimumDecimalMagnitude
-        )
-            return false;
-        // Small constant quotients can also round to a different nonzero value.
-        return numerator is not JsonValue
-            || denominator is not JsonValue
-            || DecimalLiteralMagnitude(numeratorMaximum / denominatorMinimum).HasValue;
-    }
-
-    private double? MaximumMagnitude(JsonNode? expression)
-    {
-        if (expression == null)
-            return 0;
-        if (expression is JsonValue literal && literal.TryGetValue<double>(out var number))
-            return DecimalLiteralMagnitude(number);
-        if (expression is not JsonArray { Count: > 0 } call)
-            return null;
-        var operation = call[0]?.GetValue<string>();
-        if (operation == "dataModel")
-        {
-            var path = call[1]?.GetValue<string>() ?? "";
-            if (_integerBounds.TryGetValue(path, out var bound))
-                return bound;
-            return _decimalInputs.Contains(path) ? (double)decimal.MaxValue : null;
-        }
-        var operands = operation == "if" && call.Count == 5 ? new[] { call[2], call[4] } : call.Skip(1).ToArray();
-        var bounds = operands.Select(MaximumMagnitude).ToArray();
-        if (bounds.Any(bound => !bound.HasValue))
-            return null;
-        return operation switch
-        {
-            "plus" or "minus" => bounds.Sum(bound => bound ?? 0),
-            "multiply" => bounds.Aggregate(1d, (product, bound) => product * (bound ?? 0)),
-            "if" => bounds.Max(),
-            "divide" when call.Count == 3 && MinimumMagnitude(call[2]) is { } divisor => bounds[0] / divisor,
-            _ => null,
-        };
-    }
-
-    private double? MinimumMagnitude(JsonNode? expression)
-    {
-        if (expression is JsonValue literal && literal.TryGetValue<double>(out var number))
-            return DecimalLiteralMagnitude(number) is > 0 and var magnitude ? magnitude : null;
-        if (IntegerBound(expression).HasValue)
-            return 1;
-        if (expression is not JsonArray { Count: > 0 } call)
-            return null;
-        if (call[0]?.GetValue<string>() == "dataModel")
-            return _decimalInputs.Contains(call[1]?.GetValue<string>() ?? "") ? MinimumDecimalMagnitude : null;
-        if (
-            call[0]?.GetValue<string>() == "divide"
-            && call.Count == 3
-            && MinimumMagnitude(call[1]) is { } numerator
-            && MaximumMagnitude(call[2]) is > 0 and var denominator
-        )
-            return numerator / denominator;
-        if (call[0]?.GetValue<string>() == "plus")
-        {
-            var operands = call.Skip(1)
-                .Where(item => item is not JsonValue value || !value.TryGetValue<double>(out var scalar) || scalar != 0)
-                .ToArray();
-            if (operands.Length == 1)
-                return MinimumMagnitude(operands[0]);
-        }
-        return null;
-    }
-
-    private static double? DecimalLiteralMagnitude(double number)
-    {
-        // Even a literal operand can round to zero or another value in backend arithmetic.
-        if (
-            !decimal.TryParse(
-                number.ToString("R", CultureInfo.InvariantCulture),
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out var value
-            )
-            || double.Parse(value.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture)
-                .CompareTo(number) != 0
-        )
-            return null;
-        return Math.Abs(number);
     }
 
     private static bool TryNumericLiteral(Value value, out Value number)

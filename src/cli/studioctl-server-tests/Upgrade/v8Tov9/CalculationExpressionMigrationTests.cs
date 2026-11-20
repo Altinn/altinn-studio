@@ -87,13 +87,6 @@ public sealed class CalculationExpressionMigrationTests
         "{\"a\":7}",
         7
     )]
-    [InlineData(
-        Normalize + "if (obj.b == 0) return 0; return Number((obj.a / obj.b).toFixed(1));",
-        "{\"a\":100,\"b\":3}",
-        33.3,
-        true
-    )]
-    [InlineData(Normalize + "if (obj.b == 0) return 0; return Number((obj.a / obj.b).toFixed(1));", "{}", 0, true)]
     [InlineData(Normalize + "obj.extra = obj.extra ? +obj.extra : 0; return obj.a + obj.extra;", "{\"a\":2}", 2)]
     [InlineData(
         "if (obj.a === undefined || obj.b === undefined) return ''; return Number(obj.a) + Number(obj.b);",
@@ -150,41 +143,10 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Theory]
-    [InlineData("int", true)]
-    [InlineData("long", false)]
-    [InlineData("decimal", false)]
-    [InlineData("double", false)]
-    public void Multiplication_UsesTheModelsNumericBounds(string type, bool converts)
-    {
-        using var app = CreateApp();
-        app.Write(
-            "models/Root.cs",
-            app.Read("models/Root.cs").Replace("decimal?", type + "?", StringComparison.Ordinal)
-        );
-        foreach (var body in new[] { "return obj.a * obj.b;", "var total = obj.a; total *= obj.b; return total;" })
-        {
-            if (converts)
-                Assert.Equal(
-                    6d,
-                    Evaluate(Convert(app, body, Rule("calculate", "result")), new() { ["a"] = 2, ["b"] = 3 })
-                );
-            else
-                Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
-        }
-    }
-
-    [Theory]
     [InlineData("return Math.floor(obj.a);")]
     [InlineData("return obj.a.toFixed(2);")]
     [InlineData("return parseFloat(obj.a);")]
     [InlineData("return obj.a / obj.b;")]
-    [InlineData("return obj.b ? (obj.a / obj.b) * obj.b : 0;")]
-    [InlineData("return obj.a / 2;")]
-    [InlineData("return obj.b ? 1e-28 / obj.b : 0;")]
-    [InlineData("return obj.a > obj.b * 1.4 ? 1 : 0;")]
-    [InlineData("return obj.a > obj.b * 24000 ? 1 : 0;")]
-    [InlineData("return obj.a + obj.b === 0.3 ? 1 : 0;")]
-    [InlineData("return obj.b ? (obj.a / obj.b < 0.4 ? 1 : 0) : 0;")]
     [InlineData("return obj.missing + 1;")]
     [InlineData("return obj.a === null;")]
     [InlineData("return obj.a ? 1 : 'value';")]
@@ -211,7 +173,6 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData("return obj.text + 'x';")]
     [InlineData("return obj.text == null ? 0 : 1;")]
     [InlineData("return obj;")]
-    [InlineData("return Number.isFinite(1e200 * 1e200) ? 1 : 0;")]
     [InlineData(
         "const outer = x => { const Number = y => 7; return Number(x); }; const first = outer(obj.a); return first + Number(2);"
     )]
@@ -233,35 +194,6 @@ public sealed class CalculationExpressionMigrationTests
     }
 
     [Theory]
-    [InlineData("decimal", false)]
-    [InlineData("int", true)]
-    [InlineData("long", true)]
-    [InlineData("double", false)]
-    [InlineData("float", false)]
-    public void Division_UsesTheModelsNumericDomain(string type, bool converts)
-    {
-        using var app = CreateApp();
-        app.Write(
-            "models/Root.cs",
-            "namespace TestModels { public class Root { public "
-                + type
-                + "? a { get; set; } public "
-                + type
-                + "? b { get; set; } public "
-                + type
-                + "? result { get; set; } } }"
-        );
-        const string body = "return obj.b ? obj.a / obj.b : 0;";
-        if (converts)
-        {
-            var expression = Convert(app, body, Rule("calculate", "result"));
-            Assert.Equal(3d, Evaluate(expression, new() { ["a"] = 6, ["b"] = 2 }));
-        }
-        else
-            Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
-    }
-
-    [Theory]
     [InlineData("async function(obj) { return 1; }")]
     [InlineData("function*(obj) { return 1; }")]
     public void AsyncAndGeneratorFunctions_DoNotBecomeExpressions(string function)
@@ -278,33 +210,6 @@ public sealed class CalculationExpressionMigrationTests
         using var app = CreateApp();
         var expression = Convert(app, "return obj.b ? obj.b / obj.b : 0;", Rule("calculate", "result"));
         Assert.Equal(1d, Evaluate(expression, new() { ["b"] = 1e-28 }));
-    }
-
-    [Theory]
-    [InlineData("return 0.1 / 1e-29;")]
-    [InlineData("return 0.1 / 6e-29;")]
-    [InlineData("return 0.1 / 1.1e-28;")]
-    [InlineData("return 1e-29 / 1e-28;")]
-    [InlineData("return (1e-29 * 1e10) / 0.1;")]
-    public void Division_WithLossyDecimalLiterals_RequiresFallback(string body)
-    {
-        using var app = CreateApp();
-        Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
-    }
-
-    [Theory]
-    [InlineData("return (1e-28 / 10) * 1e28;", false)]
-    [InlineData("return (3e-28 / 2) * 1e28;", false)]
-    [InlineData("return (7.922816251426434e27 / 0.1) * 0.1;", false)]
-    [InlineData("return (1e-28 / 1) * 1e28;", true)]
-    [InlineData("return 0 / 10;", true)]
-    public void Division_RequiresARepresentableQuotient(string body, bool converts)
-    {
-        using var app = CreateApp();
-        if (converts)
-            Assert.NotNull(Convert(app, body, Rule("calculate", "result")));
-        else
-            Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
     }
 
     [Theory]
@@ -340,25 +245,6 @@ public sealed class CalculationExpressionMigrationTests
         );
     }
 
-    [Fact]
-    public void FractionalNumericText_UsesCSharpToPreserveFloatingPointDigits()
-    {
-        using var app = CreateApp();
-        Assert.Throws<NotSupportedException>(() =>
-            Convert(app, Normalize + "return (obj.a + obj.b).toString();", Rule("calculate", "text"))
-        );
-    }
-
-    [Fact]
-    public void UnboundedIntegerText_UsesCSharpToPreserveJavaScriptFormatting()
-    {
-        using var app = CreateApp();
-        app.Write("models/Root.cs", app.Read("models/Root.cs").Replace("decimal?", "long?", StringComparison.Ordinal));
-        Assert.Throws<NotSupportedException>(() =>
-            Convert(app, Normalize + "return (obj.a + obj.b).toString();", Rule("calculate", "text"))
-        );
-    }
-
     [Theory]
     [InlineData("return 'nu' + 'll';")]
     [InlineData("return (obj.a ? 'nu' : 'va') + 'll';")]
@@ -387,7 +273,8 @@ public sealed class CalculationExpressionMigrationTests
             "form",
             Model(),
             new() { ["rounded"] = Rule("rounded", "other") },
-            handler
+            handler,
+            Resolver(app)
         ).Generate();
         Assert.True(generated.Success);
         Assert.Equal(1, generated.SuccessfulConversions);
@@ -565,23 +452,6 @@ public sealed class CalculationExpressionMigrationTests
         Assert.Equal(8d, Evaluate(Calculations(app)["rows[0].result"]?["expression"], new() { ["rows[1].a"] = 8 }));
     }
 
-    [Theory]
-    [InlineData("return Math.round(2.6);", "{}", 3)]
-    [InlineData("return Math.round(1234567.4);", "{}", 1234567)]
-    [InlineData("return Math.round(-2.6);", "{}", -3)]
-    [InlineData("return Math.round(-2.5);", "{}", -2)]
-    [InlineData("return Math.round(2.5);", "{}", 3)]
-    [InlineData(Normalize + "return Number((obj.a + obj.b).toFixed(2));", "{}", 0)]
-    [InlineData(Normalize + "return Number((obj.a + obj.b).toFixed(2));", "{\"a\":12.34,\"b\":5.67}", 18.01)]
-    [InlineData(Normalize + "return Number((obj.a + obj.b).toFixed(2));", "{\"a\":12345.67,\"b\":0}", 12345.67)]
-    public void NumericRounding_UsesExpressionRoundingAndReturnsANumber(string body, string inputs, double expected)
-    {
-        using var app = CreateApp();
-        var expression = Convert(app, body, Rule("calculate", "result"));
-        var data = JsonNode.Parse(inputs)?.AsObject() ?? throw new InvalidOperationException();
-        Assert.Equal(expected, Assert.IsType<double>(Evaluate(expression, data)), 8);
-    }
-
     [Fact]
     public void DynamicMathRound_UsesCSharpToPreserveNegativeMidpoints()
     {
@@ -601,44 +471,6 @@ public sealed class CalculationExpressionMigrationTests
     {
         using var app = CreateApp();
         Assert.Throws<NotSupportedException>(() => Convert(app, Normalize + body, Rule("calculate", "result")));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void NumericOptionCosts_RequireFallbackForUnboundedPrefillMultipliers(bool inlineOptions)
-    {
-        using var app = CreateApp();
-        var component = new JsonObject
-        {
-            ["type"] = "RadioButtons",
-            ["dataModelBindings"] = new JsonObject { ["simpleBinding"] = "text" },
-        };
-        var options = JsonNode.Parse("[{\"value\":\"0\"},{\"value\":\"1\"}]");
-        if (inlineOptions)
-            component["options"] = options;
-        else
-        {
-            component["optionsId"] = "yes-no";
-            app.Write("options/yes-no.json", options?.ToJsonString() ?? "[]");
-        }
-        app.Write(
-            "ui/form/layouts/page.json",
-            new JsonObject { ["data"] = new JsonObject { ["layout"] = new JsonArray(component) } }.ToJsonString()
-        );
-        var rule = Rule("cost", "result");
-        rule.InputParams = new() { ["cost"] = "a", ["flag"] = "text" };
-        WriteRules(
-            app,
-            new() { ["total"] = rule },
-            "cost: function(obj) { obj.flag = obj.flag ? +obj.flag : 0; obj.cost = obj.cost ? +obj.cost : 0; return obj.cost * obj.flag; }"
-        );
-        var migration = CalculationMigration.Migrate(app.Root);
-        Assert.Empty(migration.ConvertedRules);
-        Assert.Contains(
-            migration.FallbackReasons,
-            reason => reason.Contains("Multiplication", StringComparison.Ordinal)
-        );
     }
 
     [Theory]
@@ -980,7 +812,7 @@ public sealed class CalculationExpressionMigrationTests
         else
         {
             Assert.Contains(
-                "wrapper.Set(\"result\"",
+                "model.result = ",
                 await File.ReadAllTextAsync(file, TestContext.Current.CancellationToken)
             );
             Assert.Equal(5d, Evaluate(Calculations(app)["other"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
@@ -1194,8 +1026,8 @@ public sealed class CalculationExpressionMigrationTests
         );
         Assert.Equal(5d, Evaluate(Calculations(app)["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
         var processor = app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs");
-        Assert.Contains("wrapper.Set(\"other\"", processor);
-        Assert.DoesNotContain("wrapper.Set(\"result\"", processor);
+        Assert.Contains("model.other = ", processor);
+        Assert.DoesNotContain("model.result = ", processor);
         Assert.Contains("AddTransient<IDataWriteProcessor, FormDataProcessor>", app.Read("Program.cs"));
         Assert.Empty(
             Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
@@ -1284,8 +1116,8 @@ public sealed class CalculationExpressionMigrationTests
         await RunUpgrade(app);
         Assert.Equal(first, await File.ReadAllBytesAsync(CalculationPath(app), TestContext.Current.CancellationToken));
         var processor = app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs");
-        Assert.Contains("wrapper.Set(\"other\"", processor);
-        Assert.DoesNotContain("wrapper.Set(\"result\"", processor);
+        Assert.Contains("model.other = ", processor);
+        Assert.DoesNotContain("model.result = ", processor);
     }
 
     [Theory]
@@ -1434,6 +1266,13 @@ public sealed class CalculationExpressionMigrationTests
                 .Replace("decimal? b", integerInputs ? "int? b" : "decimal? b", StringComparison.Ordinal)
         );
         return app;
+    }
+
+    private static DataModelTypeResolver Resolver(TempAppFolder app)
+    {
+        var resolver = new DataModelTypeResolver(app.Root);
+        Assert.True(resolver.LoadDataModelType(Model()));
+        return resolver;
     }
 
     private static DataModelInfo Model() =>

@@ -28,17 +28,6 @@ public class BinaryComparisonMatcher : IExpressionMatcher
             return ConvertIndexOf(indexCall, op, true, context, debugInfo);
         var leftType = context.GetValueType(binary.Left);
         var rightType = context.GetValueType(binary.Right);
-        // Check the lowered operands too: locals and helper calls may contain the arithmetic.
-        if (leftType == "number" || rightType == "number")
-            foreach (var operand in new[] { binary.Left, binary.Right })
-            {
-                var value = context.ConvertExpression(operand, debugInfo);
-                if (value != null && NumericComparisonSafety.MayChangeBoundary(JsonSerializer.SerializeToNode(value)))
-                    return context.Reject(
-                        "Fractional arithmetic in a comparison can change JavaScript boundary decisions",
-                        debugInfo
-                    );
-            }
         if (equality || inequality)
         {
             var converted = ConvertEquality(binary.Left, binary.Right, leftType, rightType, strict, context, debugInfo);

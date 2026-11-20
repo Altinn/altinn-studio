@@ -32,8 +32,6 @@ internal sealed partial class CalculationExpressionConverter
             throw new NotSupportedException("String addition concatenates values instead of adding numbers.");
         var a = Numeric(left).Expression;
         var b = Numeric(right).Expression;
-        if (op == "MultiplicationAssignment")
-            RequireSafeProduct(a, b);
         values[key] = new(Call(function, a, b), Kind.Number);
     }
 
@@ -159,8 +157,6 @@ internal sealed partial class CalculationExpressionConverter
         {
             if (call.Arguments.Count != 1 || call.Arguments[0] is not Expression argument)
                 throw new NotSupportedException("Unsupported numeric conversion arguments.");
-            if (builtin.Name is "Number" or "parseFloat" && TryRoundedNumber(argument, values, out var rounded))
-                return rounded;
             var value = Read(argument, values);
             if (
                 builtin.Name == "parseInt"
@@ -203,7 +199,9 @@ internal sealed partial class CalculationExpressionConverter
                     var floor = Math.Floor(constant);
                     return new(JsonValue.Create(constant - floor < 0.5 ? floor : floor + 1), Kind.Number);
                 }
-                throw new NotSupportedException("Math.round tie behavior requires C# conversion.");
+                throw new NotSupportedException(
+                    "Rounding requires C# conversion: the frontend and backend round function disagree at ties."
+                );
             }
             if (
                 owner.Name == "Number"
@@ -213,12 +211,7 @@ internal sealed partial class CalculationExpressionConverter
             )
             {
                 var value = Read(finite, values);
-                if (
-                    value.Kind == Kind.Number
-                    && !value.MayBeMissing
-                    && IntegerBound(value.Expression) is { } bound
-                    && double.IsFinite(bound)
-                )
+                if (value.Kind == Kind.Number && !value.MayBeMissing)
                     return new(JsonValue.Create(true), Kind.Boolean);
             }
         }
@@ -231,7 +224,9 @@ internal sealed partial class CalculationExpressionConverter
         )
             return NumericText(receiver);
         if (method.Name == "toFixed")
-            throw new NotSupportedException("Fixed-point text requires JavaScript-specific formatting in C#.");
+            throw new NotSupportedException(
+                "Rounding requires C# conversion: the frontend and backend round function disagree at ties."
+            );
         if (
             method.Name == "includes"
             && call.Arguments.Count == 1
@@ -257,50 +252,6 @@ internal sealed partial class CalculationExpressionConverter
         }
         throw new NotSupportedException($"Method '{method.Name}' requires C# conversion.");
     }
-
-    private bool TryRoundedNumber(Expression expression, Dictionary<string, Value> values, out Value result)
-    {
-        result = new(null, Kind.Undefined);
-        if (!TryRoundedText(expression, values, out var text))
-            return false;
-        result = new(Call("plus", text, 0), Kind.Number);
-        return true;
-    }
-
-    private bool TryRoundedText(Expression expression, Dictionary<string, Value> values, out JsonNode? result)
-    {
-        result = null;
-        if (
-            expression
-                is not CallExpression
-                {
-                    Callee: MemberExpression { Computed: false, Property: Identifier { Name: "toFixed" } } member
-                } fixedCall
-            || fixedCall.Arguments.Count != 1
-            || fixedCall.Arguments[0] is not Literal precision
-            || !double.TryParse(
-                precision.Raw,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var decimals
-            )
-            || decimals < 0
-            || decimals > 15
-            || decimals.CompareTo(Math.Truncate(decimals)) != 0
-        )
-            return false;
-        var receiver = Read(member.Object, values);
-        if (receiver.Kind != Kind.Number || receiver.MayBeMissing)
-            throw new NotSupportedException("toFixed requires a nonmissing numeric receiver.");
-        var number = Numeric(receiver);
-        // Backend round uses grouping separators. Remove them before numeric coercion or
-        // storing the fixed-point text; frontend round already returns ungrouped text.
-        result = RoundedText(number.Expression, (int)decimals);
-        return true;
-    }
-
-    private static JsonNode? RoundedText(JsonNode? number, int precision) =>
-        Call("stringReplace", Call("round", number, precision), ",", "");
 
     private Dictionary<string, Value>? _helperScope;
 
@@ -435,8 +386,7 @@ internal sealed partial class CalculationExpressionConverter
         var simplified = ExpressionSimplifier.Simplify(value.Expression);
         if (
             simplified is JsonValue scalar
-            && IntegerBound(scalar) is { } magnitude
-            && magnitude <= 9007199254740991d
+            && scalar.GetValueKind() == System.Text.Json.JsonValueKind.Number
             && double.TryParse(
                 scalar.ToJsonString(),
                 System.Globalization.NumberStyles.Float,
@@ -446,59 +396,11 @@ internal sealed partial class CalculationExpressionConverter
         )
             return new(
                 JsonValue.Create(
-                    constant.CompareTo(0d) == 0
-                        ? "0"
-                        : constant.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)
+                    constant == 0 ? "0" : constant.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 ),
                 Kind.String
             );
-        if (NumericComparisonSafety.MayChangeBoundary(value.Expression, _integerInputs, IntegerBound))
-            throw new NotSupportedException(
-                "Fractional arithmetic converted to text exposes JavaScript-specific floating-point digits."
-            );
-        // Automatic string conversion agrees for safe integers. Outside that domain,
-        // scientific notation and shortest-double formatting differ between runtimes.
-        // Keep the calculation in C# rather than change the expression language.
-        if (IntegerBound(value.Expression) is not { } bound || !double.IsFinite(bound) || bound > 9007199254740991d)
-            throw new NotSupportedException("Numeric text without a bounded safe integer requires C# conversion.");
         return new(Call("concat", "", Call("plus", value.Expression, 0)), Kind.String);
-    }
-
-    private double? IntegerBound(JsonNode? expression)
-    {
-        if (expression == null)
-            return 0;
-        if (expression is JsonValue literal)
-            return
-                literal.GetValueKind() == System.Text.Json.JsonValueKind.Number
-                && double.TryParse(
-                    literal.ToJsonString(),
-                    System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    out var number
-                )
-                && double.IsFinite(number)
-                && number.CompareTo(Math.Truncate(number)) == 0
-                ? Math.Abs(number)
-                : null;
-        if (expression is not JsonArray { Count: > 0 } call)
-            return null;
-        var operation = call[0]?.GetValue<string>();
-        if (operation == "dataModel")
-            return call.Count > 1 && _integerBounds.TryGetValue(call[1]?.GetValue<string>() ?? "", out var bound)
-                ? bound
-                : null;
-        var operands = operation == "if" && call.Count == 5 ? new[] { call[2], call[4] } : call.Skip(1).ToArray();
-        var bounds = operands.Select(IntegerBound).ToArray();
-        if (bounds.Any(bound => !bound.HasValue))
-            return null;
-        return operation switch
-        {
-            "plus" or "minus" => bounds.Sum(bound => bound ?? 0),
-            "multiply" => bounds.Aggregate(1d, (product, bound) => product * (bound ?? 0)),
-            "if" => bounds.Max(),
-            _ => null,
-        };
     }
 
     private static JsonNode? NumericEquals(JsonNode? left, JsonNode? right) =>

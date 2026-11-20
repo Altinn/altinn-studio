@@ -296,8 +296,6 @@ public partial class ConversionContext
                 : converted;
         if (valueType == "number")
         {
-            if (NumericComparisonSafety.MayChangeBoundary(System.Text.Json.JsonSerializer.SerializeToNode(converted)))
-                return Reject("Arithmetic truthiness can change JavaScript boundary decisions", debugInfo);
             return new object?[]
             {
                 "or",

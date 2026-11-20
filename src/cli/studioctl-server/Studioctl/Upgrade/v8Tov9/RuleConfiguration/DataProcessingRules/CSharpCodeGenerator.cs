@@ -21,8 +21,8 @@ internal sealed class DataProcessorGenerationResult
     public List<FailedRuleInfo> FailedRules { get; } = new();
 }
 
-// Keep JS values until the final model assignment. Each rule is translated independently,
-// so an unsupported function cannot force other rules onto a less faithful translation.
+// Each rule becomes a method over the typed data model, translated independently, so an
+// unsupported function cannot affect the other rules.
 internal sealed class CSharpCodeGenerator(
     string layoutSetName,
     DataModelInfo? dataModelInfo,
@@ -41,42 +41,38 @@ internal sealed class CSharpCodeGenerator(
         }
         var className = ProcessorClassName(layoutSetName);
         result.ClassName = className;
-        var methods =
-            new List<(
-                string Id,
-                DataProcessingRule Rule,
-                JavaScriptFunction? Function,
-                string? Body,
-                string? Reason
-            )>();
+        var model = dataModelInfo.ClassName ?? dataModelInfo.FullClassRef;
+        var names = new HashSet<string>(StringComparer.Ordinal) { "Calculate", "Run", "ToNumber" };
+        var methods = new List<RuleMethod>();
+        var usesToNumber = false;
         foreach (var (id, rule) in rules)
         {
             var function = jsParser.GetDataProcessingFunction(rule.SelectedFunction ?? "");
-            string? body = null;
+            ConvertedRule? converted = null;
             string? reason = null;
             try
             {
-                if (rule.InputParams == null || !rule.InputParams.Values.Any(path => !string.IsNullOrEmpty(path)))
+                var inputs = (rule.InputParams ?? []).Where(pair => !string.IsNullOrEmpty(pair.Value)).ToArray();
+                if (inputs.Length == 0)
                     throw new NotSupportedException("No mapped inputs; the legacy frontend did not execute this rule.");
-                if (
-                    rule.OutParams is not { Count: 1 }
-                    || string.IsNullOrWhiteSpace(rule.OutParams.GetValueOrDefault("outParam0"))
-                )
+                if (rule.OutParams?.GetValueOrDefault("outParam0") is not { Length: > 0 } outputPath)
                     throw new NotSupportedException("Expected one mapped output.");
-                foreach (
-                    var path in rule
-                        .InputParams.Values.Where(path => !string.IsNullOrEmpty(path))
-                        .Concat(rule.OutParams.Values)
-                )
-                {
-                    if (string.IsNullOrWhiteSpace(path) || path.Contains('{') || path.Contains('}'))
-                        throw new NotSupportedException($"Model path '{path}' requires a repeating-row context.");
-                    if (typeResolver != null && typeResolver.ResolveType(path) == null)
-                        throw new NotSupportedException($"Model path '{path}' could not be resolved.");
-                }
+                var output = Member(outputPath);
+                if (output.Write is not { } write)
+                    throw new NotSupportedException($"Output '{outputPath}' is inside a repeating group.");
                 if (function?.FunctionAst is not { } ast)
                     throw new NotSupportedException("Handler function is missing or could not be parsed.");
-                body = new PrimitiveRuleConverter(function.ParameterName).Convert(ast);
+                var converter = new PrimitiveRuleConverter(
+                    inputs.ToDictionary(pair => pair.Key, pair => Member(pair.Value), StringComparer.Ordinal),
+                    output.Type
+                );
+                var body = converter.Convert(ast);
+                usesToNumber |= converter.UsesToNumber;
+                // Name the method after the output property, or its parent for generic names such as value.
+                var properties = outputPath.Split('.');
+                var property =
+                    properties.Length > 1 && properties[^1] is "value" or "Value" ? properties[^2] : properties[^1];
+                converted = new(MethodName(property, names), outputPath, write, output.Type, body);
                 result.SuccessfulConversions++;
             }
             catch (NotSupportedException error)
@@ -92,104 +88,113 @@ internal sealed class CSharpCodeGenerator(
                     }
                 );
             }
-            methods.Add((id, rule, function, body, reason));
+            methods.Add(new(id, rule, function?.Implementation, converted, reason));
         }
         var code = new IndentedStringBuilder();
+        code.AppendLine("using System.Globalization;");
+        if (!string.IsNullOrEmpty(dataModelInfo.Namespace))
+            code.AppendLine($"using {dataModelInfo.Namespace};");
         code.AppendLine("using Altinn.App.Core.Models;");
-        code.AppendLine("using Altinn.App.Core.Internal.Data;");
-        code.AppendLine("using Altinn.App.Core.Internal.Expressions;");
         code.AppendLine("using Microsoft.Extensions.Logging;");
         code.AppendLine("#nullable enable");
         code.AppendLine("namespace Altinn.App.Logic.ConvertedLegacyRules;");
-        var constructor = result.SuccessfulConversions > 0 ? $"(ILogger<{className}> logger)" : "";
-        code.AppendLine($"public class {className}{constructor} : IDataWriteProcessor");
+        code.AppendLine($"public class {className}(ILogger<{className}> logger) : IDataWriteProcessor");
         code.OpenBrace();
         code.AppendLine(
-            "public async Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)"
+            "public Task ProcessDataWrite(IInstanceDataMutator instanceDataMutator, string taskId, DataElementChanges changes, string? language)"
         );
         code.OpenBrace();
-        code.AppendLine("// Generated from legacy JavaScript. Review the retained source and test the upgraded app.");
-        // A write can contain changes to more than one instance of the same model.
-        code.AppendLine(
-            $"foreach (var change in changes.FormDataChanges.Where(c => c.CurrentFormData is global::{dataModelInfo.FullClassRef}))"
-        );
-        code.OpenBrace();
-        // The legacy frontend collected every rule result before applying any model writes.
-        if (result.SuccessfulConversions > 0)
-            code.AppendLine("var inputs = change.CurrentFormDataWrapper.Copy();");
-        for (var index = 0; index < methods.Count; index++)
-            if (methods[index].Body != null)
-                code.AppendLine($"await Rule_{index}(change.CurrentFormDataWrapper, inputs);");
+        code.AppendLine("foreach (var change in changes.FormDataChanges)");
+        code.AppendLine($"    if (change.CurrentFormData is {model} model)");
+        code.AppendLine("        Calculate(model);");
+        code.AppendLine("return Task.CompletedTask;");
         code.CloseBrace();
-        // Keep this method valid when all rules require manual work, without throwing on every save.
-        code.AppendLine("await Task.CompletedTask;");
-        code.CloseBrace();
-        for (var index = 0; index < methods.Count; index++)
-        {
-            var method = methods[index];
-            Comment(code, $"Rule {method.Id}, function {method.Rule.SelectedFunction}");
-            foreach (var (name, path) in method.Rule.InputParams ?? [])
-                Comment(code, $"Input {name} = {path}");
-            foreach (var (name, path) in method.Rule.OutParams ?? [])
-                Comment(code, $"Output {name} = {path}");
-            if (method.Function != null)
-                Comment(code, method.Function.Implementation);
-            if (method.Body == null)
-            {
-                Comment(code, $"TODO: Manual conversion required: {method.Reason}");
-                continue;
-            }
-            code.AppendLine($"private Task Rule_{index}(IFormDataWrapper wrapper, IFormDataWrapper inputs)");
-            code.OpenBrace();
-            code.AppendLine("var obj = new Dictionary<string, object?>");
-            code.OpenBrace();
-            foreach (var (name, path) in method.Rule.InputParams ?? [])
-                if (!string.IsNullOrEmpty(path))
-                    code.AppendLine(
-                        $"[{PrimitiveRuleConverter.Quote(name)}] = JsInput(inputs.Get({PrimitiveRuleConverter.Quote(path)})),"
-                    );
-            code.CloseBrace();
-            code.AppendLine(";");
-            code.AppendLine($"var result = Calculate_{index}(obj);");
-            code.AppendLine("// JSON serialization sent non-finite JS numbers as null.");
-            code.AppendLine("if (result is double number && !double.IsFinite(number)) result = null;");
-            var target = PrimitiveRuleConverter.Quote(
-                (method.Rule.OutParams ?? throw new InvalidOperationException())["outParam0"]
-            );
-            code.AppendLine(
-                $"if (!wrapper.Set({target}, ExpressionValue.FromObject(result is JsUndefined ? null : result)))"
-            );
-            code.AppendLine(
-                $"    logger.LogWarning(\"Could not set migrated calculation value for field {{Field}}\", {target});"
-            );
-            code.AppendLine("return Task.CompletedTask;");
-            code.CloseBrace();
-            code.AppendLine($"private static object? Calculate_{index}(Dictionary<string, object?> obj)");
-            code.OpenBrace();
-            foreach (var line in method.Body.Split('\n'))
-                code.AppendLine(line);
-            code.CloseBrace();
-        }
-        if (result.SuccessfulConversions > 0)
-            foreach (var line in PrimitiveRuleConverter.Runtime.Split('\n'))
-                code.AppendLine(line);
+        AppendRules(code, model, methods, usesToNumber);
         code.CloseBrace();
         result.GeneratedCode = code.ToString();
         result.Success = true;
         return result;
     }
 
+    // The rule methods, and Calculate, which runs them in the legacy order.
+    internal static void AppendRules(
+        IndentedStringBuilder code,
+        string model,
+        List<RuleMethod> methods,
+        bool usesToNumber
+    )
+    {
+        code.AppendLine("// Converted from legacy JavaScript calculation rules. Review the code and test the app.");
+        code.AppendLine($"private void Calculate({model} model)");
+        code.OpenBrace();
+        foreach (var rule in methods.Select(method => method.Converted).OfType<ConvertedRule>())
+            code.AppendLine(
+                $"Run({PrimitiveRuleConverter.Quote(rule.Field)}, () => {rule.Write} = {rule.Name}(model));"
+            );
+        code.CloseBrace();
+        code.AppendLine("// A legacy rule that failed wrote nothing, so a failing rule keeps the current value.");
+        code.AppendLine("private void Run(string field, Action rule)");
+        code.OpenBrace();
+        code.AppendLine("try");
+        code.AppendLine("{");
+        code.AppendLine("    rule();");
+        code.AppendLine("}");
+        code.AppendLine("catch (Exception error)");
+        code.AppendLine("{");
+        code.AppendLine("    logger.LogWarning(error, \"Converted legacy rule for {Field} failed\", field);");
+        code.AppendLine("}");
+        code.CloseBrace();
+        foreach (var method in methods)
+        {
+            code.AppendLine();
+            var inputs = string.Join(
+                ", ",
+                (method.Rule.InputParams ?? [])
+                    .Where(pair => !string.IsNullOrEmpty(pair.Value))
+                    .Select(pair => $"{pair.Key} = {pair.Value}")
+            );
+            Comment(
+                code,
+                $"Rule {method.Id} ({method.Rule.SelectedFunction}): {inputs} -> {method.Rule.OutParams?.GetValueOrDefault("outParam0")}"
+            );
+            if (method.Function != null)
+                Comment(code, method.Function);
+            if (method.Converted is not { } rule)
+            {
+                Comment(code, $"TODO: Manual conversion required: {method.Reason}");
+                continue;
+            }
+            code.AppendLine($"private static {rule.Type} {rule.Name}({model} model)");
+            code.OpenBrace();
+            foreach (var line in rule.Body.TrimEnd('\n').Split('\n'))
+                code.AppendLine(line);
+            code.CloseBrace();
+        }
+        if (usesToNumber)
+        {
+            code.AppendLine();
+            foreach (var line in PrimitiveRuleConverter.ToNumberHelper.Split('\n'))
+                code.AppendLine(line);
+        }
+    }
+
+    private ModelMember Member(string path)
+    {
+        if (path.Contains('{'))
+            throw new NotSupportedException($"Model path '{path}' requires a repeating-row context.");
+        return typeResolver?.ResolveMember(path)
+            ?? throw new NotSupportedException($"Model path '{path}' could not be resolved.");
+    }
+
+    private static string MethodName(string property, HashSet<string> names)
+    {
+        var name = new string(property.Where(c => char.IsLetterOrDigit(c) || c == '_').ToArray());
+        return PrimitiveRuleConverter.Unique(char.ToUpperInvariant(name[0]) + name[1..], names);
+    }
+
     private static void Comment(IndentedStringBuilder code, string value)
     {
-        foreach (
-            var line in value
-                .Replace("\r\n", "\n", StringComparison.Ordinal)
-                .Replace('\r', '\n')
-                .Replace('\u0085', '\n')
-                .Replace('\u2028', '\n')
-                .Replace('\u2029', '\n')
-                .Split('\n')
-        )
+        foreach (var line in value.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
             code.AppendLine("// " + line);
     }
 
@@ -203,3 +208,13 @@ internal sealed class CSharpCodeGenerator(
         return identifier.Length == 0 ? "Legacy" : char.ToUpperInvariant(identifier[0]) + identifier[1..];
     }
 }
+
+internal sealed record RuleMethod(
+    string Id,
+    DataProcessingRule Rule,
+    string? Function,
+    ConvertedRule? Converted,
+    string? Reason
+);
+
+internal sealed record ConvertedRule(string Name, string Field, string Write, string Type, string Body);
