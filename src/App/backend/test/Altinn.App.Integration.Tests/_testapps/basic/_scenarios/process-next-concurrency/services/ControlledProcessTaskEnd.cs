@@ -22,14 +22,13 @@ public sealed class ControlledProcessTaskEnd : IProcessTask
     public string Type => AltinnTaskTypes.Data;
 
     public void DefineEnd(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline
-            .Stage(async _ =>
-            {
-                Interlocked.Increment(ref _taskEndInvocations);
-                _entered.TrySetResult();
-                await _release.Task;
-                return StageResult.Completed();
-            });
+        pipeline.Stage(async _ =>
+        {
+            Interlocked.Increment(ref _taskEndInvocations);
+            _entered.TrySetResult();
+            await _release.Task;
+            return StageResult.Completed();
+        });
 
     public static void Release()
     {

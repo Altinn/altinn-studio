@@ -265,14 +265,11 @@ internal sealed class TracingDataProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Data;
 
-    public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline.Stage(_ => Log("IProcessTask.Start"));
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Log("IProcessTask.Start"));
 
-    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline.Stage(_ => Log("IProcessTask.End"));
+    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Log("IProcessTask.End"));
 
-    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline.Stage(_ => Log("IProcessTask.Abandon"));
+    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Log("IProcessTask.Abandon"));
 
     private static Task<StageResult> Log(string message)
     {
@@ -285,14 +282,11 @@ internal sealed class TracingConfirmationProcessTask : IProcessTask
 {
     public string Type => AltinnTaskTypes.Confirmation;
 
-    public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline.Stage(_ => Log("IProcessTask.Start"));
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Log("IProcessTask.Start"));
 
-    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline.Stage(_ => Log("IProcessTask.End"));
+    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Log("IProcessTask.End"));
 
-    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) =>
-        pipeline.Stage(_ => Log("IProcessTask.Abandon"));
+    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Log("IProcessTask.Abandon"));
 
     private static Task<StageResult> Log(string message)
     {
