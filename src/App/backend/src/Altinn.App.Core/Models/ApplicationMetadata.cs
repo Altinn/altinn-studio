@@ -97,4 +97,10 @@ public class ApplicationMetadata : Application
     /// </summary>
     [JsonProperty(PropertyName = "externalApiIds")]
     public string[]? ExternalApiIds { get; set; }
+
+    /// <summary>
+    /// Configure what happens when the process ends
+    /// </summary>
+    [JsonProperty(PropertyName = "onProcessEnd")]
+    public OnProcessEnd? OnProcessEnd { get; set; }
 }

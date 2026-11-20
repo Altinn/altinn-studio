@@ -6,6 +6,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -57,6 +58,7 @@ public class ProcessNextRequestFactoryTests
         bool registerEvents = true,
         Action<IServiceCollection>? configureServices = null,
         IWorkflowCallbackTokenGenerator? callbackTokenGenerator = null,
+        bool confirmOnProcessEnd = false,
         params IServiceTask[] serviceTasks
     )
     {
@@ -86,13 +88,24 @@ public class ProcessNextRequestFactoryTests
             .Setup(x => x.GenerateToken(It.IsAny<Guid>(), It.IsAny<Actor>(), It.IsAny<IEnumerable<WorkflowRequest>>()))
             .Returns("test-callback-token");
 
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(
+                new ApplicationMetadata(TestInstance.AppId)
+                {
+                    OnProcessEnd = confirmOnProcessEnd ? new OnProcessEnd { Confirm = true } : null,
+                }
+            );
+
         return new ProcessNextRequestFactory(
             appImplFactory,
             authContextMock.Object,
             TestAppIdentifier,
             appSettings,
             callbackTokenGenerator ?? callbackTokenGeneratorMock.Object,
-            stepOptionsResolver
+            stepOptionsResolver,
+            appMetadataMock.Object
         );
     }
 
@@ -1101,6 +1114,37 @@ public class ProcessNextRequestFactoryTests
         // CompletedAltinnEvent is auxiliary and runs in its own auxiliary workflow.
         Assert.Single(bundle.Request.Workflows);
         Assert.Equal([CompletedAltinnEvent.Key], ExtractAuxiliaryCommandKeys(bundle));
+    }
+
+    [Fact]
+    public async Task Create_TaskToEndTransition_WithOnProcessEndConfirm_ConfirmsLastBeforeTheRelease()
+    {
+        var factory = CreateFactory(
+            configureServices: services => AddHookHandler(services, typeof(IOnProcessEndedHandler)),
+            confirmOnProcessEnd: true
+        );
+
+        var bundle = await factory.CreateDependent(
+            TestInstance,
+            CreateTaskToEndTransition(),
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key"
+        );
+
+        var keys = ExtractCommandKeys(bundle);
+        Assert.Equal(
+            [
+                CommitProcessState.Key,
+                OnProcessEndedHook.Key,
+                DeleteDataOnProcessEnd.Key,
+                ConfirmCompleteOnProcessEnd.Key,
+                ReleaseProcessingStatus.Key,
+                EnqueueAuxiliaryWorkflows.Key,
+            ],
+            keys[^6..]
+        );
     }
 
     [Fact]
