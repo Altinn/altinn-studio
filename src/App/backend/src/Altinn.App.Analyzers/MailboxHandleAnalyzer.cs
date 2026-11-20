@@ -6,9 +6,9 @@ namespace Altinn.App.Analyzers;
 /// <summary>
 /// Reports the two mistakes about a mailbox handle that an analyzer can <em>prove</em>: the same handle answered
 /// by two handlers (<c>ALTINNAPP0702</c>), and a mailbox opened whose handle is never passed anywhere at all
-/// (<c>ALTINNAPP0703</c>). Both are refused by
-/// <c>PipelineBuilder</c> when the pipeline composes, which fails app startup; this analyzer is the
-/// earlier, narrower signal for the shapes it can be certain about, and the builder stays authoritative.
+/// (<c>ALTINNAPP0703</c>). Both are refused by <c>PipelineBuilder.ServiceTask</c> when the pipeline composes, which
+/// fails app startup; this analyzer is the earlier, narrower signal for the shapes it can be certain about, and the
+/// builder stays authoritative.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -31,20 +31,22 @@ namespace Altinn.App.Analyzers;
 /// reported, following the same reading of an explicit discard that <c>ALTINNAPP0701</c> takes.
 /// </para>
 /// <para>
-/// <strong>Maintenance note:</strong> which methods answer a handle is two string constants here, so a builder
-/// method added later that also answers one drops out of both rules silently — no diagnostic, and nothing
-/// failing a build to say so. A new answering method needs its name added below.
+/// <strong>Maintenance note:</strong> what answers a handle is one method name here, <c>HandleReplies</c>, covering
+/// both its overloads, so a builder method added later under another name that also answers one drops out of both
+/// rules silently — no diagnostic, and nothing failing a build to say so. A new answering method needs its name
+/// added below.
 /// </para>
 /// </remarks>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
 {
-    private const string BuilderFullName = "Altinn.App.Core.Features.Process.PipelineBuilder";
+    // A nested type's metadata name joins it with '+'. The dotted name resolves to nothing, and the abstract
+    // PipelineBuilder declares none of these calls, so either would silence both rules without failing anything.
+    private const string BuilderFullName = "Altinn.App.Core.Features.Process.PipelineBuilder+ServiceTask";
     private const string HandleFullName = "Altinn.App.Core.Features.Process.MailboxHandle";
 
     private const string StageMethodName = "Stage";
     private const string HandleRepliesMethodName = "HandleReplies";
-    private const string ConcludeOnRepliesMethodName = "ConcludeOnReplies";
     private const string HandleParameterName = "handle";
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -142,9 +144,9 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Records an invocation of <c>HandleReplies</c> or <c>ConcludeOnReplies</c> whose <c>handle</c> argument is a
-    /// plain local read. Anything else — a field, a property, a parameter, a method call — is a handle this
-    /// analyzer cannot follow, and is left to the builder.
+    /// Records an invocation of <c>HandleReplies</c>, either overload, whose <c>handle</c> argument is a plain local
+    /// read. Anything else — a field, a property, a parameter, a method call — is a handle this analyzer cannot
+    /// follow, and is left to the builder.
     /// </summary>
     private static void TrackConsumption(
         BlockState state,
@@ -153,7 +155,7 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     )
     {
         IMethodSymbol target = invocation.TargetMethod;
-        if (target.Name is not (HandleRepliesMethodName or ConcludeOnRepliesMethodName))
+        if (target.Name != HandleRepliesMethodName)
             return;
         if (!SymbolEqualityComparer.Default.Equals(target.ContainingType, builderType))
             return;
@@ -174,7 +176,8 @@ public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Reads the mailbox-opening <c>Stage</c> call an <c>out</c> declaration belongs to, and the identifier of
     /// the local the handle was declared into, which names its exchange in every diagnostic. Null when the
-    /// declaration is anything else.
+    /// declaration is anything else. That overload is the only <c>Stage</c> with an <c>out</c> parameter named
+    /// <c>handle</c>, so the argument it was declared for identifies it.
     /// </summary>
     private static MailboxDeclaration? ReadMailboxDeclaration(
         ILocalReferenceOperation declaration,
