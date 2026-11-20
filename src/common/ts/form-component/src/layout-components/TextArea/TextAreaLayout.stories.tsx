@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { ComponentGridItem } from '@app/form-component/app-components/ComponentGridItem';
+import { PageRow, withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -31,6 +33,20 @@ export const TEXT_AREA_PROP_CATEGORIES = {
   validationMessages: 'runtime',
 } satisfies PropCategories<TextAreaLayoutProps>;
 
+function StatefulTextAreaLayout({ value: initialValue, onChange, ...args }: TextAreaLayoutProps) {
+  const [value, setValue] = useState(initialValue);
+  return (
+    <TextAreaLayout
+      {...args}
+      value={value}
+      onChange={(newValue) => {
+        onChange?.(newValue);
+        setValue(newValue);
+      }}
+    />
+  );
+}
+
 const meta = {
   title: 'LayoutComponents/TextArea',
   component: TextAreaLayout,
@@ -42,19 +58,7 @@ const meta = {
     onChange: fn(),
     onBlur: fn(),
   },
-  render: function Render({ value: initialValue, onChange, ...args }) {
-    const [value, setValue] = useState(initialValue);
-    return (
-      <TextAreaLayout
-        {...args}
-        value={value}
-        onChange={(newValue) => {
-          onChange?.(newValue);
-          setValue(newValue);
-        }}
-      />
-    );
-  },
+  render: (args) => <StatefulTextAreaLayout {...args} />,
 } satisfies Meta<typeof TextAreaLayout>;
 
 export default meta;
@@ -82,4 +86,39 @@ export const WithValidationMessages: Story = {
     title: 'Kommentar',
     validationMessages: 'Du må fylle ut dette feltet.',
   },
+};
+
+/** The label beside the text area from `sm`. Switch viewport to see the breakpoints. */
+export const LabelBeside: Story = {
+  decorators: [withComponentGrid],
+  args: {
+    title: 'Kommentar',
+    description: 'Skriv din kommentar her.',
+    labelGrid: { xs: 12, sm: 4 },
+    innerGrid: { xs: 12, sm: 8 },
+  },
+};
+
+/** Two text areas sharing a row from `md`. Switch viewport to see the breakpoints. */
+export const TwoInRow: Story = {
+  render: (args) => (
+    <PageRow>
+      <ComponentGridItem size={{ xs: 12, md: 6 }}>
+        <StatefulTextAreaLayout
+          {...args}
+          componentId='textarea-description'
+          title='Beskrivelse'
+          description='Beskriv saken kort.'
+        />
+      </ComponentGridItem>
+      <ComponentGridItem size={{ xs: 12, md: 6 }}>
+        <StatefulTextAreaLayout
+          {...args}
+          componentId='textarea-comment'
+          title='Kommentar'
+          description='Skriv din kommentar her.'
+        />
+      </ComponentGridItem>
+    </PageRow>
+  ),
 };

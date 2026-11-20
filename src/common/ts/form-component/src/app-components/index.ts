@@ -3,6 +3,7 @@ export * from './ConditionalWrapper';
 export * from './ConfirmPopover';
 export * from './Button';
 export * from './Card';
+export * from './ComponentGridItem';
 export * from './Datepicker';
 export * from './DynamicForm';
 export * from './Dropzone';
