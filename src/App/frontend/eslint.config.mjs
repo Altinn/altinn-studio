@@ -99,6 +99,10 @@ export default defineConfig([
             "ImportDeclaration[source.value='react'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)",
           message: "Import what you need by name, such as `import { useState } from 'react'`.",
         },
+        {
+          selector: "TSQualifiedName[left.name='React']",
+          message: "Import the type by name, such as `import type { ReactNode } from 'react'`.",
+        },
       ],
 
       'jsx-a11y/no-autofocus': ['off'],
