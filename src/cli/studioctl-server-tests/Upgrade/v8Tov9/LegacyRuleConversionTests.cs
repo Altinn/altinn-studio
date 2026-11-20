@@ -11,6 +11,9 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 public sealed class LegacyRuleConversionTests
 {
     [Theory]
+    [InlineData("return obj.a * obj.b;", "{\"a\":1e20,\"b\":1e10}", "1E+30")]
+    [InlineData("var total = obj.a; total *= obj.b; return total;", "{\"a\":1e20,\"b\":1e10}", "1E+30")]
+    [InlineData("obj.flag = obj.flag ? +obj.flag : 0; return obj.a * obj.flag;", "{\"a\":100,\"flag\":\"2.5\"}", "250")]
     [InlineData("return 100 - (obj.a + obj.b);", "{\"a\":20,\"b\":30}", "50")]
     [InlineData("return obj.b ? (obj.a / obj.b) * obj.b : 0;", "{\"a\":10,\"b\":1e-28}", "10")]
     [InlineData("return (1e-28 / 10) * 1e28;", "{\"a\":0}", "0.09999999999999999")]

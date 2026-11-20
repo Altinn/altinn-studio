@@ -30,7 +30,8 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData(
         Normalize + "var total = obj.a + obj.b; if (obj.a < 0) total = total * -1; return total;",
         "{\"a\":-10,\"b\":2}",
-        8
+        8,
+        true
     )]
     [InlineData(
         Normalize
@@ -55,12 +56,14 @@ public sealed class CalculationExpressionMigrationTests
     [InlineData(
         "if (obj.a == null || obj.b == null) return 0; const factor = 2; return (obj.a + obj.b) * factor;",
         "{\"a\":3,\"b\":2}",
-        10
+        10,
+        true
     )]
     [InlineData(
         "if (obj.a == null || obj.b == null) return 0; const factor = 2; return (obj.a + obj.b) * factor;",
         "{}",
-        0
+        0,
+        true
     )]
     [InlineData(Normalize + "return obj.a || obj.b;", "{\"a\":0,\"b\":3}", 3)]
     [InlineData(Normalize + "return obj.a && obj.b;", "{\"a\":2,\"b\":3}", 3)]
@@ -138,6 +141,30 @@ public sealed class CalculationExpressionMigrationTests
         var migration = CalculationMigration.Migrate(app.Root);
         Assert.Equal(["sum"], migration.ConvertedRules["form"]);
         Assert.Contains(migration.FallbackReasons, reason => reason.Contains("Non-finite", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("int", true)]
+    [InlineData("long", false)]
+    [InlineData("decimal", false)]
+    [InlineData("double", false)]
+    public void Multiplication_UsesTheModelsNumericBounds(string type, bool converts)
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/Root.cs",
+            app.Read("models/Root.cs").Replace("decimal?", type + "?", StringComparison.Ordinal)
+        );
+        foreach (var body in new[] { "return obj.a * obj.b;", "var total = obj.a; total *= obj.b; return total;" })
+        {
+            if (converts)
+                Assert.Equal(
+                    6d,
+                    Evaluate(Convert(app, body, Rule("calculate", "result")), new() { ["a"] = 2, ["b"] = 3 })
+                );
+            else
+                Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
+        }
     }
 
     [Theory]
@@ -562,7 +589,7 @@ public sealed class CalculationExpressionMigrationTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void NumericOptionCodes_ControlIncludedCostsAndPreserveTheirActualMultiplier(bool inlineOptions)
+    public void NumericOptionCosts_RequireFallbackForUnboundedPrefillMultipliers(bool inlineOptions)
     {
         using var app = CreateApp();
         var component = new JsonObject
@@ -589,25 +616,12 @@ public sealed class CalculationExpressionMigrationTests
             new() { ["total"] = rule },
             "cost: function(obj) { obj.flag = obj.flag ? +obj.flag : 0; obj.cost = obj.cost ? +obj.cost : 0; return obj.cost * obj.flag; }"
         );
-        Assert.Equal("total", Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]));
-        var expression = Calculations(app)["result"]?["expression"];
-        foreach (
-            var (flag, expected) in new (string?, double)[]
-            {
-                (null, 0),
-                ("", 0),
-                ("0", 0),
-                ("1", 100),
-                ("2", 200),
-                ("2.5", 250),
-                ("-1", -100),
-                ("+1", 100),
-                (".5", 50),
-            }
-        )
-            Assert.Equal(expected, Evaluate(expression, new() { ["a"] = 100, ["text"] = flag }));
-        Assert.Equal(0d, Evaluate(expression, new() { ["a"] = 100 }));
-        Assert.Equal(0d, Evaluate(expression, new() { ["text"] = "1" }));
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Contains(
+            migration.FallbackReasons,
+            reason => reason.Contains("Multiplication", StringComparison.Ordinal)
+        );
     }
 
     [Theory]

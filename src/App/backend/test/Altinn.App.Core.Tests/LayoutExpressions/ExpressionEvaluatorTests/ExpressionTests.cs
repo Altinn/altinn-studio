@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.ExpressionEvaluatorTests;
 
@@ -9,14 +11,15 @@ public class ExpressionTests
     [Theory]
     [InlineData("""["multiply", ["divide", 10, 1e-28], 1e-28]""")]
     [InlineData("""["multiply", ["divide", 7.922816251426434e27, 0.1], 0.1]""")]
-    public async Task Division_OverflowsBeforeMultiplicationCanReduceTheResult(string json)
+    [InlineData("""["multiply", 1e20, 1e10]""")]
+    public async Task Arithmetic_RejectsIntermediateDecimalOverflow(string json)
     {
-        // JavaScript's final result fits, but the intermediate quotient exceeds decimal.MaxValue.
-        // The upgrader must keep this calculation in C# rather than emit this expression.
+        // Finite JavaScript results can still require intermediates outside decimal's range.
+        // Such calculations must stay in the upgrader's C# fallback.
         var expression = JsonSerializer.Deserialize<Expression>(json);
 
         var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
-            ExpressionEvaluator.EvaluateExpression(null!, expression, null!)
+            EvaluateLiteral(expression)
         );
 
         Assert.StartsWith("Arithmetic overflow:", exception.Message);
@@ -30,7 +33,7 @@ public class ExpressionTests
     {
         var expression = JsonSerializer.Deserialize<Expression>(json);
 
-        var result = await ExpressionEvaluator.EvaluateExpression(null!, expression, null!);
+        var result = await EvaluateLiteral(expression);
 
         Assert.Equal(expected, Assert.IsType<double>(result));
     }
@@ -41,7 +44,7 @@ public class ExpressionTests
         var expression = JsonSerializer.Deserialize<Expression>("""["divide", 0.1, 1e-29]""");
 
         var exception = await Assert.ThrowsAsync<ExpressionEvaluatorTypeErrorException>(() =>
-            ExpressionEvaluator.EvaluateExpression(null!, expression, null!)
+            EvaluateLiteral(expression)
         );
 
         Assert.Contains("cannot divide by 0", exception.Message);
@@ -52,9 +55,27 @@ public class ExpressionTests
     {
         var expression = JsonSerializer.Deserialize<Expression>("""["divide", 1e-28, 1e-28]""");
 
-        var result = await ExpressionEvaluator.EvaluateExpression(null!, expression, null!);
+        var result = await EvaluateLiteral(expression);
 
         Assert.Equal(1d, Assert.IsType<double>(result));
+    }
+
+    private static Task<object?> EvaluateLiteral(Expression expression)
+    {
+        var accessor = new InstanceDataAccessorFake(
+            instance: new(),
+            applicationMetadata: null,
+            translationService: Moq.Mock.Of<ITranslationService>(),
+            layout: null,
+            frontEndSettings: new(),
+            gatewayAction: null,
+            language: null
+        );
+        return ExpressionEvaluator.EvaluateExpression(
+            accessor.GetLayoutEvaluatorState(),
+            expression,
+            new ComponentContext(accessor, null, null, null)
+        );
     }
 
     [Fact()]
