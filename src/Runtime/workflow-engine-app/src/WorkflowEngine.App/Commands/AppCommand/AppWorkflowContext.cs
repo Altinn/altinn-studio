@@ -30,18 +30,10 @@ internal sealed record AppWorkflowContext
     public required string CallbackToken { get; init; }
 
     /// <summary>
-    /// The app library version that planned the workflow. The engine never inspects it. It echoes it as
-    /// <see cref="AppCallbackPayload.PlannerVersion"/> on every callback, so a pod on an older version can refuse a
-    /// step that a newer one planned. Absent from workflows that apps enqueued before they set it.
+    /// The oldest app library version that may run the workflow's steps. The engine never inspects it. It echoes it as
+    /// <see cref="AppCallbackPayload.MinAppLibVersion"/> on every callback, so a pod on an older version can refuse the
+    /// step. Absent from workflows that apps enqueued before they set it.
     /// </summary>
-    [JsonPropertyName("plannerVersion")]
-    public string? PlannerVersion { get; init; }
-
-    /// <summary>
-    /// The oldest app library version that may run the workflow, which the planner can declare next to
-    /// <see cref="PlannerVersion"/>. The engine never inspects it. It echoes it as
-    /// <see cref="AppCallbackPayload.RunnableFromVersion"/> on every callback. Absent unless the planner declared one.
-    /// </summary>
-    [JsonPropertyName("runnableFromVersion")]
-    public string? RunnableFromVersion { get; init; }
+    [JsonPropertyName("minAppLibVersion")]
+    public string? MinAppLibVersion { get; init; }
 }

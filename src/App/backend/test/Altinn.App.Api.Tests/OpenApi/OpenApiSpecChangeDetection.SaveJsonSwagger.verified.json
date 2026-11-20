@@ -8358,11 +8358,7 @@
             "type": "string",
             "nullable": true
           },
-          "plannerVersion": {
-            "type": "string",
-            "nullable": true
-          },
-          "runnableFromVersion": {
+          "minAppLibVersion": {
             "type": "string",
             "nullable": true
           },

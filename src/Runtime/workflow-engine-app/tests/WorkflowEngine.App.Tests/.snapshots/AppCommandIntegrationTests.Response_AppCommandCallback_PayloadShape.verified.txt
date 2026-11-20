@@ -5,8 +5,7 @@
     language: null
   },
   payload: test-payload,
-  plannerVersion: null,
-  runnableFromVersion: null,
+  minAppLibVersion: null,
   workflowId: {Scrubbed},
   mailbox: null,
   stepId: Guid_1,

@@ -173,12 +173,12 @@
         "Nullable": true
       },
       {
-        "Name": "payload",
+        "Name": "minAppLibVersion",
         "Kind": "string",
         "Nullable": true
       },
       {
-        "Name": "plannerVersion",
+        "Name": "payload",
         "Kind": "string",
         "Nullable": true
       },
@@ -186,11 +186,6 @@
         "Name": "retryCount",
         "Kind": "int",
         "Nullable": false
-      },
-      {
-        "Name": "runnableFromVersion",
-        "Kind": "string",
-        "Nullable": true
       },
       {
         "Name": "state",
@@ -273,19 +268,14 @@
         "Nullable": false
       },
       {
+        "Name": "minAppLibVersion",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
         "Name": "org",
         "Kind": "string",
         "Nullable": false
-      },
-      {
-        "Name": "plannerVersion",
-        "Kind": "string",
-        "Nullable": true
-      },
-      {
-        "Name": "runnableFromVersion",
-        "Kind": "string",
-        "Nullable": true
       }
     ]
   },

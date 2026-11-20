@@ -19,16 +19,10 @@ internal sealed record AppCallbackPayload
     public string? Payload { get; init; }
 
     /// <summary>
-    /// <see cref="AppWorkflowContext.PlannerVersion"/>, echoed unread.
+    /// <see cref="AppWorkflowContext.MinAppLibVersion"/>, echoed unread.
     /// </summary>
-    [JsonPropertyName("plannerVersion")]
-    public string? PlannerVersion { get; init; }
-
-    /// <summary>
-    /// <see cref="AppWorkflowContext.RunnableFromVersion"/>, echoed unread.
-    /// </summary>
-    [JsonPropertyName("runnableFromVersion")]
-    public string? RunnableFromVersion { get; init; }
+    [JsonPropertyName("minAppLibVersion")]
+    public string? MinAppLibVersion { get; init; }
 
     [JsonPropertyName("workflowId")]
     public required Guid WorkflowId { get; init; }

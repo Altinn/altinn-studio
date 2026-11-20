@@ -235,26 +235,18 @@ public class AppCommandExecutionTests
     }
 
     [Theory]
-    [InlineData("9.1.0-preview.2", "9.0.0")]
-    [InlineData("9.1.0-preview.2", null)]
-    [InlineData(null, null)]
-    public async Task Execute_EchoesTheVersionStampsFromTheStoredContext(
-        string? plannerVersion,
-        string? runnableFromVersion
-    )
+    [InlineData("9.1.0-preview.2")]
+    [InlineData(null)]
+    public async Task Execute_EchoesTheMinAppLibVersionFromTheStoredContext(string? minAppLibVersion)
     {
         using var fixture = AppCommandTestFixture.Create();
         var command = GetAppCommand(fixture);
 
         // As the engine reads a stored context: the JSON the app enqueued, without a stamp the app left out.
         var stored = JsonNode.Parse(AppCommandTestFixture.DefaultWorkflowContext.GetRawText())!.AsObject();
-        if (plannerVersion is not null)
+        if (minAppLibVersion is not null)
         {
-            stored["plannerVersion"] = plannerVersion;
-        }
-        if (runnableFromVersion is not null)
-        {
-            stored["runnableFromVersion"] = runnableFromVersion;
+            stored["minAppLibVersion"] = minAppLibVersion;
         }
         var workflowContext = stored.Deserialize<AppWorkflowContext>(CommandDefinition.SerializerOptions);
 
@@ -267,8 +259,7 @@ public class AppCommandExecutionTests
 
         var payload = JsonSerializer.Deserialize<AppCallbackPayload>(fixture.HttpHandler.Requests[0].Body!);
         Assert.NotNull(payload);
-        Assert.Equal(plannerVersion, payload.PlannerVersion);
-        Assert.Equal(runnableFromVersion, payload.RunnableFromVersion);
+        Assert.Equal(minAppLibVersion, payload.MinAppLibVersion);
     }
 
     [Fact]

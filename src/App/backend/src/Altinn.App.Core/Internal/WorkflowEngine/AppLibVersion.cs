@@ -5,97 +5,86 @@ using System.Reflection;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// The Altinn.App.Core version that planned a workflow. The app puts it in the context of every workflow it enqueues,
-/// and the engine echoes it on every callback without reading it.
+/// This pod's Altinn.App.Core version, and the oldest version that may run the workflows it plans. The app puts that
+/// oldest version in the context of every workflow it enqueues, as <c>minAppLibVersion</c>, and the engine echoes it
+/// on every callback without reading it.
 /// </summary>
 /// <remarks>
-/// A pod never runs a step that a newer version planned, unless that version declared, in <see cref="RunnableFrom"/>,
-/// that the pod's version may. The newer version may have planned a command, a payload or a callback state field that
-/// the older one lacks, and the older one would fail the step permanently or drop the field for the steps after it.
-/// The callback controller answers such a step with a status the engine retries, so the step runs once it reaches a
-/// pod on the oldest version that may run it, or newer.
+/// A pod never runs a step of a workflow whose <c>minAppLibVersion</c> is newer than the pod. The newer version may
+/// have planned a command, a payload or a callback state field that the older one lacks, and the older one would fail
+/// the step permanently or drop the field for the steps after it. The callback controller answers such a step with a
+/// status the engine retries, so the step runs once it reaches a pod on that version or newer.
 /// </remarks>
-internal static class PlannerVersion
+internal static class AppLibVersion
 {
     /// <summary>
     /// This pod's Altinn.App.Core package version without build metadata, such as <c>9.0.0-preview.10</c>. It always
     /// parses. It is not <c>altinnNugetVersion</c>, the assembly file version, which leaves out the prerelease:
     /// 9.0.0-preview.10 and 9.0.0 both report <c>9.0.0.0</c> there.
     /// </summary>
-    public static string Current { get; } = Resolve(typeof(PlannerVersion).Assembly);
+    public static string Current { get; } = Resolve(typeof(AppLibVersion).Assembly);
 
     /// <summary>
-    /// The oldest Altinn.App.Core version that may run the workflows this version plans, written next to
-    /// <see cref="Current"/> in their context. <c>null</c> leaves it out, so only <see cref="Current"/> and newer run
-    /// them.
+    /// An older Altinn.App.Core version that may also run the workflows this version plans. <c>null</c> means that only
+    /// <see cref="Current"/> and newer run them.
     /// </summary>
     /// <remarks>
-    /// Set it to an older version only when a test shows that the older version reads the plan, the payloads and the
-    /// callback state this version writes. Then a rollback to that version continues the workflows this version
-    /// started, which otherwise retry until a pod on this version runs them. A value that does not parse, or one above
-    /// <see cref="Current"/>, counts as <c>null</c>.
+    /// Set it only when a test shows that the older version reads the plan, the payloads and the callback state this
+    /// version writes. Then a rollback to that version continues the workflows this version started, which otherwise
+    /// retry until a pod on this version runs them.
     /// </remarks>
-    public const string? RunnableFrom = null;
+    public const string? CompatibleFrom = null;
 
     /// <summary>
-    /// The oldest version that may run a step of a workflow, from the two versions its context carries: the
-    /// <paramref name="runnableFromVersion"/> its planner declared, or else the <paramref name="plannerVersion"/>.
-    /// The declared version can only lower the floor, so a declaration that is wrong leaves the planner's version.
+    /// The oldest Altinn.App.Core version that may run the workflows this pod plans, written to their context as
+    /// <c>minAppLibVersion</c>: <see cref="CompatibleFrom"/> when it takes effect, otherwise <see cref="Current"/>.
     /// </summary>
-    /// <param name="plannerVersion">
-    /// The version that planned the workflow. <c>null</c> for a workflow planned before the stamp existed, which has no
-    /// floor whatever else it carries.
-    /// </param>
-    /// <param name="runnableFromVersion">
-    /// The version the planner declared in <see cref="RunnableFrom"/>. It counts as missing when it does not parse, and
-    /// as <paramref name="plannerVersion"/> when it is above it.
-    /// </param>
-    /// <returns>
-    /// <paramref name="runnableFromVersion"/> when it takes effect, otherwise <paramref name="plannerVersion"/>. Pass
-    /// it to <see cref="IsNewerThan"/>.
-    /// </returns>
-    public static string? Floor(string? plannerVersion, string? runnableFromVersion)
-    {
-        if (
-            string.IsNullOrWhiteSpace(plannerVersion)
-            || string.IsNullOrWhiteSpace(runnableFromVersion)
-            || !TryParse(runnableFromVersion, out SemanticVersion? runnableFrom)
-        )
-        {
-            return plannerVersion;
-        }
-
-        // A planner version that does not parse comes from a version this pod does not know, so it counts as newer
-        // than the declared one.
-        return TryParse(plannerVersion, out SemanticVersion? planner) && runnableFrom.CompareTo(planner) > 0
-            ? plannerVersion
-            : runnableFromVersion;
-    }
+    public static string MinForWorkflows { get; } = MinFor(Current, CompatibleFrom);
 
     /// <summary>
-    /// Whether a step must wait for a pod on <paramref name="floor"/> or newer, because it is newer than
-    /// <paramref name="podVersion"/>. Versions are ordered by Semantic Versioning 2.0.0 precedence, so
-    /// <c>9.0.0-preview.10</c> is older than <c>9.0.0</c>.
+    /// The oldest version that may run the workflows a pod on <paramref name="podVersion"/> plans. The declared
+    /// <paramref name="compatibleFrom"/> can only lower it: one that does not parse, or one above
+    /// <paramref name="podVersion"/>, would hold back the pod's own version, so it counts as none.
     /// </summary>
-    /// <param name="floor">
-    /// The oldest version that may run the step, from <see cref="Floor"/>. A workflow planned before the stamp existed
-    /// has none, and runs as before. A version that does not parse counts as newer: every version that stamps workflows
-    /// writes one that parses, so a stamp this pod cannot read comes from a version it does not know.
-    /// </param>
-    /// <param name="podVersion">The version of the pod the callback reached, <see cref="Current"/> outside tests.</param>
-    public static bool IsNewerThan(string? floor, string podVersion)
+    public static string MinFor(string podVersion, string? compatibleFrom)
     {
         if (!TryParse(podVersion, out SemanticVersion? pod))
         {
             throw new ArgumentException($"'{podVersion}' is not a semantic version.", nameof(podVersion));
         }
 
-        if (string.IsNullOrWhiteSpace(floor) || floor == podVersion)
+        return
+            !string.IsNullOrWhiteSpace(compatibleFrom)
+            && TryParse(compatibleFrom, out SemanticVersion? declared)
+            && declared.CompareTo(pod) <= 0
+            ? compatibleFrom
+            : podVersion;
+    }
+
+    /// <summary>
+    /// Whether a step must wait for a newer pod, because its workflow's <paramref name="minAppLibVersion"/> is newer
+    /// than <paramref name="podVersion"/>. Versions are ordered by Semantic Versioning 2.0.0 precedence, so
+    /// <c>9.0.0-preview.10</c> is older than <c>9.0.0</c>.
+    /// </summary>
+    /// <param name="minAppLibVersion">
+    /// The oldest version that may run the step, from the workflow's context. A workflow planned before the stamp
+    /// existed has none, and runs as before. A version that does not parse counts as newer: every version that stamps
+    /// workflows writes one that parses, so a stamp this pod cannot read comes from a version it does not know.
+    /// </param>
+    /// <param name="podVersion">The version of the pod the callback reached, <see cref="Current"/> outside tests.</param>
+    public static bool IsNewerThan(string? minAppLibVersion, string podVersion)
+    {
+        if (!TryParse(podVersion, out SemanticVersion? pod))
+        {
+            throw new ArgumentException($"'{podVersion}' is not a semantic version.", nameof(podVersion));
+        }
+
+        if (string.IsNullOrWhiteSpace(minAppLibVersion) || minAppLibVersion == podVersion)
         {
             return false;
         }
 
-        return !TryParse(floor, out SemanticVersion? required) || required.CompareTo(pod) > 0;
+        return !TryParse(minAppLibVersion, out SemanticVersion? required) || required.CompareTo(pod) > 0;
     }
 
     private static string Resolve(Assembly assembly)

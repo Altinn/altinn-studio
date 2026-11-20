@@ -20,8 +20,7 @@ Content-Type: application/json; charset=utf-8
     "instanceOwnerPartyId": 50001,
     "instanceGuid": "Guid_2",
     "callbackToken": "test-callback-token",
-    "plannerVersion": null,
-    "runnableFromVersion": null
+    "minAppLibVersion": null
   },
   "workflows": [
     {
@@ -102,8 +101,7 @@ Workflow-Id: Guid_3
     "language": null
   },
   "payload": "step-1-payload",
-  "plannerVersion": null,
-  "runnableFromVersion": null,
+  "minAppLibVersion": null,
   "workflowId": "Guid_3",
   "mailbox": null,
   "stepId": "Guid_4",
@@ -145,8 +143,7 @@ Workflow-Id: Guid_3
     "language": null
   },
   "payload": "step-2-payload",
-  "plannerVersion": null,
-  "runnableFromVersion": null,
+  "minAppLibVersion": null,
   "workflowId": "Guid_3",
   "mailbox": null,
   "stepId": "Guid_5",
