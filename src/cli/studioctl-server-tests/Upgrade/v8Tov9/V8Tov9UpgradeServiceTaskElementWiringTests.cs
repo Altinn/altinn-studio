@@ -79,7 +79,7 @@ public sealed class V8Tov9UpgradeServiceTaskElementWiringTests : IDisposable
         );
         Assert.Contains(
             "The feedback task 'Task_Wait' follows the service task 'Task_Arkiv'",
-            MessagesOf("Feedback tasks behind service tasks"),
+            MessagesOf("Feedback tasks"),
             StringComparison.Ordinal
         );
         Assert.Contains("<bpmn:serviceTask id=\"Task_Arkiv\"", _app.Read("config/process/process.bpmn"));
