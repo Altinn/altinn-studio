@@ -1,3 +1,4 @@
+using Altinn.App.Analyzers.Process;
 using Altinn.App.Analyzers.Utils;
 using NanoJsonReader;
 
@@ -14,6 +15,11 @@ internal static class ServiceOwnerPolicyUtils
     private const string InconclusiveRule =
         "the policy grants it only through a rule this analysis cannot decide statically (a condition, "
         + "a grant scoped to a single task, or an attribute or match function it does not model)";
+
+    private const string EndEventsUnknown =
+        "process.bpmn is missing or could not be parsed, so a grant scoped to an end event could not be checked";
+
+    private static readonly HashSet<string> _noEndEvents = new();
 
     internal static bool IsPolicyFile(AdditionalText text) =>
         text.Path.Replace('\\', '/').EndsWith(PolicyPath, StringComparison.OrdinalIgnoreCase);
@@ -39,9 +45,7 @@ internal static class ServiceOwnerPolicyUtils
     {
         var (metadataOrg, metadataApp, autoDeleteOnProcessEnd, confirmOnProcessEnd) = ReadMetadata(metadataFile, token);
 
-        // The process only names the end events that a 'complete' grant may be scoped to.
-        var processContent = processFile?.GetText(token)?.ToString();
-        var process = processContent is null ? null : ProcessInfo.TryParse(processContent);
+        var endEventIds = processFile is null ? null : ReadEndEventIds(processFile, token);
         var requirements = BuildRequirements(autoDeleteOnProcessEnd, confirmOnProcessEnd);
 
         if (policyFile is null)
@@ -89,20 +93,6 @@ internal static class ServiceOwnerPolicyUtils
             return;
         }
 
-        if (confirmOnProcessEnd && processFile is not null && process is null)
-        {
-            diagnostics.Add(
-                NotVerifiable(
-                    location,
-                    org,
-                    app,
-                    Format(ServiceOwnerActions.Complete),
-                    "process.bpmn could not be parsed, so a grant scoped to an end event could not be checked"
-                )
-            );
-        }
-
-        var endEventIds = process?.EndEventIds;
         foreach (var requirement in requirements)
         {
             var result = policy.Evaluate(org, app, requirement.AnyOfActions, endEventIds);
@@ -121,9 +111,14 @@ internal static class ServiceOwnerPolicyUtils
                     );
                     break;
                 case GrantResult.Inconclusive:
-                    diagnostics.Add(
-                        NotVerifiable(location, org, app, Format(requirement.AnyOfActions), InconclusiveRule)
-                    );
+                    // Evaluated again with no end events, a grant scoped to one does not apply. If nothing
+                    // else grants the action then, only the unreadable process left it undecided.
+                    var reason =
+                        endEventIds is null
+                        && policy.Evaluate(org, app, requirement.AnyOfActions, _noEndEvents) == GrantResult.Missing
+                            ? EndEventsUnknown
+                            : InconclusiveRule;
+                    diagnostics.Add(NotVerifiable(location, org, app, Format(requirement.AnyOfActions), reason));
                     break;
             }
         }
@@ -215,7 +210,7 @@ internal static class ServiceOwnerPolicyUtils
                 }
             }
 
-            var autoDelete = metadata.GetProperty("autoDeleteOnProcessEnd");
+            var autoDelete = metadata.GetPropertyIgnoreCase("autoDeleteOnProcessEnd");
             var onProcessEnd = metadata.GetPropertyIgnoreCase("onProcessEnd");
             var confirm = onProcessEnd?.Type == JsonType.Object ? onProcessEnd.GetPropertyIgnoreCase("confirm") : null;
             return (
@@ -230,6 +225,29 @@ internal static class ServiceOwnerPolicyUtils
             // Malformed JSON is reported by the FormDataWrapperAnalyzer (ALTINNAPP0002).
             return (null, null, false, false);
         }
+    }
+
+    /// <summary>
+    /// The ids of the process's end events, which a <c>complete</c> grant may be scoped to, or null when the
+    /// process cannot be read.
+    /// </summary>
+    private static HashSet<string>? ReadEndEventIds(AdditionalText processFile, CancellationToken token)
+    {
+        if (ProcessFile.TryParse(processFile, token) is not { } parsed)
+        {
+            return null;
+        }
+
+        var endEventIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var endEvent in parsed.Document.Descendants(ProcessFile.EndEvent))
+        {
+            if (endEvent.Attribute("id")?.Value is { Length: > 0 } id)
+            {
+                endEventIds.Add(id);
+            }
+        }
+
+        return endEventIds;
     }
 
     /// <summary>
