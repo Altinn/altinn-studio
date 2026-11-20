@@ -322,6 +322,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await WarnCustomTaskTypes(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateRemoveHiddenDataSetting(projectFolder, projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -2162,6 +2165,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Names the custom task types in the process, whose type strings instances started under v8 rely on. Advisory
+    /// only.
+    /// </summary>
+    static async Task<int> WarnCustomTaskTypes(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Custom task types");
+        try
+        {
+            var result = await ProcessAdvisories.CustomTaskTypeAdvisor.Analyze(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No custom task types in the process",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking for custom task types", ex);
         }
     }
 
