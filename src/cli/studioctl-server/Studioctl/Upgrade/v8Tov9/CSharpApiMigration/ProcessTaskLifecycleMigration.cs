@@ -44,26 +44,38 @@ internal sealed class ProcessTaskLifecycleMigration
     private static readonly string[] _phases = ["Start", "End", "Abandon"];
     private static readonly string[] _legacyParameterTypes = ["string", "Instance"];
 
-    /// <summary>What becomes of a v8 method.</summary>
+    /// <summary>
+    /// What becomes of a v8 method.
+    /// </summary>
     private enum Change
     {
-        /// <summary>It does nothing: removed.</summary>
+        /// <summary>
+        /// It does nothing: removed.
+        /// </summary>
         Remove,
 
-        /// <summary>It does work: a <c>Define</c> stub that stops the build is added beside it.</summary>
+        /// <summary>
+        /// It does work: a <c>Define</c> stub that stops the build is added beside it.
+        /// </summary>
         AddDefinition,
 
-        /// <summary>The type composes the phase already: only made private, when it is an explicit implementation.</summary>
+        /// <summary>
+        /// The type composes the phase already: only made private, when it is an explicit implementation.
+        /// </summary>
         KeepAsOwnMethod,
     }
 
-    /// <summary>Whether the type already has a member that can be the phase's v9 definition.</summary>
+    /// <summary>
+    /// Whether the type already has a member that can be the phase's v9 definition.
+    /// </summary>
     private enum ExistingDefinition
     {
         None,
         Implemented,
 
-        /// <summary>A <c>Define</c> member of that signature that v9 cannot call, such as a private helper.</summary>
+        /// <summary>
+        /// A <c>Define</c> member of that signature that v9 cannot call, such as a private helper.
+        /// </summary>
         Blocked,
     }
 
@@ -371,7 +383,9 @@ internal sealed class ProcessTaskLifecycleMigration
         }
     }
 
-    /// <summary>What becomes of one v8 method, and the message that says so.</summary>
+    /// <summary>
+    /// What becomes of one v8 method, and the message that says so.
+    /// </summary>
     private static Rewrite? Decide(
         ScannedCSharpFile file,
         MethodDeclarationSyntax method,
@@ -487,7 +501,9 @@ internal sealed class ProcessTaskLifecycleMigration
         expression is MemberAccessExpressionSyntax { Name.Identifier.ValueText: "CompletedTask" } access
         && CalledName(access.Expression) == "Task";
 
-    /// <summary>The simple name an invocation calls, or a member access ends with.</summary>
+    /// <summary>
+    /// The simple name an invocation calls, or a member access ends with.
+    /// </summary>
     private static string? CalledName(ExpressionSyntax expression) =>
         expression switch
         {
@@ -585,7 +601,9 @@ internal sealed class ProcessTaskLifecycleMigration
             .WithIdentifier(SyntaxFactory.Identifier(name).WithTriviaFrom(method.Identifier));
     }
 
-    /// <summary>The whitespace the method's first token is indented with, so the new member lines up with it.</summary>
+    /// <summary>
+    /// The whitespace the method's first token is indented with, so the new member lines up with it.
+    /// </summary>
     private static string Indentation(MethodDeclarationSyntax method) =>
         method.GetLeadingTrivia().LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)).ToString();
 
@@ -649,7 +667,9 @@ internal sealed class ProcessTaskLifecycleMigration
         && a.Parameters.Zip(b.Parameters)
             .All(pair => SymbolEqualityComparer.Default.Equals(pair.First.Type, pair.Second.Type));
 
-    /// <summary>The declaration of <paramref name="method"/> in the scanned files, or <c>null</c> when it has none there.</summary>
+    /// <summary>
+    /// The declaration of <paramref name="method"/> in the scanned files, or <c>null</c> when it has none there.
+    /// </summary>
     private static (ScannedCSharpFile File, MethodDeclarationSyntax Method)? Locate(
         IMethodSymbol method,
         IReadOnlyDictionary<SyntaxTree, ScannedCSharpFile> filesByTree
@@ -672,7 +692,9 @@ internal sealed class ProcessTaskLifecycleMigration
     private static bool ListsInterface(TypeDeclarationSyntax type) =>
         (type.BaseList?.Types ?? default).Any(static baseType => SimpleName(baseType.Type) == InterfaceName);
 
-    /// <summary>Whether the base list names something that is not written like an interface, so may be a base class.</summary>
+    /// <summary>
+    /// Whether the base list names something that is not written like an interface, so may be a base class.
+    /// </summary>
     private static bool MayInheritMethods(TypeDeclarationSyntax type) =>
         (type.BaseList?.Types ?? default).Any(static baseType =>
             SimpleName(baseType.Type) is { } name && !(name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]))
@@ -697,7 +719,9 @@ internal sealed class ProcessTaskLifecycleMigration
             _ => null,
         };
 
-    /// <summary>Whether the method's parameters have exactly the given simple type names, in order.</summary>
+    /// <summary>
+    /// Whether the method's parameters have exactly the given simple type names, in order.
+    /// </summary>
     private static bool HasParameterTypes(MethodDeclarationSyntax method, string[] typeNames)
     {
         var parameters = method.ParameterList.Parameters;
@@ -705,7 +729,9 @@ internal sealed class ProcessTaskLifecycleMigration
             && parameters.Zip(typeNames).All(pair => SimpleName(pair.First.Type) == pair.Second);
     }
 
-    /// <summary>The simple name of a written type: the identifier of a generic or qualified name, without a nullable annotation.</summary>
+    /// <summary>
+    /// The simple name of a written type: the identifier of a generic or qualified name, without a nullable annotation.
+    /// </summary>
     private static string? SimpleName(TypeSyntax? type) =>
         type switch
         {

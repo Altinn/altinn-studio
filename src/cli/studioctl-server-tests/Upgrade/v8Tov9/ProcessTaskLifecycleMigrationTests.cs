@@ -125,7 +125,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         SemanticScannerFactory.EmitStubAssembly("Altinn.App.Core", SdkStub(v9: true))
     );
 
-    /// <summary>The usings every fixture file needs; the v8 app template has no implicit usings.</summary>
+    /// <summary>
+    /// The usings every fixture file needs; the v8 app template has no implicit usings.
+    /// </summary>
     private const string Usings = """
         using System;
         using System.Threading.Tasks;
@@ -133,7 +135,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         using Altinn.Platform.Storage.Interface.Models;
         """;
 
-    /// <summary>A v8 task that implements the three members implicitly, in the shapes apps write them.</summary>
+    /// <summary>
+    /// A v8 task that implements the three members implicitly, in the shapes apps write them.
+    /// </summary>
     private const string LegacyTask = """
         public class ParallelSigningTask : IProcessTask
         {
