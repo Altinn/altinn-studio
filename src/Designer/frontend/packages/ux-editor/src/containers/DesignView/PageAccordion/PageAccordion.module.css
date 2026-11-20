@@ -27,6 +27,8 @@
   display: flex;
   align-items: center;
   padding: var(--ds-size-1);
+  /* As tall as the buttons, so a row without them keeps its PDF icon in line. */
+  min-height: var(--ds-size-12);
 }
 
 .pdfIcon {
