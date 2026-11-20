@@ -10,7 +10,8 @@ namespace Altinn.App.Core.Features.Process;
 /// <see cref="Internal.Process.ProcessTasks.IProcessTask.DefineStart"/>, <c>DefineEnd</c> or <c>DefineAbandon</c>
 /// and ends with <see cref="Build"/>: those stages run inside the transition and never advance the process, so
 /// there is no conclusion, and no mailbox either. Composition mistakes throw from the composing call and fail app
-/// startup. A builder composes one pipeline: once a terminal has been called, every further call on it throws.
+/// startup. A builder composes one pipeline: once a terminal has been called with valid arguments, every further call
+/// on it throws.
 /// Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </summary>
 public sealed class PipelineBuilder
@@ -146,6 +147,7 @@ public sealed class PipelineBuilder
     /// </summary>
     public ProcessTaskPipeline Build()
     {
+        ThrowIfEnded(nameof(Build));
         End(nameof(Build));
         if (_mailboxes.Count > 0)
         {
@@ -182,6 +184,7 @@ public sealed class PipelineBuilder
         ProcessStepOptions? options = null
     )
     {
+        ThrowIfEnded(nameof(Finally));
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
         End(nameof(Finally));
@@ -222,6 +225,7 @@ public sealed class PipelineBuilder
         ProcessStepOptions? options = null
     )
     {
+        ThrowIfEnded(nameof(ConcludeOnReplies));
         ArgumentNullException.ThrowIfNull(handle);
         ArgumentNullException.ThrowIfNull(onMessage);
         ArgumentNullException.ThrowIfNull(onClosed);
@@ -242,13 +246,11 @@ public sealed class PipelineBuilder
 
     /// <summary>
     /// Ends the builder at the terminal being called, once its arguments are valid and before it changes anything,
-    /// so a terminal that throws after that leaves nothing half-composed for a later call to finish.
+    /// so a terminal that throws after that leaves nothing half-composed for a later call to finish. Every terminal
+    /// checks <see cref="ThrowIfEnded"/> before its arguments, as the other calls do, so a second ending reports the
+    /// ending first.
     /// </summary>
-    private void End(string terminal)
-    {
-        ThrowIfEnded(terminal);
-        _endedBy = terminal;
-    }
+    private void End(string terminal) => _endedBy = terminal;
 
     /// <summary>
     /// Refuses a call on a builder whose pipeline has already ended. A second chain built on the same builder would
