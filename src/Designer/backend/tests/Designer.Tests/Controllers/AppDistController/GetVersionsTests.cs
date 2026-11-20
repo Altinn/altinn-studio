@@ -56,6 +56,7 @@ public class GetVersionsTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(["9.0.0"], JsonSerializer.Deserialize<List<string>>(responseBody));
+        Assert.Equal(["*"], response.Headers.GetValues("Access-Control-Allow-Origin"));
     }
 
     [Fact]

@@ -72,6 +72,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
         Assert.Equal("text/css", response.Content.Headers.ContentType?.MediaType);
         Assert.Equal("body{}", await response.Content.ReadAsStringAsync());
         Assert.True(response.Headers.CacheControl?.Public);
+        Assert.Equal(["*"], response.Headers.GetValues("Access-Control-Allow-Origin"));
     }
 
     [Fact]
@@ -123,6 +124,7 @@ public class GetFileTests : DesignerEndpointsTestsBase<GetFileTests>, IClassFixt
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Null(response.Headers.CacheControl);
+        Assert.Equal(["*"], response.Headers.GetValues("Access-Control-Allow-Origin"));
     }
 
     [Fact]

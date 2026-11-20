@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
 /// Serves files from published Altinn app frontend distributions. The distributions are public, so the
-/// endpoints accept anonymous callers as well as Studio sessions and API keys.
+/// endpoints accept anonymous callers as well as Studio sessions and API keys, and any origin may read them.
 /// </summary>
 [ApiController]
 [AllowAnonymous]
@@ -40,8 +40,11 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     /// Lists the published app frontend versions, in ascending Semantic Versioning precedence.
     /// </summary>
     [HttpGet("versions")]
-    public async Task<IReadOnlyList<string>> GetVersions(CancellationToken cancellationToken) =>
-        await appDistProvider.ListVersions(cancellationToken);
+    public async Task<IReadOnlyList<string>> GetVersions(CancellationToken cancellationToken)
+    {
+        AllowAnyOrigin();
+        return await appDistProvider.ListVersions(cancellationToken);
+    }
 
     /// <summary>
     /// Serves one file from the app frontend distribution of <paramref name="version"/>, or lists the files
@@ -57,6 +60,7 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
         CancellationToken cancellationToken
     )
     {
+        AllowAnyOrigin();
         if (!VersionPattern().IsMatch(version))
         {
             return BadRequest($"Invalid version \"{version}\".");
@@ -126,6 +130,13 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     /// indefinitely. Error responses are left uncached since a later publish or fix may change them.
     /// </summary>
     private void MarkResponseImmutable() => Response.GetTypedHeaders().CacheControl = s_immutableCacheControl;
+
+    /// <summary>
+    /// Apps load the app frontend from here through a crossorigin script tag, and the dev tools in an app list the
+    /// versions, so browsers must be allowed to read the responses from any origin, as they could from altinncdn.no
+    /// in v4. The wildcard never allows credentials, so a Studio session cannot be used from another origin.
+    /// </summary>
+    private void AllowAnyOrigin() => Response.Headers.AccessControlAllowOrigin = "*";
 
     private static AppDistLayer LayerFor(string path) =>
         path.StartsWith(SchemasLayerPathPrefix, StringComparison.Ordinal) ? AppDistLayer.Schemas : AppDistLayer.Content;
