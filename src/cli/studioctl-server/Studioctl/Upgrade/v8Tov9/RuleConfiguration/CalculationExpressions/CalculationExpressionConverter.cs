@@ -120,7 +120,8 @@ internal sealed partial class CalculationExpressionConverter
         };
         if (!compatible)
             throw new NotSupportedException("Result requires conversion to a different model value type.");
-        return ExpressionSimplifier.Simplify(result.Expression);
+        // A bare null is an invalid calculation definition, even though a calculation may return null.
+        return ExpressionSimplifier.Simplify(result.Expression) ?? Call("if", true, null, null);
     }
 
     private Value Execute(IReadOnlyList<Statement> statements, Dictionary<string, Value> values)
