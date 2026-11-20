@@ -43,14 +43,6 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == ''">
-    <UseExperimentalPackageId>false</UseExperimentalPackageId>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == 'true'">
-    <PackageId>$(MSBuildProjectName).Experimental</PackageId>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(Deterministic)'=='true'">
     <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
   </ItemGroup>

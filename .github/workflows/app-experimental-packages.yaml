@@ -1,0 +1,161 @@
+name: App - Build experimental packages
+
+# Packs the app libraries, codelists and fileanalyzers that a pull request changes as `*.Experimental` packages,
+# without publishing them. The release-<component>-experimental.yaml workflows publish them when a maintainer
+# comments `/publish`. The pull request code runs here, with no secrets, so it never runs in a job that can log in to
+# nuget.org.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/App/backend/**'
+      - 'src/App/frontend/**'
+      - 'src/App/codelists/**'
+      - 'src/App/fileanalyzers/**'
+      - 'src/App/*.props'
+      - 'src/common/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/app-experimental-packages.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Find changed components
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      components: ${{ steps.changes.outputs.components }}
+    steps:
+      - name: Find changed components
+        id: changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          files="$(gh api --paginate "repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" --jq '.[].filename')"
+          changed() { grep -qE "$1" <<<"$files"; }
+
+          components=()
+          # A change to this workflow or the shared props builds them all
+          shared='^(src/App/[^/]*\.props|\.github/workflows/app-experimental-packages\.yaml)$'
+          # Altinn.App.Api bundles the app frontend
+          if changed "^(src/App/(backend|frontend)/|src/common/|package\.json$|yarn\.lock$)|${shared}"; then
+            components+=(app)
+          fi
+          for component in codelists fileanalyzers; do
+            if changed "^src/App/${component}/|${shared}"; then
+              components+=("$component")
+            fi
+          done
+
+          echo "Changed: ${components[*]:-none}"
+          echo "components=$(jq -cn '$ARGS.positional' --args "${components[@]}")" >> "$GITHUB_OUTPUT"
+
+  pack:
+    name: Pack ${{ matrix.component }}
+    needs: changes
+    if: needs.changes.outputs.components != '[]'
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJSON(needs.changes.outputs.components) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Resolve directory
+        id: dir
+        env:
+          COMPONENT: ${{ matrix.component }}
+        run: |
+          if [[ "$COMPONENT" == "app" ]]; then
+            echo "dir=src/App/backend" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=src/App/${COMPONENT}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Altinn.App.Api bundles the app frontend
+      - name: Build app frontend
+        if: matrix.component == 'app'
+        uses: ./.github/actions/app-build-frontend
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          global-json-file: ${{ steps.dir.outputs.dir }}/global.json
+
+      - name: Setup Go
+        uses: ./.github/actions/setup-go-cached
+        with:
+          module: src/tools/releaser
+
+      - name: Resolve version
+        id: version
+        env:
+          COMPONENT: ${{ matrix.component }}
+          BASE_REF: ${{ github.base_ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          # The version the pull request builds on: the latest prerelease on main, or the latest stable release
+          # of a release branch. Stacked pull requests target other branches, and build on main's.
+          base_branch="$BASE_REF"
+          if [[ "$base_branch" != "main" && ! "$base_branch" =~ ^release/${COMPONENT}/v[0-9]+\.[0-9]+$ ]]; then
+            base_branch=main
+          fi
+          base="$(go run . resolve-version --component "$COMPONENT" --base-branch "$base_branch")"
+          base="${base#v}"
+
+          # The release-<component>-experimental.yaml workflows check that the version names this pull request
+          echo "version=${base}.pr.${PR_NUMBER}.${RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "assembly-version=${base%%-*}.0" >> "$GITHUB_OUTPUT"
+        working-directory: src/tools/releaser
+
+      # Codelists and fileanalyzers build against the published Altinn.App.Core, as their releases do. See
+      # src/App/AppCoreDependency.props.
+      - name: Pack
+        env:
+          COMPONENT: ${{ matrix.component }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ASSEMBLY_VERSION: ${{ steps.version.outputs.assembly-version }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          app_libs=()
+          if [[ "$COMPONENT" != "app" ]]; then
+            app_libs=(-p:UseAppLibsFromSource=false)
+          fi
+
+          dotnet pack solutions/Src.slnx \
+            -c Release \
+            --output "${GITHUB_WORKSPACE}/build/experimental" \
+            -p:UseExperimentalPackageId=true \
+            "${app_libs[@]}" \
+            "-p:ReleasePackageVersion=${VERSION}" \
+            "-p:ReleaseAssemblyVersion=${ASSEMBLY_VERSION}" \
+            "-p:ReleaseInformationalVersion=${VERSION}+${HEAD_SHA:0:12}"
+        working-directory: ${{ steps.dir.outputs.dir }}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ${{ matrix.component }}-experimental-packages
+          path: |
+            build/experimental/*.nupkg
+            build/experimental/*.snupkg
+          if-no-files-found: error
+          retention-days: 7

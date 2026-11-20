@@ -1,0 +1,64 @@
+name: Release - codelists experimental packages
+
+# Publishes a pull request's experimental codelists packages, which app-experimental-packages.yaml built, when a
+# maintainer or admin comments `/publish codelists`. nuget.org's trusted publishing policy for this file allows only
+# Altinn.Codelists.Experimental.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  find-build:
+    name: Find build
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/publish')
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      run-id: ${{ steps.find.outputs.run-id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Find build
+        id: find
+        uses: ./.github/actions/find-experimental-build
+        with:
+          component: codelists
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs: find-build
+    if: needs.find-build.outputs.run-id != ''
+    environment: libraries
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Publish
+        uses: ./.github/actions/publish-experimental-packages
+        with:
+          run-id: ${{ needs.find-build.outputs.run-id }}
+          component: codelists
+          package-id: Altinn.Codelists.Experimental
+          nuget-user: ${{ vars.NUGET_TRUSTED_PUBLISHING_USER }}

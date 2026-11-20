@@ -15,6 +15,9 @@
   Consumers may override the computed values (a release pipeline passes the version it is releasing):
     ReleasePackageVersion, ReleaseAssemblyVersion, ReleaseInformationalVersion
 
+  UseExperimentalPackageId=true packs each package as <project>.Experimental, for pull request builds, so that they
+  never publish under a released package's ID.
+
   An unrecognized override name is NOT an error — it falls back to the derived version, and the
   release then ships as <version>.dev.N. Renaming these means updating every caller; today that is
   `runDotnetPack` in src/tools/releaser/builder_app.go and the two release-*.yaml pack steps.
@@ -29,6 +32,10 @@
   <PropertyGroup>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <GetPackageVersionDependsOn>ResolvePackageVersionFromGit;$(GetPackageVersionDependsOn)</GetPackageVersionDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseExperimentalPackageId)' == 'true'">
+    <PackageId>$(MSBuildProjectName).Experimental</PackageId>
   </PropertyGroup>
 
   <Target Name="ResolvePackageVersionFromGit" BeforeTargets="GetAssemblyVersion;GenerateNuspec">

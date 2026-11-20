@@ -57,6 +57,20 @@ the `libraries` environment. Pull request runs cannot use that environment, so t
 `prepare` infers the next version from the released sections of the changelog, so it cannot infer the first one. Pass
 it for the first release only, such as `-version 9.0.0-preview.1`.
 
+## Experimental packages
+
+To try a pull request's version of the app libraries, codelists or fileanalyzers in an app, a maintainer or admin
+comments `/publish` and the components on the pull request, such as `/publish app codelists`. The components are `app`,
+`codelists` and `fileanalyzers`. That publishes them as `*.Experimental` packages, versioned
+`<version>.pr.<number>.<build>`, and comments the versions on the pull request.
+
+- The pull request's own build packs the packages, so its code never runs where nuget.org's login is available. The
+  `release-<component>-experimental.yaml` workflows only publish them.
+- It publishes the build of the commit that was the pull request's head when you commented. Comment again after the
+  pull request changes, once its build has passed. Draft pull requests are not built, so mark the pull request ready
+  for review first.
+- Experimental codelists and fileanalyzers build against the published `Altinn.App.Core`, as their releases do.
+
 ## Running it locally
 
 - `workflow` creates tags and releases only in CI, where `CI=true`. Run it locally with `-dry-run`.
