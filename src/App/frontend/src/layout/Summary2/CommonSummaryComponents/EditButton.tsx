@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 import { Button, useIsMobile } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';

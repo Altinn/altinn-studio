@@ -1,4 +1,5 @@
-import React, { useLayoutEffect } from 'react';
+import { useLayoutEffect } from 'react';
+import type React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';

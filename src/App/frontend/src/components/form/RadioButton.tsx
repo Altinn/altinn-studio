@@ -1,4 +1,5 @@
-import React, { forwardRef, useRef } from 'react';
+import { forwardRef, useRef } from 'react';
+import type React from 'react';
 
 import { ConditionalWrapper, HelpText } from '@app/form-component';
 import { Radio } from '@digdir/designsystemet-react';

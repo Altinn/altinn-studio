@@ -1,4 +1,4 @@
-import React, { forwardRef, type JSX } from 'react';
+import { forwardRef, type JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 

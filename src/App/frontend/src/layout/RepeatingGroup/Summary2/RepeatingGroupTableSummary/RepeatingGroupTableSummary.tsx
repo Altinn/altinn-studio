@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { BaseTable, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';

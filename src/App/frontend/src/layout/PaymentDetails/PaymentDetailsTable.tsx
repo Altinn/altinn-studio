@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 import { BaseTable } from '@app/form-component';
 import { Label } from '@digdir/designsystemet-react';

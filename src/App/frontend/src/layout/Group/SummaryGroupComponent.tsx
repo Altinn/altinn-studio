@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+import type React from 'react';
 
 import { CompCategory } from '@app/layout-contract';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

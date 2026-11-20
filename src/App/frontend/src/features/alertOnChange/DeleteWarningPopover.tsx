@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 import { Button } from '@app/form-component';
 import { Popover } from '@digdir/designsystemet-react';

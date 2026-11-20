@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type { HtmlHTMLAttributes } from 'react';
 
 import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';

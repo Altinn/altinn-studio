@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type { JSX } from 'react';
 
 import { AttachmentGroupings, Attachments } from '@app/form-component';

@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type React from 'react';
 
 import { Button } from '@app/form-component';
 import { Alert } from '@digdir/designsystemet-react';

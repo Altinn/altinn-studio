@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { FatalError } from '@app/form-component';
 import { isHttpError } from '@studio/http-client';
 import { z, ZodError } from 'zod';

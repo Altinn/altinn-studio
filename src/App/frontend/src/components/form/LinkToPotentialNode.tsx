@@ -1,5 +1,5 @@
-import React from 'react';
 import { Link, useLinkClickHandler } from 'react-router';
+import type React from 'react';
 import type { LinkProps } from 'react-router';
 
 import { SearchParams } from 'src/core/routing/types';

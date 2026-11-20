@@ -1,5 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router';
+import type React from 'react';
 import type { LinkProps } from 'react-router';
 
 import { useIsValidPageId } from 'src/hooks/useNavigatePage';

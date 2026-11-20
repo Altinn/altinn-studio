@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type React from 'react';
 import type { CSSProperties } from 'react';
 
 import { useIsLgUp, useIsMobile } from '@app/form-component';

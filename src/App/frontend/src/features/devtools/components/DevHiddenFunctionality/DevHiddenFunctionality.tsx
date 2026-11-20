@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Fieldset, ToggleGroup } from '@digdir/designsystemet-react';
 
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';

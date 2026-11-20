@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { CompCategory } from '@app/layout-contract';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 

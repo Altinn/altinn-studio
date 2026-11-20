@@ -1,5 +1,5 @@
-import React from 'react';
 import { useNavigate, useNavigation } from 'react-router';
+import type React from 'react';
 
 import { BaseTable, FatalError, Flex, Spinner } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

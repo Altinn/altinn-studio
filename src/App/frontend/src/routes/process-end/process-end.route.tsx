@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 import { ReceiptContainer } from 'src/features/receipt/ReceiptContainer';

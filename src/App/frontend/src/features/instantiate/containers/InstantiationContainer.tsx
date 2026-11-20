@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { RenderStart } from 'src/core/ui/RenderStart';

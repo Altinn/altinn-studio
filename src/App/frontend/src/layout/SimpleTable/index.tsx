@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type React from 'react';
 
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
 import { ApiTableSummary } from 'src/layout/SimpleTable/ApiTableSummary';

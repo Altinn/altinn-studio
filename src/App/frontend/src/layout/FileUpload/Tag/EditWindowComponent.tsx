@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type React from 'react';
 
 import { Button, ErrorValidations, Flex } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';

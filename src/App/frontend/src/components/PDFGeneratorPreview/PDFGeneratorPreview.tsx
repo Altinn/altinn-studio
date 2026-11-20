@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { PDFPreviewControls } from '@app/form-component';
 
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';

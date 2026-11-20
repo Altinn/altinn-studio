@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

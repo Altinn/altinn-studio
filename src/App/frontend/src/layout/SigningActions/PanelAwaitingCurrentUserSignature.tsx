@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { Button, FullWidthWrapper, LiveValidationMessage, Panel, Spinner } from '@app/form-component';

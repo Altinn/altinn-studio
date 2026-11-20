@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useIsServiceTaskPage } from 'src/components/process/serviceTaskPage';

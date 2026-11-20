@@ -1,4 +1,5 @@
-import React, { useId, useRef } from 'react';
+import { useId, useRef } from 'react';
+import type React from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { Button, FullWidthWrapper, LiveValidationMessage, Panel } from '@app/form-component';

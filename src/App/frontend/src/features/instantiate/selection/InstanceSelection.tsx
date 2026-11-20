@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import type React from 'react';
 
 import { BaseTable, Button, Pagination, useIsMobileOrTablet } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';

@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-router';
 import type { RouteObject } from 'react-router';
 

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import dot from 'dot-object';

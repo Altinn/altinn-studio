@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Date } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { isValid, parseISO } from 'date-fns';

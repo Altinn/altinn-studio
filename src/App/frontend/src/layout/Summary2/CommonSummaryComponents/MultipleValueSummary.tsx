@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 import { Label, List, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';

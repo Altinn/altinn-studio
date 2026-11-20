@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { CompSummaryExternal } from '@app/layout-contract/generated/components/Summary/config.generated';

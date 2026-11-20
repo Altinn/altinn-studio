@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import type React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';

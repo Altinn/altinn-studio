@@ -28,6 +28,7 @@ export default defineConfig([
   ...fixupConfigRules(pluginImport.flatConfigs.typescript),
   jsxA11y.flatConfigs.recommended,
   ...fixupConfigRules(reactPlugin.configs.flat.recommended),
+  ...fixupConfigRules(reactPlugin.configs.flat['jsx-runtime']),
   ...tsPlugin.configs['flat/recommended'],
   eslintPluginPrettierRecommended,
 

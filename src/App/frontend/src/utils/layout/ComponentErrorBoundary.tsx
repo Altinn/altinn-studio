@@ -1,4 +1,5 @@
-import React, { Component, useEffect } from 'react';
+import { Component, useEffect } from 'react';
+import type React from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { useIsPdf } from 'src/hooks/useIsPdf';

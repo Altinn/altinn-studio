@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

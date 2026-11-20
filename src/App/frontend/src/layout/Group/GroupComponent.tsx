@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import type { JSX } from 'react';
 
 import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, Panel } from '@app/form-component';
