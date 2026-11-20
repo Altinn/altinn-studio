@@ -4,6 +4,7 @@ Provides:
 - A `Tool` subclass family with synchronous in-memory behavior.
 - A FakeAdapter that returns a queued list of AssistantMessages.
 - A minimal LoopContext.
+- `serve`, which answers the HTTP requests of the tools with a handler.
 
 None of these touch the network, the file system, or the real config.
 """
@@ -11,9 +12,10 @@ None of these touch the network, the file system, or the real config.
 from __future__ import annotations
 
 import uuid
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Any
 
+import httpx
 import pytest
 from pydantic import BaseModel
 
@@ -181,6 +183,30 @@ def tool_use(name: str, **input_kwargs: Any) -> ToolUseBlock:
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
+
+Handler = Callable[[httpx.Request], httpx.Response]
+_REAL_ASYNC_CLIENT = httpx.AsyncClient
+
+
+@pytest.fixture
+def serve(monkeypatch) -> Callable[[Handler], list[httpx.Request]]:
+    """Send the requests of every `httpx.AsyncClient` to `handler`, and return the list of requests that it got."""
+
+    def install(handler: Handler) -> list[httpx.Request]:
+        requests: list[httpx.Request] = []
+
+        def record(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            return handler(request)
+
+        def make_client(**kwargs) -> httpx.AsyncClient:
+            return _REAL_ASYNC_CLIENT(transport=httpx.MockTransport(record), **kwargs)
+
+        monkeypatch.setattr(httpx, "AsyncClient", make_client)
+        return requests
+
+    return install
 
 
 @pytest.fixture
