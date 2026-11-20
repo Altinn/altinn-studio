@@ -673,7 +673,9 @@ which workflow.
 
 The one exception is `altinn.workflow_engine.namespace`, which is unbounded across the fleet. It is on the throttle
 counters, as the [failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
-records, and on the errors counter's `workflow_handling` errors. Both count rare events.
+records, on the errors counter's `workflow_handling` errors, and on the step and workflow failure counters, so the
+dashboard shows which app fails. All of them count rare events: an app gets a series only once it has failed in the
+process's lifetime. Its value is the namespace as the engine stores it, `{org}/{app}` for the Altinn apps.
 
 ### Alerting on terminal failures
 
@@ -908,9 +910,16 @@ status, and `/api/v1/health/live` answers `200` while the process runs. The vers
 `/health/live` redirect to them with `301`. Never point a probe at those: a probe counts a `3xx` as a pass, and the
 redirect never runs the readiness check.
 
-The engine is degraded while it is disabled, its queue is full or the database is unavailable, and unhealthy when it
-is stopped or reports itself unhealthy (`Engine.HealthLevel`). The response includes worker, connection and queue counts. Probes are left out of
-the HTTP request metrics and the traces.
+The engine is degraded while its queue is full or the database is unavailable (`Engine.HealthLevel`). The health
+status also has disabled, stopped and unhealthy flags, which would make it degraded or unhealthy, but the engine sets
+none of them, so it is never unhealthy today. The response includes worker, connection and queue counts. Probes are
+left out of the HTTP request metrics and the traces.
+
+The gauge `altinn.workflow_engine.health.status` reports the same level, and `altinn.workflow_engine.health.reason`
+says why: one series per condition in `Engine.DegradedMask` and `Engine.UnhealthyMask`, at 1 while it holds and 0
+otherwise. Only `queue_full` and `database_unavailable` occur today. Both read the engine's status when the metrics are
+exported, not when the metrics collector last finished a pass, since a pass waits on the database and in an outage
+does not finish.
 
 ## Configuration
 

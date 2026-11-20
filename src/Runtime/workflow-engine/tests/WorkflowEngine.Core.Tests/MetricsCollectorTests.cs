@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,7 +14,7 @@ using WorkflowEngine.Telemetry;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Tests for what the metrics collector reads on the mailbox paths: the count behind the gauge that alerts on a
+/// Tests for what the metrics collector reports: the engine's health, the count behind the gauge that alerts on a
 /// mailbox the deadline sweep never closed, and the depths of the three mailbox buffers.
 /// </summary>
 /// <remarks>
@@ -88,7 +89,8 @@ public class MetricsCollectorTests
     private static async Task<(DateTimeOffset Cutoff, int Limit)> RunOnePass(
         TimeSpan sweepInterval,
         long overdue,
-        Action<MailboxMintBuffer, MailboxCloseBuffer, MailboxDeliveryBuffer>? queue = null
+        Action<MailboxMintBuffer, MailboxCloseBuffer, MailboxDeliveryBuffer>? queue = null,
+        EngineHealthStatus engineHealth = EngineHealthStatus.Running | EngineHealthStatus.Healthy
     )
     {
         var settings = Settings(sweepInterval);
@@ -106,6 +108,7 @@ public class MetricsCollectorTests
             .ReturnsAsync(overdue);
 
         var engineStatus = new Mock<IEngineStatus>();
+        engineStatus.SetupGet(e => e.Status).Returns(engineHealth);
         var buffers = CreateBuffers(settings);
         queue?.Invoke(buffers.Mint, buffers.Close, buffers.Delivery);
 
@@ -142,28 +145,27 @@ public class MetricsCollectorTests
     }
 
     [Fact]
-    public async Task AFailingOverdueRead_DoesNotSuppressTheEnginesHealthGauge()
+    public async Task TheHealthGauges_ReportTheEnginesHealth_WhileADatabaseReadHoldsUpThePass()
     {
-        // One try/catch covers the whole pass, so a read that throws abandons every gauge written after it.
-        // Ordered where the mailbox read first landed, this test fails — health is never written.
+        // In a database outage the repository retries a read for as long as its retry strategy allows, so a pass
+        // does not finish while the outage lasts, and the health gauges must not wait for it.
         var settings = Settings(TimeSpan.FromMinutes(5));
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
+        var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         repository
             .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new WorkflowStatusCounts(new Dictionary<PersistentItemStatus, int>(), 0));
+            .Returns<CancellationToken>(async ct =>
+            {
+                reading.TrySetResult();
+                await Task.Delay(Timeout.Infinite, ct);
+                throw new UnreachableException();
+            });
 
-        var attempted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        repository
-            .Setup(r =>
-                r.CountOverdueOpenMailboxes(It.IsAny<DateTimeOffset>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
-            )
-            .Callback(() => attempted.TrySetResult())
-            .ThrowsAsync(new InvalidOperationException("database down"));
-
+        var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
+        var level = EngineHealthLevel.Healthy;
         var engineStatus = new Mock<IEngineStatus>();
-        engineStatus.SetupGet(e => e.HealthLevel).Returns(EngineHealthLevel.Unhealthy);
-
-        Metrics.SetHealthStatus(-1);
+        engineStatus.SetupGet(e => e.Status).Returns(() => status);
+        engineStatus.SetupGet(e => e.HealthLevel).Returns(() => level);
 
         var buffers = CreateBuffers(settings);
 
@@ -181,26 +183,52 @@ public class MetricsCollectorTests
         );
 
         await collector.StartAsync(TestContext.Current.CancellationToken);
-        await attempted.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await reading.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        status |= EngineHealthStatus.DatabaseUnavailable;
+        level = EngineHealthLevel.Degraded;
+        using var meters = new MeterCollector();
+        meters.RecordObservableInstruments();
+
         await collector.StopAsync(TestContext.Current.CancellationToken);
 
-        var observed = new List<long>();
-        using var listener = new MeterListener
-        {
-            InstrumentPublished = (instrument, l) =>
-            {
-                if (
-                    instrument.Meter.Name == Metrics.Meter.Name
-                    && instrument.Name == "altinn.workflow_engine.health.status"
-                )
-                    l.EnableMeasurementEvents(instrument);
-            },
-        };
-        listener.SetMeasurementEventCallback<long>((_, measurement, _, _) => observed.Add(measurement));
-        listener.Start();
-        listener.RecordObservableInstruments();
+        Assert.Equal(
+            (long)EngineHealthLevel.Degraded,
+            Assert.Single(meters.Values("altinn.workflow_engine.health.status"))
+        );
+        Assert.Equal(
+            1,
+            meters.ByTag("altinn.workflow_engine.health.reason", "altinn.workflow_engine.reason")[
+                "database_unavailable"
+            ]
+        );
+    }
 
-        Assert.Equal((long)EngineHealthLevel.Unhealthy, Assert.Single(observed));
+    [Fact]
+    public async Task TheHealthReasonGauge_HasASeriesForEachConditionInTheHealthMasks_At1WhileItHolds()
+    {
+        using var meters = new MeterCollector();
+
+        await RunOnePass(
+            TimeSpan.FromMinutes(5),
+            overdue: 0,
+            engineHealth: EngineHealthStatus.Running
+                | EngineHealthStatus.QueueFull
+                | EngineHealthStatus.DatabaseUnavailable
+        );
+        meters.RecordObservableInstruments();
+
+        Assert.Equal(
+            new Dictionary<string, long>(StringComparer.Ordinal)
+            {
+                ["unhealthy"] = 0,
+                ["stopped"] = 0,
+                ["queue_full"] = 1,
+                ["disabled"] = 0,
+                ["database_unavailable"] = 1,
+            },
+            meters.ByTag("altinn.workflow_engine.health.reason", "altinn.workflow_engine.reason")
+        );
     }
 
     [Fact]

@@ -102,6 +102,28 @@ public sealed class EngineFailTests(EngineAppFixture<Program> fixture) : IAsyncL
     }
 
     [Fact]
+    public async Task Fail_CountsTheStepAndWorkflowFailure_UnderTheWorkflowsNamespace()
+    {
+        var workflowId = await EnqueueRequeuedWorkflow("/fail-metrics");
+        using var collector = new TelemetryCollector();
+
+        await _client.FailWorkflow(workflowId, Reason);
+
+        foreach (
+            var instrument in new[]
+            {
+                "altinn.workflow_engine.step.execution.failed",
+                "altinn.workflow_engine.workflow.execution.failed",
+            }
+        )
+        {
+            var tags = Assert.Single(collector.GetMeasurements(instrument)).Tags.ToDictionary(t => t.Key, t => t.Value);
+            Assert.Equal("manual", tags["altinn.workflow_engine.reason"]);
+            Assert.Equal(EngineApiClient.DefaultNamespace, tags["altinn.workflow_engine.namespace"]);
+        }
+    }
+
+    [Fact]
     public async Task Fail_AlreadyFailedWorkflow_Returns409()
     {
         // A manual failure is indistinguishable from an engine failure, so there is no idempotent replay.
