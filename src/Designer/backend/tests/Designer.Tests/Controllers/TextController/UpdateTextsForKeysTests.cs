@@ -45,6 +45,7 @@ public class UpdateTextsForKeysTests
         string targetRepository = await GenerateTestRepository(org, app, developer);
 
         TextResource expectedResource = GetTextResource(org, app, developer, lang);
+        expectedResource.Schema = TextResource.SchemaUrl;
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         // Act
@@ -69,6 +70,7 @@ public class UpdateTextsForKeysTests
         string targetRepository = await GenerateTestRepository(orgName, appName, username);
 
         TextResource expectedResource = GetTextResource(orgName, appName, username, language);
+        expectedResource.Schema = TextResource.SchemaUrl;
         PrepareExpectedResourceWithoutVariables(expectedResource, updateDictionary);
 
         // Act
