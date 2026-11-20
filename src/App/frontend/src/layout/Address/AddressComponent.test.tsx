@@ -48,6 +48,15 @@ describe('AddressComponent', () => {
     expect(screen.queryByRole('textbox', { name: /Bolignummer/i })).not.toBeInTheDocument();
   });
 
+  it('hides the optional marking when the app hides it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render();
+
+    expect(screen.getByRole('textbox', { name: 'Gateadresse' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toBeInTheDocument();
+    expect(screen.queryByText('Valgfritt')).not.toBeInTheDocument();
+  });
+
   it('should return complex version when simplified is false', async () => {
     await render({
       component: {

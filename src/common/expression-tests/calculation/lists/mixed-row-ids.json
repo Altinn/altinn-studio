@@ -1,0 +1,70 @@
+{
+  "name": "A list where only some rows have an id is logged and leaves the list as it is",
+  "comment": "Rows are merged by id when every row has one, and by position when none has. With both, it is not clear which was meant.",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 2
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "a row without an id next to a row with one",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": [
+            "list",
+            ["object", "total", 1],
+            ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 2]
+          ]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 2
+          }
+        ]
+      },
+      "expectsErrors": ["have an altinnRowId and some do not"]
+    },
+    {
+      "name": "a row whose id is not a GUID next to a row with one",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": [
+            "list",
+            ["object", "altinnRowId", "row-1", "total", 1],
+            ["object", "altinnRowId", "a0000000-0000-4000-8000-000000000001", "total", 2]
+          ]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 2
+          }
+        ]
+      },
+      "expectsErrors": ["have an altinnRowId and some do not"]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import type { Expression } from '@studio/components';
+import type { Expression } from '@designer/components';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export type FormLayoutsResponse<TComponent> = KeyValuePairs<ExternalFormLayout<TComponent>>;

@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdown } from '@studio/components';
-import type { StudioProfileMenuGroup } from '@studio/components';
-import { MenuHamburgerIcon } from '@studio/icons';
+import { StudioDropdown } from '@designer/components';
+import type { StudioProfileMenuGroup } from '@designer/components';
+import { MenuHamburgerIcon } from '@designer/icons';
 import { TriggerButton } from './TriggerButton';
 import { Items } from './Items';
 

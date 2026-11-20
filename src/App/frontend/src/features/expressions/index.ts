@@ -211,7 +211,10 @@ export function exprCastValue<T extends ExprVal>(
   return typeObj.impl.apply(context, [value]);
 }
 
-function asNumber(arg: string) {
+function asNumber(rawArg: string) {
+  // Surrounding whitespace is ignored, as the backend does. Anything else, such as a thousands separator, makes the
+  // string not a number.
+  const arg = rawArg.trim();
   if (arg.match(/^-?\d+$/)) {
     return parseInt(arg, 10);
   }

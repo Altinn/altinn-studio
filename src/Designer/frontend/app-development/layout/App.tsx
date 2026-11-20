@@ -7,7 +7,7 @@ import { initReactI18next } from 'react-i18next';
 import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { appContentWrapperId } from '@studio/testing/testids';
+import { appContentWrapperId } from '@designer/testing/testids';
 
 i18next.use(initReactI18next).init({
   ns: 'translation',

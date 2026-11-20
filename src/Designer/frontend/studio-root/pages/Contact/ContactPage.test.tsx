@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen, render } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ContactPage } from './ContactPage';
 import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';
 

@@ -1,0 +1,31 @@
+{
+  "name": "A row added by one calculation is copied with its id by a later one",
+  "comment": "A new row gets its id when it is added, so the copy has the same id as the row it is copied from",
+  "dataModel": {
+    "rows": [{ "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1 }]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "total", 1], ["object", "total", 2]]
+    },
+    {
+      "field": "copies",
+      "expression": [
+        "jmespath",
+        ["dataModel", "rows"],
+        "[].{altinnRowId: altinnRowId, total: total}"
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 1, "total": 1 },
+      { "altinnRowId": "<new:added>", "total": 2 }
+    ],
+    "copies": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "total": 1 },
+      { "altinnRowId": "<new:added>", "total": 2 }
+    ]
+  }
+}

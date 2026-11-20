@@ -8,11 +8,11 @@ import {
   StudioHeading,
   StudioPageSpinner,
   StudioParagraph,
-} from '@studio/components';
+} from '@designer/components';
 import { StudioPageError } from 'app-shared/components';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 import { NotFound } from '../../../../components/NotFound/NotFound';
 import { useRequiredRoutePathsParams } from '../../../../hooks/useRequiredRoutePathsParams';
 import { useStudioctlAuthRequestQuery } from '../../hooks/queries/useStudioctlAuthRequestQuery';

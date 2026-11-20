@@ -62,7 +62,7 @@ Compaction does not change the stored history. It makes a smaller copy for the n
 
 ## Model adapters
 
-The service uses three model roles. The **actor** runs the loop. The **planner** runs intake and spec. The **default** role runs the gates. The model name decides the provider. A Claude model goes to Azure AI Foundry. Other models go to Azure OpenAI.
+The service uses three model roles. The **actor** runs the loop. The **planner** runs intake and spec. The **default** role writes the goal suggestions. The request gate uses a decision model, `DECISION_MODEL`, which is not a language model. The model name decides the provider. A Claude model goes to Azure AI Foundry. Other models go to Azure OpenAI.
 
 ```mermaid
 flowchart LR

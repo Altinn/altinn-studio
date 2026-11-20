@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyCardRules, type PolicyCardRulesProps } from './PolicyCardRules';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { mockPolicyEditorContextValue } from '../../../test/mocks/policyEditorContextMock';
 import {
   PolicyEditorContext,

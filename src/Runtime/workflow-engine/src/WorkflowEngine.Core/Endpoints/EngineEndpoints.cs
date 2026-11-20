@@ -773,13 +773,21 @@ internal static class EngineRequestHandlers
     {
         try
         {
-            return WorkflowNamespace.Normalize(@namespace);
+            return WorkflowNamespace.Normalize(DecodeSlashes(@namespace));
         }
         catch (ArgumentException ex)
         {
             throw new BadHttpRequestException(ex.Message);
         }
     }
+
+    /// <summary>
+    /// Decodes the slashes in a string route value, such as the one in the Altinn apps' <c>{org}/{app}</c>
+    /// namespace. ASP.NET Core decodes every other escape in a route value, <c>%25</c> included, but leaves
+    /// <c>%2F</c> encoded, so <c>Uri.UnescapeDataString</c> would decode a <c>%2541</c> twice.
+    /// </summary>
+    private static string DecodeSlashes(string routeValue) =>
+        routeValue.Replace("%2F", "/", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Parses repeated <c>?label=key:value</c> query params into a dictionary.
@@ -1004,7 +1012,7 @@ internal static class EngineRequestHandlers
 
         ns = NormalizeNamespace(ns);
 
-        var collection = await repository.GetCollection(key, ns, cancellationToken);
+        var collection = await repository.GetCollection(DecodeSlashes(key), ns, cancellationToken);
 
         if (collection is null)
             return TypedResults.NotFound();

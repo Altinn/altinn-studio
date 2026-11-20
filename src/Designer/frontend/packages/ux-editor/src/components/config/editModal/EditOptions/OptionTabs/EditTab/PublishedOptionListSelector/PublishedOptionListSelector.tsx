@@ -9,8 +9,8 @@ import {
   StudioRadioGroup,
   StudioSelect,
   StudioTextfield,
-} from '@studio/components';
-import { FloppydiskIcon } from '@studio/icons';
+} from '@designer/components';
+import { FloppydiskIcon } from '@designer/icons';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import type { FormItem } from '../../../../../../../types/FormItem';
 import {
@@ -20,13 +20,13 @@ import {
 } from './utils';
 import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
 import { useTranslation } from 'react-i18next';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
 import { latestVersionString } from '../../utils/published-code-list-reference-utils';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
 import { PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
-import { Guard } from '@studio/guard';
+import { Guard } from '@designer/guard';
 import classes from './PublishedOptionListSelector.module.css';
-import { PublishedElements } from '@studio/pure-functions';
+import { PublishedElements } from '@designer/pure-functions';
 
 export type PublishedOptionListSelectorProps = {
   readonly component: FormItem<SelectionComponentType>;

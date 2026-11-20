@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { MaskinportenTab } from './MaskinportenTab';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

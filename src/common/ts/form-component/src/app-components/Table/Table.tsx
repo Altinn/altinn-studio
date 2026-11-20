@@ -3,10 +3,11 @@ import type { ReactNode } from 'react';
 
 import { ConfirmPopover } from '@app/form-component/app-components';
 import { Spinner } from '@app/form-component/app-components/Spinner/Spinner';
-import { Button, Table } from '@digdir/designsystemet-react';
+import { Button } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
 
+import { BaseTable } from './BaseTable';
 import classes from './Table.module.css';
 
 export type TableCellValue =
@@ -112,8 +113,9 @@ export function AppTable<T>({
 }: AppTableProps<T>) {
   const defaultButtonVariant = mobile ? 'secondary' : 'tertiary';
   return (
-    <Table
+    <BaseTable
       data-size={size ?? 'sm'}
+      stackedRows={mobile ? 'framed' : undefined}
       className={cn(classes.table, tableClassName, { [classes.mobileTable]: mobile })}
       zebra={zebra}
       stickyHeader={stickyHeader}
@@ -121,47 +123,46 @@ export function AppTable<T>({
       data-testid={tableTestId}
     >
       {caption}
-      <Table.Head>
-        <Table.Row>
+      <BaseTable.Head>
+        <BaseTable.Row>
           {columns.map((col, index) => (
-            <Table.HeaderCell
-              style={stickyHeader ? { zIndex: 2 } : {}}
+            <BaseTable.HeaderCell
               className={headerClassName}
               key={index}
               aria-label={col.ariaLabel}
             >
               {col.header}
-            </Table.HeaderCell>
+            </BaseTable.HeaderCell>
           ))}
           {actionButtons && actionButtons.length > 0 && (
-            <Table.HeaderCell>
+            <BaseTable.HeaderCell>
               <span className={classes.visuallyHidden}>{actionButtonHeader}</span>
-            </Table.HeaderCell>
+            </BaseTable.HeaderCell>
           )}
-        </Table.Row>
-      </Table.Head>
-      <Table.Body>
+        </BaseTable.Row>
+      </BaseTable.Head>
+      <BaseTable.Body>
         {isLoading ? (
-          <Table.Row>
-            <Table.Cell
+          <BaseTable.Row>
+            <BaseTable.Cell
               colSpan={columns.length + (actionButtons ? 1 : 0)}
               style={{ textAlign: 'center' }}
             >
               <Spinner aria-label={loadingLabel} data-size='md' />
-            </Table.Cell>
-          </Table.Row>
+            </BaseTable.Cell>
+          </BaseTable.Row>
         ) : data.length === 0 ? (
-          <Table.Row>
-            <Table.Cell
+          <BaseTable.Row>
+            <BaseTable.Cell
               colSpan={columns.length + (actionButtons ? 1 : 0)}
               className={classes.emptyCell}
             >
               <em>{emptyText}</em>
-            </Table.Cell>
-          </Table.Row>
+            </BaseTable.Cell>
+          </BaseTable.Row>
         ) : (
           data.map((rowData, rowIndex) => (
-            <Table.Row key={rowIndex}>
+            <BaseTable.Row key={rowIndex}>
               {columns.map((col, colIndex) => {
                 const cellValues = col.accessors
                   .map((accessor) => pickByPath(accessor, rowData))
@@ -169,40 +170,40 @@ export function AppTable<T>({
 
                 if (col.renderCell) {
                   return (
-                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
+                    <BaseTable.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       {col.renderCell(cellValues, rowData, rowIndex)}
-                    </Table.Cell>
+                    </BaseTable.Cell>
                   );
                 }
 
                 if (cellValues.length === 0) {
                   return (
-                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
+                    <BaseTable.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       -
-                    </Table.Cell>
+                    </BaseTable.Cell>
                   );
                 }
 
                 if (cellValues.length === 1) {
                   return (
-                    <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
+                    <BaseTable.Cell key={colIndex} data-header-title={col.header ?? ''}>
                       {formatValue(cellValues[0])}
-                    </Table.Cell>
+                    </BaseTable.Cell>
                   );
                 }
 
                 return (
-                  <Table.Cell key={colIndex} data-header-title={col.header ?? ''}>
+                  <BaseTable.Cell key={colIndex} data-header-title={col.header ?? ''}>
                     <ul>
                       {cellValues.map((value, idx) => (
                         <li key={idx}>{formatValue(value)}</li>
                       ))}
                     </ul>
-                  </Table.Cell>
+                  </BaseTable.Cell>
                 );
               })}
               {actionButtons && actionButtons.length > 0 && (
-                <Table.Cell>
+                <BaseTable.Cell>
                   <div className={classes.buttonContainer}>
                     {actionButtons.map((button, idx) => {
                       const { confirm } = button;
@@ -237,12 +238,12 @@ export function AppTable<T>({
                       );
                     })}
                   </div>
-                </Table.Cell>
+                </BaseTable.Cell>
               )}
-            </Table.Row>
+            </BaseTable.Row>
           ))
         )}
-      </Table.Body>
-    </Table>
+      </BaseTable.Body>
+    </BaseTable>
   );
 }

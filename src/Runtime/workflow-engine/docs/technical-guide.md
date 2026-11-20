@@ -779,7 +779,8 @@ to its section here. This section adds the behavior a caller needs that the sche
 
 The workflow, collection, mailbox and namespace throttle routes start with `/api/v1/{namespace}`. The namespace is a
 string the caller chooses and the engine treats as opaque. The Altinn apps use `{org}/{app}`. It is one path segment,
-so its slash is percent-encoded: `ttd/my-app` is `ttd%2Fmy-app`.
+so its slash is percent-encoded: `ttd/my-app` is `ttd%2Fmy-app`. The engine decodes the slash and lowercases the
+namespace, so it stores, returns and reports `ttd/my-app`.
 
 Across the API, `202 Accepted` means this call made the state change, and `200 OK` means the change had already
 happened. `404 Not Found` means the namespace has no such resource. Refusals carry problem details.
@@ -837,6 +838,8 @@ and lists the requested keys with no collection in `unmatchedKeys`, since retent
 `GET /api/v1/{namespace}/collections/{key}` returns one collection with the status of each head, and each head's
 `failedAttempts`, `firstFailedAt` and `waitingReason` as [retry](#retry--error-handling) and
 [deferral](#deferral-durable-yield) describe. `404 Not Found` means the namespace has no collection with that key.
+A slash in the key is percent-encoded like the namespace's, and the engine decodes it. A key that holds a literal `%2F`
+cannot be read here: ASP.NET Core turns `%252F` into `%2F` before the engine sees it.
 
 It is a frontier view by contract: auxiliary workflows never appear in it, and it carries no `workflowCounts` rollup,
 since it sits on the app's hot path. Read health from [list collections](#list-collections), and a collection's

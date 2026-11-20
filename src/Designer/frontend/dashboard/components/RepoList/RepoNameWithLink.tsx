@@ -1,5 +1,5 @@
 import { getRepositoryEditUrl } from 'app-shared/utils/repository';
-import { StudioLink } from '@studio/components';
+import { StudioLink } from '@designer/components';
 import classes from './RepoNameWithLink.module.css';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

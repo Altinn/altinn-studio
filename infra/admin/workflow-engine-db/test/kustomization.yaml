@@ -6,7 +6,19 @@ patches:
   - target:
       kind: DatabaseServer
       name: workflow-engine-db-server
+    # The test server uses the prod profile because of the number of connections it must handle.
+    # This is a test environment, so backup retention is 14 days and not 30.
+    # High availability is off to save cost.
     patch: |-
+      - op: replace
+        path: /spec/serverType
+        value: prod
+      - op: add
+        path: /spec/highAvailabilityEnabled
+        value: false
+      - op: add
+        path: /spec/backupRetentionDays
+        value: 14
       - op: replace
         path: /metadata/name
         value: workflow-engine-db-server-test

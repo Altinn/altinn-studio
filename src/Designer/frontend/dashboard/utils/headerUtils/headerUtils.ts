@@ -5,7 +5,7 @@ import { HeaderMenuGroupKey } from '../../enums/HeaderMenuGroupKey';
 import type { HeaderMenuGroup } from '../../types/HeaderMenuGroup';
 import { isOrg } from '../orgUtils/orgUtils';
 import type { NavigationMenuGroup } from '../../types/NavigationMenuGroup';
-import { type StudioProfileMenuGroup } from '@studio/components';
+import { type StudioProfileMenuGroup } from '@designer/components';
 import { ADMIN_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 
 export const dashboardHeaderMenuItems: HeaderMenuItem[] = [

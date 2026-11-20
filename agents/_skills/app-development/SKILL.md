@@ -92,6 +92,10 @@ credentials: it reads whatever the platform provisions for it. Deployed, that is
 local run studioctl is the platform, and it cannot yet hand over the credentials Studio issues - so to test against a
 real external API you supply a client for studioctl to provision in their place, with
 `studioctl app maskinporten set`. That is a gap in the local harness, not a second identity for the app.
+Calls to Altinn APIs as the service owner need no client locally, since localtest issues the token. That covers
+`AuthenticationMethod.ServiceOwner()`, and after `9.0.0-preview.12` also `UseMaskinportenAltinnAuthorization` and
+`GetAltinnExchangedToken`. Localtest issues only plain service owner tokens, so on those two, a request with a consumer
+org, a resource or a system user throws `NotSupportedException` in a local run.
 
 The consequence that matters is about scopes. Maskinporten grants scopes per client registration, and the client a
 local run uses is not the registration the deployed app uses. So a scope selected in Studio is not thereby available
@@ -138,8 +142,8 @@ If local hostnames do not resolve, inspect `studioctl env hosts status`. `studio
 hosts file, so explain that effect before running it with the host's normal privilege mechanism.
 
 Open the `url` from the `run` result; `logPath` identifies its log file. `app ps` reports status in `running` and
-`apps[]`, but does not return the app URL. The `http://local.altinn.cloud:8000` root page contains the login form,
-not the app.
+`apps[]`, but does not return the app URL. Localtest's root page, the `url` in `studioctl env status --json`
+(`http://local.altinn.cloud:8000` unless `env up --port` chose another), contains the login form, not the app.
 
 ### Test changes to Altinn Studio itself
 

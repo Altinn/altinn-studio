@@ -1,0 +1,140 @@
+{
+  "name": "A row id that is not a GUID keeps the existing id",
+  "comment": "The backend stores a row id as a Guid, so both sides only take GUID text from a result and keep the existing id, or give a new row a new one, for anything else",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "text that is not a GUID",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": [
+            "list",
+            ["object", "altinnRowId", "row-1", "total", 1],
+            ["object", "altinnRowId", "row-2", "total", 2]
+          ]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          },
+          {
+            "altinnRowId": "<new>",
+            "total": 2
+          }
+        ]
+      },
+      "expectsWarnings": ["rows[0].altinnRowId", "rows[1].altinnRowId"]
+    },
+    {
+      "name": "null",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "altinnRowId", null, "total", 1]]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
+        ]
+      },
+      "expectsWarnings": ["rows[0].altinnRowId"]
+    },
+    {
+      "name": "empty text",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "altinnRowId", "", "total", 1]]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
+        ]
+      },
+      "expectsWarnings": ["rows[0].altinnRowId"]
+    },
+    {
+      "name": "a number",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": ["list", ["object", "altinnRowId", 5, "total", 1]]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
+        ]
+      },
+      "expectsWarnings": ["rows[0].altinnRowId"]
+    },
+    {
+      "name": "the empty GUID",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": [
+            "list",
+            ["object", "altinnRowId", "00000000-0000-0000-0000-000000000000", "total", 1]
+          ]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 1,
+            "total": 1
+          }
+        ]
+      },
+      "expectsWarnings": ["rows[0].altinnRowId"]
+    },
+    {
+      "name": "a GUID in uppercase is a new row, kept in lowercase",
+      "calculations": [
+        {
+          "field": "rows",
+          "expression": [
+            "list",
+            ["object", "altinnRowId", "A0000000-0000-4000-8000-00000000000B", "total", 1]
+          ]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-00000000000b",
+            "total": 1
+          }
+        ]
+      }
+    }
+  ]
+}

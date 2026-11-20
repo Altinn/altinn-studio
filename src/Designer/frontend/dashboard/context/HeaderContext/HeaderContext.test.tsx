@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { HeaderContextProvider, useHeaderContext } from './HeaderContext';
 import { renderWithProviders } from '../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const SettingsLinkConsumer = () => {
   const { profileMenuGroups } = useHeaderContext();

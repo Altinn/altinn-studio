@@ -12,7 +12,7 @@ import {
   updateComponentWithDeletedImageReference,
   updateComponentWithImage,
 } from './EditImageUtils';
-import { StudioTabs } from '@studio/components';
+import { StudioTabs } from '@designer/components';
 
 enum ImageTab {
   Import = 'import',

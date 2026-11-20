@@ -11,7 +11,7 @@ import { externalLayoutsMock } from '@altinn/ux-editor-v4/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import type { FormLayoutsResponse } from 'app-shared/types/api';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 // Test data:
 const layoutName = 'layoutName';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioFieldset, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioFieldset, StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
 
 export type SubformUiFolderFieldProps = {
   subformUiFolder: string;

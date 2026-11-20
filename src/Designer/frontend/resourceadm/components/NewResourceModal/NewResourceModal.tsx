@@ -7,7 +7,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioDialog, StudioParagraph, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioDialog, StudioParagraph, StudioTextfield } from '@designer/components';
 import {
   getResourceIdentifierErrorMessage,
   getValidIdentifierPrefixes,

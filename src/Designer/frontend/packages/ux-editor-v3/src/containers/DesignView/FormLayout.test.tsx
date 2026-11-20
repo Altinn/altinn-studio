@@ -5,9 +5,9 @@ import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { FormItemContextProvider } from '../FormItemContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
 
 const defaultProps: FormLayoutProps = {

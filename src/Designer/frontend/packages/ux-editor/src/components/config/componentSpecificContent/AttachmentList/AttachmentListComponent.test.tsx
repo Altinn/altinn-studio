@@ -7,12 +7,12 @@ import { AttachmentListComponent } from './AttachmentListComponent';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DataTypeElement } from 'app-shared/types/ApplicationMetadata';
 import { reservedDataTypes } from './attachmentListUtils';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 

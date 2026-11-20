@@ -7,6 +7,7 @@ from pathlib import Path
 
 from benchmarks.app_model import load_app, normalize_title, titles_match
 from benchmarks.evaluators import evaluate
+from benchmarks.planner import spec_field_count
 from benchmarks.rubric import RUBRIC_VERSION, build_rubric_from_dir
 
 
@@ -178,3 +179,10 @@ class TestEvaluators:
         )
         scores = self._scores(candidate, rubric)
         assert scores["bench_texts_bound"] == round(2 / 3, 4)
+
+
+def test_the_spec_field_count_leaves_out_headings_and_paragraphs():
+    """Some runs return the form's headings and intro text and some do not."""
+    spec = {"pages": [{"fields": [{"field_type": t} for t in ("header", "paragraph", "text", "date")]}]}
+    [score] = spec_field_count(output={"spec": spec}, expected_output={"field_count": 2})
+    assert score.value == 1.0

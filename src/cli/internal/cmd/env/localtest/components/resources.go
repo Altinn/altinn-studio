@@ -76,11 +76,14 @@ func EnsureLocaltestStorageDir(dataDir string) error {
 	return nil
 }
 
+// PublishedHostIP is the host address every container port is published on.
+const PublishedHostIP = "127.0.0.1"
+
 func newPort(hostPort, containerPort string) types.PortMapping {
 	return types.PortMapping{
 		HostPort:      hostPort,
 		ContainerPort: containerPort,
-		HostIP:        "127.0.0.1",
+		HostIP:        PublishedHostIP,
 		Protocol:      "",
 	}
 }
