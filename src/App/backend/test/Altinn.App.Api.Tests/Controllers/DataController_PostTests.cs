@@ -92,7 +92,9 @@ public class DataController_PostTests : ApiTestBase
                 postedSkjema.Melding.Name = "FromDataProcessor";
                 var originalData = await instanceDataMutator.GetFormData(originalDataElement);
                 var skjema = originalData.Should().BeOfType<Skjema>().Which;
-                skjema.Melding.Should().BeNull();
+                // default.calculation.json has run on the original element too, with no name to concatenate
+                skjema.Melding!.Name.Should().BeNull();
+                skjema.Melding.CalculatedFixedValue.Should().Be("Hello ");
                 skjema.Melding = new() { Name = "FromDataWriteProcessor" };
             },
             Times.Once()

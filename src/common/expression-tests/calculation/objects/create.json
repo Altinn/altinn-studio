@@ -1,0 +1,21 @@
+{
+  "name": "An object result creates the object when it is missing",
+  "dataModel": {
+    "text": "x"
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "text", ["dataModel", "text"], "nested", ["object", "decimal", 1]]
+    }
+  ],
+  "expects": {
+    "text": "x",
+    "object": {
+      "text": "x",
+      "nested": {
+        "decimal": 1
+      }
+    }
+  }
+}

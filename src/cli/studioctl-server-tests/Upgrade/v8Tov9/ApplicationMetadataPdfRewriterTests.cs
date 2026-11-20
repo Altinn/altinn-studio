@@ -182,10 +182,10 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             """
         );
 
-        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+        var tasks = TasksRequiringPdf(file);
 
         (string TaskId, string? DataTypeId)[] expected = requiresPdf ? [("Task_1", "model")] : [];
-        Assert.Equal(expected, tasks);
+        Assert.Equal(expected, tasks.Select(t => (t.TaskId, t.DataTypeIds.Single())));
     }
 
     [Fact]
@@ -207,8 +207,39 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             """
         );
 
-        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+        var tasks = TasksRequiringPdf(file);
 
-        Assert.Equal([("Task_1", "model"), ("Task_2", "model")], tasks);
+        Assert.Equal(["Task_1", "Task_2"], tasks.Select(t => t.TaskId));
+        Assert.All(tasks, t => Assert.Equal(["model"], t.DataTypeIds));
+    }
+
+    [Fact]
+    public void FormDataTypes_AreListedPerTask_InDocumentOrder()
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            """
+            {
+              "dataTypes": [
+                { "id": "first", "taskId": "Task_1", "enablePdfCreation": true, "appLogic": { "classRef": "A" } },
+                { "id": "second", "taskId": "Task_2", "enablePdfCreation": true, "appLogic": { "classRef": "B" } },
+                { "id": "third", "taskId": "Task_1", "enablePdfCreation": true, "appLogic": { "classRef": "C" } }
+              ]
+            }
+            """
+        );
+
+        var tasks = TasksRequiringPdf(file);
+
+        Assert.Equal(["Task_1", "Task_2"], tasks.Select(t => t.TaskId));
+        Assert.Equal(["first", "third"], tasks[0].DataTypeIds);
+        Assert.Equal(["second"], tasks[1].DataTypeIds);
+    }
+
+    private static IReadOnlyList<TaskRequiringPdf> TasksRequiringPdf(string file)
+    {
+        var rewriter = new ApplicationMetadataPdfRewriter(file);
+        using var metadata = rewriter.Read();
+        return rewriter.GetTasksRequiringPdf(metadata.RootElement);
     }
 }

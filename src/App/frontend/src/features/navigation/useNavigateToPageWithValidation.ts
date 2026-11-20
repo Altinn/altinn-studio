@@ -7,7 +7,7 @@ export function useNavigateToPageWithValidation() {
   const currentPageId = useNavigationParam('pageKey');
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const { getPageValidation } = useEffectivePageValidation(currentPageId ?? '');
+  const { pageValidation } = useEffectivePageValidation(currentPageId ?? '');
 
   return async (targetPage: string, onNavigate?: () => void) => {
     if (!currentPageId || targetPage === currentPageId) {
@@ -21,12 +21,10 @@ export function useNavigateToPageWithValidation() {
     }
 
     const isForward = targetIndex > currentIndex;
-    const validationOnNavigation = getPageValidation();
-
     await maybeSaveOnPageChange();
 
-    if (isForward && validationOnNavigation) {
-      const hasValidationErrors = await onPageNavigationValidation(currentPageId, validationOnNavigation);
+    if (isForward && pageValidation) {
+      const hasValidationErrors = await onPageNavigationValidation(currentPageId, pageValidation);
       if (hasValidationErrors) {
         return;
       }

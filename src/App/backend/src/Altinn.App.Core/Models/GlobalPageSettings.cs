@@ -72,6 +72,13 @@ public class GlobalPageSettings
     public PageValidation? ValidationOnNavigation { get; set; }
 
     /// <summary>
+    /// Validation when returning to a summary or a page linked with a return button.
+    /// Falls back to forward navigation validation at each configuration level.
+    /// </summary>
+    [JsonPropertyName("validateOnBackToSummary")]
+    public PageValidation? ValidateOnBackToSummary { get; set; }
+
+    /// <summary>
     /// Controls whether the app name is hidden in the PDF header and footer. Can be a boolean or an expression.
     /// </summary>
     [JsonPropertyName("hideAppNameInPdf")]

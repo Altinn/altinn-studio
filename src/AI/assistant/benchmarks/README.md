@@ -117,7 +117,8 @@ Langfuse cannot aggregate it across runs.
 The `.env` file in this directory (or the exported environment) has these values:
 
 ```
-LANGFUSE_HOST=…  LANGFUSE_PUBLIC_KEY=…  LANGFUSE_SECRET_KEY=…   # LANGFUSE_BASE_URL is also accepted for the host
+LANGFUSE_PUBLIC_KEY=…
+LANGFUSE_SECRET_KEY=…
 AGENT_DESIGNER_API_KEY=…            # X-Api-Key for the agent API and the Gitea proxy
 AGENT_BASE_URL=http://localhost:8071
 BENCH_REPO_URL=http://gitea-proxy:81/<org>/<app>.git

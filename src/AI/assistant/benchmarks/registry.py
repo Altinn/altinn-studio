@@ -7,8 +7,8 @@ from pathlib import Path
 
 DATASETS_DIR = Path(__file__).parent / "datasets"
 
-# prompt: one message. generation: a replayed trace. planner: a file. e2e: tools run.
-KINDS = ("prompt", "generation", "planner", "e2e")
+# prompt: one message. decision: the request gate. generation: a replayed trace. planner: a file. e2e: tools run.
+KINDS = ("prompt", "decision", "generation", "planner", "e2e")
 
 STATUSES = ("live", "retired", "orphan")
 
@@ -76,24 +76,23 @@ class Eval:
 EVALS = (
     Eval(
         name="Gates/scope",
-        kind="prompt",
+        kind="decision",
         file="gates_scope.jsonl",
-        prompt="scope_check",
         summary=(
-            "Is the question about Altinn app development at all. The hard cases are "
+            "Is the request relevant: about Altinn app development at all. The hard cases are "
             "pairs that share a subject and differ only in the verb: travel advice is "
             "out of scope, a field asking where you travel is not."
         ),
     ),
     Eval(
         name="Gates/security",
-        kind="prompt",
+        kind="decision",
         file="gates_security.jsonl",
-        prompt="security_check",
         summary=(
             "Is the request a legitimate use of an app-development agent. Read the two "
             "directions separately: false rejections of real work cost more than an "
-            "ambiguous request reaching the later layers."
+            "ambiguous request reaching the later layers. A safe item must also pass as "
+            "relevant, since every request meets both questions."
         ),
     ),
     Eval(

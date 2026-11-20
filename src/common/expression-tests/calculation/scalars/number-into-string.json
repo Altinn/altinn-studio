@@ -1,0 +1,56 @@
+{
+  "name": "A number result is written to a string field as text",
+  "dataModel": {
+    "text": "old"
+  },
+  "testCases": [
+    {
+      "name": "integer",
+      "calculations": [
+        {
+          "field": "text",
+          "expression": 8
+        }
+      ],
+      "expects": {
+        "text": "8"
+      }
+    },
+    {
+      "name": "decimal",
+      "calculations": [
+        {
+          "field": "text",
+          "expression": 1.5
+        }
+      ],
+      "expects": {
+        "text": "1.5"
+      }
+    },
+    {
+      "name": "negative",
+      "calculations": [
+        {
+          "field": "text",
+          "expression": -2.25
+        }
+      ],
+      "expects": {
+        "text": "-2.25"
+      }
+    },
+    {
+      "name": "floating point",
+      "calculations": [
+        {
+          "field": "text",
+          "expression": 0.30000000000000004
+        }
+      ],
+      "expects": {
+        "text": "0.30000000000000004"
+      }
+    }
+  ]
+}

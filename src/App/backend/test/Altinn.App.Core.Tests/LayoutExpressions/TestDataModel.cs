@@ -215,7 +215,8 @@ public class TestDataModel
         var modelHelper = new ReflectionFormDataWrapper(model, null!);
         model.Id.Should().Be(2);
         modelHelper.RemoveField("id", RowRemovalOption.SetToNull);
-        model.Id.Should().Be(default);
+        // A non-nullable value type gets the value it has in a new object, here from its property initializer
+        model.Id.Should().Be(123);
 
         model.Name.Value.Should().Be("Ivar");
         modelHelper.RemoveField("name", RowRemovalOption.SetToNull);

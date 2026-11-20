@@ -7,14 +7,14 @@ The service is one Python process. It uses `asyncio`, so many runs can share the
 | Folder                                | Job                                                                                                                                             |
 | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/AI/assistant/api/`               | FastAPI app. HTTP routes, the `/ws` WebSocket, rate limits.                                                                                     |
-| `src/AI/assistant/agents/graph/`      | Runs the gates, then the graph: intake → spec → agentic loop. Holds `AgentState`.                                                               |
+| `src/AI/assistant/agents/graph/`      | Runs the request gate, then the graph: intake → spec → agentic loop. Holds `AgentState`.                                                        |
 | `src/AI/assistant/agents/core/`       | The loop engine: loop, tool interface, tool registry, model adapters, history compaction, system prompt, skills.                                |
 | `src/AI/assistant/agents/core/tools/` | The tools that the model can call.                                                                                                              |
-| `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, Designer API, LLM gates and client, repo scan, preview render check.                                         |
+| `src/AI/assistant/agents/services/`   | Event bus, permission broker, git, Designer API, the request gate (a decision model), the LLM client, repo scan, preview render check.          |
 | `src/AI/assistant/agents/workflows/`  | The intake and spec pipelines. Each is one model call.                                                                                          |
 | `src/AI/assistant/agents/altinn/`     | Altinn domain library: app version profiles, layout schema validation, text resource validation.                                                |
 | `src/AI/assistant/agents/skills/`     | Skills with Altinn knowledge, one folder per topic in the Agent Skills format. The model loads them when it needs them.                         |
-| `src/AI/assistant/agents/prompts/`    | Prompts for the gates, intake and spec. Langfuse can override them.                                                                             |
+| `src/AI/assistant/agents/prompts/`    | Prompts for intake, spec and goal suggestions. Langfuse can override them.                                                                      |
 | `src/AI/assistant/services/`          | Token usage per service owner, and deletion of old traces. Both read Langfuse.                                                                  |
 | `src/AI/assistant/shared/`            | Configuration, attachment models, Langfuse helpers, spotlight delimiters.                                                                       |
 | `src/AI/assistant/benchmarks/`        | The benchmark workbench: evals, an end to end benchmark, run history and the report page. A developer runs it locally. Not in the runtime path. |
@@ -49,7 +49,7 @@ _The loop knows only the adapter and the tool registry. The tools use the domain
 
 ```mermaid
 flowchart LR
-  F["Langfuse"] -->|label production| G["Gates, intake, spec"]
+  F["Langfuse"] -->|label production| G["Intake, spec, suggestions"]
   P["agents/prompts"] -->|fallback| G
 ```
 
@@ -78,7 +78,7 @@ _Feedback, trace cleanup and token usage. All of them use Langfuse data._
 
 ## The benchmark workbench
 
-The workbench imports the agent code. It does not copy it. The gate evals make the user message with the same functions as production. The generation eval builds the system prompt and the tool list with the agent code. The render check uses the same engine as the agent tool `preview_render_check`.
+The workbench imports the agent code. It does not copy it. The gate evals call the request gate that production calls. The generation eval builds the system prompt and the tool list with the agent code. The render check uses the same engine as the agent tool `preview_render_check`.
 
 ```mermaid
 flowchart LR

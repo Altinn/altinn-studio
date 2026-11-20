@@ -241,6 +241,8 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         Assert.Equal(testName, readDataElementResponseParsed.Melding!.Name);
+        // Calculations run on the data elements an instance is created with
+        Assert.Equal($"Hello {testName}", readDataElementResponseParsed.Melding.CalculatedFixedValue);
 
         // Verify specific file types
         var specificFileType = createResponseParsed.Data.Single(d => d.DataType == "specificFileType");

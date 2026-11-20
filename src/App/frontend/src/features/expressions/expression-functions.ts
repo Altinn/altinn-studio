@@ -3,6 +3,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import type { IDataModelReference, IFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { SearchParams } from 'src/core/routing/types';
+import { withSchemaProperties } from 'src/features/datamodel/withSchemaProperties';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
@@ -501,10 +502,10 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
         subject: reference,
         currentLocation: this.dataSources.currentDataModelPath,
       });
-      return pickSimpleValue(newReference, this);
+      return pickDataModelValue(newReference, this);
     }
 
-    return pickSimpleValue(reference, this);
+    return pickDataModelValue(reference, this);
   },
   countDataElements(dataType) {
     if (dataType === null) {
@@ -919,6 +920,17 @@ function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionPa
     return value;
   }
   return null;
+}
+
+/**
+ * An object, or a list of objects, has every property the schema knows, as null when the data leaves it out. That is
+ * what the backend reads from its C# model, so copying rows gives the same result on both sides.
+ */
+function pickDataModelValue(path: IDataModelReference, params: EvaluateExpressionParams) {
+  const value = pickSimpleValue(path, params);
+  const lookupTool =
+    value && typeof value === 'object' ? params.dataSources.formData.getSchemaLookupTool?.(path.dataType) : undefined;
+  return lookupTool ? withSchemaProperties(value, path.field, lookupTool) : value;
 }
 
 function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams, componentId: string) {

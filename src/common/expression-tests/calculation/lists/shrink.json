@@ -1,0 +1,34 @@
+{
+  "name": "Rows beyond the result are removed",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000003",
+        "decimal": 3
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "total", 10]]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1,
+        "total": 10
+      }
+    ]
+  }
+}
