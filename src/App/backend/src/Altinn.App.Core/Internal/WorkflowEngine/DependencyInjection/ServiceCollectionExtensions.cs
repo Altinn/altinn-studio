@@ -91,6 +91,7 @@ internal static class ServiceCollectionExtensions
 
         // Fail fast at startup on invalid service-task pipelines (a DefineExecute that throws or returns null, a
         // mailbox left unanswered).
+        services.AddSingleton(new ServiceTaskRegistrationValidator.ServiceRegistrations(services));
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }
