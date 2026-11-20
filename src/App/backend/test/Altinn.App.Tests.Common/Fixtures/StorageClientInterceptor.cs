@@ -671,6 +671,15 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         ApplyInstanceFieldUpdates(instance.PresentationTexts ??= [], mutation.PresentationTexts);
         ApplyInstanceFieldUpdates(instance.DataValues ??= [], mutation.DataValues);
+        // Storage records the confirmation for the calling organization, which for an app is the instance's own.
+        if (mutation.AddCompleteConfirmation)
+        {
+            instance.CompleteConfirmations ??= [];
+            instance.CompleteConfirmations.Add(
+                new CompleteConfirmation { StakeholderId = instance.Org, ConfirmedOn = DateTime.UtcNow }
+            );
+        }
+
         if (mutation.ProcessState?.State is { } processState)
         {
             if (instance.Process?.Ended is null && processState.Ended is not null)
@@ -951,6 +960,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         || mutation.DeleteInstance is not null
         || mutation.DataValues.Count > 0
         || mutation.PresentationTexts.Count > 0
+        || mutation.AddCompleteConfirmation
         || mutation.ProcessState?.State is not null
         || mutation.ProcessState?.Events?.Count > 0;
 
@@ -960,6 +970,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         && mutation.DeleteDataElements.Count == 0
         && mutation.DataValues.Count == 0
         && mutation.PresentationTexts.Count == 0
+        && !mutation.AddCompleteConfirmation
         && mutation.ProcessState?.State is null
         && mutation.ProcessState?.Events?.Count is not > 0
         && mutation.ExpectedProcessStatus is null or ProcessStatus.Idle;
@@ -971,6 +982,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             && mutation.UpdateDataElements.Count == 0
             && mutation.DataValues.Count == 0
             && mutation.PresentationTexts.Count == 0
+            && !mutation.AddCompleteConfirmation
             && processState?.Ended is not null
             && processState.CurrentTask is null
             && !string.IsNullOrWhiteSpace(processState.EndEvent)
