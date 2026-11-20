@@ -120,6 +120,24 @@ internal sealed class ProjectChecks
     }
 
     /// <summary>
+    /// The <c>Version</c> of each <c>PackageReference</c> to <paramref name="packageId"/> in the project file, or null
+    /// for a reference without one, as under central package management.
+    /// </summary>
+    public IReadOnlyList<string?> PackageReferenceVersions(string packageId) => PackageVersions(_doc, packageId);
+
+    /// <summary>The same as <see cref="PackageReferenceVersions"/>, for the references in Directory.Build.props.</summary>
+    public IReadOnlyList<string?> InheritedPackageReferenceVersions(string packageId) =>
+        PackageVersions(_directoryBuildProps, packageId);
+
+    private static List<string?> PackageVersions(XDocument? document, string packageId) =>
+        (document?.Root?.Elements("ItemGroup").Elements("PackageReference") ?? [])
+            .Where(reference =>
+                string.Equals(reference.Attribute("Include")?.Value, packageId, StringComparison.OrdinalIgnoreCase)
+            )
+            .Select(reference => reference.Attribute("Version")?.Value)
+            .ToList();
+
+    /// <summary>
     /// Checks if the project uses ProjectReference for Altinn.App.Core or Altinn.App.Api
     /// instead of PackageReference (typical for local development setups).
     /// </summary>

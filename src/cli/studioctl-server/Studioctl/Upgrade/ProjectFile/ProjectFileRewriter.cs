@@ -215,6 +215,36 @@ internal sealed class ProjectFileRewriter
     }
 
     /// <summary>
+    /// Sets <paramref name="version"/> on each <c>PackageReference</c> to <paramref name="packageName"/> whose own
+    /// <c>Version</c> <paramref name="replace"/> selects. A reference without a <c>Version</c> of its own, as under
+    /// central package management, is kept as it is.
+    /// </summary>
+    /// <returns>The versions that were replaced.</returns>
+    public async Task<IReadOnlyList<string>> ReplacePackageReferenceVersions(
+        string packageName,
+        string version,
+        Func<string, bool> replace,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var replaced = new List<string>();
+        var attributes = (GetPackageReferenceElement(packageName) ?? [])
+            .Select(element => element.Attribute("Version"))
+            .OfType<XAttribute>();
+        foreach (var attribute in attributes)
+        {
+            if (!replace(attribute.Value))
+                continue;
+
+            replaced.Add(attribute.Value);
+            attribute.SetValue(version);
+        }
+
+        await Save(cancellationToken);
+        return replaced;
+    }
+
+    /// <summary>
     /// Checks that every declared package being converted has a source project available.
     /// </summary>
     private void ValidateProjectReferences(string repoRoot)

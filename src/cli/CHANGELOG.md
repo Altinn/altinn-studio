@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- Apps upgraded with `studioctl app upgrade v9` no longer fail at startup because `Altinn.Codelists` or `Altinn.FileAnalyzers` was left on v8. The upgrade now moves both to their latest v9 release. Run it again on apps you have already upgraded. ([#21871](https://github.com/Altinn/altinn-studio/issues/21871))
+
 ## [0.1.0-preview.34] - 2026-11-20
 
 ### Added

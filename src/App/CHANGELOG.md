@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- An app that uses a version 8 release of `Altinn.Codelists` or `Altinn.FileAnalyzers` now fails to build with `ALTINNAPP0605` instead of failing at startup. Use their latest 9.x release; `studioctl app upgrade v9` moves them. ([#21871](https://github.com/Altinn/altinn-studio/issues/21871))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed

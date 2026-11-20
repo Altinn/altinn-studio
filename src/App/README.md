@@ -39,7 +39,8 @@ version from its tags.
 Codelists and fileanalyzers reference `Altinn.App.Core` as a project inside this repository, and as the package
 pinned in their `Directory.Packages.props` when released. [AppCoreDependency.props](AppCoreDependency.props) explains
 why. CI builds each of them against the pinned package as well, which fails if a change uses a Core API newer than
-the pin. To check that before you push, run this in the component's folder:
+the pin. When Core is released, Renovate opens a pull request that moves both pins, so CI shows whether the packages
+still build against it. To check that before you push, run this in the component's folder:
 
 ```sh
 dotnet build solutions/Src.slnx -p:UseAppLibsFromSource=false
