@@ -205,7 +205,7 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
         Assert.DoesNotContain("index 1", exception.Message, StringComparison.Ordinal);
         Assert.Contains(
-            "ends here with a HandleReplies whose handlers return ServiceTaskResult",
+            "ends here with a HandleReplies whose handlers end the task",
             exception.Message,
             StringComparison.Ordinal
         );

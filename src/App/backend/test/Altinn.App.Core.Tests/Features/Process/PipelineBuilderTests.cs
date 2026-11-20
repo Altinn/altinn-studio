@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Tests.Features.Process;
 public class PipelineBuilderTests
 {
     private const string EndedByStage = "already ended by a Stage whose work returns ServiceTaskResult";
-    private const string EndedByReplies = "already ended by a HandleReplies whose handlers return ServiceTaskResult";
+    private const string EndedByReplies = "already ended by a HandleReplies whose handlers end the task";
 
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 

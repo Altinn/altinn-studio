@@ -71,7 +71,7 @@ public abstract class PipelineBuilder
     public sealed class ServiceTask : PipelineBuilder
     {
         private const string EndingStage = "a Stage whose work returns ServiceTaskResult";
-        private const string EndingReplies = "a HandleReplies whose handlers return ServiceTaskResult";
+        private const string EndingReplies = "a HandleReplies whose handlers end the task";
 
         private readonly List<PipelineItem> _items = [];
 
@@ -352,8 +352,8 @@ public abstract class PipelineBuilder
                 $"A mailbox is opened at index {unanswered.Handle.OpeningIndex}, but nothing answers it, and this "
                     + $"pipeline ends here with {ending}: the messages that come back would have no handler, and "
                     + $"nothing in this pipeline would ever read them. Answer it with {nameof(HandleReplies)} before "
-                    + "the pipeline ends, passing the handle the stage handed out: with handlers that return "
-                    + $"{nameof(StageResult)} to carry on afterwards, or {nameof(ServiceTaskResult)} to end there."
+                    + "the pipeline ends, passing the handle the stage handed out: with handlers that carry on, to "
+                    + "continue afterwards, or with handlers that end the task, to end there."
             );
         }
 

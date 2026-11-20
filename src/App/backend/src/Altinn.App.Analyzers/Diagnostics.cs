@@ -75,8 +75,8 @@ public static class Diagnostics
             "Mailbox opened but never answered",
             "The mailbox opened into '{0}' is never answered: its handle is never passed anywhere, so the "
                 + "messages that come back would have no handler. Answer it with HandleReplies before the pipeline "
-                + "ends, passing the handle the stage handed out: with handlers that return StageResult to carry on "
-                + "afterwards, or ServiceTaskResult to end there."
+                + "ends, passing the handle the stage handed out: with handlers that carry on, to continue "
+                + "afterwards, or with handlers that end the task, to end there."
         );
     }
 
