@@ -1,6 +1,6 @@
 import { usePolicyEditorContext } from '../../contexts/PolicyEditorContext';
 import React from 'react';
-import { StudioAlert, StudioParagraph, StudioHeading, StudioTable } from '@studio/components';
+import { StudioAlert, StudioParagraph, StudioHeading, StudioTable } from '@designer/components';
 import { PolicyRuleSubjectSummary } from './PolicyRuleSummary/PolicyRuleSubjectSummary';
 import { useTranslation } from 'react-i18next';
 import {

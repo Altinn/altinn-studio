@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { TabDataErrorProps } from './TabDataError';
 import { TabDataError } from './TabDataError';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockChildrenText: string = 'Test error';
 const mockChildren: ReactNode = <p>{mockChildrenText}</p>;

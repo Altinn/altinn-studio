@@ -1,0 +1,26 @@
+{
+  "name": "Calculations run in list order, so a later calculation reads the result of an earlier one",
+  "dataModel": {
+    "decimal": 4
+  },
+  "calculations": [
+    {
+      "field": "otherDecimal",
+      "expression": ["dataModel", "decimal"]
+    },
+    {
+      "field": "text",
+      "expression": ["dataModel", "otherDecimal"]
+    },
+    {
+      "field": "otherText",
+      "expression": ["dataModel", "text"]
+    }
+  ],
+  "expects": {
+    "decimal": 4,
+    "otherDecimal": 4,
+    "text": "4",
+    "otherText": "4"
+  }
+}

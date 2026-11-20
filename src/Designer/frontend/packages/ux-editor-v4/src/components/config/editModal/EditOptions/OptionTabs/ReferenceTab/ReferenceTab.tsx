@@ -1,6 +1,6 @@
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@studio/components';
+import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@designer/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

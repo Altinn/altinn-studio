@@ -1,6 +1,6 @@
 import { useRef } from 'react';
-import { ImageIcon } from '@studio/icons';
-import { StudioDeleteButton } from '@studio/components';
+import { ImageIcon } from '@designer/icons';
+import { StudioDeleteButton } from '@designer/components';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';
 import { DeleteOptionsModal } from './DeleteOptionsModal/DeleteOptionsModal';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getDisplayValues } from './TextComponentUtils';
-import type { StringExpression } from '@studio/components';
-import { DataLookupFuncName } from '@studio/components';
+import type { StringExpression } from '@designer/components';
+import { DataLookupFuncName } from '@designer/components';
 
 describe('getDisplayValues', () => {
   it('should return an empty string when value is undefined', () => {

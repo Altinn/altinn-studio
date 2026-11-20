@@ -11,7 +11,7 @@ import {
 } from './utils';
 import type { FormContainer } from '../../../../types/FormContainer';
 import type { FormItemProperty } from '../../../../types/FormItemProperty';
-import { GeneralRelationOperator, type BooleanExpression } from '@studio/components';
+import { GeneralRelationOperator, type BooleanExpression } from '@designer/components';
 import { getNestedPropertyDefinition } from '../../../../data/componentCatalog';
 
 const property = (componentType: ComponentType, path: string[]): FormItemProperty => ({

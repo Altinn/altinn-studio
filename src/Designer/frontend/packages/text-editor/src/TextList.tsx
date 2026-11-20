@@ -8,8 +8,8 @@ import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
 import { usePaginatedRows } from './hooks/usePaginatedRows';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioPagination, StudioTable } from '@studio/components';
-import { StringUtils } from '@studio/pure-functions';
+import { StudioPagination, StudioTable } from '@designer/components';
+import { StringUtils } from '@designer/pure-functions';
 import { textRowsPerPage } from './constants';
 
 export type TextListProps = {

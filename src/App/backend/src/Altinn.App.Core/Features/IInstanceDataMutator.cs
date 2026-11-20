@@ -11,6 +11,11 @@ namespace Altinn.App.Core.Features;
 /// Extension of the IInstanceDataAccessor that allows for adding, updating and removing data elements,
 /// and also indicate that it is OK to mutate the models
 /// </summary>
+/// <remarks>
+/// Changes to <c>Instance.DataValues</c> and <c>Instance.PresentationTexts</c> are saved with the other changes.
+/// Only the keys that changed are sent, and a key set to null or an empty string is removed. Changing a key that
+/// <c>dataFields</c> or <c>presentationFields</c> in applicationmetadata.json derives fails the save.
+/// </remarks>
 public interface IInstanceDataMutator : IInstanceDataAccessor
 {
     /// <summary>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './AboutResourcePage.module.css';
-import { StudioAlert, StudioHeading, StudioErrorSummary, StudioLink } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioErrorSummary, StudioLink } from '@designer/components';
 import type {
   Resource,
   ResourceTypeOption,

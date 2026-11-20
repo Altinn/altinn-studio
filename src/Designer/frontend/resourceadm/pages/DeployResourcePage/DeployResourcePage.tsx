@@ -9,7 +9,7 @@ import {
   StudioLink,
   StudioAlert,
   StudioSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import type { DeployError } from '../../types/DeployError';
 import {

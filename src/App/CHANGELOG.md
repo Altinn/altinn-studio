@@ -10,21 +10,75 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
-### Added
+### Fixed
 
-- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
-- System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
+- During a rolling deploy or after a rollback, a process step that a newer library version planned no longer fails on a pod with an older version. The workflow engine retries it until a newer pod runs it, for up to a day by default. A later version can let this version run its steps. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
+
+## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed
 
-- Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
-- The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
+- On phones and tablets, List shows each row's columns stacked in one cell, also when read-only and in Summary2, instead of a table that is cut off. `tableHeadersMobile` chooses which columns it shows. Sorting controls remain in the desktop view. ([#22000](https://github.com/Altinn/altinn-studio/pull/22000))
+- Breaking: a number or boolean the data model cannot hold empty gets its property initializer, or `0` or `false` without one, when it is removed, such as hidden data, or set to null with `IFormDataWrapper.Set`. Removing it gave `0` or `false` before, and `Set` with null failed. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Rows a calculation writes into a list of objects merge into the row with the same `altinnRowId`, as copied rows have, and otherwise by position. A list with duplicate row ids, or ids on only some rows, is logged as an error and not written. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Expressions read text with spaces around a number, such as `" 12 "`, as that number, in the form and on the server. A comma is still not a decimal separator, and the error now says so. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Expressions on the server read text as a boolean only when it is `true` or `false` in lowercase, or `1` or `0`, as the form does. `TRUE` and `True` were accepted on the server and refused in the form. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- The form and server convert calculated values to the field's type as they convert expression arguments: ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+  - a value that does not fit, such as `true` in a number field, is not written
+  - `null` in a required number or boolean gives its property initializer, or `0`, on the server
+  - a list of numbers with a `null` item is not written
+- `["dataModel", ...]` in the form gives an object, or the rows of a list, with every property the data model has, as `null` where the data has no value, as on the server. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A calculation that fails to evaluate on the server, such as `["if", "yes", 1]` on text that is not a boolean, no longer fails the save: the error is logged, the field keeps its value and the other calculations run. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 
 ### Fixed
 
+- A calculation that gives a fraction, such as `0.3` from `["plus", 0.1, 0.2]`, is stored as `0.3` in a decimal field, not as `0.2999999999999999888977697537`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A calculation for an item in a list at the top of the data model, such as `numbers[1]`, sets that item in the form. It made a separate field named `numbers[1]` before. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+
+## [9.0.0-preview.13] - 2026-11-19
+
+### Added
+
+- Build check `ALTINNAPP1030` (error) reports an exclusive gateway that routes on `gatewayAction` right after a `pdf`, `subformPdf` or `eFormidling` task. These tasks return no action, so the gateway never sees one, such as `reject`, and cannot route on it. ([#21997](https://github.com/Altinn/altinn-studio/pull/21997))
+- Data processors, process hooks, service tasks and `IInstantiationProcessor` can set and remove keys in `Instance.DataValues` and `Instance.PresentationTexts` on the `IInstanceDataMutator` they get, such as `(mutator.Instance.DataValues ??= [])["caseNumber"] = "2026-1"`. The keys they change are saved with the user's save, the process transition or the instantiation, without calling `IInstanceClient.UpdateDataValues` or `UpdatePresentationTexts`. Changing a key that `dataFields` or `presentationFields` derives fails the save. ([#22009](https://github.com/Altinn/altinn-studio/pull/22009))
+
+### Changed
+
+- Breaking: “Back to summary” and “Back to page” now follow “Next” validation by default. Set `validateOnBackToSummary` to `{ "page": "current", "show": [] }` to skip return validation. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#returknapper-følger-valideringen-for-neste), [Altinn/app-frontend-react#1862](https://github.com/Altinn/app-frontend-react/issues/1862))
+
+### Fixed
+
+- Calling Altinn APIs, such as another app, as the service owner with `UseMaskinportenAltinnAuthorization` or `IMaskinportenClient.GetAltinnExchangedToken` now works in a local run, without a Maskinporten client. ([#21962](https://github.com/Altinn/altinn-studio/pull/21962))
+- `Datepicker` in time zones other than UTC: ([#22012](https://github.com/Altinn/altinn-studio/pull/22012))
+  - The calendar no longer marks the day before the chosen date for users west of UTC, such as in the Americas.
+  - Without `minDate` or `maxDate`, the allowed dates no longer start on 31 December 1899 west of UTC or end on 2 January 2100 east of it.
+
+## [9.0.0-preview.12] - 2026-11-17
+
+### Added
+
+- New setting `hideOptionalIndicator` in `Settings.json` hides the "Valgfritt" (optional) marking on fields, either for the whole app or per task. It defaults to `false`, which we recommend because the marking makes it explicit which fields are optional. A component's own `labelSettings.optionalIndicator` overrides it. ([#21758](https://github.com/Altinn/altinn-studio/issues/21758))
+- List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
+- System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
+- Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; rows in a list of objects are matched by position and keep their `altinnRowId`, unless the result row brings one, as a row copied from another group does. Calculations also run on the data elements an instance is created with, so a new instance stores the same values the form calculates when it loads. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+
+### Changed
+
+- Breaking: Async methods, local functions and lambdas in the app that return `void`, such as `items.ForEach(async x => ...)`, now fail the build with error `ALTINNAPP0502`. Return `Task` and await it instead. `studioctl app upgrade` does not make this change for you. ([ALTINNAPP0502](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0502), [#19788](https://github.com/Altinn/altinn-studio/issues/19788))
+- Breaking: In v9, explicit validation on NavigationButtons, NavigationBar and CustomButton actions configured in layouts takes precedence over inherited settings. Review conflicting rules before deploying. Remove an explicit rule to restore its previous behavior. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
+- The app libraries are built with the stable .NET 11 release. Install .NET SDK 11.0.100 or newer; new apps pin it in `global.json` and no longer allow prerelease SDKs. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
+- Breaking: `calculations` in `models/<dataType>.calculation.json` is now a list of `{"field": ..., "expression": ...}` items, run in list order. An app with a file in the old object format does not start; the message says to run `studioctl app upgrade v9`. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
+
+### Fixed
+
+- Attachments in `AttachmentList` no longer show as plain text until the page is reloaded after the user changes a field or a `CustomButton` runs a server action. Files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
+- Expression handling in backend now supports accessing base class properties, when a derived class is used in the data model class. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
+- A data model class that contains itself, such as a `Person` with a `Person` property, or that has an `init`-only property no longer breaks the build. The build warns with `CS8785` and `AD0001` instead, which still fail a build that treats warnings as errors. ([#21923](https://github.com/Altinn/altinn-studio/pull/21923))
+- A field's custom `errorMessage` from the data model's JSON schema is shown for schema validation errors when its definition is reached through a nested `$ref`, instead of the standard message. ([Altinn/app-frontend-react#4389](https://github.com/Altinn/app-frontend-react/issues/4389))
 - Uploading a `.7z` file that Windows reports as `application/x-compressed` no longer fails with a content type mismatch when the data type allows `application/x-compressed`. ([Altinn/app-lib-dotnet#1905](https://github.com/Altinn/app-lib-dotnet/pull/1905))
 - Copying an instance with `copyInstanceSettings.includeAttachments` no longer fails when the data model has an indexer or a read-only property, and updates attachment ids in lists inside lists. ([Altinn/app-lib-dotnet#1895](https://github.com/Altinn/app-lib-dotnet/pull/1895))
-- During a rolling deploy or after a rollback, a process step that a newer library version planned no longer fails on a pod with an older version. The workflow engine retries it until a newer pod runs it, for up to a day by default. A later version can let this version run its steps. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 - App JSON files containing comments or trailing commas no longer cause startup, expression evaluation, or resource loading to fail. ([#21846](https://github.com/Altinn/altinn-studio/pull/21846))
 - Task-level `navigationTitle`, `hideAppNameInPdf`, and `validationOnNavigation` settings in `Settings.json` now take effect. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
 - Navigation groups configured with `expandedByDefault: true` now start expanded, including inactive groups. ([#21825](https://github.com/Altinn/altinn-studio/pull/21825))
@@ -33,6 +87,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Forms with many Datepicker components render and respond faster while their calendars are closed. ([#21813](https://github.com/Altinn/altinn-studio/pull/21813))
 - A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 - In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
+
+### Removed
+
+- Breaking: `IAppResources.GetCalculationConfiguration` is removed. Use `IAppResources.GetCalculationConfig`, which returns the parsed calculations, or null when the data type has none. `studioctl app upgrade v9` reports calls to it. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928))
 
 ## [9.0.0-preview.10] - 2026-11-09
 

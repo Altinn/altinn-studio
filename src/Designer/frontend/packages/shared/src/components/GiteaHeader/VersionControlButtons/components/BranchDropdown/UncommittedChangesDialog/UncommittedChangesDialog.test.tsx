@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import type { UncommittedChangesDialogProps } from './UncommittedChangesDialog';
 import { UncommittedChangesDialog } from './UncommittedChangesDialog';
 import type { UncommittedChangesError, UncommittedFile } from 'app-shared/types/api/BranchTypes';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../mocks/renderWithProviders';
 
 const onClose = vi.fn();

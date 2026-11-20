@@ -12,16 +12,16 @@ import type { RenderResult } from '@testing-library/react';
 import { waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type { ExtendedRenderOptions } from '../../../../../../../testing/mocks';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import { PublishedOptionListSelector } from './PublishedOptionListSelector';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
-import { screen } from '@studio/ui-test';
+import { screen } from '@designer/ui-test';
 
 // Test data:
 const orgName = 'some-org';

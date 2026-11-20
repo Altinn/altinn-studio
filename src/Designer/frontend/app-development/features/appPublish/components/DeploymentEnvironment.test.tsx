@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../test/testUtils';
 import { build, pipelineDeployment, runningApp } from 'app-shared/mocks/mocks';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const deploy = (buildId: string, finished: string): PipelineDeployment => ({
   ...pipelineDeployment,

@@ -3,7 +3,7 @@ import { PageConfigPanel } from './PageConfigPanel';
 import { useAppContext } from '../../hooks';
 import { GroupConfigPanel } from './GroupConfigPanel/GroupConfigPanel';
 import { ComponentConfigPanel } from './ComponentConfigPanel/ComponentConfigPanel';
-import { FileIcon } from '@studio/icons';
+import { FileIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { ItemType } from './ItemType';
 import { ConfigPanelHeader } from './CommonElements/ConfigPanelHeader/ConfigPanelHeader';

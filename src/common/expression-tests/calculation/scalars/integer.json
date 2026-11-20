@@ -1,0 +1,58 @@
+{
+  "name": "Results calculated into an integer field",
+  "dataModel": {
+    "integer": 1
+  },
+  "testCases": [
+    {
+      "name": "integer",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": 3
+        }
+      ],
+      "expects": {
+        "integer": 3
+      }
+    },
+    {
+      "name": "string",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": "7"
+        }
+      ],
+      "expects": {
+        "integer": 7
+      }
+    },
+    {
+      "name": "decimal keeps the previous value",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": 1.5
+        }
+      ],
+      "expects": {
+        "integer": 1
+      },
+      "expectsWarnings": ["integer"]
+    },
+    {
+      "name": "decimal string keeps the previous value",
+      "calculations": [
+        {
+          "field": "integer",
+          "expression": "1.5"
+        }
+      ],
+      "expects": {
+        "integer": 1
+      },
+      "expectsWarnings": ["integer"]
+    }
+  ]
+}

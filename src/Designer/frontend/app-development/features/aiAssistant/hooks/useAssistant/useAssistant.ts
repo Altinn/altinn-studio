@@ -4,7 +4,7 @@ import type {
   UserMessage,
   WorkflowStatus,
   ConnectionStatus,
-} from '@studio/assistant';
+} from '@designer/assistant';
 import { useAssistantThreads } from '../useAssistantThreads/useAssistantThreads';
 import { useAssistantWorkflow } from '../useAssistantWorkflow/useAssistantWorkflow';
 

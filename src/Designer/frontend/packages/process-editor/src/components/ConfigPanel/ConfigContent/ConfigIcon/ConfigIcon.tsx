@@ -15,7 +15,7 @@ import {
   PdfTaskIcon,
   SignTaskIcon,
   SubformPdfIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 
 export type ConfigIconProps = {

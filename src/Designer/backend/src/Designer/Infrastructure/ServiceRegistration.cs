@@ -156,8 +156,8 @@ public static class ServiceRegistration
         services.AddTransient<IOrgTextsService, OrgTextsService>();
         services.AddTransient<CanUseFeatureEvaluatorRegistry>();
         services.AddSingleton<IAssistantWebSocketService, AssistantWebSocketService>();
-        services.AddSingleton<AssistantAttachmentBuffer>();
         services.AddHttpClient<IAssistantServiceClient, AssistantServiceClient>();
+        services.AddTransient<IAssistantWorkflowService, AssistantWorkflowService>();
         services.RegisterDatamodeling(configuration);
         services.AddTransient<IGiteaContentLibraryService, GiteaContentLibraryService>();
         services.AddTransient<IGitOpsConfigurationManager, GitRepoGitOpsConfigurationManager>();

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioAlert, StudioHeading } from '@studio/components';
+import { StudioAlert, StudioHeading } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import type { WorkflowErrorEntry } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import {

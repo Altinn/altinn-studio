@@ -4,7 +4,7 @@ import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessT
 import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import {
   getMockBpmnElementForTask,
   mockBpmnElementForSigningTaskWithPdf,

@@ -1,12 +1,12 @@
 import type { ComponentType, ReactElement, SVGProps } from 'react';
-import { StudioSpinner, StudioTag } from '@studio/components';
+import { StudioSpinner, StudioTag } from '@designer/components';
 import {
   CheckmarkCircleFillIcon,
   ClockFillIcon,
   EnvelopeClosedFillIcon,
   MinusCircleFillIcon,
   XMarkOctagonFillIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import type { PersistentItemStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';
 

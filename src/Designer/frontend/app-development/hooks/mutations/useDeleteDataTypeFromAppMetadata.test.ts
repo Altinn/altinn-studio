@@ -3,7 +3,7 @@ import { renderHookWithProviders } from '../../test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useDeleteDataTypeFromAppMetadata } from './useDeleteDataTypeFromAppMetadata';
 import { waitFor } from '@testing-library/react';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const dataTypeId = 'paymentInformation-1234';
 

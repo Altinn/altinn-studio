@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useState } from 'react';
-import { StudioBanner } from '@studio/components';
+import { StudioBanner } from '@designer/components';
 import { useConsent } from '../../utils/consent';
 import { ConsentForm } from './ConsentForm';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { FatalError } from '@app/form-component';
-import { isAxiosError } from 'axios';
+import { isHttpError } from '@studio/http-client';
 import { z, ZodError } from 'zod';
 
 import { Lang } from 'src/features/language/Lang';
@@ -38,7 +38,7 @@ export function SigneeListError({ error }: { error: Error }) {
     );
   }
 
-  if (isAxiosError(error)) {
+  if (isHttpError(error)) {
     const parsed = problemDetailsSchema.safeParse(error.response?.data);
 
     if (parsed.success) {

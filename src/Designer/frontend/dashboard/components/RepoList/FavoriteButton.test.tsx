@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FavoriteButton } from './FavoriteButton';
 import { repository } from 'app-shared/mocks/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const setStarredRepo = vi.fn();
 const unsetStarredRepo = vi.fn();
