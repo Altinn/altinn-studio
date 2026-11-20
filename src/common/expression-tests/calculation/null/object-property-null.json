@@ -1,0 +1,27 @@
+{
+  "name": "A property set to null in an object result clears it, and a property left out is not touched",
+  "dataModel": {
+    "object": {
+      "text": "a",
+      "decimal": 1,
+      "nested": {
+        "text": "b"
+      }
+    }
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "text", null, "nested", ["object", "text", null]]
+    }
+  ],
+  "expects": {
+    "object": {
+      "text": null,
+      "decimal": 1,
+      "nested": {
+        "text": null
+      }
+    }
+  }
+}

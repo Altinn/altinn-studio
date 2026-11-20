@@ -45,7 +45,7 @@
         SelfLinks: {
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
-        Size: 147,
+        Size: 300,
         BlobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         Locked: false,
         IsRead: true,
@@ -100,7 +100,7 @@
         SelfLinks: {
           Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>/data/<dataId>
         },
-        Size: 147,
+        Size: 300,
         BlobVersionId: AAAAAAAAAAAAAAAAAAAAAg,
         Locked: false,
         IsRead: true,

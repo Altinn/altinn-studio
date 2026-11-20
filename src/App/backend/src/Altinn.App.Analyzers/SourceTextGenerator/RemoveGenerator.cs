@@ -163,14 +163,34 @@ internal static class RemoveGenerator
                 continue;
             }
 
-            builder.Append(
-                $"""
-                            case "{child.JsonName}" when (nextOffset is -1) && (literalIndex is -1):
-                                model.{child.CSharpName} = default;
-                                break;
+            var defaultValue = modelPathNode.DefaultValueOf(child);
+            if (defaultValue == "default")
+            {
+                builder.Append(
+                    $"""
+                                case "{child.JsonName}" when (nextOffset is -1) && (literalIndex is -1):
+                                    model.{child.CSharpName} = default;
+                                    break;
 
-                """
-            );
+                    """
+                );
+            }
+            else
+            {
+                // A field that cannot hold null gets the value it has in a new object, as when JSON without it is
+                // deserialized. The block lets csharpier-ignore apply, as type names can be longer than the line width.
+                builder.Append(
+                    $$"""
+                                case "{{child.JsonName}}" when (nextOffset is -1) && (literalIndex is -1):
+                                {
+                                    // csharpier-ignore
+                                    model.{{child.CSharpName}} = {{defaultValue}};
+                                    break;
+                                }
+
+                    """
+                );
+            }
             if (child.ListType is not null)
             {
                 builder.Append(

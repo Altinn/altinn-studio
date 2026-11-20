@@ -433,13 +433,7 @@ internal sealed partial class EngineRepository
         {
             logger.FetchingWorkflows("label values");
 
-            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            await using var conn =
-                dbContext.Database.GetDbConnection() as NpgsqlConnection
-                ?? throw new InvalidOperationException("Expected NpgsqlConnection");
-
-            if (conn.State != System.Data.ConnectionState.Open)
-                await conn.OpenAsync(cancellationToken);
+            await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
 
             // Extract distinct values for the given label key from JSONB
             var sql = ns is null

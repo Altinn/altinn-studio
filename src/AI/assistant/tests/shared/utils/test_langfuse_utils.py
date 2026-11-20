@@ -1,3 +1,7 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -5,6 +9,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
+from shared.config import get_config
 from shared.utils import langfuse_utils
 from shared.utils.langfuse_utils import (
     _PropagatedAttributesProcessor,
@@ -85,3 +90,26 @@ class TestPropagateSpanAttributes:
             pass
 
         assert "k" not in (exporter.get_finished_spans()[0].attributes or {})
+
+
+def test_a_client_the_sdk_builds_itself_reaches_the_assistants_langfuse():
+    """llm_client asks the SDK for a client even when init_langfuse() failed, and the SDK
+    builds it from the environment, which an old .env can point at cloud.langfuse.com.
+    It runs in its own process, because a client serves every later get_client() call."""
+    stale = {"LANGFUSE_BASE_URL": "https://cloud.langfuse.com", "LANGFUSE_HOST": "https://cloud.langfuse.com"}
+    script = (
+        "import shared.config\n"
+        "from langfuse import Langfuse\n"
+        "print(Langfuse(public_key='pk-lf-test', secret_key='sk-lf-test', tracing_enabled=False)._base_url)"
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=Path(__file__).resolve().parents[3],
+        env={**os.environ, **stale},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout.strip() == get_config().LANGFUSE_HOST

@@ -36,6 +36,12 @@ public class BuiltInTaskTypesTests
     }
 
     [Fact]
+    public void Service_Tasks_Without_An_Action_Are_Built_In_Service_Tasks()
+    {
+        Assert.Subset(BuiltInTaskTypes.ServiceTasks, BuiltInTaskTypes.ServiceTasksWithoutAction);
+    }
+
+    [Fact]
     public void Every_Task_Type_Constant_Is_Classified()
     {
         // Guards the reflection below: a built-in class it fails to find would drop out of both lists unnoticed.

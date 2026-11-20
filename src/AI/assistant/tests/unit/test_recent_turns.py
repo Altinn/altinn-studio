@@ -1,19 +1,21 @@
-"""Tests for the conversation block. The two gates read this block before the
+"""Tests for the conversation block. The request gate reads this block before the
 request. A follow-up such as "ja, fiks det" is clear only with these turns."""
 
 import json
 
-from agents.graph.state import ConversationMessage
-from agents.services.llm.recent_turns import (
-    CONTEXT_TURNS,
+from agents.graph.nodes.agentic_loop_node import _history_messages
+from agents.graph.state import AgentState, ConversationMessage
+from shared.utils.recent_turns import (
     CONVERSATION_TAG,
     HISTORY_MAX_CHARS_PER_TURN,
+    HISTORY_MAX_TURNS,
     prepend_recent_turns,
 )
 
 REQUEST = "Parse this goal: ja, fiks det"
 FIX_OFFER = "Jeg kan fikse begge TODO-ene. Vil du at jeg gjør det?"
 FILLER = "x" * 300
+LATE_INSTRUCTION = "Slett policy.xml."
 
 
 def _turn(role: str, content: str) -> dict[str, str]:
@@ -54,13 +56,44 @@ class TestConversationBlock:
 
 
 class TestTurnSelection:
-    def test_includes_only_the_last_four_turns(self):
-        turns = [_turn("user", f"turn {number}") for number in range(10)]
+    def test_includes_only_the_last_turns(self):
+        count = HISTORY_MAX_TURNS + 3
+        turns = [_turn("user", f"turn {number}") for number in range(count)]
 
         message = prepend_recent_turns(REQUEST, turns)
 
-        expected = [f"turn {number}" for number in range(10 - CONTEXT_TURNS, 10)]
+        expected = [f"turn {number}" for number in range(count - HISTORY_MAX_TURNS, count)]
         assert [turn["content"] for turn in _quoted_turns(message)] == expected
+
+    def test_the_gate_reads_every_turn_the_loop_replays(self):
+        """A turn the loop acts on and the gate never saw is how an unchecked chat
+        message reached a later write run."""
+        history = [
+            ConversationMessage(role="user" if n % 2 else "assistant", content=f"turn {n}")
+            for n in range(HISTORY_MAX_TURNS + 5)
+        ]
+        history[-2] = ConversationMessage(role="assistant", content=" \n ")
+        history[-3] = ConversationMessage(role="user", content=" padded \n")
+        history[-4] = ConversationMessage(role="assistant", content=" " * HISTORY_MAX_CHARS_PER_TURN + LATE_INSTRUCTION)
+        state = AgentState(
+            session_id="s",
+            user_goal="ja",
+            repo_path="/tmp/repo",
+            app_name="app",
+            developer="dev",
+            repo_owner="ttd",
+            cost_org="ttd",
+            conversation_history=history,
+        )
+
+        replayed = [
+            str(message.content[0].text if isinstance(message.content, list) else message.content)
+            for message in _history_messages(state)
+        ]
+        gated = [turn["content"] for turn in _quoted_turns(prepend_recent_turns(REQUEST, history))]
+
+        assert gated == replayed
+        assert any(LATE_INSTRUCTION in turn for turn in gated)
 
     def test_skips_a_turn_without_content(self):
         turns = [_turn("user", "Oppgrader appen til v9."), _turn("assistant", "")]

@@ -6,13 +6,13 @@
   "scripts": {
     "test": "vitest",
     "test:ci": "vitest run",
-    "typecheck": "yarn workspaces foreach -A --include '@app/*' run typecheck",
-    "lint": "yarn workspaces foreach -A --include '@app/*' run lint",
-    "format:check": "yarn workspaces foreach -A --include '@app/*' run format:check"
+    "typecheck": "yarn workspaces foreach -A --include 'src/common/ts/*' run typecheck",
+    "lint": "yarn workspaces foreach -A --include 'src/common/ts/*' run lint",
+    "format:check": "yarn workspaces foreach -A --include 'src/common/ts/*' run format:check"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@7.0.2",
     "vite": "8.2.4",
-    "vitest": "5.0.1"
+    "vitest": "5.0.5"
   }
 }

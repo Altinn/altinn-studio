@@ -1,12 +1,12 @@
 {
   "name": "lhci-server",
-  "version": "0.15.1",
+  "version": "0.16.1",
   "private": true,
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "@lhci/server": "0.15.1",
+    "@lhci/server": "0.16.1",
     "pg": "^8.2.1",
     "pg-hstore": "^2.3.3"
   },
