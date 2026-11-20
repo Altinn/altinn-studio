@@ -329,8 +329,6 @@ internal sealed partial class CalculationExpressionConverter
                     _ => throw new NotSupportedException("Unsupported unary operator."),
                 };
             case BinaryExpression binary:
-                if (TryScaledRounding(binary, values, out var rounded))
-                    return rounded;
                 return Binary(binary, Read(binary.Left, values), Read(binary.Right, values));
             case CallExpression call:
                 return ReadCall(call, values);

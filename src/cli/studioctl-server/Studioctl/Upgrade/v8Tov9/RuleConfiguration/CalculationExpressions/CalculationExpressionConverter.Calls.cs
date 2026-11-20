@@ -262,56 +262,6 @@ internal sealed partial class CalculationExpressionConverter
         return true;
     }
 
-    private bool TryScaledRounding(BinaryExpression expression, Dictionary<string, Value> values, out Value result)
-    {
-        result = new(null, Kind.Undefined);
-        if (
-            expression.Operator.ToString() != "Division"
-            || expression.Right is not Literal { Value: int or long or double } divisor
-            || expression.Left
-                is not CallExpression
-                {
-                    Callee: MemberExpression
-                    {
-                        Object: Identifier { Name: "Math" },
-                        Property: Identifier { Name: "round" },
-                        Computed: false,
-                    },
-                    Arguments.Count: 1,
-                } call
-            || call.Arguments[0] is not BinaryExpression scaled
-            || scaled.Operator.ToString() != "Multiplication"
-            || values.ContainsKey("Math")
-            || _parameter == "Math"
-        )
-            return false;
-        var factor = System.Convert.ToDouble(divisor.Value, System.Globalization.CultureInfo.InvariantCulture);
-        var precision = Math.Log10(factor);
-        if (
-            !double.IsFinite(precision)
-            || precision < 1
-            || precision > 15
-            || precision.CompareTo(Math.Truncate(precision)) != 0
-            || factor.CompareTo(Math.Pow(10, precision)) != 0
-        )
-            return false;
-        var (number, multiplier) = scaled.Right is Literal ? (scaled.Left, scaled.Right) : (scaled.Right, scaled.Left);
-        if (
-            multiplier is not Literal { Value: int or long or double } literal
-            || System
-                .Convert.ToDouble(literal.Value, System.Globalization.CultureInfo.InvariantCulture)
-                .CompareTo(factor) != 0
-        )
-            return false;
-        // Preserve the explicit decimal-rounding intent, including the accepted midpoint
-        // differences. Bare Math.round remains in C# because negative integer ties differ.
-        result = new(
-            Call("plus", RoundedText(Numeric(Read(number, values)).Expression, (int)precision), 0),
-            Kind.Number
-        );
-        return true;
-    }
-
     private bool TryRoundedText(Expression expression, Dictionary<string, Value> values, out JsonNode? result)
     {
         result = null;
