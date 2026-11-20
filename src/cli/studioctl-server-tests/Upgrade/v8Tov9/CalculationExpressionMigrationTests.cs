@@ -533,14 +533,14 @@ public sealed class CalculationExpressionMigrationTests
             Evaluate(calculations["rows[0].result"]?["expression"], new() { ["rows[0].a"] = 2, ["rows[0].b"] = 3 })
         );
         Assert.Equal(
-            differentFunction ? 3d : 7d,
+            differentFunction ? 3d : 12d,
             Evaluate(
                 calculations["rows[1].result"]?["expression"],
                 new()
                 {
                     ["rows[1].a"] = 5,
                     ["rows[1].b"] = 2,
-                    ["b"] = 2,
+                    ["b"] = 7,
                 }
             )
         );
