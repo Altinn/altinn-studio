@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { formatDuration, formatElapsed } from './formatDuration';
 
 const seconds = (count: number) => textMock('admin.workflows.duration.seconds', { count });

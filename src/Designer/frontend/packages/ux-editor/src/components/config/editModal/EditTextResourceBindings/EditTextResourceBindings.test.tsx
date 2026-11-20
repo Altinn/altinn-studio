@@ -8,12 +8,12 @@ import {
   textLanguagesMock,
 } from '../../../../testing/mocks';
 import type { ITextResource, ITextResourcesWithLanguage } from 'app-shared/types/global';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import type { FormComponent } from '../../../../types/FormComponent';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('EditTextResourceBindings component', () => {
   const mockComponent: FormComponent = {

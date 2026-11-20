@@ -1,1 +1,1 @@
-export type { CodeListWithTextResources } from '@studio/components';
+export type { CodeListWithTextResources } from '@designer/components';

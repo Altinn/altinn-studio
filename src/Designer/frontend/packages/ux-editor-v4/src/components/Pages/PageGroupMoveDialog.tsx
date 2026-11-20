@@ -7,8 +7,8 @@ import {
   StudioButton,
   StudioDialog,
   StudioSelect,
-} from '@studio/components';
-import { StudioSaveIcon, StudioCancelIcon } from '@studio/icons';
+} from '@designer/components';
+import { StudioSaveIcon, StudioCancelIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { useChangePageGroupOrder } from '../../hooks/mutations/useChangePageGroupOrder';
 import {

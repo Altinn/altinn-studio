@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PolicySubject } from '@altinn/policy-editor/types';
-import { StudioAlert, StudioSearch } from '@studio/components';
-import { PersonTallShortIcon } from '@studio/icons';
+import { StudioAlert, StudioSearch } from '@designer/components';
+import { PersonTallShortIcon } from '@designer/icons';
 import classes from './RoleList.module.css';
 import { hasSubject } from '@altinn/policy-editor/utils';
 import { SubjectListItem } from '../SubjectListItem';

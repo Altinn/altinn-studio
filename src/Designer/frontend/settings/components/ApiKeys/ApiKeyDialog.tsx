@@ -10,8 +10,8 @@ import {
   StudioHeading,
   StudioParagraph,
   StudioTextfield,
-} from '@studio/components';
-import { ClipboardIcon, StudioCloseIcon } from '@studio/icons';
+} from '@designer/components';
+import { ClipboardIcon, StudioCloseIcon } from '@designer/icons';
 import classes from './ApiKeyDialog.module.css';
 
 const MAX_API_KEY_EXPIRY_DAYS = 365;

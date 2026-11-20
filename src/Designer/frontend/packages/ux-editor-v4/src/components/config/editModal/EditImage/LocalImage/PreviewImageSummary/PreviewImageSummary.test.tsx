@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import type { PreviewImageSummaryProps } from './PreviewImageSummary';
 import { PreviewImageSummary } from './PreviewImageSummary';
 import { renderWithProviders } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const existingImageUrl = 'existingImageUrl';

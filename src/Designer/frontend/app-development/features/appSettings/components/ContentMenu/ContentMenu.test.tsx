@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ContentMenu } from './ContentMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

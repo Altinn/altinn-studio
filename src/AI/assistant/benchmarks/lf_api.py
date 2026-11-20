@@ -7,26 +7,17 @@ from typing import Any
 
 import httpx
 
+from shared.config import get_config
+
 
 class LangfuseApi:
-    def __init__(
-        self,
-        host: str | None = None,
-        public_key: str | None = None,
-        secret_key: str | None = None,
-    ):
-        # The assistant service names the host LANGFUSE_BASE_URL; accept both.
-        host = host or os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL")
+    def __init__(self, public_key: str | None = None, secret_key: str | None = None):
         public_key = public_key or os.environ.get("LANGFUSE_PUBLIC_KEY")
         secret_key = secret_key or os.environ.get("LANGFUSE_SECRET_KEY")
-        if not (host and public_key and secret_key):
+        if not (public_key and secret_key):
             missing = [
                 name
-                for name, value in [
-                    ("LANGFUSE_HOST (or LANGFUSE_BASE_URL)", host),
-                    ("LANGFUSE_PUBLIC_KEY", public_key),
-                    ("LANGFUSE_SECRET_KEY", secret_key),
-                ]
+                for name, value in [("LANGFUSE_PUBLIC_KEY", public_key), ("LANGFUSE_SECRET_KEY", secret_key)]
                 if not value
             ]
             raise SystemExit(
@@ -34,8 +25,7 @@ class LangfuseApi:
                 + ", ".join(missing)
                 + " — set them in benchmarks/.env or the environment."
             )
-        self.host = host.rstrip("/")
-        self._client = httpx.Client(base_url=self.host, auth=(public_key, secret_key), timeout=60)
+        self._client = httpx.Client(base_url=get_config().LANGFUSE_HOST, auth=(public_key, secret_key), timeout=60)
 
     def _get(self, path: str, **params: Any) -> dict:
         response = self._client.get(path, params=params)

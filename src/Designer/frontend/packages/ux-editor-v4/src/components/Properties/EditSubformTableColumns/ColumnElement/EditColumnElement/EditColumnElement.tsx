@@ -11,7 +11,7 @@ import {
   StudioDeleteButton,
   StudioDivider,
   type StudioSuggestionItem,
-} from '@studio/components';
+} from '@designer/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import type { FormItem } from '../../../../../types/FormItem';

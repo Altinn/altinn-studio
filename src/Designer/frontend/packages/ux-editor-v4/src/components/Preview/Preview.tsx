@@ -11,7 +11,7 @@ import {
   StudioParagraph,
   StudioSpinner,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
 import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';

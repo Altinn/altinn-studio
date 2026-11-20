@@ -21,7 +21,7 @@ import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 

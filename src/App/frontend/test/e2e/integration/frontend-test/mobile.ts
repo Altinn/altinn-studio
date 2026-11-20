@@ -14,7 +14,7 @@ it('is possible to submit app instance from mobile', () => {
   cy.get('html.viewport-is-mobile').should('be.visible');
   testGroup('mobile');
   testLikert();
-  testListMobile();
+  testList();
   testConfirm();
 });
 
@@ -24,7 +24,7 @@ it('is possible to submit app instance from a tablet', () => {
   cy.get('html.viewport-is-tablet').should('be.visible');
   testGroup('tablet');
   testLikert();
-  testListTablet();
+  testList();
   testConfirm();
 });
 
@@ -99,17 +99,8 @@ function testLikert() {
   sendIn();
 }
 
-function testListMobile() {
-  cy.findByRole('group', { name: /Hvem gjelder saken? */ }).within(() => {
-    cy.findByRole('radio', { name: /caroline/i }).check();
-    cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
-  });
-  cy.get(appFrontend.navButtons).findByRole('button', { name: 'Neste' }).click();
-  sendIn();
-}
-
-function testListTablet() {
-  cy.findByRole('table').within(() => {
+function testList() {
+  cy.get('#form-content-listComponent').within(() => {
     cy.findByRole('row', { name: /caroline/i }).click();
     cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
   });

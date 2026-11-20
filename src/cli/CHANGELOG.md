@@ -9,9 +9,20 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- `studioctl doctor` no longer passes a .NET SDK the app cannot build with. In an app, it checks the SDK the app's `global.json` or target framework needs and names that version, also in `--json` under `prerequisites.dotnetRequirement`. Elsewhere, it states that v8 apps need SDK 8.0 and v9 apps SDK 11.0. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
+- `studioctl run` no longer prints "App ready" when the local environment is not running. It stops the app and fails with "localtest is not reachable: run 'studioctl env up'", after waiting up to 10 seconds for a Localtest that is starting. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
+
+## [0.1.0-preview.34] - 2026-11-20
+
 ### Added
 
 - `studioctl app upgrade v9` reports navigation validation settings that may behave differently or need review, including CustomButton actions configured in layouts. TODOs identify what to review and test. Your settings are kept. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#navigasjonskomponenter-bruker-egne-valideringsinnstillinger), [#21845](https://github.com/Altinn/altinn-studio/pull/21845), [#21848](https://github.com/Altinn/altinn-studio/pull/21848))
+- `studioctl env up --port <port>` serves localtest on a port other than 8000, and `run`, `app env` and `env status` use that port until `env down` or `env reset`. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
+- `studioctl app upgrade v9` migrates calculations: ([#21928](https://github.com/Altinn/altinn-studio/pull/21928))
+    - converts `calculations` in `models/*.calculation.json` to the v9 list, keeping comments and formatting. A file whose calculations would not load in v9, such as one without an `expression`, is left as it is and reported as a TODO that says what to fix
+    - reports app code that calls the removed `IAppResources.GetCalculationConfiguration`
 
 ### Changed
 
@@ -20,12 +31,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- `studioctl app upgrade v9` adds PDF service tasks only where v8 made a PDF ([#21998](https://github.com/Altinn/altinn-studio/pull/21998)):
+    - none when nothing in the app creates the task's data type
+    - on the `sign` branch of a gateway after a signing task
+    - a to-do instead for other gateways routing on `gatewayAction`
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21843](https://github.com/Altinn/altinn-studio/pull/21843))
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH
     - no longer leaves strict mode and `$ErrorActionPreference = 'Stop'` on in that window
-- `studioctl doctor` no longer passes a .NET SDK the app cannot build with. In an app, it checks the SDK the app's `global.json` or target framework needs and names that version, also in `--json` under `prerequisites.dotnetRequirement`. Elsewhere, it states that v8 apps need SDK 8.0 and v9 apps SDK 11.0. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
-- `studioctl run` no longer prints "App ready" when the local environment is not running. It stops the app and fails with "localtest is not reachable: run 'studioctl env up'", after waiting up to 10 seconds for a Localtest that is starting. ([#21880](https://github.com/Altinn/altinn-studio/issues/21880))
 
 ## [0.1.0-preview.33] - 2026-11-09
 

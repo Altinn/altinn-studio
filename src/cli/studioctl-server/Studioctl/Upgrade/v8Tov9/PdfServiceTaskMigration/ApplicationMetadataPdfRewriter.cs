@@ -8,11 +8,12 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 ///
 /// Legacy semantics (app-lib-dotnet v8): a PDF was generated at the end of a task only for dataTypes
 /// that had <c>appLogic.classRef</c> set, <c>enablePdfCreation == true</c>, and were bound to that
-/// task via <c>taskId</c>. Exactly one PDF was produced per task-end regardless of how many datamodels
-/// qualified. The flag on attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a
-/// no-op. We therefore group qualifying datamodels by taskId; each distinct task gets one pdf task. The
-/// task binding is read with <see cref="DataTypeTaskIdsMigration.BoundTasks"/>, so a dataType already
-/// moved to <c>taskIds</c> counts for each task it lists.
+/// task via <c>taskId</c>, and only when the instance had an element of one of them. Exactly one PDF was
+/// produced per task-end regardless of how many datamodels qualified. The flag on attachment dataTypes (no
+/// classRef) or without a taskId (e.g. stateless) was a no-op. We therefore group qualifying datamodels by
+/// taskId; each distinct task gets one pdf task. The task binding is read with
+/// <see cref="DataTypeTaskIdsMigration.BoundTasks"/>, so a dataType already moved to <c>taskIds</c> counts for
+/// each task it lists.
 ///
 /// v8 also counted a missing flag as true, but this migration deliberately does not: only an explicit
 /// <c>true</c> gets a pdf task. It removes <c>false</c> too, so on a re-run of the upgrade a missing flag
@@ -39,25 +40,28 @@ internal sealed class ApplicationMetadataPdfRewriter
     public bool ManualActionRequired { get; private set; }
 
     /// <summary>
-    /// Returns the distinct taskIds that require a PDF service task, in document order, each paired
-    /// with the id of the first qualifying dataType bound to that task. The dataType id is used to
-    /// preserve gateway expression evaluation when a PDF task is inserted in front of a gateway
-    /// (see PdfProcessRewriter): it is the task's form data model, which is what the gateway would
-    /// previously have inferred from the data task's UI configuration.
+    /// Parses the file. Throws <see cref="System.Text.DecoderFallbackException"/> when it is not UTF-8, and
+    /// <see cref="JsonException"/> when it is not JSON.
     /// </summary>
-    public IReadOnlyList<(string TaskId, string? DataTypeId)> GetTasksRequiringPdf()
+    public JsonDocument Read() => JsonDocument.Parse(Utf8TextFile.Decode(File.ReadAllBytes(_metadataFile)).Text);
+
+    /// <summary>
+    /// Returns the distinct tasks that made a PDF in v8, in document order, each with the ids of the qualifying data
+    /// types bound to it, in document order.
+    /// </summary>
+    /// <param name="metadata">The file's content, from <see cref="Read"/>.</param>
+    public IReadOnlyList<TaskRequiringPdf> GetTasksRequiringPdf(JsonElement metadata)
     {
-        using var doc = JsonDocument.Parse(Utf8TextFile.Decode(File.ReadAllBytes(_metadataFile)).Text);
         if (
-            doc.RootElement.ValueKind != JsonValueKind.Object
-            || !doc.RootElement.TryGetProperty("dataTypes", out var dataTypes)
+            metadata.ValueKind != JsonValueKind.Object
+            || !metadata.TryGetProperty("dataTypes", out var dataTypes)
             || dataTypes.ValueKind != JsonValueKind.Array
         )
         {
             return [];
         }
 
-        var tasks = new List<(string TaskId, string? DataTypeId)>();
+        var tasks = new List<(string TaskId, List<string?> DataTypeIds)>();
         foreach (var dataType in dataTypes.EnumerateArray())
         {
             if (dataType.ValueKind != JsonValueKind.Object)
@@ -98,11 +102,17 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            foreach (var task in boundTasks.Where(task => !tasks.Exists(t => t.TaskId == task)))
-                tasks.Add((task, dataTypeId));
+            foreach (var task in boundTasks)
+            {
+                var index = tasks.FindIndex(t => t.TaskId == task);
+                if (index < 0)
+                    tasks.Add((task, [dataTypeId]));
+                else
+                    tasks[index].DataTypeIds.Add(dataTypeId);
+            }
         }
 
-        return tasks;
+        return [.. tasks.Select(t => new TaskRequiringPdf(t.TaskId, t.DataTypeIds))];
     }
 
     /// <summary>
@@ -187,7 +197,7 @@ internal sealed class ApplicationMetadataPdfRewriter
         return rest is "true" or "false";
     }
 
-    private static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
+    internal static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
     {
         // System.Text.Json's TryGetProperty is always ordinal; enumerate to match Newtonsoft's
         // case-insensitive property binding. Prefer an exact match, then fall back to a case-insensitive
@@ -220,3 +230,6 @@ internal sealed class ApplicationMetadataPdfRewriter
         return string.Empty;
     }
 }
+
+/// <summary>A task that made a PDF in v8, with the ids of the data types bound to it whose elements made it.</summary>
+internal sealed record TaskRequiringPdf(string TaskId, IReadOnlyList<string?> DataTypeIds);

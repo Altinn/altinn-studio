@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
-	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/studioctlserver"
 )
 
@@ -42,7 +42,10 @@ func (a studioctlServerAccess) ensure(ctx context.Context) error {
 	if a.cfg == nil {
 		return errStudioctlConfigRequired
 	}
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	topology, err := envlocaltest.RecordedTopology(a.cfg)
+	if err != nil {
+		return fmt.Errorf("read localtest port: %w", err)
+	}
 	return a.ensureStarted(ctx, a.cfg, topology.IngressPort())
 }
 

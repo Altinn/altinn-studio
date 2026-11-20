@@ -29,6 +29,7 @@ from agents.core import (
     ReadFileTool,
     ScanRepoTool,
     SessionContext,
+    Skill,
     SkillTool,
     TerminationReason,
     TextBlock,
@@ -47,9 +48,10 @@ from agents.core import (
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
-from agents.services.llm.recent_turns import truncate_to_history_limit
+from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
+from shared.utils.recent_turns import HISTORY_MAX_TURNS, truncate_to_history_limit
 from shared.utils.spotlight import defang_delimiter
 
 log = get_logger(__name__)
@@ -146,9 +148,6 @@ def _phase_for_tool(name: str) -> str:
 _DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
-_HISTORY_MAX_MESSAGES = 12
-
-
 CURRENT_REQUEST_TAG = "current_request"
 
 _CURRENT_REQUEST_NOTICE = (
@@ -166,7 +165,7 @@ def _history_messages(state: AgentState) -> list:
     works whichever mode produced the earlier exchange.
     """
     messages: list = []
-    for entry in state.conversation_history[-_HISTORY_MAX_MESSAGES:]:
+    for entry in state.conversation_history[-HISTORY_MAX_TURNS:]:
         content = (entry.content or "").strip()
         if not content:
             continue
@@ -335,6 +334,8 @@ async def _repair_render_failures(
     session branch, thus it runs only if that branch has all edits. Return the
     last loop result.
     """
+    if _PREVIEW_CHECK_TOOL not in registry:
+        return result
     if result.reason is TerminationReason.CANCELLED or not ctx.extras.get("session_pushed") or _unsaved_files(ctx):
         return result
 
@@ -405,15 +406,22 @@ def _augment_goal_for_missing_spec(state: AgentState) -> str:
     return f"{notice}\n\n---\n\n{goal}"
 
 
-def _build_registry(skills: list | None = None) -> ToolRegistry:
+_PREVIEW_CHECK_TOOL = "preview_render_check"
+
+
+def _build_registry(skills: list[Skill]) -> ToolRegistry:
     """Register every tool available in workflow mode, all in-process."""
+    # The render check works only with the local Designer stack.
+    preview_check = get_config().PREVIEW_CHECK_ENABLED
     registry = ToolRegistry()
-    for tool in _internal_tools(skills or []):
-        registry.register(tool)
+    for tool in _internal_tools(skills):
+        if tool.name != _PREVIEW_CHECK_TOOL or preview_check:
+            registry.register(tool)
     return registry
 
 
-def _internal_tools(skills: list) -> list[Tool]:
+def _internal_tools(skills: list[Skill]) -> list[Tool]:
+    """Every tool that exists.  `_build_registry` decides which ones the model gets."""
     return [
         ScanRepoTool(),
         ReadFileTool(),
@@ -578,7 +586,7 @@ def _emit_workflow_completion(
         # The user reads this list as the files that changed in the app.
         # The tools record the path as the model wrote it, such as `./App/a.json`. Git gives `App/a.json`.
         "filesChanged": [path for path in state.changed_files if posixpath.normpath(path) not in unsaved_files],
-        "sources": ctx.extras.get("sources", []),
+        "sources": _sources_the_user_can_open(ctx),
     }
     if security_notice:
         log.warning(
@@ -657,6 +665,11 @@ def _extract_security_notice(text: str) -> tuple[str, str | None]:
     notice = " ".join(matches[0].split())[:MAX_SECURITY_NOTICE_LENGTH]
     cleaned = _SECURITY_NOTICE_RE.sub("", text)
     return cleaned.strip(), notice or None
+
+
+def _sources_the_user_can_open(ctx: LoopContext) -> list[dict]:
+    """The sources for the chat. A skill is the assistant's own text, so only the trace lists it."""
+    return [source for source in ctx.extras.get("sources", []) if source.get("kind") != "skill"]
 
 
 def _strip_sources_line(text: str) -> str:

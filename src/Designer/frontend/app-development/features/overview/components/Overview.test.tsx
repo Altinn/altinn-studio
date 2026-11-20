@@ -3,9 +3,9 @@ import { screen } from '@testing-library/react';
 import Overview from './Overview';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { applicationMetadata, repository } from 'app-shared/mocks/mocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 // Test data

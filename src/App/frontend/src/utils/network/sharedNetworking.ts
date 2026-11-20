@@ -1,17 +1,21 @@
-import axios from 'axios';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type { HttpError, HttpResponse, RequestOptions } from '@studio/http-client';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type HttpClientError<T = unknown, D = any> = AxiosError<T, D>;
+import { httpClient } from 'src/core/httpClient';
 
-export async function httpGet<T>(url: string, options?: AxiosRequestConfig): Promise<T> {
-  const response: AxiosResponse = await axios.get(url, {
+export type HttpClientError<T = unknown> = HttpError<T>;
+
+export async function httpGet<T>(url: string, options?: RequestOptions): Promise<T> {
+  const response = await httpClient.get<T>(url, {
     headers: { Pragma: 'no-cache' },
     ...options,
   });
   return response.data;
 }
 
-export async function httpPut<T, D = unknown>(url: string, data: D, config?: AxiosRequestConfig) {
-  return axios.put<T, AxiosResponse<T>, D>(url, data, config);
+export async function httpPut<T, D = unknown>(
+  url: string,
+  data: D,
+  options?: RequestOptions,
+): Promise<HttpResponse<T>> {
+  return httpClient.put<T>(url, data, options);
 }

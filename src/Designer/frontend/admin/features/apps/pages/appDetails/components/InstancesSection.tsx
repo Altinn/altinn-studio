@@ -1,4 +1,4 @@
-import { StudioCard, StudioTabs } from '@studio/components';
+import { StudioCard, StudioTabs } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import { useAppUsesWorkflowEngine } from 'admin/features/apps/hooks/useAppUsesWorkflowEngine';

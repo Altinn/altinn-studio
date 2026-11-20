@@ -1,4 +1,4 @@
-import { StudioDetails } from '@studio/components';
+import { StudioDetails } from '@designer/components';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type {

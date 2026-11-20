@@ -51,10 +51,25 @@ public interface IFormDataWrapper
     /// <summary>
     /// Set the value at the given path in the data model
     /// </summary>
+    /// <remarks>
+    /// Objects and lists on the path are created when they are null. Use <see cref="AddRow"/> to append to a list.
+    /// </remarks>
     /// <param name="path">The dotted path to use (including inline indexes)</param>
     /// <param name="value">The value to set (will be automatically converted to the target type if possible)</param>
     /// <returns>True if the value was set successfully, false if the path could not be resolved or type conversion failed</returns>
     bool Set(ReadOnlySpan<char> path, ExpressionValue value);
+
+    /// <summary>
+    /// Append a row to the list at the given path in the data model
+    /// </summary>
+    /// <remarks>
+    /// The value is converted like <see cref="Set"/> converts it, so null is added as a null row when the element type
+    /// allows it. Objects and lists on the path are created when they are null.
+    /// </remarks>
+    /// <param name="path">The dotted path to the list (including inline indexes, but no index on the list itself)</param>
+    /// <param name="value">The row to add (will be automatically converted to the element type if possible)</param>
+    /// <returns>True if the row was added, false if the path does not resolve to an indexable list or type conversion failed</returns>
+    bool AddRow(ReadOnlySpan<char> path, ExpressionValue value);
 
     /// <summary>
     /// Remove the field at the given path
@@ -171,6 +186,37 @@ internal static class FormDataWrapperExtensions
         {
             var indexedPath = formDataWrapper.AddIndexToPath(path, rowIndexes, pool);
             return !indexedPath.IsEmpty && formDataWrapper.Set(indexedPath, value);
+        }
+        finally
+        {
+            System.Buffers.ArrayPool<char>.Shared.Return(pool);
+        }
+    }
+
+    /// <summary>
+    /// Simple way to append a row to a list in the form data model adding indexes from context
+    /// </summary>
+    /// <returns>True if the row was added, false if the path could not be resolved or type conversion failed</returns>
+    public static bool AddRow(
+        this IFormDataWrapper formDataWrapper,
+        ReadOnlySpan<char> path,
+        ExpressionValue value,
+        ReadOnlySpan<int> rowIndexes
+    )
+    {
+        int len = GetMaxBufferLength(path, rowIndexes);
+        if (len <= 512)
+        {
+            Span<char> buffer = stackalloc char[len];
+            var indexedPath = formDataWrapper.AddIndexToPath(path, rowIndexes, buffer);
+            return !indexedPath.IsEmpty && formDataWrapper.AddRow(indexedPath, value);
+        }
+
+        char[] pool = System.Buffers.ArrayPool<char>.Shared.Rent(len);
+        try
+        {
+            var indexedPath = formDataWrapper.AddIndexToPath(path, rowIndexes, pool);
+            return !indexedPath.IsEmpty && formDataWrapper.AddRow(indexedPath, value);
         }
         finally
         {

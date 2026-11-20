@@ -4,7 +4,7 @@ import { useBranchData } from './useBranchData';
 import { useBranchesQuery } from 'app-shared/hooks/queries/useBranchesQuery';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
 import { branchesMock, currentBranchInfoMock } from '../../test/mocks/branchingMocks';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 vi.mock('app-shared/hooks/queries/useBranchesQuery');
 vi.mock('app-shared/hooks/queries/useCurrentBranchQuery');

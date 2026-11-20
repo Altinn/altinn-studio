@@ -5,7 +5,7 @@ import {
   StudioRadioGroup,
   StudioValidationMessage,
   useStudioRadioGroup,
-} from '@studio/components';
+} from '@designer/components';
 import { ResourceFieldHeader } from './ResourceFieldHeader';
 import type { ResourceFormError } from 'app-shared/types/ResourceAdm';
 

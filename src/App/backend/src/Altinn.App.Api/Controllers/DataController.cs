@@ -712,6 +712,7 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
+                SelfLinkHelper.SetInstanceAppSelfLinks(res.Ok.Instance, Request);
                 return Ok(
                     new DataPatchResponseMultiple()
                     {

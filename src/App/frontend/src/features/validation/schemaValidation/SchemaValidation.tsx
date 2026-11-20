@@ -7,7 +7,6 @@ import {
   getErrorParams,
   getErrorTextKey,
 } from 'src/features/validation/schemaValidation/schemaValidationUtils';
-import { getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { TextReference } from 'src/features/language/useLanguage';
 
@@ -25,7 +24,7 @@ export function deriveSchemaValidations({
   schemaResult,
   dataElementId,
 }: DeriveSchemaValidationsParams): FieldValidations {
-  const { validator, rootElementPath, schema } = schemaResult;
+  const { validator, rootElementPath } = schemaResult;
   const valid = validator.validate(`schema${rootElementPath}`, structuredClone(formData));
   const validations: FieldValidations = {};
   if (valid) {
@@ -64,10 +63,9 @@ export function deriveSchemaValidations({
     }
 
     // Get schema for the field that failed validation.
-    // Backward compatible if we are validating against a sub scheme.
-    const fieldSchema = rootElementPath
-      ? getSchemaPartOldGenerator(error.schemaPath, schema, rootElementPath)
-      : getSchemaPart(error.schemaPath, schema);
+    // Not looked up from error.schemaPath: when a referenced definition contains a $ref itself, AJV compiles
+    // it separately and the path is relative to that definition, not to the root schema.
+    const fieldSchema = error.parentSchema;
 
     // Get TextReference for error message.
     // Either a standardized language key or a custom error message from the schema.

@@ -1,0 +1,42 @@
+{
+  "name": "A field in a repeating group that is missing or empty is not calculated, and no rows are created",
+  "testCases": [
+    {
+      "name": "missing",
+      "dataModel": {},
+      "calculations": [
+        {
+          "field": "rows.total",
+          "expression": 1
+        }
+      ],
+      "expects": {}
+    },
+    {
+      "name": "empty",
+      "dataModel": {
+        "rows": []
+      },
+      "calculations": [
+        {
+          "field": "rows.total",
+          "expression": 1
+        }
+      ],
+      "expects": {
+        "rows": []
+      }
+    },
+    {
+      "name": "explicit index",
+      "dataModel": {},
+      "calculations": [
+        {
+          "field": "rows[0].total",
+          "expression": 1
+        }
+      ],
+      "expects": {}
+    }
+  ]
+}

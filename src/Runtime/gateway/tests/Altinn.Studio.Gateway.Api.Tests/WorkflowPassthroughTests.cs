@@ -106,8 +106,8 @@ public sealed class WorkflowPassthroughTests
     [InlineData("my%20key", "my%20key")]
     // Dot-dot and a slash: an escape lapse would step out of /collections/. ASP.NET leaves %2F
     // encoded in route values, so the gateway sees "..%2Fworkflows" and escapes the percent
-    // sign too — the engine receives one segment, and a key with a literal slash cannot be
-    // addressed through the gateway at all, which is the safe side to land on.
+    // sign too. The engine receives one segment, whose route value is "..%2Fworkflows" again,
+    // and only then decodes the slash to look the key up.
     [InlineData("..%2Fworkflows", "..%252Fworkflows")]
     [InlineData("a%3Fb%23c", "a%3Fb%23c")] // ? and #: an escape lapse would start a query or fragment
     [InlineData("key%0A", "key%0A")] // a control character

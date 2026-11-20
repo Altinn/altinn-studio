@@ -3,9 +3,9 @@ import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { PageHeader } from './PageHeader';
-import { useMediaQuery } from '@studio/hooks';
+import { useMediaQuery } from '@designer/hooks';
 import {
   ADMIN_BASENAME,
   APP_DASHBOARD_BASENAME,
@@ -32,8 +32,8 @@ const mockUser = {
   userType: 1,
 };
 
-vi.mock('@studio/hooks', async () => ({
-  ...(await vi.importActual('@studio/hooks')),
+vi.mock('@designer/hooks', async () => ({
+  ...(await vi.importActual('@designer/hooks')),
   useMediaQuery: vi.fn(),
 }));
 
