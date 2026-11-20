@@ -131,6 +131,7 @@ export const previewPageV9 = (org, app, selectedLayoutSet, taskId, selectedLayou
 export const releasesPath = (org, app, sortDirection) => `${apiBasePath}/${org}/${app}/releases?${s({ sortDirection })}`; // Get, Post
 export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${org}/${app}/deployments?${s({ sortDirection })}`; // Get, Post
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
+export const deployWarningsPath = (org, app, tagName, envName) => `${apiBasePath}/${org}/${app}/deployments/warnings?${s({ tagName, envName })}`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
 export const restartAppPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/restart`; // Post

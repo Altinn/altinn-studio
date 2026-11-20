@@ -19,6 +19,7 @@ export enum QueryKey {
   DataModelsMetadata = 'DataModelsMetadata',
   DataModelsXsd = 'DataModelsXsd',
   DeployPermissions = 'DeployPermissions',
+  DeployWarnings = 'DeployWarnings',
   Environments = 'Environments',
   FetchBpmn = 'FetchBpmn',
   FormComponent = 'FormComponent',
