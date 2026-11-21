@@ -40,7 +40,11 @@ public class LegacyInstantiationProcessorAnalyzerTests
         var diagnostic = Assert.Single(diagnostics);
         Assert.Equal(Diagnostics.Deprecations.LegacyInstantiationProcessorDataCreation.Id, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
-        Assert.Equal(10, diagnostic.Location.GetLineSpan().StartLinePosition.Line);
+        var reportedLine = diagnostic
+            .Location.SourceTree!.GetText()
+            .Lines[diagnostic.Location.GetLineSpan().StartLinePosition.Line]
+            .ToString();
+        Assert.Contains("DataCreation(Instance instance", reportedLine);
         Assert.Contains("'Processor'", diagnostic.GetMessage());
     }
 

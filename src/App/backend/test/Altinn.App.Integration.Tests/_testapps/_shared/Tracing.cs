@@ -245,11 +245,7 @@ internal sealed class InstanceDataListProvider : IInstanceDataListProvider
 
 internal sealed class InstantiationProcessor : IInstantiationProcessor
 {
-    public Task DataCreation(
-        IInstanceDataMutator instanceDataMutator,
-        object data,
-        Dictionary<string, string>? prefill
-    )
+    public Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill)
     {
         SnapshotLogger.LogInfo("IInstantiationProcessor.DataCreation");
         return Task.CompletedTask;
