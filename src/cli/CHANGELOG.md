@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
+- `studioctl app upgrade v9` moves `IInstantiationProcessor` implementations off the removed `DataCreation(Instance instance, ...)` to the one that takes an `IInstanceDataMutator`, and points out those that write data through `IDataClient`, which v9 rejects when `DataCreation` runs.
 
 ### Fixed
 

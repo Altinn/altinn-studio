@@ -191,6 +191,10 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateInstantiationProcessorSignature(scanner, options.CancellationToken)
+        );
         returnCode = CombineExitCodes(returnCode, MigrateProcessTaskLifecycle(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -991,6 +995,33 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating the IProcessExclusiveGateway signature", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves app implementations of <c>IInstantiationProcessor</c> off the <c>DataCreation(Instance, ...)</c> that v9
+    /// removed: changes the parameter to the <c>IInstanceDataMutator</c> where it was the app's only implementation,
+    /// and deletes it where the app already implements the mutator one.
+    /// </summary>
+    static int MigrateInstantiationProcessorSignature(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IInstantiationProcessor signature");
+        try
+        {
+            var result = new InstantiationProcessorSignatureMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IInstantiationProcessor implementations to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the IInstantiationProcessor signature", ex);
         }
     }
 
