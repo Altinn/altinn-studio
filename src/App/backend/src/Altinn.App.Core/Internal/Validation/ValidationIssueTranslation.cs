@@ -58,6 +58,8 @@ internal static class ValidationIssueTranslation
             Message = first.Description ?? first.CustomTextKey ?? first.Code ?? string.Empty,
         };
 
+        // An action is not a validator: its issues are never re-evaluated by incremental validation, so the client
+        // must not expect a later incremental update to remove them.
         return issues
             .Select(issue =>
                 ValidationIssueWithSource.FromIssue(issue, ValidationIssueSources.Custom, noIncrementalUpdates: true)

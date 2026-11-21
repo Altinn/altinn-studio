@@ -471,11 +471,9 @@ public class ActionsControllerTests : ApiTestBase
         parsedAbandonResponse.Error.Should().NotBeNull();
         parsedAbandonResponse.Error!.Code.Should().Be("abandon-code");
         parsedAbandonResponse.Error!.Message.Should().Be("Endringene ble forkastet");
-        parsedAbandonResponse
-            .ValidationIssues.Should()
-            .ContainSingle()
-            .Which.Description.Should()
-            .Be("Endringene ble forkastet");
+        var abandonIssue = parsedAbandonResponse.ValidationIssues.Should().ContainSingle().Which;
+        abandonIssue.Description.Should().Be("Endringene ble forkastet");
+        abandonIssue.NoIncrementalUpdates.Should().BeTrue();
         TestData
             .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
             .Should()
@@ -603,6 +601,7 @@ public class ActionsControllerTests : ApiTestBase
             parsedResponse.ValidationIssues![0].Description.Should().Be("Du må fylle ut navn");
             parsedResponse.ValidationIssues![0].CustomTextKey.Should().Be("action.missing-name");
             parsedResponse.ValidationIssues![1].Description.Should().Be("Second issue");
+            parsedResponse.ValidationIssues.Should().OnlyContain(issue => issue.NoIncrementalUpdates);
         }
         finally
         {

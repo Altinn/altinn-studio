@@ -745,7 +745,14 @@ public sealed partial class ProcessEngineTest
             .ValidationIssues.Should()
             .ContainSingle()
             .Which.Should()
-            .BeEquivalentTo(new { Code = "abandon-code", Source = ValidationIssueSources.Custom });
+            .BeEquivalentTo(
+                new
+                {
+                    Code = "abandon-code",
+                    Source = ValidationIssueSources.Custom,
+                    NoIncrementalUpdates = true,
+                }
+            );
     }
 
     [Fact]
