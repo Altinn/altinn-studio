@@ -5,3 +5,4 @@ resources:
   - ../base/sandbox-node.yaml
   - ../base/operator-runner.yaml
   - ../base/core-operator.yaml
+  - ../base/operator-workflow-engine.yaml

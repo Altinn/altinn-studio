@@ -5,6 +5,8 @@ Components that run in a Studio cluster, the control plane of Altinn Studio. The
 
 - [operator](operator/README.md) does work that Studio services must not do themselves, such as running app code in
   a sandbox, as durable workflows.
+- [operator-workflow-engine](operator-workflow-engine/README.md) hosts the workflow engine for the operator. It keeps
+  each run as a durable workflow and calls the operator for each step.
 - [operator-runner](operator-runner/README.md) runs one command in a new microVM in the pod of each run's Job.
 
 ## Names of the operator

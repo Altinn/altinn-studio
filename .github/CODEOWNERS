@@ -150,6 +150,10 @@ src/tools/releaser/**/go.mod                                              @altin
 .github/workflows/deploy-runtime-workflow-engine-app.yaml                 @altinn/team-altinn-studio-flyt
 .github/workflows/runtime-workflow-engine-app-tests.yaml                  @altinn/team-altinn-studio-flyt
 .github/workflows/runtime-workflow-engine-tests.yaml                      @altinn/team-altinn-studio-flyt
+src/core/operator-workflow-engine/**/*.csproj                             @altinn/team-altinn-studio-flyt
+src/core/operator-workflow-engine/**/Directory.Packages.props             @altinn/team-altinn-studio-flyt
+src/core/operator-workflow-engine/**/Dockerfile*                          @altinn/team-altinn-studio-flyt
+src/core/operator-workflow-engine/**/global.json                          @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/*.csproj                               @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Directory.Packages.props               @altinn/team-altinn-studio-flyt
 src/Runtime/workflow-engine-app/**/Dockerfile*                            @altinn/team-altinn-studio-flyt
