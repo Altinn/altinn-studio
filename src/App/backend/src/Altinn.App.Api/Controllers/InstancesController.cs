@@ -898,7 +898,11 @@ public class InstancesController : ControllerBase
 
             if (source is not null)
             {
-                await CopyDataFromSourceInstance(application, instance, source);
+                if (await CopyDataFromSourceInstance(application, instance, source, language) is { } copyProblem)
+                {
+                    await TryDeleteInstance(instance);
+                    return StatusCode(copyProblem.Status ?? 500, copyProblem);
+                }
             }
 
             var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
@@ -1137,7 +1141,14 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
+            if (
+                await CopyDataFromSourceInstance(application, targetInstance, sourceInstance, language) is
+                { } copyProblem
+            )
+            {
+                await TryDeleteInstance(targetInstance);
+                return StatusCode(copyProblem.Status ?? 500, copyProblem);
+            }
 
             var fetchedTargetInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 targetInstance,
@@ -1539,10 +1550,17 @@ public class InstancesController : ControllerBase
         instance.Status.ReadStatus = ReadStatus.Read;
     }
 
-    private async Task CopyDataFromSourceInstance(
+    /// <summary>
+    /// Copies the attachments and form data of <paramref name="sourceInstance"/> to <paramref name="targetInstance"/>.
+    /// The form data is added through a data mutator, so the instantiation processor gets it, and saved in one
+    /// aggregate mutation with its presentation texts and data values. Returns the problem when the instantiation
+    /// processor abandoned the changes.
+    /// </summary>
+    private async Task<ProblemDetails?> CopyDataFromSourceInstance(
         ApplicationMetadata application,
         Instance targetInstance,
-        Instance sourceInstance
+        Instance sourceInstance,
+        string? language
     )
     {
         int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
@@ -1560,7 +1578,7 @@ public class InstancesController : ControllerBase
             .Where(dt => dt.IsBoundToTask(targetInstance.Process.CurrentTask.ElementId))
             .ToList();
         List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
-
+        List<(DataElement Source, DataType DataType)> formDataToCopy = [];
         foreach (DataElement de in sourceInstance.Data)
         {
             if (excludedDataTypes != null && excludedDataTypes.Contains(de.DataType))
@@ -1568,51 +1586,69 @@ public class InstancesController : ControllerBase
                 continue;
             }
 
-            if (dts.Any(dts => dts.Id.Equals(de.DataType, StringComparison.Ordinal)))
+            if (dts.FirstOrDefault(dt => dt.Id.Equals(de.DataType, StringComparison.Ordinal)) is { } dataType)
             {
-                DataType dt = dts.First(dt => dt.Id.Equals(de.DataType, StringComparison.Ordinal));
-
-                object data = await _dataClient.GetFormData(
-                    sourceInstance,
-                    de,
-                    authenticationMethod: null,
-                    CancellationToken.None
-                );
-
-                if (application.CopyInstanceSettings.ExcludedDataFields != null)
-                {
-                    DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
-                }
-
-                // Ensure that any reference to attachments in the data models gets updated on the copy
-                if (copiedAttachmentIds.Count > 0)
-                {
-                    ObjectUtils.ReplaceStringValues(data, copiedAttachmentIds);
-                }
-
-                await _prefillService.PrefillDataModel(
-                    instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
-                    dt.Id,
-                    data
-                );
-
-                var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(targetInstance, data, null);
-
-                ObjectUtils.InitializeAltinnRowId(data);
-
-                await _dataClient.InsertFormData(
-                    targetInstance,
-                    dt.Id,
-                    data,
-                    authenticationMethod: null,
-                    CancellationToken.None
-                );
-
-                await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
-                await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
+                formDataToCopy.Add((de, dataType));
             }
         }
+
+        if (formDataToCopy.Count == 0)
+        {
+            return null;
+        }
+
+        // Fetched after the attachments are copied, so the mutator starts from the instance's current versions
+        var fetchedTargetInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+            targetInstance,
+            authenticationMethod: null,
+            CancellationToken.None
+        );
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            fetchedTargetInstance.Instance,
+            fetchedTargetInstance.Metadata,
+            taskId: null,
+            language
+        );
+        var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
+
+        foreach (var (de, dt) in formDataToCopy)
+        {
+            object data = await _dataClient.GetFormData(
+                sourceInstance,
+                de,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+
+            if (application.CopyInstanceSettings.ExcludedDataFields != null)
+            {
+                DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
+            }
+
+            // Ensure that any reference to attachments in the data models gets updated on the copy
+            if (copiedAttachmentIds.Count > 0)
+            {
+                ObjectUtils.ReplaceStringValues(data, copiedAttachmentIds);
+            }
+
+            await _prefillService.PrefillDataModel(
+                instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
+                dt.Id,
+                data
+            );
+
+            await instantiationProcessor.DataCreation(dataMutator, data, null);
+
+            dataMutator.AddFormDataElement(dt.Id, data);
+        }
+
+        if (dataMutator.GetAbandonResponse() is { } abandonResponse)
+        {
+            return abandonResponse;
+        }
+
+        await dataMutator.SaveChanges(dataMutator.GetDataElementChanges(initializeAltinnRowId: true));
+        return null;
     }
 
     /// <summary>
@@ -2212,60 +2248,6 @@ public class InstancesController : ControllerBase
         }
 
         return StatusCode(StatusCodes.Status403Forbidden);
-    }
-
-    private async Task UpdatePresentationTextsOnInstance(
-        List<DataField> presentationFields,
-        Instance instance,
-        string dataType,
-        object data
-    )
-    {
-        var updatedValues = DataHelper.GetUpdatedDataValues(
-            presentationFields,
-            instance.PresentationTexts,
-            dataType,
-            data,
-            metadataPropertyName: "presentationFields"
-        );
-
-        if (updatedValues.Count > 0)
-        {
-            await _instanceClient.UpdatePresentationTexts(
-                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedValues },
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-        }
-    }
-
-    private async Task UpdateDataValuesOnInstance(
-        List<DataField> dataFields,
-        Instance instance,
-        string dataType,
-        object data
-    )
-    {
-        var updatedValues = DataHelper.GetUpdatedDataValues(
-            dataFields,
-            instance.DataValues,
-            dataType,
-            data,
-            metadataPropertyName: "dataFields"
-        );
-
-        if (updatedValues.Count > 0)
-        {
-            await _instanceClient.UpdateDataValues(
-                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues },
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-        }
     }
 
     /// <summary>

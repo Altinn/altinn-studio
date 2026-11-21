@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 
+### Changed
+
+- Breaking: `IInstantiationProcessor` has only `DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill)`. Use `instanceDataMutator.Instance` where you used the instance, and add data elements through the mutator. `studioctl app upgrade v9` rewrites `DataCreation(Instance instance, ...)`, and the analyzer reports one left next to the new method, which is never called (ALTINNAPP0605). Copying an instance now also calls `DataCreation` with a mutator, and saves the copied form data in one change. ([#22042](https://github.com/Altinn/altinn-studio/pull/22042))
+
 ### Fixed
 
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))

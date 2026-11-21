@@ -1,8 +1,9 @@
 #nullable disable
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.PlatformServices.Tests.Implementation.TestResources;
-using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Moq;
 
 namespace Altinn.App.PlatformServices.Tests.Features.DataProcessing;
 
@@ -17,9 +18,11 @@ public class NullInstantiationProcessTests
         object input = new DummyModel() { Name = "Test" };
 
         // Act
-        await nullInstantiation.DataCreation(new Instance(), input, new Dictionary<string, string>());
+        var dataMutator = new Mock<IInstanceDataMutator>(MockBehavior.Strict);
+        await nullInstantiation.DataCreation(dataMutator.Object, input, new Dictionary<string, string>());
 
         // Assert
         input.Should().BeEquivalentTo(expected);
+        dataMutator.VerifyNoOtherCalls();
     }
 }

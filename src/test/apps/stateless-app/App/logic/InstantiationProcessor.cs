@@ -1,5 +1,3 @@
-using Altinn.Platform.Storage.Interface.Models;
-
 using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.logic
@@ -15,10 +13,10 @@ namespace Altinn.App.logic
         /// <remarks>
         /// For example custom prefill.
         /// </remarks>
-        /// <param name="instance">Instance information</param>
+        /// <param name="instanceDataMutator">Mutator for the instance the data object is created on</param>
         /// <param name="data">The data object created</param>
         /// <param name="prefill">External prefill available under instantiation if supplied</param>
-        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+        public async Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill)
         {
             
             if (data.GetType() == typeof(MessageV1))
