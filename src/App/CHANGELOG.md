@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- An `IUserAction` can call `context.DataMutator.AbandonAllChanges` to fail with status 400 and save none of its changes, as with `FailureResult`. A server action shows the first issue's text key or description as its error. It failed with a server error before.
+- An `IUserAction` can call `context.DataMutator.AbandonAllChanges` to fail with status 400 and save none of its changes, as with `FailureResult`. A server action shows the first issue's text key or description as its error. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ### Fixed
 
@@ -25,8 +25,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Breaking: `UserActionResult.UpdatedDataModels` and `UserActionResult.AddUpdatedDataModel`. In `IUserAction.HandleAction`, change form data through `context.DataMutator`, such as with `GetFormData` or `ReplaceFormData`. Those changes are saved and returned to the form without being added to the result. `studioctl app upgrade v9` rewrites `AddUpdatedDataModel` calls to `ReplaceFormData` and reports other uses.
-- Breaking: the `UserActionContext` constructor that takes an `Instance`. Pass an `IInstanceDataMutator` instead; in a unit test, a mock whose `Instance` returns your instance is enough. `studioctl app upgrade v9` reports calls to it.
+- Breaking: `UserActionResult.UpdatedDataModels` and `UserActionResult.AddUpdatedDataModel`. In `IUserAction.HandleAction`, change form data through `context.DataMutator`, such as with `GetFormData` or `ReplaceFormData`. Those changes are saved and returned to the form without being added to the result. `studioctl app upgrade v9` rewrites `AddUpdatedDataModel` calls to `ReplaceFormData` and reports other uses. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- Breaking: the `UserActionContext` constructor that takes an `Instance`. Pass an `IInstanceDataMutator` instead; in a unit test, a mock whose `Instance` returns your instance is enough. `studioctl app upgrade v9` reports calls to it. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ## [9.0.0-preview.14] - 2026-11-20
 

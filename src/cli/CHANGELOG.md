@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
-- `studioctl app upgrade v9` replaces `UserActionResult.AddUpdatedDataModel` calls in user actions with `await context.DataMutator.ReplaceFormData(..)`, and reports other uses of the removed `UpdatedDataModels` and of the removed `UserActionContext` constructor that takes an `Instance`.
+- `studioctl app upgrade v9` replaces `UserActionResult.AddUpdatedDataModel` calls in user actions with `await context.DataMutator.ReplaceFormData(..)`, and reports other uses of the removed `UpdatedDataModels` and of the removed `UserActionContext` constructor that takes an `Instance`. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ### Fixed
 
