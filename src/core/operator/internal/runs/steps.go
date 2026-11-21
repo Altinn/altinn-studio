@@ -1,0 +1,279 @@
+package runs
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/core-operator/internal/callbacks"
+	"altinn.studio/core-operator/internal/config"
+	"altinn.studio/core-operator/internal/logging"
+	"altinn.studio/core-operator/internal/runner"
+	"altinn.studio/core-operator/internal/sandbox"
+	"altinn.studio/core-operator/internal/telemetry"
+)
+
+const (
+	quotaRecheck   = 5 * time.Second
+	podRecheck     = 2 * time.Second
+	archiveRecheck = 2 * time.Second
+	resultRecheck  = time.Second
+	cleanupRecheck = 5 * time.Second
+	// resultWait is the operator runner's long poll, half the execution time of run.await-result.
+	resultWait = 20 * time.Second
+)
+
+var (
+	errState = errors.New("the step state is not valid")
+	// errQueueTimeout fails run.admit on the engine's final check, so the run's status can say why it ended.
+	errQueueTimeout = &callbacks.End{Reason: ReasonQueueTimeout, Expected: true,
+		Detail: "The run waited in the queue longer than its kind allows."}
+	// errArchiveTimeout does the same for run.await-archive.
+	errArchiveTimeout = &callbacks.End{Reason: ReasonArchiveTimeout, Expected: true,
+		Detail: "No archive arrived within the upload timeout of the kind."}
+)
+
+// ends fails the run, so that the engine does not retry the step. The status of the run shows reason and detail. The
+// log shows err.
+func ends(reason, detail string, err error) error {
+	return &callbacks.End{Err: err, Reason: reason, Detail: detail}
+}
+
+// Steps are the callback handlers of the run workflow. Each step finds what it needs from the run id in the workflow
+// context and the step state, and is safe to run again.
+type Steps struct {
+	sandbox sandbox.Sandbox
+	queue   *Queue
+	host    *runner.Client
+}
+
+func NewSteps(queue *Queue, box sandbox.Sandbox, host *runner.Client) *Steps {
+	return &Steps{queue: queue, sandbox: box, host: host}
+}
+
+// step is a step of the run workflow, with the run that Group loaded from the payload.
+type step func(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error)
+
+// Group is the handler group for runs. The steps of a starting run hold its place in the queue until its Job holds it.
+// This also works in a queue that restarted. A step that ends its run releases the run at once.
+func (s *Steps) Group() callbacks.Group {
+	steps := map[string]step{
+		StepAdmit:        s.admit,
+		StepCreateJob:    s.createJob,
+		StepAwaitPod:     s.awaitPod,
+		StepAwaitArchive: s.awaitArchive,
+		StepAwaitResult:  s.awaitResult,
+		StepCleanup:      s.cleanup,
+	}
+	group := callbacks.Group{}
+	for key, handler := range steps {
+		group[key] = func(ctx context.Context, payload *callbacks.Payload) (callbacks.Response, error) {
+			run, err := s.load(ctx, payload)
+			if err != nil {
+				return callbacks.Response{}, err
+			}
+			if stepMeanings[key].status == StatusStarting {
+				s.queue.Hold(Work{ID: run.id, Kind: run.state.Kind, Caller: run.caller})
+			}
+			response, err := handler(ctx, run, payload)
+			if _, ok := errors.AsType[*callbacks.End](err); ok {
+				if failed := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); failed != nil {
+					logger := logging.FromContext(ctx)
+					logging.Warn(logger, "Could not release a run that ended", "error", failed.Error())
+				}
+			}
+			return response, err
+		}
+	}
+	return group
+}
+
+type stepRun struct {
+	state  *runState
+	id     string
+	caller string
+}
+
+// done completes the step and gives the state, with what the step learned, to the next step.
+func (r *stepRun) done() (callbacks.Response, error) {
+	state, err := r.state.encode()
+	if err != nil {
+		return callbacks.Response{}, err
+	}
+	return callbacks.Done(state), nil
+}
+
+// wait defers the step by delay, which the run's time scale shortens.
+func (r *stepRun) wait(payload *callbacks.Payload, delay time.Duration, reason string) callbacks.Response {
+	return callbacks.Wait(payload.State, scaled(delay, r.state.Spec.TimeScale), reason)
+}
+
+func (s *Steps) load(ctx context.Context, payload *callbacks.Payload) (*stepRun, error) {
+	id := payload.Context.SubjectID
+	if payload.Context.Domain != Domain || !ValidRunID(id) || payload.Context.Caller == "" {
+		detail := fmt.Sprintf("The callback is not for a run: domain %q, subject %q.", payload.Context.Domain, id)
+		return nil, ends(ReasonInternal, detail, nil)
+	}
+	state, err := parseState(payload.State)
+	if err != nil {
+		return nil, ends(ReasonInternal, "The step state is not valid.", err)
+	}
+	trace.SpanFromContext(ctx).SetAttributes(
+		telemetry.AttrKind.String(state.Kind),
+		telemetry.AttrCaller.String(payload.Context.Caller),
+	)
+	return &stepRun{id: id, caller: payload.Context.Caller, state: state}, nil
+}
+
+// admit admits the run if it is among the oldest runs that fit in the limits of its kind. A queued run defers. It fails
+// the step on the final check of the engine, after the queue timeout of the kind.
+func (s *Steps) admit(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
+	// The engine sends the time it created the step, which stays the same across restarts.
+	work := Work{ID: run.id, Kind: run.state.Kind, Caller: run.caller}
+	admission, err := s.queue.Admit(ctx, work, payload.ExecutionReferenceTime)
+	if err != nil {
+		return callbacks.Response{}, err
+	}
+	if admission.Admitted {
+		recordAdmission(ctx, run.state.Kind, run.caller, s.queue.clock.Now().Sub(payload.ExecutionReferenceTime))
+		return callbacks.Done(payload.State), nil
+	}
+	if payload.IsFinalWaitCheck {
+		// The engine fails the step after this deferral. The step fails here, so that status reads get a known error.
+		return callbacks.Response{}, errQueueTimeout
+	}
+	reason := fmt.Sprintf("The run is number %d in the queue for %s.", admission.Position, run.state.Kind)
+	return run.wait(payload, AdmitRecheck, reason), nil
+}
+
+// createJob creates the run's Job from the kind's template. It defers while the sandbox quota for Jobs is full.
+func (s *Steps) createJob(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
+	err := s.sandbox.CreateJob(ctx, jobOf(run))
+	switch {
+	case err == nil:
+		return callbacks.Done(payload.State), nil
+	case errors.Is(err, sandbox.ErrQuotaFull):
+		return run.wait(payload, quotaRecheck, "The sandbox quota is full."), nil
+	case errors.Is(err, sandbox.ErrNotAdmitted):
+		// A refusal during a rollout of the template can pass a moment later. The retry strategy of the step limits the
+		// retries.
+		return callbacks.Response{}, fmt.Errorf("the sandbox refused the Job: %w", err)
+	case errors.Is(err, sandbox.ErrRefused):
+		return callbacks.Response{}, ends(ReasonStartFailed, "The sandbox refused the Job.", err)
+	default:
+		return callbacks.Response{}, fmt.Errorf("create Job: %w", err)
+	}
+}
+
+// jobOf is the sandbox Job of a run, from the kind that the run keeps.
+func jobOf(run *stepRun) sandbox.Job {
+	return sandbox.Job{
+		RunID:     run.id,
+		Kind:      run.state.Kind,
+		Caller:    run.caller,
+		Namespace: run.state.Spec.Namespace,
+		Template:  run.state.Spec.PodTemplate,
+		Deadline:  config.JobDeadline(run.state.Spec.RunTimeout),
+	}
+}
+
+// awaitPod waits until the Job's pod is ready, and gives its IP to the next steps.
+func (s *Steps) awaitPod(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
+	pod, err := s.sandbox.Pod(ctx, run.state.Spec.Namespace, run.id)
+	if err != nil {
+		return callbacks.Response{}, fmt.Errorf("read the pod: %w", err)
+	}
+
+	waiting := "Waiting for the operator runner to start."
+	switch pod.Status {
+	case sandbox.JobUnseen, sandbox.PodNone:
+		waiting = "Waiting for the Job to create its pod."
+	case sandbox.JobFailed:
+		return callbacks.Response{}, ends(ReasonStartFailed, "The Job failed: "+pod.Detail, nil)
+	case sandbox.PodEnded:
+		return callbacks.Response{}, ends(ReasonStartFailed, "The pod stopped before it was ready: "+pod.Detail, nil)
+	case sandbox.PodReady:
+		run.state.PodIP = pod.IP
+		run.state.UploadBy = new(s.queue.clock.Now().Add(scaled(config.UploadTimeout, run.state.Spec.TimeScale)))
+		return run.done()
+	case sandbox.PodUnschedulable:
+		waiting = "Waiting for a sandbox node."
+	case sandbox.PodStarting:
+	}
+	if payload.IsFinalWaitCheck {
+		// The engine fails the step after this deferral, with its own text. The step fails here, so that the error
+		// tells what the pod waited for.
+		return callbacks.Response{}, ends(ReasonStartFailed, "The pod was not ready in time. "+waiting, nil)
+	}
+	return run.wait(payload, podRecheck, waiting), nil
+}
+
+// awaitArchive waits until the caller's archive reaches the operator runner, which then starts the command. Only the
+// operator runner knows when the archive arrives, so the step asks it.
+func (s *Steps) awaitArchive(
+	ctx context.Context,
+	run *stepRun,
+	payload *callbacks.Payload,
+) (callbacks.Response, error) {
+	_, err := s.host.Status(ctx, run.state.pod(run.id), 0)
+	switch {
+	case err == nil:
+		run.state.StartedAt = new(s.queue.clock.Now().UTC())
+		return run.done()
+	case errors.Is(err, runner.ErrNotClaimed):
+		if payload.IsFinalWaitCheck {
+			return callbacks.Response{}, errArchiveTimeout
+		}
+		return run.wait(payload, archiveRecheck, "Waiting for the caller to upload the archive."), nil
+	default:
+		return callbacks.Response{}, runnerError(ReasonStartFailed, err)
+	}
+}
+
+// awaitResult long-polls the operator runner until the command finishes, and keeps its outcome in the state. The status
+// that it reads does not count as a fetch, so the operator runner keeps the result for the caller.
+func (s *Steps) awaitResult(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
+	status, err := s.host.Status(ctx, run.state.pod(run.id), scaled(resultWait, run.state.Spec.TimeScale))
+	if err != nil {
+		return callbacks.Response{}, runnerError(ReasonRunFailed, err)
+	}
+	if status.Status == runner.StatusRunning {
+		return run.wait(payload, resultRecheck, "The command is running."), nil
+	}
+	run.state.Outcome, run.state.Error = status.Status, status.Error
+	run.state.FinishedAt = new(s.queue.clock.Now().UTC())
+	return run.done()
+}
+
+// runnerError ends the run for reason if a repeat of a request to the operator runner cannot succeed. Otherwise, the
+// engine retries the step.
+func runnerError(reason string, err error) error {
+	switch {
+	case errors.Is(err, runner.ErrRejected), errors.Is(err, runner.ErrNotClaimed):
+		return ends(reason, "The operator runner refused the request.", err)
+	case errors.Is(err, runner.ErrGone):
+		return ends(reason, "The operator runner's pod is gone, and its result with it.", err)
+	}
+	return fmt.Errorf("ask the operator runner: %w", err)
+}
+
+// cleanup deletes the Job after the operator runner of a completed run exits. The operator runner exits after the fetch
+// and its grace time, or at the result timeout. So the result is available while the Job exists.
+func (s *Steps) cleanup(ctx context.Context, run *stepRun, payload *callbacks.Payload) (callbacks.Response, error) {
+	if run.state.Outcome == runner.StatusCompleted && !payload.IsFinalWaitCheck {
+		gone, err := s.sandbox.PodGone(ctx, run.state.Spec.Namespace, run.id, run.state.PodIP)
+		if err != nil {
+			return callbacks.Response{}, fmt.Errorf("read the pod: %w", err)
+		}
+		if !gone {
+			return run.wait(payload, cleanupRecheck, "Waiting for the caller to fetch the result."), nil
+		}
+	}
+	if err := release(ctx, s.queue, s.sandbox, run.state.Spec.Namespace, run.id); err != nil {
+		return callbacks.Response{}, fmt.Errorf("release the run: %w", err)
+	}
+	return callbacks.Done(payload.State), nil
+}

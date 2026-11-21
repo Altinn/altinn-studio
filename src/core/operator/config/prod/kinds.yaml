@@ -1,0 +1,18 @@
+# maxActivePerCaller leaves one of the KVM slots in the ResourceQuota of src/core/operator-runner/infra/kustomize for
+# the other caller, so neither the assistant nor Designer can take every slot.
+callers:
+  assistant:
+    kinds:
+      - upgrade-v9
+  designer:
+    kinds:
+      - upgrade-v9
+kinds:
+  upgrade-v9:
+    namespace: core-operator-runners
+    podTemplate: operator-runner
+    command: upgrade-v9
+    labels: [org, repoOwner, repo, commit]
+    maxActivePerCaller: 3
+    # studioctl stops an upgrade after 10 minutes. The run timeout also covers the VM start and the patch.
+    runTimeout: 780s
