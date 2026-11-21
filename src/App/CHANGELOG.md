@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: `IInstantiationProcessor` has only `DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill)`. Use `instanceDataMutator.Instance` where you used the instance, and add data elements through the mutator. `studioctl app upgrade v9` rewrites `DataCreation(Instance instance, ...)`, and the analyzer reports one left next to the new method, which is never called (ALTINNAPP0605). Copying an instance now also calls `DataCreation` with a mutator, and saves the copied form data in one change.
+- Breaking: `IInstantiationProcessor` has only `DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill)`. Use `instanceDataMutator.Instance` where you used the instance, and add data elements through the mutator. `studioctl app upgrade v9` rewrites `DataCreation(Instance instance, ...)`, and the analyzer reports one left next to the new method, which is never called (ALTINNAPP0605). Copying an instance now also calls `DataCreation` with a mutator, and saves the copied form data in one change. ([#22042](https://github.com/Altinn/altinn-studio/pull/22042))
 
 ### Fixed
 
