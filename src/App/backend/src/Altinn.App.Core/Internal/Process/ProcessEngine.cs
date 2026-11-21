@@ -12,6 +12,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -46,6 +47,7 @@ internal class ProcessEngine : IProcessEngine
     private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly IWorkflowEngineService _workflowEngineService;
     private readonly IInstanceClientWithStorageMetadata _instanceClient;
+    private readonly ITranslationService _translationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessEngine"/> class.
@@ -76,6 +78,7 @@ internal class ProcessEngine : IProcessEngine
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _instanceClient = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
+        _translationService = serviceProvider.GetRequiredService<ITranslationService>();
     }
 
     /// <inheritdoc/>
@@ -450,11 +453,16 @@ internal class ProcessEngine : IProcessEngine
 
                 if (userActionResult.ResultType is ResultType.Failure)
                 {
+                    var failureIssues = await _translationService.TranslateUserActionFailure(
+                        userActionResult,
+                        request.Language
+                    );
                     var result = new ProcessChangeResult()
                     {
                         Success = false,
                         ErrorMessage = $"Action handler for action {LogSanitizer.Sanitize(request.Action)} failed!",
                         ErrorType = userActionResult.ErrorType,
+                        ValidationIssues = failureIssues,
                     };
                     activity?.SetProcessChangeResult(result);
                     return result;
@@ -782,7 +790,7 @@ internal class ProcessEngine : IProcessEngine
 
         if (cachedDataMutator.HasAbandonIssues)
         {
-            return (UserActionResult.AbandonedResult(cachedDataMutator.AbandonIssues), null);
+            return (UserActionResult.FailureResult([.. cachedDataMutator.AbandonIssues]), null);
         }
 
         DataElementChanges changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);

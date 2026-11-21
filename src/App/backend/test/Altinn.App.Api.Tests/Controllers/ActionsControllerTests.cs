@@ -460,7 +460,7 @@ public class ActionsControllerTests : ApiTestBase
         // Run buttonId "abandon": the change is not saved, and the issue is returned as the error
         using var abandonContent = JsonContent.Create(new { action = "fill", buttonId = "abandon" });
         using HttpResponseMessage abandonResponse = await client.PostAsync(
-            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions?language=nb",
             abandonContent
         );
         var parsedAbandonResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
@@ -470,7 +470,12 @@ public class ActionsControllerTests : ApiTestBase
         parsedAbandonResponse.UpdatedDataModels.Should().BeNull();
         parsedAbandonResponse.Error.Should().NotBeNull();
         parsedAbandonResponse.Error!.Code.Should().Be("abandon-code");
-        parsedAbandonResponse.Error!.Message.Should().Be("abandon.text.key");
+        parsedAbandonResponse.Error!.Message.Should().Be("Endringene ble forkastet");
+        parsedAbandonResponse
+            .ValidationIssues.Should()
+            .ContainSingle()
+            .Which.Description.Should()
+            .Be("Endringene ble forkastet");
         TestData
             .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
             .Should()
@@ -561,6 +566,48 @@ public class ActionsControllerTests : ApiTestBase
 
         // Cleanup testdata
         TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+    }
+
+    [Fact]
+    public async Task PerformFillAction_FailWithValidationIssues()
+    {
+        var org = "tdd";
+        var app = "task-action";
+        Guid instanceGuid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        int instanceOwner = 1337;
+        TestData.PrepareInstance(org, app, 1337, instanceGuid);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, FillAction>();
+        };
+        var client = GetRootedUserClient(org, app, userId: 1001, authenticationLevel: 3);
+
+        try
+        {
+            using var content = JsonContent.Create(new { action = "fill", buttonId = "failWithIssues" });
+            using HttpResponseMessage response = await client.PostAsync(
+                $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions?language=nb",
+                content
+            );
+            var parsedResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+                response,
+                HttpStatusCode.BadRequest
+            );
+
+            // The first issue's translated text becomes the error the frontend shows
+            parsedResponse.Error.Should().NotBeNull();
+            parsedResponse.Error!.Code.Should().Be("missing-name");
+            parsedResponse.Error!.Message.Should().Be("Du må fylle ut navn");
+            parsedResponse.UpdatedDataModels.Should().BeNull();
+            parsedResponse.ValidationIssues.Should().HaveCount(2);
+            parsedResponse.ValidationIssues![0].Description.Should().Be("Du må fylle ut navn");
+            parsedResponse.ValidationIssues![0].CustomTextKey.Should().Be("action.missing-name");
+            parsedResponse.ValidationIssues![1].Description.Should().Be("Second issue");
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+        }
     }
 
     [Fact]
@@ -778,8 +825,7 @@ public class FillAction : IUserAction
                     {
                         Severity = ValidationIssueSeverity.Error,
                         Code = "abandon-code",
-                        Description = "Abandoned",
-                        CustomTextKey = "abandon.text.key",
+                        CustomTextKey = "action.abandoned",
                     },
                 ]);
                 break;
@@ -787,6 +833,21 @@ public class FillAction : IUserAction
                 var elementToDelete = context.DataMutator.GetDataElementsForType("Scheme").First();
                 context.DataMutator.RemoveDataElement(elementToDelete);
                 break;
+            case "failWithIssues":
+                return UserActionResult.FailureResult([
+                    new ValidationIssue
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "missing-name",
+                        CustomTextKey = "action.missing-name",
+                    },
+                    new ValidationIssue
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "second",
+                        Description = "Second issue",
+                    },
+                ]);
             case "getClientActions":
                 return UserActionResult.SuccessResult([new ClientAction() { Id = "nextPage" }]);
 

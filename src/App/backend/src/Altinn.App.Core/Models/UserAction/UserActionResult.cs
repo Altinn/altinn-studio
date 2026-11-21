@@ -50,6 +50,12 @@ public sealed class UserActionResult
     public ActionError? Error { get; set; }
 
     /// <summary>
+    /// Validation issues that made the action fail, returned to the client. Their text keys are translated, and the
+    /// first issue becomes the <see cref="Error"/> when that is not set.
+    /// </summary>
+    public List<ValidationIssue>? ValidationIssues { get; set; }
+
+    /// <summary>
     /// Error type to return when the user action was not successful
     /// </summary>
     public ProcessErrorType? ErrorType { get; set; }
@@ -94,6 +100,35 @@ public sealed class UserActionResult
     }
 
     /// <summary>
+    /// Creates a failure result with validation issues to show the user. The issues are returned to the client with
+    /// their text keys translated, and the first one is also returned as the <see cref="Error"/>.
+    /// </summary>
+    /// <param name="validationIssues">The issues that made the action fail. At least one is required.</param>
+    /// <param name="clientActions">Actions for the client to perform</param>
+    /// <param name="errorType">The type of error, which sets the status code. Defaults to bad request.</param>
+    /// <exception cref="ArgumentException">If <paramref name="validationIssues"/> is empty</exception>
+    public static UserActionResult FailureResult(
+        List<ValidationIssue> validationIssues,
+        List<ClientAction>? clientActions = null,
+        ProcessErrorType errorType = ProcessErrorType.BadRequest
+    )
+    {
+        ArgumentNullException.ThrowIfNull(validationIssues);
+        if (validationIssues.Count == 0)
+        {
+            throw new ArgumentException("At least one validation issue is required", nameof(validationIssues));
+        }
+
+        return new UserActionResult
+        {
+            ResultType = ResultType.Failure,
+            ClientActions = clientActions,
+            ValidationIssues = validationIssues,
+            ErrorType = errorType,
+        };
+    }
+
+    /// <summary>
     /// Creates a redirect result
     /// </summary>
     /// <param name="redirectUrl"></param>
@@ -106,22 +141,5 @@ public sealed class UserActionResult
             ResultType = ResultType.Redirect,
             RedirectUrl = redirectUrl,
         };
-    }
-
-    /// <summary>
-    /// Creates the failure result for an action that called <see cref="Features.IInstanceDataMutator.AbandonAllChanges"/>.
-    /// The first issue gives the error message, as its text key or description.
-    /// </summary>
-    internal static UserActionResult AbandonedResult(IReadOnlyList<ValidationIssue> abandonIssues)
-    {
-        var issue = abandonIssues[0];
-        return FailureResult(
-            new ActionError
-            {
-                Code = issue.Code,
-                Message = issue.CustomTextKey ?? issue.Description ?? issue.Code ?? "Changes were abandoned",
-            },
-            errorType: ProcessErrorType.BadRequest
-        );
     }
 }

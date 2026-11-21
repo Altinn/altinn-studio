@@ -12162,6 +12162,14 @@
           "error": {
             "$ref": "#/components/schemas/ActionError"
           },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueWithSource"
+            },
+            "description": "Validation issues that made the action fail, with their text keys translated",
+            "nullable": true
+          },
           "redirectUrl": {
             "type": "string",
             "description": "If the action requires the client to redirect to another url, this property should be set",

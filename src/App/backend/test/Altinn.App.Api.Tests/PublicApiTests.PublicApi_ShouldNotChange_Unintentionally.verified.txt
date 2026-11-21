@@ -1240,6 +1240,8 @@ namespace Altinn.App.Api.Models
         public System.Collections.Generic.Dictionary<string, object>? UpdatedDataModels { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("updatedValidationIssues")]
         public System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>>>? UpdatedValidationIssues { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; set; }
     }
     public class UserDefinedMetadataDto
     {

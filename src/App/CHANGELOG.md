@@ -12,14 +12,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `UserActionResult.FailureResult` takes a list of validation issues. The action fails with status 400, its response lists the issues in `validationIssues` with their text keys translated, and the form shows the first as the error. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 
 ### Changed
 
-- An `IUserAction` can call `context.DataMutator.AbandonAllChanges` to fail with status 400 and save none of its changes, as with `FailureResult`. A server action shows the first issue's text key or description as its error. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- An `IUserAction` that calls `context.DataMutator.AbandonAllChanges` fails as if it returned `FailureResult` with those issues, and saves none of its changes. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ### Fixed
 
+- `process/next` returns 400 with the action's validation issues, instead of 500, when a process action fails with `ProcessErrorType.BadRequest`. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 

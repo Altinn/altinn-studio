@@ -1175,6 +1175,50 @@ public class ProcessControllerTests : ApiTestBase
     }
 
     [Fact]
+    public async Task NextElement_WhenActionFailsWithBadRequest_Returns400WithValidationIssues()
+    {
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
+        processEngineMock
+            .Setup(engine =>
+                engine.Next(
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessNextRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new Altinn.App.Core.Models.Process.ProcessChangeResult
+                {
+                    Success = false,
+                    ErrorType = Altinn.App.Core.Models.Process.ProcessErrorType.BadRequest,
+                    ErrorMessage = "Action handler for action custom failed!",
+                    ValidationIssues =
+                    [
+                        new ValidationIssueWithSource
+                        {
+                            Severity = ValidationIssueSeverity.Error,
+                            Code = "missing-name",
+                            Description = "Du må fylle ut navn",
+                            Source = ValidationIssueSources.Custom,
+                        },
+                    ],
+                }
+            );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        body.RootElement.GetProperty("detail").GetString().Should().Be("Action handler for action custom failed!");
+        var issue = body.RootElement.GetProperty("validationIssues").EnumerateArray().Should().ContainSingle().Subject;
+        issue.GetProperty("code").GetString().Should().Be("missing-name");
+        issue.GetProperty("description").GetString().Should().Be("Du må fylle ut navn");
+    }
+
+    [Fact]
     public async Task Next_WhenAnEarlierWorkflowHasFailed_ReturnsResumeRequired()
     {
         // The call is not checked against earlier workflows up front. Its acquire queues behind the failed one, which

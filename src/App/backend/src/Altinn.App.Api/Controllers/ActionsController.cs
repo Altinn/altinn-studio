@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
@@ -32,6 +33,7 @@ public class ActionsController : ControllerBase
     private readonly IValidationService _validationService;
     private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly ITranslationService _translationService;
 
     /// <summary>
     /// Create new instance of the <see cref="ActionsController"/> class
@@ -51,6 +53,7 @@ public class ActionsController : ControllerBase
         _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
+        _translationService = serviceProvider.GetRequiredService<ITranslationService>();
     }
 
     /// <summary>
@@ -193,11 +196,12 @@ public class ActionsController : ControllerBase
 
         if (result.ResultType is not ResultType.Failure && dataMutator.HasAbandonIssues)
         {
-            result = UserActionResult.AbandonedResult(dataMutator.AbandonIssues);
+            result = UserActionResult.FailureResult([.. dataMutator.AbandonIssues]);
         }
 
         if (result.ResultType is ResultType.Failure)
         {
+            var failureIssues = await _translationService.TranslateUserActionFailure(result, language);
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             return StatusCode(
                 statusCode: result.ErrorType switch
@@ -212,6 +216,7 @@ public class ActionsController : ControllerBase
                     Instance = instance,
                     ClientActions = result.ClientActions,
                     Error = result.Error,
+                    ValidationIssues = failureIssues,
                 }
             );
         }

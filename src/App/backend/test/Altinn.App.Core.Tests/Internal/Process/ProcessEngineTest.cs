@@ -741,6 +741,11 @@ public sealed partial class ProcessEngineTest
         ProcessChangeResult result = await processEngine.Next(processNextRequest, CancellationToken.None);
         result.Success.Should().BeFalse();
         result.ErrorType.Should().Be(ProcessErrorType.BadRequest);
+        result
+            .ValidationIssues.Should()
+            .ContainSingle()
+            .Which.Should()
+            .BeEquivalentTo(new { Code = "abandon-code", Source = ValidationIssueSources.Custom });
     }
 
     [Fact]

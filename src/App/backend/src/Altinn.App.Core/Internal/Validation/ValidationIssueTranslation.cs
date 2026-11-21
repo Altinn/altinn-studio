@@ -1,4 +1,5 @@
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Internal.Validation;
@@ -31,6 +32,37 @@ internal static class ValidationIssueTranslation
         {
             await Translate(translationService, issue, language);
         }
+    }
+
+    /// <summary>
+    /// Translates the validation issues of a failed user action, as validation does, and sets the first one as the
+    /// result's <see cref="UserActionResult.Error"/> when the action did not set one.
+    /// </summary>
+    /// <returns>The issues to return to the client, or null when the result has none.</returns>
+    public static async Task<List<ValidationIssueWithSource>?> TranslateUserActionFailure(
+        this ITranslationService translationService,
+        UserActionResult result,
+        string? language
+    )
+    {
+        if (result.ValidationIssues is not { Count: > 0 } issues)
+        {
+            return null;
+        }
+
+        await translationService.TranslateValidationIssues(issues, language);
+        var first = issues[0];
+        result.Error ??= new ActionError
+        {
+            Code = first.Code,
+            Message = first.Description ?? first.CustomTextKey ?? first.Code ?? string.Empty,
+        };
+
+        return issues
+            .Select(issue =>
+                ValidationIssueWithSource.FromIssue(issue, ValidationIssueSources.Custom, noIncrementalUpdates: true)
+            )
+            .ToList();
     }
 
     private static async Task Translate(ITranslationService translationService, ValidationIssue issue, string? language)

@@ -49,6 +49,12 @@ public class UserActionResponse
     public ActionError? Error { get; set; }
 
     /// <summary>
+    /// Validation issues that made the action fail, with their text keys translated
+    /// </summary>
+    [JsonPropertyName("validationIssues")]
+    public List<ValidationIssueWithSource>? ValidationIssues { get; set; }
+
+    /// <summary>
     /// If the action requires the client to redirect to another url, this property should be set
     /// </summary>
     [JsonPropertyName("redirectUrl")]
