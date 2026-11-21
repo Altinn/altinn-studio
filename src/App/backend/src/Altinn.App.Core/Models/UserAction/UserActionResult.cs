@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Models.UserAction;
 
@@ -37,14 +38,6 @@ public sealed class UserActionResult
     /// Indicates the type of result
     /// </summary>
     public ResultType ResultType { get; set; }
-
-    /// <summary>
-    /// Gets or sets a dictionary of updated data models. Key should be elementId and value should be the updated data model
-    /// </summary>
-    [Obsolete(
-        "Updates done to data from UserActionContext.DataMutator is tracked and don't need to be returned in the response"
-    )]
-    public Dictionary<string, object>? UpdatedDataModels { get; set; }
 
     /// <summary>
     /// Actions for the client to perform after the user action has been handled
@@ -116,19 +109,19 @@ public sealed class UserActionResult
     }
 
     /// <summary>
-    /// Adds an updated data model to the result
+    /// Creates the failure result for an action that called <see cref="Features.IInstanceDataMutator.AbandonAllChanges"/>.
+    /// The first issue gives the error message, as its text key or description.
     /// </summary>
-    /// <param name="dataModelId"></param>
-    /// <param name="dataModel"></param>
-    [Obsolete(
-        "Updates done to data from UserActionContext.DataMutator is tracked and don't need to be returned in the response"
-    )]
-    public void AddUpdatedDataModel(string dataModelId, object dataModel)
+    internal static UserActionResult AbandonedResult(IReadOnlyList<ValidationIssue> abandonIssues)
     {
-        if (UpdatedDataModels == null)
-        {
-            UpdatedDataModels = new Dictionary<string, object>();
-        }
-        UpdatedDataModels.Add(dataModelId, dataModel);
+        var issue = abandonIssues[0];
+        return FailureResult(
+            new ActionError
+            {
+                Code = issue.Code,
+                Message = issue.CustomTextKey ?? issue.Description ?? issue.Code ?? "Changes were abandoned",
+            },
+            errorType: ProcessErrorType.BadRequest
+        );
     }
 }

@@ -211,6 +211,9 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
 
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigrateUpdatedDataModels(scanner, projectFile));
+
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1138,6 +1141,30 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Rewrites UserActionResult.AddUpdatedDataModel(..), removed in v9, to ReplaceFormData on the action's data
+    /// mutator, and reports the uses of AddUpdatedDataModel and UpdatedDataModels it cannot rewrite. Runs before the
+    /// redundant using directives are removed, since it may add one, and binds through the live compilation: no
+    /// earlier step moves the user action types.
+    /// </summary>
+    static int MigrateUpdatedDataModels(CSharpSourceScanner scanner, string projectFile)
+    {
+        UpgradeConsole.BeginStep("UserActionResult.UpdatedDataModels");
+        try
+        {
+            var result = new UpdatedDataModelsMigration(scanner, ProjectGlobalUsings.Read(projectFile)).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No UserActionResult.AddUpdatedDataModel or UpdatedDataModels in use",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating UserActionResult.UpdatedDataModels", ex);
+        }
+    }
+
+    /// <summary>
     /// Removes the IPdfFormatter implementations that cannot change the PDF, with their registrations, so
     /// the removed-API check reports only the ones with logic to port.
     /// </summary>
@@ -1164,7 +1191,8 @@ internal static class V8Tov9Upgrade
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
     /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters, and
-    /// the service classes that are internal in v9 and must be reached through their interfaces.
+    /// the service classes that are internal in v9 and must be reached through their interfaces, and the
+    /// UserActionContext constructor taking an Instance.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
@@ -1219,6 +1247,7 @@ internal static class V8Tov9Upgrade
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
                 new RemovedAppResourcesApiDetector(pristineView).Detect(),
+                new RemovedUserActionContextConstructorDetector(pristineView).Detect(),
                 new InternalizedServiceTypeDetector(
                     pristineView,
                     ProjectGlobalUsings.Read(projectFile),

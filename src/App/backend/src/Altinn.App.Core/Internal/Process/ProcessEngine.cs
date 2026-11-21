@@ -782,9 +782,7 @@ internal class ProcessEngine : IProcessEngine
 
         if (cachedDataMutator.HasAbandonIssues)
         {
-            throw new InvalidOperationException(
-                "Abandon issues found in data elements. Abandon issues should be handled by the action handler."
-            );
+            return (UserActionResult.AbandonedResult(cachedDataMutator.AbandonIssues), null);
         }
 
         DataElementChanges changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);

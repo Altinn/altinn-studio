@@ -104,6 +104,8 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// Stop processing the request with current changes and return a BadRequest with the following issues
     /// This is intended to be an alternative to a <see cref="IFileAnalyzer"/> <see cref="IFileValidator"/>
     /// pair to ensure that new binary data is not saved if the data is not valid.
+    /// In an <see cref="IUserAction"/>, the action fails as if it returned
+    /// <see cref="Models.UserAction.UserActionResult.FailureResult"/> with the first issue as the error.
     /// </summary>
     /// <param name="validationIssues"></param>
     void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues);

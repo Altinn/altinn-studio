@@ -1,4 +1,3 @@
-using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
@@ -192,6 +191,11 @@ public class ActionsController : ControllerBase
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);
 
+        if (result.ResultType is not ResultType.Failure && dataMutator.HasAbandonIssues)
+        {
+            result = UserActionResult.AbandonedResult(dataMutator.AbandonIssues);
+        }
+
         if (result.ResultType is ResultType.Failure)
         {
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
@@ -211,29 +215,6 @@ public class ActionsController : ControllerBase
                 }
             );
         }
-
-        if (dataMutator.GetAbandonResponse() is not null)
-        {
-            throw new NotImplementedException(
-                "return an error response from UserActions instead of abandoning the dataMutator"
-            );
-        }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-
-        // Replace the forms returned in the deprecated UpdatedDataModels, so that they are saved to storage
-        // and the diff against the previous binary data reaches validation and the frontend
-        if (result.UpdatedDataModels is { Count: > 0 })
-        {
-            await Task.WhenAll(
-                result.UpdatedDataModels.Select(async row =>
-                    (await dataMutator.GetFormDataWrapper(new DataElementIdentifier(row.Key))).ReplaceBackingData(
-                        row.Value
-                    )
-                )
-            );
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 

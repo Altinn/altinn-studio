@@ -5364,8 +5364,6 @@ namespace Altinn.App.Core.Models.UserAction
     }
     public class UserActionContext
     {
-        [System.Obsolete("Use the constructor with IInstanceDataAccessor instead")]
-        public UserActionContext(Altinn.Platform.Storage.Interface.Models.Instance instance, int? userId, string? buttonId = null, System.Collections.Generic.Dictionary<string, string>? actionMetadata = null, string? language = null, Altinn.App.Core.Features.Auth.Authenticated? authentication = null) { }
         public UserActionContext(Altinn.App.Core.Features.IInstanceDataMutator dataMutator, int? userId, string? buttonId = null, System.Collections.Generic.Dictionary<string, string>? actionMetadata = null, string? language = null, Altinn.App.Core.Features.Auth.Authenticated? authentication = null, string? onBehalfOf = null, System.Threading.CancellationToken? cancellationToken = default) { }
         public System.Collections.Generic.Dictionary<string, string> ActionMetadata { get; }
         public Altinn.App.Core.Features.Auth.Authenticated? Authentication { get; }
@@ -5386,12 +5384,6 @@ namespace Altinn.App.Core.Models.UserAction
         public System.Uri? RedirectUrl { get; set; }
         public Altinn.App.Core.Models.UserAction.ResultType ResultType { get; set; }
         public bool Success { get; set; }
-        [System.Obsolete("Updates done to data from UserActionContext.DataMutator is tracked and don\'t need" +
-            " to be returned in the response")]
-        public System.Collections.Generic.Dictionary<string, object>? UpdatedDataModels { get; set; }
-        [System.Obsolete("Updates done to data from UserActionContext.DataMutator is tracked and don\'t need" +
-            " to be returned in the response")]
-        public void AddUpdatedDataModel(string dataModelId, object dataModel) { }
         public static Altinn.App.Core.Models.UserAction.UserActionResult FailureResult(Altinn.App.Core.Models.UserAction.ActionError error, System.Collections.Generic.List<Altinn.App.Core.Models.UserAction.ClientAction>? clientActions = null, Altinn.App.Core.Models.Process.ProcessErrorType errorType = 1) { }
         public static Altinn.App.Core.Models.UserAction.UserActionResult RedirectResult(System.Uri redirectUrl) { }
         public static Altinn.App.Core.Models.UserAction.UserActionResult SuccessResult(System.Collections.Generic.List<Altinn.App.Core.Models.UserAction.ClientAction>? clientActions = null) { }

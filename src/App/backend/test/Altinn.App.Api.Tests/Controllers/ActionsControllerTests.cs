@@ -457,36 +457,24 @@ public class ActionsControllerTests : ApiTestBase
             .Should()
             .Contain("Her kommer det data fra backend");
 
-        // Run buttonId "updateObsolete"
-        using var updateObsoleteContent = JsonContent.Create(new { action = "fill", buttonId = "updateObsolete" });
-        using HttpResponseMessage updateObsoleteResponse = await client.PostAsync(
+        // Run buttonId "abandon": the change is not saved, and the issue is returned as the error
+        using var abandonContent = JsonContent.Create(new { action = "fill", buttonId = "abandon" });
+        using HttpResponseMessage abandonResponse = await client.PostAsync(
             $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
-            updateObsoleteContent
+            abandonContent
         );
-        var parsedUpdateObsoleteResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
-            updateObsoleteResponse,
-            HttpStatusCode.OK
+        var parsedAbandonResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            abandonResponse,
+            HttpStatusCode.BadRequest
         );
-        parsedUpdateObsoleteResponse.ClientActions.Should().BeEmpty();
-        parsedUpdateObsoleteResponse.Instance.Should().NotBeNull();
-        parsedUpdateObsoleteResponse.Instance.Id.Should().Be($"{instanceOwner}/{instanceGuid}");
-        var updatedObsoleteDataElement = parsedUpdateObsoleteResponse.Instance.Data.Should().ContainSingle().Which;
-        var updatedObsoleteSchemeElement = parsedUpdateObsoleteResponse
-            .UpdatedDataModels.Should()
-            .HaveCount(1)
-            .And.ContainKey(updatedObsoleteDataElement.Id)
-            .WhoseValue.Should()
-            .BeOfType<JsonElement>()
-            .Which;
-        var updatedObsoleteScheme =
-            updatedObsoleteSchemeElement.Deserialize<Scheme>(_jsonSerializerOptions)
-            ?? throw new Exception("Failed to deserialize Scheme");
-        updatedObsoleteScheme.description.Should().Be("Obsolete data");
-
+        parsedAbandonResponse.UpdatedDataModels.Should().BeNull();
+        parsedAbandonResponse.Error.Should().NotBeNull();
+        parsedAbandonResponse.Error!.Code.Should().Be("abandon-code");
+        parsedAbandonResponse.Error!.Message.Should().Be("abandon.text.key");
         TestData
             .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
             .Should()
-            .Contain("Obsolete data");
+            .NotContain("Abandoned data");
 
         // Run buttonId "delete"
         using var deleteContent = JsonContent.Create(new { action = "fill", buttonId = "delete" });
@@ -749,14 +737,11 @@ public class ActionsControllerTests : ApiTestBase
 public class FillAction : IUserAction
 {
     private readonly ILogger<FillAction> _logger;
-    private readonly IDataClient _dataClient;
-
     public string Id => "fill";
 
-    public FillAction(ILogger<FillAction> logger, IDataClient dataClient)
+    public FillAction(ILogger<FillAction> logger)
     {
         _logger = logger;
-        _dataClient = dataClient;
     }
 
     public async Task<UserActionResult> HandleAction(UserActionContext context)
@@ -784,13 +769,20 @@ public class FillAction : IUserAction
 
                 data.TestCustomButtonReadOnlyInput = "Her kommer det data fra backend";
                 break;
-            case "updateObsolete":
-                var dataElement = context.Instance.Data.Single();
-                var obsoleteData = await _dataClient.GetFormData<Scheme>(context.Instance, dataElement);
-                obsoleteData.description = "Obsolete data";
-                var result = UserActionResult.SuccessResult(new List<ClientAction>());
-                result.AddUpdatedDataModel(dataElement.Id, obsoleteData);
-                return result;
+            case "abandon":
+                var abandonDataElement = context.DataMutator.GetDataElementsForType("Scheme").First();
+                var abandonData = await context.DataMutator.GetFormData<Scheme>(abandonDataElement);
+                abandonData.TestCustomButtonReadOnlyInput = "Abandoned data";
+                context.DataMutator.AbandonAllChanges([
+                    new ValidationIssue
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Code = "abandon-code",
+                        Description = "Abandoned",
+                        CustomTextKey = "abandon.text.key",
+                    },
+                ]);
+                break;
             case "delete":
                 var elementToDelete = context.DataMutator.GetDataElementsForType("Scheme").First();
                 context.DataMutator.RemoveDataElement(elementToDelete);

@@ -527,8 +527,10 @@ public class SigningUserActionTests
                 new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
             },
         };
+        var dataMutator = new Mock<IInstanceDataMutator>();
+        dataMutator.Setup(x => x.Instance).Returns(instance);
         var userActionContext = new UserActionContext(
-            instance,
+            dataMutator.Object,
             1337,
             authentication: TestAuthentication.GetUserAuthentication(1337, applicationMetadata: appMetadata)
         );

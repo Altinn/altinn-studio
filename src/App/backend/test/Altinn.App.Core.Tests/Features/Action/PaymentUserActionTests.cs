@@ -1,4 +1,5 @@
 #nullable disable
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
@@ -40,7 +41,7 @@ public class PaymentUserActionTests
             PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com" },
         };
 
-        var userActionContext = new UserActionContext(instance, 1337);
+        var userActionContext = CreateUserActionContext(instance);
 
         _paymentServiceMock
             .Setup(x =>
@@ -78,7 +79,7 @@ public class PaymentUserActionTests
             PaymentDetails = new PaymentDetails { PaymentId = null, RedirectUrl = null },
         };
 
-        var userActionContext = new UserActionContext(instance, 1337);
+        var userActionContext = CreateUserActionContext(instance);
 
         _paymentServiceMock
             .Setup(x =>
@@ -114,7 +115,7 @@ public class PaymentUserActionTests
             PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com" },
         };
 
-        var userActionContext = new UserActionContext(instance, 1337);
+        var userActionContext = CreateUserActionContext(instance);
 
         _paymentServiceMock
             .Setup(x =>
@@ -155,5 +156,12 @@ public class PaymentUserActionTests
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task2" } },
             Data = [new DataElement { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }],
         };
+    }
+
+    private static UserActionContext CreateUserActionContext(Instance instance)
+    {
+        var dataMutator = new Mock<IInstanceDataMutator>();
+        dataMutator.Setup(x => x.Instance).Returns(instance);
+        return new UserActionContext(dataMutator.Object, 1337);
     }
 }

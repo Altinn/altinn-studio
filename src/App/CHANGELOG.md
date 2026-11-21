@@ -14,10 +14,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 
+### Changed
+
+- An `IUserAction` can call `context.DataMutator.AbandonAllChanges` to fail with status 400 and save none of its changes, as with `FailureResult`. A server action shows the first issue's text key or description as its error. It failed with a server error before.
+
 ### Fixed
 
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
+
+### Removed
+
+- Breaking: `UserActionResult.UpdatedDataModels` and `UserActionResult.AddUpdatedDataModel`. In `IUserAction.HandleAction`, change form data through `context.DataMutator`, such as with `GetFormData` or `ReplaceFormData`. Those changes are saved and returned to the form without being added to the result. `studioctl app upgrade v9` rewrites `AddUpdatedDataModel` calls to `ReplaceFormData` and reports other uses.
+- Breaking: the `UserActionContext` constructor that takes an `Instance`. Pass an `IInstanceDataMutator` instead; in a unit test, a mock whose `Instance` returns your instance is enough. `studioctl app upgrade v9` reports calls to it.
 
 ## [9.0.0-preview.14] - 2026-11-20
 
