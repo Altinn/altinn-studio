@@ -15,6 +15,7 @@ ALTINNAPP0601 | Deprecation | Error | Legacy eFormidling config is not supported
 ALTINNAPP0602 | Deprecation | Error | subformComponentId and subformDataTypeId are not supported
 ALTINNAPP0603 | Deprecation | Error | taskId is not supported
 ALTINNAPP0604 | Deprecation | Warning | taskId next to taskIds is ignored
+ALTINNAPP0605 | Deprecation | Error | IInstantiationProcessor.DataCreation with an Instance is never called
 ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded
 ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered

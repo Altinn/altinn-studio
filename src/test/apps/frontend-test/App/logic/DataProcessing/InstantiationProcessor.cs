@@ -1,6 +1,5 @@
 using Altinn.App.Models;
 using Altinn.Platform.Register.Models;
-using Altinn.Platform.Storage.Interface.Models;
 using Altinn.App.Actions;
 using Altinn.App.Core.Internal.Registers;
 
@@ -15,13 +14,13 @@ namespace Altinn.App.logic.DataProcessing
             _registerService = registerService;
         }
 
-        public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+        public async Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill)
         {
             if (data.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)data;
                 int partyId;
-                if (int.TryParse(instance.InstanceOwner.PartyId, out partyId))
+                if (int.TryParse(instanceDataMutator.Instance.InstanceOwner.PartyId, out partyId))
                 {
                     Party party = await _registerService.GetParty(partyId)
                         ?? throw new InvalidOperationException(

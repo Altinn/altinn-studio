@@ -88,9 +88,6 @@ public class CommonTaskInitializationTests
 
     private sealed class SharedModelInstantiationProcessor : IInstantiationProcessor
     {
-        public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
-            throw new InvalidOperationException("Task initialization must call the mutator overload");
-
         public Task DataCreation(
             IInstanceDataMutator instanceDataMutator,
             object data,

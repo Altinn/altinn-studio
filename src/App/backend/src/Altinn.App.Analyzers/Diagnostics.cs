@@ -467,6 +467,20 @@ public static class Diagnostics
             "taskId next to taskIds is ignored",
             "'taskId' on dataType '{0}' is no longer supported by this version of the app backend and is ignored, so the data type is bound only to the tasks in its taskIds. Remove the taskId '{1}', and list every task the data belongs to in taskIds."
         );
+
+        // An error, since the app compiles and its instantiation code silently never runs. Reported only for a method
+        // nothing in the app calls, so a helper the app calls from the current overload is left alone. '{0}' is the
+        // type that declares the method.
+        public static readonly DiagnosticDescriptor LegacyInstantiationProcessorDataCreation = Error(
+            "ALTINNAPP0605",
+            Category.Deprecation,
+            "IInstantiationProcessor.DataCreation with an Instance is never called",
+            "'{0}' implements IInstantiationProcessor and declares DataCreation(Instance, object, Dictionary<string, string>?), "
+                + "which this version of the app backend never calls. It calls only "
+                + "DataCreation(IInstanceDataMutator, object, Dictionary<string, string>?). Move the code into that method, "
+                + "and use instanceDataMutator.Instance for the instance; 'studioctl app upgrade v9' makes this change.",
+            WellKnownDiagnosticTags.CompilationEnd
+        );
     }
 
     private const string DocsRoot =

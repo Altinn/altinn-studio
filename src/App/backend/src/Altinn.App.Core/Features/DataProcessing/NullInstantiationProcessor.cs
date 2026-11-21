@@ -1,5 +1,3 @@
-using Altinn.Platform.Storage.Interface.Models;
-
 namespace Altinn.App.Core.Features.DataProcessing;
 
 /// <summary>
@@ -9,8 +7,9 @@ namespace Altinn.App.Core.Features.DataProcessing;
 internal sealed class NullInstantiationProcessor : IInstantiationProcessor
 {
     /// <inheritdoc />
-    public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
-    {
-        await Task.CompletedTask;
-    }
+    public Task DataCreation(
+        IInstanceDataMutator instanceDataMutator,
+        object data,
+        Dictionary<string, string>? prefill
+    ) => Task.CompletedTask;
 }
