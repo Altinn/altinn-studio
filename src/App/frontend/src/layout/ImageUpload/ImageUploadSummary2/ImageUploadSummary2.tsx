@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
@@ -42,7 +43,7 @@ export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
       content={contentLogic}
     >
       <SingleValueSummary
-        title={title}
+        title={<Lang id={title} />}
         targetBaseComponentId={targetBaseComponentId}
         displayData={imageElement && <ImageToDisplay targetBaseComponentId={targetBaseComponentId} />}
         errors={errors}

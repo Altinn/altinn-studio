@@ -62,20 +62,6 @@ describe('File uploading components', () => {
       expect(screen.getByText(/Antall filer 3\/3\./i)).toBeInTheDocument();
     });
 
-    it('should render the label from overrideItemProps given by the parent component', async () => {
-      await render({
-        renderer: (props) => (
-          <GenericComponent<'FileUpload'>
-            baseComponentId={props.baseComponentId}
-            overrideItemProps={{ textResourceBindings: { title: 'overridden-title' } }}
-          />
-        ),
-      });
-
-      expect(screen.getByText('overridden-title')).toBeInTheDocument();
-      expect(screen.queryByText('attachment-title')).not.toBeInTheDocument();
-    });
-
     describe('file status', () => {
       it('should show loading when file uploaded=false', async () => {
         const { mutations, id } = await render({ attachments: () => [] });
@@ -610,7 +596,6 @@ describe('File uploading components', () => {
   interface Props extends Partial<RenderGenericComponentTestProps<'FileUpload'>> {
     attachments?: (dataType: string) => IData[];
     withTag: boolean;
-    renderer?: RenderGenericComponentTestProps<'FileUpload'>['renderer'];
   }
 
   async function renderAbstract({
@@ -619,7 +604,6 @@ describe('File uploading components', () => {
     withTag,
     queries,
     mutations,
-    renderer = (props) => <FileUploadComponent {...props} />,
   }: Props) {
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
@@ -640,7 +624,7 @@ describe('File uploading components', () => {
 
     const utils = await renderGenericComponentTest<'FileUpload'>({
       type: 'FileUpload',
-      renderer,
+      renderer: (props) => <FileUploadComponent {...props} />,
       component: {
         id,
         type: 'FileUpload',

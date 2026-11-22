@@ -66,7 +66,7 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
           <div className={classes.organizationLookupSummaryNr}>
             <SingleValueSummary
               showLabelMetadata={false}
-              title='organization_lookup.orgnr_label'
+              title={<Lang id='organization_lookup.orgnr_label' />}
               displayData={orgnr}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={name ? true : false}
@@ -82,7 +82,7 @@ export function OrganizationLookupSummary({ targetBaseComponentId }: Summary2Pro
             <div className={classes.organizationLookupSummaryName}>
               <SingleValueSummary
                 showLabelMetadata={false}
-                title='organization_lookup.org_name'
+                title={<Lang id='organization_lookup.org_name' />}
                 displayData={name}
                 targetBaseComponentId={targetBaseComponentId}
                 hideEditButton={false}

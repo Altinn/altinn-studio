@@ -3,6 +3,7 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
+import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
@@ -36,7 +37,7 @@ export const TextSummary = ({ targetBaseComponentId }: Summary2Props) => {
       content={displayData ? SummaryContains.SomeUserContent : SummaryContains.EmptyValueNotRequired}
     >
       <SingleValueSummary
-        title={title}
+        title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
         targetBaseComponentId={targetBaseComponentId}

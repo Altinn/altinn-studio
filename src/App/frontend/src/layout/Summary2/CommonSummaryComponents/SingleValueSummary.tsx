@@ -1,17 +1,18 @@
 import React from 'react';
 
-import { SingleValueSummaryLayout } from '@app/form-component';
+import { Label, Paragraph } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
-import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
+import { LabelContent } from 'src/components/label/LabelContent';
+import { Lang } from 'src/features/language/Lang';
 import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
-import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
-import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import type { BaseValidation } from 'src/features/validation';
 
 type SingleValueSummaryProps = {
-  title: string | undefined;
+  title: React.ReactNode;
   errors?: BaseValidation[];
   targetBaseComponentId: string;
   displayData?: string | React.ReactNode;
@@ -33,39 +34,58 @@ export const SingleValueSummary = ({
   emptyFieldText,
   showLabelMetadata = true,
 }: SingleValueSummaryProps) => {
-  const { description, help } = useSummaryLabelText(targetBaseComponentId);
-  const { overrideDisplay } = useFormComponentCtx() ?? {};
-
-  // The texts are resolved here, in the data model location of the summarized component (such as a row
-  // in a repeating group), not where the summary component itself sits.
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
+  const label = (
+    <Label weight='regular'>
+      {title}
+      {!!title?.toString()?.length && isCompact && ':'}
+    </Label>
+  );
   return (
-    <AppLanguageTranslatorProvider>
-      <SingleValueSummaryLayout
-        title={title}
-        description={description}
-        help={help}
-        value={displayData}
-        emptyFieldText={emptyFieldText}
-        compact={isCompact}
-        multiline={multiline}
-        hasErrors={!!errors && errors.length > 0}
-        showLabelMetadata={showLabelMetadata}
-        renderLabel={overrideDisplay?.renderLabel}
-        editButton={
-          hideEditButton ? undefined : (
-            <EditButton
-              className={classes.editButton}
-              targetBaseComponentId={targetBaseComponentId}
+    <div
+      className={classes.summaryItemWrapper}
+      data-testid='summary-single-value-component'
+    >
+      <div className={classes.summaryItem}>
+        <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
+          {showLabelMetadata ? (
+            <LabelContent
+              {...labelProps}
+              label={label}
             />
-          )
-        }
-        validationMessages={
-          <ValidationMessageList
-            validations={errors}
-            size='sm'
+          ) : (
+            label
+          )}
+          <Paragraph
+            asChild
+            className={cn(
+              {
+                [classes.error]: errors && errors?.length > 0,
+                [classes.emptyValue]: !displayData,
+                [classes.formValue]: displayData,
+                [classes.multiline]: multiline,
+              },
+              classes.summaryValue,
+            )}
+          >
+            <span>
+              {!displayData && <Lang id={emptyFieldText ?? 'general.empty_summary'} />}
+              {displayData}
+            </span>
+          </Paragraph>
+        </div>
+        {!hideEditButton && (
+          <EditButton
+            className={classes.editButton}
+            targetBaseComponentId={targetBaseComponentId}
           />
-        }
+        )}
+      </div>
+
+      <ValidationMessageList
+        validations={errors}
+        size='sm'
       />
-    </AppLanguageTranslatorProvider>
+    </div>
   );
 };

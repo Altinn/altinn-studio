@@ -1,17 +1,65 @@
 import React from 'react';
 
-import { DeleteWarningPopover as DeleteWarningPopoverLayout } from '@app/form-component';
-import type { DeleteWarningPopoverProps } from '@app/form-component';
+import { Button } from '@app/form-component';
+import { Popover } from '@digdir/designsystemet-react';
 
+import classes from 'src/features/alertOnChange/DeleteWarningPopover.module.css';
 import { Lang } from 'src/features/language/Lang';
 
-export type IDeleteWarningPopover = Omit<DeleteWarningPopoverProps, 'cancelButtonText'>;
+export interface IDeleteWarningPopover {
+  children?: React.ReactNode;
+  onPopoverDeleteClick: () => void;
+  onCancelClick: () => void;
+  deleteButtonText: string;
+  messageText: React.ReactNode;
+  open: boolean;
+  popoverId?: string;
+  setOpen: (open: boolean) => void;
+  placement?: 'bottom' | 'left' | 'right' | 'top';
+}
 
-export function DeleteWarningPopover(props: IDeleteWarningPopover) {
+export function DeleteWarningPopover({
+  children,
+  onPopoverDeleteClick,
+  onCancelClick,
+  deleteButtonText,
+  messageText,
+  placement = 'bottom',
+  popoverId,
+  open,
+  setOpen,
+}: IDeleteWarningPopover) {
   return (
-    <DeleteWarningPopoverLayout
-      {...props}
-      cancelButtonText={<Lang id='general.cancel' />}
-    />
+    <Popover.TriggerContext>
+      <Popover.Trigger
+        asChild
+        onClick={() => setOpen(!open)}
+      >
+        {children}
+      </Popover.Trigger>
+      <Popover
+        id={popoverId}
+        open={open}
+        placement={placement}
+        data-color='warning'
+      >
+        <div>{messageText}</div>
+        <div className={classes.popoverButtonContainer}>
+          <Button
+            color='danger'
+            onClick={onPopoverDeleteClick}
+          >
+            {deleteButtonText}
+          </Button>
+          <Button
+            variant='tertiary'
+            color='second'
+            onClick={onCancelClick}
+          >
+            <Lang id='general.cancel' />
+          </Button>
+        </div>
+      </Popover>
+    </Popover.TriggerContext>
   );
 }

@@ -54,7 +54,7 @@ export function MapSummary({ targetBaseComponentId }: Summary2Props) {
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
-          title={title}
+          title={<Lang id={title} />}
           targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           hideEditButton={readOnly}

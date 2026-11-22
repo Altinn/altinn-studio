@@ -172,7 +172,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
       content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
     >
       <SingleValueSummary
-        title={title}
+        title={title && <Lang id={title} />}
         displayData={displayData}
         errors={errors}
         targetBaseComponentId={targetBaseComponentId}

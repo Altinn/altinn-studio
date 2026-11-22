@@ -70,7 +70,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
         className={className}
       >
         <SingleValueSummary
-          title={title}
+          title={<Lang id={title} />}
           targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           isCompact={isCompact}

@@ -57,7 +57,7 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
         content={required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired}
       >
         <SingleValueSummary
-          title={title}
+          title={<Lang id={title} />}
           targetBaseComponentId={targetBaseComponentId}
           errors={errors}
           hideEditButton={readOnly}
@@ -143,7 +143,7 @@ function LikertRowSummary({ rowBaseId, emptyFieldText, readOnly, isCompact }: Li
 
   return (
     <SingleValueSummary
-      title={title}
+      title={<Lang id={title} />}
       isCompact={isCompact}
       targetBaseComponentId={rowBaseId}
       displayData={displayData}

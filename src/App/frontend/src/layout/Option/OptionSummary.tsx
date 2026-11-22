@@ -40,7 +40,7 @@ export const OptionSummary = ({ targetBaseComponentId }: Summary2Props) => {
       className={classes.summary}
     >
       <SingleValueSummary
-        title={title}
+        title={title && <Lang id={title} />}
         displayData={
           selectedOption && (
             <span className={classes.value}>
