@@ -334,6 +334,7 @@ function DeleteComponentDialogContent({
       title={t('app_builder.delete.title', { componentName })}
       description={t('app_builder.delete.description')}
       components={deletedComponents}
+      pageName={pageName}
       isDeleting={isDeleting}
       onDelete={(selection) => void handleDelete(selection)}
       onClose={() => requestDelete(undefined)}

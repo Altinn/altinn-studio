@@ -13,7 +13,10 @@ export const useSaveLayoutSettingsMutation = (org: string, app: string, layoutSe
   const queryKey = [QueryKey.FormLayoutSettings, org, app, layoutSetName];
   return useMutation({
     mutationFn: async (change: (settings: ILayoutSettings) => ILayoutSettings) => {
-      const current = queryClient.getQueryData<ILayoutSettings>(queryKey) ?? {};
+      const current = queryClient.getQueryData<ILayoutSettings>(queryKey);
+      // Saving without the current settings would replace the whole file.
+      if (!current)
+        throw new Error('The layout settings are not loaded, so they cannot be changed.');
       const updated = change(current);
       if (updated === current) return current;
       queryClient.setQueryData(queryKey, updated);

@@ -60,6 +60,7 @@ export function DeletePageButton({ onPageDeleted }: DeletePageButtonProps): Reac
           components={layout.data.layout}
           // The page's name is a text with the page name as key.
           extraTextKeys={[pageName]}
+          pageName={pageName}
           deletedPageName={pageName}
           isDeleting={isDeleting}
           onDelete={(selection) => void handleDelete(selection)}

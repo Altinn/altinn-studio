@@ -533,6 +533,44 @@ describe('PageCanvas, deleting components', () => {
 
     expect(getSavedIds(saveFormLayout)).toEqual(['heading', 'choice', 'map']);
   });
+
+  it('keeps texts that the builder did not make for the component', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    const updateTextId = vi.fn().mockImplementation(() => Promise.resolve());
+    renderPageCanvas({}, { saveFormLayout, updateTextId });
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.delete_component') }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: textMock('general.delete') }));
+
+    await waitFor(() => expect(getSavedIds(saveFormLayout)).toEqual(['heading', 'choice', 'map']));
+    expect(updateTextId).not.toHaveBeenCalled();
+  });
+
+  it('deletes nothing when the pages of the app could not be loaded', async () => {
+    const user = userEvent.setup();
+    const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
+    const getFormLayouts = vi.fn().mockImplementation(() => Promise.reject(new Error('failed')));
+    renderPageCanvas({}, { saveFormLayout, getFormLayouts }, {}, { otherLayoutSet: true });
+
+    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_builder.delete_component') }),
+    );
+    const dialog = await screen.findByRole('dialog');
+
+    expect(
+      await within(dialog).findByText(textMock('app_builder.delete.load_error')),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole('button', { name: textMock('general.delete') }),
+    ).not.toBeInTheDocument();
+    expect(saveFormLayout).not.toHaveBeenCalled();
+  });
 });
 
 describe('PageCanvas, navigation buttons', () => {
@@ -634,9 +672,15 @@ describe('PageCanvas, review fixes', () => {
     const user = userEvent.setup();
     const saveFormLayout = vi.fn().mockImplementation(() => Promise.resolve());
     const updateTextId = vi.fn().mockImplementation(() => Promise.reject(new Error('failed')));
-    renderPageCanvas({}, { saveFormLayout, updateTextId });
+    // Only texts named the way the builder names them are deleted with the component.
+    const builderReason = { ...reason, textResourceBindings: { title: 'side1.reason.title' } };
+    renderPageCanvas(
+      { layouts: { [pageName]: createLayout([heading, builderReason]) } },
+      { saveFormLayout, updateTextId },
+      { 'side1.reason.title': 'Begrunnelse fra byggeren' },
+    );
 
-    await user.click(getSelectButton(nbTexts['reason.title']));
+    await user.click(getSelectButton('Begrunnelse fra byggeren'));
     await user.click(
       screen.getByRole('button', { name: textMock('app_builder.delete_component') }),
     );
@@ -778,7 +822,13 @@ type RenderOptions = Partial<PageCanvasProps> & {
 };
 
 // Reads the layouts and texts from the query cache, like the app builder does, so saves show.
-function TestAppBuilder({ layouts: _layouts, summaryPageName, taskId, ...props }: RenderOptions) {
+function TestAppBuilder({
+  layouts: _layouts,
+  summaryPageName,
+  taskId,
+  layoutSetNames = [layoutSetName],
+  ...props
+}: RenderOptions & { layoutSetNames?: string[] }) {
   const { data: layouts } = usePageLayoutsQuery(org, app, layoutSetName);
   const { data: textResources } = useTextResourcesQuery(org, app);
   const pageNames = Object.keys(layouts).filter((name) => name !== summaryPageName);
@@ -787,7 +837,7 @@ function TestAppBuilder({ layouts: _layouts, summaryPageName, taskId, ...props }
       org={org}
       app={app}
       layoutSetName={layoutSetName}
-      layoutSetNames={[layoutSetName]}
+      layoutSetNames={layoutSetNames}
       taskId={taskId}
       layouts={layouts}
       contentPageNames={pageNames}
@@ -805,6 +855,7 @@ function renderPageCanvas(
   options: RenderOptions = {},
   services: Partial<ServicesContextProps> = {},
   extraTexts: Record<string, string> = {},
+  { otherLayoutSet = false }: { otherLayoutSet?: boolean } = {},
 ) {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
@@ -817,7 +868,11 @@ function renderPageCanvas(
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return render(
     <ServicesContextProvider {...queriesMock} {...services} client={queryClient}>
-      <TestAppBuilder {...options} />
+      <TestAppBuilder
+        {...options}
+        // The other layout set is not in the cache, so its pages are fetched.
+        layoutSetNames={otherLayoutSet ? [layoutSetName, 'other'] : [layoutSetName]}
+      />
     </ServicesContextProvider>,
   );
 }

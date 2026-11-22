@@ -38,7 +38,13 @@ type OtherLanguage = (typeof otherLanguages)[number];
 export function TextsView(): ReactElement {
   const { t } = useTranslation();
   const { org, app, layouts, contentPageNames, summaryPageName, texts } = useAppBuilder();
-  const { data: languages = [] } = useLanguagesQuery(org, app);
+  const {
+    data: languages = [],
+    isPending: languagesPending,
+    isError: languagesError,
+  } = useLanguagesQuery(org, app);
+  // Adding a language writes its whole text file, so the switches wait until the languages are known.
+  const canSwitchLanguages = !languagesPending && !languagesError;
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { mutate: addLanguage } = useAddLanguageMutation(org, app);
   const { mutate: deleteLanguage } = useDeleteLanguageMutation(org, app);
@@ -55,6 +61,7 @@ export function TextsView(): ReactElement {
     .filter(({ count }) => count > 0);
 
   const handleSwitch = (language: OtherLanguage, isOn: boolean): void => {
+    if (!canSwitchLanguages) return;
     if (isOn) addLanguage({ language, mainTexts: texts });
     else setLanguageToDelete(language);
   };
@@ -71,10 +78,14 @@ export function TextsView(): ReactElement {
             key={language}
             label={t(`language.${language}`)}
             checked={activeLanguages.includes(language)}
+            disabled={!canSwitchLanguages}
             onChange={(event) => handleSwitch(language, event.target.checked)}
           />
         ))}
       </StudioFieldset>
+      {languagesError && (
+        <StudioAlert data-color='danger'>{t('app_builder.texts.languages_load_error')}</StudioAlert>
+      )}
       {languageToDelete && (
         <StudioAlert data-color='warning'>
           <StudioParagraph>

@@ -30,6 +30,10 @@ export type DeletionContext = {
   /** Text keys that go with them besides the components' own, such as the name of a deleted page. */
   extraTextKeys?: string[];
   layoutSetName: string;
+  /** The page the components are on. */
+  pageName: string;
+  /** The page that is deleted, if it is. Its name is also the key of its title. */
+  deletedPageName?: string;
   allLayouts: AllLayouts;
   /** The app's own texts in the edited language. */
   existingTextKeys: string[];
@@ -38,13 +42,16 @@ export type DeletionContext = {
 
 /**
  * Works out what may be removed together with the components, and what should be selected by
- * default: the texts only these components use. Fields are never selected by default, since answers
- * may be stored in them.
+ * default: the texts that the builder made for these components and that nothing else uses. Texts
+ * with other keys may be used by code lists, the app's code or other texts, which the builder cannot
+ * see, so they are kept. Fields are never selected by default, since answers may be stored in them.
  */
 export function getDeletionCandidates({
   components,
   extraTextKeys = [],
   layoutSetName,
+  pageName,
+  deletedPageName,
   allLayouts,
   existingTextKeys,
   dataModel,
@@ -60,7 +67,10 @@ export function getDeletionCandidates({
       const usedBy = findReferences(allLayouts, (other) => usesText(other, textKey)).filter(
         isOtherComponent,
       );
-      return { name: textKey, usedBy, isSelectedByDefault: usedBy.length === 0 };
+      const isOwnText =
+        isBuilderTextKey(textKey, pageName, deletedIds, deletedPageName) &&
+        !isTitleOfOtherPage(textKey, allLayouts, layoutSetName, deletedPageName);
+      return { name: textKey, usedBy, isSelectedByDefault: usedBy.length === 0 && isOwnText };
     });
 
   const existingFields = getFieldNames(dataModel?.schema);
@@ -112,6 +122,38 @@ export function findRuleReferences(
         .map((component) => ({ pageName, component }));
       return [...pageRule, ...componentRules];
     });
+}
+
+/**
+ * Whether the builder made the text for one of the deleted components or for the deleted page. The
+ * builder, like ux-editor, names a component's texts `page.componentId.property`, and gives a page's
+ * title the page name as key.
+ */
+function isBuilderTextKey(
+  textKey: string,
+  pageName: string,
+  deletedIds: Set<string>,
+  deletedPageName: string | undefined,
+): boolean {
+  if (deletedPageName && textKey === deletedPageName) return true;
+  const prefix = `${pageName}.`;
+  if (!textKey.startsWith(prefix)) return false;
+  const componentId = textKey.slice(prefix.length, textKey.lastIndexOf('.'));
+  return deletedIds.has(componentId);
+}
+
+// A page title's key is the page name, so a page with the same name in another layout set shares it.
+function isTitleOfOtherPage(
+  textKey: string,
+  allLayouts: AllLayouts,
+  layoutSetName: string,
+  deletedPageName: string | undefined,
+): boolean {
+  return Object.entries(allLayouts).some(
+    ([otherLayoutSetName, layouts]) =>
+      Object.hasOwn(layouts, textKey) &&
+      !(otherLayoutSetName === layoutSetName && textKey === deletedPageName),
+  );
 }
 
 function unique(values: string[]): string[] {

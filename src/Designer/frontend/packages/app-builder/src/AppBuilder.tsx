@@ -32,9 +32,10 @@ export type AppBuilderProps = {
 
 export function AppBuilder({ org, app }: AppBuilderProps): ReactElement {
   const { t } = useTranslation();
-  const { data: layoutSets, isPending } = useLayoutSetsQuery(org, app);
+  const { data: layoutSets, isPending, isError } = useLayoutSetsQuery(org, app);
   const [selectedLayoutSetName, setSelectedLayoutSetName] = useState<string>();
 
+  if (isError) return <LoadError />;
   if (isPending) return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
 
   const layoutSetName = selectedLayoutSetName ?? getDefaultLayoutSetName(layoutSets);
@@ -72,22 +73,29 @@ function LayoutSetBuilder({
   onLayoutSetChange,
 }: LayoutSetBuilderProps): ReactElement {
   const { t } = useTranslation();
-  const { data: layouts, isPending: layoutsPending } = usePageLayoutsQuery(org, app, layoutSetName);
-  const { data: settings, isPending: settingsPending } = useLayoutSettingsQuery(
-    org,
-    app,
-    layoutSetName,
-  );
-  const { data: textResources, isPending: textsPending } = useTextResourcesQuery(org, app);
-  const { data: codeLists } = useOptionListsQuery(org, app);
+  const layoutsQuery = usePageLayoutsQuery(org, app, layoutSetName);
+  const settingsQuery = useLayoutSettingsQuery(org, app, layoutSetName);
+  const textsQuery = useTextResourcesQuery(org, app);
+  const codeListsQuery = useOptionListsQuery(org, app);
+  const { data: layouts } = layoutsQuery;
+  const { data: settings } = settingsQuery;
+  const { data: textResources } = textsQuery;
+  const { data: codeLists } = codeListsQuery;
   const dataType = getDataType(layoutSets, layoutSetName, settings);
-  const { dataModel, isPending: dataModelPending } = useDataModelQuery(org, app, dataType);
-  const { data: prefillConfig } = usePrefillQuery(org, app, dataModel?.modelPath);
+  const dataModelQuery = useDataModelQuery(org, app, dataType);
+  const { dataModel } = dataModelQuery;
+  // Not every data model has a prefill file, so the query only runs when there is a data model.
+  const prefillQuery = usePrefillQuery(org, app, dataModel?.modelPath);
+  const { data: prefillConfig } = prefillQuery;
   const [view, setView] = useState<BuilderView>('pages');
   const [selectedPageName, setSelectedPageName] = useState<string>();
   const pageNames = getPageNames(layouts ?? {}, settings);
 
-  if (layoutsPending || settingsPending || textsPending || dataModelPending) {
+  // Edits replace whole files, built from what was loaded. If something could not be loaded, an edit
+  // could overwrite what is there, so the builder is not shown at all.
+  const queries = [layoutsQuery, settingsQuery, textsQuery, codeListsQuery, dataModelQuery];
+  if (queries.some(({ isError }) => isError) || prefillQuery.isError) return <LoadError />;
+  if (queries.some(({ isPending }) => isPending) || prefillQuery.isLoading) {
     return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
   }
 
@@ -147,6 +155,11 @@ function LayoutSetBuilder({
       </div>
     </AppBuilderProvider>
   );
+}
+
+function LoadError(): ReactElement {
+  const { t } = useTranslation();
+  return <StudioAlert data-color='danger'>{t('app_builder.load_error')}</StudioAlert>;
 }
 
 // Apps on app frontend v9 name the data type in the layout settings; older apps in the layout set.

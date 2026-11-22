@@ -6,6 +6,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { QueryKey } from 'app-shared/types/QueryKey';
 import { textMock } from '@designer/testing/mocks/i18nMock';
 import { AppBuilderProvider } from '../../contexts/AppBuilderContext';
 import type { AppBuilderData } from '../../contexts/AppBuilderContext';
@@ -125,8 +126,11 @@ function renderPageList(
   data: Partial<AppBuilderData> = {},
   services: Partial<ServicesContextProps> = {},
 ) {
+  const client = createQueryClientMock();
+  // The builder is shown only once the layout settings are loaded.
+  client.setQueryData([QueryKey.FormLayoutSettings, org, app, 'form'], { pages: { order: [] } });
   return render(
-    <ServicesContextProvider {...queriesMock} {...services} client={createQueryClientMock()}>
+    <ServicesContextProvider {...queriesMock} {...services} client={client}>
       <AppBuilderProvider {...defaultData} {...data}>
         <PageList {...defaultProps} />
       </AppBuilderProvider>

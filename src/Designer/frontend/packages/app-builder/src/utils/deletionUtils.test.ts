@@ -39,6 +39,7 @@ const schema: JsonSchema = {
 const createContext = (overrides: Partial<DeletionContext> = {}): DeletionContext => ({
   components: [input],
   layoutSetName: 'form',
+  pageName: 'Side1',
   allLayouts: { form: { Side1: createLayout([input, otherInput]) } },
   existingTextKeys: ['Side1.Input-1.title', 'shared.description'],
   dataModel: { dataType: 'model', schema },
@@ -76,6 +77,33 @@ describe('getDeletionCandidates', () => {
     expect(title.usedBy).toEqual([
       { layoutSetName: 'receipt', pageName: 'Kvittering', component: expressionUser },
     ]);
+  });
+
+  it('does not select an unused text that the builder did not make for the component', () => {
+    const unusedShared = asComponent({ ...input, textResourceBindings: { title: 'appName' } });
+    const { texts } = getDeletionCandidates(
+      createContext({
+        components: [unusedShared],
+        allLayouts: { form: { Side1: createLayout([unusedShared]) } },
+        existingTextKeys: ['appName'],
+      }),
+    );
+    expect(texts).toEqual([{ name: 'appName', usedBy: [], isSelectedByDefault: false }]);
+  });
+
+  it('does not select a text named after another component or another page', () => {
+    const borrowed = asComponent({
+      ...input,
+      textResourceBindings: { title: 'Side1.Input-9.title', description: 'Side2.Input-1.title' },
+    });
+    const { texts } = getDeletionCandidates(
+      createContext({
+        components: [borrowed],
+        allLayouts: { form: { Side1: createLayout([borrowed]) } },
+        existingTextKeys: ['Side1.Input-9.title', 'Side2.Input-1.title'],
+      }),
+    );
+    expect(texts.map(({ isSelectedByDefault }) => isSelectedByDefault)).toEqual([false, false]);
   });
 
   it('leaves out texts that do not exist', () => {
@@ -118,15 +146,32 @@ describe('getDeletionCandidates for several components', () => {
       createContext({
         components: [input, otherInput],
         extraTextKeys: ['Side1'],
+        deletedPageName: 'Side1',
         existingTextKeys: ['Side1.Input-1.title', 'shared.description', 'Side1'],
       }),
     );
     expect(texts.map(({ name, isSelectedByDefault }) => [name, isSelectedByDefault])).toEqual([
       ['Side1.Input-1.title', true],
-      ['shared.description', true],
+      ['shared.description', false],
       ['Side1', true],
     ]);
     expect(fields.map(({ name }) => name)).toEqual(['fornavn', 'etternavn']);
+  });
+
+  it('keeps the title of a deleted page when another layout set has a page with the same name', () => {
+    const { texts } = getDeletionCandidates(
+      createContext({
+        components: [input],
+        extraTextKeys: ['Side1'],
+        deletedPageName: 'Side1',
+        allLayouts: {
+          form: { Side1: createLayout([input]) },
+          other: { Side1: createLayout([]) },
+        },
+        existingTextKeys: ['Side1.Input-1.title', 'Side1'],
+      }),
+    );
+    expect(texts.find(({ name }) => name === 'Side1').isSelectedByDefault).toBe(false);
   });
 });
 

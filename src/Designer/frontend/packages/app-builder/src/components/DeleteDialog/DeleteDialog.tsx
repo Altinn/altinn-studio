@@ -39,6 +39,8 @@ export type DeleteDialogProps = {
   components: LayoutComponent[];
   /** Text keys that go with them besides the components' own, such as the name of a deleted page. */
   extraTextKeys?: string[];
+  /** The page the components are on. */
+  pageName: string;
   /** The page that is deleted, if it is, so its own rules are not listed as left behind. */
   deletedPageName?: string;
   isDeleting: boolean;
@@ -55,14 +57,20 @@ export type DeleteDialogProps = {
 export function DeleteDialog(props: DeleteDialogProps): ReactElement {
   const { t } = useTranslation();
   const { org, app, layoutSetName, layoutSetNames, texts, dataModel } = useAppBuilder();
-  const { title, components, extraTextKeys, onClose } = props;
-  const { allLayouts, isPending: layoutsPending } = useAllLayoutsQuery(org, app, layoutSetNames);
+  const { title, components, extraTextKeys, pageName, deletedPageName, onClose } = props;
+  const {
+    allLayouts,
+    isPending: layoutsPending,
+    isError: layoutsError,
+  } = useAllLayoutsQuery(org, app, layoutSetNames);
 
-  const candidates = !layoutsPending
+  const candidates = allLayouts
     ? getDeletionCandidates({
         components,
         extraTextKeys,
         layoutSetName,
+        pageName,
+        deletedPageName,
         allLayouts,
         existingTextKeys: Object.keys(texts),
         dataModel,
@@ -85,7 +93,8 @@ export function DeleteDialog(props: DeleteDialogProps): ReactElement {
         </StudioHeading>
       </StudioDialog.Block>
       <StudioDialog.Block>
-        {candidates ? (
+        {layoutsError && <LayoutsLoadError onClose={onClose} />}
+        {candidates && (
           <DeleteChoices
             {...props}
             texts={texts}
@@ -93,9 +102,8 @@ export function DeleteDialog(props: DeleteDialogProps): ReactElement {
             candidates={candidates}
             ruleReferences={ruleReferences}
           />
-        ) : (
-          <StudioSpinner aria-label={t('general.loading')} />
         )}
+        {layoutsPending && <StudioSpinner aria-label={t('general.loading')} />}
       </StudioDialog.Block>
     </StudioDialog>,
     document.body,
@@ -122,7 +130,8 @@ function DeleteChoices({
   onClose,
 }: DeleteChoicesProps): ReactElement {
   const { t } = useTranslation();
-  const removableTexts = candidates.texts.filter(({ usedBy }) => usedBy.length === 0);
+  // Only the texts the builder made for what is deleted, and nothing else uses, are removed.
+  const removableTexts = candidates.texts.filter(({ isSelectedByDefault }) => isSelectedByDefault);
   const [shouldRemoveTexts, setShouldRemoveTexts] = useState<boolean>(removableTexts.length > 0);
   const [selectedFields, setSelectedFields] = useState<string[]>(
     candidates.fields
@@ -210,14 +219,16 @@ function DeleteChoices({
         <details className={classes.details}>
           <summary>{t('app_builder.delete.details')}</summary>
           <ul>
-            {candidates.texts.map(({ name, usedBy }) => (
+            {candidates.texts.map(({ name, usedBy, isSelectedByDefault }) => (
               <li key={name}>
                 {usedBy.length > 0
                   ? t('app_builder.delete.text_kept', {
                       textKey: name,
                       references: describeReferences(usedBy),
                     })
-                  : t('app_builder.delete.text_removable', { textKey: name })}
+                  : isSelectedByDefault
+                    ? t('app_builder.delete.text_removable', { textKey: name })
+                    : t('app_builder.delete.text_kept_unknown_use', { textKey: name })}
               </li>
             ))}
           </ul>
@@ -235,6 +246,21 @@ function DeleteChoices({
         </StudioButton>
         <StudioButton variant='secondary' onClick={onClose}>
           {t('general.cancel')}
+        </StudioButton>
+      </div>
+    </div>
+  );
+}
+
+// Without every layout set's pages it is unknown what uses the texts and fields, so nothing is deleted.
+function LayoutsLoadError({ onClose }: { onClose: () => void }): ReactElement {
+  const { t } = useTranslation();
+  return (
+    <div className={classes.content}>
+      <StudioParagraph>{t('app_builder.delete.load_error')}</StudioParagraph>
+      <div className={classes.buttons}>
+        <StudioButton variant='secondary' onClick={onClose}>
+          {t('general.close')}
         </StudioButton>
       </div>
     </div>
