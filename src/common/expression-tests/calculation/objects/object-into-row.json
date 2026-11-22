@@ -1,0 +1,37 @@
+{
+  "name": "An object result for a row sets the properties of that row and keeps its id",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "first",
+        "total": 0
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "text": "second",
+        "total": 0
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows[]",
+      "expression": ["object", "total", "12"]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "first",
+        "total": 12
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "text": "second",
+        "total": 12
+      }
+    ]
+  }
+}

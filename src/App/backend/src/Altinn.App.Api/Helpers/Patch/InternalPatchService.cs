@@ -119,7 +119,8 @@ internal class InternalPatchService
 
             DataElementIdentifier dataElementIdentifier = dataElement;
 
-            var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
+            var formData = await dataAccessor.GetFormDataWrapper(dataElementIdentifier); // TODO: Fetch data in parallel
+            var oldModel = formData.BackingData<object>();
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
             var (patchedModelNode, patchError) = ToPatchedModel(
                 JsonPatchApplier.Apply(jsonPatch, oldModelNode),
@@ -144,12 +145,9 @@ internal class InternalPatchService
             }
 
             var newModel = newModelResult.Ok;
-            // Reset dataAccessor to provide the patched model.
             var dataType = dataAccessor.GetDataType(dataElementIdentifier);
-            dataAccessor.SetFormData(
-                dataElementIdentifier,
-                FormDataWrapperFactory.Create(newModel, dataType, dataElement)
-            );
+            // Reset dataAccessor to provide the patched model.
+            formData.ReplaceBackingData(newModel);
 
             changesAfterPatch.Add(
                 new FormDataChange(
@@ -158,7 +156,7 @@ internal class InternalPatchService
                     contentType: dataElement.ContentType,
                     dataType: dataType,
                     previousFormDataWrapper: FormDataWrapperFactory.Create(oldModel, dataType, dataElement),
-                    currentFormDataWrapper: FormDataWrapperFactory.Create(newModel, dataType, dataElement),
+                    currentFormDataWrapper: formData,
                     previousBinaryData: await dataAccessor.GetBinaryData(dataElementIdentifier),
                     currentBinaryData: null // Set this after DataProcessors have run
                 )

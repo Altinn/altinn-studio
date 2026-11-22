@@ -1,0 +1,127 @@
+{
+  "name": "Explicit indices and empty brackets select rows",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000001"
+          }
+        ]
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "children": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000002"
+          },
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000003"
+          }
+        ]
+      }
+    ]
+  },
+  "testCases": [
+    {
+      "name": "index",
+      "calculations": [
+        {
+          "field": "rows[1].total",
+          "expression": 5
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "children": [
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000001"
+              }
+            ]
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "total": 5,
+            "children": [
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000002"
+              },
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000003"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "index and empty brackets",
+      "calculations": [
+        {
+          "field": "rows[1].children[].text",
+          "expression": ["argv", 0]
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "children": [
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000001"
+              }
+            ]
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "children": [
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000002",
+                "text": "rows[1].children[0].text"
+              },
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000003",
+                "text": "rows[1].children[1].text"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "index past the end",
+      "calculations": [
+        {
+          "field": "rows[9].total",
+          "expression": 5
+        }
+      ],
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "children": [
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000001"
+              }
+            ]
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "children": [
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000002"
+              },
+              {
+                "altinnRowId": "c0000000-0000-4000-8000-000000000003"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

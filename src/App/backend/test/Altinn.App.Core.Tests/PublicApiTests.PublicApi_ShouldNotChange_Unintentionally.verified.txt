@@ -1492,6 +1492,7 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Features.IInstanceDataAccessor GetCleanAccessor(Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption = 1);
         Altinn.Platform.Storage.Interface.Models.DataElement GetDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper> GetFormDataWrapper(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         void OverrideAuthenticationMethod(Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.StorageAuthenticationMethod method);
     }
     public static class IInstanceDataAccessorExtensions
@@ -1543,6 +1544,10 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
+    }
+    public static class IInstanceDataMutatorExtensions
+    {
+        public static System.Threading.Tasks.Task ReplaceFormData(this Altinn.App.Core.Features.IInstanceDataMutator dataMutator, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model) { }
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -3095,6 +3100,7 @@ namespace Altinn.App.Core.Internal.Data
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
+        void ReplaceBackingData(object dataModel);
         bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
     }
 }
@@ -4165,6 +4171,8 @@ namespace Altinn.App.Core.Models
         public bool ShowProgress { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("taskNavigation")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("validateOnBackToSummary")]
+        public Altinn.App.Core.Models.PageValidation? ValidateOnBackToSummary { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("validationOnNavigation")]
         public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
@@ -4428,6 +4436,7 @@ namespace Altinn.App.Core.Models
         public bool? ShowLanguageSelector { get; set; }
         public bool? ShowProgress { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        public Altinn.App.Core.Models.PageValidation? ValidateOnBackToSummary { get; set; }
         public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
     public class QueryResponse<T>

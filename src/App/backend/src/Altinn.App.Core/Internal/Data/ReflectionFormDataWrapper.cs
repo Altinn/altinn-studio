@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal class ReflectionFormDataWrapper : IFormDataWrapper
 {
-    private readonly object _dataModel;
+    private object _dataModel;
 
     /// <summary>
     /// Constructor that wraps a POCO data model, and gives extra tools for working with the data in an object using json like keys and reflection
@@ -40,6 +40,18 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         where T : class
     {
         return (T)_dataModel;
+    }
+
+    /// <inheritdoc />
+    public void ReplaceBackingData(object dataModel)
+    {
+        if (dataModel?.GetType() != _dataModel.GetType())
+        {
+            throw new ArgumentException(
+                $"Data model must be of type {_dataModel.GetType().FullName}, (was {dataModel?.GetType().FullName ?? "null"})"
+            );
+        }
+        _dataModel = dataModel;
     }
 
     /// <inheritdoc />
@@ -273,6 +285,13 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
 
         if (groupIndex is null)
         {
+            // A field that cannot hold null is set to the value it has in a new object, as RemoveField does
+            if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && IsNonNullableValueType(prop))
+            {
+                prop.SetValue(container, GetEmptyValue(container, prop));
+                return true;
+            }
+
             // Setting a simple property
             if (!value.TryDeserialize(prop.PropertyType, out var convertedValue))
             {
@@ -590,11 +609,32 @@ internal class ReflectionFormDataWrapper : IFormDataWrapper
         }
         else
         {
-            // Set property to null
-            var nullValue = property.PropertyType.GetTypeInfo().IsValueType
-                ? Activator.CreateInstance(property.PropertyType)
-                : null;
-            property.SetValue(containingObject, nullValue);
+            property.SetValue(containingObject, GetEmptyValue(containingObject, property));
         }
+    }
+
+    private static bool IsNonNullableValueType(PropertyInfo property) =>
+        property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) is null;
+
+    /// <summary>
+    /// The value an empty property gets, such as when null is set or the property is removed. That is null, except
+    /// for a value type that cannot hold null, which gets the value it has in a new object, as when JSON without the
+    /// property is deserialized. The generated wrapper does the same.
+    /// </summary>
+    private static object? GetEmptyValue(object container, PropertyInfo property)
+    {
+        if (!IsNonNullableValueType(property))
+        {
+            return null;
+        }
+
+        var type = container.GetType();
+        var canBeCreated =
+            !type.IsAbstract
+            && type.GetConstructor(Type.EmptyTypes) is not null
+            && !type.IsDefined(typeof(System.Runtime.CompilerServices.RequiredMemberAttribute), inherit: true);
+        return canBeCreated
+            ? property.GetValue(Activator.CreateInstance(type))
+            : Activator.CreateInstance(property.PropertyType);
     }
 }
