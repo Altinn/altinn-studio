@@ -18,11 +18,3 @@
   color: var(--ds-color-neutral-text-subtle);
   font-size: var(--ds-body-sm-font-size);
 }
-
-.modelStatus {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ds-size-1);
-  color: var(--ds-color-neutral-text-subtle);
-  font-size: var(--ds-body-sm-font-size);
-}

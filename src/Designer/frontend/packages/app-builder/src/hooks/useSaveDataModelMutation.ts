@@ -9,8 +9,8 @@ export type SaveDataModelArgs = {
 };
 
 /**
- * Saves the JSON schema only. The C# model is generated separately, since that compiles the code
- * and is slow; until it runs, a new field does not exist when the app runs.
+ * Saves the JSON schema only. Generating the C# model compiles it on the server, so it is generated
+ * when the user shares the changes, not on every change. The preview does not need it.
  */
 export const useSaveDataModelMutation = (org: string, app: string) => {
   const { saveDataModel } = useServicesContext();

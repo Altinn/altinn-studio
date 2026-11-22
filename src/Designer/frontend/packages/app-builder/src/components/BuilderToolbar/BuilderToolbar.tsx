@@ -5,9 +5,6 @@ import { StudioButton, StudioSelect, StudioToggleGroup } from '@designer/compone
 import { PlayFillIcon } from '@designer/icons';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { useAppBuilder } from '../../contexts/AppBuilderContext';
-import { useGenerateModelMutation } from '../../hooks/useGenerateModelMutation';
-import { useIsModelOutOfDateQuery } from '../../hooks/useIsModelOutOfDateQuery';
 import classes from './BuilderToolbar.module.css';
 
 export type BuilderView = 'pages' | 'texts' | 'settings';
@@ -28,8 +25,8 @@ export type BuilderToolbarProps = {
 
 /**
  * Switches between the builder's views, says whether changes are saved, and opens the app to test it.
- * The app runs on the C# model, which the builder does not generate on every change, so testing
- * generates it first when it is out of date, and the toolbar says when it is.
+ * The preview runs without the app's backend, so it does not need the C# model. The model is generated
+ * when the user shares the changes, since the app only runs on it once it is deployed.
  */
 export function BuilderToolbar({
   org,
@@ -43,22 +40,7 @@ export function BuilderToolbar({
 }: BuilderToolbarProps): ReactElement {
   const { t } = useTranslation();
   const isSaving = useIsMutating() > 0;
-  const { dataModel } = useAppBuilder();
-  const { data: isModelOutOfDate } = useIsModelOutOfDateQuery(org, app, dataModel?.modelPath);
-  const { mutateAsync: generateModel, isPending: isGenerating } = useGenerateModelMutation(
-    org,
-    app,
-  );
   const previewLink = `${new PackagesRouter({ org, app }).getPackageNavigationUrl('preview')}?layout=${pageName ?? ''}`;
-
-  const testApp = async (): Promise<void> => {
-    try {
-      if (isModelOutOfDate && dataModel) await generateModel(dataModel);
-      window.location.assign(previewLink);
-    } catch {
-      // The error is shown by the global error handler, and the app is not opened with a broken model.
-    }
-  };
 
   return (
     <div className={classes.builderToolbar} data-size='sm'>
@@ -91,26 +73,13 @@ export function BuilderToolbar({
       <span className={classes.saveStatus} role='status'>
         {isSaving ? t('general.saving') : t('app_builder.saved')}
       </span>
-      {isModelOutOfDate && dataModel && !isGenerating && (
-        <span className={classes.modelStatus}>
-          {t('app_builder.model.out_of_date')}
-          <StudioButton
-            variant='tertiary'
-            data-size='sm'
-            onClick={() => void generateModel(dataModel)}
-          >
-            {t('app_builder.model.generate')}
-          </StudioButton>
-        </span>
-      )}
       <StudioButton
         variant='secondary'
         data-size='sm'
         icon={<PlayFillIcon />}
-        loading={isGenerating}
-        onClick={() => void testApp()}
+        onClick={() => window.location.assign(previewLink)}
       >
-        {isGenerating ? t('app_builder.model.generating') : t('app_builder.test_app')}
+        {t('app_builder.test_app')}
       </StudioButton>
     </div>
   );

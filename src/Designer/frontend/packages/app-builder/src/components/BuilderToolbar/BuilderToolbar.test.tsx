@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
@@ -49,49 +49,17 @@ describe('BuilderToolbar', () => {
   });
   afterEach(() => assign.mockReset());
 
-  it('generates the model before the app is tested when the model is out of date', async () => {
-    const user = userEvent.setup();
-    const generateModels = vi.fn().mockImplementation(() => Promise.resolve());
-    renderBuilderToolbar({
-      generateModels,
-      getDataModelGenerationStatus: () => Promise.resolve(true),
-    });
-
-    expect(await screen.findByText(textMock('app_builder.model.out_of_date'))).toBeInTheDocument();
-    await user.click(getTestAppButton());
-
-    expect(generateModels).toHaveBeenCalledWith(org, app, dataModel.modelPath, dataModel.schema);
-    await waitFor(() => expect(assign).toHaveBeenCalled());
-  });
-
-  it('opens the app without generating the model when it is up to date', async () => {
+  it('opens the preview without generating the model or checking whether it is out of date', async () => {
     const user = userEvent.setup();
     const generateModels = vi.fn();
-    renderBuilderToolbar({
-      generateModels,
-      getDataModelGenerationStatus: () => Promise.resolve(false),
-    });
+    const getDataModelGenerationStatus = vi.fn();
+    renderBuilderToolbar({ generateModels, getDataModelGenerationStatus });
 
     await user.click(getTestAppButton());
 
+    expect(assign).toHaveBeenCalledWith(expect.stringContaining('?layout=side1'));
     expect(generateModels).not.toHaveBeenCalled();
-    expect(assign).toHaveBeenCalled();
-    expect(screen.queryByText(textMock('app_builder.model.out_of_date'))).not.toBeInTheDocument();
-  });
-
-  it('does not open the app when the model cannot be generated', async () => {
-    const user = userEvent.setup();
-    const generateModels = vi.fn().mockImplementation(() => Promise.reject(new Error('failed')));
-    renderBuilderToolbar({
-      generateModels,
-      getDataModelGenerationStatus: () => Promise.resolve(true),
-    });
-
-    await screen.findByText(textMock('app_builder.model.out_of_date'));
-    await user.click(getTestAppButton());
-
-    await waitFor(() => expect(generateModels).toHaveBeenCalled());
-    expect(assign).not.toHaveBeenCalled();
+    expect(getDataModelGenerationStatus).not.toHaveBeenCalled();
   });
 });
 
