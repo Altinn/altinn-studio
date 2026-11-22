@@ -1,8 +1,10 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models.UserAction;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Action;
 
@@ -18,6 +20,8 @@ public class UserActionServiceTests
             services.AddAppImplementationFactory();
 
             services.AddTransient<UserActionService>();
+            services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);
+            services.AddLogging();
 
             foreach (var action in actions)
                 services.AddTransient(_ => action);

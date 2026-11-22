@@ -18,6 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - An `IUserAction` that calls `context.DataMutator.AbandonAllChanges` fails as if it returned `FailureResult` with those issues, and saves none of its changes. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- An `IUserAction` that throws fails with status 500 and the error code `ActionFailed`, and saves none of its changes. The exception is logged, and its message is not returned to the client. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ### Fixed
 

@@ -12,7 +12,6 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Storage;
-using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -47,7 +46,6 @@ internal class ProcessEngine : IProcessEngine
     private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly IWorkflowEngineService _workflowEngineService;
     private readonly IInstanceClientWithStorageMetadata _instanceClient;
-    private readonly ITranslationService _translationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessEngine"/> class.
@@ -78,7 +76,6 @@ internal class ProcessEngine : IProcessEngine
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _instanceClient = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
-        _translationService = serviceProvider.GetRequiredService<ITranslationService>();
     }
 
     /// <inheritdoc/>
@@ -448,21 +445,18 @@ internal class ProcessEngine : IProcessEngine
         {
             if (request.Action is not null)
             {
-                (UserActionResult userActionResult, InstanceWithStorageMetadata? refreshedInstance) =
-                    await HandleUserAction(instance, request, versions, cancellationToken);
+                (UserActionOutcome userActionOutcome, InstanceWithStorageMetadata? refreshedInstance) =
+                    await HandleUserAction(instance, request.Action, request, versions, cancellationToken);
+                UserActionResult userActionResult = userActionOutcome.Result;
 
                 if (userActionResult.ResultType is ResultType.Failure)
                 {
-                    var failureIssues = await _translationService.TranslateUserActionFailure(
-                        userActionResult,
-                        request.Language
-                    );
                     var result = new ProcessChangeResult()
                     {
                         Success = false,
                         ErrorMessage = $"Action handler for action {LogSanitizer.Sanitize(request.Action)} failed!",
                         ErrorType = userActionResult.ErrorType,
-                        ValidationIssues = failureIssues,
+                        ValidationIssues = userActionOutcome.ValidationIssues,
                     };
                     activity?.SetProcessChangeResult(result);
                     return result;
@@ -744,56 +738,45 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    private async Task<(UserActionResult Result, InstanceWithStorageMetadata? RefreshedInstance)> HandleUserAction(
+    private async Task<(UserActionOutcome Outcome, InstanceWithStorageMetadata? RefreshedInstance)> HandleUserAction(
         Instance instance,
+        string action,
         ProcessNextRequest request,
         StorageVersionMetadata versions,
         CancellationToken cancellationToken
     )
     {
-        using var activity = _telemetry?.StartProcessHandleUserActionActivity(instance, request.Action);
+        using var activity = _telemetry?.StartProcessHandleUserActionActivity(instance, action);
 
-        Authenticated currentAuth = _authenticationContext.Current;
-        IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
-
+        IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
-            return (UserActionResult.SuccessResult(), null);
+            return (new UserActionOutcome(UserActionResult.SuccessResult(), null), null);
 
+        // The action runs before the transition, on the task the process leaves.
         InstanceDataUnitOfWork cachedDataMutator = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             versions,
-            taskId: null,
+            instance.Process?.CurrentTask?.ElementId,
             request.Language
         );
 
-        int? userId = currentAuth switch
-        {
-            Authenticated.User auth => auth.UserId,
-            _ => null,
-        };
-
-        UserActionResult actionResult = await actionHandler.HandleAction(
-            new UserActionContext(
-                cachedDataMutator,
-                userId,
-                language: request.Language,
-                authentication: currentAuth,
-                onBehalfOf: request.ActionOnBehalfOf,
-                cancellationToken: cancellationToken
-            )
+        UserActionOutcome outcome = await _userActionService.HandleAction(
+            actionHandler,
+            cachedDataMutator,
+            _authenticationContext.Current,
+            request.Language,
+            buttonId: null,
+            metadata: null,
+            request.ActionOnBehalfOf,
+            cancellationToken
         );
 
-        if (actionResult.ResultType == ResultType.Failure)
+        if (outcome.Result.ResultType is ResultType.Failure)
         {
-            return (actionResult, null);
+            return (outcome, null);
         }
 
-        if (cachedDataMutator.HasAbandonIssues)
-        {
-            return (UserActionResult.FailureResult([.. cachedDataMutator.AbandonIssues]), null);
-        }
-
-        DataElementChanges changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        DataElementChanges changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: true);
         await cachedDataMutator.SaveChanges(changes);
         InstanceWithStorageMetadata refreshedInstance = await _instanceClient.GetInstanceWithStorageMetadata(
             cachedDataMutator.Instance,
@@ -801,7 +784,7 @@ internal class ProcessEngine : IProcessEngine
             cancellationToken
         );
 
-        return (actionResult, refreshedInstance);
+        return (outcome, refreshedInstance);
     }
 
     /// <summary>

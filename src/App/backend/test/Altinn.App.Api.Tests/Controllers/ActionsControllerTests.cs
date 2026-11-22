@@ -479,6 +479,26 @@ public class ActionsControllerTests : ApiTestBase
             .Should()
             .NotContain("Abandoned data");
 
+        // Run buttonId "throw": the change is not saved, and the exception becomes a generic error
+        using var throwContent = JsonContent.Create(new { action = "fill", buttonId = "throw" });
+        using HttpResponseMessage throwResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            throwContent
+        );
+        var parsedThrowResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            throwResponse,
+            HttpStatusCode.InternalServerError
+        );
+        parsedThrowResponse.UpdatedDataModels.Should().BeNull();
+        parsedThrowResponse.ValidationIssues.Should().BeNull();
+        parsedThrowResponse.Error.Should().NotBeNull();
+        parsedThrowResponse.Error!.Code.Should().Be("ActionFailed");
+        parsedThrowResponse.Error!.Message.Should().NotContain("Thrown data");
+        TestData
+            .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
+            .Should()
+            .NotContain("Thrown data");
+
         // Run buttonId "delete"
         using var deleteContent = JsonContent.Create(new { action = "fill", buttonId = "delete" });
         using HttpResponseMessage deleteResponse = await client.PostAsync(
@@ -828,6 +848,11 @@ public class FillAction : IUserAction
                     },
                 ]);
                 break;
+            case "throw":
+                var throwDataElement = context.DataMutator.GetDataElementsForType("Scheme").First();
+                var throwData = await context.DataMutator.GetFormData<Scheme>(throwDataElement);
+                throwData.TestCustomButtonReadOnlyInput = "Thrown data";
+                throw new InvalidOperationException("Thrown data");
             case "delete":
                 var elementToDelete = context.DataMutator.GetDataElementsForType("Scheme").First();
                 context.DataMutator.RemoveDataElement(elementToDelete);
