@@ -862,12 +862,38 @@ function renderPageCanvas(
     [QueryKey.AppBuilderFormLayouts, org, app, layoutSetName],
     options.layouts ?? defaultLayouts,
   );
+  // Acts as the backend for the pages, so pages loaded again after a save are the saved ones.
+  let savedLayouts: PageLayouts = options.layouts ?? defaultLayouts;
+  const backend: Partial<ServicesContextProps> = {
+    getFormLayouts: vi
+      .fn()
+      .mockImplementation((_org: string, _app: string, setName: string) =>
+        Promise.resolve(setName === layoutSetName ? savedLayouts : {}),
+      ),
+    saveFormLayout: vi.fn((...args: Parameters<ServicesContextProps['saveFormLayout']>) => {
+      const [, , savedPageName, , payload] = args;
+      savedLayouts = { ...savedLayouts, [savedPageName]: payload.layout as PageLayout };
+      return services.saveFormLayout?.(...args) ?? Promise.resolve();
+    }),
+    deletePage: vi.fn((...args: Parameters<ServicesContextProps['deletePage']>) => {
+      const { [args[3]]: _deleted, ...remaining } = savedLayouts;
+      savedLayouts = remaining;
+      return services.deletePage?.(...args) ?? Promise.resolve();
+    }),
+  };
   const textResources: ITextResources = {
     nb: Object.entries({ ...nbTexts, ...extraTexts }).map(([id, value]) => ({ id, value })),
   };
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return render(
-    <ServicesContextProvider {...queriesMock} {...services} client={queryClient}>
+    <ServicesContextProvider
+      {...queriesMock}
+      {...services}
+      getFormLayouts={services.getFormLayouts ?? backend.getFormLayouts}
+      saveFormLayout={backend.saveFormLayout}
+      deletePage={backend.deletePage}
+      client={queryClient}
+    >
       <TestAppBuilder
         {...options}
         // The other layout set is not in the cache, so its pages are fetched.
