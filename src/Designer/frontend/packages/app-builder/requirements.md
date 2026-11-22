@@ -132,8 +132,7 @@ RepeatingGroup, Address, calculations, signing and payment come next, in roughly
 
 ## Example app to rebuild
 
-`nfk/skole-utsatt-tidlig-skolestart`,
-"Søknad om utsatt eller tidlig skolestart (grunnskole)" from Nordre Follo municipality, is a good first target:
+A municipal application form for starting school a year early or late is a good first target:
 
 - One data task, one layout set, one data model, nb only, people only.
 - Four pages and 38 components: the request (radio buttons, a school dropdown with inline options, a conditional
@@ -145,15 +144,15 @@ RepeatingGroup, Address, calculations, signing and payment come next, in roughly
 
 Rebuilding it exercises items 1–7 and 10 above. The Address component can be replaced by three inputs.
 
-For a first smoke test, `nb-prod-nabap` (Norges Bank PhD scholarship application) is smaller: two pages,
-15 components, no rules, no prefill and no custom code.
+For a first smoke test, a scholarship application form is smaller: two pages, 15 components, no rules, no prefill
+and no custom code.
 
 What the builder still lacks to rebuild them:
 
-- **Address.** `skole-utsatt-tidlig-skolestart` uses it twice. Three fields with the postcode answer type replace it.
+- **Address.** The school start form uses it twice. Three fields with the postcode answer type replace it.
 - **The name formatting.** Without custom code, the first and last name are prefilled into two fields instead.
-- **A country list.** `nb-prod-nabap` asks for nationality. A short text field, or a code list made once in
-  Utforming, replaces it. Its dropdown in production has a single empty option, so it does not work there either.
+- **A country list.** The scholarship form asks for nationality. A short text field, or a code list made once in
+  Utforming, replaces it.
 - **Smaller things:** subheadings, dividers and the navigation bar, which change how the app looks but not what it
   asks.
 
