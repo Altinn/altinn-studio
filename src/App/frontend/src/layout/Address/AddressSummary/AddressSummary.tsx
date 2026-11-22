@@ -3,7 +3,6 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/Address/AddressSummary/AddressSummary.module.css';
@@ -63,7 +62,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
       <div className={classes.addressSummaryComponent}>
         <div>
           <SingleValueSummary
-            title={<Lang id={summaryTitle || title || 'address_component.address'} />}
+            title={summaryTitle || title || 'address_component.address'}
             displayData={address}
             targetBaseComponentId={targetBaseComponentId}
             isCompact={isCompact}
@@ -78,7 +77,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
         {!config.simplified && (
           <div>
             <SingleValueSummary
-              title={<Lang id={careOfTitle || 'address_component.care_of'} />}
+              title={careOfTitle || 'address_component.care_of'}
               displayData={careOf}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
@@ -96,7 +95,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
         <div className={classes.addressSummaryComponentZipCode}>
           <div className={classes.addressComponentZipCode}>
             <SingleValueSummary
-              title={<Lang id={zipCodeTitle || 'address_component.zip_code'} />}
+              title={zipCodeTitle || 'address_component.zip_code'}
               displayData={zipCode}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
@@ -112,7 +111,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
 
           <div className={classes.addressSummaryComponentPostplace}>
             <SingleValueSummary
-              title={<Lang id={postPlaceTitle || 'address_component.post_place'} />}
+              title={postPlaceTitle || 'address_component.post_place'}
               displayData={postPlace}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
@@ -128,7 +127,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
           {!config.simplified && (
             <div>
               <SingleValueSummary
-                title={<Lang id={houseNumberTitle || 'address_component.house_number'} />}
+                title={houseNumberTitle || 'address_component.house_number'}
                 displayData={houseNumber}
                 targetBaseComponentId={targetBaseComponentId}
                 hideEditButton={true}

@@ -61,7 +61,7 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
           <div className={classes.personLookupComponentSsn}>
             <SingleValueSummary
               showLabelMetadata={false}
-              title={<Lang id='person_lookup.ssn_label' />}
+              title='person_lookup.ssn_label'
               displayData={ssn ? obfuscateSsn(ssn) : ''}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
@@ -77,7 +77,7 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
           <div className={classes.personLookupComponentName}>
             <SingleValueSummary
               showLabelMetadata={false}
-              title={<Lang id='person_lookup.name_label' />}
+              title='person_lookup.name_label'
               displayData={fullName}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={false}
