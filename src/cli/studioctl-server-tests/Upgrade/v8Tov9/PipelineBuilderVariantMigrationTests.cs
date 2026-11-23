@@ -1249,4 +1249,70 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         Write("logic/PlaceholderTasks.cs", migrated[(Usings.Length + 1)..].Split("public class AnonymousTask")[0]);
         AssertCompilesAgainstCurrent();
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task DocReferences_ToMethodsTheVariantsLackOrOverload_BecomeCodeSpans(bool semantic)
+    {
+        var task = Write(
+            "logic/DocumentedTask.cs",
+            """
+            /// <summary>
+            /// Ends with <see cref="PipelineBuilder.Finally"/> or <see cref="Altinn.App.Core.Features.Process.PipelineBuilder.ConcludeOnReplies">a concluding exchange</see>,
+            /// after <see cref="PipelineBuilder.HandleReplies(MailboxHandle, Func{StageContext, ServiceTaskReply, Task{StageExchangeResult}}, Func{StageContext, MailboxClosedReason, Task{StageResult}}, ProcessStepOptions)"/>.
+            /// </summary>
+            /// <seealso cref="PipelineBuilder"/>
+            public class DocumentedTask : IProcessTask
+            {
+                public string Type => "documented";
+
+                /// <summary>Returns <see cref="PipelineBuilder.Build"/> of <see cref="PipelineBuilder.Stage"/> calls.</summary>
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(Revoke).Build();
+
+                private Task<StageResult> Revoke(StageContext context) => Task.FromResult(StageResult.Completed());
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(
+            Oks(result),
+            ok =>
+                ok.StartsWith(
+                    Path.Combine("logic", "DocumentedTask.cs") + ": doc comments name",
+                    StringComparison.Ordinal
+                )
+        );
+        var migrated = await ReadMigrated(task);
+        Assert.Contains(
+            "/// Ends with <c>Stage</c> or <c>a concluding exchange</c>,\n/// after <c>HandleReplies</c>.\n",
+            migrated
+        );
+        Assert.Contains("/// <seealso cref=\"PipelineBuilder\"/>\n", migrated);
+        Assert.Contains(
+            "    /// <summary>Returns <c>Build</c> of <c>Stage</c> calls.</summary>\n"
+                + "    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(Revoke);\n",
+            migrated
+        );
+        // With doc comments checked, no reference is left that the current API cannot resolve, or only ambiguously.
+        var ct = TestContext.Current.CancellationToken;
+        var compilation = SemanticScannerFactory.Compile(AppFolder, _currentSdk.Value);
+        var diagnosed = compilation
+            .RemoveAllSyntaxTrees()
+            .AddSyntaxTrees(
+                compilation.SyntaxTrees.Select(tree =>
+                    CSharpSyntaxTree.ParseText(
+                        tree.GetText(ct),
+                        ((CSharpParseOptions)tree.Options).WithDocumentationMode(DocumentationMode.Diagnose),
+                        tree.FilePath,
+                        cancellationToken: ct
+                    )
+                )
+            );
+        Assert.DoesNotContain(diagnosed.GetDiagnostics(ct), static d => d.Id is "CS1574" or "CS0419" or "CS1580");
+        Assert.Empty(Migrate(semantic: false).Messages);
+    }
 }

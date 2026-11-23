@@ -29,7 +29,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// else, such as a field or a type argument. A method is reported rather than done when something in it would still
 /// name the previews' API: a <c>Finally</c>, <c>ConcludeOnReplies</c> or <c>Build</c> call on something the rules
 /// cannot tell apart from the builder, a <c>PipelineBuilder</c> they cannot retype, or code disabled by a directive
-/// that names either.</p>
+/// that names either. A doc comment's reference to a builder method the variants lack or overload becomes a code
+/// span.</p>
 /// <p>A port stub written by an earlier studioctl preview, <c>ProcessTaskPipeline DefineStart(PipelineBuilder)</c>
 /// with an <c>#error</c> line and no statements, becomes the stub <see cref="ProcessTaskLifecycleMigration"/> writes
 /// now. Runs before that migration, so that it then counts the rewritten <c>Define</c> methods as the task's own.</p>
@@ -58,6 +59,19 @@ internal sealed partial class PipelineBuilderVariantMigration
     {
         ["Finally"] = "Stage",
         ["ConcludeOnReplies"] = "HandleReplies",
+    };
+
+    /// <summary>
+    /// The previews' builder methods that a doc comment can no longer reference by name, and what each is called now.
+    /// The variants' abstract base has none of them.
+    /// </summary>
+    private static readonly Dictionary<string, string> _docReferenceNames = new(StringComparer.Ordinal)
+    {
+        ["Stage"] = "Stage",
+        ["Finally"] = "Stage",
+        ["HandleReplies"] = "HandleReplies",
+        ["ConcludeOnReplies"] = "HandleReplies",
+        ["Build"] = "Build",
     };
 
     /// <summary>
@@ -224,8 +238,88 @@ internal sealed partial class PipelineBuilderVariantMigration
             _scanner.Update(file, file.Root.ReplaceNodes(fileRewrites.Keys, (original, _) => fileRewrites[original]));
         }
 
+        // After the methods, so that a reference in a rewritten method's doc comment is found in its new tree. A
+        // snapshot again, of the files those rewrites replaced.
+        var documented = _scanner.Files.Where(file => file.SemanticModel is not null || !appDeclaresBuilder).ToArray();
+        foreach (var file in documented)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            RewriteDocReferences(file, messages);
+        }
+
         return new MigrationResult(messages);
     }
+
+    /// <summary>
+    /// Doc comment references to the previews' builder methods that the variants do not have, or have overloaded,
+    /// such as <c>&lt;see cref="PipelineBuilder.Finally"/&gt;</c>, become code spans in the new vocabulary:
+    /// <c>&lt;c&gt;Stage&lt;/c&gt;</c>. The variants' <c>Stage</c> and <c>HandleReplies</c> are overloaded, so a
+    /// reference to one by name alone would be ambiguous.
+    /// </summary>
+    private void RewriteDocReferences(ScannedCSharpFile file, List<UpgradeMessage> messages)
+    {
+        var replacements = new Dictionary<XmlNodeSyntax, XmlNodeSyntax>();
+        foreach (var attribute in file.Root.DescendantNodes(descendIntoTrivia: true).OfType<XmlCrefAttributeSyntax>())
+        {
+            if (
+                attribute.Cref
+                    is not QualifiedCrefSyntax
+                    {
+                        Container: var container,
+                        Member: NameMemberCrefSyntax { Name: SimpleNameSyntax member },
+                    }
+                || !_docReferenceNames.TryGetValue(member.Identifier.ValueText, out var name)
+                || !IsBuilderContainer(container, file.SemanticModel)
+            )
+            {
+                continue;
+            }
+
+            switch (attribute.Parent)
+            {
+                case XmlEmptyElementSyntax { Name.LocalName.ValueText: "see" or "seealso" } element:
+                    replacements[element] = CodeSpan([SyntaxFactory.XmlText(name)]).WithTriviaFrom(element);
+                    break;
+                case XmlElementStartTagSyntax
+                {
+                    Name.LocalName.ValueText: "see" or "seealso",
+                    Parent: XmlElementSyntax element,
+                }:
+                    replacements[element] = CodeSpan(element.Content).WithTriviaFrom(element);
+                    break;
+            }
+        }
+
+        if (replacements.Count == 0)
+        {
+            return;
+        }
+
+        _scanner.Update(file, file.Root.ReplaceNodes(replacements.Keys, (original, _) => replacements[original]));
+        messages.Ok(
+            $"{file.RelativePath}: doc comments name {BuilderName} methods that the variants do not have, or have "
+                + "overloaded, in code spans instead of references, with Finally as Stage and ConcludeOnReplies as "
+                + "HandleReplies."
+        );
+    }
+
+    private static XmlElementSyntax CodeSpan(SyntaxList<XmlNodeSyntax> content) =>
+        SyntaxFactory.XmlElement(
+            SyntaxFactory.XmlElementStartTag(SyntaxFactory.XmlName("c")),
+            content,
+            SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName("c"))
+        );
+
+    /// <summary>
+    /// Whether a doc comment reference's container is the previews' builder: by its symbol when the semantic model
+    /// resolves it, and otherwise by how it is written.
+    /// </summary>
+    private static bool IsBuilderContainer(TypeSyntax container, SemanticModel? model) =>
+        model is not null
+        && model.SyntaxTree == container.SyntaxTree
+        && model.GetSymbolInfo(container).Symbol is ITypeSymbol type
+            ? IsBuilderSymbol(type)
+            : IsBuilder(container, null);
 
     private static Role RoleOf(MethodDeclarationSyntax method)
     {
