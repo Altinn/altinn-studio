@@ -8,8 +8,8 @@ It uses:
 
 - [Gitea](../../gitea/README.md) for the app repositories. The backend keeps a clone of each repository for each
   developer who edits it.
-- PostgreSQL. Designer does not migrate its database itself. The [migrations image](Migrations.Dockerfile) applies
-  the Entity Framework migrations.
+- PostgreSQL. Designer does not migrate its database itself. The `migrations` target of [Designer's Dockerfile](../Dockerfile)
+  builds the image that applies the Entity Framework migrations.
 - Redis outside Development and Test. Designer's replicas share their cache, SignalR messages and studioctl's auth
   codes through it.
 - Azure DevOps pipelines and the service owners' GitOps repositories in Gitea to deploy apps, as

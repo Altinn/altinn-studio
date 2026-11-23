@@ -331,9 +331,11 @@ services:
     depends_on:
       studio_db:
         condition: service_healthy
+    # A target of Designer's Dockerfile, so that both images come from one build of the backend.
     build:
-      context: ..
-      dockerfile: Designer/backend/Migrations.Dockerfile
+      context: ./../..
+      dockerfile: src/Designer/Dockerfile
+      target: migrations
     environment:
       - PGHOST=studio_db
       - PGPORT=5432

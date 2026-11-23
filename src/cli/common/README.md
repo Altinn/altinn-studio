@@ -14,6 +14,5 @@ each app release [publishes as an OCI artifact](../../../.github/actions/publish
   Designer backend workflows also run when they change.
 - The libraries build with all analyzer rules. Turn off a rule that does not fit them in
   [.editorconfig](dotnet/.editorconfig), with a reason, rather than suppressing it in code.
-- Designer's [Dockerfile](../../Designer/Dockerfile) and
-  [migrations Dockerfile](../../Designer/backend/Migrations.Dockerfile) copy AppDist together with the build
-  configuration it inherits from `src/cli`. Update them when that configuration gains a file.
+- Designer's [Dockerfile](../../Designer/Dockerfile) copies AppDist together with the build configuration it inherits
+  from `src/cli`. Update it when that configuration gains a file.
