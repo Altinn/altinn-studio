@@ -1,0 +1,402 @@
+using System.Collections.Immutable;
+using Altinn.App.Analyzers.Tests.Fixtures;
+using Altinn.App.Core.Features.Process;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+namespace Altinn.App.Analyzers.Tests.Process;
+
+/// <summary>
+/// Runs <see cref="ProcessTaskDefaultMemberAnalyzer"/> over task classes compiled in memory against Altinn.App.Core.
+/// Each diagnostic is identified by the method its message names.
+/// </summary>
+public class ProcessTaskDefaultMemberAnalyzerTests
+{
+    private const string Usings = """
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+        using Altinn.App.Core.Features.Process;
+        using Altinn.App.Core.Internal.Process.ProcessTasks;
+
+        """;
+
+    private const string ServiceTaskMembers = """
+            public string Type => "task";
+            public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+                throw new System.NotImplementedException();
+        """;
+
+    [Fact]
+    public async Task Reports_A_Lifecycle_Method_That_Takes_The_Service_Task_Builder()
+    {
+        // The case that prompted the rule: it compiles, and its stage never runs.
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public sealed class FetchNote : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Prepare);
+                    private Task<StageResult> Prepare(StageContext context) => throw new System.NotImplementedException();
+                }
+                """
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("DefineStart", SourceAt(diagnostic));
+        Assert.Equal(
+            "'FetchNote.DefineStart(PipelineBuilder.ServiceTask)' does not implement "
+                + "'IProcessTask.DefineStart(PipelineBuilder.Lifecycle)', so the default implementation runs instead "
+                + "and this method never does. Declare it as 'public void DefineStart(PipelineBuilder.Lifecycle pipeline)'.",
+            diagnostic.GetMessage()
+        );
+        await Verify(diagnostics);
+    }
+
+    [Fact]
+    public async Task Reports_Each_Signature_That_Does_Not_Implement_Its_Member()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public sealed class WrongReturnType : IProcessTask
+                {
+                    public string Type => "wrongReturnType";
+                    public Task DefineEnd(PipelineBuilder.Lifecycle pipeline) => Task.CompletedTask;
+                }
+
+                public sealed class NotPublic : IProcessTask
+                {
+                    public string Type => "notPublic";
+                    void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
+                    internal void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public sealed class Static : IProcessTask
+                {
+                    public string Type => "static";
+                    public static void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public sealed class WrongParameter : IProcessTask
+                {
+                    public string Type => "wrongParameter";
+                    public IEnumerable<string> ValidateConfiguration(string context) => [];
+                }
+
+                public struct Struct : IProcessTask
+                {
+                    public string Type => "struct";
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline, int extra) { }
+                }
+
+                public abstract class AbstractTask : IProcessTask
+                {
+                    public string Type => "abstract";
+                    public void DefineStart() { }
+                }
+                """
+        );
+
+        Assert.Equal(
+            [
+                "WrongReturnType.DefineEnd(PipelineBuilder.Lifecycle)",
+                "NotPublic.DefineAbandon(PipelineBuilder.Lifecycle)",
+                "NotPublic.DefineStart(PipelineBuilder.Lifecycle)",
+                "Static.DefineStart(PipelineBuilder.Lifecycle)",
+                "WrongParameter.ValidateConfiguration(string)",
+                "Struct.DefineEnd(PipelineBuilder.Lifecycle, int)",
+                "AbstractTask.DefineStart()",
+            ],
+            diagnostics.Select(ReportedMethod)
+        );
+        Assert.All(diagnostics, d => Assert.Equal(Diagnostics.Contracts.ProcessTaskMemberNotImplemented.Id, d.Id));
+        Assert.Contains(
+            "Declare it as 'public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)'",
+            diagnostics
+                .Single(d => ReportedMethod(d).StartsWith("WrongParameter.", StringComparison.Ordinal))
+                .GetMessage()
+        );
+    }
+
+    [Fact]
+    public async Task Reports_Every_Method_Of_The_Name_When_None_Implements_It()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public sealed class TwoAttempts : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) { }
+                    public void DefineStart(PipelineBuilder.Lifecycle pipeline, int retries) { }
+                }
+                """
+        );
+
+        Assert.Equal(
+            [
+                "TwoAttempts.DefineStart(PipelineBuilder.ServiceTask)",
+                "TwoAttempts.DefineStart(PipelineBuilder.Lifecycle, int)",
+            ],
+            diagnostics.Select(ReportedMethod)
+        );
+    }
+
+    [Fact]
+    public async Task Reports_A_Task_That_Inherits_The_Interface_From_A_Base_Class_That_Uses_The_Default()
+    {
+        // A class that inherits an interface keeps its base class's mapping, so even CorrectSignature's method
+        // never runs. Listing the interface again, as Relisted and RelistedServiceTask do, maps it anew.
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public abstract class TaskBase : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                }
+
+                public sealed class WrongSignature : TaskBase
+                {
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) { }
+                }
+
+                public sealed class CorrectSignature : TaskBase
+                {
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public sealed class Relisted : TaskBase, IProcessTask
+                {
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public sealed class RelistedServiceTask : TaskBase, IServiceTask
+                {
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
+                }
+                """
+        );
+
+        Assert.Equal(
+            [
+                "WrongSignature.DefineStart(PipelineBuilder.ServiceTask)",
+                "CorrectSignature.DefineEnd(PipelineBuilder.Lifecycle)",
+            ],
+            diagnostics.Select(ReportedMethod)
+        );
+        Assert.EndsWith(
+            "Declare it as 'public void DefineEnd(PipelineBuilder.Lifecycle pipeline)' and list IProcessTask among the "
+                + "interfaces of 'CorrectSignature': it inherits the interface from a base class, and its own methods "
+                + "implement only an interface it lists itself.",
+            diagnostics[1].GetMessage()
+        );
+    }
+
+    [Fact]
+    public async Task Implemented_Members_Are_Not_Reported()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public sealed class Implicit : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    public void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) { }
+                    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
+                    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => [];
+                }
+
+                public sealed class Explicit : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    void IProcessTask.DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                    IEnumerable<string> IProcessTask.ValidateConfiguration(ProcessTaskValidationContext context) => [];
+                }
+
+                public sealed class WithOverload : IProcessTask
+                {
+                    public string Type => "withOverload";
+                    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => DefineStart(pipeline, retries: 3);
+                    private void DefineStart(PipelineBuilder.Lifecycle pipeline, int retries) { }
+                }
+
+                public sealed class ExplicitWithOverload : IProcessTask
+                {
+                    public string Type => "explicitWithOverload";
+                    void IProcessTask.DefineEnd(PipelineBuilder.Lifecycle pipeline) => DefineEnd(pipeline, "end");
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline, string label) { }
+                }
+
+                public abstract class ImplementingBase : IProcessTask
+                {
+                    public string Type => "implementingBase";
+                    public virtual void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public sealed class OverloadOnDerived : ImplementingBase
+                {
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) { }
+                }
+
+                public sealed class OverrideOnDerived : ImplementingBase
+                {
+                    public override void DefineStart(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public abstract class GenericBase<T> : IProcessTask
+                {
+                    public string Type => "genericBase";
+                    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { }
+                }
+
+                public sealed class ClosedGeneric : GenericBase<int>
+                {
+                    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline, int extra) { }
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task A_Signature_Chosen_Elsewhere_Is_Reported_Only_Where_It_Is_Chosen()
+    {
+        // The override cannot change the signature its base class gave it, and IReviewHook's member is not
+        // IProcessTask's.
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public abstract class HookBase : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    protected abstract void DefineEnd(PipelineBuilder.ServiceTask pipeline);
+                }
+
+                public sealed class HookOverride : HookBase
+                {
+                    protected override void DefineEnd(PipelineBuilder.ServiceTask pipeline) { }
+                }
+
+                public interface IReviewHook
+                {
+                    void DefineStart(PipelineBuilder.ServiceTask pipeline);
+                }
+
+                public sealed class ReviewTask : IServiceTask, IReviewHook
+                {
+                {{ServiceTaskMembers}}
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) { }
+                }
+                """
+        );
+
+        Assert.Equal(["HookBase.DefineEnd(PipelineBuilder.ServiceTask)"], diagnostics.Select(ReportedMethod));
+    }
+
+    [Fact]
+    public async Task Types_That_Are_Not_Process_Tasks_Are_Not_Reported()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public sealed class Helper
+                {
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) { }
+                    public IEnumerable<string> ValidateConfiguration(string context) => [];
+                }
+
+                public interface IMyTask : IProcessTask
+                {
+                    void DefineStart(PipelineBuilder.ServiceTask pipeline);
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Projects_That_Are_Not_Apps_Are_Not_Analyzed()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public sealed class FetchNote : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    public void DefineStart(PipelineBuilder.ServiceTask pipeline) { }
+                }
+                """,
+            isAltinnApp: false
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Nothing_Is_Reported_When_IProcessTask_Does_Not_Resolve()
+    {
+        // A project that doesn't reference Altinn.App.Core, with its own type of the same simple name.
+        var diagnostics = await Analyze(
+            """
+            public interface IProcessTask
+            {
+                void DefineStart(object pipeline) { }
+            }
+
+            public sealed class Task : IProcessTask
+            {
+                public void DefineStart(string pipeline) { }
+            }
+            """,
+            referenceCore: false
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    /// <summary>The method a diagnostic names, as <c>Type.Name(parameter types)</c>.</summary>
+    private static string ReportedMethod(Diagnostic diagnostic) => diagnostic.GetMessage().Split('\'')[1];
+
+    /// <summary>The source text a diagnostic is reported on.</summary>
+    private static string SourceAt(Diagnostic diagnostic) =>
+        diagnostic.Location.SourceTree!.GetText().ToString(diagnostic.Location.SourceSpan);
+
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(
+        string source,
+        bool isAltinnApp = true,
+        bool referenceCore = true
+    )
+    {
+        var assemblies = AppDomain
+            .CurrentDomain.GetAssemblies()
+            .Where(assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location));
+        if (referenceCore)
+            assemblies = assemblies.Append(typeof(IServiceTask).Assembly);
+        else
+            assemblies = assemblies.Where(assembly => assembly != typeof(IServiceTask).Assembly);
+
+        var compilation = CSharpCompilation.Create(
+            "App",
+            [CSharpSyntaxTree.ParseText(source, path: "/repo/App/Tasks.cs")],
+            assemblies.Distinct().Select(assembly => MetadataReference.CreateFromFile(assembly.Location)),
+            new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                nullableContextOptions: NullableContextOptions.Enable
+            )
+        );
+        Assert.Empty(compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
+
+        var options = new AnalyzerOptions([], new AltinnAppOptionsProvider(isAltinnApp));
+        var diagnostics = await compilation
+            .WithAnalyzers([new ProcessTaskDefaultMemberAnalyzer()], options)
+            .GetAnalyzerDiagnosticsAsync(CancellationToken.None);
+
+        // The analyzer runs concurrently, so it reports in no fixed order.
+        return [.. diagnostics.OrderBy(d => d.Location.SourceSpan.Start)];
+    }
+}
