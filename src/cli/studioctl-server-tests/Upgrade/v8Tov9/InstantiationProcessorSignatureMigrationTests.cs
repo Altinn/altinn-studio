@@ -1,6 +1,7 @@
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
@@ -706,5 +707,291 @@ public sealed class InstantiationProcessorSignatureMigrationTests : IDisposable
         Assert.Empty(syntactic.Messages);
         Assert.Empty(againstV9.Messages);
         Assert.Equal(migrated, await Read(processor));
+    }
+
+    [Fact]
+    public async Task WithSemantics_SharedBaseLegacy_WithProcessorsThatDisagree_IsATodo()
+    {
+        var processors = Write(
+            "logic/Prefillers.cs",
+            Usings
+                + """
+
+                public class PrefillerBase
+                {
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+
+                public class Upgraded : PrefillerBase, IInstantiationProcessor
+                {
+                    public Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+
+                public class NotUpgraded : PrefillerBase, IInstantiationProcessor { }
+                """
+        );
+        var before = await Read(processors);
+
+        var result = Migrate(semantic: true);
+
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("for NotUpgraded", todo);
+        Assert.Contains("and for Upgraded", todo);
+        Assert.Empty(result.Warnings);
+        Assert.Equal(before, await Read(processors));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MutatorHelperWithOtherParameters_DoesNotReplaceLegacy(bool semantic)
+    {
+        var processor = Write(
+            "logic/Prefiller.cs",
+            Usings
+                + """
+
+                public class Prefiller : IInstantiationProcessor
+                {
+                    public Task DataCreation(IInstanceDataMutator instanceDataMutator, string data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+                """
+        );
+
+        var result = Migrate(semantic, _v8ReleasedSdk.Value);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains("changed the 'Instance instance' parameter", Assert.Single(result.Warnings));
+        Assert.Contains("string data", await Read(processor));
+        AssertCompilesAgainstV9();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PrivateMutatorMethod_DoesNotReplaceLegacy(bool semantic)
+    {
+        var processor = Write(
+            "logic/Prefiller.cs",
+            Usings
+                + """
+
+                public class Prefiller : IInstantiationProcessor
+                {
+                    private Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+                """
+        );
+        var before = await Read(processor);
+
+        var result = Migrate(semantic, _v8ReleasedSdk.Value);
+
+        Assert.Contains("cannot implement the v9", Assert.Single(result.Todos));
+        Assert.Empty(result.Warnings);
+        Assert.Equal(before, await Read(processor));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task UseInAnInactiveBranch_KeepsTheLocal(bool semantic)
+    {
+        var processor = Write(
+            "logic/Prefiller.cs",
+            Usings
+                + """
+
+                public class Prefiller : IInstantiationProcessor
+                {
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill)
+                    {
+                #if SOME_UNDEFINED_SYMBOL
+                        Console.WriteLine(instance.Id);
+                #endif
+                        return Task.CompletedTask;
+                    }
+                }
+                """
+        );
+
+        Migrate(semantic);
+
+        Assert.Contains("var instance = instanceDataMutator.Instance;", await Read(processor));
+        AssertCompilesAgainstV9();
+    }
+
+    [Fact]
+    public async Task WithoutSemantics_CallWithNamedArguments_KeepsLegacy()
+    {
+        var processor = Write(
+            "logic/Prefiller.cs",
+            Usings
+                + """
+
+                public class Prefiller : IInstantiationProcessor
+                {
+                    public Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) =>
+                        DataCreation(data: instanceDataMutator, instance: instanceDataMutator.Instance, prefill: prefill);
+
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+                """
+        );
+        var before = await Read(processor);
+
+        var result = Migrate(semantic: false);
+
+        Assert.Contains("It stays as the app's own method", Assert.Single(result.Warnings));
+        Assert.Equal(before, await Read(processor));
+        AssertCompilesAgainstV9();
+    }
+
+    [Fact]
+    public async Task WithoutSemantics_InheritedDataCreation_IsATodo()
+    {
+        var processors = Write(
+            "logic/Prefillers.cs",
+            Usings
+                + """
+
+                public class PrefillerBase
+                {
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+
+                public class Prefiller : PrefillerBase, IInstantiationProcessor { }
+                """
+        );
+        var before = await Read(processors);
+
+        var result = Migrate(semantic: false);
+
+        Assert.Contains(
+            "Prefiller implements IInstantiationProcessor without a DataCreation of its own",
+            Assert.Single(result.Todos)
+        );
+        Assert.Equal(before, await Read(processors));
+    }
+
+    [Fact]
+    public void WithoutSemantics_InheritedMutatorMethod_IsNotReported()
+    {
+        Write(
+            "logic/Prefillers.cs",
+            Usings
+                + """
+
+                public class PrefillerBase
+                {
+                    public Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+
+                public class Prefiller : PrefillerBase, IInstantiationProcessor { }
+                """
+        );
+
+        var result = Migrate(semantic: false);
+
+        Assert.Empty(result.Messages);
+        AssertCompilesAgainstV9();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task KeptLegacy_ThatWritesThroughDataClient_IsATodo(bool semantic)
+    {
+        var processor = Write(
+            "logic/Prefiller.cs",
+            Usings
+                + """
+
+                public class Prefiller(IDataClient dataClient) : IInstantiationProcessor
+                {
+                    public Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) =>
+                        DataCreation(instanceDataMutator.Instance, data, prefill);
+
+                    public async Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        await dataClient.InsertBinaryData(instance.Id, "attachment", "text/plain", null, Stream.Null);
+                }
+                """
+        );
+        var before = await Read(processor);
+
+        var result = Migrate(semantic);
+
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("It stays as the app's own method", todo);
+        Assert.Contains("through IDataClient at logic/Prefiller.cs:15", todo);
+        Assert.Empty(result.Warnings);
+        Assert.Equal(before, await Read(processor));
+    }
+
+    [Fact]
+    public async Task WithSemantics_AfterAnEarlierRewrite_CallsFromUnchangedFilesStillCount()
+    {
+        var processor = Write(
+            "logic/Prefiller.cs",
+            Usings
+                + """
+
+                public class Prefiller : IInstantiationProcessor
+                {
+                    public Task DataCreation(IInstanceDataMutator instanceDataMutator, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+                """
+        );
+        Write(
+            "logic/Caller.cs",
+            Usings
+                + """
+
+                public static class Caller
+                {
+                    public static Task Run(Prefiller prefiller, Instance instance) =>
+                        prefiller.DataCreation(instance, new object(), null);
+                }
+                """
+        );
+        var scanner = Scanner(semantic: true);
+        // An earlier step reads every file and then rewrites the processor's file.
+        foreach (var file in scanner.Files)
+        {
+            Assert.NotNull(file.SemanticModel);
+        }
+
+        var processorFile = scanner.Files.Single(file => file.Path == processor);
+        scanner.Update(
+            processorFile,
+            processorFile.Root.WithEndOfFileToken(
+                processorFile.Root.EndOfFileToken.WithLeadingTrivia(SyntaxFactory.Comment("// Rewritten.\n"))
+            )
+        );
+        var before = await Read(processor);
+
+        var result = new InstantiationProcessorSignatureMigration(scanner).Migrate(
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Contains("It stays as the app's own method", Assert.Single(result.Warnings));
+        Assert.Equal(before, await Read(processor));
+        AssertCompilesAgainstV9();
     }
 }

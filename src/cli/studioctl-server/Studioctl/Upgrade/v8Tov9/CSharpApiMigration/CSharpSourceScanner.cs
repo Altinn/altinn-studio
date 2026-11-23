@@ -166,6 +166,7 @@ internal sealed class CSharpSourceScanner
             var newTree = oldTree.WithRootAndOptions(newRoot, oldTree.Options);
             canonicalRoot = (CompilationUnitSyntax)newTree.GetRoot();
             _compilation = _compilation.ReplaceSyntaxTree(oldTree, newTree);
+            _semanticModels.Clear();
 
             var updatedFile = new ScannedCSharpFile(this, file.Path, file.RelativePath, canonicalRoot);
             _trees[updatedFile] = newTree;
@@ -193,6 +194,7 @@ internal sealed class CSharpSourceScanner
         if (_compilation is not null && _trees.Remove(file, out var tree))
         {
             _compilation = _compilation.RemoveSyntaxTrees(tree);
+            _semanticModels.Clear();
         }
 
         _pristine?._files.Value.RemoveAll(pristineFile => pristineFile.Path == file.Path);
@@ -200,8 +202,9 @@ internal sealed class CSharpSourceScanner
 
     internal SemanticModel? GetSemanticModel(ScannedCSharpFile file)
     {
-        // Cached per file: a fresh model per access would re-bind from scratch every time. Update
-        // replaces the file instance, so entries never go stale — they just stop being reachable.
+        // Cached per file: a fresh model per access would re-bind from scratch every time. Update and
+        // Remove replace the compilation and clear the cache, since a model bound to the old compilation
+        // gives symbols that do not compare equal to those of the new one, even for an unchanged file.
         if (_semanticModels.TryGetValue(file, out var cached))
         {
             return cached;

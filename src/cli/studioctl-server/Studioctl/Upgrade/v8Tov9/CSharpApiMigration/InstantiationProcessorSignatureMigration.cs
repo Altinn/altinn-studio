@@ -19,8 +19,10 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// through the mutator, since v9 rejects writes through <c>IDataClient</c> while the process moves into a task,
 /// which is when <c>DataCreation</c> runs; a method that makes such writes gets a to-do instead. An app that also
 /// implements the mutator method has a dead <c>Instance</c> one: an explicit implementation, or one nothing in the
-/// app calls, is deleted, and one the app still calls stays as the app's own method. Calls to a method whose
-/// signature changed are reported.</p>
+/// app calls, is deleted, and one the app still calls stays as the app's own method, with a to-do when it writes
+/// through <c>IDataClient</c>. Calls to a method whose signature changed are reported. An <c>Instance</c> method that
+/// an app base class gives several processors is changed or deleted only when they all agree; otherwise it is
+/// reported.</p>
 /// <p>Released v8 libraries have only the <c>Instance</c> member, so a mutator method beside it is found among the
 /// type's own methods as well as through the interface.</p>
 /// <p>With a semantic model the implementations are resolved exactly, through
@@ -28,7 +30,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// app base class is migrated once, and only calls that bind to the method count as its callers. Without one, a
 /// type is an implementation when its own base list names the interface, a method matches by name and parameter
 /// types, and any three-argument <c>DataCreation</c> call in the app counts as a caller, unless it passes a
-/// parameter declared as the mutator. A same-named interface declared in the app makes that ambiguous, so such
+/// parameter declared as the mutator first, without naming arguments. A type that names the interface but declares
+/// no <c>DataCreation</c>, and whose base classes in the app do not declare the mutator one, is reported, since what
+/// it inherits cannot be resolved. A same-named interface declared in the app makes that ambiguous, so such
 /// matches are reported instead of rewritten. A method that can be overridden is reported too: its override family
 /// has to change together, and is not worth finding for a member almost no app overrides.</p>
 /// </remarks>
@@ -103,10 +107,15 @@ internal sealed class InstantiationProcessorSignatureMigration
                         .Select(invocation => Location(file, invocation))
                 )
                 .ToList();
+            var typesByName = files
+                .SelectMany(static file => file.Root.DescendantNodes().OfType<TypeDeclarationSyntax>())
+                .ToLookup(static type => type.Identifier.ValueText, StringComparer.Ordinal);
             foreach (var file in syntaxFiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                rewrites.AddRange(FindSyntacticRewrites(file, appDeclaresInterface, possibleCalls, messages));
+                rewrites.AddRange(
+                    FindSyntacticRewrites(file, appDeclaresInterface, possibleCalls, typesByName, messages)
+                );
             }
         }
 
@@ -158,8 +167,13 @@ internal sealed class InstantiationProcessorSignatureMigration
             }
         }
 
+        // The processors that implement each Instance method, collected before anything is decided: processors
+        // that share a method inherited from an app base class have to agree on what becomes of it.
         var handledTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
-        var handledMethods = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+        var implementers = new Dictionary<IMethodSymbol, List<(INamedTypeSymbol Type, bool HasCurrent)>>(
+            SymbolEqualityComparer.Default
+        );
+        var legacies = new List<IMethodSymbol>();
 
         foreach (var file in files)
         {
@@ -185,7 +199,6 @@ internal sealed class InstantiationProcessorSignatureMigration
                     legacyMember is null
                     || type.FindImplementationForInterfaceMember(legacyMember) is not IMethodSymbol legacy
                     || legacy.ContainingType.TypeKind == TypeKind.Interface
-                    || !handledMethods.Add(legacy.OriginalDefinition)
                 )
                 {
                     continue;
@@ -198,9 +211,25 @@ internal sealed class InstantiationProcessorSignatureMigration
                         && type.FindImplementationForInterfaceMember(currentMember) is IMethodSymbol current
                         && current.ContainingType.TypeKind != TypeKind.Interface
                     ) || DeclaresCurrent(type);
-                var calls = callers.GetValueOrDefault(legacy.OriginalDefinition) ?? [];
 
-                if (Locate(legacy, filesByTree) is not { } found)
+                var key = legacy.OriginalDefinition;
+                if (!implementers.TryGetValue(key, out var types))
+                {
+                    implementers[key] = types = [];
+                    legacies.Add(key);
+                }
+
+                types.Add((type, hasCurrent));
+            }
+        }
+
+        foreach (var legacy in legacies)
+        {
+            var types = implementers[legacy];
+            var calls = callers.GetValueOrDefault(legacy) ?? [];
+            if (Locate(legacy, filesByTree) is not { } found)
+            {
+                foreach (var (type, _) in types)
                 {
                     messages.Todo(
                         $"{type.Name} implements {InterfaceName}.{MethodName}(Instance, object, Dictionary<string, "
@@ -208,21 +237,34 @@ internal sealed class InstantiationProcessorSignatureMigration
                             + $"source. v9 has no such member: the app needs its own {MethodName} with the "
                             + $"'{ParameterTypeName}' parameter."
                     );
-                    continue;
                 }
 
-                var (declaringFile, method) = found;
-                var location = Location(declaringFile, method);
-                if (hasCurrent)
-                {
-                    rewrites.AddRange(RetireLegacy(declaringFile, method, location, calls, messages));
-                }
-                else if (CanChangeParameter(method, location, messages))
-                {
-                    rewrites.Add(new Rewrite(declaringFile, method, Change.ChangeParameter));
-                    ReportChange(declaringFile, method, location, messages);
-                    ReportCallers(calls, method, messages);
-                }
+                continue;
+            }
+
+            var (declaringFile, method) = found;
+            var location = Location(declaringFile, method);
+            if (types.All(static entry => entry.HasCurrent))
+            {
+                rewrites.AddRange(RetireLegacy(declaringFile, method, location, calls, messages));
+            }
+            else if (types.Any(static entry => entry.HasCurrent))
+            {
+                // Removing the method leaves the processors without a mutator method unimplemented, and changing
+                // its parameter gives the others two; which is right depends on the app.
+                var without = string.Join(", ", types.Where(static e => !e.HasCurrent).Select(static e => e.Type.Name));
+                var with = string.Join(", ", types.Where(static e => e.HasCurrent).Select(static e => e.Type.Name));
+                messages.Todo(
+                    $"{location} implements {InterfaceName} for {without}, which have no {MethodName} with the "
+                        + $"'{ParameterTypeName}' parameter, and for {with}, which have one. Give {without} their own "
+                        + $"{MethodName} with the '{ParameterTypeName}' parameter, then remove this method, by hand."
+                );
+            }
+            else if (CanChangeParameter(method, location, messages))
+            {
+                rewrites.Add(new Rewrite(declaringFile, method, Change.ChangeParameter));
+                ReportChange(declaringFile, method, location, messages);
+                ReportCallers(calls, method, messages);
             }
         }
 
@@ -277,6 +319,7 @@ internal sealed class InstantiationProcessorSignatureMigration
         ScannedCSharpFile file,
         bool appDeclaresInterface,
         IReadOnlyList<string> possibleCalls,
+        ILookup<string, TypeDeclarationSyntax> typesByName,
         List<UpgradeMessage> messages
     )
     {
@@ -289,11 +332,31 @@ internal sealed class InstantiationProcessorSignatureMigration
                 .Members.OfType<MethodDeclarationSyntax>()
                 .Where(static method => method.Identifier.ValueText == MethodName)
                 .ToList();
-            var hasCurrent = methods.Any(static method => HasFirstParameterType(method, ParameterTypeName));
-            var legacies = methods.Where(method =>
-                HasFirstParameterType(method, LegacyParameterTypeName)
-                && (listsInterface || SimpleName(method.ExplicitInterfaceSpecifier?.Name) == InterfaceName)
-            );
+            var hasCurrent = methods.Any(IsCurrentImplementation);
+            var legacies = methods
+                .Where(method =>
+                    HasFirstParameterType(method, LegacyParameterTypeName)
+                    && (listsInterface || SimpleName(method.ExplicitInterfaceSpecifier?.Name) == InterfaceName)
+                )
+                .ToList();
+            if (
+                listsInterface
+                && !hasCurrent
+                && legacies.Count == 0
+                && !appDeclaresInterface
+                && !BaseClassDeclaresCurrent(type, typesByName)
+            )
+            {
+                messages.Todo(
+                    $"{Location(file, type)}: {type.Identifier.Text} implements {InterfaceName} without a "
+                        + $"{MethodName} of its own, and its base classes cannot be resolved without a compilation of "
+                        + $"the app. If it inherits {MethodName}(Instance, object, Dictionary<string, string>?), change "
+                        + $"that method's 'Instance' parameter to an '{ParameterTypeName}' and read the instance from "
+                        + "its Instance property, by hand."
+                );
+                continue;
+            }
+
             foreach (var method in legacies)
             {
                 var location = Location(file, method);
@@ -339,11 +402,22 @@ internal sealed class InstantiationProcessorSignatureMigration
     {
         if (method.ExplicitInterfaceSpecifier is null && calls.Count > 0)
         {
-            messages.Warn(
+            var kept =
                 $"{location} is no longer part of {InterfaceName}; the app libraries call the {MethodName} with the "
-                    + $"'{ParameterTypeName}' parameter. It stays as the app's own method, since the app calls it at "
-                    + $"{string.Join(", ", calls)}."
-            );
+                + $"'{ParameterTypeName}' parameter. It stays as the app's own method, since the app calls it at "
+                + $"{string.Join(", ", calls)}.";
+            var writes = DataClientWrites(file, method);
+            if (writes.Count > 0)
+            {
+                messages.Todo(
+                    $"{kept} It writes instance data through IDataClient at {string.Join(", ", writes)}, which v9 "
+                        + $"rejects while the process moves into a task, when {MethodName} runs. Add and change data "
+                        + $"elements through the '{ParameterTypeName}' instead."
+                );
+                yield break;
+            }
+
+            messages.Warn(kept);
             yield break;
         }
 
@@ -387,7 +461,44 @@ internal sealed class InstantiationProcessorSignatureMigration
             return false;
         }
 
+        // A mutator method that cannot implement the interface, such as a private one, already has the
+        // signature the change would give this method.
+        if (
+            method.Parent is TypeDeclarationSyntax type
+            && type.Members.OfType<MethodDeclarationSyntax>()
+                .Any(other =>
+                    other != method
+                    && other.Identifier.ValueText == MethodName
+                    && other.ExplicitInterfaceSpecifier is null
+                    && HasFirstParameterType(other, ParameterTypeName)
+                    && SameType(other.ParameterList.Parameters[1].Type, method.ParameterList.Parameters[1].Type)
+                    && SameType(other.ParameterList.Parameters[2].Type, method.ParameterList.Parameters[2].Type)
+                )
+        )
+        {
+            messages.Todo(
+                $"{location}: its type already has a {MethodName} with the '{ParameterTypeName}' parameter that "
+                    + $"cannot implement the v9 {InterfaceName}. Move this method's code into a public one with that "
+                    + "signature, and remove this method, by hand."
+            );
+            return false;
+        }
+
         return true;
+    }
+
+    /// <summary>Whether two written types are the same text, ignoring whitespace and a nullable annotation.</summary>
+    private static bool SameType(TypeSyntax? left, TypeSyntax? right)
+    {
+        static string Text(TypeSyntax? type) =>
+            string.Concat(
+                (type is NullableTypeSyntax nullable ? nullable.ElementType : type)
+                    ?.DescendantTokens()
+                    .Select(static token => token.Text)
+                    ?? []
+            );
+
+        return Text(left) == Text(right);
     }
 
     /// <summary>
@@ -472,6 +583,25 @@ internal sealed class InstantiationProcessorSignatureMigration
 
     private static bool IsCurrent(IMethodSymbol method) => HasFirstParameterType(method, ParameterTypeName);
 
+    /// <summary>
+    /// Whether the method has the parameters of the v9 member, taken by value: the Altinn.App mutator,
+    /// <c>object</c> and <c>Dictionary&lt;string, string&gt;</c>, and no type parameters.
+    /// </summary>
+    private static bool IsCurrentSignature(IMethodSymbol method) =>
+        method.Parameters.Length == ParameterCount
+        && method.TypeParameters.IsEmpty
+        && method.Parameters.All(static parameter => parameter.RefKind == RefKind.None)
+        && method.Parameters[0].Type is INamedTypeSymbol { Name: ParameterTypeName } mutator
+        && mutator.ContainingNamespace.ToDisplayString() == InterfaceNamespace
+        && method.Parameters[1].Type.SpecialType == SpecialType.System_Object
+        && method.Parameters[2].Type
+            is INamedTypeSymbol
+            {
+                Name: "Dictionary",
+                TypeArguments: [{ SpecialType: SpecialType.System_String }, { SpecialType: SpecialType.System_String }],
+            } dictionary
+        && dictionary.ContainingNamespace.ToDisplayString() == "System.Collections.Generic";
+
     private static bool HasFirstParameterType(IMethodSymbol method, string typeName) =>
         method.Name == MethodName
         && method.Parameters.Length == ParameterCount
@@ -482,6 +612,57 @@ internal sealed class InstantiationProcessorSignatureMigration
     {
         var parameters = method.ParameterList.Parameters;
         return parameters.Count == ParameterCount && SimpleName(parameters[0].Type) == typeName;
+    }
+
+    /// <summary>
+    /// Whether the declaration can implement the v9 member, as far as syntax tells: the mutator, <c>object</c> and
+    /// <c>Dictionary</c> parameters, on a public instance method or an explicit implementation.
+    /// </summary>
+    private static bool IsCurrentImplementation(MethodDeclarationSyntax method)
+    {
+        var parameters = method.ParameterList.Parameters;
+        return method.Identifier.ValueText == MethodName
+            && HasFirstParameterType(method, ParameterTypeName)
+            && (parameters[1].Type is NullableTypeSyntax nullable ? nullable.ElementType : parameters[1].Type)
+                is PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.ObjectKeyword }
+            && SimpleName(parameters[2].Type) == "Dictionary"
+            && parameters.All(static parameter => parameter.Modifiers.Count == 0)
+            && method.TypeParameterList is null
+            && !method.Modifiers.Any(SyntaxKind.StaticKeyword)
+            && (
+                SimpleName(method.ExplicitInterfaceSpecifier?.Name) == InterfaceName
+                || (method.ExplicitInterfaceSpecifier is null && method.Modifiers.Any(SyntaxKind.PublicKeyword))
+            );
+    }
+
+    /// <summary>
+    /// Whether a base class, found by name among the app's types, declares a method that can implement the v9
+    /// member. A base class that cannot be found, or is found more than once, counts as not declaring one.
+    /// </summary>
+    private static bool BaseClassDeclaresCurrent(
+        TypeDeclarationSyntax type,
+        ILookup<string, TypeDeclarationSyntax> typesByName
+    )
+    {
+        var visited = new HashSet<TypeDeclarationSyntax>();
+        for (TypeDeclarationSyntax? current = type; current is not null && visited.Add(current); )
+        {
+            var baseName = current.BaseList?.Types.FirstOrDefault() is { } first ? SimpleName(first.Type) : null;
+            var candidates = baseName is null ? [] : typesByName[baseName].ToList();
+            if (candidates.Count != 1 || candidates[0] is not ClassDeclarationSyntax baseClass)
+            {
+                return false;
+            }
+
+            if (baseClass.Members.OfType<MethodDeclarationSyntax>().Any(IsCurrentImplementation))
+            {
+                return true;
+            }
+
+            current = baseClass;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -497,12 +678,12 @@ internal sealed class InstantiationProcessorSignatureMigration
                     .GetMembers()
                     .OfType<IMethodSymbol>()
                     .Any(static method =>
-                        method.Parameters.Length == ParameterCount
-                        && method.Parameters[0].Type.Name == ParameterTypeName
+                        IsCurrentSignature(method)
                         && !method.IsStatic
                         && (
-                            method.ExplicitInterfaceImplementations.Any(static member => member.Name == MethodName)
-                            || (method.Name == MethodName && method.DeclaredAccessibility == Accessibility.Public)
+                            method.ExplicitInterfaceImplementations.Any(static member =>
+                                member.Name == MethodName && IsSdkProcessor(member.ContainingType)
+                            ) || (method.Name == MethodName && method.DeclaredAccessibility == Accessibility.Public)
                         )
                     )
             )
@@ -526,6 +707,13 @@ internal sealed class InstantiationProcessorSignatureMigration
         )
         {
             return false;
+        }
+
+        // Named arguments can put the mutator anywhere; such a call is taken to bind to the Instance method,
+        // which keeps the method rather than risk deleting one the app calls.
+        if (invocation.ArgumentList.Arguments.Any(static argument => argument.NameColon is not null))
+        {
+            return true;
         }
 
         return invocation.ArgumentList.Arguments[0].Expression is not IdentifierNameSyntax argument
@@ -633,13 +821,28 @@ internal sealed class InstantiationProcessorSignatureMigration
         };
     }
 
-    /// <summary>Whether the body refers to the parameter: a simple name that is not a member name or argument name.</summary>
-    private static bool UsesParameter(MethodDeclarationSyntax method, string name) =>
-        ((SyntaxNode?)method.Body ?? method.ExpressionBody)
-            ?.DescendantNodes()
-            .OfType<IdentifierNameSyntax>()
-            .Any(identifier => identifier.Identifier.ValueText == name && !IsMemberOrArgumentName(identifier))
-        ?? false;
+    /// <summary>
+    /// Whether the body refers to the parameter: a simple name that is not a member name or argument name, or the
+    /// name anywhere in a branch the preprocessor leaves out, which another configuration may compile.
+    /// </summary>
+    private static bool UsesParameter(MethodDeclarationSyntax method, string name)
+    {
+        if (((SyntaxNode?)method.Body ?? method.ExpressionBody) is not { } body)
+        {
+            return false;
+        }
+
+        return body.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Any(identifier => identifier.Identifier.ValueText == name && !IsMemberOrArgumentName(identifier))
+            || body.DescendantTrivia()
+                .Where(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+                .Any(trivia =>
+                    SyntaxFactory
+                        .ParseTokens(trivia.ToString())
+                        .Any(token => token.IsKind(SyntaxKind.IdentifierToken) && token.ValueText == name)
+                );
+    }
 
     private static bool IsMemberOrArgumentName(IdentifierNameSyntax identifier) =>
         identifier.Parent switch
