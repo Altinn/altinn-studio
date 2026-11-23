@@ -156,13 +156,13 @@ func TestAdmissionPolicyAcceptsTheJobsTheOperatorBuilds(t *testing.T) {
 		refused := BuildJob(&template, testJob(uuid.NewString()))
 		change(&refused.Spec.Template)
 		err := operatorClient.Create(t.Context(), refused)
-		Expect(apierrors.IsInvalid(err) || apierrors.IsForbidden(err)).To(BeTrue(), "%s: %v", name, err)
+		Expect(isAdmissionDenial(err)).To(BeTrue(), "%s: %v", name, err)
 	}
 
 	// A Job with a deadline longer than the policy allows.
 	long := BuildJob(&template, testJob(uuid.NewString()))
 	long.Spec.ActiveDeadlineSeconds = new(int64(config.MaxJobDeadline/time.Second + 1))
-	Expect(operatorClient.Create(t.Context(), long)).NotTo(Succeed())
+	Expect(isAdmissionDenial(operatorClient.Create(t.Context(), long))).To(BeTrue())
 
 	// The operator can create only Jobs there.
 	pod := &corev1.Pod{}

@@ -134,7 +134,7 @@ func TestDescribeKeepsTheErrorDetailShort(t *testing.T) {
 	RegisterTestingT(t)
 
 	progress := ended(StepAwaitArchive, ReasonStartFailed)
-	progress.End.Detail = strings.Repeat("æ", maxDetail)
+	progress.End.Detail = "x" + strings.Repeat("æ", maxDetail)
 	described := describe(progress)
 	Expect(len(described.Error.Detail)).To(BeNumerically("<=", maxDetail))
 	Expect(strings.ToValidUTF8(described.Error.Detail, "?")).To(Equal(described.Error.Detail))

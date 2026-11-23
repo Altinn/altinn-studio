@@ -145,9 +145,10 @@ its own runs.
   seconds. A UI can long-poll through a stateless endpoint of its service, so a redeploy of the service does not stop
   it. `queuePosition`, `startedAt` and the kind's timeouts from `GET /api/v1/kinds` are enough to show progress.
 - **Upload.** When the status is `awaiting-archive`, send a gzip tar of the app at the commit, without `.git`, with
-  `PUT /api/v1/runs/{id}/archive`. Send the whole archive within `uploadTimeoutSeconds`, and each attempt within 2
-  minutes. At the upload timeout, the operator cuts off the upload and the run fails with `archive-timeout`. You can
-  build the archive at this point from the commit. You can send an upload that broke off again.
+  `PUT /api/v1/runs/{id}/archive` and `Content-Type: application/gzip`. Send the whole archive within
+  `uploadTimeoutSeconds`, and each attempt within 2 minutes. At the upload timeout, the operator cuts off the upload and
+  the run fails with `archive-timeout`. You can build the archive at this point from the commit. You can send an upload
+  that broke off again.
 - **Fetch the result** as soon as the status is `completed`, before `resultExpiresAt`. It is `null` once the result is
   gone. Keep what you show later, such as the report, in your own store or in the commit that applies the patch.
 - **Give up.** The operator gives each run a final status within the `maxDurationSeconds` of its kind in

@@ -221,7 +221,7 @@ func TestMiddlewareKeepsCallersAndTheEngineApart(t *testing.T) {
 			}
 		})
 	}
-	Expect(seenCaller).To(Equal("assistant"))
+	NewWithT(t).Expect(seenCaller).To(Equal("assistant"))
 }
 
 func TestMiddlewareAnswers503WhenTheReviewFails(t *testing.T) {

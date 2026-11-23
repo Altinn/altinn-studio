@@ -192,6 +192,7 @@ func TestCreateForTheSameSourceAtOnceMakesOneRun(t *testing.T) {
 		})
 	}
 	wg.Wait()
+	Expect(results).To(HaveLen(4), "every create answers without an error")
 	close(results)
 	created := 0
 	for result := range results {
