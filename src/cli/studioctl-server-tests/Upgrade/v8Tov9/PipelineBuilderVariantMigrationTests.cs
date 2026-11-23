@@ -872,4 +872,33 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         AssertCompilesAgainstCurrent();
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void BuilderAsATypeArgument_IsReported(bool semantic)
+    {
+        Write(
+            "logic/ConfigurableTask.cs",
+            $$"""
+            public class ConfigurableTask : IServiceTask
+            {
+                private readonly Func<PipelineBuilder, PipelineBuilder> _configure = static pipeline => pipeline;
+
+                public string Type => "configurable";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => _configure(pipeline).Finally(Done);
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        // Neither rewritten nor reported, it fails to compile against the current API with no to-do pointing at it.
+        Assert.Contains(
+            result.Todos,
+            todo => todo.StartsWith(Path.Combine("logic", "ConfigurableTask.cs") + ":8:", StringComparison.Ordinal)
+        );
+    }
 }
