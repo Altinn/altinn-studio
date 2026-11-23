@@ -208,7 +208,7 @@ The [Makefile](Makefile) has the checks that CI runs. `make manifests` builds th
   the callback examples in [testdata/callbacks](testdata/callbacks) and the operator runner's
   [protocol examples](../operator-runner/examples/protocol.json).
 - `make test-integration` runs the operator against the [engine host](../operator-workflow-engine/README.md), built
-  from its source, with Postgres in a container. It needs Docker or Podman and the .NET SDK. It covers what only the
+  from its source, with Postgres in a container. It needs a `docker` command and the .NET SDK. It covers what only the
   real engine does: the state it passes on, its deferrals, wait budgets and errors, and a restart of the operator. A
   copy of those rules in the operator's tests would drift from the engine, which another team changes.
 - `make run` runs the operator against the cluster in your kubeconfig. Set `CORE_OPERATOR_CONFIG_DIR` to a folder with

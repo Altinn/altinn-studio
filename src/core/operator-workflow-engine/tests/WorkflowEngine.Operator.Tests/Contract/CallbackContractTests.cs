@@ -106,7 +106,6 @@ public sealed class CallbackContractTests
             TimeSpan.Parse(example["defer"]!["delay"]!.GetValue<string>(), CultureInfo.InvariantCulture),
             result.DeferDelay
         );
-        Assert.Equal(TimeSpan.FromSeconds(5), result.DeferDelay);
         Assert.Equal(example["defer"]!["reason"]!.GetValue<string>(), result.Message);
         Assert.Equal(example["state"]!.GetValue<string>(), result.StateOut);
     }

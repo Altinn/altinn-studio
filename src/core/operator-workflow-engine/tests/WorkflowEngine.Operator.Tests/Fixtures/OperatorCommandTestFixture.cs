@@ -10,9 +10,6 @@ using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Operator.Commands.OperatorCommand;
 using WorkflowEngine.Resilience;
 
-// CA2000: The service provider owns the limiter and disposes of it
-#pragma warning disable CA2000
-
 namespace WorkflowEngine.Operator.Tests.Fixtures;
 
 /// <summary>
@@ -64,13 +61,11 @@ internal sealed class OperatorCommandTestFixture : IDisposable
         services.AddLogging();
         services.AddSingleton(Options.Create(engineSettings));
         services.AddSingleton(Options.Create(Settings));
-        services.AddSingleton<IConcurrencyLimiter>(
-            new ConcurrencyLimiter(
-                engineSettings.Concurrency.MaxDbOperations,
-                engineSettings.Concurrency.MaxHttpCalls,
-                engineSettings.Concurrency.MaxWorkers
-            )
-        );
+        services.AddSingleton<IConcurrencyLimiter>(_ => new ConcurrencyLimiter(
+            engineSettings.Concurrency.MaxDbOperations,
+            engineSettings.Concurrency.MaxHttpCalls,
+            engineSettings.Concurrency.MaxWorkers
+        ));
         services.AddSingleton<ICommand, Operator.Commands.OperatorCommand.OperatorCommand>();
         ServiceProvider = services.BuildServiceProvider();
     }
