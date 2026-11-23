@@ -153,7 +153,7 @@ public class ApplicationsController : ControllerBase
             var environment = AltinnEnvironment.FromName(env);
             var running = await _runtimeGatewayClient.GetRunningAppDeployments(org, environment, ct);
             // Until a rollout is done, pods of the previous image may still answer for the app, so its version is
-            // not kept under the new image's tag.
+            // kept under the image's tag only when the app is known to be ready.
             List<AppImage> apps = running is not null
                 ?
                 [
@@ -165,7 +165,7 @@ public class ApplicationsController : ControllerBase
                 :
                 [
                     .. (await _runtimeGatewayClient.GetAppDeployments(org, environment, ct)).Select(
-                        deployment => new AppImage(deployment.App, deployment.ImageTag)
+                        deployment => new AppImage(deployment.App, null)
                     ),
                 ];
 

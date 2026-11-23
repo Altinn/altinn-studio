@@ -121,6 +121,25 @@ public class ReportServiceTests
     }
 
     [Fact]
+    public async Task SendReportAsync_ShouldAskEachAppForItsAppLibVersionEveryTime()
+    {
+        SetupReportMetrics(new ReportMetrics { Apps = [new ReportApp { Name = "app-one", Version = "1.4.2" }] });
+        _appResourcesService
+            .SetupSequence(service =>
+                service.GetApplicationMetadata("ttd", "tt02", "app-one", It.IsAny<CancellationToken>())
+            )
+            // A rollout runs, and a pod of the previous image answers.
+            .ReturnsAsync(new ApplicationMetadata("ttd/app-one") { AltinnNugetVersion = "8.5.3.108" })
+            .ReturnsAsync(new ApplicationMetadata("ttd/app-one") { AltinnNugetVersion = "8.6.0.1" });
+        var service = CreateService();
+
+        await service.SendReportAsync("ttd", "tt02", ReportFrequency.Daily);
+        await service.SendReportAsync("ttd", "tt02", ReportFrequency.Daily);
+
+        Assert.Equal("8.6.0", Assert.Single(_sentPayload.Table.Rows)[2]);
+    }
+
+    [Fact]
     public async Task SendReportAsync_WhenNoAppsAreDeployed_ShouldSaySoInsteadOfSendingAnEmptyTable()
     {
         SetupReportMetrics(new ReportMetrics());

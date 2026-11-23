@@ -67,10 +67,12 @@ public class ReportService(
             period.To,
             cancellationToken
         );
+        // The report does not know whether a rollout runs, when pods of the previous image may still answer for the
+        // app, so it asks every app and keeps no version under the image's tag.
         IReadOnlyDictionary<string, string?> appLibVersions = await appLibVersionService.GetAppLibVersions(
             org,
             environment,
-            reportMetrics.Apps.Select(app => new AppImage(app.Name, app.Version)),
+            reportMetrics.Apps.Select(app => new AppImage(app.Name, null)),
             cancellationToken
         );
 

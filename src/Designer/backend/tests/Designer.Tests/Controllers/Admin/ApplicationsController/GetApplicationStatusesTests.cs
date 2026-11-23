@@ -107,7 +107,15 @@ public class GetApplicationStatusesTests
             .Setup(c => c.GetAppDeployments(Org, It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([new AppDeployment(Org, Env, "app-one", "tt02", "1", "12")]);
         _appLibVersionServiceMock
-            .Setup(s => s.GetAppLibVersions(Org, Env, It.IsAny<IEnumerable<AppImage>>(), It.IsAny<CancellationToken>()))
+            .Setup(s =>
+                s.GetAppLibVersions(
+                    Org,
+                    Env,
+                    // Without a status, the app may be in a rollout, so its version is not kept under its image's tag.
+                    It.Is<IEnumerable<AppImage>>(apps => apps.SequenceEqual(new[] { new AppImage("app-one", null) })),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(new Dictionary<string, string> { ["app-one"] = "8.7.2" });
 
         using var response = await HttpClient.GetAsync($"designer/api/v1/admin/applications/{Org}/{Env}");
