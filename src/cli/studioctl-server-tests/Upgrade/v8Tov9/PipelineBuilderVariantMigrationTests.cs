@@ -1464,4 +1464,47 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         else
             Assert.Empty(Oks(result));
     }
+
+    [Theory]
+    [InlineData("namespace MyApp\n{\nusing static MyApp.Stages.CommonStages;\n", "}\n")]
+    [InlineData("namespace MyApp;\n\nusing static MyApp.Stages.CommonStages;\n", "")]
+    public async Task HelperThroughAUsingStaticInANamespace_EndsWithStage(string opening, string closing)
+    {
+        // A using static inside a namespace declaration, as StyleCop's SA1200 places it, is not looked in.
+        Write(
+            "logic/Stages.cs",
+            """
+            namespace MyApp.Stages
+            {
+                public static class CommonStages
+                {
+                    public static PipelineBuilder WithArchive(PipelineBuilder pipeline) =>
+                        pipeline.Stage(static context => Task.FromResult(StageResult.Completed()));
+                }
+            }
+            """
+        );
+        var task = Write(
+            "logic/StaticTask.cs",
+            opening
+                + $$"""
+                public class StaticTask : IServiceTask
+                {
+                    public string Type => "static";
+
+                    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => WithArchive(pipeline).Finally(Done);
+
+                {{StageMethods}}
+                }
+
+                """
+                + closing
+        );
+
+        var result = Migrate(semantic: false);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains("=> WithArchive(pipeline).Stage(Done);", await ReadMigrated(task));
+        AssertCompilesAgainstCurrent();
+    }
 }
