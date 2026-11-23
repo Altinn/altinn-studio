@@ -14,11 +14,7 @@ on:
       - 'src/core/operator/**'
       - 'src/common/go/**'
       - '.github/workflows/core-operator-workflow-engine-tests.yaml'
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
   workflow_dispatch:
 
@@ -50,6 +46,8 @@ jobs:
         run: make test
         env:
           CI: true
+          # CSharpier.MsBuild only checks Release builds, and formats Debug builds in place.
+          CSharpier_Check: true
 
   # The operator's own workflow does not start when the engine library changes, so this workflow runs the test.
   integration:
