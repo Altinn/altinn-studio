@@ -1,0 +1,56 @@
+.ruleBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  padding: var(--ds-size-2) var(--ds-size-2) var(--ds-size-3) var(--ds-size-3);
+  border: 1px solid;
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.show {
+  border-color: var(--ds-color-info-border-subtle);
+  background-color: var(--ds-color-info-surface-tinted);
+}
+
+.required {
+  border-color: var(--ds-color-warning-border-subtle);
+  background-color: var(--ds-color-warning-surface-tinted);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-size-2);
+}
+
+.title {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+/* The three parts of the sentence wrap as a unit when there is no room for them on one line. */
+.condition {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}
+
+.fieldSelect {
+  flex: 2 1 200px;
+}
+
+.operatorSelect {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.valueSelect,
+.valueInput {
+  flex: 1 1 160px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+}

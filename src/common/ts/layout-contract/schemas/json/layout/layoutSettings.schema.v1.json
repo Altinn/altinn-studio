@@ -96,6 +96,9 @@
         "validationOnNavigation": {
           "$ref": "#/definitions/PageValidation"
         },
+        "validateOnBackToSummary": {
+          "$ref": "#/definitions/PageValidation"
+        },
         "hideAppNameInPdf": {
           "title": "Hide app name in PDF",
           "description": "Controls whether the app name is hidden in the PDF header and footer.",
@@ -243,6 +246,7 @@
             "navigationTitle": true,
             "taskNavigation": true,
             "validationOnNavigation": true,
+            "validateOnBackToSummary": true,
             "hideAppNameInPdf": true,
             "excludeFromPdf": true,
             "pdfLayoutName": true,
@@ -293,6 +297,7 @@
             "navigationTitle": true,
             "taskNavigation": true,
             "validationOnNavigation": true,
+            "validateOnBackToSummary": true,
             "hideAppNameInPdf": true,
             "excludeFromPdf": true,
             "pdfLayoutName": true,

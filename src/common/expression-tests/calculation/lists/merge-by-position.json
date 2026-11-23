@@ -1,0 +1,37 @@
+{
+  "name": "A list of objects merges into the rows by position, keeping their ids and the properties the result leaves out",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 10,
+        "total": 0
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 20,
+        "total": 0
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "total", 1], ["object", "total", 2]]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 10,
+        "total": 1
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 20,
+        "total": 2
+      }
+    ]
+  }
+}

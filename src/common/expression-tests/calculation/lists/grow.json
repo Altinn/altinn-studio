@@ -1,0 +1,41 @@
+{
+  "name": "Rows past the end are appended with new ids",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1,
+        "total": 0
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": [
+        "list",
+        ["object", "total", 10],
+        ["object", "decimal", 2, "total", 20],
+        ["object", "total", 30]
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 1,
+        "total": 10
+      },
+      {
+        "altinnRowId": "<new>",
+        "decimal": 2,
+        "total": 20
+      },
+      {
+        "altinnRowId": "<new>",
+        "total": 30
+      }
+    ]
+  }
+}

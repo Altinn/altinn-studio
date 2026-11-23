@@ -1,6 +1,7 @@
 {
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
   "data": {
+    "validateOnBackToSummary": { "page": "current", "show": [] },
     "layout": [
       {
         "dataModelBindings": {

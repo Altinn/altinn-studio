@@ -16,6 +16,11 @@ type LanguageTranslatorContextProps = {
    */
   langAsNonProcessedString: LangAsStringFn;
   /**
+   * Shows the label of a radio button or checkbox option. Without it the label is
+   * {@link langAsString}, as in the app; an editor passes it to make the label editable in place.
+   */
+  optionLabel?: LangFn;
+  /**
    * The currently active language code (e.g. `nb`, `nn`, `en`)
    */
   currentLanguage: string;
@@ -34,12 +39,13 @@ export function LanguageTranslatorProvider({
   lang,
   langAsString,
   langAsNonProcessedString,
+  optionLabel,
   currentLanguage,
   children,
 }: PropsWithChildren<LanguageTranslatorContextProps>) {
   return (
     <LanguageTranslatorContext.Provider
-      value={{ lang, langAsString, langAsNonProcessedString, currentLanguage }}
+      value={{ lang, langAsString, langAsNonProcessedString, optionLabel, currentLanguage }}
     >
       {children}
     </LanguageTranslatorContext.Provider>

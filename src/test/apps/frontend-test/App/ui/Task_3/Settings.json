@@ -9,13 +9,14 @@
       "repeating3",
       "option-comp",
       "hide",
+      "calculations",
       "summary"
     ],
     "excludeFromPdf": ["summary"],
     "showLanguageSelector": true
   },
   "components": {
-    "excludeFromPdf": []
+    "excludeFromPdf": ["show-calculations"]
   },
   "defaultDataType": "nested-group",
 }

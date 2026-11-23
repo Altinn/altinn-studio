@@ -1,0 +1,50 @@
+{
+  "name": "Boolean strings are only true and false in lowercase, and 1 and 0",
+  "testCases": [
+    {
+      "name": "Should accept \"true\"",
+      "expression": ["not", "true"],
+      "expects": false
+    },
+    {
+      "name": "Should accept \"false\"",
+      "expression": ["not", "false"],
+      "expects": true
+    },
+    {
+      "name": "Should accept \"1\"",
+      "expression": ["not", "1"],
+      "expects": false
+    },
+    {
+      "name": "Should accept \"0\"",
+      "expression": ["not", "0"],
+      "expects": true
+    },
+    {
+      "name": "Should accept \"1.0\", which parses to 1",
+      "expression": ["not", "1.0"],
+      "expects": false
+    },
+    {
+      "name": "Should fail with \"TRUE\"",
+      "expression": ["not", "TRUE"],
+      "expectsFailure": "Expected boolean, got value \"TRUE\""
+    },
+    {
+      "name": "Should fail with \"True\"",
+      "expression": ["not", "True"],
+      "expectsFailure": "Expected boolean, got value \"True\""
+    },
+    {
+      "name": "Should fail with \"False\"",
+      "expression": ["not", "False"],
+      "expectsFailure": "Expected boolean, got value \"False\""
+    },
+    {
+      "name": "Should fail with \" true \"",
+      "expression": ["not", " true "],
+      "expectsFailure": "Expected boolean, got value \" true \""
+    }
+  ]
+}

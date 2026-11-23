@@ -332,6 +332,38 @@ public class DataControllerPatchTests : ApiTestBase
     }
 
     [Fact]
+    public async Task ValidName_RunsCalculation()
+    {
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        // default.calculation.json sets melding.calculated-fixed-value from melding.name
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola" }
+            ]
+            """
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        var newModelElement = parsedResponse.NewDataModel.Should().BeOfType<JsonElement>().Which;
+        var newModel = newModelElement.Deserialize<Skjema>()!;
+        newModel.Melding!.Name.Should().Be("Ola");
+        newModel.Melding.CalculatedFixedValue.Should().Be("Hello Ola");
+    }
+
+    [Fact]
     public async Task Patch_ReturnsInstanceWithAppSelfLinks()
     {
         _dataProcessorMock
@@ -1368,6 +1400,33 @@ public class DataControllerPatchTests : ApiTestBase
         var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(patch, HttpStatusCode.OK);
 
         parsedResponse.Instance.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Patch_WhenAProcessorReplacesTheForm_LaterProcessorsAndTheResponseUseTheReplacement()
+    {
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IDataProcessor>();
+            services.AddSingleton<IDataWriteProcessor>(new DataController_PutTests.ReplacingDataWriteProcessor());
+            services.AddSingleton<IDataWriteProcessor>(new DataController_PutTests.EditingDataWriteProcessor());
+        };
+        var patch = JsonPatchOperation.ParseList(
+            """
+            [
+                { "op": "replace", "path": "/melding/name", "value": "Ola Olsen" }
+            ]
+            """
+        );
+
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+
+        var newModel = Assert.IsType<JsonElement>(parsedResponse.NewDataModel).Deserialize<Skjema>();
+        Assert.Equal("Replaced", newModel?.Melding?.Name);
+        Assert.Equal("Edited after the replacement", newModel?.Melding?.Random);
+        string stored = TestData.GetDataElementBlobContnet(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+        Assert.Contains("<name>Replaced</name>", stored);
+        Assert.Contains("<random>Edited after the replacement</random>", stored);
     }
 
     [Fact]

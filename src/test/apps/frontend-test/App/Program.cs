@@ -16,6 +16,8 @@ using Altinn.App.Logic.ConvertedLegacyRules;
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
+    services.AddTransient<IDataProcessor, AllocationDataProcessor>();
+    services.AddTransient<IDataWriteProcessor, AllocationDataProcessor>();
     // Register your apps custom service implementations here.
     services.AddTransient<IAppOptionsProvider, ReferenceOptions>();
     services.AddTransient<IAppOptionsProvider, AnimalColorsOptions>();

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,8 +14,7 @@ using WorkflowEngine.Telemetry;
 namespace WorkflowEngine.Core.Tests;
 
 /// <summary>
-/// Tests for what the metrics collector reads on the mailbox paths: the count behind the gauge that alerts on a
-/// mailbox the deadline sweep never closed, and the depths of the three mailbox buffers.
+/// Tests for the gauges the metrics collector feeds, and for which of them a failing database read costs.
 /// </summary>
 /// <remarks>
 /// In the background-service collection with the buffer suites: the meter is process-global, so an assertion
@@ -83,12 +83,73 @@ public class MetricsCollectorTests
     }
 
     /// <summary>
+    /// Submits requests to the buffers and leaves them queued: <c>Enqueue</c> runs synchronously up to its wait for a
+    /// verdict, which never comes from a buffer that is not started.
+    /// </summary>
+    private static void QueueRequests(
+        (MailboxMintBuffer Mint, MailboxCloseBuffer Close, MailboxDeliveryBuffer Delivery) buffers,
+        int mint,
+        int close,
+        int delivery
+    )
+    {
+        for (int i = 1; i <= mint; i++)
+        {
+            _ = buffers.Mint.Enqueue(
+                Guid.NewGuid(),
+                "test-ns",
+                $"key-{i}",
+                collectionKey: null,
+                TimeSpan.FromHours(1),
+                _now,
+                CancellationToken.None
+            );
+        }
+
+        for (int i = 1; i <= close; i++)
+        {
+            _ = buffers.Close.Enqueue(
+                Guid.NewGuid(),
+                "test-ns",
+                MailboxDisposedReason.Request,
+                _now,
+                CancellationToken.None
+            );
+        }
+
+        for (int i = 1; i <= delivery; i++)
+        {
+            _ = buffers.Delivery.Enqueue(Guid.NewGuid(), "test-ns", $"msg-{i}", "{}", _now, CancellationToken.None);
+        }
+    }
+
+    private static MetricsCollector CreateCollector(
+        EngineSettings settings,
+        IEngineRepository repository,
+        IEngineStatus engineStatus,
+        IConcurrencyLimiter limiter,
+        (MailboxMintBuffer Mint, MailboxCloseBuffer Close, MailboxDeliveryBuffer Delivery) buffers
+    ) =>
+        new(
+            NullLogger<MetricsCollector>.Instance,
+            engineStatus,
+            repository,
+            limiter,
+            Options.Create(settings),
+            new FakeTimeProvider(_now),
+            buffers.Mint,
+            buffers.Close,
+            buffers.Delivery
+        );
+
+    /// <summary>
     /// Runs the collector through one pass: its loop parks on a <see cref="FakeTimeProvider"/> delay after it.
     /// </summary>
     private static async Task<(DateTimeOffset Cutoff, int Limit)> RunOnePass(
         TimeSpan sweepInterval,
         long overdue,
-        Action<MailboxMintBuffer, MailboxCloseBuffer, MailboxDeliveryBuffer>? queue = null
+        (int Mint, int Close, int Delivery) queued = default,
+        EngineHealthStatus engineHealth = EngineHealthStatus.Running | EngineHealthStatus.Healthy
     )
     {
         var settings = Settings(sweepInterval);
@@ -106,21 +167,12 @@ public class MetricsCollectorTests
             .ReturnsAsync(overdue);
 
         var engineStatus = new Mock<IEngineStatus>();
+        engineStatus.SetupGet(e => e.Status).Returns(engineHealth);
         var buffers = CreateBuffers(settings);
-        queue?.Invoke(buffers.Mint, buffers.Close, buffers.Delivery);
+        QueueRequests(buffers, queued.Mint, queued.Close, queued.Delivery);
 
         using var limiter = new ConcurrencyLimiter(5, 5, 5);
-        using var collector = new MetricsCollector(
-            NullLogger<MetricsCollector>.Instance,
-            engineStatus.Object,
-            repository.Object,
-            limiter,
-            Options.Create(settings),
-            new FakeTimeProvider(_now),
-            buffers.Mint,
-            buffers.Close,
-            buffers.Delivery
-        );
+        using var collector = CreateCollector(settings, repository.Object, engineStatus.Object, limiter, buffers);
 
         await collector.StartAsync(TestContext.Current.CancellationToken);
         var asked_ = await asked.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
@@ -142,65 +194,174 @@ public class MetricsCollectorTests
     }
 
     [Fact]
-    public async Task AFailingOverdueRead_DoesNotSuppressTheEnginesHealthGauge()
+    public async Task TheHealthGauges_ReportTheEnginesHealth_WhileADatabaseReadHoldsUpThePass()
     {
-        // One try/catch covers the whole pass, so a read that throws abandons every gauge written after it.
-        // Ordered where the mailbox read first landed, this test fails — health is never written.
+        // In a database outage the pass's first database read fails, or is held until it times out, and nothing
+        // retries it. The health gauges must not wait for it.
+        var settings = Settings(TimeSpan.FromMinutes(5));
+        var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
+        var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        repository
+            .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(async ct =>
+            {
+                reading.TrySetResult();
+                await Task.Delay(Timeout.Infinite, ct);
+                throw new UnreachableException();
+            });
+
+        var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
+        var engineStatus = new Mock<IEngineStatus>();
+        engineStatus.SetupGet(e => e.Status).Returns(() => status);
+
+        using var limiter = new ConcurrencyLimiter(5, 5, 5);
+        using var collector = CreateCollector(
+            settings,
+            repository.Object,
+            engineStatus.Object,
+            limiter,
+            CreateBuffers(settings)
+        );
+
+        await collector.StartAsync(TestContext.Current.CancellationToken);
+        await reading.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // Read on both sides of the change: the callbacks are process-wide and outlive the test that registered
+        // them, and one a neighbour left behind reads a status that never changes.
+        var before = ReadHealth();
+        status |= EngineHealthStatus.DatabaseUnavailable;
+        var after = ReadHealth();
+
+        await collector.StopAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(((long)EngineHealthLevel.Healthy, 0), before);
+        Assert.Equal(((long)EngineHealthLevel.Degraded, 1), after);
+
+        static (long Level, long DatabaseUnavailable) ReadHealth()
+        {
+            using var meters = new MeterCollector();
+            meters.RecordObservableInstruments();
+            return (
+                Assert.Single(meters.Values("altinn.workflow_engine.health.status")),
+                meters.ByTag("altinn.workflow_engine.health.reason", "altinn.workflow_engine.reason")[
+                    "database_unavailable"
+                ]
+            );
+        }
+    }
+
+    [Fact]
+    public async Task TheSlotAndBufferDepthGauges_ReportCurrentValues_WhenTheFirstDatabaseReadFails()
+    {
+        var settings = Settings(TimeSpan.FromMinutes(5));
+        var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
+        var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        repository
+            .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
+            .Callback(reading.SetResult)
+            .ThrowsAsync(new TimeoutException("database unreachable"));
+
+        var buffers = CreateBuffers(settings);
+        QueueRequests(buffers, mint: 4, close: 5, delivery: 6);
+
+        using var limiter = new ConcurrencyLimiter(7, 11, 13);
+        using var dbSlot = await limiter.AcquireDbSlot(cancellationToken: TestContext.Current.CancellationToken);
+        using var httpSlot = await limiter.AcquireHttpSlot(cancellationToken: TestContext.Current.CancellationToken);
+        await limiter.AcquireWorkerSlot(TestContext.Current.CancellationToken);
+
+        using var collector = CreateCollector(
+            settings,
+            repository.Object,
+            new Mock<IEngineStatus>().Object,
+            limiter,
+            buffers
+        );
+        using var meters = new MeterCollector();
+
+        await collector.StartAsync(TestContext.Current.CancellationToken);
+        await reading.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await collector.StopAsync(TestContext.Current.CancellationToken);
+        meters.RecordObservableInstruments();
+
+        string[] slotGauges =
+        [
+            "altinn.workflow_engine.slot.db.available",
+            "altinn.workflow_engine.slot.db.used",
+            "altinn.workflow_engine.slot.http.available",
+            "altinn.workflow_engine.slot.http.used",
+            "altinn.workflow_engine.slot.worker.available",
+            "altinn.workflow_engine.slot.worker.used",
+        ];
+        Assert.Equal([6, 1, 10, 1, 12, 1], slotGauges.Select(gauge => Assert.Single(meters.Values(gauge))));
+        Assert.Equal(
+            new Dictionary<string, long>(StringComparer.Ordinal)
+            {
+                ["mint"] = 4,
+                ["close"] = 5,
+                ["delivery"] = 6,
+            },
+            meters.ByTag("altinn.workflow_engine.mailbox_buffer.depth", "altinn.workflow_engine.mailbox.operation")
+        );
+    }
+
+    [Fact]
+    public async Task AFailingOverdueRead_DoesNotSuppressTheWorkflowCountGauges()
+    {
         var settings = Settings(TimeSpan.FromMinutes(5));
         var repository = new Mock<IEngineRepository>(MockBehavior.Strict);
         repository
             .Setup(r => r.CountWorkflowsByStatus(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new WorkflowStatusCounts(new Dictionary<PersistentItemStatus, int>(), 0));
+            .ReturnsAsync(
+                new WorkflowStatusCounts(
+                    new Dictionary<PersistentItemStatus, int> { [PersistentItemStatus.Failed] = 23 },
+                    0
+                )
+            );
 
-        var attempted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var asked = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         repository
             .Setup(r =>
                 r.CountOverdueOpenMailboxes(It.IsAny<DateTimeOffset>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
             )
-            .Callback(() => attempted.TrySetResult())
-            .ThrowsAsync(new InvalidOperationException("database down"));
-
-        var engineStatus = new Mock<IEngineStatus>();
-        engineStatus.SetupGet(e => e.HealthLevel).Returns(EngineHealthLevel.Unhealthy);
-
-        Metrics.SetHealthStatus(-1);
-
-        var buffers = CreateBuffers(settings);
+            .Callback(asked.SetResult)
+            .ThrowsAsync(new TimeoutException("database unreachable"));
 
         using var limiter = new ConcurrencyLimiter(5, 5, 5);
-        using var collector = new MetricsCollector(
-            NullLogger<MetricsCollector>.Instance,
-            engineStatus.Object,
+        using var collector = CreateCollector(
+            settings,
             repository.Object,
+            new Mock<IEngineStatus>().Object,
             limiter,
-            Options.Create(settings),
-            new FakeTimeProvider(_now),
-            buffers.Mint,
-            buffers.Close,
-            buffers.Delivery
+            CreateBuffers(settings)
         );
+        using var meters = new MeterCollector();
 
         await collector.StartAsync(TestContext.Current.CancellationToken);
-        await attempted.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        await asked.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
         await collector.StopAsync(TestContext.Current.CancellationToken);
+        meters.RecordObservableInstruments();
 
-        var observed = new List<long>();
-        using var listener = new MeterListener
-        {
-            InstrumentPublished = (instrument, l) =>
-            {
-                if (
-                    instrument.Meter.Name == Metrics.Meter.Name
-                    && instrument.Name == "altinn.workflow_engine.health.status"
-                )
-                    l.EnableMeasurementEvents(instrument);
-            },
-        };
-        listener.SetMeasurementEventCallback<long>((_, measurement, _, _) => observed.Add(measurement));
-        listener.Start();
-        listener.RecordObservableInstruments();
+        Assert.Equal(23, Assert.Single(meters.Values("altinn.workflow_engine.workflow.failed")));
+    }
 
-        Assert.Equal((long)EngineHealthLevel.Unhealthy, Assert.Single(observed));
+    [Fact]
+    public async Task TheHealthReasonGauge_HasASeriesForEachConditionInTheDegradedMask_At1WhileItHolds()
+    {
+        using var meters = new MeterCollector();
+
+        await RunOnePass(
+            TimeSpan.FromMinutes(5),
+            overdue: 0,
+            engineHealth: EngineHealthStatus.Running
+                | EngineHealthStatus.QueueFull
+                | EngineHealthStatus.DatabaseUnavailable
+        );
+        meters.RecordObservableInstruments();
+
+        Assert.Equal(
+            new Dictionary<string, long>(StringComparer.Ordinal) { ["queue_full"] = 1, ["database_unavailable"] = 1 },
+            meters.ByTag("altinn.workflow_engine.health.reason", "altinn.workflow_engine.reason")
+        );
     }
 
     [Fact]
@@ -232,40 +393,7 @@ public class MetricsCollectorTests
     {
         using var meters = new MeterCollector();
 
-        await RunOnePass(
-            TimeSpan.FromMinutes(5),
-            overdue: 0,
-            queue: (mint, close, delivery) =>
-            {
-                // Discarded: no verdict is coming, and Enqueue runs synchronously up to its wait, which is what
-                // leaves the request counted in the queue
-                for (int i = 1; i <= 2; i++)
-                {
-                    _ = mint.Enqueue(
-                        Guid.NewGuid(),
-                        "test-ns",
-                        $"key-{i}",
-                        collectionKey: null,
-                        TimeSpan.FromHours(1),
-                        _now,
-                        CancellationToken.None
-                    );
-                }
-
-                _ = close.Enqueue(
-                    Guid.NewGuid(),
-                    "test-ns",
-                    MailboxDisposedReason.Request,
-                    _now,
-                    CancellationToken.None
-                );
-
-                for (int i = 1; i <= 3; i++)
-                {
-                    _ = delivery.Enqueue(Guid.NewGuid(), "test-ns", $"msg-{i}", "{}", _now, CancellationToken.None);
-                }
-            }
-        );
+        await RunOnePass(TimeSpan.FromMinutes(5), overdue: 0, queued: (Mint: 2, Close: 1, Delivery: 3));
 
         meters.RecordObservableInstruments();
 

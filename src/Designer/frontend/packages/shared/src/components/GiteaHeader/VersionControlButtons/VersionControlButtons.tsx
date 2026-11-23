@@ -10,10 +10,12 @@ import { useRefreshRepoStatusAfterChanges } from './hooks/useRefreshRepoStatusAf
 
 export type VersionControlButtonsProps = {
   onPullSuccess: () => void;
+  onBeforeShare?: () => Promise<void>;
 };
 
 export const VersionControlButtons = ({
   onPullSuccess,
+  onBeforeShare,
 }: VersionControlButtonsProps): React.ReactElement => {
   const { owner, repoName } = useGiteaHeaderContext();
   const { data: currentRepo } = useRepoMetadataQuery(owner, repoName);
@@ -25,6 +27,7 @@ export const VersionControlButtons = ({
       currentRepo={currentRepo}
       repoStatus={repoStatus}
       onPullSuccess={onPullSuccess}
+      onBeforeShare={onBeforeShare}
     >
       <div className={classes.headerStyling}>
         <FetchChangesPopover />

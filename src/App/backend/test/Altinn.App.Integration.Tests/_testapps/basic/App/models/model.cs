@@ -26,5 +26,48 @@ namespace Altinn.App.Models.model
         [JsonProperty("property3")]
         [JsonPropertyName("property3")]
         public string property3 { get; set; }
+
+        [XmlElement("price", Order = 4)]
+        [JsonProperty("price")]
+        [JsonPropertyName("price")]
+        public decimal? price { get; set; }
+
+        [XmlElement("quantity", Order = 5)]
+        [JsonProperty("quantity")]
+        [JsonPropertyName("quantity")]
+        public decimal quantity { get; set; } = 1;
+
+        [XmlElement("total", Order = 6)]
+        [JsonProperty("total")]
+        [JsonPropertyName("total")]
+        public decimal? total { get; set; }
+
+        [XmlElement("lines", Order = 7)]
+        [JsonProperty("lines")]
+        [JsonPropertyName("lines")]
+        public List<line> lines { get; set; }
+    }
+
+    public class line
+    {
+        [XmlAttribute("altinnRowId")]
+        [JsonPropertyName("altinnRowId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public Guid AltinnRowId { get; set; }
+
+        public bool AltinnRowIdSpecified()
+        {
+            return AltinnRowId == default;
+        }
+
+        [XmlElement("label", Order = 1)]
+        [JsonProperty("label")]
+        [JsonPropertyName("label")]
+        public string label { get; set; }
+
+        [XmlElement("amount", Order = 2)]
+        [JsonProperty("amount")]
+        [JsonPropertyName("amount")]
+        public decimal amount { get; set; }
     }
 }

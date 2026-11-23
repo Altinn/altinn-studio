@@ -1,0 +1,130 @@
+{
+  "name": "Rows copied from another list keep the ids of the rows they are copied from",
+  "calculations": [
+    {
+      "field": "copies",
+      "expression": ["dataModel", "rows"]
+    }
+  ],
+  "testCases": [
+    {
+      "name": "a copy with an id the source does not have is replaced",
+      "dataModel": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": "a"
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 20,
+            "text": "b"
+          }
+        ],
+        "copies": [
+          {
+            "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+            "decimal": 0,
+            "text": "old"
+          }
+        ]
+      },
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": "a"
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 20,
+            "text": "b"
+          }
+        ],
+        "copies": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": "a"
+          },
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+            "decimal": 20,
+            "text": "b"
+          }
+        ]
+      }
+    },
+    {
+      "name": "a property the source rows leave out is cleared on the copy",
+      "comment": "A data model lookup gives an object every property the schema knows, as null when the data leaves it out, the way the backend reads it from the C# model. So the copied row carries text: null, and the merge clears the text of the target row.",
+      "dataModel": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10
+          }
+        ],
+        "copies": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 0,
+            "text": "kept"
+          }
+        ]
+      },
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10
+          }
+        ],
+        "copies": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "a property the source rows set to null is cleared on the copy",
+      "dataModel": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": null
+          }
+        ],
+        "copies": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 0,
+            "text": "old"
+          }
+        ]
+      },
+      "expects": {
+        "rows": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": null
+          }
+        ],
+        "copies": [
+          {
+            "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+            "decimal": 10,
+            "text": null
+          }
+        ]
+      }
+    }
+  ]
+}

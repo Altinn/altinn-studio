@@ -1,0 +1,5 @@
+{
+    "calculations": [
+        { "field": "skjema.name" "expression": "missing comma" }
+    ]
+}

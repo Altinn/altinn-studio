@@ -23,10 +23,6 @@ export const updateStatusBadges = (s) => {
             label = 'Unhealthy';
         }
     }
-    if (s.disabled) {
-        cls = 'disabled';
-        label = 'Disabled';
-    }
 
     dom.engineIcon.setAttribute('class', `engine-icon ${cls}`);
     dom.engineIcon.setAttribute('title', label);

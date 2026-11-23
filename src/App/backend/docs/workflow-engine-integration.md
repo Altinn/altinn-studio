@@ -24,8 +24,9 @@ these rules:
   steps, so each group runs while Storage holds the task it belongs to. Storage checks a data type's `taskIds` against
   the stored current task, with no exception for a process transition, so a task-end step can write the leaving task's
   data and a task-start step the entering task's, and neither can write data bound to another task.
-- The process-end steps run after the commit. The one write made with no current task is `DeleteDataOnProcessEnd`,
-  which Storage allows because the process has ended and the data type sets `autoDeleteOnProcessEnd`.
+- The process-end steps run after the commit, with no current task. `DeleteDataOnProcessEnd` deletes data, which
+  Storage allows because the process has ended and the data type sets `autoDeleteOnProcessEnd`.
+  `ConfirmCompleteOnProcessEnd` confirms the instance, which writes no data.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
 - A process hook gets a step only when one of the app's handlers runs for the task, or for the process end, so a
@@ -51,11 +52,16 @@ and returns the re-signed state.
 | 200                     | The step succeeded. The engine passes the returned state to the next step.                    |
 | 200 with a `defer` part | The step waits. The engine parks the workflow and runs the step again later.                  |
 | 401                     | The callback token is missing, invalid or expired, or does not cover the instance or command. |
-| 404                     | No command has the key.                                                                       |
+| 404                     | No command has the key. The problem details carry the `nonRetryable` marker.                  |
 | 409                     | A binary data element changed after the state was captured. See [known gaps](#known-gaps).    |
 | 422                     | A permanent failure, such as invalid state, an actor mismatch or a stale save.                |
 | 500                     | A retryable failure, including an exception that a command throws.                            |
 
+- The 404 and 422 answers set `nonRetryable: true` in their problem details. The engine fails the step on a 4xx other
+  than 408, 418 and 429, but retries a 404 without the marker, since that means no route matched: a pod on an app
+  version without callbacks, during a rolling deploy or after a rollback. After a rollback to such a version, deploying
+  one with callbacks within the step's retry budget, a day by default, lets the workflow continue. A wrong callback URL
+  is retried for that budget too, where it used to fail at once.
 - Every command is idempotent, because the engine retries steps.
 - A command reports a failure as a result. The callback does not catch a command's exception, so the engine gets a 500
   and retries it as transient.
@@ -96,6 +102,14 @@ the same decision.
   separate keys. Values that other systems set, such as `dialog.id`, reach the callback state with the next save.
 - With `autoDeleteOnProcessEnd`, the release save also hard-deletes the instance. Storage accepts that only together
   with the ended state and the move to `idle`.
+- With `onProcessEnd.confirm`, a step after the process has ended confirms the instance as complete for the service
+  owner, so Storage checks the `complete` grant against the end event. It runs before the release, because Storage
+  refuses a confirmation in the save that hard-deletes the instance. The confirmation matters with
+  `autoDeleteOnProcessEnd` too: Storage's cleanup removes a hard-deleted instance whose process has ended only once
+  the instance carries a confirmation. A confirmation that Storage refuses, for example because the policy lacks the
+  grant at the end event, fails the callback, and the engine retries the step. Once it gives up, the ended instance
+  stays `processing` until the grant is fixed and an operator resumes the workflow, since `process/resume` refuses an
+  ended process. See [known gaps](#known-gaps).
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)
@@ -190,11 +204,27 @@ retention period, which bounds how long a resume is possible.
 - A failed primary workflow leaves the instance stuck until someone calls `process/resume`. It resumes the failed
   workflow with cascade, so the condemned workflows run too, and waits like `process/next`. The frontend offers the
   user a retry when a service task failed. Other failures show the support reference, and an operator resumes them.
+  `process/resume` refuses an ended process, so a failure in the process-end steps is resumed with the engine's resume
+  API instead. See [known gaps](#known-gaps).
 - A failed auxiliary workflow means lost events or a lost notification. Only the engine's
   [failure alert](../../../Runtime/workflow-engine/docs/technical-guide.md#alerting-on-terminal-failures) shows it,
   with `is_head="false"`. An operator resumes it with the engine's resume API, which is always valid since it carries
   its own state. `process/resume` never targets it. A failure in the process-end steps holds back that transition's
   auxiliary workflows until a resume.
+
+## Service tasks without workflow
+
+v8 ran a service task in the request that entered it. When the task failed, it left the instance idle in the task and
+ran the task again on the next `process/next`. v9 keeps the instance processing through a service task, so an idle
+instance in a service task, with no workflow running or failed, comes from v8: a service task without workflow.
+
+- Reads report the task as failed, with the task as target and no failure, so the frontend offers its retry.
+- `process/next` and `process/resume` start the task again, as a transition from the task to a new visit of it that
+  starts the task without ending it. It runs as any transition into a service task: the task-start hooks and stages
+  run a second time, `CleanupGeneratedFromTask` replaces what an earlier run generated, and the process goes on after
+  the task.
+- As in v8, `process/next` with a reject the BPMN allows from the task abandons it without running it, and any other
+  action than `write` or the task type is refused with a 409.
 
 ## Mailboxes
 
@@ -257,8 +287,9 @@ app does not guard against it. Names would not help either, since a redeploy can
   state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
   fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
   committed.
-- An ended process reports `idle` without asking the engine. A failure after the commit of the final transition
-  therefore shows only in the failure alert.
+- An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
+  after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
+  workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).
 - The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox
   exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
