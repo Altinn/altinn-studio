@@ -1,7 +1,9 @@
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
@@ -447,6 +449,162 @@ public class WorkflowCallbackStateTests
                 ),
             Times.Once
         );
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.PreconditionFailed)]
+    public async Task RestoreState_WhenStorageNoLongerServesAnElementAsCaptured_ReadsTheCapturedBlobVersionAsServiceOwner(
+        HttpStatusCode currentReadStatus
+    )
+    {
+        byte[] capturedBytes = [1, 2, 3];
+        RestoredAttachment restored = await RestoreStateWithAttachment(currentReadStatus, capturedBytes);
+
+        ReadOnlyMemory<byte> bytes = await restored.UnitOfWork.GetBinaryData(restored.Attachment);
+
+        Assert.True(bytes.Span.SequenceEqual(capturedBytes));
+        restored.DataClient.Verify(
+            x =>
+                x.GetBlobVersionBytes(
+                    restored.InstanceOwnerPartyId,
+                    restored.InstanceGuid,
+                    Guid.Parse(restored.Attachment.Id),
+                    restored.Attachment.BlobVersionId,
+                    StorageAuthenticationMethod.ServiceOwner(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task RestoreState_WhenAnElementIsGoneAndStorageNoLongerKeepsTheCapturedBlobVersion_FailsWithTheNotFound()
+    {
+        RestoredAttachment restored = await RestoreStateWithAttachment(HttpStatusCode.NotFound, capturedBytes: null);
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            restored.UnitOfWork.GetBinaryData(restored.Attachment)
+        );
+
+        Assert.Equal(HttpStatusCode.NotFound, exception.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RestoreState_WhenAnElementIsReplacedAndStorageNoLongerKeepsTheCapturedBlobVersion_FailsWithTheConflict()
+    {
+        RestoredAttachment restored = await RestoreStateWithAttachment(
+            HttpStatusCode.PreconditionFailed,
+            capturedBytes: null
+        );
+
+        DataElementContentConflictException exception = await Assert.ThrowsAsync<DataElementContentConflictException>(
+            () =>
+                restored.UnitOfWork.GetBinaryData(restored.Attachment)
+        );
+
+        Assert.Equal(Guid.Parse(restored.Attachment.Id), exception.DataElementId);
+    }
+
+    private sealed record RestoredAttachment(
+        InstanceDataUnitOfWork UnitOfWork,
+        DataElement Attachment,
+        Mock<IDataClientWithStorageMetadata> DataClient,
+        int InstanceOwnerPartyId,
+        Guid InstanceGuid
+    );
+
+    private static async Task<RestoredAttachment> RestoreStateWithAttachment(
+        HttpStatusCode currentReadStatus,
+        byte[]? capturedBytes
+    )
+    {
+        const int instanceOwnerPartyId = 1337;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid attachmentGuid = Guid.NewGuid();
+        var attachmentDataType = new DataType { Id = "attachment", AllowedContentTypes = ["application/octet-stream"] };
+        var attachment = new DataElement
+        {
+            Id = attachmentGuid.ToString(),
+            InstanceGuid = instanceGuid.ToString(),
+            DataType = attachmentDataType.Id,
+            ContentType = "application/octet-stream",
+            BlobVersionId = "blob-version-captured",
+        };
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            Org = "ttd",
+            AppId = "ttd/test-app",
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", AltinnTaskType = "data" },
+            },
+            Data = [attachment],
+        };
+        WorkflowStateSigner stateSigner = CreateStateSigner();
+        string state = stateSigner.Sign(
+            JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = instance,
+                    InstanceVersion = 31,
+                    ProcessStateVersion = 22,
+                    FormData = [],
+                }
+            ),
+            SigningDomain.CallbackState
+        );
+        var appMetadataMock = new Mock<IAppMetadata>(MockBehavior.Strict);
+        appMetadataMock
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(new ApplicationMetadata("ttd/test-app") { DataTypes = [attachmentDataType] });
+        var dataClientMock = new Mock<IDataClient>(MockBehavior.Strict);
+        Mock<IDataClientWithStorageMetadata> metadataClientMock = dataClientMock.As<IDataClientWithStorageMetadata>();
+        PlatformHttpException currentReadFailure = await PlatformHttpException.Create(
+            new HttpResponseMessage(currentReadStatus)
+        );
+        metadataClientMock
+            .Setup(x =>
+                x.GetDataBytesWithExpectedBlobVersionId(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    attachmentGuid,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    attachment.BlobVersionId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(currentReadFailure);
+        metadataClientMock
+            .Setup(x =>
+                x.GetBlobVersionBytes(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    attachmentGuid,
+                    attachment.BlobVersionId,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(capturedBytes);
+        var service = new WorkflowCallbackStateService(
+            CreateUnitOfWorkInitializer(appMetadataMock.Object, dataClientMock),
+            new ModelSerializationService(Mock.Of<IAppModel>()),
+            appMetadataMock.Object,
+            Mock.Of<IAppModel>(),
+            stateSigner,
+            EmptyProcessReader()
+        );
+
+        (InstanceDataUnitOfWork unitOfWork, _) = await service.RestoreState(
+            new InstanceIdentifier(instanceOwnerPartyId, instanceGuid),
+            state,
+            language: "nb"
+        );
+
+        return new RestoredAttachment(unitOfWork, attachment, metadataClientMock, instanceOwnerPartyId, instanceGuid);
     }
 
     [Fact]

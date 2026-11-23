@@ -53,7 +53,7 @@ and returns the re-signed state.
 | 200 with a `defer` part | The step waits. The engine parks the workflow and runs the step again later.                  |
 | 401                     | The callback token is missing, invalid or expired, or does not cover the instance or command. |
 | 404                     | No command has the key. The problem details carry the `nonRetryable` marker.                  |
-| 409                     | A binary data element changed after the state was captured. See [known gaps](#known-gaps).    |
+| 409                     | A binary element changed and its captured version is gone. See [known gaps](#known-gaps).     |
 | 422                     | A permanent failure, such as invalid state, an actor mismatch or a stale save.                |
 | 500                     | A retryable failure, including an exception that a command throws.                            |
 
@@ -96,6 +96,12 @@ Storage replays a save with the same key and previous instance version without c
 produce different bytes. On a replay the app rebuilds its state from Storage and goes on, so the first committed
 attempt wins. A callback with nothing to save skips Storage, which is safe because the same incoming state leads to
 the same decision.
+
+A step that runs again after its save was committed gets the state its first attempt got. That state lists the data
+elements as they were before the save, so an element the step deleted or replaced is no longer in Storage as the state
+lists it. When Storage answers a read with 404 or 412, the callback reads the blob version that the state lists, which
+Storage serves to the service owner. The step then reads what its first attempt read, and its save reaches the replay.
+Storage keeps a deleted or replaced version for seven days, and the engine retries a step for a day by default.
 
 - Storage allows standalone data value patches and read status updates while the instance is processing, without
   changing its versions. A patch changes only the keys it sends, so writers that need more than last-writer-wins own
@@ -283,13 +289,12 @@ app does not guard against it. Names would not help either, since a redeploy can
 
 ## Known gaps
 
-- A retried step that reads a binary data element again, after the lost attempt updated it, gets a 409, and so does a
-  resume. Signing's delegate and notify stages do this with the signee-state element, so the callback state carries
-  the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), and
-  `RestoreState` preloads them while the blob version still matches; the retried stage then reads its input from the
-  state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
-  fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
-  committed.
+- A retried step that reads a binary data element again, after the lost attempt deleted or replaced it, depends on
+  Storage still having the version the state lists. See [saving to Storage](#saving-to-storage). Once Storage has
+  cleaned the version up, the read fails: a 409 for replaced content, and a 500 that the engine retries for a deleted
+  element. A workflow resumed more than seven days after the lost attempt meets this. The callback state also carries
+  the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), which
+  signing's delegate and notify stages rewrite, so those stages read their input from the state.
 - An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
   after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
   workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).

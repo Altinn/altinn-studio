@@ -821,6 +821,86 @@ public class DataClientTests
         Assert.Empty(platformRequest.Headers.IfMatch);
     }
 
+    [Fact]
+    public async Task GetBlobVersionBytes_ReadsTheVersionOfTheDataElement()
+    {
+        byte[] expectedBytes = "captured"u8.ToArray();
+        HttpRequestMessage? platformRequest = null;
+        await using var fixture = Fixture.Create(
+            async (request, _) =>
+            {
+                platformRequest = request;
+                await Task.CompletedTask;
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new ByteArrayContent(expectedBytes),
+                };
+            }
+        );
+
+        byte[]? result = await ((IDataClientWithStorageMetadata)fixture.DataClient).GetBlobVersionBytes(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            "blob-version-captured"
+        );
+
+        Assert.Equal(expectedBytes, result);
+        Assert.NotNull(platformRequest);
+        Assert.Equal(HttpMethod.Get, platformRequest.Method);
+        Assert.EndsWith(
+            "/instances/123/3fbf6371-f8ba-4c09-a292-f732d6bf2346/data/d4fd982c-47a6-4040-8f61-a9f56c827b28/versions/blob-version-captured",
+            platformRequest.RequestUri?.AbsolutePath,
+            StringComparison.Ordinal
+        );
+        Assert.Empty(platformRequest.Headers.IfMatch);
+    }
+
+    [Fact]
+    public async Task GetBlobVersionBytes_WhenStorageDoesNotHaveTheVersion_ReturnsNull()
+    {
+        await using var fixture = Fixture.Create(
+            async (_, _) =>
+            {
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound };
+            }
+        );
+
+        byte[]? result = await ((IDataClientWithStorageMetadata)fixture.DataClient).GetBlobVersionBytes(
+            123,
+            Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+            Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+            "blob-version-captured"
+        );
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetBlobVersionBytes_WhenStorageRefuses_Throws()
+    {
+        await using var fixture = Fixture.Create(
+            async (_, _) =>
+            {
+                await Task.CompletedTask;
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.Forbidden };
+            }
+        );
+
+        PlatformHttpException exception = await Assert.ThrowsAsync<PlatformHttpException>(() =>
+            ((IDataClientWithStorageMetadata)fixture.DataClient).GetBlobVersionBytes(
+                123,
+                Guid.Parse("3fbf6371-f8ba-4c09-a292-f732d6bf2346"),
+                Guid.Parse("d4fd982c-47a6-4040-8f61-a9f56c827b28"),
+                "blob-version-captured"
+            )
+        );
+
+        Assert.Equal(HttpStatusCode.Forbidden, exception.Response.StatusCode);
+    }
+
     [Theory]
     [MemberData(nameof(AuthenticationTestCases))]
     public async Task InsertBinaryData_MethodProduceValidPlatformRequest_with_generatedFrom_query_params(

@@ -126,6 +126,7 @@ internal sealed class WorkflowCallbackStateService
             language,
             StorageAuthenticationMethod.ServiceOwner()
         );
+        unitOfWork.ReadCapturedBlobVersions();
 
         ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 

@@ -268,6 +268,23 @@ public sealed class InstanceDataUnitOfWorkTests
                 .Single(setup.DataMutator.Instance.Data, dataElement => dataElement.Id == setup.DataElement.Id)
                 .BlobVersionId
         );
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.Contains("/versions/", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
+    public async Task GetPersistedBinaryData_ReadingCapturedBlobVersions_WhenContentWasReplaced_ReturnsTheVersionItLists()
+    {
+        byte[] capturedBytes = "content"u8.ToArray();
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(capturedBytes, blobVersionId: BlobVersion(1));
+        setup.DataMutator.ReadCapturedBlobVersions();
+        setup.Services.Storage.AddDataRaw(Guid.Parse(setup.DataElement.Id), "replaced"u8.ToArray(), BlobVersion(2));
+
+        ReadOnlyMemory<byte> bytes = await setup.DataMutator.GetPersistedBinaryData(setup.DataElement);
+
+        Assert.True(bytes.Span.SequenceEqual(capturedBytes));
     }
 
     [Fact]

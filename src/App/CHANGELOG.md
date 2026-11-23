@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- A process transition no longer stays in `processing` when the workflow engine runs a step again after that step deleted or replaced a file, as the payment task does with an unfinished payment. The retry reads the file as it was and completes. This also covers process hooks and service tasks. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
+
 ## [9.0.0-preview.15] - 2026-11-25
 
 ### Added

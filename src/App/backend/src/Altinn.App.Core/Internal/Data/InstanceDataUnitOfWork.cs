@@ -69,6 +69,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     // Cache for the binary content of the file as currently in storage before changes in this unit of work.
     private readonly DataElementCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
+    private bool _readsCapturedBlobVersions;
+
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
     private readonly ConcurrentBag<DataElementChange> _changesForDeletion = [];
 
@@ -533,6 +535,13 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// </summary>
     internal bool TryGetCachedBinaryData(DataElementIdentifier id, out ReadOnlyMemory<byte> data) =>
         _binaryCache.TryGetCachedValue(id, out data);
+
+    /// <summary>
+    /// Makes a read of a binary element that Storage has since deleted or replaced return the blob version this unit
+    /// of work lists for it. A workflow step that runs again after its save was committed then reads what its first
+    /// attempt read, and its save reaches Storage's replay.
+    /// </summary>
+    internal void ReadCapturedBlobVersions() => _readsCapturedBlobVersions = true;
 
     internal void UpdateProcessState(ProcessStateChange processStateChange)
     {
@@ -1616,22 +1625,45 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private async Task<byte[]> GetDataBytes(DataElementIdentifier dataElementIdentifier)
     {
         string? expectedBlobVersionId = GetDataElementBlobVersionId(dataElementIdentifier);
+        StorageAuthenticationMethod authenticationMethod = GetAuthenticationMethod(dataElementIdentifier);
         try
         {
             return await _dataClient.GetDataBytesWithExpectedBlobVersionId(
                 _instanceOwnerPartyId,
                 _instanceGuid,
                 dataElementIdentifier.Guid,
-                authenticationMethod: GetAuthenticationMethod(dataElementIdentifier),
+                authenticationMethod: authenticationMethod,
                 expectedBlobVersionId: expectedBlobVersionId
             );
         }
         catch (PlatformHttpException exception)
-            when (!string.IsNullOrEmpty(expectedBlobVersionId)
-                && exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed
+            when (expectedBlobVersionId is not null
+                && exception.Response.StatusCode
+                    is System.Net.HttpStatusCode.PreconditionFailed
+                        or System.Net.HttpStatusCode.NotFound
             )
         {
-            throw new DataElementContentConflictException(Instance.Id, dataElementIdentifier.Guid, exception);
+            if (
+                _readsCapturedBlobVersions
+                && await _dataClient.GetBlobVersionBytes(
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    dataElementIdentifier.Guid,
+                    expectedBlobVersionId,
+                    authenticationMethod
+                )
+                    is { } capturedBytes
+            )
+            {
+                return capturedBytes;
+            }
+
+            if (exception.Response.StatusCode == System.Net.HttpStatusCode.PreconditionFailed)
+            {
+                throw new DataElementContentConflictException(Instance.Id, dataElementIdentifier.Guid, exception);
+            }
+
+            throw;
         }
     }
 
