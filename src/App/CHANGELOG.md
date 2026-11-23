@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Breaking: each `Define` method takes its own `PipelineBuilder` variant:
+- Breaking: each `Define` method takes its own `PipelineBuilder` variant. Run `studioctl app upgrade v9` again to make these changes:
   - `IServiceTask.DefineExecute` takes `PipelineBuilder.ServiceTask`, without `Finally` and `ConcludeOnReplies`: a step whose work returns `ServiceTaskResult` or `ServiceTaskExchangeResult` ends the task. Replace `.Finally(x)` with `.Stage(x)` and `.ConcludeOnReplies(...)` with `.HandleReplies(...)`. ([custom service tasks](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/service-tasks/custom/), [multi-step service tasks](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/service-tasks/flere-steg/))
   - `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take `PipelineBuilder.Lifecycle` and return `void`: drop `ProcessTaskPipeline` and `.Build()`, as in `public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(RevokeRights).Stage(StorePdf);`
 
