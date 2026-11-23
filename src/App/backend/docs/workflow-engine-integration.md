@@ -51,11 +51,16 @@ and returns the re-signed state.
 | 200                     | The step succeeded. The engine passes the returned state to the next step.                    |
 | 200 with a `defer` part | The step waits. The engine parks the workflow and runs the step again later.                  |
 | 401                     | The callback token is missing, invalid or expired, or does not cover the instance or command. |
-| 404                     | No command has the key.                                                                       |
+| 404                     | No command has the key. The problem details carry the `nonRetryable` marker.                  |
 | 409                     | A binary data element changed after the state was captured. See [known gaps](#known-gaps).    |
 | 422                     | A permanent failure, such as invalid state, an actor mismatch or a stale save.                |
 | 500                     | A retryable failure, including an exception that a command throws.                            |
 
+- The 404 and 422 answers set `nonRetryable: true` in their problem details. The engine fails the step on a 4xx other
+  than 408, 418 and 429, but retries a 404 without the marker, since that means no route matched: a pod on an app
+  version without callbacks, during a rolling deploy or after a rollback. After a rollback to such a version, deploying
+  one with callbacks within the step's retry budget, a day by default, lets the workflow continue. A wrong callback URL
+  is retried for that budget too, where it used to fail at once.
 - Every command is idempotent, because the engine retries steps.
 - A command reports a failure as a result. The callback does not catch a command's exception, so the engine gets a 500
   and retries it as transient.
@@ -195,6 +200,20 @@ retention period, which bounds how long a resume is possible.
   with `is_head="false"`. An operator resumes it with the engine's resume API, which is always valid since it carries
   its own state. `process/resume` never targets it. A failure in the process-end steps holds back that transition's
   auxiliary workflows until a resume.
+
+## Service tasks without workflow
+
+v8 ran a service task in the request that entered it. When the task failed, it left the instance idle in the task and
+ran the task again on the next `process/next`. v9 keeps the instance processing through a service task, so an idle
+instance in a service task, with no workflow running or failed, comes from v8: a service task without workflow.
+
+- Reads report the task as failed, with the task as target and no failure, so the frontend offers its retry.
+- `process/next` and `process/resume` start the task again, as a transition from the task to a new visit of it that
+  starts the task without ending it. It runs as any transition into a service task: the task-start hooks and stages
+  run a second time, `CleanupGeneratedFromTask` replaces what an earlier run generated, and the process goes on after
+  the task.
+- As in v8, `process/next` with a reject the BPMN allows from the task abandons it without running it, and any other
+  action than `write` or the task type is refused with a 409.
 
 ## Mailboxes
 

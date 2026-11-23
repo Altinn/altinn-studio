@@ -37,15 +37,6 @@ internal static class ServiceTaskPageMigration
     private const string SubformPdfTaskType = "subformPdf";
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
-    /// <summary>The types of the app library's service tasks, which apply to any task element.</summary>
-    private static readonly HashSet<string> _serviceTaskTypes = new(StringComparer.Ordinal)
-    {
-        PdfTaskType,
-        SubformPdfTaskType,
-        "eFormidling",
-        "fiksArkiv",
-    };
-
     private const string ShownWhileRunning =
         "In v9 a service task shows the pages in its pages.order, read-only, from the moment the process reaches it "
         + "until the next task shows.";
@@ -146,7 +137,7 @@ internal static class ServiceTaskPageMigration
                 if (
                     (
                         task.Name.LocalName == "serviceTask"
-                        || (taskType is not null && _serviceTaskTypes.Contains(taskType))
+                        || (taskType is not null && BuiltInTaskTypes.ServiceTasks.Contains(taskType))
                     ) && task.Attribute("id")?.Value is { } taskId
                 )
                     yield return (taskId, taskType);

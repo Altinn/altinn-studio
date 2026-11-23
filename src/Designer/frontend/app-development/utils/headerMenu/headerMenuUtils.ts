@@ -32,6 +32,15 @@ export const topBarMenuItems: HeaderMenuItem[] = [
     group: HeaderMenuGroupKey.Tools,
   },
   {
+    key: HeaderMenuItemKey.AppBuilder,
+    link: RoutePaths.AppBuilder,
+    icon: PencilIcon,
+    repositoryTypes: [RepositoryType.App],
+    group: HeaderMenuGroupKey.Tools,
+    featureFlagName: FeatureFlag.AppBuilder,
+    isBeta: true,
+  },
+  {
     key: HeaderMenuItemKey.DataModel,
     link: RoutePaths.DataModel,
     icon: DatabaseIcon,

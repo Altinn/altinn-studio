@@ -564,6 +564,11 @@ internal sealed class ProcessNextRequestFactory
         }
     }
 
+    /// <summary>
+    /// Whether <paramref name="altinnTaskType"/> names a service task the app registers.
+    /// </summary>
+    internal bool IsServiceTask(string? altinnTaskType) => GetServiceTaskType(altinnTaskType) is not null;
+
     private string? GetServiceTaskType(string? altinnTaskType)
     {
         if (altinnTaskType is null)

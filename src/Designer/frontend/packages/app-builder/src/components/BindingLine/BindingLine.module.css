@@ -1,0 +1,65 @@
+.bindingLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-1) var(--ds-size-2);
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-body-xs-font-size);
+}
+
+.icon {
+  font-size: var(--ds-size-5);
+}
+
+.field {
+  color: var(--ds-color-neutral-text-default);
+  overflow-wrap: anywhere;
+}
+
+.search {
+  position: relative;
+}
+
+.listbox {
+  position: absolute;
+  z-index: 3;
+  top: 100%;
+  right: 0;
+  left: 0;
+  max-height: 240px;
+  margin: var(--ds-size-1) 0 0;
+  padding: var(--ds-size-1);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+  background-color: var(--ds-color-neutral-background-default);
+  box-shadow: var(--ds-shadow-lg);
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  padding: var(--ds-size-2);
+  border-radius: var(--ds-border-radius-sm);
+  cursor: pointer;
+}
+
+.active,
+.option:hover {
+  background-color: var(--ds-color-accent-surface-tinted);
+}
+
+.current {
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.usedBy,
+.empty {
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-body-xs-font-size);
+}
+
+.empty {
+  padding: var(--ds-size-2);
+}

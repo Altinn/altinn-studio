@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import aliases from './studio.alias.js';
+import { cssModuleValuesPlugin } from './cssModuleValuesPlugin';
 import type { UserConfig } from 'vite';
 import colors from 'picocolors';
 
@@ -13,6 +14,7 @@ export default {
   },
   plugins: [
     react(),
+    cssModuleValuesPlugin(),
     {
       name: 'url-override',
       configureServer: (server) => {

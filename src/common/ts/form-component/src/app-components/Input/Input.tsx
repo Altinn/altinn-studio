@@ -89,7 +89,7 @@ export function Input(props: InputProps) {
     );
   }
 
-  const labelProps = ariaLabel
+  const labelProps: LabelRequired = ariaLabel
     ? { 'aria-label': ariaLabel }
     : ariaLabelledBy
       ? { 'aria-labelledby': ariaLabelledBy }

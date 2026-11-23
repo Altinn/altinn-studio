@@ -23,6 +23,14 @@ vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 const mockGetRepoStatus = vi.fn();
 
+const changesToShare = {
+  contentStatus: [{ filePath: '', fileStatus: 'Modified' }],
+  aheadBy: 1,
+  behindBy: 0,
+  hasMergeConflict: false,
+  repositoryStatus: 'Ok',
+};
+
 describe('shareChanges', () => {
   it('should call "getRepoStatus" when clicking the share changes button', async () => {
     const user = userEvent.setup();
@@ -61,6 +69,68 @@ describe('shareChanges', () => {
 
     // One call is made when the component is rendered and another when the button is clicked
     expect(getRepoStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('lets the page prepare the files before it lists the changes to share', async () => {
+    const user = userEvent.setup();
+    const calls: string[] = [];
+    const onBeforeShare = vi.fn(async () => {
+      calls.push('onBeforeShare');
+    });
+    const getRepoStatus = mockGetRepoStatus.mockImplementation(() => {
+      calls.push('getRepoStatus');
+      return Promise.resolve(changesToShare);
+    });
+    renderShareChangesPopover({
+      queries: { getRepoStatus },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        hasPushRights: true,
+        onBeforeShare,
+      },
+    });
+    calls.length = 0;
+
+    await user.click(
+      screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 3,
+        name: textMock('sync_header.describe_and_validate'),
+      }),
+    ).toBeInTheDocument();
+    expect(calls).toEqual(['onBeforeShare', 'getRepoStatus']);
+  });
+
+  it('lists the changes to share also when the preparation fails', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onBeforeShare = vi.fn(() => Promise.reject(new Error('failed')));
+    const getRepoStatus = mockGetRepoStatus.mockImplementation(() =>
+      Promise.resolve(changesToShare),
+    );
+    renderShareChangesPopover({
+      queries: { getRepoStatus },
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        hasPushRights: true,
+        onBeforeShare,
+      },
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: textMock('sync_header.changes_to_share') }),
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 3,
+        name: textMock('sync_header.describe_and_validate'),
+      }),
+    ).toBeInTheDocument();
+    expect(onBeforeShare).toHaveBeenCalledTimes(1);
   });
 
   it('should display no changes to share message when there are no local changes or aheadBy is 0', async () => {

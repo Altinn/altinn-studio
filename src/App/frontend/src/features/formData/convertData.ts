@@ -1,3 +1,4 @@
+import { strictParseISO } from '@app/form-component';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
 interface ReturnType {
@@ -55,15 +56,18 @@ function convertToType(value: Value, schema: JSONSchema7 | JSONSchema7Definition
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     AllValidTypes.includes(schema.type as any)
   ) {
-    return convertToScalar(value, schema.type as ValidTypes, schema['@xsdType']);
+    return convertToScalar(value, schema.type as ValidTypes, schema['@xsdType'], schema.format);
   }
 
   throw new Error(`Unsupported schema: ${JSON.stringify(schema)}`);
 }
 
-function convertToScalar(value: Value, targetType: ValidTypes, xsdType?: string): ReturnType {
+function convertToScalar(value: Value, targetType: ValidTypes, xsdType?: string, format?: string): ReturnType {
   const sVal = String(value);
   if (targetType === 'string') {
+    if (format === 'date-time' && !strictParseISO(sVal)) {
+      return { newValue: undefined, error: true };
+    }
     return { newValue: sVal, error: false };
   }
 

@@ -1,0 +1,42 @@
+.insertLine {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--ds-size-4);
+  margin: calc(-1 * var(--ds-size-2)) 0;
+}
+
+/* The line on both sides of the button shows where the component will go. */
+.insertLine::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 2px solid var(--ds-color-accent-base-default);
+  opacity: 0;
+}
+
+.button {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  padding: 0 var(--ds-size-2);
+  border: none;
+  border-radius: 999px;
+  background-color: var(--ds-color-accent-base-default);
+  color: var(--ds-color-accent-base-contrast-default);
+  font: inherit;
+  font-size: var(--ds-body-xs-font-size);
+  line-height: 1.6;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.insertLine:hover::before,
+.insertLine:focus-within::before,
+.insertLine:hover .button,
+.button:focus-visible {
+  opacity: 1;
+}

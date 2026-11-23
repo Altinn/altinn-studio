@@ -219,6 +219,11 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
+        // Before every step that reads the process (the Maskinporten scopes, the PDF, eFormidling and Fiks Arkiv
+        // migrations, the feedback task check), so they see these tasks as the service tasks they are in v9.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskElements(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(scanner, projectFolder));
 
@@ -315,6 +320,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await WarnCustomTaskTypes(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
@@ -2027,6 +2035,28 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Changes the bpmn:task elements that carry a built-in service task type into the bpmn:serviceTask elements
+    /// v9 requires for them.
+    /// </summary>
+    static async Task<int> MigrateServiceTaskElements(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Service task elements");
+        try
+        {
+            var result = await ServiceTaskElementMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No built-in service task type on a bpmn:task element",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error changing service task elements", ex);
+        }
+    }
+
+    /// <summary>
     /// Job 8: Migrate the deprecated enablePdfCreation flag to 'pdf' service tasks
     /// </summary>
     static async Task<int> MigratePdfServiceTasks(string projectFolder, CSharpSourceScanner scanner)
@@ -2132,6 +2162,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error checking for feedback tasks behind service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Names the custom task types in the process, whose type strings instances started under v8 rely on. Advisory
+    /// only.
+    /// </summary>
+    static async Task<int> WarnCustomTaskTypes(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Custom task types");
+        try
+        {
+            var result = await ProcessAdvisories.CustomTaskTypeAdvisor.Analyze(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No custom task types in the process",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking for custom task types", ex);
         }
     }
 

@@ -9,6 +9,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
+
+### Fixed
+
+- `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
+
 ## [0.1.0-preview.34] - 2026-11-20
 
 ### Added

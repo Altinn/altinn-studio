@@ -27,6 +27,7 @@ COPY src/Designer/frontend/libs/designer-hooks/package.json ./src/Designer/front
 COPY src/Designer/frontend/libs/designer-icons/package.json ./src/Designer/frontend/libs/designer-icons/
 COPY src/Designer/frontend/libs/designer-pure-functions/package.json ./src/Designer/frontend/libs/designer-pure-functions/
 COPY src/Designer/frontend/libs/designer-ui-test/package.json ./src/Designer/frontend/libs/designer-ui-test/
+COPY src/Designer/frontend/packages/app-builder/package.json ./src/Designer/frontend/packages/app-builder/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/process-editor-v8/package.json ./src/Designer/frontend/packages/process-editor-v8/
