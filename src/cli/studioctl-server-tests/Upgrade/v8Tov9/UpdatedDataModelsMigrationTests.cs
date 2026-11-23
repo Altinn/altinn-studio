@@ -5,9 +5,8 @@ using Microsoft.CodeAnalysis;
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
-/// Covers the removed <c>UserActionResult.AddUpdatedDataModel</c>/<c>UpdatedDataModels</c> and the removed
-/// <c>UserActionContext(Instance, ..)</c> constructor. Rewrites migrate against a v8 stub and then compile against a
-/// v9 stub.
+/// Covers the removed <c>UserActionResult.AddUpdatedDataModel</c>/<c>UpdatedDataModels</c>. Rewrites migrate against
+/// a v8 stub and then compile against a v9 stub.
 /// </summary>
 public sealed class UpdatedDataModelsMigrationTests : IDisposable
 {
@@ -490,55 +489,5 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
         var rerun = new UpdatedDataModelsMigration(new CSharpSourceScanner(AppFolder), _globalFeatures).Migrate();
 
         Assert.Empty(rerun.Messages);
-    }
-
-    // --- RemovedUserActionContextConstructorDetector ----------------------------------------------
-
-    private const string ContextTestSource = """
-        using Altinn.App.Core.Features;
-        using Altinn.App.Core.Models.UserAction;
-        using Altinn.Platform.Storage.Interface.Models;
-
-        public class ActionTests
-        {
-            public void Create(Instance instance, IInstanceDataMutator mutator)
-            {
-                var removed = new UserActionContext(instance, 1);
-                var named = new UserActionContext(userId: 1, instance: new Instance());
-                UserActionContext targetTyped = new(instance, null, "button");
-                var kept = new UserActionContext(mutator, 1);
-            }
-        }
-        """;
-
-    [Fact]
-    public void Constructor_WithSemantics_ReportsOnlyTheInstanceOverload()
-    {
-        _app.Write("test/ActionTests.cs", ContextTestSource);
-
-        var result = new RemovedUserActionContextConstructorDetector(SemanticScanner()).Detect();
-
-        Assert.True(result.RequiresManualFollowUp);
-        Assert.Equal(
-            [9, 10, 11],
-            result
-                .Warnings.Where(static w => w.Contains("ActionTests.cs:", StringComparison.Ordinal))
-                .Select(static w => int.Parse(w.Split(':')[1], System.Globalization.CultureInfo.InvariantCulture))
-        );
-    }
-
-    [Fact]
-    public void Constructor_WithoutSemantics_ReportsOnlyCallsPassingAnInstance()
-    {
-        _app.Write("test/ActionTests.cs", ContextTestSource);
-
-        var result = new RemovedUserActionContextConstructorDetector(new CSharpSourceScanner(AppFolder)).Detect();
-
-        Assert.Equal(
-            [9, 10, 11],
-            result
-                .Warnings.Where(static w => w.Contains("ActionTests.cs:", StringComparison.Ordinal))
-                .Select(static w => int.Parse(w.Split(':')[1], System.Globalization.CultureInfo.InvariantCulture))
-        );
     }
 }

@@ -1141,8 +1141,8 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Rewrites UserActionResult.AddUpdatedDataModel(..), removed in v9, to ReplaceFormData on the action's data
-    /// mutator, and reports the uses of AddUpdatedDataModel and UpdatedDataModels it cannot rewrite. Runs before the
+    /// Removes UserActionResult.AddUpdatedDataModel(..), removed in v9, for models the action's data mutator tracks,
+    /// rewrites the other calls to ReplaceFormData on the mutator, and reports the uses of AddUpdatedDataModel and UpdatedDataModels it cannot rewrite. Runs before the
     /// redundant using directives are removed, since it may add one, and binds through the live compilation: no
     /// earlier step moves the user action types.
     /// </summary>
@@ -1191,8 +1191,7 @@ internal static class V8Tov9Upgrade
     /// the removed process task event interfaces, the reworked ServiceTaskResult API, legacy eFormidling
     /// code, removed internal engine handler types, the deprecated Correspondence surfaces, and the
     /// IAppResources/IDataClient members whose replacement is asynchronous or reshapes the parameters, and
-    /// the service classes that are internal in v9 and must be reached through their interfaces, and the
-    /// UserActionContext constructor taking an Instance.
+    /// the service classes that are internal in v9 and must be reached through their interfaces.
     /// </summary>
     /// <remarks>
     /// Internal so the view wiring below is pinned by tests: getting it wrong is either the critical
@@ -1247,7 +1246,6 @@ internal static class V8Tov9Upgrade
                 new ExternalMaskinportenPackageDetector(scanner, projectFile).Detect(),
                 new MaskinportenClientOverrideDetector(scanner).Detect(),
                 new RemovedAppResourcesApiDetector(pristineView).Detect(),
-                new RemovedUserActionContextConstructorDetector(pristineView).Detect(),
                 new InternalizedServiceTypeDetector(
                     pristineView,
                     ProjectGlobalUsings.Read(projectFile),
