@@ -1507,4 +1507,190 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         Assert.Contains("=> WithArchive(pipeline).Stage(Done);", await ReadMigrated(task));
         AssertCompilesAgainstCurrent();
     }
+
+    [Theory]
+    [InlineData("containing type")]
+    [InlineData("base class")]
+    [InlineData("using static")]
+    [InlineData("global using static")]
+    public async Task BareHelperCall_IsFoundWhereCSharpLooks_AndEndsWithStage(string where)
+    {
+        // Without a compilation, only finding WithArchive by name shows that the receiver of Finally is the builder.
+        const string helper = """
+                public static PipelineBuilder WithArchive(PipelineBuilder pipeline) =>
+                    pipeline.Stage(static context => Task.FromResult(StageResult.Completed()));
+            """;
+        var bareTask = $$"""
+            public class BareTask : {{(where == "base class" ? "TaskBase, " : "")}}IServiceTask
+            {
+                public string Type => "bare";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => WithArchive(pipeline).Finally(Done);
+
+            {{StageMethods}}
+            }
+            """;
+        var task = where switch
+        {
+            "containing type" => Write("logic/BareTask.cs", $"public class Outer\n{{\n{helper}\n\n{bareTask}\n}}\n"),
+            "base class" => Write(
+                "logic/BareTask.cs",
+                $"public abstract class TaskBase\n{{\n{helper}\n}}\n\n{bareTask}"
+            ),
+            "using static" => Write("logic/BareTask.cs", $"using static MyApp.Stages.CommonStages;\n\n{bareTask}"),
+            _ => Write("logic/BareTask.cs", bareTask),
+        };
+        if (where.EndsWith("using static", StringComparison.Ordinal))
+        {
+            Write(
+                "logic/Stages.cs",
+                $"namespace MyApp.Stages\n{{\npublic static class CommonStages\n{{\n{helper}\n}}\n}}\n"
+            );
+        }
+
+        if (where == "global using static")
+        {
+            _app.Write("logic/GlobalUsings.cs", "global using static MyApp.Stages.CommonStages;\n");
+        }
+
+        var result = Migrate(semantic: false);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains("=> WithArchive(pipeline).Stage(Done);", await ReadMigrated(task));
+        AssertCompilesAgainstCurrent();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CallOnALocalNamedLikeAType_DoesNotReachThatTypesHelper(bool semantic)
+    {
+        // Audit.Log on the local is Recorder.Log, so the helper Audit.Log is part of DefineEnd's lifecycle phase only.
+        var task = Write(
+            "logic/AuditedTask.cs",
+            $$"""
+            public static class Audit
+            {
+                public static PipelineBuilder Log(PipelineBuilder pipeline) =>
+                    pipeline.Stage(static context => Task.FromResult(StageResult.Completed()));
+            }
+
+            public sealed class Recorder
+            {
+                public void Log(object value) { }
+            }
+
+            public class AuditedTask : IServiceTask
+            {
+                public string Type => "audited";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+                {
+                    var Audit = new Recorder();
+                    Audit.Log(pipeline);
+                    return pipeline.Finally(Done);
+                }
+
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => Audit.Log(pipeline).Build();
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains(
+            "    public static PipelineBuilder.Lifecycle Log(PipelineBuilder.Lifecycle pipeline) =>\n",
+            await ReadMigrated(task)
+        );
+        AssertCompilesAgainstCurrent();
+    }
+
+    [Theory]
+    [InlineData("nameof(pipeline.ConcludeOnReplies)", true)]
+    [InlineData("nameof(pipeline.ConcludeOnReplies)", false)]
+    [InlineData("nameof(PipelineBuilder.Build)", true)]
+    [InlineData("nameof(PipelineBuilder.Build)", false)]
+    [InlineData("nameof(Report.Build)", true)]
+    [InlineData("nameof(Report.Build)", false)]
+    public async Task MethodGroupOfTheBuilder_IsReported_NotDone_AndOfAnotherType_IsLeftAlone(
+        string named,
+        bool semantic
+    )
+    {
+        var task = Write(
+            "logic/NamingTask.cs",
+            $$"""
+            public sealed class Report
+            {
+                public string Build() => "";
+            }
+
+            public class NamingTask : IServiceTask
+            {
+                public string Type => "naming";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+                {
+                    Console.WriteLine({{named}});
+                    return pipeline.Finally(Done);
+                }
+
+            {{StageMethods}}
+            }
+            """
+        );
+        var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+
+        var result = Migrate(semantic);
+
+        if (named.Contains("Report", StringComparison.Ordinal))
+        {
+            Assert.Empty(result.Todos);
+            Assert.Contains("        return pipeline.Stage(Done);\n", await ReadMigrated(task));
+            AssertCompilesAgainstCurrent();
+        }
+        else
+        {
+            Assert.Empty(Oks(result));
+            Assert.Contains(
+                $"NamingTask.DefineExecute uses {named.Split('.')[^1].TrimEnd(')')} at line 17 as a method group",
+                Assert.Single(result.Todos)
+            );
+            Assert.Equal(original, await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken));
+        }
+    }
+
+    [Fact]
+    public async Task FinallyOnACallHoldingAHelperCall_IsReported_NotDone()
+    {
+        // Wrap is not one of the app's pipeline methods, so what it returns cannot be told, but it is handed the
+        // builder Prepared returns.
+        var todos = await ReportedAndUnchanged(
+            semantic: false,
+            $$"""
+            public class WrappedTask : IServiceTask
+            {
+                public string Type => "wrapped";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => Wrap(Prepared()).Finally(Done);
+
+                private static PipelineBuilder Prepared() => new();
+
+                private static T Wrap<T>(T value) => value;
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        Assert.Collection(
+            todos,
+            todo =>
+                Assert.Contains("WrappedTask.DefineExecute uses Finally at line 10 on something it cannot tell", todo),
+            todo => Assert.Contains("WrappedTask.Prepared takes or returns a PipelineBuilder, and nothing shows", todo)
+        );
+    }
 }
