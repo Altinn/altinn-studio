@@ -359,6 +359,47 @@ public class ProcessTaskDefaultMemberAnalyzerTests
         Assert.Empty(diagnostics);
     }
 
+    [Fact]
+    public async Task A_Helper_Of_The_Name_That_The_Task_Calls_Itself_Is_Not_Reported()
+    {
+        // The task keeps the interface's ValidateConfiguration and checks its own settings with a helper of the
+        // same name, as DefaultEFormidlingService does. The helper runs, so the rule's premise that the method never
+        // does is false, and as an error it breaks a correct app's build.
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public sealed class ArchiveSettings
+                {
+                    public string? Endpoint { get; set; }
+                }
+
+                public sealed class ArchiveTask : IServiceTask
+                {
+                    private readonly ArchiveSettings _settings = new();
+
+                    public string Type => "archive";
+
+                    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
+                    {
+                        ValidateConfiguration(_settings);
+                        return pipeline.Stage(Archive);
+                    }
+
+                    private static void ValidateConfiguration(ArchiveSettings settings)
+                    {
+                        if (settings.Endpoint is null)
+                            throw new System.InvalidOperationException("The archive endpoint is not configured.");
+                    }
+
+                    private Task<ServiceTaskResult> Archive(StageContext context) =>
+                        throw new System.NotImplementedException();
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
     /// <summary>The method a diagnostic names, as <c>Type.Name(parameter types)</c>.</summary>
     private static string ReportedMethod(Diagnostic diagnostic) => diagnostic.GetMessage().Split('\'')[1];
 
