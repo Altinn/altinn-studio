@@ -458,6 +458,17 @@ internal sealed partial class PipelineBuilderVariantMigration
 
             handled.Add((InvocationExpressionSyntax)arrow);
             rewriter.EmptyBody = Unwrap(chain) is not InvocationExpressionSyntax;
+            if (
+                rewriter.EmptyBody
+                && method
+                    .Method.ExpressionBody.DescendantTrivia()
+                    .Concat(method.Method.SemicolonToken.LeadingTrivia)
+                    .Any(IsDirectiveOrDisabled)
+            )
+            {
+                unsupported.Add("preprocessor directives in an expression body that is only Build()");
+                return;
+            }
         }
 
         var returns = method
@@ -497,6 +508,13 @@ internal sealed partial class PipelineBuilderVariantMigration
             if (change is not { } planned)
             {
                 unsupported.Add($"an early return at line {method.File.GetLine(statement)} outside a block");
+                continue;
+            }
+
+            // Without the chain, a directive inside the return has nothing left to hold in every configuration.
+            if (planned is ReturnChange.Remove or ReturnChange.ReturnVoid && HasInnerDirectives(statement))
+            {
+                unsupported.Add($"preprocessor directives in the return at line {method.File.GetLine(statement)}");
                 continue;
             }
 
@@ -715,9 +733,24 @@ internal sealed partial class PipelineBuilderVariantMigration
         }
     }
 
+    /// <summary>
+    /// The method with an empty block for its expression body, keeping a comment written in the expression body.
+    /// </summary>
     private static MethodDeclarationSyntax WithEmptyBody(MethodDeclarationSyntax method)
     {
         var semicolon = method.SemicolonToken;
+        var kept = Keep(
+                method
+                    .ParameterList.CloseParenToken.TrailingTrivia.Concat(
+                        method.ExpressionBody?.DescendantTrivia() ?? []
+                    )
+                    .Concat(semicolon.LeadingTrivia)
+            )
+            .SkipWhile(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            .Reverse()
+            .SkipWhile(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            .Reverse()
+            .ToList();
         return method
             .WithParameterList(
                 method.ParameterList.WithCloseParenToken(method.ParameterList.CloseParenToken.WithTrailingTrivia())
@@ -729,12 +762,78 @@ internal sealed partial class PipelineBuilderVariantMigration
                     SyntaxFactory
                         .Token(SyntaxKind.OpenBraceToken)
                         .WithLeadingTrivia(SyntaxFactory.Space)
-                        .WithTrailingTrivia(SyntaxFactory.Space),
+                        .WithTrailingTrivia(kept.Prepend(SyntaxFactory.Space)),
                     default,
-                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(semicolon.TrailingTrivia)
+                    SyntaxFactory
+                        .Token(SyntaxKind.CloseBraceToken)
+                        .WithLeadingTrivia(
+                            kept is [.., var last] && !last.IsKind(SyntaxKind.EndOfLineTrivia)
+                                ? SyntaxFactory.TriviaList(SyntaxFactory.Space)
+                                : default
+                        )
+                        .WithTrailingTrivia(semicolon.TrailingTrivia)
                 )
             );
     }
+
+    /// <summary>
+    /// Whether trivia holds something a reader or the compiler needs: a comment, a preprocessor directive, or the code
+    /// a directive disables.
+    /// </summary>
+    private static bool IsKept(SyntaxTrivia trivia) =>
+        IsDirectiveOrDisabled(trivia)
+        || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+        || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+        || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+        || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+
+    private static bool IsDirectiveOrDisabled(SyntaxTrivia trivia) =>
+        trivia.IsDirective || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
+
+    /// <summary>
+    /// The trivia when it holds something to keep, otherwise none.
+    /// </summary>
+    private static SyntaxTriviaList Keep(IEnumerable<SyntaxTrivia> trivia)
+    {
+        var list = SyntaxFactory.TriviaList(trivia);
+        return list.Any(IsKept) ? list : default;
+    }
+
+    /// <summary>
+    /// The trivia to keep, on lines of its own above a closing brace: without the whitespace it ends with, and ending
+    /// with a line break.
+    /// </summary>
+    private static SyntaxTriviaList OwnLines(IEnumerable<SyntaxTrivia> trivia)
+    {
+        var list = trivia.ToList();
+        if (!list.Any(IsKept))
+        {
+            return default;
+        }
+
+        var lineBreak = list.LastOrDefault(static t => t.IsKind(SyntaxKind.EndOfLineTrivia));
+        while (list[^1].IsKind(SyntaxKind.WhitespaceTrivia) || list[^1].IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            list.RemoveAt(list.Count - 1);
+        }
+
+        // A directive and disabled code end with their own line break.
+        if (!list[^1].ToFullString().EndsWith('\n'))
+        {
+            list.Add(lineBreak.IsKind(SyntaxKind.EndOfLineTrivia) ? lineBreak : SyntaxFactory.LineFeed);
+        }
+
+        return SyntaxFactory.TriviaList(list);
+    }
+
+    /// <summary>
+    /// Whether a preprocessor directive or the code it disables sits between the node's tokens, rather than around it.
+    /// </summary>
+    private static bool HasInnerDirectives(SyntaxNode node) =>
+        node.DescendantTrivia()
+            .Any(trivia =>
+                IsDirectiveOrDisabled(trivia) && trivia.SpanStart >= node.SpanStart && trivia.SpanStart < node.Span.End
+            );
 
     private static bool HasOutArgument(InvocationExpressionSyntax invocation) =>
         invocation.ArgumentList.Arguments.Any(static argument => argument.RefKindKeyword.IsKind(SyntaxKind.OutKeyword));
@@ -822,14 +921,23 @@ internal sealed partial class PipelineBuilderVariantMigration
                                 .PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword))
                                 .WithTriviaFrom(method.ReturnType)
                         );
-                    return
-                        method.ExpressionBody is { } arrow && visited.ExpressionBody is { } visitedArrow && !EmptyBody
-                        ? visited.WithExpressionBody(
-                            visitedArrow.WithExpression(
-                                ChainOf(arrow.Expression).WithLeadingTrivia(arrow.Expression.GetLeadingTrivia())
+                    if (
+                        method.ExpressionBody is not { } arrow
+                        || visited.ExpressionBody is not { } visitedArrow
+                        || EmptyBody
+                    )
+                    {
+                        return visited;
+                    }
+
+                    var (chain, before, after) = ChainOf(arrow.Expression);
+                    return visited
+                        .WithExpressionBody(visitedArrow.WithExpression(chain.WithLeadingTrivia(before)))
+                        .WithSemicolonToken(
+                            visited.SemicolonToken.WithLeadingTrivia(
+                                Keep(after.Concat(visited.SemicolonToken.LeadingTrivia))
                             )
-                        )
-                        : visited;
+                        );
                 case TypeSyntax type when Retype.Contains(type):
                     return SyntaxFactory
                         .QualifiedName((NameSyntax)type.WithoutTrivia(), SyntaxFactory.IdentifierName(variant))
@@ -842,9 +950,21 @@ internal sealed partial class PipelineBuilderVariantMigration
                     );
                 case ReturnStatementSyntax statement
                     when Returns.TryGetValue(statement, out var change) && change == ReturnChange.ReturnVoid:
+                    // A comment in the removed value stays, before the semicolon.
                     return statement
                         .WithExpression(null)
-                        .WithReturnKeyword(statement.ReturnKeyword.WithTrailingTrivia());
+                        .WithReturnKeyword(statement.ReturnKeyword.WithTrailingTrivia())
+                        .WithSemicolonToken(
+                            statement.SemicolonToken.WithLeadingTrivia(
+                                Keep(
+                                    statement
+                                        .ReturnKeyword.TrailingTrivia.Concat(
+                                            statement.Expression?.DescendantTrivia() ?? []
+                                        )
+                                        .Concat(statement.SemicolonToken.LeadingTrivia)
+                                )
+                            )
+                        );
                 default:
                     return base.Visit(node);
             }
@@ -871,25 +991,11 @@ internal sealed partial class PipelineBuilderVariantMigration
                 switch (change)
                 {
                     case ReturnChange.Remove:
-                        // A comment above the removed return stays, above the closing brace.
-                        if (
-                            leading.Any(static trivia =>
-                                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                            )
-                        )
-                        {
-                            var kept = leading.Count;
-                            while (kept > 0 && leading[kept - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-                            {
-                                kept--;
-                            }
-
-                            closeBrace = closeBrace.WithLeadingTrivia(
-                                leading.Take(kept).Concat(closeBrace.LeadingTrivia)
-                            );
-                        }
-
+                        // A comment or directive around the removed return, and the code a directive disables,
+                        // stay above the closing brace.
+                        closeBrace = closeBrace.WithLeadingTrivia(
+                            OwnLines(returned.DescendantTrivia()).AddRange(closeBrace.LeadingTrivia)
+                        );
                         break;
                     case ReturnChange.Statement:
                         statements.Add(Statement(returned));
@@ -918,24 +1024,59 @@ internal sealed partial class PipelineBuilderVariantMigration
         }
 
         /// <summary>
-        /// The chain a <c>return chain.Build();</c> composed, as a statement in its place.
+        /// The chain a <c>return chain.Build();</c> composed, as a statement in its place. A comment or directive
+        /// between <c>return</c> and the chain stays above it, and one after the chain stays before the semicolon.
         /// </summary>
-        private ExpressionStatementSyntax Statement(ReturnStatementSyntax returned) =>
-            SyntaxFactory
+        private ExpressionStatementSyntax Statement(ReturnStatementSyntax returned)
+        {
+            var (chain, before, after) = ChainOf(
+                returned.Expression ?? throw new InvalidOperationException("A planned return lost its value.")
+            );
+            var above = Keep(returned.ReturnKeyword.TrailingTrivia.Concat(before))
+                .SkipWhile(static trivia =>
+                    trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                );
+            return SyntaxFactory
                 .ExpressionStatement(
-                    ChainOf(
-                        returned.Expression ?? throw new InvalidOperationException("A planned return lost its value.")
-                    ),
-                    returned.SemicolonToken
+                    chain,
+                    returned.SemicolonToken.WithLeadingTrivia(Keep(after.Concat(returned.SemicolonToken.LeadingTrivia)))
                 )
-                .WithLeadingTrivia(returned.GetLeadingTrivia());
+                .WithLeadingTrivia(returned.GetLeadingTrivia().AddRange(above));
+        }
 
         /// <summary>
         /// <c>chain</c> from <c>chain.Build()</c>, with the changes planned inside it, without the trivia around it
-        /// and the parentheses, which a statement cannot start with.
+        /// and the parentheses, which a statement cannot start with. Also the trivia before and after the chain, which
+        /// can hold a directive or comment that goes with what is removed, such as one before <c>.Build()</c>.
         /// </summary>
-        private ExpressionSyntax ChainOf(ExpressionSyntax built) =>
-            Unwrap(Kept(Visit(BuiltFrom(built)), BuiltFrom(built))).WithoutTrivia();
+        private (ExpressionSyntax Chain, SyntaxTriviaList Before, SyntaxTriviaList After) ChainOf(
+            ExpressionSyntax built
+        )
+        {
+            var chain = Unwrap(BuiltFrom(built));
+            var before = new List<SyntaxTrivia>();
+            var after = new List<SyntaxTrivia>(chain.GetTrailingTrivia());
+            foreach (var token in built.DescendantTokens())
+            {
+                if (token.SpanStart < chain.SpanStart)
+                {
+                    before.AddRange(token.LeadingTrivia);
+                    before.AddRange(token.TrailingTrivia);
+                }
+                else if (token.SpanStart >= chain.Span.End)
+                {
+                    after.AddRange(token.LeadingTrivia);
+                    after.AddRange(token.TrailingTrivia);
+                }
+            }
+
+            before.AddRange(chain.GetLeadingTrivia());
+            return (
+                Kept(Visit(chain), chain).WithoutTrivia(),
+                SyntaxFactory.TriviaList(before),
+                SyntaxFactory.TriviaList(after)
+            );
+        }
 
         /// <summary>
         /// The rewritten form of <paramref name="original"/>, which keeps its kind.

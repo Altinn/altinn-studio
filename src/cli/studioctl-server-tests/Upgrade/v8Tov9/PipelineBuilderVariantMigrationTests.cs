@@ -968,4 +968,56 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         if (result.Todos.Count == 0)
             AssertCompilesAgainstCurrent();
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task DirectiveInAReturnOfTheBuilderAlone_IsReported_AndCommentsOfARemovedBuildStay(bool semantic)
+    {
+        // Without DEBUG the first return is the builder alone, which is removed; with DEBUG it composes a stage, which
+        // must stay. No rewrite holds in both, so it is reported.
+        var task = Write(
+            "logic/DebugTask.cs",
+            """
+            public class DebugTask : IProcessTask
+            {
+                public string Type => "debug";
+
+                public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline)
+                {
+                    return pipeline
+            #if DEBUG
+                        .Stage(Revoke)
+            #endif
+                        .Build();
+                }
+
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+                    pipeline.Stage(Revoke) // Revoke last.
+                        .Build();
+
+                public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline /* nothing */.Build();
+
+                private Task<StageResult> Revoke(StageContext context) => Task.FromResult(StageResult.Completed());
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.StartsWith(
+            Path.Combine("logic", "DebugTask.cs")
+                + ":10: DebugTask.DefineStart uses preprocessor directives in the "
+                + "return at line 12",
+            Assert.Single(result.Todos)
+        );
+        Assert.Equal(2, Oks(result).Count);
+        var migrated = await ReadMigrated(task);
+        Assert.Contains("        return pipeline\n#if DEBUG\n            .Stage(Revoke)\n#endif\n", migrated);
+        Assert.Contains("        pipeline.Stage(Revoke) // Revoke last.\n            ;\n", migrated);
+        Assert.Contains(
+            "    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) { /* nothing */ }\n",
+            migrated
+        );
+    }
 }
