@@ -180,9 +180,6 @@ internal sealed record TestFixture(
         hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(hostEnvironment);
         loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(Mock.Of<ILogger>());
         appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/unit-testing"));
-        maskinportenClientMock
-            .Setup(x => x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(JwtToken.Parse(TestHelpers.DummyToken));
 
         builder.Services.AddSingleton(hostEnvironmentMock.Object);
         builder.Services.AddSingleton(appMetadataMock.Object);
@@ -207,7 +204,6 @@ internal sealed record TestFixture(
             builder.Services.AddSingleton(fiksIOClientFactoryMock.Object);
 
         // Non-mockable services
-        builder.Services.AddTransient<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
         builder.Services.AddSingleton<ModelSerializationService>();
         builder.Services.AddAppImplementationFactory();
         builder.Services.AddRuntimeEnvironment();

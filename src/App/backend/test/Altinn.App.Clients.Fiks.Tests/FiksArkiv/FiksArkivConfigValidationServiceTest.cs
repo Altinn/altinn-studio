@@ -16,7 +16,7 @@ namespace Altinn.App.Clients.Fiks.Tests.FiksArkiv;
 public class FiksArkivConfigValidationServiceTest
 {
     [Fact]
-    public async Task StartAsync_ValidatesReceiptSettings_DelegatesToThePayloadGenerator_AndResolvesTheServiceOwnerToken()
+    public async Task StartAsync_ValidatesReceiptSettings_AndDelegatesToThePayloadGenerator()
     {
         // Arrange
         var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
@@ -33,35 +33,6 @@ public class FiksArkivConfigValidationServiceTest
 
         // Assert
         payloadGeneratorMock.Verify(x => x.ValidateConfiguration(appMetadata.DataTypes, processTasks), Times.Once);
-        fixture.MaskinportenClientMock.Verify(
-            x => x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
-            Times.Once
-        );
-    }
-
-    [Fact]
-    public async Task StartAsync_Throws_WhenTheServiceOwnerTokenCannotBeResolved()
-    {
-        // Arrange
-        await using var fixture = CreateFixture(ValidSettings(), new Mock<IFiksArkivPayloadGenerator>(), out _);
-        fixture
-            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
-            .Returns(ReceiptDataTypes("archive-record-type", allowedContentTypes: null));
-        fixture
-            .MaskinportenClientMock.Setup(x =>
-                x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>())
-            )
-            .ThrowsAsync(new InvalidOperationException("no Maskinporten client is configured"));
-
-        // Act
-        var record = await Record.ExceptionAsync(() =>
-            fixture.FiksArkivConfigValidationService.StartAsync(CancellationToken.None)
-        );
-
-        // Assert
-        var exception = Assert.IsType<FiksArkivException>(record);
-        Assert.Contains("service owner token", exception.Message);
-        Assert.Contains("no Maskinporten client is configured", exception.Message);
     }
 
     [Fact]
@@ -81,7 +52,6 @@ public class FiksArkivConfigValidationServiceTest
         var exception = Assert.IsType<FiksArkivConfigurationException>(record);
         Assert.Contains("Receipt configuration is required", exception.Message);
         payloadGeneratorMock.VerifyNoOtherCalls();
-        fixture.MaskinportenClientMock.VerifyNoOtherCalls();
     }
 
     [Theory]

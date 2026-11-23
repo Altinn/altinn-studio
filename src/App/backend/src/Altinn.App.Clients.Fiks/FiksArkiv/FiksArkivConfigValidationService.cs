@@ -3,13 +3,11 @@ using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Clients.Fiks.FiksArkiv;
@@ -20,24 +18,18 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
     private readonly IAppMetadata _appMetadata;
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IAuthenticationTokenResolver _authenticationTokenResolver;
-    private readonly ILogger<FiksArkivConfigValidationService> _logger;
 
     public FiksArkivConfigValidationService(
         IOptions<FiksArkivSettings> fiksArkivSettings,
         AppImplementationFactory appImplementationFactory,
-        IAuthenticationTokenResolver authenticationTokenResolver,
         IProcessReader processReader,
-        IAppMetadata appMetadata,
-        ILogger<FiksArkivConfigValidationService> logger
+        IAppMetadata appMetadata
     )
     {
         _fiksArkivSettings = fiksArkivSettings.Value;
         _appImplementationFactory = appImplementationFactory;
-        _authenticationTokenResolver = authenticationTokenResolver;
         _processReader = processReader;
         _appMetadata = appMetadata;
-        _logger = logger;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -57,29 +49,9 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
         IFiksArkivPayloadGenerator payloadGenerator =
             _appImplementationFactory.GetRequired<IFiksArkivPayloadGenerator>();
         await payloadGenerator.ValidateConfiguration(appMetadata.DataTypes, processTasks);
-
-        // Every workflow save authenticates as the service owner, so an app that cannot fails here, at startup.
-        await ResolveServiceOwnerToken(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    private async Task ResolveServiceOwnerToken(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _authenticationTokenResolver.GetAccessToken(AuthenticationMethod.ServiceOwner(), cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to retrieve service owner token: {Error}", e.Message);
-            throw new FiksArkivException($"Error retrieving service owner token: {e.Message}", e);
-        }
-    }
 
     /// <summary>
     /// A Fiks Arkiv task always moves the process on when it concludes: with the configured success action

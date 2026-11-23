@@ -19,6 +19,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
 ### Fixed
 
