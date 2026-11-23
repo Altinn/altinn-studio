@@ -36,7 +36,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Breaking: `UserActionResult.UpdatedDataModels` and `UserActionResult.AddUpdatedDataModel`. In `IUserAction.HandleAction`, change form data through `context.DataMutator`, such as with `GetFormData` or `ReplaceFormData`. Those changes are saved and returned to the form without being added to the result. `studioctl app upgrade v9` removes `AddUpdatedDataModel` calls for models read through `context.DataMutator`, rewrites the others to `ReplaceFormData`, and reports other uses. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- Breaking: `UserActionResult.UpdatedDataModels` and `UserActionResult.AddUpdatedDataModel`. In `IUserAction.HandleAction`, change form data through `context.DataMutator`, such as with `GetFormData` or `ReplaceFormData`. Those changes are saved and returned to the form without being added to the result. `studioctl app upgrade v9` rewrites `AddUpdatedDataModel` calls to `ReplaceFormData`, which you can remove where the model came from `context.DataMutator.GetFormData`, and reports other uses. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Breaking: the `UserActionContext` constructor that takes an `Instance`. Pass an `IInstanceDataMutator` instead; in a unit test, a mock whose `Instance` returns your instance is enough. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Breaking: `UserActionService` is internal. To run another action from app code, inject the `IUserAction` implementation itself. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
