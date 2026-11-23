@@ -522,6 +522,41 @@ public class ProcessTaskDefaultMemberAnalyzerTests
     }
 
     [Fact]
+    public async Task A_Base_Class_Helper_Of_The_Name_That_A_Derived_Task_Calls_Is_Not_Reported()
+    {
+        // ArchiveTask implements DefineEnd and calls its base class's overload, which runs. ArchiveTaskBase doesn't
+        // implement DefineEnd itself, so its helper is reported, and an error breaks a correct app's build.
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public abstract class ArchiveTaskBase : IServiceTask
+                {
+                    public abstract string Type { get; }
+
+                    public abstract ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline);
+
+                    protected void DefineEnd(PipelineBuilder.Lifecycle pipeline, string label) => pipeline.Stage(Revoke);
+
+                    private static Task<StageResult> Revoke(StageContext context) =>
+                        throw new System.NotImplementedException();
+                }
+
+                public sealed class ArchiveTask : ArchiveTaskBase, IServiceTask
+                {
+                    public override string Type => "archive";
+
+                    public override ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+                        throw new System.NotImplementedException();
+
+                    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => DefineEnd(pipeline, "archive");
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
     public async Task A_Helper_Of_The_Name_That_A_Generated_Part_Of_The_Task_Calls_Is_Not_Reported()
     {
         // The call is in a generated partial part, such as a source generator's. The helper runs, but the rule
