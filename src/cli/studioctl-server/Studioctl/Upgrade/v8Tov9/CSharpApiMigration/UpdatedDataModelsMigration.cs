@@ -30,9 +30,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </para>
 /// <para>
 /// A call is removed only when <c>model</c> is a local variable that is assigned nowhere but in its declaration,
-/// whose initializer awaits a <c>GetFormData</c> of <c>Altinn.App.Core.Features</c> with an argument written like
-/// the call's id: <c>x</c> for <c>x</c>, <c>x.Id</c> or <c>new DataElementIdentifier(x)</c>. Anything else keeps
-/// the replacement, which is correct for a tracked model too.
+/// whose initializer awaits <c>context.DataMutator.GetFormData</c> on the action's own context with an argument
+/// written like the call's id: <c>x</c> for <c>x</c>, <c>x.Id</c> or <c>new DataElementIdentifier(x)</c>, where no
+/// variable in either is assigned again and <c>x</c> is not a <c>DataType</c>. The call must also not be the only
+/// statement of its block. Anything else keeps the replacement, which is correct for a tracked model too. Comments
+/// above a removed call move to the statement after it.
 /// </para>
 /// </remarks>
 internal sealed class UpdatedDataModelsMigration
@@ -46,6 +48,7 @@ internal sealed class UpdatedDataModelsMigration
     private const string DataMutatorPropertyName = "DataMutator";
     private const string GetFormDataMethodName = "GetFormData";
     private const string IdPropertyName = "Id";
+    private const string DataTypeTypeName = "DataType";
     private const string ReplaceMethodName = "ReplaceFormData";
     private const string ExtensionNamespace = "Altinn.App.Core.Features";
     private const string IdentifierTypeName = "Altinn.App.Core.Models.DataElementIdentifier";
@@ -219,19 +222,24 @@ internal sealed class UpdatedDataModelsMigration
             arguments.Model,
             context,
             memberAccess.Expression.ToString(),
-            // A statement that is the body of an if or a loop cannot be left out.
-            statement.Parent is BlockSyntax
-                && IsReadThroughMutator(semanticModel, method, arguments.Model, arguments.Id)
+            // A statement that is the body of an if or a loop cannot be left out, and leaving out the only statement
+            // of a block would leave an empty one behind.
+            statement.Parent
+                is BlockSyntax { Statements.Count: > 1 }
+                && IsReadThroughMutator(semanticModel, method, context, arguments.Model, arguments.Id)
         );
     }
 
     /// <summary>
-    /// Whether <paramref name="model"/> is a local read from the data element <paramref name="id"/> names through the
-    /// mutator, and never assigned again, so the mutator already tracks every change to it.
+    /// Whether <paramref name="model"/> is a local read from the data element <paramref name="id"/> names directly
+    /// through <c>context.DataMutator</c>, and neither it nor a variable in the id is assigned again, so the mutator
+    /// already tracks every change to it. A read through another accessor, such as <c>GetCleanAccessor()</c>, gets
+    /// a copy.
     /// </summary>
     private static bool IsReadThroughMutator(
         SemanticModel semanticModel,
         MethodDeclarationSyntax method,
+        SyntaxToken context,
         ExpressionSyntax model,
         ExpressionSyntax id
     )
@@ -245,28 +253,60 @@ internal sealed class UpdatedDataModelsMigration
             || Unwrap(initializer) is not AwaitExpressionSyntax awaited
             || Unwrap(awaited.Expression) is not InvocationExpressionSyntax read
             || read.ArgumentList.Arguments is not [{ NameColon: null, RefKindKeyword.RawKind: 0 } readArgument]
+            || !IsContextMutator(semanticModel, read.Expression, context)
             || !IsMutatorGetFormData(semanticModel, read)
+            || semanticModel.GetTypeInfo(readArgument.Expression).Type is { Name: DataTypeTypeName }
             || !NamesSameElement(readArgument.Expression, id)
         )
         {
             return false;
         }
 
-        return !method
+        return !IsAssigned(semanticModel, method, local)
+            && !Variables(semanticModel, readArgument.Expression)
+                .Concat(Variables(semanticModel, id))
+                .Any(variable => IsAssigned(semanticModel, method, variable));
+    }
+
+    /// <summary>Whether <paramref name="invoked"/> is <c>context.DataMutator.GetFormData</c> on the action's context.</summary>
+    private static bool IsContextMutator(SemanticModel semanticModel, ExpressionSyntax invoked, SyntaxToken context) =>
+        invoked
+            is MemberAccessExpressionSyntax
+            {
+                Expression: MemberAccessExpressionSyntax
+                {
+                    Expression: IdentifierNameSyntax receiver,
+                    Name.Identifier.ValueText: DataMutatorPropertyName,
+                },
+            }
+        && receiver.Identifier.ValueText == context.ValueText
+        && semanticModel.GetSymbolInfo(receiver).Symbol is IParameterSymbol;
+
+    /// <summary>The locals and parameters <paramref name="expression"/> reads.</summary>
+    private static IEnumerable<ISymbol> Variables(SemanticModel semanticModel, ExpressionSyntax expression) =>
+        expression
+            .DescendantNodesAndSelf()
+            .OfType<IdentifierNameSyntax>()
+            .Select(name => semanticModel.GetSymbolInfo(name).Symbol)
+            .Where(static symbol => symbol is ILocalSymbol or IParameterSymbol)
+            .OfType<ISymbol>();
+
+    /// <summary>Whether the method assigns <paramref name="variable"/> anywhere but in its declaration.</summary>
+    private static bool IsAssigned(SemanticModel semanticModel, MethodDeclarationSyntax method, ISymbol variable) =>
+        method
             .DescendantNodes()
             .Any(node =>
                 node switch
                 {
-                    AssignmentExpressionSyntax assignment => Binds(semanticModel, assignment.Left, local),
+                    AssignmentExpressionSyntax assignment => Binds(semanticModel, assignment.Left, variable),
                     ArgumentSyntax { RefKindKeyword.RawKind: not 0 } argument => Binds(
                         semanticModel,
                         argument.Expression,
-                        local
+                        variable
                     ),
                     _ => false,
                 }
             );
-    }
 
     private static bool IsMutatorGetFormData(SemanticModel semanticModel, InvocationExpressionSyntax invocation)
     {
@@ -298,8 +338,8 @@ internal sealed class UpdatedDataModelsMigration
         return idText == elementText || idText == $"{elementText}.{IdPropertyName}";
     }
 
-    private static bool Binds(SemanticModel semanticModel, ExpressionSyntax expression, ILocalSymbol local) =>
-        SymbolEqualityComparer.Default.Equals(semanticModel.GetSymbolInfo(Unwrap(expression)).Symbol, local);
+    private static bool Binds(SemanticModel semanticModel, ExpressionSyntax expression, ISymbol variable) =>
+        SymbolEqualityComparer.Default.Equals(semanticModel.GetSymbolInfo(Unwrap(expression)).Symbol, variable);
 
     private static ExpressionSyntax Unwrap(ExpressionSyntax expression) =>
         expression switch
@@ -404,17 +444,50 @@ internal sealed class UpdatedDataModelsMigration
             (original, current) => current.WithExpression(Replacement(replacements[original], current.Expression))
         );
 
-        var removals = plans
-            .Where(static plan => plan.Remove)
-            .Select(plan => rewritten.GetCurrentNode(plan.Statement))
-            .OfType<SyntaxNode>()
-            .ToList();
-        if (removals.Count > 0)
+        // Last first, so a comment moved from one removed statement never lands on another one that is removed.
+        foreach (
+            var plan in plans.Where(static plan => plan.Remove).OrderByDescending(static p => p.Statement.SpanStart)
+        )
         {
-            rewritten = rewritten.RemoveNodes(removals, SyntaxRemoveOptions.KeepNoTrivia) ?? rewritten;
+            rewritten = WithoutStatement(rewritten, plan.Statement);
         }
 
         return replacements.Count == 0 || SeesExtensionNamespace(rewritten) ? rewritten : WithExtensionUsing(rewritten);
+    }
+
+    /// <summary>
+    /// Removes the tracked <paramref name="statement"/> with its line. Comments above it are about the code around it
+    /// as often as about the call, so they move to the token that follows.
+    /// </summary>
+    private static CompilationUnitSyntax WithoutStatement(CompilationUnitSyntax root, StatementSyntax statement)
+    {
+        if (root.GetCurrentNode(statement) is not { } current)
+        {
+            return root;
+        }
+
+        var leading = current.GetLeadingTrivia();
+        if (
+            leading.Any(static trivia =>
+                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+            )
+        )
+        {
+            // The indentation before the statement goes, the next token keeps its own.
+            var comments = leading
+                .Reverse()
+                .SkipWhile(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                .Reverse();
+            var next = current.GetLastToken().GetNextToken();
+            root = root.ReplaceToken(next, next.WithLeadingTrivia(comments.Concat(next.LeadingTrivia)));
+            current = root.GetCurrentNode(statement);
+            if (current is null)
+            {
+                return root;
+            }
+        }
+
+        return root.RemoveNode(current, SyntaxRemoveOptions.KeepNoTrivia) ?? root;
     }
 
     /// <summary>

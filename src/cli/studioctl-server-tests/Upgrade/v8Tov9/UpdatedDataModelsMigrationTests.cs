@@ -63,6 +63,7 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
             {
                 Altinn.Platform.Storage.Interface.Models.Instance Instance { get; }
                 System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier id);
+                IInstanceDataMutator GetCleanAccessor();
             }
 
             public static class IInstanceDataAccessorExtensions
@@ -250,6 +251,7 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
                     var tracked = (Model)await context.DataMutator.GetFormData(element.Identifier);
                     model.Name = "changed";
                     var result = UserActionResult.SuccessResult();
+                    // TODO(jira-123): keep this note
                     result.AddUpdatedDataModel(element.Id, model);
                     result.AddUpdatedDataModel(element.Identifier.Id, tracked);
                     return result;
@@ -274,7 +276,10 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
         var migrated = File.ReadAllText(action).Replace("\r\n", "\n", StringComparison.Ordinal);
         Assert.DoesNotContain("AddUpdatedDataModel", migrated);
         Assert.DoesNotContain("ReplaceFormData", migrated);
-        Assert.Contains("        var result = UserActionResult.SuccessResult();\n        return result;\n", migrated);
+        Assert.Contains(
+            "        var result = UserActionResult.SuccessResult();\n        // TODO(jira-123): keep this note\n        return result;\n",
+            migrated
+        );
         // Nothing calls ReplaceFormData, so the file gets no second using for it.
         Assert.Single(migrated.Split("using Altinn.App.Core.Features;")[1..]);
         Assert.Equal(
@@ -304,11 +309,22 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
                     var reassigned = await context.DataMutator.GetFormData(id);
                     reassigned = new object();
                     var embedded = await context.DataMutator.GetFormData(id);
+                    var onlyInBlock = await context.DataMutator.GetFormData(id);
+                    var copy = await context.DataMutator.GetCleanAccessor().GetFormData(id);
+                    var movedId = id;
+                    var fromMovedId = await context.DataMutator.GetFormData(movedId);
+                    movedId = new DataElementIdentifier("other");
                     var result = UserActionResult.SuccessResult();
                     result.AddUpdatedDataModel(id.Id, fromClient);
                     result.AddUpdatedDataModel(id.Id, reassigned);
                     if (flag)
                         result.AddUpdatedDataModel(id.Id, embedded);
+                    if (flag)
+                    {
+                        result.AddUpdatedDataModel(id.Id, onlyInBlock);
+                    }
+                    result.AddUpdatedDataModel(id.Id, copy);
+                    result.AddUpdatedDataModel(movedId.Id, fromMovedId);
                     return result;
                 }
             }
@@ -319,7 +335,7 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
 
         var migrated = File.ReadAllText(action);
         Assert.DoesNotContain("AddUpdatedDataModel", migrated);
-        Assert.Equal(3, migrated.Split("await context.DataMutator.ReplaceFormData(").Length - 1);
+        Assert.Equal(6, migrated.Split("await context.DataMutator.ReplaceFormData(").Length - 1);
         AssertCompilesAgainstV9();
     }
 
