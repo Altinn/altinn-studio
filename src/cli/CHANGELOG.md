@@ -11,7 +11,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- `studioctl app upgrade v9` writes the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds with the new signature, such as `void DefineStart(PipelineBuilder.Lifecycle pipeline)`. Deleting only its `#error` line lets the app build, but not start until you port the work to stages.
+- `studioctl app upgrade v9` writes service tasks and process tasks for the `PipelineBuilder` variants:
+    - run again, it moves those written for earlier v9 previews: `Finally` becomes `Stage`, `ConcludeOnReplies` becomes `HandleReplies`, and `Build()` goes
+    - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds takes `PipelineBuilder.Lifecycle`. Without its `#error` line the app builds, but does not start until you port the work
 
 ## [0.1.0-preview.34] - 2026-11-20
 
