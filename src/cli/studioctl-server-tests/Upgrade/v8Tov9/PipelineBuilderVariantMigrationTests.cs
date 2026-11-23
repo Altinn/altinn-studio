@@ -1076,10 +1076,10 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task FinallyAfterAHelperTheUpgradeCannotSee_IsReported_NotDone()
+    public async Task FinallyOnAReceiverTheUpgradeCannotFollow_IsReported_NotDone()
     {
-        // SharedStages, LibraryTaskBase and the WithArchive extension come from a library the upgrade cannot see, so
-        // whether the receiver of Finally is the builder cannot be told.
+        // SharedStages, LibraryTaskBase and the WithArchive extension come from a library the upgrade cannot see, and
+        // a field is set elsewhere, so whether the receiver of Finally is the builder cannot be told.
         var todos = await ReportedAndUnchanged(
             semantic: false,
             $$"""
@@ -1104,6 +1104,15 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
 
                 public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.WithArchive().Finally(Done);
             }
+
+            public class SavedTask : IServiceTask
+            {
+                private static PipelineBuilder? _saved;
+
+                public string Type => "saved";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => _saved!.Finally(Done);
+            }
             """
         );
 
@@ -1112,8 +1121,57 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
             todo =>
                 Assert.Contains("StaticTask.DefineExecute uses Finally at line 11 on something it cannot tell", todo),
             todo => Assert.Contains("BaseTask.DefineExecute uses Finally at line 18 on something", todo),
-            todo => Assert.Contains("ExtensionTask.DefineExecute uses Finally at line 25 on something", todo)
+            todo => Assert.Contains("ExtensionTask.DefineExecute uses Finally at line 25 on something", todo),
+            todo => Assert.Contains("SavedTask.DefineExecute uses Finally at line 34 on something", todo),
+            todo => Assert.Contains("UnplacedTasks.cs:30: this PipelineBuilder is not a parameter or local", todo)
         );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task HelperOnAnInstance_TakesItsCallersVariant_WithASemanticModel(bool semantic)
+    {
+        var task = Write(
+            "logic/InstanceTask.cs",
+            $$"""
+            public class Stages
+            {
+                public PipelineBuilder WithArchive(PipelineBuilder pipeline) =>
+                    pipeline.Stage(static context => Task.FromResult(StageResult.Completed()));
+            }
+
+            public class InstanceTask : IServiceTask
+            {
+                public string Type => "instance";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                    new Stages().WithArchive(pipeline).Finally(Done);
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        if (semantic)
+        {
+            Assert.Empty(result.Todos);
+            AssertCompilesAgainstCurrent();
+            Assert.Contains("        new Stages().WithArchive(pipeline).Stage(Done);\n", await ReadMigrated(task));
+        }
+        else
+        {
+            // Without one, the call on an instance is not followed: neither method is rewritten.
+            Assert.Empty(Oks(result));
+            Assert.Collection(
+                result.Todos,
+                helper =>
+                    Assert.Contains("Stages.WithArchive takes or returns a PipelineBuilder, and nothing shows", helper),
+                execute => Assert.Contains("InstanceTask.DefineExecute uses Finally at line 17 on something", execute)
+            );
+        }
     }
 
     [Theory]
