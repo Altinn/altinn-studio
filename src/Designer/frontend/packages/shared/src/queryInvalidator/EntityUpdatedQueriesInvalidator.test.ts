@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { EntityUpdatedQueriesInvalidator } from './EntityUpdatedQueriesInvalidator';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { waitFor } from '@testing-library/react';
-import { org, app } from '@studio/testing/testids';
+import { org, app } from '@designer/testing/testids';
 
 vi.mock('@tanstack/react-query');
 

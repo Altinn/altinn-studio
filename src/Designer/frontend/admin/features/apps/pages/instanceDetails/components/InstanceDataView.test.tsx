@@ -1,16 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import axios from 'axios';
-import type { AxiosStatic } from 'axios';
+import { get, del } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import type { QueryClient } from '@tanstack/react-query';
 import { InstanceDataView } from './InstanceDataView';
 import type { InstanceDataViewSection } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -19,10 +18,11 @@ import type { WorkflowStatus } from 'admin/features/apps/types/workflows/Workflo
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import type { ProcessTaskMetadata } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn(), delete: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+  del: vi.fn(),
+}));
 
 const org = 'ttd';
 const environment = 'tt02';
@@ -66,7 +66,7 @@ const processMetadataMock: ProcessTaskMetadata[] = [
 
 describe('InstanceDataView', () => {
   it('shows a spinner while loading', () => {
-    (axios.get as Mock).mockReturnValue(new Promise(() => {}));
+    vi.mocked(get).mockReturnValue(new Promise(() => {}));
 
     renderInstanceDataView({ instance: null });
 
@@ -100,7 +100,7 @@ describe('InstanceDataView', () => {
   it('deletes the instance and invalidates instance queries when the user confirms', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    (axios.delete as Mock).mockResolvedValue({});
+    vi.mocked(del).mockResolvedValue(undefined);
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     renderInstanceDataView({ queryClient });
@@ -109,9 +109,7 @@ describe('InstanceDataView', () => {
 
     expect(window.confirm).toHaveBeenCalledWith(textMock('admin.instances.delete.confirm'));
     await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        instanceDeletePath(org, environment, app, instanceId),
-      );
+      expect(del).toHaveBeenCalledWith(instanceDeletePath(org, environment, app, instanceId));
     });
     await waitFor(() => {
       expect(invalidateQueriesSpy).toHaveBeenCalledWith({
@@ -126,14 +124,14 @@ describe('InstanceDataView', () => {
   it('disables the delete button while the deletion is pending so only one request is sent', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    (axios.delete as Mock).mockReturnValue(new Promise(() => {}));
+    vi.mocked(del).mockReturnValue(new Promise(() => {}));
     renderInstanceDataView();
 
     await user.click(getDeleteButton());
     expect(getDeleteButton()).toBeDisabled();
     await user.click(getDeleteButton());
 
-    expect(axios.delete).toHaveBeenCalledTimes(1);
+    expect(del).toHaveBeenCalledTimes(1);
   });
 
   it("shows the instance's health on the workflow engine only when asked to", () => {
@@ -157,11 +155,8 @@ describe('InstanceDataView', () => {
       unmatchedKeys: [],
     };
     const newestWorkflows = { data: [completedWorkflow], pageSize: 25, totalCount: 26 };
-    (axios.get as Mock).mockImplementation((url: string) =>
-      Promise.resolve({
-        status: 200,
-        data: url.includes('/collections') ? rollup : newestWorkflows,
-      }),
+    vi.mocked(get).mockImplementation((url: string) =>
+      Promise.resolve(url.includes('/collections') ? rollup : newestWorkflows),
     );
 
     renderInstanceDataView({ showWorkflowHealth: true });
@@ -175,7 +170,7 @@ describe('InstanceDataView', () => {
     renderInstanceDataView();
 
     expect(screen.queryByText(textMock('admin.workflows.health'))).not.toBeInTheDocument();
-    expect(axios.get).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
   });
 
   it('does not delete the instance when the user cancels the confirmation', async () => {
@@ -185,7 +180,7 @@ describe('InstanceDataView', () => {
 
     await user.click(getDeleteButton());
 
-    expect(axios.delete).not.toHaveBeenCalled();
+    expect(del).not.toHaveBeenCalled();
   });
 
   it('shows the task a data type is bound to with taskId', () => {

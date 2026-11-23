@@ -41,6 +41,42 @@
         "required": true
       },
       {
+        "id": "listCheckboxes",
+        "type": "List",
+        "textResourceBindings": {
+          "title": "Hvem skal få kopi av saken?"
+        },
+        "dataModelBindings": {
+          "group": "SelectedPeople",
+          "name": "SelectedPeople.Name",
+          "age": "SelectedPeople.Age",
+          "profession": "SelectedPeople.Profession"
+        },
+        "deletionStrategy": "hard",
+        "summaryBinding": "name",
+        "dataListId": "people",
+        "tableHeaders": {
+          "name": "Navn",
+          "age": "Alder",
+          "profession": "Yrke"
+        }
+      },
+      {
+        "id": "listReadOnly",
+        "type": "List",
+        "textResourceBindings": {
+          "title": "Personer i registeret",
+          "description": "Viser bare navn og yrke på mobil"
+        },
+        "dataListId": "people",
+        "tableHeaders": {
+          "name": "Navn",
+          "age": "Alder",
+          "profession": "Yrke"
+        },
+        "tableHeadersMobile": ["name", "profession"]
+      },
+      {
         "id": "toSummary",
         "type": "NavigationButtons",
         "textResourceBindings": {

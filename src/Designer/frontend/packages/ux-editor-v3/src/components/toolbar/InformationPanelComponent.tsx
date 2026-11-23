@@ -6,8 +6,8 @@ import {
   getComponentTitleByComponentType,
 } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components';
-import { InformationIcon } from '@studio/icons';
+import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@designer/components';
+import { InformationIcon } from '@designer/icons';
 
 export type InformationPanelProvidedProps = {
   isOpen: boolean;

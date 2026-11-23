@@ -1,13 +1,13 @@
 import type { ReactElement } from 'react';
 import { useMemo, useCallback } from 'react';
-import { ContentLibrary } from '@studio/content-library';
+import { ContentLibrary } from '@designer/content-library';
 import type {
   CodeListWithMetadata,
   PagesConfig,
   TextResourceWithLanguage,
   CodeListData,
   OrdinaryCodeListFile,
-} from '@studio/content-library';
+} from '@designer/content-library';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import {
   StudioAlert,
@@ -16,7 +16,7 @@ import {
   StudioSpinner,
   StudioPageError,
   StudioPageSpinner,
-} from '@studio/components';
+} from '@designer/components';
 import { useUpdateOrgCodeListMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListMutation';
 import { useTranslation } from 'react-i18next';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
@@ -24,7 +24,7 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { useCreateOrgCodeListMutation } from 'app-shared/hooks/mutations/useCreateOrgCodeListMutation';
 import { useUploadOrgCodeListMutation } from 'app-shared/hooks/mutations/useUploadOrgCodeListMutation';
 import { toast } from 'react-toastify';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 import { useDeleteOrgCodeListMutation } from 'app-shared/hooks/mutations/useDeleteOrgCodeListMutation';
 import {
   backendCodeListsToLibraryCodeLists,
@@ -50,7 +50,7 @@ import type { ITextResourcesWithLanguage } from 'app-shared/types/global';
 import { useUpdateOrgTextResourcesMutation } from 'app-shared/hooks/mutations/useUpdateOrgTextResourcesMutation';
 import { useUpdateOrgCodeListIdMutation } from 'app-shared/hooks/mutations/useUpdateOrgCodeListIdMutation';
 import { FeedbackForm } from './FeedbackForm';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import { useSharedCodeListsQuery } from 'app-shared/hooks/queries/useSharedCodeListsQuery';
 import { useUpdateSharedResourcesMutation } from 'app-shared/hooks/mutations/useUpdateSharedResourcesMutation';
@@ -59,7 +59,7 @@ import { usePublishCodeList } from './usePublishCodeList';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishedResourcesQuery } from 'app-shared/hooks/queries/usePublishedResourcesQuery';
 import { useContentLibraryRouter } from 'app-shared/hooks/useContentLibraryRouter';
-import { FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@designer/pure-functions';
 
 export function OrgContentLibraryPage(): ReactElement {
   const selectedContext = useSelectedContext();
@@ -276,7 +276,7 @@ function ContextWithoutLibraryAccess(): ReactElement {
 
 function useUploadCodeList(orgName: string): (file: File) => void {
   const { mutate: uploadCodeList } = useUploadOrgCodeListMutation(orgName, {
-    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+    hideDefaultError: (error: HttpError<ApiError>) => isErrorUnknown(error),
   });
   const { t } = useTranslation();
 
@@ -286,7 +286,7 @@ function useUploadCodeList(orgName: string): (file: File) => void {
         onSuccess: () => {
           toast.success(t('dashboard.org_library.code_list_upload_success'));
         },
-        onError: (error: AxiosError<ApiError>) => {
+        onError: (error: HttpError<ApiError>) => {
           if (isErrorUnknown(error)) {
             toast.error(t('dashboard.org_library.code_list_upload_generic_error'));
           }

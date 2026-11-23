@@ -8,10 +8,10 @@ import {
 import { type User } from 'app-shared/types/Repository';
 import { type Organization } from 'app-shared/types/Organization';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag } from '@designer/feature-flags';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import type { AppTemplate } from 'app-shared/types/AppTemplate';
 import { QueryKey } from 'app-shared/types/QueryKey';

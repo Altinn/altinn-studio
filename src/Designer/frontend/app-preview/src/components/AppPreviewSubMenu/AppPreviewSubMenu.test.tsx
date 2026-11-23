@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useMediaQuery } from '@studio/hooks/src/hooks/useMediaQuery';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { useMediaQuery } from '@designer/hooks/src/hooks/useMediaQuery';
 import { renderWithProviders } from '../../../test/mocks';
 
-vi.mock('@studio/hooks/src/hooks/useMediaQuery');
+vi.mock('@designer/hooks/src/hooks/useMediaQuery');
 
 describe('AppPreviewSubMenu', () => {
   it('should render the back-to-editing link with text on large screens', () => {

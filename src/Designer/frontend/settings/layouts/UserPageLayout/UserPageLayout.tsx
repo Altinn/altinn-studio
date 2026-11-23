@@ -1,11 +1,11 @@
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { PageLayout } from '../../features/user/layout/PageLayout';
 import { NotFound } from '../../components/NotFound/NotFound';
-import { StudioCenter, StudioPageSpinner } from '@studio/components';
+import { StudioCenter, StudioPageSpinner } from '@designer/components';
 import { StudioPageError } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { useRequiredRoutePathsParams } from 'settings/hooks/useRequiredRoutePathsParams';
-import { StringUtils } from '@studio/pure-functions';
+import { StringUtils } from '@designer/pure-functions';
 
 export const UserPageLayout = () => {
   const { t } = useTranslation();

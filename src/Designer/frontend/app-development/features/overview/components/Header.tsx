@@ -3,7 +3,7 @@ import { useAppMetadataQuery, useTextResourcesQuery } from 'app-shared/hooks/que
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioHeading } from '@studio/components';
+import { StudioSpinner, StudioHeading } from '@designer/components';
 import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import type { ITextResources } from 'app-shared/types/global';

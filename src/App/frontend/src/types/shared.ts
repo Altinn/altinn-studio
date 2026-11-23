@@ -403,6 +403,8 @@ export interface IPlatformFrontendSettings {
    * developers the errors and the developer tools. Undefined leaves it to the host name.
    */
   development?: boolean;
+  /** Undefined in environments where apps can't reach Altinn Broker. */
+  brokerApiBaseUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

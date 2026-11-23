@@ -47,7 +47,7 @@ describe('PDF', () => {
           headers: {
             cookie: new RegExp('altinn-telemetry-traceparent='),
           },
-          resourceType: 'xhr',
+          resourceType: 'fetch',
         }).as('allRequests');
       },
       callback: () => {

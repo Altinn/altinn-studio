@@ -11,11 +11,10 @@ from shared.config.base_config import DEFAULT_ROLE, default_role_model, resolved
 class _Config:
     LLM_MODEL_ACTOR = "actor-model"
     LLM_MODEL_PLANNER = "planner-model"
-    LLM_MODEL_REVIEWER = "reviewer-model"
-    LLM_MODEL_ASSISTANT = "assistant-model"
     LLM_MODEL = "llm-model"
     AZURE_DEPLOYMENT_NAME = "azure-deployment"
     AZURE_API_KEY = "a-key"
+    DECISION_MODEL = "decision-model"
 
 
 @pytest.fixture
@@ -27,11 +26,11 @@ def config(monkeypatch):
 
 class TestTheDefaultRole:
     """The default role is what `get_llm_client()` with no role returns, which is
-    what serves the scope gate and the security gate."""
+    what serves the goal suggestions."""
 
     def test_an_azure_key_means_the_azure_deployment(self, config):
         """The .env.example marks AZURE_API_KEY required, so this is the real path.
-        Reading LLM_MODEL instead reports a model the gates never call."""
+        Reading LLM_MODEL instead reports a model the suggestions never call."""
         assert default_role_model() == "azure-deployment"
 
     def test_without_an_azure_key_it_falls_back_to_llm_model(self, config):
@@ -49,7 +48,7 @@ class TestTheTwoResolutionPaths:
 
     def test_the_default_role_follows_the_client_that_serves_it(self, config):
         """LLMClient gates on the key; build_adapter uses `or`. With no key the
-        two answer differently, and the gates go through LLMClient."""
+        two answer differently, and the suggestions go through LLMClient."""
         config.AZURE_API_KEY = None
 
         assert default_role_model() == "llm-model"
@@ -65,7 +64,6 @@ class TestTheTwoResolutionPaths:
 
         assert models["actor"] == config.LLM_MODEL_ACTOR
         assert models["planner"] == config.LLM_MODEL_PLANNER
-        assert models["reviewer"] == config.LLM_MODEL_REVIEWER
 
     def test_it_is_reported_under_its_own_name(self, config):
         assert resolved_role_models()[DEFAULT_ROLE] == "azure-deployment"
@@ -76,8 +74,11 @@ class TestTheNamedRoles:
         models = resolved_role_models()
 
         assert models["actor"] == "actor-model"
-        assert models["reviewer"] == "reviewer-model"
-        assert models["assistant"] == "assistant-model"
+        assert models["planner"] == "planner-model"
+
+    def test_the_decision_model_is_reported_beside_the_llm_roles(self, config):
+        """It judges every request, so a benchmark run has to say which one did."""
+        assert resolved_role_models()["decision"] == "decision-model"
 
     def test_llm_model_is_not_reported_as_a_role_of_its_own(self, config):
         """It was reported as 'fallback', which read like a role the client has.

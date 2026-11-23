@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import type { AxiosResponse, AxiosStatic } from 'axios';
+import { get } from 'app-shared/utils/networking';
+import type * as Networking from 'app-shared/utils/networking';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { WorkflowHealth } from 'admin/features/apps/utils/workflowHealth';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import {
@@ -13,10 +13,10 @@ import {
   WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
 } from './useInstancesWorkflowHealthQuery';
 
-vi.mock('axios', async () => {
-  const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
-  return { ...actual, default: { ...actual.default, get: vi.fn() } };
-});
+vi.mock('app-shared/utils/networking', async (importOriginal) => ({
+  ...(await importOriginal<typeof Networking>()),
+  get: vi.fn(),
+}));
 
 const env = 'at23';
 
@@ -33,27 +33,21 @@ const keysFrom = (url: string) => [
 
 const requestedKeySets = () =>
   vi
-    .mocked(axios.get)
+    .mocked(get)
     .mock.calls.map(([url]) => keysFrom(url as string))
     .map((keys) => keys.join(','));
 
 const respondHealthy = () => {
-  vi.mocked(axios.get).mockImplementation(
-    async (url: string) =>
-      ({
-        status: 200,
-        data: {
-          data: keysFrom(url).map((key) => ({
-            key,
-            namespace: `${org}/${app}`,
-            createdAt: '2026-08-01T10:00:00Z',
-            workflowCounts: workflowCounts(),
-          })),
-          pageSize: WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
-          totalCount: keysFrom(url).length,
-        },
-      }) as AxiosResponse,
-  );
+  vi.mocked(get).mockImplementation(async (url: string) => ({
+    data: keysFrom(url).map((key) => ({
+      key,
+      namespace: `${org}/${app}`,
+      createdAt: '2026-08-01T10:00:00Z',
+      workflowCounts: workflowCounts(),
+    })),
+    pageSize: WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST,
+    totalCount: keysFrom(url).length,
+  }));
 };
 
 const hasSettled = (pendingKeys: Set<string>) => pendingKeys.size === 0;
@@ -78,7 +72,7 @@ describe('useInstancesWorkflowHealthQuery', () => {
 
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
     const requestedKeyCounts = vi
-      .mocked(axios.get)
+      .mocked(get)
       .mock.calls.map(([url]) => keysFrom(url as string).length);
     expect(requestedKeyCounts).toEqual([WORKFLOW_HEALTH_MAX_KEYS_PER_REQUEST, 3]);
   });
@@ -90,12 +84,12 @@ describe('useInstancesWorkflowHealthQuery', () => {
 
     const { result, rerender } = renderHealthQuery([firstPage], client);
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
-    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(get).toHaveBeenCalledTimes(1);
 
     rerender([firstPage, [guidAt(10)]]);
 
-    await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(2));
-    expect(keysFrom(vi.mocked(axios.get).mock.calls[1][0] as string)).toEqual([guidAt(10)]);
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
+    expect(keysFrom(vi.mocked(get).mock.calls[1][0] as string)).toEqual([guidAt(10)]);
     await waitFor(() =>
       expect(result.current.healthByKey[guidAt(10)]).toBe(WorkflowHealth.Healthy),
     );
@@ -115,12 +109,12 @@ describe('useInstancesWorkflowHealthQuery', () => {
 
     rerender([shortFirstPage, fullSecondPage]);
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
-    expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(2);
 
     rerender([shortFirstPage, fullSecondPage, thirdPage]);
     await waitFor(() => expect(hasSettled(result.current.pendingKeys)).toBe(true));
 
-    expect(axios.get).toHaveBeenCalledTimes(3);
+    expect(get).toHaveBeenCalledTimes(3);
     expect(requestedKeySets()).toEqual(
       [shortFirstPage, fullSecondPage, thirdPage].map((page) => page.join(',')),
     );
@@ -131,7 +125,7 @@ describe('useInstancesWorkflowHealthQuery', () => {
     respondHealthy();
     const { result } = renderHealthQuery([]);
 
-    expect(axios.get).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
     expect(result.current).toEqual({ healthByKey: {}, pendingKeys: new Set() });
   });
 });

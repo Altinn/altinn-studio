@@ -15,6 +15,12 @@ def head_commit(repo_path: str) -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+def exists_in_head(repo_path: str, file_path: str) -> bool:
+    """Whether the last commit has the file."""
+    result = subprocess.run(["git", "cat-file", "-e", f"HEAD:{file_path}"], cwd=repo_path, capture_output=True)
+    return result.returncode == 0
+
+
 def commit(message: str, repo_path: str | None = None, branch_name: str | None = None) -> str | None:
     """Create branch if missing and commit, return hash, or None when nothing changed"""
     try:
@@ -69,10 +75,12 @@ def commit(message: str, repo_path: str | None = None, branch_name: str | None =
 def uncommitted_files(repo_path: str) -> list[str]:
     """Return the paths that are different from the last commit, and the untracked paths.
 
+    The untracked paths include the files that git ignores. A commit leaves out
+    such a file, and `discard_unsaved` deletes it, so it is never saved.
     Raise `subprocess.CalledProcessError` if `repo_path` is not a git repository.
     """
     tracked = _paths(repo_path, "diff", "--name-only", "-z", "HEAD")
-    untracked = _paths(repo_path, "ls-files", "--others", "--exclude-standard", "-z")
+    untracked = _paths(repo_path, "ls-files", "--others", "-z")
     return sorted(tracked | untracked)
 
 
@@ -84,6 +92,27 @@ def unpushed_files(repo_path: str) -> list[str]:
     if `repo_path` is not a git repository.
     """
     return sorted(_paths(repo_path, "log", "--format=", "--name-only", "-z", "HEAD", "--not", "--remotes"))
+
+
+def discard_unsaved(repo_path: str) -> None:
+    """Make the clone equal to the commits that a remote branch has.
+
+    Remove the local commits that no remote branch has, the changes that are
+    not committed, and the untracked files, also the ignored files. Only the
+    tools of the model write files in the clone, so an ignored file is an edit
+    that the app does not have. Raise `subprocess.CalledProcessError` if
+    `repo_path` is not a git repository.
+    """
+    unpushed = _git(repo_path, "rev-list", "HEAD", "--not", "--remotes").stdout.split()
+    # The commits of a session are in a line, thus the parent of the oldest
+    # unpushed commit is on the remote.
+    saved = f"{unpushed[-1]}^" if unpushed else "HEAD"
+    _git(repo_path, "reset", "--hard", "--quiet", saved)
+    _git(repo_path, "clean", "-fdx", "--quiet")
+
+
+def _git(repo_path: str, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(["git", *args], cwd=repo_path, capture_output=True, text=True, check=True)
 
 
 def _paths(repo_path: str, *args: str) -> set[str]:

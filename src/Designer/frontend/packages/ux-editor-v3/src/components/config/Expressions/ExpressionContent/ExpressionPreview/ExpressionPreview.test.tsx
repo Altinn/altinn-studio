@@ -11,13 +11,13 @@ import { renderWithMockStore } from '../../../../../testing/mocks';
 import type { IFormLayouts } from '../../../../../types/global';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 import type { ExpressionPreviewProps } from './ExpressionPreview';
 import { ExpressionPreview } from './ExpressionPreview';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {

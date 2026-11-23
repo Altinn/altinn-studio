@@ -1,0 +1,19 @@
+{
+  "name": "@altinn/app-builder",
+  "description": "WYSIWYG editor where the user builds an app by editing it in place",
+  "version": "0.1.0",
+  "author": "Altinn",
+  "dependencies": {
+    "@app/form-component": "workspace:*",
+    "@app/language": "workspace:*",
+    "classnames": "2.5.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "license": "MIT",
+  "main": "src/index.ts",
+  "private": true,
+  "scripts": {
+    "test": "yarn workspace studio-designer-frontend vitest run packages/app-builder/"
+  }
+}

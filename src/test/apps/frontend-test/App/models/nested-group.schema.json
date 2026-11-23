@@ -1,4 +1,5 @@
 ﻿{
+  // App files support comments and trailing commas together.
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
   "type": "object",
@@ -181,6 +182,26 @@
         },
         "PetSortOrder": {
           "type": "string"
+        },
+        "ChangeList": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "ChangeSummary": {
+          "type": "object",
+          "properties": {
+            "Total": { "type": "number" },
+            "Rows": { "type": "integer" }
+          }
+        },
+        "ChangeRows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Change": { "type": "number" }
+            }
+          }
         },
         "PetsUseOptionComponent": {
           "type": "boolean"
@@ -615,5 +636,5 @@
       "maxLength": 500,
       "type": "string"
     }
-  }
+  },
 }

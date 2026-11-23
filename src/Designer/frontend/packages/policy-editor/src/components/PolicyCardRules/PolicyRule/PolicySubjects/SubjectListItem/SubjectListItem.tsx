@@ -1,6 +1,6 @@
 import type { ElementType } from 'react';
 import cn from 'classnames';
-import { StudioCheckbox } from '@studio/components';
+import { StudioCheckbox } from '@designer/components';
 import classes from './SubjectListItem.module.css';
 
 interface SubjectListItemProps {

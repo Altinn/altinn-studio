@@ -4,7 +4,7 @@ import { AddItemContent, type AddItemContentProps } from './AddItemContent';
 import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { IToolbarElement } from '../../../types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../testing/mocks';
 
 describe('AddItemContent', () => {

@@ -1,6 +1,6 @@
 import type { IInternalLayout } from '../../types/global';
 import { getDuplicatedIds } from '../../utils/formLayoutUtils';
-import { StudioParagraph } from '@studio/components';
+import { StudioParagraph } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './FormLayoutWarning.module.css';
 

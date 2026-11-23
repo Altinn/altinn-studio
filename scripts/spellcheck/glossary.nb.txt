@@ -98,6 +98,7 @@ forhåndsregistrerer
 forhåndsvalgt
 forhåndsvis
 forhåndsvise
+formidlingsstatus
 forsendelsestype
 forsendelsestypen
 funksjonsflagg
@@ -107,6 +108,7 @@ handlingstype
 headerne
 hjemmelserklæring
 hovedflyten
+infoboks
 infoside
 innboks
 innboksen
@@ -220,6 +222,7 @@ signeringssteg
 sikkerhetsnøkkel
 sikkerhetsnøkkelen
 sikkerhetsnøkler
+sjekksum
 skjemabyggeren
 skjemaeditor
 skjemagenerert
@@ -256,6 +259,7 @@ tjenerport
 transportløyvegarantister
 tredjepartsapplikasjon
 tredjepartsbiblioteker
+tusenskille
 tvangsslett
 uarkiverte
 ukategoriserte
@@ -283,7 +287,9 @@ valideringsmelding
 valideringsmeldinger
 valideringsregel
 valideringstyper
+vedleggsfeltene
 vedleggstype
+vedleggstypene
 vedlikeholderen
 velferdsstøtte
 vergehaver
@@ -295,6 +301,7 @@ vertsnavn
 virksomhetsbruker
 visningsmodus
 visningsnavn
+visningsregelen
 visningstype
 visningsverdi
 

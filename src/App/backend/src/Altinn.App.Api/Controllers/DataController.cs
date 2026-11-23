@@ -712,6 +712,7 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
+                SelfLinkHelper.SetInstanceAppSelfLinks(res.Ok.Instance, Request);
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
@@ -1131,9 +1132,10 @@ public class DataController : ControllerBase
         var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(instance, versions, taskId, language);
 
         // Get the previous service model for dataProcessing to work
-        var oldServiceModel = await dataMutator.GetFormData(dataElement);
+        var formData = await dataMutator.GetFormDataWrapper(dataElement);
+        var oldServiceModel = formData.BackingData<object>();
         // Set the new service model so that dataAccessors see the new state
-        dataMutator.SetFormData(dataElement, FormDataWrapperFactory.Create(serviceModel, dataType, dataElement));
+        formData.ReplaceBackingData(serviceModel);
 
         var requestedChange = new FormDataChange(
             type: ChangeType.Updated,
@@ -1141,7 +1143,7 @@ public class DataController : ControllerBase
             contentType: dataElement.ContentType,
             dataType: dataType,
             previousFormDataWrapper: FormDataWrapperFactory.Create(oldServiceModel, dataType, dataElement),
-            currentFormDataWrapper: FormDataWrapperFactory.Create(serviceModel, dataType, dataElement),
+            currentFormDataWrapper: formData,
             previousBinaryData: await dataMutator.GetBinaryData(dataElement),
             currentBinaryData: null // We don't serialize to xml before running data processors
         );
@@ -1149,7 +1151,7 @@ public class DataController : ControllerBase
         // Run data processors keeping track of changes for diff return
         var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
         await _patchService.RunDataProcessors(dataMutator, new DataElementChanges([requestedChange]), taskId, language);
-        var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
+        var jsonAfterDataProcessors = JsonSerializer.Serialize(formData.BackingData<object>());
 
         if (dataMutator.GetAbandonResponse() is { } abandonResponse)
         {

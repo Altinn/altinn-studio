@@ -1,4 +1,4 @@
-import { StudioTag } from '@studio/components';
+import { StudioTag } from '@designer/components';
 import type { SimpleInstance } from 'admin/features/apps/types/InstancesResponse';
 
 import classes from './InstanceStatus.module.css';

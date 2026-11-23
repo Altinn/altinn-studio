@@ -7,7 +7,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { TaskCardEditing, type TaskCardEditingProps } from './TaskCardEditing';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const updateProcessDataTypesMutation = vi.fn().mockImplementation((params, options) => {
   options.onSettled();

@@ -26,6 +26,11 @@ export type VersionControlButtonsContextProps = {
   commitAndPushChanges: (message: string) => Promise<void>;
   fetchChanges: () => Promise<boolean>;
   onPullSuccess: () => void;
+  /**
+   * Runs when the user opens "share changes", before the changed files are listed, so files it changes
+   * are listed and shared too. It should handle its own errors; sharing goes on if it fails.
+   */
+  onBeforeShare?: () => Promise<void>;
 };
 
 type PullOutcome = 'upToDate' | 'mergeConflict' | 'checkoutConflict' | 'failed';
@@ -38,6 +43,7 @@ export type VersionControlButtonsContextProviderProps = {
   currentRepo: Repository;
   repoStatus: RepoStatus;
   onPullSuccess: () => void;
+  onBeforeShare: () => Promise<void>;
 };
 
 export const VersionControlButtonsContextProvider = ({
@@ -45,6 +51,7 @@ export const VersionControlButtonsContextProvider = ({
   currentRepo,
   repoStatus,
   onPullSuccess,
+  onBeforeShare,
 }: Partial<VersionControlButtonsContextProviderProps>) => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
@@ -135,6 +142,7 @@ export const VersionControlButtonsContextProvider = ({
         fetchChanges,
         repoStatus,
         onPullSuccess,
+        onBeforeShare,
       }}
     >
       {children}

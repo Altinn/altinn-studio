@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDialog, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioDialog, StudioParagraph } from '@designer/components';
 import { ResourceAdmDialogContent } from '../ResourceAdmDialogContent/ResourceAdmDialogContent';
 
 export type NavigationModalProps = {

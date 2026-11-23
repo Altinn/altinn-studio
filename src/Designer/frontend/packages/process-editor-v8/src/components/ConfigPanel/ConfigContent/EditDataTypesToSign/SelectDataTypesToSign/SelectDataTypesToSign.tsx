@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
+import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { XMarkIcon } from '@studio/icons';
+import { XMarkIcon } from '@designer/icons';
 import classes from './SelectDataTypesToSign.module.css';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';

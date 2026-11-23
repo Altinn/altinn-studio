@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -11,6 +12,11 @@ namespace Altinn.App.Core.Features;
 /// Extension of the IInstanceDataAccessor that allows for adding, updating and removing data elements,
 /// and also indicate that it is OK to mutate the models
 /// </summary>
+/// <remarks>
+/// Changes to <c>Instance.DataValues</c> and <c>Instance.PresentationTexts</c> are saved with the other changes.
+/// Only the keys that changed are sent, and a key set to null or an empty string is removed. Changing a key that
+/// <c>dataFields</c> or <c>presentationFields</c> in applicationmetadata.json derives fails the save.
+/// </remarks>
 public interface IInstanceDataMutator : IInstanceDataAccessor
 {
     /// <summary>
@@ -101,4 +107,30 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// </summary>
     /// <param name="validationIssues"></param>
     void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues);
+}
+
+/// <summary>
+/// Extension methods for <see cref="IInstanceDataMutator"/>
+/// </summary>
+public static class IInstanceDataMutatorExtensions
+{
+    /// <summary>
+    /// Replace the form data of a data element with <paramref name="model"/>,
+    /// through <see cref="IFormDataWrapper.ReplaceBackingData"/>.
+    /// </summary>
+    /// <remarks>
+    /// The model is not copied: later calls to <see cref="IInstanceDataAccessor.GetFormData"/> return it, and changes
+    /// to it are saved. Like reassigning any other object in the data model, references to the previous model are no
+    /// longer the form.
+    /// </remarks>
+    /// <exception cref="ArgumentException">If <paramref name="model"/> is not of exactly the class of the data type</exception>
+    public static async Task ReplaceFormData(
+        this IInstanceDataMutator dataMutator,
+        DataElementIdentifier dataElementIdentifier,
+        object model
+    )
+    {
+        var formData = await dataMutator.GetFormDataWrapper(dataElementIdentifier);
+        formData.ReplaceBackingData(model);
+    }
 }

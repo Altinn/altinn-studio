@@ -3,7 +3,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:

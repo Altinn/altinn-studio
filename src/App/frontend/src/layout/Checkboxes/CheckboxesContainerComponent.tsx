@@ -11,6 +11,7 @@ import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const CheckboxContainerComponent = ({
@@ -21,6 +22,7 @@ export const CheckboxContainerComponent = ({
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Checkboxes');
   const readOnly = useEvalExpression(config.readOnly, Expressions.Checkboxes.readOnly);
   const required = useEvalExpression(config.required, Expressions.Checkboxes.required);
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Checkboxes.alertOnChange);
   const title = useEvalOptionalText(
     config.textResourceBindings?.title,
@@ -73,7 +75,7 @@ export const CheckboxContainerComponent = ({
       title={title}
       help={help}
       description={description}
-      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+      showOptionalMarking={showOptionalMarking}
       showLabelsInTable={config.showLabelsInTable}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLegend={overrideDisplay?.renderLegend}

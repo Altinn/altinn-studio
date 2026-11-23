@@ -16,6 +16,12 @@ ignore = [
   # bincode 2 is unmaintained and has no maintained successor release. Microsandbox and its
   # libkrun crates use it to serialize their own data; the advisory reports no vulnerability.
   { id = "RUSTSEC-2025-0141", reason = "unmaintained bincode 2 used by Microsandbox; no known vulnerability or safe upgrade" },
+  # astral-tokio-tar is unmaintained and has no maintained successor release. Microsandbox uses it to read and write
+  # image layers and snapshot archives.
+  { id = "RUSTSEC-2026-0440", reason = "unmaintained astral-tokio-tar used by Microsandbox; no safe upgrade" },
+  # The fixed libsqlite3-sys is 0.39, and sqlx-sqlite 0.9.0, its latest release, allows only versions below 0.38.
+  # Remove this entry when Microsandbox can move to a sqlx release that allows it.
+  { id = "RUSTSEC-2026-0459", reason = "libsqlite3-sys fix needs a sqlx release that Microsandbox can use" },
 ]
 
 [sources]

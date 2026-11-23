@@ -1,19 +1,24 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 
 public class AssistantServiceClient : IAssistantServiceClient
 {
     private const string TracesPath = "/api/traces";
-    private const string TraceCleanupPath = $"{TracesPath}/delete-expired";
+    private const string AgentPath = "/api/agent";
     private const string DeveloperHeader = "X-Developer";
+    private const string ApiKeyHeader = "X-Api-Key";
+    private const string SessionIdHeader = "X-Session-Id";
 
     private readonly HttpClient _httpClient;
     private readonly AssistantSettings _assistantSettings;
@@ -22,6 +27,7 @@ public class AssistantServiceClient : IAssistantServiceClient
     {
         _httpClient = httpClient;
         _assistantSettings = assistantSettings.Value;
+        _httpClient.Timeout = TimeSpan.FromSeconds(_assistantSettings.TimeoutSeconds);
     }
 
     public async Task SendFeedbackAsync(
@@ -32,49 +38,101 @@ public class AssistantServiceClient : IAssistantServiceClient
         CancellationToken cancellationToken
     )
     {
-        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TracesPath}/{traceId}/feedback");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, requestUri)
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Put, ServiceUri($"{TracesPath}/{traceId}/feedback"))
         {
             Content = JsonContent.Create(new { thumbs_up = thumbsUp, comment }),
         };
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"Assistant feedback returned {response.StatusCode}: {responseContent}");
-        }
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task ClearFeedbackAsync(string developer, string traceId, CancellationToken cancellationToken)
     {
-        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TracesPath}/{traceId}/feedback");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+        using var httpRequest = new HttpRequestMessage(
+            HttpMethod.Delete,
+            ServiceUri($"{TracesPath}/{traceId}/feedback")
+        );
         httpRequest.Headers.Add(DeveloperHeader, developer);
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException(
-                $"Assistant clear feedback returned {response.StatusCode}: {responseContent}"
-            );
-        }
+        await Send(httpRequest, cancellationToken);
     }
 
     public async Task TriggerTraceCleanupAsync(CancellationToken cancellationToken)
     {
-        var requestUri = new Uri($"{_assistantSettings.AgentUrl}{TraceCleanupPath}");
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ServiceUri($"{TracesPath}/delete-expired"));
 
-        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (!response.IsSuccessStatusCode)
+        await Send(httpRequest, cancellationToken);
+    }
+
+    public async Task StartWorkflow(
+        AssistantWorkflowStartRequest request,
+        string developer,
+        string apiKey,
+        CancellationToken cancellationToken
+    )
+    {
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ServiceUri($"{AgentPath}/start"))
         {
-            string responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException(
-                $"Assistant trace cleanup returned {response.StatusCode}: {responseContent}"
-            );
+            Content = JsonContent.Create(request),
+        };
+        httpRequest.Headers.Add(ApiKeyHeader, apiKey);
+        httpRequest.Headers.Add(DeveloperHeader, developer);
+        httpRequest.Headers.Add(SessionIdHeader, request.SessionId);
+
+        await Send(httpRequest, cancellationToken);
+    }
+
+    public async Task CancelWorkflow(string developer, string sessionId, CancellationToken cancellationToken)
+    {
+        // The assistant service checks that the developer owns the session.
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ServiceUri($"{AgentPath}/cancel/{sessionId}"));
+        httpRequest.Headers.Add(DeveloperHeader, developer);
+
+        await Send(httpRequest, cancellationToken);
+    }
+
+    public async Task RespondToPermission(
+        string developer,
+        string sessionId,
+        string requestId,
+        bool granted,
+        CancellationToken cancellationToken
+    )
+    {
+        using var httpRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            ServiceUri($"{AgentPath}/permission/{sessionId}")
+        )
+        {
+            Content = JsonContent.Create(new { request_id = requestId, granted }),
+        };
+        httpRequest.Headers.Add(DeveloperHeader, developer);
+
+        await Send(httpRequest, cancellationToken);
+    }
+
+    private Uri ServiceUri(string path) => new($"{_assistantSettings.AgentUrl}{path}");
+
+    private async Task Send(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
+    {
+        using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+        if (response.IsSuccessStatusCode)
+        {
+            return;
         }
+
+        string message = $"Assistant returned {response.StatusCode} for {httpRequest.RequestUri?.AbsolutePath}";
+
+        // A 401 means that Designer's own request was wrong.
+        if (
+            response.StatusCode is >= HttpStatusCode.BadRequest and < HttpStatusCode.InternalServerError
+            && response.StatusCode != HttpStatusCode.Unauthorized
+        )
+        {
+            throw new HttpRequestWithStatusException(message) { StatusCode = response.StatusCode };
+        }
+
+        throw new HttpRequestException(message, null, response.StatusCode);
     }
 }

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
-import { useMediaQuery } from '@studio/hooks';
-import { StudioPageHeader } from '@studio/components';
-import { ArrowLeftIcon, CogIcon } from '@studio/icons';
+import { useMediaQuery } from '@designer/hooks';
+import { StudioPageHeader } from '@designer/components';
+import { ArrowLeftIcon, CogIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import type { TranslationKey } from '@altinn-studio/language/type';
@@ -69,6 +69,7 @@ const backButtonTextKeys: Record<PageWithSettingsButton, TranslationKey> = {
   [RoutePaths.ProcessEditor]: 'sync_header.settings_back_to_process-editor',
   [RoutePaths.ContentLibrary]: 'sync_header.settings_back_to_content-library',
   [RoutePaths.AiAssistant]: 'sync_header.settings_back_to_ai-assistant',
+  [RoutePaths.AppBuilder]: 'sync_header.settings_back_to_app-builder',
 };
 
 function getButtonTextKey(isSettingsPage: boolean, from?: string): string {

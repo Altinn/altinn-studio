@@ -10,13 +10,13 @@ import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
 import { FormLayout } from './FormLayout';
-import { StudioButton } from '@studio/components';
+import { StudioButton } from '@designer/components';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts

@@ -99,4 +99,9 @@ internal class PlatformFrontendSettings
     /// When null, the frontend decides from the host name, which it knows for TT02 and LocalTest.
     /// </remarks>
     public bool? Development { get; set; }
+
+    /// <summary>
+    /// Base URL of the Altinn Broker API, used by the BrokerFileTransfer component. Null where apps can't reach Broker.
+    /// </summary>
+    public string? BrokerApiBaseUrl { get; set; }
 }

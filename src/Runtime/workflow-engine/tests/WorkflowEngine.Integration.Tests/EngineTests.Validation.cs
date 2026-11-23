@@ -32,6 +32,26 @@ public partial class EngineTests
         Assert.All(response.Workflows, w => Assert.Equal("custom:namespace", w.Namespace));
     }
 
+    [Fact]
+    public async Task Namespace_WithAnEncodedSlash_IsStoredWithTheSlash_WhicheverCaseItIsEncodedIn()
+    {
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
+        );
+
+        // The API client encodes the slash as %2F.
+        var enqueued = await _client.Enqueue(request, ns: "ttd/my-app");
+        var workflowId = Assert.Single(enqueued.Workflows).DatabaseId;
+        using var engine = fixture.CreateEngineClient();
+        using var read = await engine.GetAsync(
+            $"/api/v1/ttd%2fmy-app/workflows/{workflowId}",
+            TestContext.Current.CancellationToken
+        );
+
+        var workflow = await EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(read);
+        Assert.Equal("ttd/my-app", workflow.Namespace);
+    }
+
     // ── Step validation ─────────────────────────────────────────────────────
 
     [Fact]

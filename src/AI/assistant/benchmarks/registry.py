@@ -7,8 +7,8 @@ from pathlib import Path
 
 DATASETS_DIR = Path(__file__).parent / "datasets"
 
-# prompt: one message. generation: a replayed trace. planner: a file. e2e: tools run.
-KINDS = ("prompt", "generation", "planner", "e2e")
+# prompt: one message. decision: the request gate. generation: a replayed trace. planner: a file. e2e: tools run.
+KINDS = ("prompt", "decision", "generation", "planner", "e2e")
 
 STATUSES = ("live", "retired", "orphan")
 
@@ -76,24 +76,23 @@ class Eval:
 EVALS = (
     Eval(
         name="Gates/scope",
-        kind="prompt",
+        kind="decision",
         file="gates_scope.jsonl",
-        prompt="scope_check",
         summary=(
-            "Is the question about Altinn app development at all. The hard cases are "
+            "Is the request relevant: about Altinn app development at all. The hard cases are "
             "pairs that share a subject and differ only in the verb: travel advice is "
             "out of scope, a field asking where you travel is not."
         ),
     ),
     Eval(
         name="Gates/security",
-        kind="prompt",
+        kind="decision",
         file="gates_security.jsonl",
-        prompt="security_check",
         summary=(
             "Is the request a legitimate use of an app-development agent. Read the two "
             "directions separately: false rejections of real work cost more than an "
-            "ambiguous request reaching the later layers."
+            "ambiguous request reaching the later layers. A safe item must also pass as "
+            "relevant, since every request meets both questions."
         ),
     ),
     Eval(
@@ -126,7 +125,7 @@ EVALS = (
         prompt="spec_extraction",
         user_template="spec_extraction_user",
         summary=(
-            "Spec extraction from a real PDF. Items name a file in assets/ rather than "
+            "Spec extraction from a PDF form. Items name a file in assets/ rather than "
             "depending on a trace to have kept it, because traces record the extracted "
             "spec and never the upload. Scored on the field labels a verified run found, "
             "not on the page count, which has proved unstable across runs while the "
@@ -139,7 +138,7 @@ EVALS = (
         summary=(
             "Full agent runs against a structural rubric. The only eval that executes "
             "tools, pushes a session branch and renders pages, so it is the only one that "
-            "shows a generated app actually builds. One item sends a real PDF attachment. "
+            "shows a generated app actually builds. One item sends a PDF attachment. "
             "Items and rubrics live in Langfuse because a rubric is built from a golden "
             "app clone rather than written by hand."
         ),

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { BpmnContextProps } from '../../../contexts/BpmnContext';
 import { BpmnContext } from '../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -15,8 +15,8 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
-import { useStudioRecommendedNextActionContext } from '@studio/components';
-import { screen, within } from '@studio/ui-test';
+import { useStudioRecommendedNextActionContext } from '@designer/components';
+import { screen, within } from '@designer/ui-test';
 
 const tasks = [
   {
@@ -54,7 +54,7 @@ vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
 });
 
 vi.mock(
-  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  '@designer/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
   () => ({
     useStudioRecommendedNextActionContext: vi.fn(),
   }),

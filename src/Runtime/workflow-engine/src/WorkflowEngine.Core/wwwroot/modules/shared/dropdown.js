@@ -3,17 +3,13 @@
 import { dom, state } from '../core/state.js';
 import { esc } from '../core/helpers.js';
 
-/** @type {(v: string) => string} */
-const identity = (v) => v;
-
 /**
  * Rebuild dropdown list items.
  * @param {HTMLElement} listEl
  * @param {Set<string>} allValues
  * @param {Set<string>} filterSet
- * @param {(v: string) => string} [labelFn] - maps a raw value to its display text
  */
-export const rebuildDropdown = (listEl, allValues, filterSet, labelFn = identity) => {
+export const rebuildDropdown = (listEl, allValues, filterSet) => {
     const sorted = [...allValues].sort();
     listEl.innerHTML = '';
     if (sorted.length > 0) {
@@ -37,7 +33,7 @@ export const rebuildDropdown = (listEl, allValues, filterSet, labelFn = identity
         const item = document.createElement('div');
         item.className = `dropdown-item${filterSet.has(v) ? ' selected' : ''}`;
         item.dataset.value = v;
-        item.textContent = labelFn(v);
+        item.textContent = v;
         listEl.appendChild(item);
     }
 };
@@ -47,16 +43,15 @@ export const rebuildDropdown = (listEl, allValues, filterSet, labelFn = identity
  * @param {Set<string>} filterSet
  * @param {HTMLElement} selectedEl
  * @param {HTMLElement} dropdown
- * @param {(v: string) => string} [labelFn] - maps a raw value to its display text
  */
-export const updateDropdownToggle = (filterSet, selectedEl, dropdown, labelFn = identity) => {
+export const updateDropdownToggle = (filterSet, selectedEl, dropdown) => {
     if (filterSet.size === 0) {
         selectedEl.innerHTML = '';
         dropdown.classList.remove('has-selection');
     } else {
         selectedEl.innerHTML = [...filterSet]
             .sort()
-            .map((v) => `<span class="mini-chip">${esc(labelFn(v))}</span>`)
+            .map((v) => `<span class="mini-chip">${esc(v)}</span>`)
             .join('');
         dropdown.classList.add('has-selection');
     }

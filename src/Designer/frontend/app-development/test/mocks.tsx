@@ -4,13 +4,13 @@ import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
-import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider, type FeatureFlag } from '@designer/feature-flags';
 
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from 'app-shared/contexts/PreviewContext';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 
 export const renderWithProviders =
   (
