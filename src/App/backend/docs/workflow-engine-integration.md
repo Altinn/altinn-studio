@@ -127,8 +127,8 @@ The gateways also run as the service owner, through the data accessor they are g
   chain.
 - A retried callback can enqueue its continuation with different signed state, such as after an app code rotation or a
   Storage replay. The retry joins the workflow its first attempt enqueued, which keeps the state of that attempt.
-- If a retry asks for other steps or workflow labels under the same key, the engine answers 409. For the continuation
-  of a transition, the app accepts the existing one when exactly one matches its key, source task visit and parent.
+- If a retry differs in anything else under the same key, such as its steps or workflow labels, the engine answers 409. For the continuation of a transition, the app accepts the existing one when exactly one matches its key, source
+  task visit and parent.
 
 ## Concurrent requests
 
