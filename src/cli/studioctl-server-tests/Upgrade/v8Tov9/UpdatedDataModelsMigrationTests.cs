@@ -41,11 +41,20 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
             public class Instance { }
         }
 
+        namespace Altinn.App.Core.Internal.Data
+        {
+            public interface IDataClient
+            {
+                System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier id);
+            }
+        }
+
         namespace Altinn.App.Core.Models
         {
             public readonly struct DataElementIdentifier
             {
                 public DataElementIdentifier(string id) { }
+                public string Id => "";
             }
         }
 
@@ -55,6 +64,13 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
             {
                 Altinn.Platform.Storage.Interface.Models.Instance Instance { get; }
                 System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier id);
+            }
+
+            public static class IInstanceDataAccessorExtensions
+            {
+                public static System.Threading.Tasks.Task<T> GetFormData<T>(
+                    this IInstanceDataMutator accessor,
+                    Altinn.App.Core.Models.DataElementIdentifier id) => System.Threading.Tasks.Task.FromResult(default(T)!);
             }
 
             public interface IUserAction
@@ -180,10 +196,16 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
         var result = new UpdatedDataModelsMigration(SemanticScanner(), _globalFeatures).Migrate();
 
         var migrated = File.ReadAllText(action);
-        Assert.Contains(
-            "await context.DataMutator.ReplaceFormData(new global::Altinn.App.Core.Models.DataElementIdentifier(\"id\"), model);",
+        // The model was read from "id" through the mutator, which tracks its changes.
+        Assert.DoesNotContain(
+            "ReplaceFormData(new global::Altinn.App.Core.Models.DataElementIdentifier(\"id\")",
             migrated
         );
+        Assert.Contains(
+            "var result = UserActionResult.SuccessResult();\n        await context.DataMutator.ReplaceFormData(",
+            migrated.Replace("\r\n", "\n", StringComparison.Ordinal)
+        );
+        // "other" is replaced with the model of "id", which the mutator would not do on its own.
         Assert.Contains(
             "await context.DataMutator.ReplaceFormData(new global::Altinn.App.Core.Models.DataElementIdentifier(\"other\"), model);",
             migrated
@@ -196,10 +218,109 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
             result.Warnings,
             static w =>
                 w.Contains(
-                    "FillAction.cs:12: result.AddUpdatedDataModel(..) -> await context.DataMutator.ReplaceFormData(..)",
+                    "FillAction.cs:12: result.AddUpdatedDataModel(..) -> removed, model is read through DataMutator",
                     StringComparison.Ordinal
                 )
         );
+        Assert.Contains(
+            result.Warnings,
+            static w =>
+                w.Contains(
+                    "FillAction.cs:13: result.AddUpdatedDataModel(..) -> await context.DataMutator.ReplaceFormData(..)",
+                    StringComparison.Ordinal
+                )
+        );
+        AssertCompilesAgainstV9();
+    }
+
+    [Fact]
+    public void WithSemantics_RemovesCallsForAModelReadThroughTheMutator()
+    {
+        var action = _app.Write(
+            "logic/Action.cs",
+            """
+            using Altinn.App.Core.Features;
+            using Altinn.App.Core.Models;
+            using Altinn.App.Core.Models.UserAction;
+
+            public class Action
+            {
+                public async Task<UserActionResult> Handle(UserActionContext context, Element element)
+                {
+                    var model = await context.DataMutator.GetFormData<Model>(new DataElementIdentifier(element.Id));
+                    var tracked = (Model)await context.DataMutator.GetFormData(element.Identifier);
+                    model.Name = "changed";
+                    var result = UserActionResult.SuccessResult();
+                    result.AddUpdatedDataModel(element.Id, model);
+                    result.AddUpdatedDataModel(element.Identifier.Id, tracked);
+                    return result;
+                }
+            }
+
+            public class Element
+            {
+                public string Id { get; set; } = "";
+                public DataElementIdentifier Identifier { get; set; }
+            }
+
+            public class Model
+            {
+                public string? Name { get; set; }
+            }
+            """
+        );
+
+        var result = new UpdatedDataModelsMigration(SemanticScanner(), new HashSet<string>()).Migrate();
+
+        var migrated = File.ReadAllText(action).Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.DoesNotContain("AddUpdatedDataModel", migrated);
+        Assert.DoesNotContain("ReplaceFormData", migrated);
+        Assert.Contains("        var result = UserActionResult.SuccessResult();\n        return result;\n", migrated);
+        // Nothing calls ReplaceFormData, so the file gets no second using for it.
+        Assert.Single(migrated.Split("using Altinn.App.Core.Features;")[1..]);
+        Assert.Equal(
+            2,
+            result.Warnings.Count(static w => w.Contains("is read through DataMutator", StringComparison.Ordinal))
+        );
+        AssertCompilesAgainstV9();
+    }
+
+    [Fact]
+    public void WithSemantics_ReplacesAModelTheMutatorDoesNotTrack()
+    {
+        var action = _app.Write(
+            "logic/Action.cs",
+            """
+            using Altinn.App.Core.Features;
+            using Altinn.App.Core.Internal.Data;
+            using Altinn.App.Core.Models;
+            using Altinn.App.Core.Models.UserAction;
+
+            public class Action(IDataClient dataClient)
+            {
+                public async Task<UserActionResult> Handle(UserActionContext context, bool flag)
+                {
+                    var id = new DataElementIdentifier("id");
+                    var fromClient = await dataClient.GetFormData(id);
+                    var reassigned = await context.DataMutator.GetFormData(id);
+                    reassigned = new object();
+                    var embedded = await context.DataMutator.GetFormData(id);
+                    var result = UserActionResult.SuccessResult();
+                    result.AddUpdatedDataModel(id.Id, fromClient);
+                    result.AddUpdatedDataModel(id.Id, reassigned);
+                    if (flag)
+                        result.AddUpdatedDataModel(id.Id, embedded);
+                    return result;
+                }
+            }
+            """
+        );
+
+        new UpdatedDataModelsMigration(SemanticScanner(), _globalFeatures).Migrate();
+
+        var migrated = File.ReadAllText(action);
+        Assert.DoesNotContain("AddUpdatedDataModel", migrated);
+        Assert.Equal(3, migrated.Split("await context.DataMutator.ReplaceFormData(").Length - 1);
         AssertCompilesAgainstV9();
     }
 
