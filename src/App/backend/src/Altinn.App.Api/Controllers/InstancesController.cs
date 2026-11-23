@@ -1147,7 +1147,7 @@ public class InstancesController : ControllerBase
             )
             {
                 await TryDeleteInstance(targetInstance);
-                return StatusCode(copyProblem.Status ?? 500, copyProblem);
+                return await CopyRejectedResult(copyProblem, application, language);
             }
 
             var fetchedTargetInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
@@ -2275,13 +2275,77 @@ public class InstancesController : ControllerBase
             return StatusCode(StatusCodes.Status403Forbidden, validationResult);
         }
 
+        return HtmlMessagePage(
+            application,
+            language,
+            [validationResult.Message ?? string.Empty],
+            StatusCodes.Status403Forbidden
+        );
+    }
+
+    /// <summary>
+    /// The response when the instantiation processor abandoned a copy: the problem, or, when the client prefers
+    /// html, the same page as a rejected validation, listing the issues the processor gave.
+    /// </summary>
+    private async Task<ActionResult> CopyRejectedResult(
+        ProblemDetails problem,
+        ApplicationMetadata application,
+        string? language
+    )
+    {
+        int status = problem.Status ?? StatusCodes.Status500InternalServerError;
+        if (!RequestPrefersHtml())
+        {
+            return StatusCode(status, problem);
+        }
+
+        List<string> messages = [];
+        if (
+            problem is InstanceDataUnitOfWorkExtensions.FileValidationIssueProblemDetails
+            {
+                UploadValidationIssues: { } issues
+            }
+        )
+        {
+            foreach (var issue in issues)
+            {
+                string? message = issue.CustomTextKey is { } key
+                    ? await _translationService.TranslateTextKey(key, language, issue.CustomTextParameters)
+                    : null;
+                message ??= issue.Description;
+                if (!string.IsNullOrEmpty(message))
+                {
+                    messages.Add(message);
+                }
+            }
+        }
+
+        if (messages.Count == 0 && problem.Title is { } title)
+        {
+            messages.Add(title);
+        }
+
+        return HtmlMessagePage(application, language, messages, status);
+    }
+
+    /// <summary>A minimal html page with the app's title as heading and a paragraph per message.</summary>
+    private static ContentResult HtmlMessagePage(
+        ApplicationMetadata application,
+        string? language,
+        IReadOnlyList<string> messages,
+        int statusCode
+    )
+    {
         language ??= LanguageConst.Nb;
         string title =
             application.Title?.GetValueOrDefault(language)
             ?? application.Title?.GetValueOrDefault(LanguageConst.Nb)
             ?? application.Id;
         string encodedTitle = HtmlEncoder.Default.Encode(title);
-        string encodedMessage = HtmlEncoder.Default.Encode(validationResult.Message ?? string.Empty);
+        string paragraphs = string.Join(
+            "\n        ",
+            messages.Select(message => $"<p>{HtmlEncoder.Default.Encode(message)}</p>")
+        );
 
         string html = $$"""
             <!DOCTYPE html>
@@ -2299,7 +2363,7 @@ public class InstancesController : ControllerBase
             <body>
                 <main>
                     <h1>{{encodedTitle}}</h1>
-                    <p>{{encodedMessage}}</p>
+                    {{paragraphs}}
                 </main>
             </body>
             </html>
@@ -2307,7 +2371,7 @@ public class InstancesController : ControllerBase
 
         return new ContentResult
         {
-            StatusCode = StatusCodes.Status403Forbidden,
+            StatusCode = statusCode,
             ContentType = "text/html; charset=utf-8",
             Content = html,
         };

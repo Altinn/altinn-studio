@@ -11,6 +11,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -1941,6 +1942,7 @@ public class InstancesController_CopyInstanceTests
         var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
         using var fixture = InstancesControllerFixture.Create(auth);
         (_, List<CommittedMutation> commits) = SetupSuccessfulCopy(fixture, instance, application);
+        SetupRequestAcceptHeader(fixture, "application/json");
         fixture
             .Mock<IInstantiationProcessor>()
             .Setup(p => p.DataCreation(It.IsAny<IInstanceDataMutator>(), It.IsAny<object>(), null))
@@ -2008,6 +2010,79 @@ public class InstancesController_CopyInstanceTests
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Never
+            );
+    }
+
+    [Fact]
+    public async Task CopyInstance_InstantiationProcessorAbandonsChanges_ReturnsHtmlWhenHtmlPreferred()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+        application.Title = new Dictionary<string, string> { ["nb"] = "Skjema", ["en"] = "Form" };
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        (_, List<CommittedMutation> commits) = SetupSuccessfulCopy(fixture, instance, application);
+        SetupRequestAcceptHeader(fixture, "text/html");
+        fixture
+            .Mock<IInstantiationProcessor>()
+            .Setup(p => p.DataCreation(It.IsAny<IInstanceDataMutator>(), It.IsAny<object>(), null))
+            .Callback<IInstanceDataMutator, object, Dictionary<string, string>?>(
+                (mutator, _, _) =>
+                    mutator.AbandonAllChanges([
+                        new ValidationIssue
+                        {
+                            Severity = ValidationIssueSeverity.Error,
+                            Code = "copy-rejected",
+                            Description = "Copies of <old> forms are not allowed",
+                        },
+                        new ValidationIssue
+                        {
+                            Severity = ValidationIssueSeverity.Error,
+                            Code = "copy-rejected-text",
+                            Description = "Fallback description",
+                            CustomTextKey = "copy.rejected",
+                        },
+                    ])
+            )
+            .Returns(Task.CompletedTask);
+        fixture
+            .Mock<ITranslationService>()
+            .Setup(t => t.TranslateTextKey("copy.rejected", "en", null))
+            .ReturnsAsync("Translated rejection");
+        fixture
+            .Mock<IInstanceClient>()
+            .Setup(i => i.DeleteInstance(instanceOwnerPartyId, instanceGuid, true, null, CancellationToken.None))
+            .ReturnsAsync(instance);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            instanceGuid,
+            language: "en"
+        );
+
+        // Assert
+        ContentResult contentResult = Assert.IsType<ContentResult>(actual);
+        Assert.Equal(StatusCodes.Status400BadRequest, contentResult.StatusCode);
+        Assert.Equal("text/html; charset=utf-8", contentResult.ContentType);
+        Assert.NotNull(contentResult.Content);
+        Assert.Contains("<h1>Form</h1>", contentResult.Content);
+        Assert.Contains("<p>Copies of &lt;old&gt; forms are not allowed</p>", contentResult.Content);
+        Assert.Contains("<p>Translated rejection</p>", contentResult.Content);
+        Assert.DoesNotContain("Fallback description", contentResult.Content);
+        Assert.Empty(commits);
+        fixture
+            .Mock<IInstanceClient>()
+            .Verify(
+                i => i.DeleteInstance(instanceOwnerPartyId, instanceGuid, true, null, CancellationToken.None),
+                Times.Once
             );
     }
 
