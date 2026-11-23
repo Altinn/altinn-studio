@@ -9,6 +9,14 @@ import type { Preview } from '@storybook/react-vite';
 
 import '@app/form-component/styles/global.css';
 
+type PageWidth = 'standard' | 'expanded';
+
+/**
+ * The widest the app lets form content be at standard width: the page card's max width less its side padding. With
+ * side navigation that is 1040 - 2 * 40, without it 1152 - 2 * 96. See Presentation.module.css in the App frontend.
+ */
+const STANDARD_CONTENT_MAX_WIDTH = '960px';
+
 const preview: Preview = {
   parameters: {
     layout: 'centered',
@@ -16,6 +24,7 @@ const preview: Preview = {
   tags: ['autodocs'],
   initialGlobals: {
     locale: 'nb' satisfies StaticLanguageCode,
+    pageWidth: 'standard' satisfies PageWidth,
   },
   globalTypes: {
     locale: {
@@ -32,8 +41,30 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    pageWidth: {
+      description: 'Show stories at the width the app gives form content, standard or expanded',
+      toolbar: {
+        title: 'Page width',
+        icon: 'expand',
+        items: [
+          { value: 'standard', title: 'Standard width' },
+          { value: 'expanded', title: 'Expanded width' },
+        ] satisfies { value: PageWidth; title: string }[],
+        dynamicTitle: true,
+      },
+    },
   },
   decorators: [
+    (Story, context) => (
+      <div
+        style={{
+          maxWidth:
+            context.globals.pageWidth === 'expanded' ? undefined : STANDARD_CONTENT_MAX_WIDTH,
+        }}
+      >
+        <Story />
+      </div>
+    ),
     // Provide the real translations from @app/language so components using useTranslation() render translated text.
     (Story, context) => (
       <StaticLanguageTranslatorProvider language={context.globals.locale as StaticLanguageCode}>
