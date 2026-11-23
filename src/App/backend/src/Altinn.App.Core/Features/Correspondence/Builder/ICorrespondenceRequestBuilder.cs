@@ -234,6 +234,12 @@ public interface ICorrespondenceRequestBuilder
     ICorrespondenceRequestBuilder WithIsConfidential(bool isConfidential);
 
     /// <summary>
+    /// Sets whether the correspondence can be forwarded through email.
+    /// </summary>
+    /// <param name="allowForwarding">A boolean value indicating whether the correspondence can be forwarded through email or not</param>
+    ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding);
+
+    /// <summary>
     /// <p>Adds an existing attachment reference to the correspondence.</p>
     /// <p>This method respects any existing references already stored in <see cref="CorrespondenceRequest.ExistingAttachments"/>.</p>
     /// </summary>
