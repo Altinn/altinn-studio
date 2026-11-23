@@ -19,18 +19,18 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// builder: by its type when the semantic model resolves it, and otherwise when it is a chain of <c>Stage</c> and
 /// <c>HandleReplies</c> calls rooted at a parameter or local declared <c>PipelineBuilder</c>, at a <c>var</c> local
 /// holding such a chain, or at a call that reaches a method of the app declared to return <c>PipelineBuilder</c>, which
-/// is found the way C# finds it: in the caller's type and its bases, through a type name or <c>base</c>, or as an
-/// extension method. A lifecycle method that
-/// only returns <c>pipeline.Build()</c> keeps an empty body rather than being removed: it does what the interface
-/// default does, and removing it would break an override of it or a call to it.</p>
+/// is found the way C# finds it: in the caller's type, its bases and the types around it, through a
+/// <c>using static</c>, a type name or <c>base</c>, or as an extension method. A lifecycle method that only returns
+/// <c>pipeline.Build()</c> keeps an empty body rather than being removed: it does what the interface default does,
+/// and removing it would break an override of it or a call to it.</p>
 /// <p>A helper method that takes or returns a <c>PipelineBuilder</c> gets the variant its callers in the
 /// <c>Define</c> methods and its own calls show. When they show both, or neither, it is reported. So is a lifecycle
 /// method whose returns are not a composed pipeline's <c>Build()</c>, and a <c>PipelineBuilder</c> written anywhere
 /// else, such as a field or a type argument. A method is reported rather than done when something in it would still
 /// name the previews' API: a <c>Finally</c>, <c>ConcludeOnReplies</c> or <c>Build</c> call on something the rules
-/// cannot tell apart from the builder, a <c>PipelineBuilder</c> they cannot retype, or code disabled by a directive
-/// that names either. A doc comment's reference to a builder method the variants lack or overload becomes a code
-/// span.</p>
+/// cannot tell apart from the builder, one of them named as a method group, a <c>PipelineBuilder</c> they cannot
+/// retype, or code disabled by a directive that names either. A doc comment's reference to a builder method the
+/// variants lack or overload becomes a code span.</p>
 /// <p>A port stub written by an earlier studioctl preview, <c>ProcessTaskPipeline DefineStart(PipelineBuilder)</c>
 /// with an <c>#error</c> line and no statements, becomes the stub <see cref="ProcessTaskLifecycleMigration"/> writes
 /// now. Runs before that migration, so that it then counts the rewritten <c>Define</c> methods as the task's own.</p>
@@ -649,9 +649,9 @@ internal sealed partial class PipelineBuilderVariantMigration
 
     /// <summary>
     /// What would still name the previews' API after the planned rewrite, so that the method is reported rather than
-    /// done: a <c>Finally</c>, <c>ConcludeOnReplies</c> or <c>Build</c> call that is not provably on something other
-    /// than the builder, a <c>PipelineBuilder</c> that is not retyped, such as a type argument, and code disabled by a
-    /// directive that names any of them.
+    /// done: a <c>Finally</c>, <c>ConcludeOnReplies</c> or <c>Build</c> call or method group that is not provably on
+    /// something other than the builder, a <c>PipelineBuilder</c> that is not retyped, such as a type argument, and
+    /// code disabled by a directive that names any of them.
     /// </summary>
     private static IEnumerable<string> Unplaced(PipelineMethod method, HelperResolver helpers, MethodRewriter rewriter)
     {
@@ -677,6 +677,20 @@ internal sealed partial class PipelineBuilderVariantMigration
             {
                 yield return $"{name} at line {method.File.GetLine(invocation)} on something it cannot tell apart "
                     + "from the builder";
+            }
+        }
+
+        // Which overload of Stage or HandleReplies a method group would name depends on the delegate it converts to.
+        foreach (var access in method.Method.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        {
+            var name = access.Name.Identifier.ValueText;
+            if (
+                (_endingRenames.ContainsKey(name) || name == "Build")
+                && !(access.Parent is InvocationExpressionSyntax call && call.Expression == access)
+                && !IsNotBuilder(access.Expression, method, helpers)
+            )
+            {
+                yield return $"{name} at line {method.File.GetLine(access)} as a method group";
             }
         }
 
@@ -1334,8 +1348,13 @@ internal sealed partial class PipelineBuilderVariantMigration
                         }
                     }
 
+                    // The innermost namespace declaration's usings first, as C# looks.
                     return caller
-                            .File.Root.Usings.Where(static u => u.StaticKeyword != default)
+                            .Method.Ancestors()
+                            .OfType<BaseNamespaceDeclarationSyntax>()
+                            .SelectMany(static ns => ns.Usings)
+                            .Concat(caller.File.Root.Usings)
+                            .Where(static u => u.StaticKeyword != default)
                             .Concat(_globalStaticUsings)
                             .SelectMany(u => TypesNamed(u.NamespaceOrType))
                             .Select(type => InHierarchy(type, name.Identifier.ValueText, arguments, []))
