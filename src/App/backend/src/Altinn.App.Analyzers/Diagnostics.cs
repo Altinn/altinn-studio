@@ -81,12 +81,15 @@ public static class Diagnostics
 
         // '{0}' is the method, '{1}' the interface member, both as Type.Name(parameter types); '{2}' says to declare
         // the member's signature, and to list the interface when the type only inherits it from a base class.
+        // Reported once the whole compilation is analyzed, since a call that makes the method a helper can be
+        // anywhere in it.
         public static readonly DiagnosticDescriptor ProcessTaskMemberNotImplemented = Error(
             "ALTINNAPP0704",
             Category.Contracts,
             "Process task method does not implement the member it is named after",
             "'{0}' does not implement '{1}', so the runtime never calls it and runs the default implementation "
-                + "instead. {2}."
+                + "instead. {2}.",
+            WellKnownDiagnosticTags.CompilationEnd
         );
     }
 

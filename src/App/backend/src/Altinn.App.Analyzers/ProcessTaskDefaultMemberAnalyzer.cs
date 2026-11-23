@@ -6,8 +6,8 @@ namespace Altinn.App.Analyzers;
 /// <summary>
 /// Reports a method on a process task that is named after one of <c>IProcessTask</c>'s default-implemented members
 /// (<c>DefineStart</c>, <c>DefineEnd</c>, <c>DefineAbandon</c>, <c>ValidateConfiguration</c>) but neither implements
-/// it nor is called by the task, such as <c>DefineStart(PipelineBuilder.ServiceTask pipeline)</c> in a service task.
-/// Because the member has a default, the task still compiles, and the default runs in place of the method.
+/// it nor is called anywhere in the app, such as <c>DefineStart(PipelineBuilder.ServiceTask pipeline)</c> in a service
+/// task. Because the member has a default, the task still compiles, and the default runs in place of the method.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -24,11 +24,12 @@ namespace Altinn.App.Analyzers;
 /// even with the right signature, and the message says to list the interface.
 /// </para>
 /// <para>
-/// A method that the task's own code invokes or passes as a delegate runs, so it is a helper of that name rather
-/// than a mistake, and is not reported. That holds even when the caller is itself never called: whether code runs
-/// is beyond what an analyzer can prove, and an uncalled private method is the unused-member diagnostics' to
-/// report. Calls are looked for in every declaration of the type, nested types included, but not in other types,
-/// so a method of the name that only another class calls is still reported.
+/// A method that code anywhere in the app invokes or passes as a delegate runs, so it is a helper of that name
+/// rather than a mistake, and is not reported. That holds even when the caller is itself never called: whether code
+/// runs is beyond what an analyzer can prove, and an uncalled private method is the unused-member diagnostics' to
+/// report. Calls are looked for in the whole compilation, generated code included, so a base class's helper that a
+/// derived task calls counts too, and the rule reports only once the whole compilation is analyzed. A method declared
+/// in generated code is not reported.
 /// </para>
 /// <para>
 /// The members are read from the interface: every instance method of <c>IProcessTask</c> with a body, so a default
@@ -62,7 +63,9 @@ public sealed class ProcessTaskDefaultMemberAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+        // Generated code is analyzed for its calls, such as a source generator's partial part of a task. The driver
+        // drops a diagnostic in generated code, since the flags leave out ReportDiagnostics.
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
         context.EnableConcurrentExecution();
 
         context.RegisterCompilationStartAction(startContext =>
@@ -84,78 +87,46 @@ public sealed class ProcessTaskDefaultMemberAnalyzer : DiagnosticAnalyzer
             if (defaultMembers.Count == 0)
                 return;
 
-            var callsByTask = new ConcurrentDictionary<INamedTypeSymbol, ConcurrentDictionary<IMethodSymbol, bool>>(
-                SymbolEqualityComparer.Default
-            );
-            startContext.RegisterSymbolStartAction(
-                symbolContext => Analyze(symbolContext, processTask, defaultMembers, callsByTask),
+            var findings = new ConcurrentBag<(IMethodSymbol Method, Diagnostic Diagnostic)>();
+            var called = new ConcurrentDictionary<IMethodSymbol, bool>(SymbolEqualityComparer.Default);
+
+            startContext.RegisterSymbolAction(
+                symbolContext =>
+                {
+                    var type = (INamedTypeSymbol)symbolContext.Symbol;
+                    foreach (var finding in Findings(type, processTask, defaultMembers))
+                        findings.Add(finding);
+                },
                 SymbolKind.NamedType
             );
-        });
-    }
 
-    /// <summary>
-    /// Reports <paramref name="context"/>'s type's findings at its end, except for the methods that its code calls,
-    /// and records the calls in its code for each process task it is nested in.
-    /// </summary>
-    /// <remarks>
-    /// A nested type's code is not part of its containing type's per-symbol analysis, so a nested type records its
-    /// calls in the sets of the tasks it is nested in. The driver runs a containing type's start action before a
-    /// nested type's, and its end action only once the nested type's members have been analyzed.
-    /// </remarks>
-    private static void Analyze(
-        SymbolStartAnalysisContext context,
-        INamedTypeSymbol processTask,
-        ILookup<string, IMethodSymbol> defaultMembers,
-        ConcurrentDictionary<INamedTypeSymbol, ConcurrentDictionary<IMethodSymbol, bool>> callsByTask
-    )
-    {
-        var type = (INamedTypeSymbol)context.Symbol;
-        var callSets = new List<ConcurrentDictionary<IMethodSymbol, bool>>();
-        for (var container = type.ContainingType; container is not null; container = container.ContainingType)
-        {
-            if (callsByTask.TryGetValue(container, out var containerCalls))
-                callSets.Add(containerCalls);
-        }
+            // A method passed as a delegate runs too, such as a stage given to the pipeline.
+            startContext.RegisterOperationAction(
+                operationContext =>
+                {
+                    var target = operationContext.Operation switch
+                    {
+                        IInvocationOperation invocation => invocation.TargetMethod,
+                        IMethodReferenceOperation reference => reference.Method,
+                        _ => null,
+                    };
+                    if (target is not null && defaultMembers.Contains(target.Name))
+                        called.TryAdd(target.OriginalDefinition, true);
+                },
+                OperationKind.Invocation,
+                OperationKind.MethodReference
+            );
 
-        var findings = Findings(type, processTask, defaultMembers);
-        if (findings.Count > 0)
-        {
-            var calls = new ConcurrentDictionary<IMethodSymbol, bool>(SymbolEqualityComparer.Default);
-            callsByTask[type] = calls;
-            callSets.Add(calls);
-            context.RegisterSymbolEndAction(endContext =>
+            // A call can be anywhere in the compilation, so a finding is settled only once all of it is analyzed.
+            startContext.RegisterCompilationEndAction(endContext =>
             {
                 foreach (var (method, diagnostic) in findings)
                 {
-                    if (!calls.ContainsKey(method))
+                    if (!called.ContainsKey(method))
                         endContext.ReportDiagnostic(diagnostic);
                 }
             });
-        }
-
-        if (callSets.Count == 0)
-            return;
-
-        // A method passed as a delegate runs too, such as a stage given to the pipeline.
-        context.RegisterOperationAction(
-            operationContext =>
-            {
-                var target = operationContext.Operation switch
-                {
-                    IInvocationOperation invocation => invocation.TargetMethod,
-                    IMethodReferenceOperation reference => reference.Method,
-                    _ => null,
-                };
-                if (target is null || !defaultMembers.Contains(target.Name))
-                    return;
-
-                foreach (var calls in callSets)
-                    calls.TryAdd(target.OriginalDefinition, true);
-            },
-            OperationKind.Invocation,
-            OperationKind.MethodReference
-        );
+        });
     }
 
     /// <summary>
