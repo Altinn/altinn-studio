@@ -18,6 +18,19 @@ public abstract class PipelineBuilder
     private PipelineBuilder() { }
 
     /// <summary>
+    /// A stage that carries on, as both variants compose it.
+    /// </summary>
+    private static PipelineStage.Plain PlainStage(
+        Func<StageContext, Task<StageResult>> work,
+        ProcessStepOptions? options
+    )
+    {
+        ArgumentNullException.ThrowIfNull(work);
+        options?.Validate();
+        return new PipelineStage.Plain(work, options) { DisplayName = PipelineStepNames.FromMethod(work) };
+    }
+
+    /// <summary>
     /// Composes the work a task does when it starts, ends or is abandoned, in
     /// <see cref="Internal.Process.ProcessTasks.IProcessTask.DefineStart"/>, <c>DefineEnd</c> or <c>DefineAbandon</c>.
     /// These stages run inside the transition and never advance the process, so there is nothing to end and no
@@ -47,9 +60,7 @@ public abstract class PipelineBuilder
         /// </param>
         public Lifecycle Stage(Func<StageContext, Task<StageResult>> work, ProcessStepOptions? options = null)
         {
-            ArgumentNullException.ThrowIfNull(work);
-            options?.Validate();
-            _stages.Add(new PipelineStage.Plain(work, options) { DisplayName = PipelineStepNames.FromMethod(work) });
+            _stages.Add(PlainStage(work, options));
             return this;
         }
 
@@ -108,9 +119,7 @@ public abstract class PipelineBuilder
         public ServiceTask Stage(Func<StageContext, Task<StageResult>> work, ProcessStepOptions? options = null)
         {
             ThrowIfEnded(nameof(Stage));
-            ArgumentNullException.ThrowIfNull(work);
-            options?.Validate();
-            _items.Add(new PipelineStage.Plain(work, options) { DisplayName = PipelineStepNames.FromMethod(work) });
+            _items.Add(PlainStage(work, options));
             return this;
         }
 
