@@ -940,4 +940,32 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         Assert.Empty(result.Todos);
         AssertCompilesAgainstCurrent();
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ThrowingPlaceholderEnding_CompilesOrIsReported(bool semantic)
+    {
+        Write(
+            "logic/PlaceholderTask.cs",
+            $$"""
+            public class PlaceholderTask : IServiceTask
+            {
+                public string Type => "placeholder";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                    pipeline.Stage(Archive).Finally(_ => throw new NotImplementedException());
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        // Stage(_ => throw ...) fits both the carrying-on and the ending overload: CS0121, and the method is reported
+        // as done.
+        if (result.Todos.Count == 0)
+            AssertCompilesAgainstCurrent();
+    }
 }
