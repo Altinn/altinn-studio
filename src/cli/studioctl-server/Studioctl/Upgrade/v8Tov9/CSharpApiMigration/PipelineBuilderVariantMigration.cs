@@ -60,6 +60,32 @@ internal sealed partial class PipelineBuilderVariantMigration
         ["ConcludeOnReplies"] = "HandleReplies",
     };
 
+    /// <summary>
+    /// The parameters of the previews' service task steps, in order.
+    /// </summary>
+    private static readonly Dictionary<string, string[]> _stepParameters = new(StringComparer.Ordinal)
+    {
+        ["Stage"] = ["work", "options"],
+        ["Finally"] = ["work", "options"],
+        ["HandleReplies"] = ["handle", "onMessage", "onClosed", "options"],
+        ["ConcludeOnReplies"] = ["handle", "onMessage", "onClosed", "options"],
+    };
+
+    /// <summary>
+    /// What the work a service task step takes returns a task of. The service task builder has a step that carries on
+    /// and one that ends the task for each, chosen by this, so work whose result has no type, such as a lambda that
+    /// throws, fits both.
+    /// </summary>
+    private static readonly Dictionary<(string Step, string Parameter), string> _workResults = new()
+    {
+        [("Stage", "work")] = "StageResult",
+        [("Finally", "work")] = "ServiceTaskResult",
+        [("HandleReplies", "onMessage")] = "StageExchangeResult",
+        [("HandleReplies", "onClosed")] = "StageResult",
+        [("ConcludeOnReplies", "onMessage")] = "ServiceTaskExchangeResult",
+        [("ConcludeOnReplies", "onClosed")] = "ServiceTaskResult",
+    };
+
     private enum Role
     {
         Execute,
@@ -360,6 +386,7 @@ internal sealed partial class PipelineBuilderVariantMigration
         {
             if (variant == ServiceTaskVariant)
             {
+                TypeUntypedWork(method, name, invocation, rewriter, unsupported);
                 if (_endingRenames.TryGetValue(name, out var renamed))
                 {
                     rewriter.Renames[invocation] = renamed;
@@ -427,6 +454,103 @@ internal sealed partial class PipelineBuilderVariantMigration
             }
         );
         return rewrittenMethod;
+    }
+
+    /// <summary>
+    /// Plans an explicit return type for each lambda in a service task step whose result has no type, such as
+    /// <c>_ => throw new NotImplementedException()</c>, which would otherwise fit both the step that carries on and
+    /// the one that ends the task. An anonymous method cannot have one, so it is reported.
+    /// </summary>
+    private static void TypeUntypedWork(
+        PipelineMethod method,
+        string step,
+        InvocationExpressionSyntax invocation,
+        MethodRewriter rewriter,
+        List<string> unsupported
+    )
+    {
+        if (!_stepParameters.TryGetValue(step, out var parameters) || HasOutArgument(invocation))
+        {
+            return;
+        }
+
+        var arguments = invocation.ArgumentList.Arguments;
+        for (var i = 0; i < arguments.Count; i++)
+        {
+            var parameter = arguments[i].NameColon?.Name.Identifier.ValueText ?? parameters.ElementAtOrDefault(i);
+            if (
+                parameter is null
+                || !_workResults.TryGetValue((step, parameter), out var result)
+                || Unwrap(arguments[i].Expression) is not AnonymousFunctionExpressionSyntax work
+                || !HasUntypedResult(work)
+            )
+            {
+                continue;
+            }
+
+            if (work is LambdaExpressionSyntax lambda)
+            {
+                rewriter.ReturnTypes[lambda] = WorkResultType(method, result);
+            }
+            else
+            {
+                unsupported.Add(
+                    $"an anonymous method at line {method.File.GetLine(work)} whose result has no type, so it "
+                        + "fits both the step that carries on and the one that ends the task"
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Whether nothing the function returns has a type of its own: it only throws, or returns <c>null</c> or
+    /// <c>default</c>.
+    /// </summary>
+    private static bool HasUntypedResult(AnonymousFunctionExpressionSyntax function) =>
+        function switch
+        {
+            ParenthesizedLambdaExpressionSyntax { ReturnType: not null } => false,
+            { ExpressionBody: { } body } => HasNoNaturalType(body),
+            { Block: { } block } => block
+                .DescendantNodes()
+                .OfType<ReturnStatementSyntax>()
+                .Where(statement => OwningFunction(statement) == function)
+                .All(static statement => statement.Expression is null || HasNoNaturalType(statement.Expression)),
+            _ => false,
+        };
+
+    private static bool HasNoNaturalType(ExpressionSyntax expression) =>
+        Unwrap(expression) switch
+        {
+            ThrowExpressionSyntax => true,
+            LiteralExpressionSyntax literal => literal.IsKind(SyntaxKind.NullLiteralExpression)
+                || literal.IsKind(SyntaxKind.DefaultLiteralExpression),
+            ConditionalExpressionSyntax conditional => HasNoNaturalType(conditional.WhenTrue)
+                && HasNoNaturalType(conditional.WhenFalse),
+            SwitchExpressionSyntax switchExpression => switchExpression.Arms.All(static arm =>
+                HasNoNaturalType(arm.Expression)
+            ),
+            _ => false,
+        };
+
+    /// <summary>
+    /// <c>Task&lt;result&gt;</c>, with each name bare when the method's file writes it bare and qualified otherwise.
+    /// </summary>
+    private static TypeSyntax WorkResultType(PipelineMethod method, string result)
+    {
+        var names = method.File.Root.DescendantNodes().OfType<SimpleNameSyntax>().ToList();
+        var task = names.Any(static name => name.Identifier.ValueText == "Task")
+            ? "Task"
+            : "global::System.Threading.Tasks.Task";
+        var bareBuilder = method
+            .Method.DescendantNodes()
+            .OfType<IdentifierNameSyntax>()
+            .Any(static name =>
+                name.Identifier.ValueText == BuilderName
+                && !(name.Parent is QualifiedNameSyntax qualified && qualified.Right == name)
+            );
+        var resultName = bareBuilder ? result : $"global::{BuilderNamespace}.{result}";
+        return SyntaxFactory.ParseTypeName($"{task}<{resultName}>");
     }
 
     /// <summary>
@@ -1290,6 +1414,11 @@ internal sealed partial class PipelineBuilderVariantMigration
 
         public Dictionary<InvocationExpressionSyntax, string> Renames { get; } = [];
 
+        /// <summary>
+        /// The lambdas that get an explicit return type, which a simple lambda needs parentheses for.
+        /// </summary>
+        public Dictionary<LambdaExpressionSyntax, TypeSyntax> ReturnTypes { get; } = [];
+
         public Dictionary<ReturnStatementSyntax, ReturnChange> Returns { get; } = [];
 
         /// <summary>
@@ -1335,6 +1464,8 @@ internal sealed partial class PipelineBuilderVariantMigration
                     return call.WithExpression(
                         access.WithName(SyntaxFactory.IdentifierName(renamed).WithTriviaFrom(access.Name))
                     );
+                case LambdaExpressionSyntax lambda when ReturnTypes.TryGetValue(lambda, out var returnType):
+                    return WithReturnType(Kept(base.Visit(lambda), lambda), returnType);
                 case ReturnStatementSyntax statement
                     when Returns.TryGetValue(statement, out var change) && change == ReturnChange.ReturnVoid:
                     // A comment in the removed value stays, before the semicolon.
@@ -1463,6 +1594,41 @@ internal sealed partial class PipelineBuilderVariantMigration
                 SyntaxFactory.TriviaList(before),
                 SyntaxFactory.TriviaList(after)
             );
+        }
+
+        /// <summary>
+        /// The lambda with an explicit return type, after its modifiers, as in
+        /// <c>static Task&lt;StageResult&gt; (context) => throw ...</c>.
+        /// </summary>
+        private static ParenthesizedLambdaExpressionSyntax WithReturnType(
+            LambdaExpressionSyntax lambda,
+            TypeSyntax returnType
+        )
+        {
+            var parameters = lambda switch
+            {
+                SimpleLambdaExpressionSyntax simple => SyntaxFactory
+                    .ParameterList(SyntaxFactory.SingletonSeparatedList(simple.Parameter.WithoutTrivia()))
+                    .WithLeadingTrivia(simple.Parameter.GetLeadingTrivia())
+                    .WithTrailingTrivia(simple.Parameter.GetTrailingTrivia()),
+                ParenthesizedLambdaExpressionSyntax parenthesized => parenthesized.ParameterList,
+                _ => throw new InvalidOperationException($"Unexpected lambda {lambda.Kind()}."),
+            };
+            // The return type takes the place of the parameters, which follow it after a space.
+            var typed = SyntaxFactory.ParenthesizedLambdaExpression(
+                lambda.AttributeLists,
+                lambda.Modifiers,
+                returnType
+                    .WithLeadingTrivia(lambda.Modifiers.Count == 0 ? parameters.GetLeadingTrivia() : default)
+                    .WithTrailingTrivia(SyntaxFactory.Space),
+                parameters.WithLeadingTrivia(),
+                lambda.ArrowToken,
+                lambda.Block,
+                lambda.ExpressionBody
+            );
+            return lambda.AttributeLists.Count == 0 && lambda.Modifiers.Count == 0
+                ? typed
+                : typed.WithLeadingTrivia(lambda.GetLeadingTrivia());
         }
 
         /// <summary>

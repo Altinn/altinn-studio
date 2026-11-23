@@ -1180,4 +1180,73 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
                 )
         );
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WorkWithoutAResultType_GetsOne_OrIsReported(bool semantic)
+    {
+        // Work that only throws or returns null fits both the step that carries on and the one that ends the task.
+        var task = Write(
+            "logic/PlaceholderTasks.cs",
+            $$"""
+            public class PlaceholderTask : IServiceTask
+            {
+                public string Type => "placeholder";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                    pipeline
+                        .Stage(static _ => throw new NotImplementedException())
+                        .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle first)
+                        .HandleReplies(first, (_, _) => throw new NotImplementedException(), onClosed: async (context, reason) => null)
+                        .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle second)
+                        .ConcludeOnReplies(second, OnAnswer, (_, _) => { throw new NotImplementedException(); });
+
+            {{StageMethods}}
+            }
+
+            public class QualifiedTask : IServiceTask
+            {
+                public string Type => "qualified";
+
+                public ServiceTaskPipeline DefineExecute(Altinn.App.Core.Features.Process.PipelineBuilder pipeline) =>
+                    pipeline.Finally(_ => default);
+            }
+
+            public class AnonymousTask : IServiceTask
+            {
+                public string Type => "anonymous";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                    pipeline.Finally(delegate { throw new NotImplementedException(); });
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Equal(2, Oks(result).Count);
+        Assert.Contains(
+            "AnonymousTask.DefineExecute uses an anonymous method at line 51 whose result has no type",
+            Assert.Single(result.Todos)
+        );
+        var migrated = await ReadMigrated(task);
+        Assert.Contains(
+            "            .Stage(static Task<StageResult> (_) => throw new NotImplementedException())\n"
+                + "            .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle first)\n"
+                + "            .HandleReplies(first, Task<StageExchangeResult> (_, _) => throw new NotImplementedException(), "
+                + "onClosed: async Task<StageResult> (context, reason) => null)\n"
+                + "            .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle second)\n"
+                + "            .HandleReplies(second, OnAnswer, Task<ServiceTaskResult> (_, _) => { throw new NotImplementedException(); });\n",
+            migrated
+        );
+        Assert.Contains(
+            "        pipeline.Stage(Task<global::Altinn.App.Core.Features.Process.ServiceTaskResult> (_) => default);\n",
+            migrated
+        );
+        Assert.Contains("        pipeline.Finally(delegate { throw new NotImplementedException(); });\n", migrated);
+        File.Delete(Path.Combine(AppFolder, "logic", "PlaceholderTasks.cs"));
+        Write("logic/PlaceholderTasks.cs", migrated[(Usings.Length + 1)..].Split("public class AnonymousTask")[0]);
+        AssertCompilesAgainstCurrent();
+    }
 }
