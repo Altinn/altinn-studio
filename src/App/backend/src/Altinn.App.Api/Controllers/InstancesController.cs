@@ -2131,6 +2131,11 @@ public class InstancesController : ControllerBase
                 if (_appImplementationFactory.Get<IInstantiationProcessor>() is { } instantiationProcessor)
                 {
                     await instantiationProcessor.DataCreation(dataMutator, data, null);
+                    // Checked here, as the unit of work refuses to list its changes once they are abandoned
+                    if (GetInstantiationRejectedResponse(dataMutator) is { } rejected)
+                    {
+                        return rejected;
+                    }
                 }
 
                 dataMutator.AddFormDataElement(dataType.Id, data);
@@ -2160,7 +2165,7 @@ public class InstancesController : ControllerBase
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
         await _patchService.RunDataProcessors(dataMutator, changes, taskId, language);
 
-        if (dataMutator.GetAbandonResponse() is { } abandonResponse)
+        if (GetInstantiationRejectedResponse(dataMutator) is { } abandonResponse)
         {
             _logger.LogWarning(
                 "Data processing failed for one or more data elements, the instance was created, but we try to delete the instance"
@@ -2174,6 +2179,12 @@ public class InstancesController : ControllerBase
 
         return null;
     }
+
+    private static ProblemDetails? GetInstantiationRejectedResponse(InstanceDataUnitOfWork dataMutator) =>
+        dataMutator.GetAbandonResponse(
+            title: "Instantiation rejected",
+            detail: "The app rejected the data the instance was created with"
+        );
 
     /// <summary>
     /// Extracts the instance template from a multipart reader, which contains a number of parts. If the reader contains

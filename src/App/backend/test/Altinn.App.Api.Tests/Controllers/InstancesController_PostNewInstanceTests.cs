@@ -261,6 +261,67 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
     }
 
     [Fact]
+    public async Task PostNewInstanceWithContent_InstantiationProcessorAbandons_ReturnsInstantiationRejected()
+    {
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
+        var instantiationProcessor = new Mock<IInstantiationProcessor>(MockBehavior.Strict);
+        instantiationProcessor
+            .Setup(p => p.DataCreation(It.IsAny<IInstanceDataMutator>(), It.IsAny<object>(), null))
+            .Callback<IInstanceDataMutator, object, Dictionary<string, string>?>(
+                (mutator, _, _) =>
+                    mutator.AbandonAllChanges([
+                        new ValidationIssue
+                        {
+                            Severity = ValidationIssueSeverity.Error,
+                            Code = "instantiation-rejected",
+                            Description = "The data was rejected",
+                        },
+                    ])
+            )
+            .Returns(Task.CompletedTask);
+        OverrideServicesForThisTest = services =>
+        {
+            UseHttpDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
+            services.AddSingleton(instantiationProcessor.Object);
+        };
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        using var content = new MultipartFormDataContent();
+        content.Add(
+            new StringContent(
+                "<Skjema><melding><name>rejected</name></melding></Skjema>",
+                Encoding.UTF8,
+                "application/xml"
+            ),
+            "default"
+        );
+
+        // Create instance
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        var problem = JsonSerializer.Deserialize<ProblemDetails>(createResponseContent, JsonSerializerOptions);
+        Assert.NotNull(problem);
+        Assert.Equal("Instantiation rejected", problem.Title);
+        Assert.Contains("The data was rejected", createResponseContent);
+        instantiationProcessor.VerifyAll();
+    }
+
+    [Fact]
     public async Task PostNewInstance_WithEmailUser_ShouldCreateInstanceAndNotFail()
     {
         // Setup test data
