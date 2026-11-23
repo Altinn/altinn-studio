@@ -12,8 +12,9 @@ import '@app/form-component/styles/global.css';
 type PageWidth = 'standard' | 'expanded';
 
 /**
- * The widest the app lets form content be at standard width: the page card's max width less its side padding. With
- * side navigation that is 1040 - 2 * 40, without it 1152 - 2 * 96. See Presentation.module.css in the App frontend.
+ * The width the app gives components at standard width on wide screens. The form sits in a page box that is at most
+ * 1152px wide with 96px of padding on each side, or 1040px with 40px when there is side navigation. Both leave 960px.
+ * The values are in Presentation.module.css in the App frontend.
  */
 const STANDARD_CONTENT_MAX_WIDTH = '960px';
 
