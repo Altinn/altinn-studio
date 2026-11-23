@@ -30,13 +30,14 @@ const STEP_OUTPUT_LIMITS: Limits = Limits {
 };
 
 /// Extracts the app and commits it. The patch starts at this commit. studioctl must have a clean working tree.
+/// `--force` also commits a tracked file that the app's .gitignore matches, so the patch has the changes to it.
 const PREPARE_SCRIPT: &str = "set -eu
 mkdir app
 tar -xzf app.tar.gz --no-same-owner -C app
 rm app.tar.gz
 cd app
 git init --quiet
-git add -A
+git add -A --force
 git commit --quiet --no-verify --allow-empty --message base";
 
 /// The patch also contains the changes that the command did not stage. The options give the format that

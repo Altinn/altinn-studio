@@ -21,24 +21,25 @@ SANDBOX_IMAGE="$(docker inspect --format '{{index .RepoDigests 0}}' "${REGISTRY}
 export SANDBOX_IMAGE
 docker build -t "${OPERATOR_RUNNER_IMAGE}" -f src/core/operator-runner/Dockerfile .
 
-# Export and import the prepared guest image, as the deploy and the init container do. The import runs as the pod does
-# on a sandbox node: root owns the hostPath folders, and root has no capabilities. The Microsandbox configuration of the
-# export allows plain HTTP to the local registry.
-mkdir -p "${work}"/{prepared,export-cache,export-home/runtime,cache,home}
+# Export, build and import the prepared guest image, as the deploy and the init container do. The import runs as the pod
+# does on a sandbox node: root owns the hostPath folders, and root has no capabilities. The Microsandbox configuration of
+# the export allows plain HTTP to the local registry.
+mkdir -p "${work}"/{prepared/prepared-image,export-cache,export-home/runtime,cache,home}
 sudo chown 0:0 "${work}"/{cache,home}
 echo "{\"registries\":{\"hosts\":{\"${REGISTRY}\":{\"insecure\":true}}}}" > "${work}/export-home/runtime/config.json"
 docker run --rm --network host --entrypoint /usr/local/bin/sandbox-image \
   --env SANDBOX_PROVIDER_HOME=/provider --env SANDBOX_CACHE_HOME=/cache \
   --env PREPARED_IMAGE_DIRECTORY=/output --env SANDBOX_IMAGE \
   --volume "${work}/export-home:/provider" \
-  --volume "${work}/export-cache:/cache" --volume "${work}/prepared:/output" \
+  --volume "${work}/export-cache:/cache" --volume "${work}/prepared/prepared-image:/output" \
   "${OPERATOR_RUNNER_IMAGE}" export
-docker run --rm --entrypoint /usr/local/bin/sandbox-image \
+docker build -t operator-runner-prepared:ci --build-arg "OPERATOR_RUNNER_IMAGE=${OPERATOR_RUNNER_IMAGE}" \
+  -f src/core/operator-runner/Dockerfile.prepared-image "${work}/prepared"
+docker run --rm \
   --env SANDBOX_PROVIDER_HOME=/tmp/sandbox-provider --env SANDBOX_CACHE_HOME=/cache \
-  --env PREPARED_IMAGE_DIRECTORY=/prepared --env SANDBOX_IMAGE \
+  --env PREPARED_IMAGE_DIRECTORY=/opt/altinn/prepared-image --env SANDBOX_IMAGE \
   --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
-  --volume "${work}/cache:/cache" --volume "${work}/prepared:/prepared:ro" \
-  "${OPERATOR_RUNNER_IMAGE}" import
+  --volume "${work}/cache:/cache" operator-runner-prepared:ci
 
 # Starts the operator runner with the restrictions of the pod: root without capabilities, a read-only root file system
 # and /dev/kvm.
@@ -50,7 +51,7 @@ start_operator_runner() {
     --env SANDBOX_IMAGE --env SANDBOX_CPUS --env SANDBOX_MEMORY --env SANDBOX_ROOT_FILESYSTEM \
     --env REQUEST_TIMEOUT_SECONDS --env RESULT_RETENTION_SECONDS --env RESULT_GRACE_SECONDS "${OPERATOR_RUNNER_IMAGE}"
   for _ in $(seq 1 60); do
-    curl -fsS "${OPERATOR_RUNNER_URL}/health" && return 0
+    curl -fsS --max-time 5 "${OPERATOR_RUNNER_URL}/health" && return 0
     sleep 1
   done
   return 1
