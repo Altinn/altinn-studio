@@ -122,11 +122,13 @@ The gateways also run as the service owner, through the data accessor they are g
 
 - The acquire workflow is keyed on the instance version alone, not the action or target. Two different transitions
   from the same version collide, and a repeated identical request joins the first.
-- The engine leaves the workflow context out of its idempotency hash. Requests that differ only in actor or language
-  share the acquire workflow, and the first request's language applies to the whole chain.
+- The engine leaves the workflow context, the state and the step labels out of its idempotency hash. Requests that
+  differ only in actor or language share the acquire workflow, and the first request's language applies to the whole
+  chain.
 - A retried callback can enqueue its continuation with different signed state, such as after an app code rotation or a
-  Storage replay. The engine answers 409, and the app accepts the existing continuation when exactly one matches its
-  key, source task visit and parent.
+  Storage replay. The retry joins the workflow its first attempt enqueued, which keeps the state of that attempt.
+- If a retry asks for other steps or workflow labels under the same key, the engine answers 409. For the continuation
+  of a transition, the app accepts the existing one when exactly one matches its key, source task visit and parent.
 
 ## Concurrent requests
 

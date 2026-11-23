@@ -41,6 +41,9 @@ public sealed record WorkflowEnqueueRequest
     ///   <item>Each step's <see cref="StepRequest.Labels"/>. The engine stores them for its readers and never
     ///   queries them, so a caller may rename what it shows for a step between an enqueue whose response was lost
     ///   and the replay, and the replay still finds the workflow it already has.</item>
+    ///   <item>Each workflow's <see cref="WorkflowRequest.State"/>. The engine never reads it, and a caller may
+    ///   rebuild it on a retry, such as state signed under a rotated key or by a newer version of the caller. The
+    ///   workflows keep the state of the request that created them.</item>
     /// </list>
     /// Workflow <see cref="Labels"/> stay in. The engine indexes them, and callers read them back to decide what a
     /// workflow was for, so a key reused with other workflow labels is a different request.
@@ -54,6 +57,7 @@ public sealed record WorkflowEnqueueRequest
                 .Select(workflow =>
                     workflow with
                     {
+                        State = null,
                         Steps = workflow.Steps.Select(step => step with { Labels = null }).ToList(),
                     }
                 )

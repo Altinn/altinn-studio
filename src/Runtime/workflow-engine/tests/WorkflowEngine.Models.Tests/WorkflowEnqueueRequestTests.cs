@@ -4,7 +4,11 @@ namespace WorkflowEngine.Models.Tests;
 
 public class WorkflowEnqueueRequestTests
 {
-    private static WorkflowEnqueueRequest CreateRequest(JsonElement? context, string operationId = "op") =>
+    private static WorkflowEnqueueRequest CreateRequest(
+        JsonElement? context,
+        string operationId = "op",
+        string? state = "state"
+    ) =>
         new()
         {
             Labels = new Dictionary<string, string> { ["k"] = "v" },
@@ -15,7 +19,7 @@ public class WorkflowEnqueueRequestTests
                 {
                     OperationId = operationId,
                     Steps = [],
-                    State = "state",
+                    State = state,
                 },
             ],
         };
@@ -66,6 +70,27 @@ public class WorkflowEnqueueRequestTests
         var withoutContext = CreateRequest(context: null);
 
         Assert.Equal(withContext.ComputeHash(), withoutContext.ComputeHash());
+    }
+
+    [Fact]
+    public void ComputeHash_IsStableWhenOnlyStateDiffers()
+    {
+        // State is opaque passthrough too, and a retried caller may rebuild it with other bytes: signed under
+        // a rotated key, read again from its source, or written by a newer version of the caller. A hash that
+        // included it would answer such a retry with a conflict, though its first attempt was accepted.
+        var first = CreateRequest(context: null, state: """{"payload":"p","signature":"a","secretId":"1"}""");
+        var second = CreateRequest(context: null, state: """{"payload":"p","signature":"b","secretId":"2"}""");
+
+        Assert.Equal(first.ComputeHash(), second.ComputeHash());
+    }
+
+    [Fact]
+    public void ComputeHash_IsStableWhenStateIsNullOrPresent()
+    {
+        var withState = CreateRequest(context: null, state: "state");
+        var withoutState = CreateRequest(context: null, state: null);
+
+        Assert.Equal(withState.ComputeHash(), withoutState.ComputeHash());
     }
 
     [Fact]
