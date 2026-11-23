@@ -36,8 +36,9 @@ public sealed class EngineFailTests(EngineAppFixture<Program> fixture) : IAsyncL
     /// Parks a single-step workflow in <c>Requeued</c>: the webhook answers 500 and the constant ten-minute
     /// backoff holds the step still for the rest of the test.
     /// </summary>
-    private async Task<Guid> EnqueueRequeuedWorkflow(string path)
+    private async Task<Guid> EnqueueRequeuedWorkflow(string path, EngineApiClient? client = null)
     {
+        client ??= _client;
         fixture.WireMock.Reset();
         fixture
             .WireMock.Given(Request.Create().UsingAnyMethod())
@@ -48,9 +49,9 @@ public sealed class EngineFailTests(EngineAppFixture<Program> fixture) : IAsyncL
             retryStrategy: RetryStrategy.Constant(TimeSpan.FromMinutes(10), maxRetries: 5)
         );
         var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
-        var enqueueResponse = await _client.Enqueue(request);
+        var enqueueResponse = await client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Requeued);
+        await client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Requeued);
         return workflowId;
     }
 
@@ -99,6 +100,32 @@ public sealed class EngineFailTests(EngineAppFixture<Program> fixture) : IAsyncL
         var entry = history[^1];
         Assert.False(entry.WasRetryable);
         Assert.False(string.IsNullOrWhiteSpace(entry.Message));
+    }
+
+    [Fact]
+    public async Task Fail_CountsTheStepAndWorkflowFailure_UnderTheWorkflowsNamespace()
+    {
+        const string ns = "ttd/fail-metrics";
+        using var client = new EngineApiClient(fixture, ns);
+        var workflowId = await EnqueueRequeuedWorkflow("/fail-metrics", client);
+        using var collector = new TelemetryCollector();
+
+        await client.FailWorkflow(workflowId, Reason);
+
+        foreach (
+            var instrument in new[]
+            {
+                "altinn.workflow_engine.step.execution.failed",
+                "altinn.workflow_engine.workflow.execution.failed",
+            }
+        )
+        {
+            var failure = Assert.Single(
+                collector.GetMeasurements(instrument),
+                m => m.Tags.Any(t => t.Key == "altinn.workflow_engine.namespace" && Equals(t.Value, ns))
+            );
+            Assert.Equal("manual", failure.Tags.Single(t => t.Key == "altinn.workflow_engine.reason").Value);
+        }
     }
 
     [Fact]

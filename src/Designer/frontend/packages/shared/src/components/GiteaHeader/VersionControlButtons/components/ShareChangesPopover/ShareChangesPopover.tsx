@@ -15,7 +15,7 @@ import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import { hasChangesToShare } from '../../utils/repoStatus';
 
 export const ShareChangesPopover = () => {
-  const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
+  const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus, onBeforeShare } =
     useVersionControlButtonsContext();
 
   const { t } = useTranslation();
@@ -44,6 +44,13 @@ export const ShareChangesPopover = () => {
     event?.stopPropagation();
     setPopoverOpen(true);
     setIsLoading(true);
+
+    try {
+      await onBeforeShare?.();
+    } catch (error) {
+      // Sharing must still be possible when the preparation fails.
+      console.error(error);
+    }
 
     const { data: repoStatusResult } = await refetchRepoStatus();
     if (repoStatusResult) {

@@ -1,0 +1,119 @@
+.editableComponent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--ds-size-3);
+  border-radius: var(--ds-border-radius-sm);
+  cursor: pointer;
+}
+
+.editableComponent:hover {
+  background-color: var(--ds-color-neutral-surface-hover);
+}
+
+.selected,
+.selected:hover {
+  z-index: 1;
+  outline: 2px solid var(--ds-color-accent-border-strong);
+  outline-offset: 2px;
+  background-color: var(--ds-color-neutral-background-default);
+  cursor: default;
+}
+
+/* Only keyboard users see it: a mouse user clicks the component itself. */
+.selectButton {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.selectButton:focus-visible {
+  top: var(--ds-size-1);
+  right: var(--ds-size-1);
+  width: auto;
+  height: auto;
+  clip-path: none;
+  z-index: 2;
+  padding: var(--ds-size-1) var(--ds-size-2);
+  border: none;
+  border-radius: var(--ds-border-radius-sm);
+  background-color: var(--ds-color-accent-base-default);
+  color: var(--ds-color-accent-base-contrast-default);
+}
+
+/* The preview only shows what the app looks like: its controls do not take input. */
+.preview :is(input, select, textarea, button, a, label) {
+  pointer-events: none;
+}
+
+/* A dropdown's list is a custom element that is not defined in the canvas frame, so it is never placed. */
+.preview :global(u-datalist) {
+  display: none;
+}
+
+.preview :global([data-indicator]) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* A chevron after the required or optional tag shows that it opens a menu. */
+.selected .preview :global([data-indicator])::after {
+  content: '';
+  display: inline-block;
+  width: 0.35em;
+  height: 0.35em;
+  margin: 0 0.15em 0.2em 0.5em;
+  border-right: 1.5px solid currentcolor;
+  border-bottom: 1.5px solid currentcolor;
+  transform: rotate(45deg);
+}
+
+.inlineAddButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-1);
+  margin-top: var(--ds-size-1);
+}
+
+/* The strip bleeds to the edges of the component. */
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  margin: var(--ds-size-3) calc(-1 * var(--ds-size-3)) calc(-1 * var(--ds-size-3));
+  padding: var(--ds-size-2) var(--ds-size-3);
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: 0 0 var(--ds-border-radius-sm) var(--ds-border-radius-sm);
+  background-color: var(--ds-color-neutral-background-tinted);
+  cursor: default;
+}
+
+.advancedRule {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-1);
+}
+
+/* The move, settings and delete buttons stay together when the toolbar wraps. */
+.toolbarEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  margin-left: auto;
+}
+
+.separator {
+  align-self: stretch;
+  width: 1px;
+  margin: var(--ds-size-1);
+  background-color: var(--ds-color-neutral-border-subtle);
+}

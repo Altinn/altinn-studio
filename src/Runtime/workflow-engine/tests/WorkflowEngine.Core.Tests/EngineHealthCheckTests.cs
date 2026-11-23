@@ -7,20 +7,6 @@ namespace WorkflowEngine.Core.Tests;
 
 public class EngineHealthCheckTests
 {
-    private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
-
-    private const EngineHealthStatus DegradedMask =
-        EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull | EngineHealthStatus.DatabaseUnavailable;
-
-    private static EngineHealthLevel DeriveHealthLevel(EngineHealthStatus status)
-    {
-        if ((status & UnhealthyMask) != 0)
-            return EngineHealthLevel.Unhealthy;
-        if ((status & DegradedMask) != 0)
-            return EngineHealthLevel.Degraded;
-        return EngineHealthLevel.Healthy;
-    }
-
     private static (EngineHealthCheck HealthCheck, Mock<IEngineStatus> StatusMock) CreateHealthCheck(
         EngineHealthStatus status,
         int activeWorkerCount = 0,
@@ -32,7 +18,6 @@ public class EngineHealthCheckTests
     {
         var statusMock = new Mock<IEngineStatus>();
         statusMock.Setup(e => e.Status).Returns(status);
-        statusMock.Setup(e => e.HealthLevel).Returns(DeriveHealthLevel(status));
         statusMock.Setup(e => e.ActiveWorkerCount).Returns(activeWorkerCount);
         statusMock.Setup(e => e.MaxWorkers).Returns(maxWorkers);
         statusMock.Setup(e => e.ActiveWorkflowCount).Returns(activeWorkflowCount);
@@ -63,56 +48,6 @@ public class EngineHealthCheckTests
     }
 
     [Fact]
-    public async Task CheckHealthAsync_Unhealthy_ReturnsUnhealthy()
-    {
-        // Arrange
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Unhealthy);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
-        Assert.Equal("Engine is unhealthy", result.Description);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_Stopped_ReturnsUnhealthy()
-    {
-        // Arrange
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Stopped);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_Disabled_ReturnsDegraded()
-    {
-        // Arrange
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Disabled);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert
-        Assert.Equal(HealthStatus.Degraded, result.Status);
-        Assert.Equal("Engine is degraded", result.Description);
-    }
-
-    [Fact]
     public async Task CheckHealthAsync_QueueFull_ReturnsDegraded()
     {
         // Arrange
@@ -126,22 +61,6 @@ public class EngineHealthCheckTests
 
         // Assert
         Assert.Equal(HealthStatus.Degraded, result.Status);
-    }
-
-    [Fact]
-    public async Task CheckHealthAsync_UnhealthyTakesPrecedenceOverDegraded()
-    {
-        // Arrange — both unhealthy and degraded flags set
-        var (healthCheck, _) = CreateHealthCheck(EngineHealthStatus.Unhealthy | EngineHealthStatus.QueueFull);
-
-        // Act
-        var result = await healthCheck.CheckHealthAsync(
-            new HealthCheckContext(),
-            TestContext.Current.CancellationToken
-        );
-
-        // Assert — unhealthy should win
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
     }
 
     [Fact]

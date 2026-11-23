@@ -107,7 +107,6 @@ public class ServiceCollectionExtensionsTests
         var fiksArkivServiceTask = fixture.FiksArkivServiceTask;
         var fiksArkivConfigValidationService = fixture.FiksArkivConfigValidationService;
         var fiksArkivConfigResolver = fixture.FiksArkivConfigResolver;
-        var fiksArkivInstanceClient = fixture.FiksArkivInstanceClient;
         var fiksArkivPayloadGenerator = fixture.FiksArkivPayloadGenerator;
 
         // Assert
@@ -120,7 +119,6 @@ public class ServiceCollectionExtensionsTests
         Assert.NotNull(fiksArkivServiceTask);
         Assert.NotNull(fiksArkivConfigValidationService);
         Assert.NotNull(fiksArkivConfigResolver);
-        Assert.NotNull(fiksArkivInstanceClient);
         Assert.NotNull(fiksArkivPayloadGenerator);
         // No message handler is registered by default — the hook is optional.
         Assert.Null(fixture.FiksArkivMessageHandler);
@@ -132,7 +130,6 @@ public class ServiceCollectionExtensionsTests
         Assert.IsType<FiksArkivServiceTask>(fiksArkivServiceTask);
         Assert.IsType<FiksArkivConfigValidationService>(fiksArkivConfigValidationService);
         Assert.IsType<FiksArkivConfigResolver>(fiksArkivConfigResolver);
-        Assert.IsType<FiksArkivInstanceClient>(fiksArkivInstanceClient);
         Assert.IsType<FiksArkivDefaultPayloadGenerator>(fiksArkivPayloadGenerator);
     }
 

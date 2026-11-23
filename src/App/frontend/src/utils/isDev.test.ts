@@ -9,6 +9,13 @@ function mockHostName(hostname: string) {
   vi.spyOn(window, 'location', 'get').mockReturnValue({ ...location, hostname });
 }
 
+function mockDevelopmentSetting(development: boolean) {
+  window.altinnAppGlobalData.platformFrontendSettings = {
+    ...window.altinnAppGlobalData.platformFrontendSettings,
+    development,
+  };
+}
+
 describe('isDev', () => {
   beforeEach(() => {
     vi.spyOn(window, 'location', 'get').mockRestore();
@@ -20,23 +27,26 @@ describe('isDev', () => {
     expect(isDev()).toBe(true);
   });
 
-  it('should return true if hostname is dev.altinn.studio', () => {
-    mockHostName('dev.altinn.studio');
-    expect(window.location.hostname).toBe('dev.altinn.studio');
+  it('should return true if the platform settings say so, whatever the hostname', () => {
+    mockHostName('ttd.apps.altinn.no');
+    mockDevelopmentSetting(true);
     expect(isDev()).toBe(true);
   });
 
-  it('should return true if hostname is altinn.studio', () => {
-    mockHostName('altinn.studio');
-    expect(window.location.hostname).toBe('altinn.studio');
-    expect(isDev()).toBe(true);
+  it('should return false if the platform settings say so, whatever the hostname', () => {
+    mockHostName('local.altinn.cloud');
+    mockDevelopmentSetting(false);
+    expect(isDev()).toBe(false);
   });
 
-  it('should return true if hostname is studio.localhost', () => {
-    mockHostName('studio.localhost');
-    expect(window.location.hostname).toBe('studio.localhost');
-    expect(isDev()).toBe(true);
-  });
+  // Studio's preview runs on a domain of its own, and its page says it is a development environment.
+  it.each(['dev.altinn.studio', 'altinn.studio', 'studio.localhost'])(
+    'should return false if hostname is %s, without the platform setting',
+    (hostname) => {
+      mockHostName(hostname);
+      expect(isDev()).toBe(false);
+    },
+  );
 
   it('should return false if hostname is altinn3local.no', () => {
     mockHostName('altinn3local.no');

@@ -14,6 +14,7 @@ import { ArrowLeftIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { ProblemStatusIndicator } from './ProblemStatusIndicator';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import { useGenerateDataModelsBeforeShare } from 'app-development/features/appBuilder/useGenerateDataModelsBeforeShare';
 
 export type SubHeaderProps = {
   hasRepoError?: boolean;
@@ -28,6 +29,7 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
     refetch: refetchValidation,
     isFetching: validationPending,
   } = useAppValidationQuery(org, app);
+  const generateDataModelsBeforeShare = useGenerateDataModelsBeforeShare(org, app);
 
   return (
     <GiteaHeader
@@ -42,6 +44,7 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
       }
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
+      onBeforeShare={generateDataModelsBeforeShare}
       owner={org}
       repoName={app}
     />

@@ -736,6 +736,84 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_ConfirmCompleteOnProcessEnd_CommitsTheConfirmationAndKeepsProcessing()
+    {
+        var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            new ConfirmCompleteOnProcessEnd(),
+            (_, instance) =>
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                }
+        );
+
+        IActionResult result = await setup.Execute(ConfirmCompleteOnProcessEnd.Key, Guid.NewGuid());
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
+        Assert.True(mutation.AddCompleteConfirmation);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Null(mutation.ProcessState);
+        Instance confirmed = setup.DeserializeState(response.State!).Instance;
+        Assert.Equal(ProcessStatus.Processing, confirmed.Process?.Status);
+        CompleteConfirmation confirmation = Assert.Single(confirmed.CompleteConfirmations);
+        Assert.Equal(MockedServiceCollection.Org, confirmation.StakeholderId);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_ConfirmThenRelease_WithAutoDeleteOnProcessEnd_ConfirmsWithoutDeletingAndTheReleaseHardDeletes()
+    {
+        var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AppMetadata.AutoDeleteOnProcessEnd = true;
+                services.Services.AddSingleton<IWorkflowEngineCommand>(new ConfirmCompleteOnProcessEnd());
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseProcessingStatus(
+                    serviceProvider.GetRequiredService<IAppMetadata>()
+                ));
+            },
+            (_, instance) =>
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                }
+        );
+
+        Guid confirmStepId = Guid.NewGuid();
+        Guid releaseStepId = Guid.NewGuid();
+
+        IActionResult confirmResult = await setup.Execute(ConfirmCompleteOnProcessEnd.Key, confirmStepId);
+        var confirmResponse = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(confirmResult).Value);
+        IActionResult releaseResult = await (setup with { State = confirmResponse.State! }).Execute(
+            ReleaseProcessingStatus.Key,
+            releaseStepId
+        );
+
+        Assert.IsType<OkObjectResult>(releaseResult);
+        Dictionary<string, StorageInstanceMutationRequest> mutationsByStep = GetMutationRequests(setup.Services)
+            .ToDictionary(
+                request =>
+                    request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single(),
+                request => DeserializeMutationRequest(request.RequestBody!)
+            );
+        Assert.Equal(2, mutationsByStep.Count);
+        StorageInstanceMutationRequest confirmation = mutationsByStep[confirmStepId.ToString()];
+        Assert.True(confirmation.AddCompleteConfirmation);
+        Assert.Null(confirmation.DeleteInstance);
+        StorageInstanceMutationRequest release = mutationsByStep[releaseStepId.ToString()];
+        Assert.False(release.AddCompleteConfirmation);
+        Assert.True(release.DeleteInstance?.Hard);
+        Assert.Equal(ProcessStatus.Idle, release.ProcessState?.State?.Status);
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsStoragePreconditionFailed_ReturnsNonRetryableProblem()
     {
         await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());

@@ -106,7 +106,6 @@
  *   running:   boolean,
  *   healthy:   boolean,
  *   idle:      boolean,
- *   disabled:  boolean,
  *   queueFull: boolean,
  * }} EngineStatus
  *
