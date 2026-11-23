@@ -172,6 +172,9 @@ internal sealed partial class PipelineBuilderVariantMigration
             .SelectMany(static file => file.Root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
             .Any(static declaration => declaration.Identifier.ValueText == BuilderName);
 
+        // Without a compilation, an app's own PipelineBuilder reads like the Altinn one.
+        bool TellsBuildersApart(ScannedCSharpFile file) => file.SemanticModel is not null || !appDeclaresBuilder;
+
         // Detect everything before rewriting anything: an update refreshes the semantic models.
         var methods = new List<PipelineMethod>();
         var reported = new HashSet<SyntaxNode>();
@@ -183,7 +186,7 @@ internal sealed partial class PipelineBuilderVariantMigration
                 .OfType<MethodDeclarationSyntax>()
                 .Where(method => TakesOrReturnsBuilder(method, file.SemanticModel))
                 .ToList();
-            if (found.Count > 0 && file.SemanticModel is null && appDeclaresBuilder)
+            if (found.Count > 0 && !TellsBuildersApart(file))
             {
                 messages.Todo(
                     $"{file.RelativePath}: the app declares its own {BuilderName}, which cannot be told apart from "
@@ -225,7 +228,7 @@ internal sealed partial class PipelineBuilderVariantMigration
             }
         }
 
-        foreach (var file in files.Where(file => file.SemanticModel is not null || !appDeclaresBuilder))
+        foreach (var file in files.Where(TellsBuildersApart))
         {
             ReportStrayBuilders(file, reported, messages);
         }
@@ -238,7 +241,7 @@ internal sealed partial class PipelineBuilderVariantMigration
 
         // After the methods, so that a reference in a rewritten method's doc comment is found in its new tree. A
         // snapshot again, of the files those rewrites replaced.
-        var documented = _scanner.Files.Where(file => file.SemanticModel is not null || !appDeclaresBuilder).ToArray();
+        var documented = _scanner.Files.Where(TellsBuildersApart).ToArray();
         foreach (var file in documented)
         {
             cancellationToken.ThrowIfCancellationRequested();
