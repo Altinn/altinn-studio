@@ -1255,6 +1255,7 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
                 public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
                     pipeline
                         .Stage(static _ => throw new NotImplementedException())
+                        .Stage(System.Threading.Tasks.Task<StageResult> (_) => throw new NotImplementedException())
                         .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle first)
                         .HandleReplies(first, (_, _) => throw new NotImplementedException(), onClosed: async (context, reason) => null)
                         .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle second)
@@ -1285,12 +1286,13 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
 
         Assert.Equal(2, Oks(result).Count);
         Assert.Contains(
-            "AnonymousTask.DefineExecute uses an anonymous method at line 51 whose result has no type",
+            "AnonymousTask.DefineExecute uses an anonymous method at line 52 whose result has no type",
             Assert.Single(result.Todos)
         );
         var migrated = await ReadMigrated(task);
         Assert.Contains(
             "            .Stage(static Task<StageResult> (_) => throw new NotImplementedException())\n"
+                + "            .Stage(System.Threading.Tasks.Task<StageResult> (_) => throw new NotImplementedException())\n"
                 + "            .Stage(Send, new MailboxOptions(TimeSpan.FromDays(1)), out MailboxHandle first)\n"
                 + "            .HandleReplies(first, Task<StageExchangeResult> (_, _) => throw new NotImplementedException(), "
                 + "onClosed: async Task<StageResult> (context, reason) => null)\n"
@@ -1372,5 +1374,60 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
             );
         Assert.DoesNotContain(diagnosed.GetDiagnostics(ct), static d => d.Id is "CS1574" or "CS0419" or "CS1580");
         Assert.Empty(Migrate(semantic: false).Messages);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TriviaInAndAfterARemovedBuild_Stays(bool semantic)
+    {
+        var task = Write(
+            "logic/QuietTask.cs",
+            """
+            public class QuietTask : IProcessTask
+            {
+                public string Type => "quiet";
+
+                public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline)
+                {
+                    return pipeline /* nothing */ .Build(); // Nothing yet.
+                }
+
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline)
+                {
+                    return pipeline
+                        .Stage(Revoke)
+            #if DEBUG
+                        .Stage(Revoke)
+            #endif
+                        .Build();
+                }
+
+                public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+                    pipeline
+            #if DEBUG
+                        .Stage(Revoke)
+            #endif
+                        .Build();
+
+                private Task<StageResult> Revoke(StageContext context) => Task.FromResult(StageResult.Completed());
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        // Without DEBUG the expression body is the builder alone, which becomes an empty body; with DEBUG it composes.
+        Assert.Contains(
+            "QuietTask.DefineAbandon uses preprocessor directives in an expression body that is only Build()",
+            Assert.Single(result.Todos)
+        );
+        Assert.Equal(2, Oks(result).Count);
+        var migrated = await ReadMigrated(task);
+        Assert.Contains("    {\n          /* nothing */  // Nothing yet.\n    }\n", migrated);
+        Assert.Contains(
+            "        pipeline\n            .Stage(Revoke)\n#if DEBUG\n            .Stage(Revoke)\n#endif\n            ;\n    }\n",
+            migrated
+        );
     }
 }
