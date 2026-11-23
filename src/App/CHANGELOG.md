@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - A process transition no longer stays in `processing` when the workflow engine runs a step again after that step deleted or replaced a file, as the payment task does with an unfinished payment. The retry reads the file as it was and completes. This also covers process hooks and service tasks. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
+- A retried eFormidling shipment is no longer sent without an attachment that failed to upload. When the app resumes a message that an earlier attempt created, it passes over only the files that attempt uploaded. Any other upload error fails the task, and the workflow engine tries again. ([#21909](https://github.com/Altinn/altinn-studio/issues/21909))
 
 ## [9.0.0-preview.15] - 2026-11-25
 
