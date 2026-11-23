@@ -18,6 +18,7 @@ ALTINNAPP0604 | Deprecation | Warning | taskId next to taskIds is ignored
 ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded
 ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
+ALTINNAPP0704 | Contracts | Error | Process task method does not implement the member it is named after
 ALTINNAPP0800 | Authorization | Error | Service owner is missing required authorization
 ALTINNAPP0801 | Authorization | Warning | Service owner authorization could not be verified
 ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id

@@ -78,6 +78,16 @@ public static class Diagnostics
                 + "ends, passing the handle the stage handed out: with handlers that carry on, to continue "
                 + "afterwards, or with handlers that end the task, to end there."
         );
+
+        // '{0}' is the method, '{1}' the interface member, both as Type.Name(parameter types); '{2}' says to declare
+        // the member's signature, and to list the interface when the type only inherits it from a base class.
+        public static readonly DiagnosticDescriptor ProcessTaskMemberNotImplemented = Error(
+            "ALTINNAPP0704",
+            Category.Contracts,
+            "Process task method does not implement the member it is named after",
+            "'{0}' does not implement '{1}', so the default implementation runs instead and this method never "
+                + "does. {2}."
+        );
     }
 
     public static class Authorization
