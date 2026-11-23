@@ -93,11 +93,38 @@ internal sealed class UserActionService
         }
 
         List<ValidationIssueWithSource>? validationIssues =
-            result.ResultType is ResultType.Failure
-                ? await _translationService.TranslateUserActionFailure(result, language)
-                : null;
+            result.ResultType is ResultType.Failure ? await TranslateFailure(result, language) : null;
 
         return new UserActionOutcome(result, validationIssues);
+    }
+
+    /// <summary>
+    /// Translates the validation issues of a failed action, as validation does, and sets the first one as the
+    /// result's <see cref="UserActionResult.Error"/> when the action did not set one.
+    /// </summary>
+    /// <returns>The issues to return to the client, or null when the result has none.</returns>
+    private async Task<List<ValidationIssueWithSource>?> TranslateFailure(UserActionResult result, string? language)
+    {
+        if (result.ValidationIssues is not { Count: > 0 } issues)
+        {
+            return null;
+        }
+
+        await _translationService.TranslateValidationIssues(issues, language);
+        var first = issues[0];
+        result.Error ??= new ActionError
+        {
+            Code = first.Code,
+            Message = first.Description ?? first.CustomTextKey ?? first.Code ?? string.Empty,
+        };
+
+        // An action is not a validator: its issues are never re-evaluated by incremental validation, so the client
+        // must not expect a later incremental update to remove them.
+        return issues
+            .Select(issue =>
+                ValidationIssueWithSource.FromIssue(issue, ValidationIssueSources.Custom, noIncrementalUpdates: true)
+            )
+            .ToList();
     }
 }
 
