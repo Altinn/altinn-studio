@@ -1,0 +1,1409 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Altinn.Studio.Cli.Upgrade;
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.CalculationExpressions;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.Models;
+
+namespace Studioctl.Tests.Upgrade.v8Tov9;
+
+public sealed class CalculationExpressionMigrationTests
+{
+    private const string Normalize = "obj.a = obj.a ? +obj.a : 0; obj.b = obj.b ? +obj.b : 0;";
+    private const string Sum = Normalize + "return obj.a + obj.b;";
+
+    [Theory]
+    [InlineData(Sum, "{\"a\":2,\"b\":3}", 5)]
+    [InlineData("return Number(2);", "{}", 2)]
+    [InlineData("const Number = x => 7; return Number(2);", "{}", 7)]
+    [InlineData("const Number = x => 7; const run = x => Number(2); return run(1);", "{}", 7)]
+    [InlineData("const x = null; return x === null ? 1 : 0;", "{}", 1)]
+    [InlineData("const x = undefined; return x === undefined ? 1 : 0;", "{}", 1)]
+    [InlineData("const x = null; return x === undefined ? 1 : 0;", "{}", 0)]
+    [InlineData(Sum, "{\"a\":null,\"b\":-3}", -3)]
+    [InlineData(Sum, "{}", 0)]
+    [InlineData("return obj.a ? 1 : 0;", "{\"a\":-0}", 0)]
+    [InlineData("if (obj.a == null) return 0; return obj.a === 0 ? 1 : 0;", "{\"a\":-0}", 1)]
+    [InlineData("if (obj.a == null) return 0; return obj.a !== 0 ? 1 : 0;", "{\"a\":-0}", 0)]
+    [InlineData("return obj.b ? +obj.b / +obj.b : 0;", "{\"b\":-0}", 0)]
+    [InlineData("var undefined = 3; return undefined;", "{}", 3)]
+    [InlineData("return (obj.a ?? 0) + (obj.b ?? 0);", "{}", 0)]
+    [InlineData("return (obj.a ?? 0) + (obj.b ?? 0);", "{\"a\":2,\"b\":3}", 5)]
+    [InlineData("return (obj.a || 0) + (obj.b || 0);", "{\"a\":0,\"b\":3}", 3)]
+    [InlineData(Sum, "{\"a\":0.25,\"b\":-0.5}", -0.25)]
+    [InlineData(
+        Normalize + "var total = obj.a + obj.b; if (obj.a < 0) total = total * -1; return total;",
+        "{\"a\":-10,\"b\":2}",
+        8,
+        true
+    )]
+    [InlineData(
+        Normalize
+            + "let total = obj.a + obj.b; const limit = 10; if (obj.a >= limit) return limit; return total; debugger;",
+        "{\"a\":10,\"b\":2}",
+        10
+    )]
+    [InlineData(
+        Normalize + "if (obj.a > 0 && obj.b > 0) return obj.a / obj.b; return 0;",
+        "{\"a\":6,\"b\":2}",
+        3,
+        true
+    )]
+    [InlineData(
+        Normalize + "if (obj.a > 0 && obj.b > 0) return obj.a / obj.b; return 0;",
+        "{\"a\":6,\"b\":0}",
+        0,
+        true
+    )]
+    [InlineData("return obj.b ? +obj.b / +obj.b : 0;", "{}", 0)]
+    [InlineData("return obj.b ? +obj.b / +obj.b : 0;", "{\"b\":null}", 0)]
+    [InlineData(
+        "if (obj.a == null || obj.b == null) return 0; const factor = 2; return (obj.a + obj.b) * factor;",
+        "{\"a\":3,\"b\":2}",
+        10,
+        true
+    )]
+    [InlineData(
+        "if (obj.a == null || obj.b == null) return 0; const factor = 2; return (obj.a + obj.b) * factor;",
+        "{}",
+        0,
+        true
+    )]
+    [InlineData(Normalize + "return obj.a || obj.b;", "{\"a\":0,\"b\":3}", 3)]
+    [InlineData(Normalize + "return obj.a && obj.b;", "{\"a\":2,\"b\":3}", 3)]
+    [InlineData("globalValue = obj.a; return globalValue;", "{\"a\":7}", 7)]
+    [InlineData(
+        "total = 0; if (obj.a) total += +obj.a; if (obj.b) total += +obj.b; return total;",
+        "{\"a\":7,\"b\":3}",
+        10
+    )]
+    [InlineData("if (obj.a) total = 7; else total = 3; return total;", "{}", 3)]
+    [InlineData("if (!+obj.a || !+obj.b) return 0; return obj.a / obj.b;", "{\"a\":6,\"b\":2}", 3, true)]
+    [InlineData("if (!+obj.a || !+obj.b) return 0; return obj.a / obj.b;", "{}", 0, true)]
+    [InlineData(
+        "const toNumber = value => { const num = Number(value); return isNaN(num) ? 0 : num; }; return toNumber(obj.a) + toNumber(obj.b);",
+        "{\"a\":7}",
+        7
+    )]
+    [InlineData(Normalize + "obj.extra = obj.extra ? +obj.extra : 0; return obj.a + obj.extra;", "{\"a\":2}", 2)]
+    [InlineData(
+        "if (obj.a === undefined || obj.b === undefined) return ''; return Number(obj.a) + Number(obj.b);",
+        "{}",
+        0
+    )]
+    [InlineData(
+        "if (obj.a === undefined || obj.b === undefined) return ''; return Number(obj.a) + Number(obj.b);",
+        "{\"a\":2,\"b\":3}",
+        5
+    )]
+    [InlineData("return obj.a === null ? 7 : obj.a;", "{}", 7)]
+    [InlineData("const twice = n => n * 2; return twice(twice(3));", "{}", 12)]
+    [InlineData("const undefined = 0; if (obj.a != undefined) return obj.a === null ? 1 : 2; return 3;", "{}", 1)]
+    [InlineData("let x = 1; const g = () => x; const f = x => g(); return f(5);", "{}", 1)]
+    public void ConvertedCalculations_PreserveAssignmentsBranchesAndMissingInputs(
+        string body,
+        string inputs,
+        double expected,
+        bool integerInputs = false
+    )
+    {
+        using var app = CreateApp(integerInputs);
+        var expression = Convert(app, body, Rule("calculate", "result"));
+        var model = JsonNode.Parse(inputs)?.AsObject() ?? throw new InvalidOperationException();
+        Assert.Equal(expected, Evaluate(expression, model));
+    }
+
+    [Theory]
+    [InlineData("return null;")]
+    [InlineData("if (obj.a) return obj.a;")]
+    public void NullOrMissingReturn_IsPreserved(string body)
+    {
+        using var app = CreateApp();
+        var expression = Convert(app, body, Rule("calculate", "result"));
+        Assert.NotNull(expression);
+        Assert.Null(Evaluate(expression, new JsonObject()));
+    }
+
+    [Theory]
+    [InlineData("1e309")]
+    [InlineData("-1e309")]
+    public void NonFiniteLiterals_DoNotStopLaterCalculations(string literal)
+    {
+        using var app = CreateApp();
+        WriteRules(
+            app,
+            new() { ["unsupported"] = Rule("unsupported", "result"), ["sum"] = Rule("sum", "other") },
+            "unsupported: function(obj) { return " + literal + "; }, sum: function(obj) { " + Sum + " }"
+        );
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Equal(["sum"], migration.ConvertedRules["form"]);
+        Assert.Contains(migration.FallbackReasons, reason => reason.Contains("Non-finite", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("return Math.floor(obj.a);")]
+    [InlineData("return obj.a.toFixed(2);")]
+    [InlineData("return parseFloat(obj.a);")]
+    [InlineData("return obj.a / obj.b;")]
+    [InlineData("return obj.missing + 1;")]
+    [InlineData("return obj.a === null;")]
+    [InlineData("return obj.a ? 1 : 'value';")]
+    [InlineData("return Number(2); const Number = x => 7;")]
+    [InlineData("return Number(2); let Number = x => 7;")]
+    [InlineData("const Number = x => 7; const run = x => { return Number(2); const Number = 3; }; return run(1);")]
+    [InlineData("const Number = x => 7; const run = x => { const Number = 3; return Number(2); }; return run(1);")]
+    [InlineData("const Number = x => 7; const run = Number => Number(2); return run(3);")]
+    [InlineData("const helper = x => 7; const run = helper => helper(2); return run(3);")]
+    [InlineData("return Math.round(2); var Math = {};")]
+    [InlineData("return undefined; const undefined = 7;")]
+    [InlineData("const x = obj.a ? null : undefined; return x === undefined ? 1 : 0;")]
+    [InlineData("const x = obj.a ? undefined : null; return x === null ? 1 : 0;")]
+    [InlineData("const x = obj.a ? null : undefined; return x !== null ? 1 : 0;")]
+    [InlineData("const value = obj.a ? undefined : obj.b; return value === undefined ? 0 : 1;")]
+    [InlineData("const value = obj.a ? undefined : obj.b; return value + 1;")]
+    [InlineData("if (obj.a) globalValue = obj.a; return globalValue;")]
+    [InlineData("globalValue += obj.a; return globalValue;")]
+    [InlineData("const helper = value => { obj.a = value; return value; }; return helper(1);")]
+    [InlineData("const helper = value => helper(value); return helper(1);")]
+    [InlineData("const value = 1; value = 2; return value;")]
+    [InlineData("if (obj.a) { let value = 1; } return value;")]
+    [InlineData("for (var i = 0; i < 2; i++) obj.a++; return obj.a;")]
+    [InlineData("return obj.text + 'x';")]
+    [InlineData("return obj.text == null ? 0 : 1;")]
+    [InlineData("return obj;")]
+    [InlineData(
+        "const outer = x => { const Number = y => 7; return Number(x); }; const first = outer(obj.a); return first + Number(2);"
+    )]
+    public void UnsupportedSemantics_RequireFallback(string body)
+    {
+        using var app = CreateApp();
+        var rule = Rule("calculate", "result");
+        rule.InputParams?.Add("text", "text");
+        Assert.Throws<NotSupportedException>(() => Convert(app, body, rule));
+    }
+
+    [Fact]
+    public void ExponentialLocalExpansion_StopsBeforeAllocatingTheFullTree()
+    {
+        using var app = CreateApp();
+        var body =
+            "var total = obj.a || 0;" + string.Concat(Enumerable.Repeat("total += total;", 30)) + "return total;";
+        Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "result")));
+    }
+
+    [Theory]
+    [InlineData("async function(obj) { return 1; }")]
+    [InlineData("function*(obj) { return 1; }")]
+    public void AsyncAndGeneratorFunctions_DoNotBecomeExpressions(string function)
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["calculate"] = Rule("calculate", "result") }, "calculate: " + function);
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void SmallDecimalSelfDivision_UsesTheKnownQuotient()
+    {
+        using var app = CreateApp();
+        var expression = Convert(app, "return obj.b ? obj.b / obj.b : 0;", Rule("calculate", "result"));
+        Assert.Equal(1d, Evaluate(expression, new() { ["b"] = 1e-28 }));
+    }
+
+    [Theory]
+    [InlineData("0.1", 10d)]
+    [InlineData("1e-28", 1e28)]
+    public void Division_WithRepresentableDecimalLiteralDenominator_Converts(string denominator, double expected)
+    {
+        using var app = CreateApp();
+        var expression = Convert(app, "return 1 / " + denominator + ";", Rule("calculate", "result"));
+        Assert.Equal(expected, Evaluate(expression, new JsonObject()));
+    }
+
+    [Fact]
+    public void ConstantStringConcatenation_PreservesTheStringResult()
+    {
+        using var app = CreateApp();
+        var expression = Convert(app, "return 'hello' + ' world';", Rule("calculate", "text"));
+        Assert.Equal("hello world", Evaluate(expression, new JsonObject()));
+    }
+
+    [Theory]
+    [InlineData("{}", "0")]
+    [InlineData("{\"a\":-0,\"b\":0}", "0")]
+    [InlineData("{\"a\":7,\"b\":3}", "10")]
+    public void NumericTextResults_PreserveTheStringModelType(string inputs, string expected)
+    {
+        using var app = CreateApp();
+        app.Write("models/Root.cs", app.Read("models/Root.cs").Replace("decimal?", "int?", StringComparison.Ordinal));
+        var expression = Convert(app, Normalize + "return (obj.a + obj.b).toString();", Rule("calculate", "text"));
+        Assert.Equal(
+            expected,
+            Evaluate(expression, JsonNode.Parse(inputs)?.AsObject() ?? throw new InvalidOperationException())
+        );
+    }
+
+    [Theory]
+    [InlineData("return 'nu' + 'll';")]
+    [InlineData("return (obj.a ? 'nu' : 'va') + 'll';")]
+    public void ConcatenationThatCouldProduceReservedStrings_RequiresFallback(string body)
+    {
+        using var app = CreateApp();
+        Assert.Throws<NotSupportedException>(() => Convert(app, body, Rule("calculate", "text")));
+    }
+
+    [Fact]
+    public void IndependentRules_UseExpressionsAndExistingCSharpFallback()
+    {
+        using var app = CreateApp();
+        WriteRules(
+            app,
+            new() { ["sum"] = Rule("sum", "result"), ["rounded"] = Rule("rounded", "other") },
+            "sum: function(obj) { " + Sum + " }, rounded: function(obj) { return Math.floor(obj.a); }"
+        );
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Equal("sum", Assert.Single(migration.ConvertedRules["form"]));
+        var model = JsonNode.Parse("{\"a\":2,\"b\":3}")?.AsObject() ?? throw new InvalidOperationException();
+        Assert.Equal(5d, Evaluate(Calculations(app)["result"]?["expression"], model));
+        var handler = new RuleHandlerParser(Path.Combine(app.Root, "App", "ui", "form", "RuleHandler.js"));
+        handler.Parse();
+        var generated = new CSharpCodeGenerator(
+            "form",
+            Model(),
+            new() { ["rounded"] = Rule("rounded", "other") },
+            handler,
+            Resolver(app)
+        ).Generate();
+        Assert.True(generated.Success);
+        Assert.Equal(1, generated.SuccessfulConversions);
+        Assert.Empty(generated.FailedRules);
+    }
+
+    [Fact]
+    public void DependentUnsupportedRules_StayTogetherInCSharp()
+    {
+        using var app = CreateApp();
+        var dependent = Rule("sum", "result");
+        dependent.InputParams = new() { ["a"] = "other", ["b"] = "b" };
+        WriteRules(
+            app,
+            new() { ["rounded"] = Rule("rounded", "other"), ["sum"] = dependent },
+            "sum: function(obj) { " + Sum + " }, rounded: function(obj) { return Math.floor(obj.a); }"
+        );
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void UnsupportedMultipleOutputs_DoNotLeaveAnOverlappingExpressionWriter()
+    {
+        using var app = CreateApp();
+        var multiple = Rule("sum", "other");
+        multiple.OutParams?.Add("outParam1", "result");
+        WriteRules(
+            app,
+            new() { ["multiple"] = multiple, ["sum"] = Rule("sum", "result") },
+            "sum: function(obj) { " + Sum + " }"
+        );
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void ChainedCalculations_KeepTheLegacyInputSnapshotInCSharp()
+    {
+        using var app = CreateApp();
+        var dependent = Rule("sum", "other");
+        dependent.InputParams = new() { ["a"] = "result", ["b"] = "b" };
+        WriteRules(
+            app,
+            new() { ["first"] = Rule("sum", "result"), ["second"] = dependent },
+            "sum: function(obj) { " + Sum + " }"
+        );
+        var result = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(result.ConvertedRules);
+        Assert.Equal(2, result.FallbackReasons.Count);
+        Assert.Contains(result.FallbackReasons, reason => reason.Contains("input snapshot", StringComparison.Ordinal));
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Theory]
+    [InlineData("rows[{0}].a", "rows[{0}].result", true)]
+    [InlineData("a", "rows[{0}].result", true)]
+    [InlineData("rows[1].a", "rows[1].result", true)]
+    [InlineData("rows[{1}].a", "rows[{0}].result", false)]
+    [InlineData("rows[{0}].a", "result", false)]
+    public void RepeatingPaths_PreserveRowScope(string input, string output, bool supported)
+    {
+        using var app = CreateApp();
+        var rule = Rule("sum", output);
+        rule.InputParams = new() { ["a"] = input };
+        WriteRules(app, new() { ["sum"] = rule }, "sum: function(obj) { " + Sum + " }");
+        var result = CalculationMigration.Migrate(app.Root);
+        Assert.Equal(supported, result.ConvertedRules.Count > 0);
+        if (supported)
+        {
+            var target = output.Replace("[{0}]", "", StringComparison.Ordinal);
+            var expression = Calculations(app)[target]?["expression"];
+            Assert.Equal(
+                2d,
+                Evaluate(expression, new() { [input.Replace("[{0}]", "", StringComparison.Ordinal)] = 2 })
+            );
+        }
+    }
+
+    [Fact]
+    public void IdenticalFixedRows_BecomeOneRepeatingCalculation()
+    {
+        using var app = CreateApp();
+        var rules = new Dictionary<string, DataProcessingRule>();
+        for (var index = 0; index < 7; index++)
+        {
+            var rule = Rule("sum", $"rows[{index}].result");
+            rule.InputParams = new() { ["a"] = $"rows[{index}].a", ["b"] = $"rows[{index}].b" };
+            rules[$"row{index}"] = rule;
+        }
+        WriteRules(app, rules, "sum: function(obj) { " + Sum + " }");
+        Assert.Equal(7, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        var calculation = Assert.Single(Calculations(app));
+        Assert.Equal("rows.result", calculation.Key);
+        Assert.Equal(5d, Evaluate(calculation.Value?["expression"], new() { ["rows.a"] = 2, ["rows.b"] = 3 }));
+        Assert.Equal(9d, Evaluate(calculation.Value?["expression"], new() { ["rows.a"] = 4, ["rows.b"] = 5 }));
+        var before = File.ReadAllBytes(CalculationPath(app));
+        Assert.Equal(7, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Theory]
+    [InlineData("rows[0].rows[1].result", "rows[1].rows[1].result", "rows.rows[1].result")]
+    public void NestedFixedRows_OnlyGeneralizeVaryingIndices(
+        string firstTarget,
+        string secondTarget,
+        string expectedTarget
+    )
+    {
+        using var app = CreateApp();
+        var first = Rule("sum", firstTarget);
+        first.InputParams = new() { ["a"] = firstTarget.Replace(".result", ".a", StringComparison.Ordinal) };
+        var second = Rule("sum", secondTarget);
+        second.InputParams = new() { ["a"] = secondTarget.Replace(".result", ".a", StringComparison.Ordinal) };
+        WriteRules(app, new() { ["first"] = first, ["second"] = second }, "sum: function(obj) { " + Sum + " }");
+        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        var calculation = Assert.Single(Calculations(app));
+        Assert.Equal(expectedTarget, calculation.Key);
+        Assert.Equal(
+            4d,
+            Evaluate(
+                calculation.Value?["expression"],
+                new() { [expectedTarget.Replace(".result", ".a", StringComparison.Ordinal)] = 4 }
+            )
+        );
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void FixedRowsWithDifferentInputsOrFunctions_KeepTheirSpecificTargets(bool differentFunction)
+    {
+        using var app = CreateApp();
+        var first = Rule("sum", "rows[0].result");
+        first.InputParams = new() { ["a"] = "rows[0].a", ["b"] = "rows[0].b" };
+        var second = Rule(differentFunction ? "subtract" : "sum", "rows[1].result");
+        second.InputParams = new() { ["a"] = "rows[1].a", ["b"] = differentFunction ? "rows[1].b" : "b" };
+        WriteRules(
+            app,
+            new() { ["first"] = first, ["second"] = second },
+            "sum: function(obj) { " + Sum + " }, subtract: function(obj) { " + Normalize + "return obj.a - obj.b; }"
+        );
+        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        var calculations = Calculations(app);
+        Assert.Equal(2, calculations.Count);
+        Assert.Equal(
+            5d,
+            Evaluate(calculations["rows[0].result"]?["expression"], new() { ["rows[0].a"] = 2, ["rows[0].b"] = 3 })
+        );
+        Assert.Equal(
+            differentFunction ? 3d : 12d,
+            Evaluate(
+                calculations["rows[1].result"]?["expression"],
+                new()
+                {
+                    ["rows[1].a"] = 5,
+                    ["rows[1].b"] = 2,
+                    ["b"] = 7,
+                }
+            )
+        );
+    }
+
+    [Fact]
+    public void RulesReadingAnotherFixedRow_AreNotGeneralized()
+    {
+        using var app = CreateApp();
+        var first = Rule("sum", "rows[0].result");
+        first.InputParams = new() { ["a"] = "rows[1].a" };
+        var second = Rule("sum", "rows[1].result");
+        second.InputParams = new() { ["a"] = "rows[0].a" };
+        WriteRules(app, new() { ["first"] = first, ["second"] = second }, "sum: function(obj) { " + Sum + " }");
+        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        Assert.Equal(2, Calculations(app).Count);
+        Assert.Equal(8d, Evaluate(Calculations(app)["rows[0].result"]?["expression"], new() { ["rows[1].a"] = 8 }));
+    }
+
+    [Fact]
+    public void DynamicMathRound_UsesCSharpToPreserveNegativeMidpoints()
+    {
+        using var app = CreateApp();
+        Assert.Throws<NotSupportedException>(() =>
+            Convert(app, Normalize + "return Math.round(obj.a + obj.b);", Rule("calculate", "result"))
+        );
+        Assert.Throws<NotSupportedException>(() =>
+            Convert(app, "return Math.round(obj.a * 100) / 100;", Rule("calculate", "result"))
+        );
+    }
+
+    [Theory]
+    [InlineData("return Math.round(obj.a * 10) / 100;")]
+    [InlineData("return Math.round(obj.a * 99.99999999999999) / 99.99999999999999;")]
+    public void DifferentOrNonDecimalRoundingScales_RequireFallback(string body)
+    {
+        using var app = CreateApp();
+        Assert.Throws<NotSupportedException>(() => Convert(app, Normalize + body, Rule("calculate", "result")));
+    }
+
+    [Theory]
+    [InlineData("return obj.flag ? obj.flag + 1 : 0;")]
+    [InlineData("return obj.flag ? obj.flag > '2' : false;")]
+    [InlineData("let sum = 0; if (obj.flag) sum += obj.flag; return sum;")]
+    [InlineData("return obj.flag?.includes('1') === undefined ? 1 : 0;")]
+    public void NumericOptionMetadata_DoesNotChangeStringAdditionOrOrdering(string body)
+    {
+        using var app = CreateApp();
+        app.Write(
+            "ui/form/layouts/page.json",
+            "{\"data\":{\"layout\":[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"options\":[{\"value\":\"1\"},{\"value\":\"10\"}]}]}}"
+        );
+        var rule = Rule("calculate", "result");
+        rule.InputParams = new() { ["flag"] = "text" };
+        WriteRules(app, new() { ["calculate"] = rule }, "calculate: function(obj) { " + body + " }");
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+    }
+
+    [Theory]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"dataModelBindings\":{\"simpleBinding\":\"a\"},\"options\":[{\"value\":\"1\"}]}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"source\":{},\"options\":[{\"value\":\"1\"}]}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"optionsId\":\"also-set\",\"options\":[{\"value\":\"1\"}]}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"optionsId\":\"dynamic\"}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"options\":[{\"value\":\"1\"},{\"value\":\"other\"}]}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"Checkboxes\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"options\":[{\"value\":\"0\"},{\"value\":\"1\"}]}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":\"text\"},\"options\":[{\"value\":\"0\"},{\"value\":\"1\"}]},{\"type\":\"Input\",\"dataModelBindings\":{\"simpleBinding\":\"text\"}}]"
+    )]
+    [InlineData(
+        "[{\"type\":\"RadioButtons\",\"dataModelBindings\":{\"simpleBinding\":{\"field\":\"text\",\"dataType\":\"otherModel\"}},\"options\":[{\"value\":\"0\"},{\"value\":\"1\"}]}]"
+    )]
+    public void UnknownOrNonnumericOptionSources_KeepNumericCoercionInCSharp(string components)
+    {
+        using var app = CreateApp();
+        app.Write("ui/form/layouts/page.json", "{\"data\":{\"layout\":" + components + "}}");
+        var rule = Rule("calculate", "result");
+        rule.InputParams = new() { ["flag"] = "text" };
+        WriteRules(
+            app,
+            new() { ["calculate"] = rule },
+            "calculate: function(obj) { return obj.flag ? +obj.flag : 0; }"
+        );
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+    }
+
+    [Fact]
+    public void NullableCalculatedOutputs_AlignTheSchemaWithTheCSharpModel()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.schema.json",
+            "{\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"number\",\"minimum\":0},\"other\":{\"type\":\"number\"}}}"
+        );
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "result") },
+            "optional: function(obj) { " + Normalize + " if(obj.a > 0) return obj.b; return null; }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
+        Assert.Equal("[\"number\",\"null\"]", schema?["properties"]?["result"]?["type"]?.ToJsonString());
+        Assert.Equal(0, schema?["properties"]?["result"]?["minimum"]?.GetValue<int>());
+        Assert.Equal("number", schema?["properties"]?["other"]?["type"]?.GetValue<string>());
+        var before = app.Read("models/model.schema.json");
+        CalculationMigration.Migrate(app.Root);
+        Assert.Equal(before, app.Read("models/model.schema.json"));
+    }
+
+    [Fact]
+    public void NullableSchemaReferences_AreWrappedWithoutChangingSharedDefinitions()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.schema.json",
+            "{\"type\":\"object\",\"$defs\":{\"amount\":{\"type\":\"number\"}},\"properties\":{\"result\":{\"$ref\":\"#/$defs/amount\"},\"other\":{\"$ref\":\"#/$defs/amount\"}}}"
+        );
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "result") },
+            "optional: function(obj) { " + Normalize + " if(obj.a > 0) return obj.b; return null; }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
+        Assert.Equal("null", schema?["properties"]?["result"]?["anyOf"]?[1]?["type"]?.GetValue<string>());
+        Assert.Equal("number", schema?["$defs"]?["amount"]?["type"]?.GetValue<string>());
+        Assert.Equal("#/$defs/amount", schema?["properties"]?["other"]?["$ref"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public void NullableRepeatingOutput_ResolvesArraysAndLocalReferences()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.schema.json",
+            "{\"type\":\"object\",\"$defs\":{\"row\":{\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"number\"}}}},\"properties\":{\"rows\":{\"type\":\"array\",\"items\":{\"$ref\":\"#/$defs/row\"}}}}"
+        );
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "rows[{0}].result") },
+            "optional: function(obj) { return null; }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
+        Assert.Equal(
+            "[\"number\",\"null\"]",
+            schema?["properties"]?["rows"]?["items"]?["properties"]?["result"]?["type"]?.ToJsonString()
+        );
+        Assert.Equal("number", schema?["$defs"]?["row"]?["properties"]?["result"]?["type"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public void NullableRowOutput_DoesNotWidenOtherUsesOfTheSameDefinition()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.schema.json",
+            """
+            {"$defs":{"row":{"properties":{"result":{"type":"number"}}}},"properties":{
+              "rows":{"type":"array","items":{"$ref":"#/$defs/row"}},
+              "archivedRows":{"type":"array","items":{"$ref":"#/$defs/row"}}}}
+            """
+        );
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "rows[{0}].result") },
+            "optional: obj => { return null; }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
+        Assert.Equal(
+            "[\"number\",\"null\"]",
+            schema?["properties"]?["rows"]?["items"]?["properties"]?["result"]?["type"]?.ToJsonString()
+        );
+        Assert.Equal("#/$defs/row", schema?["properties"]?["archivedRows"]?["items"]?["$ref"]?.GetValue<string>());
+        Assert.Equal("number", schema?["$defs"]?["row"]?["properties"]?["result"]?["type"]?.GetValue<string>());
+    }
+
+    [Theory]
+    [InlineData("{\"type\":[\"number\"],\"enum\":[0,1]}")]
+    [InlineData("{\"type\":[\"number\",\"null\"],\"enum\":[0,1]}")]
+    [InlineData("{\"type\":[\"number\",\"null\"],\"const\":0}")]
+    [InlineData("{\"anyOf\":[{\"type\":\"null\"},{\"type\":\"number\"}],\"not\":{\"type\":\"null\"}}")]
+    [InlineData("{\"type\":[\"number\",\"null\"],\"allOf\":[{\"type\":\"number\"}]}")]
+    [InlineData("{\"oneOf\":[{\"type\":\"null\"},{\"type\":[\"number\",\"null\"]}]}")]
+    public void NullableOutput_AccountsForEveryConstraint(string property)
+    {
+        using var app = CreateApp();
+        app.Write("models/model.schema.json", "{\"properties\":{\"result\":" + property + "}}");
+        WriteRules(app, new() { ["optional"] = Rule("optional", "result") }, "optional: obj => { return null; }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var result = JsonNode.Parse(app.Read("models/model.schema.json"))?["properties"]?["result"];
+        Assert.Equal("null", result?["anyOf"]?[1]?["type"]?.GetValue<string>());
+        if (property.StartsWith("{\"type\":[", StringComparison.Ordinal))
+            Assert.Equal("number", result?["anyOf"]?[0]?["type"]?.GetValue<string>());
+        var original = Assert.IsType<JsonObject>(JsonNode.Parse(property));
+        if (original["type"] is JsonArray types)
+        {
+            var nonNull = types.Where(type => type?.GetValue<string>() != "null").ToArray();
+            if (nonNull.Length == 1)
+                original["type"] = nonNull[0]?.DeepClone();
+        }
+        Assert.True(JsonNode.DeepEquals(original, result?["anyOf"]?[0]), "Non-null constraints must be retained.");
+        var before = app.Read("models/model.schema.json");
+        CalculationMigration.Migrate(app.Root);
+        Assert.Equal(before, app.Read("models/model.schema.json"));
+    }
+
+    [Fact]
+    public void NullableOutput_PreservesTheOriginalEnumConstraints()
+    {
+        using var app = CreateApp();
+        app.Write("models/model.schema.json", "{\"properties\":{\"result\":{\"type\":\"number\",\"enum\":[0,1]}}}");
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "result") },
+            "optional: function(obj) { return null; }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var schema = JsonNode.Parse(app.Read("models/model.schema.json"));
+        Assert.Equal("[0,1]", schema?["properties"]?["result"]?["anyOf"]?[0]?["enum"]?.ToJsonString());
+        Assert.Equal("null", schema?["properties"]?["result"]?["anyOf"]?[1]?["type"]?.GetValue<string>());
+        var before = app.Read("models/model.schema.json");
+        CalculationMigration.Migrate(app.Root);
+        Assert.Equal(before, app.Read("models/model.schema.json"));
+    }
+
+    [Theory]
+    [InlineData("{\"type\":\"number\"}", "return 1;")]
+    [InlineData("{\"type\":[\"number\",\"null\"]}", "return null;")]
+    [InlineData("{\"oneOf\":[{\"type\":\"number\"},{\"$ref\":\"#/$defs/empty\"}]}", "return null;")]
+    public void UnnecessarySchemaUpdates_AreAvoided(string property, string body)
+    {
+        using var app = CreateApp();
+        var schema = "{\"$defs\":{\"empty\":{\"type\":\"null\"}},\"properties\":{\"result\":" + property + "}}";
+        app.Write("models/model.schema.json", schema);
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "result") },
+            "optional: function(obj) { " + body + " }"
+        );
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        Assert.Equal(schema, app.Read("models/model.schema.json"));
+        if (body == "return null;")
+            Assert.Equal(
+                "[\"if\",true,null,\"else\",null]",
+                Calculations(app)["result"]?["expression"]?.ToJsonString()
+            );
+    }
+
+    [Fact]
+    public void RejectedCalculations_LeaveTheSchemaUnchanged()
+    {
+        using var app = CreateApp();
+        const string schema = "{\"type\":\"object\",\"properties\":{\"result\":{\"type\":\"number\"}}}";
+        app.Write("models/model.schema.json", schema);
+        WriteRules(
+            app,
+            new() { ["first"] = Rule("optional", "result"), ["second"] = Rule("sum", "result") },
+            "optional: function(obj) { return null; }, sum: function(obj) { " + Sum + " }"
+        );
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.Equal(schema, app.Read("models/model.schema.json"));
+    }
+
+    [Fact]
+    public void UnresolvedNullableSchemaOutput_UsesCSharpFallback()
+    {
+        using var app = CreateApp();
+        app.Write("models/model.schema.json", "{\"type\":\"object\",\"properties\":{}}");
+        WriteRules(
+            app,
+            new() { ["optional"] = Rule("optional", "result") },
+            "optional: function(obj) { return null; }"
+        );
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void UnreadableSchema_DoesNotAbortCalculationFallback()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Skip("Requires Unix file permissions.");
+            return;
+        }
+        using var app = CreateApp();
+        const string schema = "{\"properties\":{\"result\":{\"type\":\"number\"}}}";
+        var path = app.Write("models/model.schema.json", schema);
+        WriteRules(app, new() { ["optional"] = Rule("optional", "result") }, "optional: obj => { return null; }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        File.Delete(CalculationPath(app));
+        app.Write("models/model.schema.json", schema);
+        var mode = File.GetUnixFileMode(path);
+        try
+        {
+            File.SetUnixFileMode(path, UnixFileMode.None);
+            var denied = false;
+            try
+            {
+                File.ReadAllText(path);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                denied = true;
+            }
+            Assert.SkipWhen(!denied, "File permissions are not enforced for this process.");
+            var result = CalculationMigration.Migrate(app.Root);
+            Assert.Empty(result.ConvertedRules);
+            var reason = Assert.Single(result.FallbackReasons);
+            Assert.Contains("could not be resolved in the model schema", reason);
+            Assert.Contains(Path.Combine("App", "models", "model.schema.json"), reason);
+            Assert.Empty(result.ManualRules);
+        }
+        finally
+        {
+            File.SetUnixFileMode(path, mode);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ProcessorNameCollisions_ConsiderOnlyLayoutsThatNeedCSharp(bool bothNeedProcessor)
+    {
+        using var app = CreateApp();
+        app.Write(
+            "ui/layout-sets.json",
+            """
+            {"sets":[{"id":"form","dataType":"model","tasks":["Task_1"]},
+                     {"id":"fo-rm","dataType":"model","tasks":["Task_2"]}]}
+            """
+        );
+        app.Write("ui/fo-rm/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        // An unrelated layout with no rules must not stop processor generation either.
+        app.Write("ui/unrelated/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
+        WriteRules(
+            app,
+            new() { ["other"] = Rule("other", "other") },
+            "other: obj => { " + (bothNeedProcessor ? "return Math.floor(obj.a);" : Sum) + " }",
+            "fo-rm"
+        );
+        app.CommitEverything();
+        var report = new UpgradeReport();
+        var exit = await RunUpgrade(app, report);
+        var file = Path.Combine(app.Root, "App/logic/ConvertedLegacyRules/FormDataProcessor.cs");
+        if (bothNeedProcessor)
+        {
+            Assert.Equal(3, exit);
+            Assert.Contains(
+                report.Steps.SelectMany(step => step.Messages),
+                message =>
+                    message.Status == UpgradeMessageStatus.Todo
+                    && message.Text.Contains("processor name collides", StringComparison.Ordinal)
+            );
+            Assert.False(File.Exists(file));
+            Assert.Equal(
+                2,
+                Directory
+                    .GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+                    .Length
+            );
+        }
+        else
+        {
+            Assert.Contains(
+                "model.result = ",
+                await File.ReadAllTextAsync(file, TestContext.Current.CancellationToken)
+            );
+            Assert.Equal(5d, Evaluate(Calculations(app)["other"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+            Assert.Empty(
+                Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+            );
+        }
+    }
+
+    [Fact]
+    public async Task AmbiguousExistingProcessor_IsNotOverwrittenWhenTheOtherLayoutHasNoRules()
+    {
+        using var app = CreateApp();
+        app.Write("ui/fo-rm/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        const string original = "public class FormDataProcessor { }";
+        app.Write("logic/ConvertedLegacyRules/FormDataProcessor.cs", original);
+        WriteRules(app, new() { ["floor"] = Rule("floor", "result") }, "floor: obj => { return Math.floor(obj.a); }");
+        app.CommitEverything();
+        var report = new UpgradeReport();
+        var exit = await RunUpgrade(app, report);
+        Assert.Equal(3, exit);
+        Assert.Contains(
+            report.Steps.SelectMany(step => step.Messages),
+            message =>
+                message.Status == UpgradeMessageStatus.Todo
+                && message.Text.Contains("processor name collides", StringComparison.Ordinal)
+        );
+        Assert.Equal(original, app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs"));
+        Assert.Single(
+            Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+        );
+    }
+
+    [Theory]
+    [InlineData("duplicate")]
+    [InlineData("self")]
+    [InlineData("backwards")]
+    [InlineData("cross-layout")]
+    public void ConflictingCalculations_StayInCSharp(string scenario)
+    {
+        using var app = CreateApp();
+        var first = Rule("sum", "result");
+        var second = Rule("sum", scenario == "duplicate" ? "result" : "other");
+        if (scenario is "self" or "backwards")
+            first.InputParams = new() { ["a"] = scenario == "self" ? "result" : "other" };
+        if (scenario == "cross-layout")
+            second.InputParams = new() { ["a"] = "result" };
+        WriteRules(app, new() { ["first"] = first }, "sum: function(obj) { " + Sum + " }");
+        if (scenario == "cross-layout")
+        {
+            WriteRules(app, new() { ["second"] = second }, "sum: function(obj) { " + Sum + " }", "otherForm");
+            app.Write(
+                "ui/layout-sets.json",
+                "{\"sets\":[{\"id\":\"form\",\"dataType\":\"model\"},{\"id\":\"otherForm\",\"dataType\":\"model\"}]}"
+            );
+        }
+        else
+            WriteRules(app, new() { ["first"] = first, ["second"] = second }, "sum: function(obj) { " + Sum + " }");
+        var result = CalculationMigration.Migrate(app.Root);
+        if (scenario == "self")
+            Assert.Equal("second", Assert.Single(result.ConvertedRules["form"]));
+        else
+            Assert.Empty(result.ConvertedRules);
+    }
+
+    [Fact]
+    public void ExistingCalculationFile_IsPreservedAndConflictsRequireManualWork()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            "{\"$schema\":\"existing-schema\",\"custom\":42,\"calculations\":[{\"field\":\"other\",\"expression\":7}]}"
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var document = JsonNode.Parse(app.Read("models/model.calculation.json"));
+        Assert.Equal("existing-schema", document?["$schema"]?.GetValue<string>());
+        Assert.Equal(42, document?["custom"]?.GetValue<int>());
+        Assert.Equal(7, document?["calculations"]?[0]?["expression"]?.GetValue<int>());
+        WriteRules(app, new() { ["sum"] = Rule("sum", "other") }, "sum: function(obj) { " + Sum + " }");
+        var before = File.ReadAllBytes(CalculationPath(app));
+        var conflict = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(conflict.ConvertedRules);
+        Assert.Equal("sum", Assert.Single(conflict.ManualRules["form"]));
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void ExistingOrderedCalculations_KeepRepeatedFieldsAndAppendNewRulesOnce()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            """{"calculations":[{"field":"other","expression":7},{"field":"other","expression":8}]}"""
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var items =
+            JsonNode.Parse(app.Read("models/model.calculation.json"))?["calculations"]?.AsArray()
+            ?? throw new InvalidOperationException();
+        Assert.Equal<string?>(["other", "other", "result"], items.Select(item => item?["field"]?.GetValue<string>()));
+        Assert.Equal(7, items[0]?["expression"]?.GetValue<int>());
+        Assert.Equal(8, items[1]?["expression"]?.GetValue<int>());
+        Assert.Equal(5d, Evaluate(items[2]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+        var before = File.ReadAllBytes(CalculationPath(app));
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void MatchingExpressionWithAnotherWriter_RequiresManualResolution()
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var document =
+            JsonNode.Parse(app.Read("models/model.calculation.json")) ?? throw new InvalidOperationException();
+        document["calculations"]?.AsArray().Add(new JsonObject { ["field"] = "result", ["expression"] = 99 });
+        app.Write("models/model.calculation.json", document.ToJsonString());
+        var before = File.ReadAllBytes(CalculationPath(app));
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Equal("sum", Assert.Single(migration.ManualRules["form"]));
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public async Task UpgradePipeline_NormalizesV8CalculationsBeforeAddingLegacyRules()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            """{"calculations":{"other":{"expression":7,},},} // Existing v8 calculation"""
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        app.CommitEverything();
+        await RunUpgrade(app);
+        var calculations = Calculations(app);
+        Assert.Equal<string>(["other", "result"], calculations.Select(item => item.Key));
+        Assert.Equal(7, calculations["other"]?["expression"]?.GetValue<int>());
+        Assert.Equal(5d, Evaluate(calculations["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+        Assert.False(Directory.Exists(Path.Combine(app.Root, "App/logic/ConvertedLegacyRules")));
+    }
+
+    [Theory]
+    [InlineData("\"result\"")]
+    [InlineData("target")]
+    public void ExistingProcessorAndMatchingExpression_RequireManualConflictResolution(string target)
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        app.Write(
+            "logic/ConvertedLegacyRules/FormDataProcessor.cs",
+            "class FormDataProcessor { void Calculate(dynamic wrapper, string target) { wrapper.Set("
+                + target
+                + ", 5); } }"
+        );
+        var before = File.ReadAllBytes(CalculationPath(app));
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Equal("sum", Assert.Single(migration.ManualRules["form"]));
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void ExistingExpressionWithNewUnsupportedDependency_KeepsConnectedRulesForManualMigration()
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var dependent = Rule("rounded", "other");
+        dependent.InputParams = new() { ["a"] = "result" };
+        WriteRules(
+            app,
+            new() { ["sum"] = Rule("sum", "result"), ["rounded"] = dependent },
+            "sum: function(obj) { " + Sum + " }, rounded: function(obj) { return Math.floor(obj.a); }"
+        );
+        var before = File.ReadAllBytes(CalculationPath(app));
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Equal(2, migration.ManualRules["form"].Count);
+        Assert.Equal(before, File.ReadAllBytes(CalculationPath(app)));
+    }
+
+    [Fact]
+    public async Task UpgradePipeline_WritesExpressionsAndOnlyRegistersResidualProcessor()
+    {
+        using var app = CreateApp();
+        WriteRules(
+            app,
+            new() { ["sum"] = Rule("sum", "result"), ["rounded"] = Rule("rounded", "other") },
+            "sum: function(obj) { " + Sum + " }, rounded: function(obj) { return Math.floor(obj.a); }"
+        );
+        app.CommitEverything();
+        var report = new UpgradeReport();
+        await V8Tov9Upgrade.RunAsync(
+            new(
+                app.Root,
+                "App/App.csproj",
+                9,
+                "net10.0",
+                true,
+                false,
+                null,
+                report,
+                new StringWriter(),
+                TestContext.Current.CancellationToken,
+                SkipSemanticAnalysis: true
+            )
+        );
+        Assert.Equal(5d, Evaluate(Calculations(app)["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+        var processor = app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs");
+        Assert.Contains("model.other = ", processor);
+        Assert.DoesNotContain("model.result = ", processor);
+        Assert.Contains("AddTransient<IDataWriteProcessor, FormDataProcessor>", app.Read("Program.cs"));
+        Assert.Empty(
+            Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleHandler.js", SearchOption.AllDirectories)
+        );
+    }
+
+    [Fact]
+    public void CollectionValues_AreNotTreatedAsScalarNumbers()
+    {
+        using var app = CreateApp();
+        var rule = Rule("calculate", "result");
+        rule.InputParams = new() { ["a"] = "numbers" };
+        Assert.Throws<NotSupportedException>(() => Convert(app, "return obj.a ? +obj.a : 0;", rule));
+    }
+
+    [Fact]
+    public void RepeatingScalarNullOutput_DoesNotClearTheEntireCollection()
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["clear"] = Rule("clear", "numbers[{0}]") }, "clear: function(obj) { return null; }");
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("{\"calculations\":{}}")]
+    [InlineData("{\"calculations\":[null]}")]
+    [InlineData("{\"calculations\":[{\"field\":\"other\"}]}")]
+    public void InvalidExistingCalculationFile_IsPreservedAndRequiresManualWork(string content)
+    {
+        using var app = CreateApp();
+        app.Write("models/model.calculation.json", content);
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Equal("sum", Assert.Single(migration.ManualRules["form"]));
+        Assert.Equal(content, File.ReadAllText(CalculationPath(app)));
+    }
+
+    [Fact]
+    public async Task ExpressionOnlyUpgrade_DoesNotRegisterADataProcessor()
+    {
+        using var app = CreateApp();
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+        app.CommitEverything();
+        await RunUpgrade(app);
+        Assert.Equal(5d, Evaluate(Calculations(app)["result"]?["expression"], new() { ["a"] = 2, ["b"] = 3 }));
+        Assert.False(Directory.Exists(Path.Combine(app.Root, "App/logic/ConvertedLegacyRules")));
+        Assert.DoesNotContain("IDataWriteProcessor", app.Read("Program.cs"));
+        Assert.Empty(
+            Directory.GetFiles(Path.Combine(app.Root, "App/ui"), "RuleConfiguration.json", SearchOption.AllDirectories)
+        );
+    }
+
+    [Fact]
+    public async Task ResumedUpgrade_KeepsExpressionsSeparateFromResidualCSharp()
+    {
+        using var app = CreateApp();
+        WriteRules(
+            app,
+            new() { ["sum"] = Rule("sum", "result"), ["rounded"] = Rule("rounded", "other") },
+            "sum: function(obj) { " + Sum + " }, rounded: function(obj) { return Math.floor(obj.a); }"
+        );
+        // An unrelated conditional cannot be converted, so the legacy calculation files remain.
+        var configuration = JsonNode.Parse(app.Read("ui/form/RuleConfiguration.json"));
+        if (configuration?["data"] is not JsonObject data)
+            throw new InvalidOperationException();
+        data["conditionalRendering"] = JsonNode.Parse(
+            "{\"keep\":{\"selectedFunction\":\"unsupported\",\"selectedAction\":\"Hide\",\"selectedFields\":{\"target\":\"target\"}}}"
+        );
+        app.Write("ui/form/RuleConfiguration.json", configuration.ToJsonString());
+        app.Write(
+            "ui/form/layouts/page.json",
+            "{\"data\":{\"layout\":[{\"id\":\"target\",\"type\":\"Input\",\"dataModelBindings\":{\"simpleBinding\":\"a\"}}]}}"
+        );
+        app.Write(
+            "ui/form/RuleHandler.js",
+            app.Read("ui/form/RuleHandler.js")
+                + "var conditionalRuleHandlerObject = { unsupported: function(obj) { return new Date(); } };"
+        );
+        app.CommitEverything();
+        await RunUpgrade(app);
+        Assert.True(File.Exists(Path.Combine(app.Root, "App/ui/form/RuleConfiguration.json")));
+        var first = await File.ReadAllBytesAsync(CalculationPath(app), TestContext.Current.CancellationToken);
+        await RunUpgrade(app);
+        Assert.Equal(first, await File.ReadAllBytesAsync(CalculationPath(app), TestContext.Current.CancellationToken));
+        var processor = app.Read("logic/ConvertedLegacyRules/FormDataProcessor.cs");
+        Assert.Contains("model.other = ", processor);
+        Assert.DoesNotContain("model.result = ", processor);
+    }
+
+    [Theory]
+    [InlineData("rows[0].result", "rows[2].result")]
+    [InlineData("rows[0].rows[0].result", "rows[1].rows[1].result")]
+    public void SparseAndDiagonalTargets_KeepTheirOriginalRows(string firstTarget, string secondTarget)
+    {
+        using var app = CreateApp();
+        var first = Rule("sum", firstTarget);
+        first.InputParams = new() { ["a"] = firstTarget.Replace(".result", ".a", StringComparison.Ordinal) };
+        var second = Rule("sum", secondTarget);
+        second.InputParams = new() { ["a"] = secondTarget.Replace(".result", ".a", StringComparison.Ordinal) };
+        WriteRules(app, new() { ["first"] = first, ["second"] = second }, "sum: function(obj) { " + Sum + " }");
+
+        Assert.Equal(2, CalculationMigration.Migrate(app.Root).ConvertedRules["form"].Count);
+        var calculations = Calculations(app);
+        Assert.Equal(2, calculations.Count);
+        Assert.True(calculations.ContainsKey(firstTarget));
+        Assert.True(calculations.ContainsKey(secondTarget));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RulesWithoutMappedInputs_RemainInactive(bool emptyBinding)
+    {
+        using var app = CreateApp();
+        var rule = Rule("constant", "result");
+        rule.InputParams = emptyBinding ? new() { ["a"] = "" } : new();
+        WriteRules(app, new() { ["constant"] = rule }, "constant: function(obj) { return 7; }");
+
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void RejectedRowMapping_DoesNotHideLaterDependencies()
+    {
+        using var app = CreateApp();
+        var dependent = Rule("sum", "other");
+        dependent.InputParams = new() { ["a"] = "rows[{0}].a", ["b"] = "result" };
+        WriteRules(
+            app,
+            new() { ["first"] = Rule("sum", "result"), ["second"] = dependent },
+            "sum: function(obj) { " + Sum + " }"
+        );
+
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void ExistingCalculations_CanonicalizeKeysAndKeepCommentsWhenAppending()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "models/model.calculation.json",
+            """
+            {"Calculations":[{"Field":"other","Expression":7} // Keep this calculation's explanation.
+            ]}
+            """
+        );
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+
+        Assert.Single(CalculationMigration.Migrate(app.Root).ConvertedRules["form"]);
+        var first = File.ReadAllText(CalculationPath(app));
+        Assert.Contains("// Keep this calculation's explanation.", first);
+        var parsed = JsonNode.Parse(first, documentOptions: new() { CommentHandling = JsonCommentHandling.Skip });
+        Assert.Equal(2, parsed?["calculations"]?.AsArray().Count);
+        Assert.Equal("other", parsed?["calculations"]?[0]?["field"]?.GetValue<string>());
+        Assert.Equal(7, parsed?["calculations"]?[0]?["expression"]?.GetValue<int>());
+        CalculationMigration.Migrate(app.Root);
+        Assert.Equal(first, File.ReadAllText(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void AmbiguousCalculationPropertyCasing_IsLeftForManualResolution()
+    {
+        using var app = CreateApp();
+        const string original = "{\"calculations\":[],\"Calculations\":[]}";
+        app.Write("models/model.calculation.json", original);
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }");
+
+        var migration = CalculationMigration.Migrate(app.Root);
+        Assert.Empty(migration.ConvertedRules);
+        Assert.Single(migration.ManualRules["form"]);
+        Assert.Equal(original, File.ReadAllText(CalculationPath(app)));
+    }
+
+    [Fact]
+    public void DigitPrefixedLayout_RecognizesItsExistingGeneratedProcessor()
+    {
+        using var app = CreateApp();
+        app.Write(
+            "ui/layout-sets.json",
+            "{\"sets\":[{\"id\":\"1-form\",\"dataType\":\"model\",\"tasks\":[\"Task_1\"]}]}"
+        );
+        app.Write("logic/ConvertedLegacyRules/Layout1formDataProcessor.cs", "class Layout1formDataProcessor { }");
+        WriteRules(app, new() { ["sum"] = Rule("sum", "result") }, "sum: function(obj) { " + Sum + " }", "1-form");
+
+        Assert.Empty(CalculationMigration.Migrate(app.Root).ConvertedRules);
+        Assert.False(File.Exists(CalculationPath(app)));
+    }
+
+    private static Task<int> RunUpgrade(TempAppFolder app, UpgradeReport? report = null) =>
+        V8Tov9Upgrade.RunAsync(
+            new(
+                app.Root,
+                "App/App.csproj",
+                9,
+                "net10.0",
+                true,
+                false,
+                null,
+                report ?? new UpgradeReport(),
+                new StringWriter(),
+                TestContext.Current.CancellationToken,
+                SkipSemanticAnalysis: true
+            )
+        );
+
+    internal static TempAppFolder CreateApp(bool integerInputs = false)
+    {
+        var app = new TempAppFolder();
+        app.Write(
+            "App.csproj",
+            "<Project Sdk=\"Microsoft.NET.Sdk.Web\"><PropertyGroup><TargetFramework>net10.0</TargetFramework></PropertyGroup><ItemGroup><PackageReference Include=\"Altinn.App.Api\" Version=\"8.8.0\" /></ItemGroup></Project>"
+        );
+        app.Write(
+            "Program.cs",
+            "using Altinn.App.Core.Features;\nvar builder = WebApplication.CreateBuilder(args);\nRegisterCustomAppServices(builder.Services);\nstatic void RegisterCustomAppServices(IServiceCollection services) { services.AddControllers(); }\n"
+        );
+        app.Write(
+            "ui/layout-sets.json",
+            "{\"sets\":[{\"id\":\"form\",\"dataType\":\"model\",\"tasks\":[\"Task_1\"]}]}"
+        );
+        app.Write("ui/form/layouts/page.json", "{\"data\":{\"layout\":[]}}");
+        app.Write(
+            "config/applicationmetadata.json",
+            "{\"dataTypes\":[{\"id\":\"model\",\"appLogic\":{\"classRef\":\"TestModels.Root\"}}]}"
+        );
+        app.Write(
+            "models/Root.cs",
+            "namespace TestModels { public class Root { public decimal? a { get; set; } public decimal? b { get; set; } public decimal? result { get; set; } public decimal? other { get; set; } public string? text { get; set; } public System.Collections.Generic.List<decimal> numbers { get; set; } = []; public System.Collections.Generic.List<Root> rows { get; set; } = []; } }"
+                .Replace("decimal? a", integerInputs ? "int? a" : "decimal? a", StringComparison.Ordinal)
+                .Replace("decimal? b", integerInputs ? "int? b" : "decimal? b", StringComparison.Ordinal)
+        );
+        return app;
+    }
+
+    private static DataModelTypeResolver Resolver(TempAppFolder app)
+    {
+        var resolver = new DataModelTypeResolver(app.Root);
+        Assert.True(resolver.LoadDataModelType(Model()));
+        return resolver;
+    }
+
+    private static DataModelInfo Model() =>
+        new()
+        {
+            DataType = "model",
+            FullClassRef = "TestModels.Root",
+            ClassName = "Root",
+            Namespace = "TestModels",
+        };
+
+    private static DataProcessingRule Rule(string function, string target) =>
+        new()
+        {
+            SelectedFunction = function,
+            InputParams = new() { ["a"] = "a", ["b"] = "b" },
+            OutParams = new() { ["outParam0"] = target },
+        };
+
+    private static string CalculationPath(TempAppFolder app) =>
+        Path.Combine(app.Root, "App/models/model.calculation.json");
+
+    private static JsonObject Calculations(TempAppFolder app) =>
+        new(
+            (
+                JsonNode
+                    .Parse(
+                        File.ReadAllText(CalculationPath(app)),
+                        documentOptions: new()
+                        {
+                            CommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true,
+                        }
+                    )
+                    ?["calculations"]?.AsArray()
+                ?? throw new InvalidOperationException()
+            ).Select(item => new KeyValuePair<string, JsonNode?>(
+                item?["field"]?.GetValue<string>() ?? throw new InvalidOperationException(),
+                item.DeepClone()
+            ))
+        );
+
+    private static void WriteRules(
+        TempAppFolder app,
+        Dictionary<string, DataProcessingRule> rules,
+        string functions,
+        string layout = "form"
+    )
+    {
+        app.Write(
+            $"ui/{layout}/RuleConfiguration.json",
+            JsonSerializer.Serialize(new { data = new { ruleConnection = rules } })
+        );
+        app.Write($"ui/{layout}/RuleHandler.js", "var ruleHandlerObject = { " + functions + " }; ");
+    }
+
+    private static JsonNode? Convert(TempAppFolder app, string body, DataProcessingRule rule)
+    {
+        var parser = new RuleHandlerParser(
+            app.Write(
+                "ui/form/RuleHandler.js",
+                "var ruleHandlerObject = { calculate: function(obj) { " + body + " } };"
+            )
+        );
+        parser.Parse();
+        var types = new DataModelTypeResolver(app.Root);
+        Assert.True(types.LoadDataModelType(Model()));
+        return new CalculationExpressionConverter().Convert(
+            parser.GetDataProcessingFunction("calculate") ?? throw new InvalidOperationException(),
+            rule,
+            types,
+            "model"
+        );
+    }
+
+    // Reference evaluation of the emitted language, deliberately eager like the runtime. This
+    // catches invalid inactive branches; corpus experiments also use the actual app evaluators.
+    private static object? Evaluate(JsonNode? expression, JsonObject data)
+    {
+        if (expression is not JsonArray call)
+            return expression?.GetValueKind() switch
+            {
+                JsonValueKind.Number => double.Parse(
+                    expression.ToJsonString(),
+                    System.Globalization.CultureInfo.InvariantCulture
+                ),
+                JsonValueKind.String => expression.GetValue<string>(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                _ => null,
+            };
+        var name = call[0]?.GetValue<string>();
+        if (name == "dataModel")
+            return Evaluate(data[call[1]?.GetValue<string>() ?? ""], data);
+        var args = call.Skip(1).Select(argument => Evaluate(argument, data)).ToArray();
+        if (name == "if" && (args.Length != 4 || args[2] is not "else"))
+            throw new InvalidOperationException("Expected the expression language's if/else syntax.");
+        double Number(int index) =>
+            System.Convert.ToDouble(args[index], System.Globalization.CultureInfo.InvariantCulture);
+        return name switch
+        {
+            "if" => args[0] is true ? args[1] : args[3],
+            "and" => args.All(argument => argument is true),
+            "or" => args.Any(argument => argument is true),
+            "not" => args[0] is not true,
+            "equals" => Equals(args[0], args[1]),
+            "notEquals" => !Equals(args[0], args[1]),
+            "greaterThan" => args[0] != null && args[1] != null && Number(0) > Number(1),
+            "lessThan" => args[0] != null && args[1] != null && Number(0) < Number(1),
+            "greaterThanEq" => args[0] != null && args[1] != null && Number(0) >= Number(1),
+            "lessThanEq" => args[0] != null && args[1] != null && Number(0) <= Number(1),
+            "plus" => args.Select((_, index) => Number(index)).Sum(),
+            "minus" => Number(0) - Number(1),
+            "multiply" => Number(0) * Number(1),
+            "divide" => Number(1) == 0 ? throw new DivideByZeroException() : Number(0) / Number(1),
+            "round" => Number(0).ToString($"N{(int)Number(1)}", System.Globalization.CultureInfo.InvariantCulture),
+            "concat" => string.Concat(args),
+            "stringReplace" => (args[0] as string)?.Replace(
+                args[1] as string ?? "",
+                args[2] as string ?? "",
+                StringComparison.Ordinal
+            ),
+            "jmespath" when args[1] is "to_number(@)" => double.TryParse(
+                args[0] as string,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var parsed
+            )
+                ? parsed
+                : null,
+            _ => throw new NotSupportedException(name),
+        };
+    }
+}
