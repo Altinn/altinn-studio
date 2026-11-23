@@ -272,7 +272,9 @@ public class MailboxRelayTests
                 );
     }
 
-    /// <summary>The mid-pipeline reply followed by trailing stages and an ordinary ending <c>Stage</c>.</summary>
+    /// <summary>
+    /// The mid-pipeline reply followed by trailing stages and an ordinary ending <c>Stage</c>.
+    /// </summary>
     private sealed class ArchiveThenRecordTask : IServiceTask
     {
         public string Type => ServiceTaskType;
@@ -322,7 +324,9 @@ public class MailboxRelayTests
     /// </summary>
     private static readonly ServiceTaskPipeline _archivingPipeline = new ArchivingTask().ResolvePipeline();
 
-    /// <summary>The mid-pipeline reply followed by a trailing stage and an ordinary ending <c>Stage</c>.</summary>
+    /// <summary>
+    /// The mid-pipeline reply followed by a trailing stage and an ordinary ending <c>Stage</c>.
+    /// </summary>
     private static readonly ServiceTaskPipeline _archiveThenRecordPipeline =
         new ArchiveThenRecordTask().ResolvePipeline();
 

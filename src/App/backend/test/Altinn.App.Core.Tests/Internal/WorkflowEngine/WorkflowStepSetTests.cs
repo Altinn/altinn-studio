@@ -475,7 +475,9 @@ public class WorkflowStepSetTests
         Assert.Null(plan.ReceiveOpeningIndex);
     }
 
-    /// <summary>A mid-pipeline reply with trailing stages, ended by an ordinary ending <c>Stage</c>.</summary>
+    /// <summary>
+    /// A mid-pipeline reply with trailing stages, ended by an ordinary ending <c>Stage</c>.
+    /// </summary>
     [Fact]
     public void PlanSegment_AfterTheLastHandler_EndsWithTheConclusion()
     {

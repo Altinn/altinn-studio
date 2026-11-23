@@ -28,7 +28,9 @@ public class ServiceTaskPipelineMailboxTests
     private static Task<StageResult> ClosedSegment(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult(StageResult.Completed());
 
-    /// <summary>The running shape: a send that opens the mailbox at item index 0, then an unrelated stage, then the ending.</summary>
+    /// <summary>
+    /// The running shape: a send that opens the mailbox at item index 0, then an unrelated stage, then the ending.
+    /// </summary>
     private static PipelineBuilder.ServiceTask ComposeStages(
         PipelineBuilder.ServiceTask builder,
         out MailboxHandle handle

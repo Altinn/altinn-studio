@@ -148,9 +148,9 @@ process on this step — no worker held, no error recorded, retry counter reset 
 ### Step options
 
 A step's options — its timeout, retry strategy and wait budget — are declared where the step is composed: a
-stage's on its `Stage`, a reply handler's on its `HandleReplies`, whether the step carries on or ends the task. Each step
-carries exactly what its own call declared; a field left unset falls back to the command's default and then
-the engine's, never to another step's. A task that wants the same options on several steps passes the same
+stage's on its `Stage`, a reply handler's on its `HandleReplies`, whether the step carries on or ends the task.
+Each step carries exactly what its own call declared; a field left unset falls back to the command's default and
+then the engine's, never to another step's. A task that wants the same options on several steps passes the same
 object to each call.
 
 ### Step names
