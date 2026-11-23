@@ -8146,25 +8146,37 @@
   },
   "components": {
     "schemas": {
-      "ActionError": {
+      "ActionErrorResponse": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string",
+            "description": "Machine readable error code",
             "nullable": true
           },
           "message": {
-            "type": "string"
+            "type": "string",
+            "description": "Human readable error message or text key"
           },
           "metadata": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             },
+            "description": "Error metadata",
+            "nullable": true
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueWithSource"
+            },
+            "description": "Validation issues that made the action fail, with their text keys translated. Unless the action set an error\nof its own, the code and message are those of the first issue.",
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Why a user action failed"
       },
       "ActionType": {
         "enum": [
@@ -12160,15 +12172,7 @@
             "nullable": true
           },
           "error": {
-            "$ref": "#/components/schemas/ActionError"
-          },
-          "validationIssues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationIssueWithSource"
-            },
-            "description": "Validation issues that made the action fail, with their text keys translated",
-            "nullable": true
+            "$ref": "#/components/schemas/ActionErrorResponse"
           },
           "redirectUrl": {
             "type": "string",

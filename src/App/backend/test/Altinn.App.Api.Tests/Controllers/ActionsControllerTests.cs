@@ -471,7 +471,7 @@ public class ActionsControllerTests : ApiTestBase
         parsedAbandonResponse.Error.Should().NotBeNull();
         parsedAbandonResponse.Error!.Code.Should().Be("abandon-code");
         parsedAbandonResponse.Error!.Message.Should().Be("Endringene ble forkastet");
-        var abandonIssue = parsedAbandonResponse.ValidationIssues.Should().ContainSingle().Which;
+        var abandonIssue = parsedAbandonResponse.Error!.ValidationIssues.Should().ContainSingle().Which;
         abandonIssue.Description.Should().Be("Endringene ble forkastet");
         abandonIssue.NoIncrementalUpdates.Should().BeTrue();
         TestData
@@ -490,8 +490,8 @@ public class ActionsControllerTests : ApiTestBase
             HttpStatusCode.InternalServerError
         );
         parsedThrowResponse.UpdatedDataModels.Should().BeNull();
-        parsedThrowResponse.ValidationIssues.Should().BeNull();
         parsedThrowResponse.Error.Should().NotBeNull();
+        parsedThrowResponse.Error!.ValidationIssues.Should().BeNull();
         parsedThrowResponse.Error!.Code.Should().Be("ActionFailed");
         parsedThrowResponse.Error!.Message.Should().NotContain("Thrown data");
         TestData
@@ -617,11 +617,11 @@ public class ActionsControllerTests : ApiTestBase
             parsedResponse.Error!.Code.Should().Be("missing-name");
             parsedResponse.Error!.Message.Should().Be("Du må fylle ut navn");
             parsedResponse.UpdatedDataModels.Should().BeNull();
-            parsedResponse.ValidationIssues.Should().HaveCount(2);
-            parsedResponse.ValidationIssues![0].Description.Should().Be("Du må fylle ut navn");
-            parsedResponse.ValidationIssues![0].CustomTextKey.Should().Be("action.missing-name");
-            parsedResponse.ValidationIssues![1].Description.Should().Be("Second issue");
-            parsedResponse.ValidationIssues.Should().OnlyContain(issue => issue.NoIncrementalUpdates);
+            parsedResponse.Error!.ValidationIssues.Should().HaveCount(2);
+            parsedResponse.Error!.ValidationIssues![0].Description.Should().Be("Du må fylle ut navn");
+            parsedResponse.Error!.ValidationIssues![0].CustomTextKey.Should().Be("action.missing-name");
+            parsedResponse.Error!.ValidationIssues![1].Description.Should().Be("Second issue");
+            parsedResponse.Error!.ValidationIssues.Should().OnlyContain(issue => issue.NoIncrementalUpdates);
         }
         finally
         {

@@ -156,7 +156,7 @@ public class ActionsController : ControllerBase
                 new UserActionResponse()
                 {
                     Instance = instance,
-                    Error = new ActionError()
+                    Error = new ActionErrorResponse()
                     {
                         Code = "ActionNotFound",
                         Message = $"Action handler with id {action} not found",
@@ -204,8 +204,7 @@ public class ActionsController : ControllerBase
                 {
                     Instance = instance,
                     ClientActions = result.ClientActions,
-                    Error = result.Error,
-                    ValidationIssues = outcome.ValidationIssues,
+                    Error = ActionErrorResponse.From(result.Error, outcome.ValidationIssues),
                 }
             );
         }

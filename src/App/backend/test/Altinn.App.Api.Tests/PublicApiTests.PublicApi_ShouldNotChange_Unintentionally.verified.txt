@@ -870,6 +870,18 @@ namespace Altinn.App.Api.Mappers
 }
 namespace Altinn.App.Api.Models
 {
+    public class ActionErrorResponse
+    {
+        public ActionErrorResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("code")]
+        public string? Code { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("message")]
+        public string Message { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("metadata")]
+        public System.Collections.Generic.Dictionary<string, string>? Metadata { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; set; }
+    }
     public class AuthorizedOrganizationDetails : System.IEquatable<Altinn.App.Api.Models.AuthorizedOrganizationDetails>
     {
         public AuthorizedOrganizationDetails() { }
@@ -1231,7 +1243,7 @@ namespace Altinn.App.Api.Models
         [System.Text.Json.Serialization.JsonPropertyName("clientActions")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.UserAction.ClientAction>? ClientActions { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("error")]
-        public Altinn.App.Core.Models.UserAction.ActionError? Error { get; set; }
+        public Altinn.App.Api.Models.ActionErrorResponse? Error { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("instance")]
         public required Altinn.Platform.Storage.Interface.Models.Instance Instance { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("redirectUrl")]
@@ -1240,8 +1252,6 @@ namespace Altinn.App.Api.Models
         public System.Collections.Generic.Dictionary<string, object>? UpdatedDataModels { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("updatedValidationIssues")]
         public System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>>>? UpdatedValidationIssues { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
-        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; set; }
     }
     public class UserDefinedMetadataDto
     {

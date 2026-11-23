@@ -12,12 +12,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `UserActionResult.FailureResult` takes a list of validation issues. The action fails with status 400, its response lists the issues in `validationIssues` with their text keys translated, and the form shows the first as the error. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- `UserActionResult.FailureResult` takes a list of validation issues. The action fails with status 400, its response lists the issues in `error.validationIssues` with their text keys translated, and the form shows the first as the error. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 
 ### Changed
 
 - An `IUserAction` that calls `context.DataMutator.AbandonAllChanges` fails as if it returned `FailureResult` with those issues, and saves none of its changes. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- Breaking: `UserActionResponse.Error` is an `ActionErrorResponse` instead of the `ActionError` the action returned. The JSON keeps `code`, `message` and `metadata`, and adds `validationIssues`. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - An `IUserAction` that throws fails with status 500 and the error code `ActionFailed`, and saves none of its changes. The exception is logged, and its message is not returned to the client. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 
 ### Fixed
