@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.ProcessAdvisories;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 
@@ -9,7 +10,12 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private Altinn.Studio.Cli.Upgrade.v8Tov9.MigrationResult Analyze(string? bpmn)
+    private const string DeployWindowAdvice =
+        "when the first v9 version is deployed may not move on by themselves if they are waiting for a "
+        + "receipt: deploy that version in a quiet period and check for instances left in the feedback task "
+        + "afterwards.";
+
+    private MigrationResult Analyze(string? bpmn)
     {
         if (bpmn is not null)
             _app.Write("config/process/process.bpmn", bpmn);
@@ -53,16 +59,28 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
     }
 
     [Fact]
-    public void FeedbackBehindDataTask_DoesNotWarn()
+    public void FeedbackBehindDataTask_GetsOnlyTheDeployWindowWarning()
     {
         // data -> feedback is the ordinary pattern (waiting for an org-driven decision) and stays
-        // valid in v9; only a service-task predecessor makes the wait likely redundant.
+        // valid in v9, so there is nothing to change - but an instance waiting there for a receipt
+        // at the first v9 deploy may not move on.
         var result = Analyze(
             Process(Task("Task_1", "data"), Task("Task_Wait", "feedback"), Flow("f1", "Task_1", "Task_Wait"))
         );
 
-        Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Equal($"Instances already waiting in the feedback task 'Task_Wait' {DeployWindowAdvice}", warning);
+    }
+
+    [Fact]
+    public void NoFeedbackTask_StaysSilent()
+    {
+        var result = Analyze(
+            Process(Task("Task_1", "data"), ServiceTask("Task_Send", "eFormidling"), Flow("f1", "Task_1", "Task_Send"))
+        );
+
+        Assert.Empty(result.Messages);
     }
 
     [Fact]
@@ -99,8 +117,8 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
-        Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
+        Assert.Single(result.Warnings);
     }
 
     [Fact]
@@ -126,9 +144,15 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
             )
         );
 
+        Assert.Empty(eFormidling.Warnings);
         var todo = Assert.Single(eFormidling.Todos);
         Assert.Contains("must be removed", todo, StringComparison.Ordinal);
         Assert.Contains("indefinitely", todo, StringComparison.Ordinal);
+        Assert.EndsWith(
+            $" Instances already waiting in 'Task_Wait' {DeployWindowAdvice}",
+            todo,
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
@@ -146,9 +170,15 @@ public sealed class FeedbackAfterServiceTaskAdvisorTests : IDisposable
 
         var result = new FeedbackAfterServiceTaskAdvisor(app.Root).Analyze();
 
+        Assert.Empty(result.Warnings);
         var todo = Assert.Single(result.Todos);
         Assert.Contains("may be a redundant", todo, StringComparison.Ordinal);
         Assert.DoesNotContain("must be removed", todo, StringComparison.Ordinal);
+        Assert.EndsWith(
+            $" Instances already waiting in 'Task_Wait' {DeployWindowAdvice}",
+            todo,
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
