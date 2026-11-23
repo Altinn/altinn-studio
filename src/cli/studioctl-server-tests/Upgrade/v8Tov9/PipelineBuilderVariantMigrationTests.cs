@@ -776,4 +776,61 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         Assert.Empty(Migrate(semantic: true, _currentSdk.Value).Messages);
         Assert.Equal(once[0], await ReadMigrated(files[0]));
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PreprocessorDirectives_AroundTheRemovedBuild_AreKept(bool semantic)
+    {
+        // The upgrade parses with no symbols defined, so a DEBUG-only stage is disabled text, held as trivia of the
+        // return or the Build() that the migration removes.
+        var task = Write(
+            "logic/DebugTask.cs",
+            """
+            public class DebugTask : IProcessTask
+            {
+                public string Type => "debug";
+
+                public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline)
+                {
+                    pipeline.Stage(Revoke);
+            #if DEBUG
+                    pipeline.Stage(Trace);
+            #endif
+                    return pipeline.Build();
+                }
+
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+                    pipeline
+                        .Stage(Revoke)
+            #if DEBUG
+                        .Stage(Trace)
+            #endif
+                        .Build();
+
+                public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline)
+                {
+                    #region Stages
+                    pipeline.Stage(Revoke);
+                    #endregion
+                    return pipeline.Build();
+                }
+
+                private Task<StageResult> Revoke(StageContext context) => Task.FromResult(StageResult.Completed());
+
+                private Task<StageResult> Trace(StageContext context) => Task.FromResult(StageResult.Completed());
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+        Assert.Contains("#if DEBUG\n        pipeline.Stage(Trace);\n#endif\n", migrated);
+        Assert.Contains("#if DEBUG\n            .Stage(Trace)\n#endif\n", migrated);
+        Assert.Contains("        #endregion\n", migrated);
+        AssertCompilesAgainstCurrent();
+        Assert.Empty(SemanticScannerFactory.CompileErrors(AppFolder, _currentSdk.Value, "DEBUG"));
+    }
 }
