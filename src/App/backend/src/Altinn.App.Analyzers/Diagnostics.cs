@@ -85,8 +85,8 @@ public static class Diagnostics
             "ALTINNAPP0704",
             Category.Contracts,
             "Process task method does not implement the member it is named after",
-            "'{0}' does not implement '{1}', so the default implementation runs instead and this method never "
-                + "does. {2}."
+            "'{0}' does not implement '{1}', so the runtime never calls it and runs the default implementation "
+                + "instead. {2}."
         );
     }
 

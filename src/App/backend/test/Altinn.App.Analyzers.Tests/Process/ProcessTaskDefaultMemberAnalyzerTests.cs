@@ -47,8 +47,8 @@ public class ProcessTaskDefaultMemberAnalyzerTests
         Assert.Equal("DefineStart", SourceAt(diagnostic));
         Assert.Equal(
             "'FetchNote.DefineStart(PipelineBuilder.ServiceTask)' does not implement "
-                + "'IProcessTask.DefineStart(PipelineBuilder.Lifecycle)', so the default implementation runs instead "
-                + "and this method never does. Declare it as 'public void DefineStart(PipelineBuilder.Lifecycle pipeline)'.",
+                + "'IProcessTask.DefineStart(PipelineBuilder.Lifecycle)', so the runtime never calls it and runs the "
+                + "default implementation instead. Declare it as 'public void DefineStart(PipelineBuilder.Lifecycle pipeline)'.",
             diagnostic.GetMessage()
         );
         await Verify(diagnostics);
