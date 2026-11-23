@@ -654,10 +654,14 @@ public class ProcessTaskDefaultMemberAnalyzerTests
         Assert.Equal(["SplitTask.DefineEnd(PipelineBuilder.ServiceTask)"], diagnostics.Select(ReportedMethod));
     }
 
-    /// <summary>The method a diagnostic names, as <c>Type.Name(parameter types)</c>.</summary>
+    /// <summary>
+    /// The method a diagnostic names, as <c>Type.Name(parameter types)</c>.
+    /// </summary>
     private static string ReportedMethod(Diagnostic diagnostic) => diagnostic.GetMessage().Split('\'')[1];
 
-    /// <summary>The source text a diagnostic is reported on.</summary>
+    /// <summary>
+    /// The source text a diagnostic is reported on.
+    /// </summary>
     private static string SourceAt(Diagnostic diagnostic) =>
         diagnostic.Location.SourceTree!.GetText().ToString(diagnostic.Location.SourceSpan);
 
