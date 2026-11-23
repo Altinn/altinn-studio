@@ -16,18 +16,6 @@ internal sealed partial class PipelineBuilderVariantMigration
     /// </summary>
     private sealed class HelperResolver
     {
-        /// <summary>
-        /// The calls on the previews' builder that are its own methods, which win over an extension method.
-        /// </summary>
-        private static readonly HashSet<string> _builderMembers = new(StringComparer.Ordinal)
-        {
-            "Stage",
-            "HandleReplies",
-            "Finally",
-            "ConcludeOnReplies",
-            "Build",
-        };
-
         private readonly Dictionary<(SyntaxTree Tree, TextSpan Span), PipelineMethod> _byDeclaration = [];
         private readonly Dictionary<string, List<PipelineMethod>> _byType = new(StringComparer.Ordinal);
         private readonly List<PipelineMethod> _extensions = [];
@@ -157,7 +145,8 @@ internal sealed partial class PipelineBuilderVariantMigration
                         ?? [];
                 case MemberAccessExpressionSyntax { Expression: var receiver, Name: var name }:
                     var called = name.Identifier.ValueText;
-                    if (!_builderMembers.Contains(called) && IsBuilderExpression(receiver, caller, this))
+                    // The builder's own methods win over an extension method.
+                    if (!_previewMethods.ContainsKey(called) && IsBuilderExpression(receiver, caller, this))
                     {
                         return
                         [

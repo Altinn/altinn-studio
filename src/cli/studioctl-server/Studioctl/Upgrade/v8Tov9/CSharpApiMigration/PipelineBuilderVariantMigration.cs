@@ -61,10 +61,9 @@ internal sealed partial class PipelineBuilderVariantMigration
     };
 
     /// <summary>
-    /// The previews' builder methods that a doc comment can no longer reference by name, and what each is called now.
-    /// The variants' abstract base has none of them.
+    /// The previews' builder methods, and what each is called now.
     /// </summary>
-    private static readonly Dictionary<string, string> _docReferenceNames = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string> _previewMethods = new(StringComparer.Ordinal)
     {
         ["Stage"] = "Stage",
         ["Finally"] = "Stage",
@@ -267,7 +266,7 @@ internal sealed partial class PipelineBuilderVariantMigration
                         Container: var container,
                         Member: NameMemberCrefSyntax { Name: SimpleNameSyntax member },
                     }
-                || !_docReferenceNames.TryGetValue(member.Identifier.ValueText, out var name)
+                || !_previewMethods.TryGetValue(member.Identifier.ValueText, out var name)
                 || !IsBuilderContainer(container, file.SemanticModel)
             )
             {
