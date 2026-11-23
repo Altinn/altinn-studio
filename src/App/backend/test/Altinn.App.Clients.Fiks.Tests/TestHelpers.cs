@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Linq.Expressions;
-using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -18,7 +17,6 @@ using KS.Fiks.IO.Client.Models;
 using KS.Fiks.IO.Send.Client.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Moq.Protected;
 
 namespace Altinn.App.Clients.Fiks.Tests;
 
@@ -26,48 +24,6 @@ internal static class TestHelpers
 {
     public const string DummyToken =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-
-    public static HttpClient GetHttpClientWithMockedHandler(
-        HttpStatusCode statusCode,
-        Func<HttpRequestMessage, string?>? authFactory = null,
-        Func<HttpRequestMessage, string?>? contentFactory = null,
-        Action<HttpRequestMessage>? requestCallback = null
-    )
-    {
-        var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-        mockHttpMessageHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>()
-            )
-            .ReturnsAsync(
-                (HttpRequestMessage request, CancellationToken _) =>
-                {
-                    requestCallback?.Invoke(request);
-
-                    return IsTokenRequest(request)
-                        ? ResponseMessageFactory(HttpStatusCode.OK, authFactory?.Invoke(request) ?? DummyToken)
-                        : ResponseMessageFactory(statusCode, contentFactory?.Invoke(request));
-                }
-            );
-
-        return new HttpClient(mockHttpMessageHandler.Object);
-    }
-
-    private static HttpResponseMessage ResponseMessageFactory(HttpStatusCode statusCode, string? content) =>
-        new(statusCode) { Content = content is not null ? new StringContent(content) : null };
-
-    public static Func<HttpClient> GetHttpClientWithMockedHandlerFactory(
-        HttpStatusCode statusCode,
-        Func<HttpRequestMessage, string?>? authFactory = null,
-        Func<HttpRequestMessage, string?>? contentFactory = null,
-        Action<HttpRequestMessage>? requestCallback = null
-    )
-    {
-        return () => GetHttpClientWithMockedHandler(statusCode, authFactory, contentFactory, requestCallback);
-    }
 
     public static bool IsTokenRequest(HttpRequestMessage request)
     {
@@ -118,11 +74,7 @@ internal static class TestHelpers
                     new FiksArkivDataTypeSettings { DataType = "uploaded_attachment" },
                 ],
             },
-            SuccessHandling = new FiksArkivSuccessHandlingSettings
-            {
-                MarkInstanceComplete = true,
-                Action = "fiks-arkiv-success",
-            },
+            SuccessHandling = new FiksArkivSuccessHandlingSettings { Action = "fiks-arkiv-success" },
             ErrorHandling = new FiksArkivErrorHandlingSettings { Action = "fiks-arkiv-error" },
         };
 
