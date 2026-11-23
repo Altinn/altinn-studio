@@ -400,6 +400,127 @@ public class ProcessTaskDefaultMemberAnalyzerTests
         Assert.Empty(diagnostics);
     }
 
+    [Fact]
+    public async Task A_Helper_Of_The_Name_That_The_Task_Passes_As_A_Delegate_Is_Not_Reported()
+    {
+        // A stage runs when the pipeline reaches it, so a stage method of the name is a helper too.
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public sealed class ArchiveTask : IServiceTask
+                {
+                    public string Type => "archive";
+
+                    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+                        pipeline.Stage(ValidateConfiguration).Stage(Archive);
+
+                    private Task<StageResult> ValidateConfiguration(StageContext context) =>
+                        throw new System.NotImplementedException();
+
+                    private Task<ServiceTaskResult> Archive(StageContext context) =>
+                        throw new System.NotImplementedException();
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task A_Helper_Called_Only_From_A_Method_Nothing_Calls_Is_Not_Reported()
+    {
+        // Whether the caller runs is beyond what the rule can prove, and an uncalled private method is the
+        // unused-member diagnostics' to report.
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public sealed class LeftoverTask : IServiceTask
+                {
+                {{ServiceTaskMembers}}
+                    private void Leftover(PipelineBuilder.Lifecycle pipeline) => DefineEnd(pipeline, "leftover");
+                    private void DefineEnd(PipelineBuilder.Lifecycle pipeline, string label) { }
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Calls_From_Every_Declaration_Of_The_Task_Count()
+    {
+        // The call to ValidateConfiguration is in another file's partial part, and the call to DefineEnd in a
+        // nested class.
+        var diagnostics = await Analyze([
+            Usings
+                + """
+                public sealed partial class SplitTask : IServiceTask
+                {
+                    public string Type => "split";
+
+                    private static void ValidateConfiguration(string endpoint) { }
+
+                    private static void DefineEnd(string label) { }
+                }
+                """,
+            Usings
+                + """
+                public sealed partial class SplitTask
+                {
+                    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
+                    {
+                        ValidateConfiguration("https://archive.example");
+                        return Steps.Define(pipeline);
+                    }
+
+                    private static class Steps
+                    {
+                        public static ServiceTaskPipeline Define(PipelineBuilder.ServiceTask pipeline)
+                        {
+                            DefineEnd("archive");
+                            return pipeline.Stage(Archive);
+                        }
+
+                        private static Task<ServiceTaskResult> Archive(StageContext context) =>
+                            throw new System.NotImplementedException();
+                    }
+                }
+                """,
+        ]);
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task An_Uncalled_Method_Is_Reported_Beside_A_Called_Overload_Of_The_Name()
+    {
+        // The call settles the one overload it binds to, not the name.
+        var diagnostics = await Analyze(
+            Usings
+                + """
+                public sealed class ArchiveTask : IServiceTask
+                {
+                    public string Type => "archive";
+
+                    public ServiceTaskPipeline DefineExecute(PipelineBuilder.ServiceTask pipeline)
+                    {
+                        ValidateConfiguration(endpoint: "https://archive.example", strict: true);
+                        return pipeline.Stage(Archive);
+                    }
+
+                    public IEnumerable<string> ValidateConfiguration(string context) => [];
+
+                    private static void ValidateConfiguration(string endpoint, bool strict) { }
+
+                    private Task<ServiceTaskResult> Archive(StageContext context) =>
+                        throw new System.NotImplementedException();
+                }
+                """
+        );
+
+        Assert.Equal(["ArchiveTask.ValidateConfiguration(string)"], diagnostics.Select(ReportedMethod));
+    }
+
     /// <summary>The method a diagnostic names, as <c>Type.Name(parameter types)</c>.</summary>
     private static string ReportedMethod(Diagnostic diagnostic) => diagnostic.GetMessage().Split('\'')[1];
 
@@ -407,8 +528,14 @@ public class ProcessTaskDefaultMemberAnalyzerTests
     private static string SourceAt(Diagnostic diagnostic) =>
         diagnostic.Location.SourceTree!.GetText().ToString(diagnostic.Location.SourceSpan);
 
-    private static async Task<ImmutableArray<Diagnostic>> Analyze(
+    private static Task<ImmutableArray<Diagnostic>> Analyze(
         string source,
+        bool isAltinnApp = true,
+        bool referenceCore = true
+    ) => Analyze([source], isAltinnApp, referenceCore);
+
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(
+        string[] sources,
         bool isAltinnApp = true,
         bool referenceCore = true
     )
@@ -423,7 +550,13 @@ public class ProcessTaskDefaultMemberAnalyzerTests
 
         var compilation = CSharpCompilation.Create(
             "App",
-            [CSharpSyntaxTree.ParseText(source, path: "/repo/App/Tasks.cs")],
+            sources.Select(
+                (source, index) =>
+                    CSharpSyntaxTree.ParseText(
+                        source,
+                        path: index == 0 ? "/repo/App/Tasks.cs" : $"/repo/App/Tasks{index}.cs"
+                    )
+            ),
             assemblies.Distinct().Select(assembly => MetadataReference.CreateFromFile(assembly.Location)),
             new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
@@ -438,6 +571,6 @@ public class ProcessTaskDefaultMemberAnalyzerTests
             .GetAnalyzerDiagnosticsAsync(CancellationToken.None);
 
         // The analyzer runs concurrently, so it reports in no fixed order.
-        return [.. diagnostics.OrderBy(d => d.Location.SourceSpan.Start)];
+        return [.. diagnostics.OrderBy(d => d.Location.SourceTree?.FilePath).ThenBy(d => d.Location.SourceSpan.Start)];
     }
 }

@@ -1,10 +1,13 @@
+using System.Collections.Concurrent;
+using Microsoft.CodeAnalysis.Operations;
+
 namespace Altinn.App.Analyzers;
 
 /// <summary>
 /// Reports a method on a process task that is named after one of <c>IProcessTask</c>'s default-implemented members
-/// (<c>DefineStart</c>, <c>DefineEnd</c>, <c>DefineAbandon</c>, <c>ValidateConfiguration</c>) but does not implement
-/// it, such as <c>DefineStart(PipelineBuilder.ServiceTask pipeline)</c> in a service task. Because the member has a
-/// default, the task still compiles, and the default runs in place of the method.
+/// (<c>DefineStart</c>, <c>DefineEnd</c>, <c>DefineAbandon</c>, <c>ValidateConfiguration</c>) but neither implements
+/// it nor is called by the task, such as <c>DefineStart(PipelineBuilder.ServiceTask pipeline)</c> in a service task.
+/// Because the member has a default, the task still compiles, and the default runs in place of the method.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -18,9 +21,14 @@ namespace Altinn.App.Analyzers;
 /// </para>
 /// <para>
 /// A task that inherits the interface from a base class keeps that class's mapping, so its own method is reported
-/// even with the right signature, and the message says to list the interface. A method of the name that the task
-/// calls itself does run, and is still reported: the name promises an implementation that the interface never
-/// calls.
+/// even with the right signature, and the message says to list the interface.
+/// </para>
+/// <para>
+/// A method that the task's own code invokes or passes as a delegate runs, so it is a helper of that name rather
+/// than a mistake, and is not reported. That holds even when the caller is itself never called: whether code runs
+/// is beyond what an analyzer can prove, and an uncalled private method is the unused-member diagnostics' to
+/// report. Calls are looked for in every declaration of the type, nested types included, but not in other types,
+/// so a method of the name that only another class calls is still reported.
 /// </para>
 /// <para>
 /// The members are read from the interface: every instance method of <c>IProcessTask</c> with a body, so a default
@@ -76,25 +84,97 @@ public sealed class ProcessTaskDefaultMemberAnalyzer : DiagnosticAnalyzer
             if (defaultMembers.Count == 0)
                 return;
 
-            startContext.RegisterSymbolAction(
-                symbolContext => Analyze(symbolContext, processTask, defaultMembers),
+            var callsByTask = new ConcurrentDictionary<INamedTypeSymbol, ConcurrentDictionary<IMethodSymbol, bool>>(
+                SymbolEqualityComparer.Default
+            );
+            startContext.RegisterSymbolStartAction(
+                symbolContext => Analyze(symbolContext, processTask, defaultMembers, callsByTask),
                 SymbolKind.NamedType
             );
         });
     }
 
+    /// <summary>
+    /// Reports <paramref name="context"/>'s type's findings at its end, except for the methods that its code calls,
+    /// and records the calls in its code for each process task it is nested in.
+    /// </summary>
+    /// <remarks>
+    /// A nested type's code is not part of its containing type's per-symbol analysis, so a nested type records its
+    /// calls in the sets of the tasks it is nested in. The driver runs a containing type's start action before a
+    /// nested type's, and its end action only once the nested type's members have been analyzed.
+    /// </remarks>
     private static void Analyze(
-        SymbolAnalysisContext context,
+        SymbolStartAnalysisContext context,
+        INamedTypeSymbol processTask,
+        ILookup<string, IMethodSymbol> defaultMembers,
+        ConcurrentDictionary<INamedTypeSymbol, ConcurrentDictionary<IMethodSymbol, bool>> callsByTask
+    )
+    {
+        var type = (INamedTypeSymbol)context.Symbol;
+        var callSets = new List<ConcurrentDictionary<IMethodSymbol, bool>>();
+        for (var container = type.ContainingType; container is not null; container = container.ContainingType)
+        {
+            if (callsByTask.TryGetValue(container, out var containerCalls))
+                callSets.Add(containerCalls);
+        }
+
+        var findings = Findings(type, processTask, defaultMembers);
+        if (findings.Count > 0)
+        {
+            var calls = new ConcurrentDictionary<IMethodSymbol, bool>(SymbolEqualityComparer.Default);
+            callsByTask[type] = calls;
+            callSets.Add(calls);
+            context.RegisterSymbolEndAction(endContext =>
+            {
+                foreach (var (method, diagnostic) in findings)
+                {
+                    if (!calls.ContainsKey(method))
+                        endContext.ReportDiagnostic(diagnostic);
+                }
+            });
+        }
+
+        if (callSets.Count == 0)
+            return;
+
+        // A method passed as a delegate runs too, such as a stage given to the pipeline.
+        context.RegisterOperationAction(
+            operationContext =>
+            {
+                var target = operationContext.Operation switch
+                {
+                    IInvocationOperation invocation => invocation.TargetMethod,
+                    IMethodReferenceOperation reference => reference.Method,
+                    _ => null,
+                };
+                if (target is null || !defaultMembers.Contains(target.Name))
+                    return;
+
+                foreach (var calls in callSets)
+                    calls.TryAdd(target.OriginalDefinition, true);
+            },
+            OperationKind.Invocation,
+            OperationKind.MethodReference
+        );
+    }
+
+    /// <summary>
+    /// The diagnostics for <paramref name="type"/>'s methods that are named after a member it does not implement, by
+    /// method, or none when it is not a process task.
+    /// </summary>
+    private static List<(IMethodSymbol Method, Diagnostic Diagnostic)> Findings(
+        INamedTypeSymbol type,
         INamedTypeSymbol processTask,
         ILookup<string, IMethodSymbol> defaultMembers
     )
     {
+        var findings = new List<(IMethodSymbol Method, Diagnostic Diagnostic)>();
         if (
-            context.Symbol is not INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct } type
+            type.TypeKind is not (TypeKind.Class or TypeKind.Struct)
             || !type.AllInterfaces.Contains(processTask, SymbolEqualityComparer.Default)
         )
         {
-            return;
+            return findings;
         }
 
         // A type that inherits the interface from a base class keeps that class's mapping: none of its own methods
@@ -131,17 +211,22 @@ public sealed class ProcessTaskDefaultMemberAnalyzer : DiagnosticAnalyzer
                     continue;
                 }
 
-                context.ReportDiagnostic(
-                    Diagnostic.Create(
-                        Diagnostics.Contracts.ProcessTaskMemberNotImplemented,
-                        location,
-                        $"{type.Name}.{method.ToDisplayString(_methodFormat)}",
-                        $"{processTask.Name}.{member.ToDisplayString(_methodFormat)}",
-                        remedy
+                findings.Add(
+                    (
+                        method,
+                        Diagnostic.Create(
+                            Diagnostics.Contracts.ProcessTaskMemberNotImplemented,
+                            location,
+                            $"{type.Name}.{method.ToDisplayString(_methodFormat)}",
+                            $"{processTask.Name}.{member.ToDisplayString(_methodFormat)}",
+                            remedy
+                        )
                     )
                 );
             }
         }
+
+        return findings;
     }
 
     /// <summary>
