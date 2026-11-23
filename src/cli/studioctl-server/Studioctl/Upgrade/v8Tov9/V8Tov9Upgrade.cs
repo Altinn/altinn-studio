@@ -191,6 +191,11 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+
+        // Before the lifecycle step, so that it counts a DefineStart, DefineEnd or DefineAbandon this one moved to the
+        // lifecycle builder as the task's own, instead of adding a second.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, MigratePipelineBuilderVariants(scanner, options.CancellationToken));
         returnCode = CombineExitCodes(returnCode, MigrateProcessTaskLifecycle(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -983,6 +988,34 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating the IProcessExclusiveGateway signature", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves pipelines written for an earlier v9 preview to the builder variants: <c>DefineExecute</c> takes
+    /// <c>PipelineBuilder.ServiceTask</c> and ends with <c>Stage</c> or <c>HandleReplies</c> instead of <c>Finally</c> or
+    /// <c>ConcludeOnReplies</c>, and <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c> take
+    /// <c>PipelineBuilder.Lifecycle</c> and return nothing.
+    /// </summary>
+    static int MigratePipelineBuilderVariants(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("Pipeline builder variants");
+        try
+        {
+            var result = new PipelineBuilderVariantMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No pipelines from an earlier v9 preview to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating pipelines to the builder variants", ex);
         }
     }
 
