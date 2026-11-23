@@ -94,7 +94,7 @@ public class ExecuteServiceTaskMailboxTests
                 })
                 .Stage(context =>
                 {
-                    Seen["Finally"] = context;
+                    Seen["EndingStage"] = context;
                     return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
                 });
     }
@@ -273,7 +273,7 @@ public class ExecuteServiceTaskMailboxTests
         );
 
         Assert.Contains("SendStage", task.Seen);
-        Assert.Contains("Finally", task.Seen);
+        Assert.Contains("EndingStage", task.Seen);
     }
 
     /// <summary>
