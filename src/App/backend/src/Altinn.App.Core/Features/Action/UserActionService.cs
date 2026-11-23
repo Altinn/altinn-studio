@@ -78,7 +78,8 @@ internal sealed class UserActionService
         {
             result = await handler.HandleAction(context);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        // A conflict with newer stored data keeps its own 409/412 response, which tells the client to reload.
+        catch (Exception ex) when (ex is not (OperationCanceledException or InstanceStateConflictException))
         {
             _logger.LogError(ex, "User action {ActionId} failed with an exception", handler.Id);
             result = UserActionResult.FailureResult(

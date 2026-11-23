@@ -12,7 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `UserActionResult.FailureResult` takes a list of validation issues. The action fails with status 400, its response lists the issues in `error.validationIssues` with their text keys translated, and the form shows the first as the error. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- `UserActionResult.FailureResult` takes a list of validation issues. The action fails with status 400, its response lists the issues in `error.validationIssues` with their text keys translated, and unless the action sets its own `Error`, the form shows the first issue as the error. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 - `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
 - Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
@@ -24,7 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- An `IUserAction` that calls `context.DataMutator.AbandonAllChanges` fails as if it returned `FailureResult` with those issues, and saves none of its changes. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
+- An `IUserAction` that calls `context.DataMutator.AbandonAllChanges` fails as if it returned `FailureResult` with those issues, and saves none of its changes. If the action returns a `FailureResult` of its own, that result is used instead. It failed with a server error before. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - Breaking: `UserActionResponse.Error` is an `ActionErrorResponse` instead of the `ActionError` the action returned. The JSON keeps `code`, `message` and `metadata`, and adds `validationIssues`. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 - An `IUserAction` that throws fails with status 500 and the error code `ActionFailed`, and saves none of its changes. The exception is logged, and its message is not returned to the client. ([#22041](https://github.com/Altinn/altinn-studio/pull/22041))
 

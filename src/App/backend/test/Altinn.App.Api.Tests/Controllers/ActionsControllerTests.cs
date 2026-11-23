@@ -499,6 +499,14 @@ public class ActionsControllerTests : ApiTestBase
             .Should()
             .NotContain("Thrown data");
 
+        // Run buttonId "conflict": a conflict with newer stored data keeps its 409, so the client reloads
+        using var conflictContent = JsonContent.Create(new { action = "fill", buttonId = "conflict" });
+        using HttpResponseMessage conflictResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            conflictContent
+        );
+        conflictResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
         // Run buttonId "delete"
         using var deleteContent = JsonContent.Create(new { action = "fill", buttonId = "delete" });
         using HttpResponseMessage deleteResponse = await client.PostAsync(
@@ -848,6 +856,12 @@ public class FillAction : IUserAction
                     },
                 ]);
                 break;
+            case "conflict":
+                throw new DataElementContentConflictException(
+                    context.Instance.Id,
+                    Guid.Parse(context.DataMutator.GetDataElementsForType("Scheme").First().Id),
+                    new Exception("Stored data changed")
+                );
             case "throw":
                 var throwDataElement = context.DataMutator.GetDataElementsForType("Scheme").First();
                 var throwData = await context.DataMutator.GetFormData<Scheme>(throwDataElement);

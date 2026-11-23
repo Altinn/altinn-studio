@@ -212,6 +212,9 @@ internal sealed class UpdatedDataModelsMigration
         );
     }
 
+    private static bool HasNoEffect(ExpressionSyntax expression) =>
+        expression is LiteralExpressionSyntax || CanDrop(expression);
+
     /// <summary>
     /// Whether the receiver can be left out of the rewritten statement without losing an effect: a variable, a
     /// parameter, or a field or property reached through them or <c>this</c>.
@@ -245,6 +248,16 @@ internal sealed class UpdatedDataModelsMigration
             : arguments.FirstOrDefault(static a => a.NameColon?.Name.Identifier.Text == IdParameterName);
         var model = arguments.FirstOrDefault(static a => a.NameColon?.Name.Identifier.Text == ModelParameterName);
         if (id is null || model is null)
+        {
+            return null;
+        }
+
+        // The rewrite passes the id first. When the model is written first, that only keeps the meaning if neither
+        // argument has an effect another one could see, such as models[i++] next to ids[i].
+        if (
+            arguments.IndexOf(model) < arguments.IndexOf(id)
+            && !(HasNoEffect(id.Expression) && HasNoEffect(model.Expression))
+        )
         {
             return null;
         }

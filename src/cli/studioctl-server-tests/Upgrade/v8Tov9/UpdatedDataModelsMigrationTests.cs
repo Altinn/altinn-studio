@@ -310,6 +310,18 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
                     return result;
                 }
 
+                public async Task<UserActionResult> NamedModelFirstWithEffect(
+                    UserActionContext context,
+                    object[] models,
+                    string[] ids
+                )
+                {
+                    var result = UserActionResult.SuccessResult();
+                    var i = 0;
+                    result.AddUpdatedDataModel(dataModel: models[i++], dataModelId: ids[i]);
+                    return result;
+                }
+
                 public async Task<UserActionResult> ReceiverWithEffect(UserActionContext context, object model)
                 {
                     UserActionResult.SuccessResult().AddUpdatedDataModel("id", model);
@@ -341,9 +353,10 @@ public sealed class UpdatedDataModelsMigrationTests : IDisposable
                 "Leftovers.cs:14: AddUpdatedDataModel",
                 "Leftovers.cs:21: AddUpdatedDataModel",
                 "Leftovers.cs:29: AddUpdatedDataModel",
-                "Leftovers.cs:35: AddUpdatedDataModel",
-                "Leftovers.cs:36: UpdatedDataModels",
-                "Leftovers.cs:40: UpdatedDataModels",
+                "Leftovers.cs:41: AddUpdatedDataModel",
+                "Leftovers.cs:47: AddUpdatedDataModel",
+                "Leftovers.cs:48: UpdatedDataModels",
+                "Leftovers.cs:52: UpdatedDataModels",
             ],
             lines
         );
