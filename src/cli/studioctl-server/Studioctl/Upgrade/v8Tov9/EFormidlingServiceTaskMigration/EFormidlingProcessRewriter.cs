@@ -27,7 +27,8 @@ internal enum EFormidlingInsertResult
 /// The legacy backend sent the shipment at the end of that task, after generating any legacy PDF for
 /// it. When the PDF migration (Job 8) has inserted a <c>PdfTask_&lt;taskId&gt;</c> after the same
 /// task, the eFormidling task is therefore placed after the PDF task, preserving the legacy ordering
-/// (and any <c>ref-data-as-pdf</c> attachment in the shipment).
+/// (and any <c>ref-data-as-pdf</c> attachment in the shipment), also when the PDF task is on the sign
+/// branch of the gateway after a signing task.
 ///
 /// Mirrors the approach of <c>PdfServiceTaskMigration.PdfProcessRewriter</c>: rely on
 /// <c>sequenceFlow</c> <c>sourceRef</c>/<c>targetRef</c>, treat <c>&lt;incoming&gt;</c>/
@@ -110,10 +111,12 @@ internal sealed class EFormidlingProcessRewriter
 
         // The legacy pipeline generated the task's PDF before sending the eFormidling shipment. If
         // the PDF migration inserted a PDF service task after this task, anchor behind it so the
-        // ordering (and a ref-data-as-pdf attachment in the shipment) is preserved.
+        // ordering (and a ref-data-as-pdf attachment in the shipment) is preserved. After a signing task
+        // the PDF task is on the sign branch of the gateway, where the shipment then goes too, so the
+        // gateway still sees the signer's action.
         var pdfTaskId = $"PdfTask_{sendAfterTaskId}";
         var anchorFlows = GetOutgoingFlows(process, sendAfterTaskId);
-        if (anchorFlows.Count == 1 && anchorFlows[0].Attribute("targetRef")?.Value == pdfTaskId)
+        if (anchorFlows.Count == 1 && LeadsToPdfTask(process, anchorFlows[0], pdfTaskId))
         {
             var pdfTask = process.Elements().SingleOrDefault(e => e.Attribute("id")?.Value == pdfTaskId);
             if (pdfTask is not null)
@@ -304,6 +307,25 @@ internal sealed class EFormidlingProcessRewriter
         }
     }
 
+    /// <summary>
+    /// Whether <paramref name="flow"/> leads to the PDF service task: straight, or through the gateway whose sign
+    /// branch the PDF migration put it on, which nothing else enters.
+    /// </summary>
+    private static bool LeadsToPdfTask(XElement process, XElement flow, string pdfTaskId)
+    {
+        var targetId = flow.Attribute("targetRef")?.Value;
+        if (targetId == pdfTaskId)
+            return true;
+
+        var target = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == targetId);
+        return target?.Name.LocalName == "exclusiveGateway"
+            && targetId is not null
+            && process
+                .Elements()
+                .Count(e => e.Name.LocalName == "sequenceFlow" && e.Attribute("targetRef")?.Value == targetId) == 1
+            && GetOutgoingFlows(process, targetId).Exists(f => f.Attribute("targetRef")?.Value == pdfTaskId);
+    }
+
     private static List<XElement> GetOutgoingFlows(XElement process, string sourceId) =>
         process
             .Elements()
@@ -352,8 +374,9 @@ internal sealed class EFormidlingProcessRewriter
                     _warnings.Add(
                         $"Gateway '{gatewayId}' evaluates expressions and previously inferred its data model "
                             + $"from task '{sourceTaskId}', which the inserted eFormidling service task now "
-                            + "precedes. The data type could not be determined from applicationmetadata.json - "
-                            + "please set <altinn:connectedDataTypeId> on the gateway manually."
+                            + "precedes. The task's UI settings name no data model, so nothing was pinned - set "
+                            + "<altinn:connectedDataTypeId> on the gateway if its expressions read the data model "
+                            + "without naming a data type."
                     );
                 }
                 else
@@ -375,8 +398,8 @@ internal sealed class EFormidlingProcessRewriter
                         $"Gateway '{gatewayId}' evaluates expressions and previously inferred its data model "
                             + $"from task '{sourceTaskId}', which the inserted eFormidling service task now "
                             + $"precedes. Set <altinn:connectedDataTypeId>{dataTypeId}</altinn:connectedDataTypeId> "
-                            + "on the gateway to preserve that behavior - adjust it if the gateway expressions "
-                            + "target a different data model."
+                            + "on the gateway, the data model of the task's UI settings (its layout set in v8), to "
+                            + "preserve that behavior."
                     );
                 }
             }

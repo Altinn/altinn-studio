@@ -26,7 +26,7 @@ public sealed record Workflow : PersistentItem
     public required string Namespace { get; init; }
 
     /// <summary>
-    /// Opaque context passed to command handlers at execution time.
+    /// Opaque context passed to the commands at execution time.
     /// The engine stores but never inspects this. Handlers deserialize what they need.
     /// Example: {"actor":{...}, "commandEndpoint":"..."}
     /// </summary>

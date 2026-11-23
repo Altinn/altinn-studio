@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -17,12 +18,10 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
     // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
-    // wait adds to a settled transition and how many collection reads a slow one costs. Poll tightly
-    // for as long as a synchronous completion is still plausible - the same window as the parked
-    // release grace below - then slope off to the 2s cap, which bounds what a genuinely slow
-    // transition costs. Doubling from 100ms was the old shape, and its rungs (100/300/700/1500)
-    // overshot a ~115ms transition by ~190ms; a permanently tight ladder is the opposite mistake,
-    // turning a slow transition into a thousand reads. Change none of these without measuring both.
+    // wait adds to a settled transition and how many collection reads a slow one costs. It polls at the
+    // initial delay for as long as a synchronous completion is still plausible, then grows each delay by
+    // the backoff percentage up to the cap, which bounds the reads a slow transition costs. Change none
+    // of these without measuring both.
     private const int InitialWorkflowPollingDelayMs = 50;
     private const int WorkflowPollingTightWindowMs = 2_000;
     private const int WorkflowPollingBackoffPercent = 50;
@@ -30,7 +29,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
-    internal int WorkflowParkedReleaseGraceMs = 2_000;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
@@ -200,7 +198,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     {
         var idle = new WorkflowTaskStatus(WorkflowActivityStatus.Idle, TargetTask: null, Failure: null);
 
-        if (instance.Process?.CurrentTask?.ElementId is not { Length: > 0 })
+        ProcessElementInfo? currentTask = instance.Process?.CurrentTask;
+        string? currentTaskId = currentTask?.ElementId;
+        if (currentTask is null || string.IsNullOrEmpty(currentTaskId))
         {
             // Not started, or ended: there is no current task to annotate, so don't query the
             // engine. Known gap: the final (task -> end) transition's post-commit steps still run
@@ -210,6 +210,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             // workflows (see the live workflow-status ADR).
             return idle;
         }
+
+        // A service task without workflow: only v8 leaves an instance idle in a service task. Failed, so the frontend
+        // offers its retry. See docs/workflow-engine-integration.md#service-tasks-without-workflow.
+        WorkflowTaskStatus Settled() =>
+            ProcessStatusHelper.IsIdle(instance) && _processNextRequestFactory.IsServiceTask(currentTask.AltinnTaskType)
+                ? new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Failed,
+                    currentTaskId,
+                    Failure: null,
+                    ServiceTaskWithoutWorkflow: true
+                )
+                : idle;
 
         // The process-next collection key is deterministically the instance guid (see
         // ProcessNextRequestFactory), so the read path goes straight to the collection heads rather
@@ -223,7 +235,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         if (collection is null || collection.Heads.Count == 0)
         {
-            return idle;
+            return Settled();
         }
 
         // A head that is active means a transition is in flight (processing); a head that failed
@@ -256,7 +268,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 ResumedAt: activeHead.ResumedAt,
                 WaitingReason: activeHead.WaitingReason,
                 CurrentTime: collection.CurrentTime,
-                FailedAttempts: activeHead.FailedAttempts ?? 0
+                FailedAttempts: activeHead.FailedAttempts ?? 0,
+                FirstFailedAt: activeHead.FirstFailedAt
             );
         }
 
@@ -265,7 +278,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
         if (resumeRequiredHead is null)
         {
-            return idle;
+            return Settled();
         }
 
         // A failed transition additionally needs its failure detail, which lives in the workflow's
@@ -427,10 +440,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
     /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
-    /// a mailbox receive workflow is waiting for its message — is released as a committed success once
-    /// <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that is neither settled nor
-    /// parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a
-    /// <see cref="WorkflowFailureKind.Timeout"/>.
+    /// a mailbox receive workflow is waiting for its message — is released as a committed, parked success on
+    /// the first poll that sees it, and a chain that is neither settled nor parked when
+    /// <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
@@ -485,11 +497,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         );
                     }
                 }
-                else if (
-                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus)
-                    && _timeProvider.GetElapsedTime(startedAt)
-                        >= TimeSpan.FromMilliseconds(WorkflowParkedReleaseGraceMs)
-                )
+                else if (collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus))
                 {
                     // Parked (deferring task, or a Held receiver) may last its whole budget; holding the request would
                     // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
@@ -521,7 +529,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             freshInstance.Instance,
                             freshInstance.Metadata,
                             WorkflowFailure: null,
-                            ProcessStateCommitted: true
+                            ProcessStateCommitted: true,
+                            Parked: true
                         );
                     }
                 }
@@ -608,14 +617,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     /// <summary>
-    /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary command). An
-    /// auxiliary workflow runs beside the process: it never blocks or moves it. It is enqueued with the
-    /// engine-persisted <c>IsHead = false</c> directive, which the engine exposes on status responses;
-    /// a workflow with <c>IsHead</c> true or unset is primary. The
+    /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary step) by the
+    /// <see cref="WorkflowStatusResponse.Role"/> the engine reports. An auxiliary workflow runs beside the
+    /// process: it never blocks or moves it. The
     /// <see cref="ProcessNextRequestFactory.AuxiliaryOperationIdPrefix"/> OperationId marker is purely a
     /// human-readable naming convention for ops queries and logs, not load-bearing for identification.
     /// </summary>
-    internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
+    internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) =>
+        workflow.Role == WorkflowRole.Auxiliary;
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 

@@ -1,4 +1,4 @@
-import type { StudioSuggestionItem } from '@studio/components';
+import type { StudioSuggestionItem } from '@designer/components';
 
 export type InternalConfigState = {
   types: StudioSuggestionItem[];

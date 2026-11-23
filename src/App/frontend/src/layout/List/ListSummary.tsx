@@ -1,19 +1,27 @@
 import React from 'react';
 
+import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Table } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
-import { getSelectionMode, ListComponent } from 'src/layout/List/ListComponent';
+import {
+  getMobileTableHeaders,
+  getSelectionMode,
+  ListComponent,
+  ListMobileRowContent,
+} from 'src/layout/List/ListComponent';
 import classes from 'src/layout/List/ListComponent.module.css';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryCaptionProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -43,11 +51,18 @@ export const ListSummary = (props: Summary2Props) => {
 const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const emptyFieldText = useSummaryOverrides<'List'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
+  const isMobileOrTablet = useIsMobileOrTablet();
+  const pdfModeActive = usePdfModeActive();
+  const mobileView = isMobileOrTablet && !pdfModeActive;
   const displayData = useDisplayData(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const config = useComponentConfig(targetBaseComponentId, 'List');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'List');
+  const mobileHeaders = getMobileTableHeaders(config.tableHeaders, config.tableHeadersMobile);
+  const boundMobileHeaders = Object.fromEntries(
+    Object.entries(mobileHeaders).filter(([key]) => dataModelBindings?.[key]),
+  );
   const required = useEvalExpression(config.required, Expressions.List.required);
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
@@ -59,6 +74,7 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
   const relativeCheckedPath =
     dataModelBindings?.checked && dataModelBindings?.group
@@ -83,49 +99,69 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
               targetBaseComponentId={targetBaseComponentId}
             />
           </div>
-          <Table>
-            {title && (
-              <caption className={classes.tableCaption}>
-                <Heading
-                  data-size='xs'
-                  level={4}
-                >
-                  <Lang id={title} />
-                </Heading>
-              </caption>
+          <BaseTable>
+            {(title || captionProps.description || captionProps.helpText) && (
+              <Caption
+                {...captionProps}
+                className={classes.tableCaption}
+                title={title && <Lang id={title} />}
+              />
             )}
-            <Table.Head>
-              <Table.Row>
-                {Object.entries(config.tableHeaders).map(([key, value]) => (
-                  <Table.HeaderCell key={key}>
-                    <Lang id={value} />
-                  </Table.HeaderCell>
+            {config.tableColumns && !mobileView && (
+              <colgroup>
+                {Object.keys(config.tableHeaders).map((key) => (
+                  <col
+                    key={key}
+                    style={{ width: config.tableColumns?.[key]?.width }}
+                  />
                 ))}
-              </Table.Row>
-            </Table.Head>
-            <Table.Body>
-              {displayRows?.map((row, rowIndex) => (
-                <Table.Row key={rowIndex}>
-                  {Object.entries(config.tableHeaders).map(([key]) => {
-                    const binding = dataModelBindings?.[key];
-                    if (!binding || !dataModelBindings?.group) {
-                      return null;
-                    }
-                    const relativePath = binding?.field.replace(`${dataModelBindings.group.field}.`, '');
-                    const data = dot.pick(relativePath, row);
-                    return (
-                      <Table.Cell
-                        key={key}
-                        align='left'
-                      >
-                        {data}
-                      </Table.Cell>
-                    );
-                  })}
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
+              </colgroup>
+            )}
+            {!mobileView && (
+              <BaseTable.Head>
+                <BaseTable.Row>
+                  {Object.entries(config.tableHeaders).map(([key, value]) => (
+                    <BaseTable.HeaderCell key={key}>
+                      <Lang id={value} />
+                    </BaseTable.HeaderCell>
+                  ))}
+                </BaseTable.Row>
+              </BaseTable.Head>
+            )}
+            <BaseTable.Body>
+              {displayRows?.map((row, rowIndex) => {
+                const getValue = (key: string) => {
+                  const binding = dataModelBindings?.[key];
+                  if (!binding || !dataModelBindings?.group) {
+                    return undefined;
+                  }
+                  const relativePath = binding.field.replace(`${dataModelBindings.group.field}.`, '');
+                  return dot.pick(relativePath, row);
+                };
+                return (
+                  <BaseTable.Row key={rowIndex}>
+                    {mobileView ? (
+                      <BaseTable.Cell align='left'>
+                        <ListMobileRowContent
+                          headers={boundMobileHeaders}
+                          renderValue={getValue}
+                        />
+                      </BaseTable.Cell>
+                    ) : (
+                      Object.keys(config.tableHeaders).map((key) => (
+                        <BaseTable.Cell
+                          key={key}
+                          align='left'
+                        >
+                          {getValue(key)}
+                        </BaseTable.Cell>
+                      ))
+                    )}
+                  </BaseTable.Row>
+                );
+              })}
+            </BaseTable.Body>
+          </BaseTable>
         </div>
       </SummaryFlex>
     );

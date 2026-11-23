@@ -1,44 +1,29 @@
 # Deployer
 
-A local web dashboard for monitoring and approving Altinn Studio deployments across environments and rings.
+Deployer is a local web dashboard for following and approving the deployments that this repository's
+[deploy workflows](../../../.github/workflows) run across environments and rings. The GitHub Actions UI lists runs one
+by one. Deployer shows a grid of services and environments, with what each environment runs and what comes next, and
+lets you approve deployments that wait for you.
 
-Run it from `src/tools/deployer`.
-
-The GitHub Actions UI becomes impractical when many services are deploying to many environments simultaneously — it is just a flat list of runs with no cross-service view. Deployer provides a grid of services × environments showing what is currently deployed and what is next, with direct in-browser approval.
+It needs Node.js with `node:sqlite` and an authenticated [GitHub CLI](https://cli.github.com/). It has no npm
+dependencies and no build step.
 
 ## Usage
 
-```bash
+```sh
 make run
 ```
 
-Opens automatically in the browser at `http://localhost:3456`.
+The server opens `http://localhost:3456` in your browser. `REPO` and `PORT` change the repository and the port.
 
-Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
+The server reads workflow runs and jobs through `gh`, stores them in `deployer.db` and polls jobs that are still
+active. Delete `deployer.db` to start over. Deployer shows approve controls only for environments where you are a
+reviewer, and approves with your `gh` credentials.
 
-## Features
+## Adding a deploy workflow
 
-- Grid view: services (rows) × environments (columns)
-- Split cells: left half = currently deployed, right half = next/latest candidate
-- Status indicators: deployed, deploying (spinner), awaiting approval, queued, failed
-- Approve deployments directly from the UI — single or multi-select (`<space>` shortcut to mark for approval)
-- Only shows approve controls for environments where the current user is an authorized reviewer
-- Auto-refreshes every 10s; active jobs (queued/in-progress) are polled every 10s server-side
-- Stores runs and jobs in sqlite and tries to minimize gh API traffic
+Deployer lists the deploy workflows and their environments in [`server.js`](server.js). A new deploy workflow shows
+up only after you add it there. Deployer finds the environment of each job from a word in the job's name, such as
+`at22` in `Tag syncroot (at22)`, so a deploy workflow must name its jobs after the environments they deploy to.
 
-## Environment variables
-
-| Variable | Default                | Description       |
-| -------- | ---------------------- | ----------------- |
-| `REPO`   | `Altinn/altinn-studio` | GitHub repository |
-| `PORT`   | `3456`                 | HTTP port         |
-
-## Architecture
-
-- `server.js` — HTTP server, GitHub sync worker, approve endpoint
-- `db.js` — SQLite schema and prepared statements (via Node.js built-in `node:sqlite`)
-- `gh.js` — `gh` CLI wrapper with concurrency limiting
-- `app.js` — Browser-side rendering and interaction
-- `browser.js` — Cross-platform browser opener
-
-Data is stored in `deployer.db` (SQLite). Delete the file to reset state.
+`make` checks the syntax of the JavaScript files, as CI does.

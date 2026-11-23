@@ -59,7 +59,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
       <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
     </span>
   </summary>
-  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.</div></div>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.</div></div>
 </details>
 
 <details class="component-property-group" id="textresourcebindings">
@@ -275,6 +275,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     </span>
   </summary>
   <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kobler feltene i datalisten til kolonneoverskrifter. Andre egenskapsnavn er tillatt. Verditype: string.</div></div>
+</details>
+
+<details class="card adocs-expand adocs-expand-small component-property" id="tablecolumns">
+  <summary class="component-property-summary">
+    <span class="component-property-chevron" aria-hidden="true"></span>
+    <span class="component-property-name" title="tableColumns">tableColumns</span>
+    <span class="component-property-summary-meta">
+      <span class="component-property-required">Valgfri</span>
+      <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
+    </span>
+  </summary>
+  <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Kolonnebredder angitt med kolonnenøkler fra tableHeaders. Andre kolonner får automatisk bredde. Andre egenskapsnavn er tillatt. Verditype: object.</div></div>
 </details>
 
 <details class="card adocs-expand adocs-expand-small component-property" id="sortablecolumns">

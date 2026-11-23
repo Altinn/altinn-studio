@@ -4,7 +4,6 @@ import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { StoreApi } from 'zustand';
 
-import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders';
 import { type ExternalApisResult } from 'src/core/queries/externalApi';
@@ -23,6 +22,7 @@ import { useAllNavigationParams } from 'src/hooks/navigation';
 import { objectOrArrayShallowEqual } from 'src/hooks/useShallowMemo';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
+import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type {
   ExpressionDependency,
   ExpressionSubscriptionOwner,
@@ -73,6 +73,8 @@ export interface ExpressionDataSources {
     defaultDataType: () => string | undefined;
     hasDataType: (dataType: string) => boolean;
     read: (reference: IDataModelReference) => unknown;
+    /** The schema of a data type, which the dataModel function uses to give objects every property they have */
+    getSchemaLookupTool?: (dataType: string) => SchemaLookupTool | undefined;
   };
   layout: {
     getLookups: () => LayoutLookups | undefined;
@@ -116,7 +118,6 @@ type SnapshotInputs = {
   externalApiIds: string[];
   instanceId: string | undefined;
   store: StoreApi<FormStoreState> | typeof ContextNotProvided;
-  textResourcesApi: ReturnType<typeof useTextResourcesApi>;
   dataModelReaders: DataModelReaders;
   instanceQueries: ReturnType<typeof useExpressionQueryReaders>['instanceQueries'];
   queryCacheObserver: ReturnType<typeof useExpressionQueryReaders>['queryCacheObserver'];
@@ -177,7 +178,7 @@ export function useExpressionDataSources(
     throw new Error('Use the expressionDataSourcesBase hook instead');
   }
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
   const runtime = useExpressionDataSourcesRuntime(overrides, 'runtime');
 
@@ -204,7 +205,7 @@ export function useExpressionDataSourcesForStoreSelector(
     throw new Error('Use the expressionDataSourcesBase hook instead');
   }
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
   const runtime = useExpressionDataSourcesRuntime(overrides, 'storeSelector');
 
@@ -232,7 +233,6 @@ function useExpressionDataSourcesRuntime(
   const { pageKey: currentPage, instanceOwnerPartyId, instanceGuid } = useAllNavigationParams();
   const currentDataModelPath = useCurrentDataModelLocation();
   const store = FormStore.raw.useLaxStore();
-  const textResourcesApi = useTextResourcesApi();
   const dataModelReaders = useDataModelReaders();
   const { instanceQueries, queryCacheObserver, externalApiQueries, textResourceQueries } = useExpressionQueryReaders();
 
@@ -248,7 +248,6 @@ function useExpressionDataSourcesRuntime(
     externalApiIds,
     instanceId,
     store,
-    textResourcesApi,
     dataModelReaders,
     instanceQueries,
     queryCacheObserver,
@@ -385,6 +384,7 @@ function makeExpressionDataSourcesRuntime({
         observer.track({ type: 'formData', reference });
         return readFormDataFromStore(getInputs().store, reference);
       },
+      getSchemaLookupTool: (dataType) => getSchemaLookupToolFromStore(getInputs().store, dataType),
     },
     layout: {
       getLookups: () => {
@@ -453,7 +453,7 @@ function readDependencyValue(inputs: SnapshotInputs, dependency: ExpressionDepen
     case 'displayValue':
       return dependency.componentId;
     case 'externalApi':
-      return inputs.externalApiQueries.getState(inputs.instanceId, dependency.externalApiId);
+      return inputs.externalApiQueries.getSnapshot(inputs.instanceId, dependency.externalApiId);
     case 'formData':
       return readFormDataFromStore(inputs.store, dependency.reference);
     case 'instanceDataElementCount':
@@ -516,6 +516,14 @@ function getReadableDataTypesFromStore(store: SnapshotInputs['store']) {
     return [];
   }
   return Object.keys(store.getState().bootstrap.dataModels);
+}
+
+/** Read the schema lookup tool of a data type directly from the current FormStore snapshot. */
+function getSchemaLookupToolFromStore(store: SnapshotInputs['store'], dataType: string) {
+  if (store === ContextNotProvided) {
+    return undefined;
+  }
+  return store.getState().bootstrap.dataModels[dataType]?.schemaResult.lookupTool;
 }
 
 /** Read layout lookups directly from the current FormStore snapshot. */
@@ -582,7 +590,6 @@ function ensureTextResourcesFetched(inputs: SnapshotInputs) {
   inputs.textResourceQueries.ensureLoaded({
     selectedLanguage: inputs.currentLanguage,
     textResourcesFromWindow: window.altinnAppGlobalData.textResources,
-    textResourcesApi: inputs.textResourcesApi,
   });
 }
 

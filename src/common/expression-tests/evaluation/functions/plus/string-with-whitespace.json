@@ -1,0 +1,40 @@
+{
+  "name": "Numeric strings with surrounding whitespace are numbers, strings with a thousands separator are not",
+  "testCases": [
+    {
+      "name": "Should ignore a leading space",
+      "expression": ["plus", " 12", 1],
+      "expects": 13
+    },
+    {
+      "name": "Should ignore a trailing space",
+      "expression": ["plus", "12 ", 1],
+      "expects": 13
+    },
+    {
+      "name": "Should ignore spaces on both sides",
+      "expression": ["plus", " 12 ", 1],
+      "expects": 13
+    },
+    {
+      "name": "Should ignore tabs and newlines",
+      "expression": ["plus", "\t-3.5\n", 1],
+      "expects": -2.5
+    },
+    {
+      "name": "Should fail with a space inside",
+      "expression": ["plus", "1 2", 1],
+      "expectsFailure": "Expected number, got value \"1 2\""
+    },
+    {
+      "name": "Should fail with a thousands separator",
+      "expression": ["plus", "1,5", 1],
+      "expectsFailure": "Expected number, got value \"1,5\" (a comma is not a decimal separator, use a period)"
+    },
+    {
+      "name": "Should fail with only whitespace",
+      "expression": ["plus", " ", 1],
+      "expectsFailure": "Expected number, got value \" \""
+    }
+  ]
+}

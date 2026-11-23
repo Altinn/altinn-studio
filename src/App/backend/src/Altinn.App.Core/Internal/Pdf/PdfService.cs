@@ -120,7 +120,7 @@ internal sealed class PdfService : IPdfService
             language,
             isPreview
                 ? await GetPreviewFooter(language)
-                : await GetFooterContent(instance, taskId, language, authenticationMethod),
+                : await GetFooterContent(instance, taskId, subformPdfContext, language, authenticationMethod),
             subformPdfContext,
             autoGeneratePdfForTaskIds,
             authenticationMethod,
@@ -166,28 +166,10 @@ internal sealed class PdfService : IPdfService
         // query parameters in combination with hash fragments in the url.
         string url = baseUrl + pagePath;
 
-        // Insert subform component and data element id in the url if provided
-        if (subformPdfContext is not null)
-        {
-            int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
-            if (pdfIndex > 0)
-            {
-                string beforePdf = $"{url[..pdfIndex]}/{taskId}/subform";
-                string afterPdf = url[pdfIndex..];
-                url = $"{beforePdf}/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}/{afterPdf}";
-            }
-            else
-            {
-                url += $"/{taskId}/subform/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}";
-            }
-        }
         // Insert the task id in the url, so the frontend renders that task, also if the process has moved on by the
         // time it renders
-        else
-        {
-            int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
-            url = pdfIndex > 0 ? $"{url[..pdfIndex]}/{taskId}{url[pdfIndex..]}" : $"{url}/{taskId}";
-        }
+        int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
+        url = pdfIndex > 0 ? $"{url[..pdfIndex]}/{taskId}{url[pdfIndex..]}" : $"{url}/{taskId}";
 
         string lang = Uri.EscapeDataString(language);
         if (url.Contains('?'))
@@ -207,6 +189,13 @@ internal sealed class PdfService : IPdfService
             }
         }
 
+        // The frontend renders one entry of the subform from the subform's own UI folder
+        if (subformPdfContext is not null)
+        {
+            url += $"&subformUiFolder={Uri.EscapeDataString(subformPdfContext.UiFolder)}";
+            url += $"&subformDataElementId={Uri.EscapeDataString(subformPdfContext.DataElementId)}";
+        }
+
         return new Uri(url);
     }
 
@@ -223,6 +212,7 @@ internal sealed class PdfService : IPdfService
     private async Task<string?> GetFooterContent(
         Instance instance,
         string taskId,
+        SubformPdfContext? subformPdfContext,
         string language,
         StorageAuthenticationMethod? authenticationMethod
     )
@@ -245,7 +235,13 @@ internal sealed class PdfService : IPdfService
 
         DateTimeOffset now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
 
-        bool hideAppName = await GetHideAppNameInPdf(instance, taskId, language, authenticationMethod);
+        bool hideAppName = await GetHideAppNameInPdf(
+            instance,
+            taskId,
+            subformPdfContext,
+            language,
+            authenticationMethod
+        );
 
         string dateGenerated = now.ToString("dd.MM.yyyy HH:mm", new CultureInfo("nb-NO"));
         string altinnReferenceId = instance.Id.Split("/")[1].Split("-")[4];
@@ -278,13 +274,15 @@ internal sealed class PdfService : IPdfService
     private async Task<bool> GetHideAppNameInPdf(
         Instance instance,
         string taskId,
+        SubformPdfContext? subformPdfContext,
         string language,
         StorageAuthenticationMethod? authenticationMethod
     )
     {
         try
         {
-            var hideAppName = _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
+            var settings = _resources.GetLayoutSettingsForFolder(subformPdfContext?.UiFolder ?? taskId);
+            var hideAppName = settings?.Pages?.HideAppNameInPdf ?? _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
             if (hideAppName is null)
                 return false;
 
@@ -302,9 +300,9 @@ internal sealed class PdfService : IPdfService
             );
             var state = dataAccessor.GetLayoutEvaluatorState();
 
-            var settings = _resources.GetLayoutSettingsForFolder(taskId);
-            DataElementIdentifier? dataElement = settings?.DefaultDataType is { } dataType
-                ? instance.Data?.Find(d => d.DataType == dataType)
+            DataElementIdentifier? dataElement =
+                subformPdfContext is { } subform ? instance.Data?.Find(d => d.Id == subform.DataElementId)
+                : settings?.DefaultDataType is { } dataType ? instance.Data?.Find(d => d.DataType == dataType)
                 : null;
 
             var componentContext = new ComponentContext(
@@ -342,8 +340,8 @@ internal sealed class PdfService : IPdfService
 }
 
 /// <summary>
-/// Contains subform-specific parameters required for generating a subform PDF.
+/// The subform entry a subform PDF is generated of.
 /// </summary>
-/// <param name="ComponentId">The ID of the subform component.</param>
-/// <param name="DataElementId">The ID of the subform data element.</param>
-public sealed record SubformPdfContext(string ComponentId, string DataElementId);
+/// <param name="UiFolder">The subform's UI folder, which the entry is rendered with.</param>
+/// <param name="DataElementId">The ID of the subform entry's data element.</param>
+public sealed record SubformPdfContext(string UiFolder, string DataElementId);

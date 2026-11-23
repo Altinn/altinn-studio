@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Hubs.Assistant;
-using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -31,7 +30,11 @@ namespace Altinn.Studio.Designer.Services.Implementation.Assistant;
 /// continue streaming events even after a page refresh or tab switch.
 /// Messages are forwarded directly to the developer's SignalR group via IHubContext.
 /// <para>
-/// Every replica sees every event, so persistence is deduplicated on the agent's event id.
+/// The assistant service sends the events of a developer on one connection: the last one that registered a
+/// session for the developer. It closes the developer's earlier connection, which can be on another replica.
+/// The replica that has the connection saves the answers and forwards the events, and the Redis backplane
+/// delivers them to tabs on other replicas. The database keeps one message for each event id, in case two
+/// replicas save the same answer during the change.
 /// </para>
 /// </summary>
 public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
@@ -41,6 +44,11 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     private const string SecureWebSocketScheme = "wss";
     private const string InsecureWebSocketScheme = "ws";
     private const string SecureHttpScheme = "https";
+
+    // The command continues without the acknowledgement after this time.
+    private static readonly TimeSpan s_registrationTimeout = TimeSpan.FromSeconds(5);
+
+    private static readonly TimeSpan s_connectTimeout = TimeSpan.FromSeconds(10);
 
     private static readonly JsonSerializerOptions s_persistSerializerOptions = new()
     {
@@ -55,11 +63,6 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     private readonly ConcurrentDictionary<string, DeveloperConnection> _connections = new();
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _connectLocks = new();
 
-    // sessionId (== chat thread id) → the editing context it was registered
-    // under. Lets the listener persist assistant messages into the right
-    // app's thread without any browser tab involved.
-    private readonly ConcurrentDictionary<string, AltinnRepoEditingContext> _sessionContexts = new();
-
     public AssistantWebSocketService(
         ILogger<AssistantWebSocketService> logger,
         IOptions<AssistantSettings> settings,
@@ -73,16 +76,95 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         _scopeFactory = scopeFactory;
     }
 
-    public async Task EnsureConnectedAsync(string developer)
+    public async Task RegisterSessionAsync(string sessionId, string developer, CancellationToken cancellationToken)
+    {
+        // The assistant service closes the connection when it restarts, or when another replica registers a
+        // session for the developer. A frame sent just before this replica sees the close gets no answer, so the
+        // second attempt uses a new connection.
+        for (int attempt = 1; ; attempt++)
+        {
+            DeveloperConnection connection = await GetOrConnectAsync(developer, cancellationToken);
+            if (await TrySendSessionFrame(connection, sessionId, developer, cancellationToken))
+            {
+                _logger.LogInformation(
+                    "Registered session {SessionId} for developer {Developer}",
+                    sessionId,
+                    developer
+                );
+                return;
+            }
+
+            if (connection.IsAlive || attempt == 2)
+            {
+                _logger.LogWarning(
+                    "The assistant service did not confirm session {SessionId} for developer {Developer}",
+                    sessionId,
+                    developer
+                );
+                return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sends a session frame and waits for the assistant service to confirm it. The assistant service starts to
+    /// send events on a new connection when it has read the frame, so without the wait, the event of a command
+    /// sent right after the frame could come before that.
+    /// </summary>
+    private async Task<bool> TrySendSessionFrame(
+        DeveloperConnection connection,
+        string sessionId,
+        string developer,
+        CancellationToken cancellationToken
+    )
+    {
+        var frame = JsonSerializer.SerializeToUtf8Bytes(
+            new
+            {
+                type = "session",
+                session_id = sessionId,
+                developer,
+            }
+        );
+        Task registered = connection.ExpectRegistration(sessionId);
+        try
+        {
+            await connection.Send(frame, cancellationToken);
+            await registered.WaitAsync(s_registrationTimeout, cancellationToken);
+            return true;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            connection.ForgetRegistration(sessionId);
+            throw;
+        }
+        catch (Exception ex)
+            when (ex is TimeoutException
+                || (
+                    !connection.IsAlive
+                    && ex
+                        is OperationCanceledException
+                            or WebSocketException
+                            or InvalidOperationException
+                            or ObjectDisposedException
+                )
+            )
+        {
+            connection.ForgetRegistration(sessionId);
+            return false;
+        }
+    }
+
+    private async Task<DeveloperConnection> GetOrConnectAsync(string developer, CancellationToken cancellationToken)
     {
         if (_connections.TryGetValue(developer, out var existing) && existing.IsAlive)
         {
             _logger.LogInformation("Reusing existing agents WebSocket for developer {Developer}", developer);
-            return;
+            return existing;
         }
 
         var sem = _connectLocks.GetOrAdd(developer, _ => new SemaphoreSlim(1, 1));
-        await sem.WaitAsync();
+        await sem.WaitAsync(cancellationToken);
         try
         {
             if (_connections.TryGetValue(developer, out var existing2) && existing2.IsAlive)
@@ -91,12 +173,30 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                     "Reusing existing agents WebSocket for developer {Developer} (after lock)",
                     developer
                 );
-                return;
+                return existing2;
             }
 
             var wsUri = BuildWebSocketUri(_settings.AgentUrl);
             var webSocket = new ClientWebSocket();
-            await webSocket.ConnectAsync(wsUri, CancellationToken.None);
+            using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            connectCts.CancelAfter(s_connectTimeout);
+            try
+            {
+                await webSocket.ConnectAsync(wsUri, connectCts.Token);
+            }
+            catch (Exception ex)
+            {
+                webSocket.Dispose();
+                if (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                {
+                    throw new TimeoutException(
+                        $"The assistant service did not accept the WebSocket in {s_connectTimeout.TotalSeconds} seconds.",
+                        ex
+                    );
+                }
+
+                throw;
+            }
 
             _logger.LogInformation("Opened new agents WebSocket for developer {Developer}", developer);
 
@@ -110,6 +210,8 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 Activity.Current = null;
                 return ListenForMessagesAsync(developer, connection);
             });
+
+            return connection;
         }
         finally
         {
@@ -117,41 +219,10 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
     }
 
-    public async Task RegisterSessionAsync(string sessionId, AltinnRepoEditingContext editingContext)
-    {
-        string developer = editingContext.Developer;
-        if (!_connections.TryGetValue(developer, out var connection) || !connection.IsAlive)
-        {
-            throw new InvalidOperationException(
-                $"No live agents WebSocket for developer {developer}. Call EnsureConnectedAsync first."
-            );
-        }
-
-        TrackSessionContext(sessionId, editingContext);
-
-        var frame = JsonSerializer.SerializeToUtf8Bytes(
-            new
-            {
-                type = "session",
-                session_id = sessionId,
-                developer,
-            }
-        );
-        await connection.WebSocket.SendAsync(
-            new ArraySegment<byte>(frame),
-            WebSocketMessageType.Text,
-            endOfMessage: true,
-            CancellationToken.None
-        );
-
-        _logger.LogInformation("Registered session {SessionId} for developer {Developer}", sessionId, developer);
-    }
-
     public async Task CloseConnectionAsync(string developer)
     {
         if (_connections.TryRemove(developer, out var connection))
         {
-            RemoveSessionContextsForDeveloper(developer);
             await CloseWebSocketAsync(connection);
         }
     }
@@ -185,6 +256,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                             developer
                         );
                         RemoveConnection(developer, connection);
+                        await CloseWebSocketAsync(connection);
                         return;
                     }
 
@@ -198,8 +270,13 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
                 var json = Encoding.UTF8.GetString(messageStream.GetBuffer(), 0, (int)messageStream.Length);
 
-                if (IsInternalHandshakeMessage(json))
+                if (IsInternalHandshakeMessage(json, out string? registeredSessionId))
                 {
+                    if (registeredSessionId is not null)
+                    {
+                        connection.CompleteRegistration(registeredSessionId);
+                    }
+
                     continue;
                 }
 
@@ -222,7 +299,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                         continue;
                     }
 
-                    await TryPersistAssistantMessageAsync(messageNode);
+                    await TryPersistAssistantMessageAsync(developer, messageNode);
 
                     var message = JsonSerializer.SerializeToElement(messageNode);
                     await _hubContext.Clients.Group(developer).ReceiveAgentMessage(message);
@@ -248,6 +325,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         {
             _logger.LogError(ex, "Agents WebSocket listener error for developer {Developer}", developer);
             RemoveConnection(developer, connection);
+            await CloseWebSocketAsync(connection);
         }
     }
 
@@ -259,44 +337,15 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     /// </summary>
     private void RemoveConnection(string developer, DeveloperConnection connection)
     {
-        if (_connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection)))
-        {
-            RemoveSessionContextsForDeveloper(developer);
-        }
+        _connections.TryRemove(new KeyValuePair<string, DeveloperConnection>(developer, connection));
     }
 
     /// <summary>
-    /// Drops the session→editing-context entries for a developer whose agents connection
-    /// closed. Events for those sessions can no longer arrive, and without eviction the
-    /// map would grow for the lifetime of the process. Re-registration on the next
-    /// connection restores the entries.
+    /// Saves an assistant answer in the developer's thread and adds the id of the saved message to the
+    /// event. The save needs only the thread id and the developer, so any replica can save the answer.
+    /// If the save fails, this method logs the error, and the listener forwards the event without the id.
     /// </summary>
-    internal void RemoveSessionContextsForDeveloper(string developer)
-    {
-        foreach (var entry in _sessionContexts)
-        {
-            if (entry.Value.Developer == developer)
-            {
-                _sessionContexts.TryRemove(entry);
-            }
-        }
-    }
-
-    internal void TrackSessionContext(string sessionId, AltinnRepoEditingContext editingContext)
-    {
-        _sessionContexts[sessionId] = editingContext;
-    }
-
-    /// <summary>
-    /// Persists a final assistant message server-side so the answer survives
-    /// regardless of how many browser tabs (including zero) are listening, and
-    /// stamps the persisted id onto the event so clients render it without
-    /// persisting their own copy — which duplicated messages when several tabs
-    /// received the same broadcast. Any failure is logged and the event is
-    /// forwarded unenriched; the frontend then falls back to persisting
-    /// client-side, so an answer is never lost to a persistence error.
-    /// </summary>
-    internal async Task TryPersistAssistantMessageAsync(JsonNode message)
+    internal async Task TryPersistAssistantMessageAsync(string developer, JsonNode message)
     {
         try
         {
@@ -311,33 +360,35 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
                 return;
             }
 
-            if (!_sessionContexts.TryGetValue(sessionId, out AltinnRepoEditingContext? editingContext))
+            if (message["data"] is not JsonObject data)
             {
-                _logger.LogWarning(
-                    "No editing context registered for session {SessionId}; leaving persistence to the client",
-                    sessionId
-                );
                 return;
             }
 
-            JsonNode? data = message["data"];
-
-            // Same field fallback order as the frontend's getAssistantMessageContent.
+            // The answer is in the first of these fields that is set.
             string? content =
-                data?["response"]?.GetValue<string>()
-                ?? data?["message"]?.GetValue<string>()
-                ?? data?["content"]?.GetValue<string>();
+                ReadOptional(data, "response", AsString)
+                ?? ReadOptional(data, "message", AsString)
+                ?? ReadOptional(data, "content", AsString);
             if (string.IsNullOrWhiteSpace(content))
             {
                 return;
             }
 
-            List<string>? filesChanged = data!["filesChanged"]?.Deserialize<List<string>>();
-            List<ChatSourceEntity>? sources = data["sources"]
-                ?.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions);
-            string? traceId = data["traceId"]?.GetValue<string>();
-            string? eventId = data["eventId"]?.GetValue<string>();
-            bool? attachmentInstructionFlagged = data["attachmentInstructionFlagged"]?.GetValue<bool>();
+            List<string>? filesChanged = ReadOptional(data, "filesChanged", node => node.Deserialize<List<string>>());
+            List<ChatSourceEntity>? sources = ReadOptional(
+                data,
+                "sources",
+                node => node.Deserialize<List<ChatSourceEntity>>(s_persistSerializerOptions)
+            );
+            string? traceId = ReadOptional(data, "traceId", AsString);
+            bool? attachmentInstructionFlagged = ReadOptional<bool?>(
+                data,
+                "attachmentInstructionFlagged",
+                node => node.GetValue<bool>()
+            );
+            // The assistant service stamps an event id on each answer, so each replica saves it under the same id.
+            string? eventId = ReadOptional(data, "eventId", AsString);
 
             var request = new CreateChatMessageRequest(
                 Role.Assistant,
@@ -353,17 +404,23 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
 
             using var scope = _scopeFactory.CreateScope();
             var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
-            ChatMessageEntity? created = await chatService.CreateMessageAsync(threadId, request, editingContext);
+            ChatMessageEntity? created = await chatService.CreateMessageInDeveloperThreadAsync(
+                threadId,
+                developer,
+                request
+            );
             if (created is null)
             {
                 _logger.LogWarning(
-                    "Server-side persist skipped for session {SessionId}: thread not found or not owned by {Developer}",
+                    "Did not save the assistant message for session {SessionId}: {Developer} has no thread with this id",
                     sessionId,
-                    editingContext.Developer
+                    developer
                 );
                 return;
             }
 
+            // A browser tab that still runs an older version of Designer saves its own copy of the answer
+            // when the event has no persistedMessageId.
             data["persistedMessageId"] = created.Id.ToString();
             _logger.LogInformation(
                 "Persisted assistant message {MessageId} for session {SessionId}",
@@ -373,12 +430,36 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to persist assistant message server-side; forwarding unenriched");
+            _logger.LogError(ex, "Failed to save the assistant message; forwarding it without the message id");
         }
     }
 
-    private static bool IsInternalHandshakeMessage(string json)
+    private static string? AsString(JsonNode node) => node.GetValue<string>();
+
+    /// <summary>
+    /// Reads a field that the save can do without. A value of an unexpected type costs that field, not the answer.
+    /// </summary>
+    private T? ReadOptional<T>(JsonObject data, string field, Func<JsonNode, T?> read)
     {
+        try
+        {
+            JsonNode? node = data[field];
+            return node is null ? default : read(node);
+        }
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException)
+        {
+            _logger.LogWarning(
+                ex,
+                "Ignored the field {Field} of an assistant message, because its value has an unexpected type",
+                field
+            );
+            return default;
+        }
+    }
+
+    private static bool IsInternalHandshakeMessage(string json, out string? registeredSessionId)
+    {
+        registeredSessionId = null;
         try
         {
             using var doc = JsonDocument.Parse(json);
@@ -388,6 +469,18 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
             }
 
             var type = typeEl.GetString();
+            if (
+                type == "session"
+                && doc.RootElement.TryGetProperty("status", out var statusEl)
+                && statusEl.ValueKind == JsonValueKind.String
+                && statusEl.GetString() == "registered"
+                && doc.RootElement.TryGetProperty("session_id", out var sessionIdEl)
+                && sessionIdEl.ValueKind == JsonValueKind.String
+            )
+            {
+                registeredSessionId = sessionIdEl.GetString();
+            }
+
             return type is "connection" or "session";
         }
         catch
@@ -408,6 +501,7 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         try
         {
             connection.Cancel();
+            connection.AbandonRegistrations();
 
             if (connection.WebSocket.State == WebSocketState.Open)
             {
@@ -453,6 +547,10 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
     {
         private readonly CancellationTokenSource _cts = new();
 
+        // A WebSocket allows one send at a time, and commands for the developer can come at the same time.
+        private readonly SemaphoreSlim _sendLock = new(1, 1);
+        private readonly ConcurrentDictionary<string, TaskCompletionSource> _pendingRegistrations = new();
+
         public DeveloperConnection(string developer, ClientWebSocket webSocket)
         {
             Developer = developer;
@@ -466,5 +564,46 @@ public class AssistantWebSocketService : IAssistantWebSocketService, IDisposable
         public bool IsAlive => WebSocket.State == WebSocketState.Open;
 
         public void Cancel() => _cts.Cancel();
+
+        // Only the wait for the lock can be cancelled. A cancelled send aborts the WebSocket, which carries the
+        // events of all the developer's sessions.
+        public async Task Send(byte[] frame, CancellationToken cancellationToken)
+        {
+            await _sendLock.WaitAsync(cancellationToken);
+            try
+            {
+                await WebSocket.SendAsync(frame, WebSocketMessageType.Text, endOfMessage: true, CancellationToken.None);
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
+        }
+
+        public Task ExpectRegistration(string sessionId) =>
+            _pendingRegistrations
+                .GetOrAdd(sessionId, _ => new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously))
+                .Task;
+
+        public void CompleteRegistration(string sessionId)
+        {
+            if (_pendingRegistrations.TryRemove(sessionId, out TaskCompletionSource? registration))
+            {
+                registration.TrySetResult();
+            }
+        }
+
+        public void ForgetRegistration(string sessionId) => _pendingRegistrations.TryRemove(sessionId, out _);
+
+        public void AbandonRegistrations()
+        {
+            foreach (string sessionId in _pendingRegistrations.Keys)
+            {
+                if (_pendingRegistrations.TryRemove(sessionId, out TaskCompletionSource? registration))
+                {
+                    registration.TrySetCanceled();
+                }
+            }
+        }
     }
 }

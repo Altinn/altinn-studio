@@ -52,6 +52,8 @@ spec:
             value: "operator"
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: "http://otel-router.runtime-obs.svc.cluster.local:4317"
+          - name: OTEL_METRIC_EXPORT_INTERVAL
+            value: "15000"
           - name: OPERATOR_UPGRADE_CHANNEL
             valueFrom:
               configMapKeyRef:

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { StudioTable, StudioTag } from '@studio/components';
+import { StudioTable, StudioTag } from '@designer/components';
 import classes from './EnvironmentsCell.module.css';
 import { useTranslation } from 'react-i18next';
 

@@ -7,7 +7,7 @@ import {
   StudioCheckboxTable,
   useStudioCheckboxTable,
   StudioButton,
-} from '@studio/components';
+} from '@designer/components';
 import type {
   AllowedPartyTypes,
   ApplicationMetadata,
@@ -19,9 +19,9 @@ import {
   mapSelectedValuesToPartyTypesAllowed,
 } from './utils';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
-import { CheckmarkIcon, XMarkIcon } from '@studio/icons';
+import { CheckmarkIcon, XMarkIcon } from '@designer/icons';
 import { toast } from 'react-toastify';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export type SelectAllowedPartyTypesProps = {
   appMetadata: ApplicationMetadata;

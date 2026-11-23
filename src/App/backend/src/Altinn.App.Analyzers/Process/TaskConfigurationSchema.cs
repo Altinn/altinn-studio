@@ -37,12 +37,7 @@ internal static class TaskConfigurationSchema
             EnvironmentValues("dpfShipmentType"),
             new TaskConfigElement("dataTypes", Repeated: true, HasEnvironment: true, [Values("dataType")])
         ),
-        Group(
-            "subformPdfConfig",
-            Value("filenameTextResourceKey"),
-            Value("subformComponentId"),
-            Value("subformDataTypeId")
-        )
+        Group("subformPdfConfig", Value("filenameTextResourceKey"), Value("subformUiFolder"))
     );
 
     /// <summary>A single value, of which the runtime reads the first occurrence.</summary>

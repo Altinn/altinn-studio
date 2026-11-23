@@ -10,12 +10,14 @@ import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Dropdown'>) {
   const config = useComponentConfig(baseComponentId, 'Dropdown');
   const readOnly = useEvalExpression(config.readOnly, Expressions.Dropdown.readOnly);
   const required = useEvalExpression(config.required, Expressions.Dropdown.required);
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Dropdown.alertOnChange);
   const title = useEvalOptionalText(
     config.textResourceBindings?.title,
@@ -52,7 +54,7 @@ export function DropdownComponent({ baseComponentId, overrideDisplay }: PropsFro
       title={title}
       help={help}
       description={description}
-      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+      showOptionalMarking={showOptionalMarking}
       labelGrid={config.grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLabel={overrideDisplay?.renderLabel}

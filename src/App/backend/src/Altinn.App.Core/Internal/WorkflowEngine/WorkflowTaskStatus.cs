@@ -13,10 +13,12 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// "a step is being retried" instead of an unexplained long wait; progress is how far through the
 /// transition's engine steps execution has come. <see cref="FailedAttempts"/> (also processing-only)
 /// counts the current step's consecutive failed attempts and, unlike retrying, holds steady while a
-/// retry attempt executes. <see cref="StartedAt"/> (also processing-only) is
+/// retry attempt executes; <see cref="FirstFailedAt"/> is when the first of them failed.
+/// <see cref="StartedAt"/> (also processing-only) is
 /// when the transition was enqueued, and <see cref="ResumedAt"/> when it was last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
 /// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
-/// client and server clocks.
+/// client and server clocks. <see cref="ServiceTaskWithoutWorkflow"/> marks the failed status of an idle instance in a
+/// service task that no workflow runs, whose task process/next and process/resume start again.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
@@ -28,7 +30,9 @@ internal sealed record WorkflowTaskStatus(
     string? WaitingReason = null,
     DateTimeOffset? CurrentTime = null,
     int FailedAttempts = 0,
-    DateTimeOffset? ResumedAt = null
+    DateTimeOffset? ResumedAt = null,
+    DateTimeOffset? FirstFailedAt = null,
+    bool ServiceTaskWithoutWorkflow = false
 )
 {
     /// <summary>
@@ -43,6 +47,7 @@ internal sealed record WorkflowTaskStatus(
             TargetTask = TargetTask,
             Retrying = Retrying ? true : null,
             FailedAttempts = FailedAttempts > 0 ? FailedAttempts : null,
+            FirstFailedAt = FailedAttempts > 0 ? FirstFailedAt : null,
             WaitingReason = WaitingReason,
             Progress = Progress is { } progress
                 ? new AppProcessWorkflowProgress { Completed = progress.Completed, Total = progress.Total }

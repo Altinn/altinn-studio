@@ -9,7 +9,7 @@ import { renderWithProviders } from '../../../../test/renderWithProviders';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase, rootNodeMock } from '../../../../test/mocks/uiSchemaMock';
 import { getSavedModel } from '../../../../test/test-utils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

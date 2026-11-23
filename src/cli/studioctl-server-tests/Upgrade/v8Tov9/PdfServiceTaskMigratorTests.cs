@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 using LayoutSetsToTaskUiMigrator = Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration.LayoutSetsToTaskUiMigrator;
@@ -14,7 +15,8 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private async Task<MigrationResult> MigrateResult() => await new PdfServiceTaskMigrator(_app.Root).Migrate();
+    private async Task<MigrationResult> MigrateResult() =>
+        await new PdfServiceTaskMigrator(_app.Root, new CSharpSourceScanner(Path.Combine(_app.Root, "App"))).Migrate();
 
     private async Task<IReadOnlyList<string>> Migrate() => (await MigrateResult()).Warnings;
 
@@ -262,6 +264,39 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.Equal("other-model", dataTypeIds[0].Value);
     }
 
+    [Theory]
+    [InlineData("ui/Task_1/Settings.json", """{ "defaultDataType": "model" }""")]
+    [InlineData("ui/layout-sets.json", """{ "sets": [{ "id": "form", "dataType": "model", "tasks": ["Task_1"] }] }""")]
+    public async Task DownstreamGateway_IsPinnedToTheDataModelOfTheTasksUiSettings(string file, string content)
+    {
+        // v8 gateways read the data model the current task's UI settings name, not the first PDF data type.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(
+                FormDataType("receipt", "Task_1", enablePdfCreation: true),
+                FormDataType("model", "Task_1", enablePdfCreation: false)
+            )
+        );
+        _app.Write(file, content);
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "data"),
+                Gateway("Gateway_1"),
+                Flow("Flow_to_gw", "Task_1", "Gateway_1"),
+                ConditionalFlow("Flow_yes", "Gateway_1", "EndEvent_1", "[\"equals\", [\"dataModel\", \"done\"], true]"),
+                ConditionalFlow("Flow_no", "Gateway_1", "EndEvent_2", "[\"equals\", [\"dataModel\", \"done\"], false]"),
+                EndEvent("EndEvent_1"),
+                EndEvent("EndEvent_2")
+            )
+        );
+
+        await Migrate();
+
+        var gateway = ElementById(ProcessAfter(), "Gateway_1");
+        Assert.Equal("model", gateway?.Descendants().Single(e => e.Name.LocalName == "connectedDataTypeId").Value);
+    }
+
     [Fact]
     public async Task ProcessFileBom_IsPreserved_AndAbsenceStaysAbsent()
     {
@@ -286,7 +321,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         second.Write("config/process/process.bpmn", bpmn);
 
-        await new PdfServiceTaskMigrator(second.Root).Migrate();
+        await new PdfServiceTaskMigrator(
+            second.Root,
+            new CSharpSourceScanner(Path.Combine(second.Root, "App"))
+        ).Migrate();
         Assert.False(
             second.ReadBytes("config/process/process.bpmn") is [0xEF, 0xBB, 0xBF, ..],
             "expected no UTF-8 BOM to be introduced"
@@ -800,6 +838,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
                       "taskId": "Task_1",
                       "EnablePdfCreation": true,
                       "appLogic": {
+                        "autoCreate": true,
                         "classRef": "Altinn.App.Models.model"
                       }
                     }
@@ -1025,12 +1064,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         pdfTask.Descendants().Any(e => e.Name.LocalName is "pdfConfig" or "autoPdfTaskIds");
 
     /// <summary>The files of the layout set Altinn Studio creates for a custom PDF named pdfReceipt.</summary>
-    private static readonly string[] _pdfTaskLayoutSet =
-    [
-        "Settings.json",
-        "layouts/ServiceTask.json",
-        "layouts/pdfReceipt.json",
-    ];
+    private static readonly string[] _pdfTaskLayoutSet = ["Settings.json", "layouts/pdfReceipt.json"];
 
     [Fact]
     public async Task TaskWithCustomPdfLayout_GetsALayoutSetPointingAtTheTask()
@@ -1051,18 +1085,14 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.Equal("PdfTask_Task_1", ElementById(process, "SequenceFlow_2")?.Attribute("targetRef")?.Value);
         Assert.Equal("Task_2", ElementById(process, "Flow_PdfTask_Task_1_to_Task_2")?.Attribute("targetRef")?.Value);
 
-        // The layout set Altinn Studio creates for a custom PDF: the PDF layout, a waiting page and settings
-        // naming both, bound to the task's data model. None of the task's pages are copied.
+        // The layout set Altinn Studio creates for a custom PDF: the PDF layout and settings naming it, bound to
+        // the task's data model. No page is listed, since v9 shows the pages in pages.order while the task runs.
+        // None of the task's pages are copied.
         Assert.Equal(_pdfTaskLayoutSet, Files(PdfTaskFolder).Keys);
         var settings = Json($"{PdfTaskFolder}/Settings.json");
         Assert.Equal("pdfReceipt", settings["pages"]?["pdfLayoutName"]?.GetValue<string>());
-        Assert.Equal("""["ServiceTask"]""", settings["pages"]?["order"]?.ToJsonString());
+        Assert.Equal("[]", settings["pages"]?["order"]?.ToJsonString());
         Assert.Equal("datamodel", settings["defaultDataType"]?.GetValue<string>());
-        Assert.Equal<string?>(
-            ["service_task.waiting_title", "service_task.waiting_body"],
-            Components($"{PdfTaskFolder}/layouts/ServiceTask.json")
-                .Select(c => c["textResourceBindings"]?["title"]?.GetValue<string>())
-        );
 
         // Every summary now names Task_1. The page summaries only gained the taskId; the legacy Summary
         // components, which cannot show another task's components, became Summary2 component summaries.
@@ -1352,8 +1382,19 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         var result = await MigrateResult();
 
+        // The copy lists no pages, since v9 shows the pages in pages.order while the task runs.
         Assert.False(HasAutoPdfTaskIds(PdfTaskAfter("Task_1")));
-        Assert.Equal(taskFolderBefore, Files(PdfTaskFolder));
+        var copy = Files(PdfTaskFolder);
+        Assert.Equal(taskFolderBefore.Keys, copy.Keys);
+        Assert.All(
+            copy.Where(file => file.Key != "Settings.json"),
+            file => Assert.Equal(taskFolderBefore[file.Key], file.Value)
+        );
+        Assert.Equal(
+            """{"excludeFromPdf":["01_Intro"],"order":[],"showProgress":true,"pdfLayoutName":"pdfReceipt"}""",
+            Json($"{PdfTaskFolder}/Settings.json")["pages"]?.ToJsonString()
+        );
+        Assert.Equal("datamodel", Json($"{PdfTaskFolder}/Settings.json")["defaultDataType"]?.GetValue<string>());
         Assert.DoesNotContain(
             "enablePdfCreation",
             _app.Read("config/applicationmetadata.json"),
@@ -1361,7 +1402,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         var todo = Assert.Single(result.Todos);
         Assert.Contains(reason, todo, StringComparison.Ordinal);
-        Assert.Contains("copied App/ui/Task_1 to App/ui/PdfTask_Task_1", todo, StringComparison.Ordinal);
+        Assert.Contains(
+            "copied App/ui/Task_1 to App/ui/PdfTask_Task_1, with an empty pages.order",
+            todo,
+            StringComparison.Ordinal
+        );
         Assert.Contains(
             "Removed pdfLayoutName and layouts/pdfReceipt.json from App/ui/Task_1",
             todo,
@@ -1369,6 +1414,33 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         Assert.Contains("target.taskId", todo, StringComparison.Ordinal);
         Assert.Contains("https://docs.altinn.studio/", todo, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CopyOfATaskFolderWithPageGroups_ListsNoPages()
+    {
+        WriteMetadataForTask1();
+        WriteDataThenFeedbackProcess();
+        WriteTaskUi(
+            DataTaskFolder,
+            """
+            {
+              "pages": {
+                "groups": [{ "order": ["01_Intro", "02_Kontaktinformasjon"] }],
+                "pdfLayoutName": "pdfReceipt"
+              },
+              "defaultDataType": "datamodel"
+            }
+            """,
+            """{ "id": "nav", "type": "NavigationBar" }"""
+        );
+
+        await MigrateResult();
+
+        Assert.Equal(
+            """{"pdfLayoutName":"pdfReceipt","order":[]}""",
+            Json($"{PdfTaskFolder}/Settings.json")["pages"]?.ToJsonString()
+        );
     }
 
     [Fact]
@@ -1458,7 +1530,6 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json",
             settings["$schema"]?.GetValue<string>()
         );
-        Assert.Equal(LayoutSchema, Json($"{PdfTaskFolder}/layouts/ServiceTask.json")["$schema"]?.GetValue<string>());
     }
 
     [Fact]

@@ -24,6 +24,15 @@ public static class Diagnostics
             "HttpContextAccessor dangerous usage",
             "IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe"
         );
+
+        // '{0}' is "Method 'Name'", "Local function 'Name'" or "This lambda".
+        public static readonly DiagnosticDescriptor AsyncVoid = Error(
+            "ALTINNAPP0502",
+            Category.CodeSmells,
+            "Async method returns void",
+            "{0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an "
+                + "exception it throws cannot be caught and stops the app. Return Task instead, and await it."
+        );
     }
 
     public static class FormDataWrapperGenerator
@@ -38,13 +47,6 @@ public static class Diagnostics
 
     public static class Contracts
     {
-        public static readonly DiagnosticDescriptor SealedImplementationReplaced = Error(
-            "ALTINNAPP0700",
-            Category.Contracts,
-            "Sealed default implementation replaced",
-            "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}."
-        );
-
         public static readonly DiagnosticDescriptor IncompleteBuilderDiscarded = Error(
             "ALTINNAPP0701",
             Category.Contracts,
@@ -52,7 +54,7 @@ public static class Diagnostics
             "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
         );
 
-        // Close to the runtime backstop in ServiceTaskPipelineBuilder.ClaimMailbox (which names the opening
+        // Close to the runtime backstop in PipelineBuilder.ClaimMailbox (which names the opening
         // stage's item index, which the analyzer cannot know), so an author who meets one of them after the
         // other reads one rule rather than two. '{0}' is the identifier of the local the handle was declared
         // into.
@@ -65,7 +67,7 @@ public static class Diagnostics
                 + "second handler for the same exchange would be dead code."
         );
 
-        // Likewise close to the wording of ServiceTaskPipelineBuilder.RequireEveryMailboxAnswered, which is
+        // Likewise close to the wording of PipelineBuilder.RequireEveryMailboxAnswered, which is
         // what fails app startup for every shape this rule cannot prove.
         public static readonly DiagnosticDescriptor MailboxNeverAnswered = Error(
             "ALTINNAPP0703",
@@ -134,37 +136,37 @@ public static class Diagnostics
     internal static class Process
     {
         // Worded like the runtime backstop in PdfServiceTask, so an author who meets one of them after the
-        // other reads one explanation rather than two. Without these, a PDF service task that cannot be
-        // rendered fails only when an instance reaches it, and the cause shows up only in the PDF generator's
-        // browser log.
+        // other reads one explanation rather than two. Without it, a PDF service task that cannot be rendered
+        // fails only when an instance reaches it.
         public static readonly DiagnosticDescriptor PdfServiceTaskHasNothingToRender = Error(
             "ALTINNAPP1000",
             Category.Process,
             "PDF service task has nothing to render",
             "PDF service task '{0}' has nothing to render, so generating its PDF will fail. List the tasks to "
-                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or add a UI folder 'ui/{0}' with a "
-                + "Settings.json to design the PDF yourself."
+                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or set pdfLayoutName in "
+                + "'ui/{0}/Settings.json' to design the PDF yourself."
         );
 
-        // Stricter than the runtime backstop, which fails only when autoPdfTaskIds lists tasks too. Without
-        // them the frontend renders the folder's pages, which in the folder Altinn Studio creates is the
-        // waiting page, so the PDF is never what the author designed.
-        public static readonly DiagnosticDescriptor PdfServiceTaskMissingPdfLayoutName = Error(
-            "ALTINNAPP1001",
-            Category.Process,
-            "PDF service task has a UI folder without pdfLayoutName",
-            "PDF service task '{0}' has its own UI folder 'ui/{0}' without a pdfLayoutName. The folder's pages are "
-                + "what people see while the process is at the task, and pdfLayoutName names the layout to render "
-                + "as the PDF. Set pdfLayoutName in 'ui/{0}/Settings.json', or remove the UI folder and list the "
-                + "tasks to include in <altinn:pdfConfig><altinn:autoPdfTaskIds>."
-        );
-
-        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(
+        // The automatic PDF renders each listed task from that task's own UI folder, and the frontend leaves out every
+        // other entry: a blank one, the PDF task itself, whose folder holds what people see while the process is at
+        // the task, and a task without a UI folder. '{1}' names the entry and '{2}' says why it adds nothing.
+        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesEntryThatAddsNothing = Warning(
             "ALTINNAPP1002",
             Category.Process,
-            "PDF service task includes a task without a UI folder",
-            "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
-                + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
+            "PDF service task lists an entry that adds nothing to its PDF",
+            "PDF service task '{0}' lists {1} in <altinn:autoPdfTaskIds>, which adds nothing to the PDF: {2}. Remove "
+                + "the entry, or correct the task id."
+        );
+
+        // Worded like the runtime backstop in PdfServiceTask. Without it the frontend finds no layout to render,
+        // and the PDF generator times out on every attempt.
+        public static readonly DiagnosticDescriptor PdfServiceTaskPdfLayoutNotFound = Error(
+            "ALTINNAPP1026",
+            Category.Process,
+            "PDF service task's pdfLayoutName names a layout that does not exist",
+            "PDF service task '{0}' sets pdfLayoutName '{1}' in 'ui/{0}/Settings.json', but there is no layout "
+                + "'ui/{0}/layouts/{1}.json', so generating its PDF will fail. Correct pdfLayoutName, or add the "
+                + "layout."
         );
 
         // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the
@@ -316,14 +318,13 @@ public static class Diagnostics
         );
 
         // A warning, since keeping a data type for a task that was removed is legitimate: old instances still hold
-        // its data.
+        // its data. '{1}' is the quoted task id or null, '{2}' says why it is not a task, and '{3}' what follows.
         public static readonly DiagnosticDescriptor DataTypeTaskNotFound = Warning(
             "ALTINNAPP1017",
             Category.Process,
             "Data type belongs to a task that does not exist",
-            "Data type '{0}' has the taskId '{1}', but {2}. The process never stops there, so users cannot change "
-                + "the data type's data through the app, and its minCount and validation never apply. Set taskId to "
-                + "the task the data belongs to, or remove it."
+            "Data type '{0}' has {1} in its taskIds, but {2}. The process never stops there, so {3}. Correct the "
+                + "entry, or remove it from taskIds."
         );
 
         // A warning, since nothing fails: the runtime filters by these ids, so one that matches nothing is skipped.
@@ -383,6 +384,32 @@ public static class Diagnostics
             "Task '{0}' has {1} on {2}, {3}. {4}."
         );
 
+        // The app runs the same check at startup (SubformPdfServiceTask.ValidateConfiguration). '{2}' is what is
+        // wrong with the folder, '{3}' how to fix it.
+        public static readonly DiagnosticDescriptor SubformPdfUiFolderCannotRender = Error(
+            "ALTINNAPP1024",
+            Category.Process,
+            "Subform PDF service task names a UI folder it cannot render",
+            "Subform PDF service task '{0}' renders the subform UI folder '{1}' named in "
+                + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
+        );
+
+        // A gateway after a service task gets the action the service task concludes with
+        // (ProcessNextContinuation), not the user's, and a failed service task can only be resumed, not left through
+        // process/next with an action. The types this rule names never conclude with one; fiksArkiv and an app's own
+        // service task types may. '{1}' names the conditions that read the action, and '{3}' is the task's type.
+        public static readonly DiagnosticDescriptor GatewayActionAfterServiceTask = Error(
+            "ALTINNAPP1030",
+            Category.Process,
+            "Exclusive gateway routes on gatewayAction right after a service task that returns no action",
+            "Exclusive gateway '{0}' reads [\"gatewayAction\"] in {1}, but directly follows service task '{2}'. A "
+                + "gateway after a service task sees the action the service task returns, and a '{3}' task returns "
+                + "none, so [\"gatewayAction\"] is always null there: not the action of the task before, and not "
+                + "'reject', since a failed service task can only be retried. Move service task '{2}' after the "
+                + "gateway, onto the branch that needs it, or remove the gateway if it only takes the user back from "
+                + "a failed service task."
+        );
+
         // The app never evaluates the default's condition, and also fails to start on one, so a condition that
         // seems to work in a test does not decide anything.
         public static readonly DiagnosticDescriptor GatewayDefaultHasCondition = Error(
@@ -410,6 +437,35 @@ public static class Diagnostics
             Category.Deprecation,
             "Legacy eFormidling configuration is not supported",
             "The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead."
+        );
+
+        // Reported instead of an ignored element and a missing subformUiFolder (ALTINNAPP1020), so the app developer
+        // learns what to change. '{1}' is the old setting.
+        public static readonly DiagnosticDescriptor SubformPdfComponentSettings = Error(
+            "ALTINNAPP0602",
+            Category.Deprecation,
+            "subformComponentId and subformDataTypeId are not supported",
+            "Task '{0}' has <altinn:{1}> in <altinn:subformPdfConfig>, which is no longer supported by this version of "
+                + "the app backend. Name the subform's UI folder in <altinn:subformUiFolder> instead: the app renders "
+                + "the entries from that folder and takes their data type from its defaultDataType. "
+                + "'studioctl app upgrade v9' makes this change."
+        );
+
+        // An error, since the app would otherwise run with the data type bound to no task, which nothing else
+        // reports.
+        public static readonly DiagnosticDescriptor TaskId = Error(
+            "ALTINNAPP0603",
+            Category.Deprecation,
+            "taskId is not supported",
+            "'taskId' on dataType '{0}' is no longer supported by this version of the app backend, so the data type is bound to no task: it is not auto-created or validated in '{1}', and users can change its data in every task. Replace it with \"taskIds\": [\"{1}\"]; studioctl app upgrade v9 does this."
+        );
+
+        // A warning, since the app works as taskIds says, whatever task the taskId names.
+        public static readonly DiagnosticDescriptor TaskIdNextToTaskIds = Warning(
+            "ALTINNAPP0604",
+            Category.Deprecation,
+            "taskId next to taskIds is ignored",
+            "'taskId' on dataType '{0}' is no longer supported by this version of the app backend and is ignored, so the data type is bound only to the tasks in its taskIds. Remove the taskId '{1}', and list every task the data belongs to in taskIds."
         );
     }
 

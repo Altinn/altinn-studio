@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './GiteaFetchCompleted.module.css';
-import { CheckmarkCircleIcon } from '@studio/icons';
-import { StudioHeading } from '@studio/components';
+import { CheckmarkCircleIcon } from '@designer/icons';
+import { StudioHeading } from '@designer/components';
 
 export type GiteaFetchCompletedProps = {
   heading: string;

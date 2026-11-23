@@ -5,7 +5,7 @@ import {
   getTitleByComponentType,
 } from './language';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
+import { mockUseTranslation } from '@designer/testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {
   describe('getComponentHelperTextByComponentType', () => {

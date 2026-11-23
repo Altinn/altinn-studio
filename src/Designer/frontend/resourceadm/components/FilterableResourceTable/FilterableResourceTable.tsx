@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioHeading, StudioSwitch } from '@studio/components';
+import { StudioHeading, StudioSwitch } from '@designer/components';
 import classes from './FilterableResourceTable.module.css';
 import { ResourceTable } from '../ResourceTable';
 import type { ResourceTableProps } from '../ResourceTable/ResourceTable';

@@ -1,14 +1,18 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import { isHttpError } from '@studio/http-client';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+import { useIsServiceTaskPage } from 'src/components/process/serviceTaskPage';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
+import { useFormBootstrapQuery } from 'src/core/queries/formBootstrap';
+import { useSelectFromInstanceData } from 'src/core/queries/instance';
+import { OrderDetailsProvider, PaymentInformationProvider } from 'src/core/queries/payment';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
@@ -27,34 +31,23 @@ import {
 } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
-import {
-  ClearHiddenSummaryReturnState,
-  createPageNavigationSlice,
-} from 'src/features/form/layout/PageNavigationContext';
+import { ClearInvalidReturnState, createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { TaskTransitionBoundary } from 'src/features/form/TaskTransitionBoundary';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
-import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
-import {
-  useInstanceDataQuery,
-  useOptimisticallyUpdateCachedInstance,
-  useSelectFromInstanceData,
-} from 'src/features/instance/InstanceContext';
+import { useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
-import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
-import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { createValidationSlice, ValidationEffects } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsPdf } from 'src/hooks/useIsPdf';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
@@ -75,10 +68,12 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
   const isPdfOfOtherTask = useIsPdfOfOtherTask();
+  const isServiceTaskPage = useIsServiceTaskPage();
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
-  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask);
+  // A service task's page is always read-only: the task owns the instance until the process moves on
+  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask || isServiceTaskPage);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
   if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
@@ -87,7 +82,8 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     // layouts can change without all of this being reset, however.
     storeRef.current = createFormStore({
       parent,
-      readOnly: readOnly || isPdfOfOtherTask,
+      readOnly: readOnly || isPdfOfOtherTask || isServiceTaskPage,
+      instanceLocked: isServiceTaskPage,
       data: dataSliceProps,
       bootstrap,
     });
@@ -119,7 +115,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   }
 
   if (error) {
-    if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
+    if (isHttpError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
       return <MissingRolesError />;
     }
 
@@ -137,7 +133,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <LayoutRevisionBoundary>
         <LayoutPropertiesValidation>
           <TaskTransitionBoundary>
-            <ClearHiddenSummaryReturnState />
+            <ClearInvalidReturnState />
             <RunOptionsEffects />
             {window.Cypress && <UpdateAttachmentsForCypress />}
             <AttachmentEffects />
@@ -194,21 +190,6 @@ function useIsPdfOfOtherTask(): boolean {
   return isPdf && taskId !== undefined && currentTaskId !== undefined && taskId !== currentTaskId;
 }
 
-/**
- * A subform PDF service task renders its subform through its own UI folder, which uses the subform data type. There
- * is one such data element per subform, so loading that folder needs the id of the subform being rendered.
- */
-function usePdfSubformDataElementId(uiFolder: string | undefined): string | undefined {
-  const isPdf = useIsPdf();
-  const dataElementId = useNavigationParam('dataElementId');
-  const dataType = useInstanceDataQuery({
-    select: (instance) => instance.data.find((element) => element.id === dataElementId)?.dataType,
-  }).data;
-
-  const isSubformOfFolder = dataType !== undefined && dataType === getUiFolderSettings(uiFolder)?.defaultDataType;
-  return isPdf && isSubformOfFolder ? dataElementId : undefined;
-}
-
 function useHasProcess() {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -221,8 +202,7 @@ function useBootstrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProv
   const isStateless = useIsStateless();
 
   const uiFolder = uiFolderOverride ?? folderNameFromUrl ?? undefined;
-  const pdfSubformDataElementId = usePdfSubformDataElementId(uiFolder);
-  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? pdfSubformDataElementId;
+  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId;
 
   const prefillRef = useRef<string | undefined>(
     isStateless && uiFolder ? getPrefillFromSessionStorage(uiFolder) : undefined,
@@ -267,11 +247,13 @@ function createFormStore({
   parent,
   data,
   readOnly,
+  instanceLocked,
   bootstrap,
 }: {
   parent: FormStoreApi | undefined;
   data: FormDataSliceProps;
   readOnly: boolean;
+  instanceLocked: boolean;
   bootstrap: FormBootstrapBase;
 }): FormStoreApi {
   const store = createStore<FormStoreState>()(
@@ -279,6 +261,7 @@ function createFormStore({
       parent,
       nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
       readOnly,
+      instanceLocked,
       data: createFormDataWriteSlice(data, set),
       attachments: createAttachmentsSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),
@@ -299,7 +282,6 @@ export function useFormDataSliceProps(
   const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
-  const getCachedInitialValidations = useGetCachedInitialValidations();
   const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
 
   if (!bootstrap) {
@@ -313,7 +295,6 @@ export function useFormDataSliceProps(
     proxies,
     changeInstance,
     selectFromInstance,
-    getCachedInitialValidations,
     getCalculationDataSources: () => calculationDataSources.current,
   };
 }

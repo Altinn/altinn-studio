@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import type { FileStatus, RepoContentStatus } from 'app-shared/types/RepoStatus';
-import { StudioError, StudioSpinner, StudioTag, StudioTable } from '@studio/components';
+import { StudioError, StudioSpinner, StudioTag, StudioTable } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import classes from './FileChangesTable.module.css';
 import { FilePath } from './FilePath/FilePath';

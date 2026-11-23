@@ -125,14 +125,16 @@ alert for a non-error condition.
   checks-and-waits is by definition not a stage that records — durable work belongs in its own
   step, completed rather than deferred. A `state` parameter on `Defer` is rejected as a third
   state channel alongside Storage and the signed blob.
-- Park and defer are deliberately **identical UX on a layouted service task** — both leave the
-  process on the committed task (park awaits an external release, e.g. Fiks Arkiv's callback;
-  defer polls, e.g. eFormidling), and an app-supplied layout owns the waiting presentation for
-  both. Without a layout the split stays visible: park renders the built-in service-task waiting
-  view, defer the ordinary advancing view, and `workflow.status` (`idle` vs `processing`) reports
-  the truth in both. The synchronous `process/next` wait releases early (success shape, short
-  grace) once the anchored chain parks in `Waiting` — safe because deferral is post-commit by
-  construction, so the instance already carries the committed target task.
+- Running, deferring and parked are deliberately **identical UX on a service task with a page**
+  (its UI folder lists a page in `pages.order`): the process sits on the committed task in all
+  three (park awaits an external release, e.g. Fiks Arkiv's callback; defer polls, e.g.
+  eFormidling), so the page shows from the commit until the next task is on screen and owns the
+  waiting presentation. Without a page the split stays visible: park renders the built-in
+  service-task waiting view, running and defer the ordinary advancing view, and `workflow.status`
+  (`idle` vs `processing`) reports the truth in all three. The synchronous `process/next` wait
+  releases (success shape) as soon as the anchored chain parks in `Waiting` — safe because
+  deferral is post-commit by construction, so the instance already carries the committed target
+  task.
 - The app-side Altinn Events **receive** stack is retired in v9 (`EformidlingStartup`,
   `EformidlingStatusCheckEventHandler2`'s process-advance, `EventsReceiverController`,
   `EventHandlerResolver`, `IEventsSubscription`, `IEventSecretCodeProvider` + KeyVault provider).

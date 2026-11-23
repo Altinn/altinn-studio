@@ -1,16 +1,16 @@
-# k6 Scripts — Workflow Engine (Core)
+# Workflow Engine load tests
 
-Load tests for the core workflow engine using [k6](https://k6.io/). These tests use **webhook** commands targeting WireMock.
+These [k6](https://k6.io/) scripts load the engine with webhook commands against WireMock. The
+[Workflow Engine App's load tests](../../workflow-engine-app/.k6/README.md) use app commands and share
+[`lib/helpers.js`](lib/helpers.js) and its environment variables.
 
-For app-specific load tests (AppCommand), see `workflow-engine-app/.k6/`.
+Run them from `src/Runtime/workflow-engine` against the stack that `make run` starts, with the engine on port 9090 and
+WireMock on port 6060. `mailbox-storm-compare.sh` also needs `node`, and `docker` or `podman`.
 
-## Prerequisites
-
-```bash
-brew install k6
-```
-
-The workflow engine must be running locally on `http://localhost:9090` with WireMock on `http://localhost:6060` (Docker Compose provides both).
+Start with `constant-rate.js` at a low rate to find the engine's ceiling, and size a comparison well below it. Above
+about three quarters of the ceiling, any added workload stretches the tails, and the comparison stops measuring the
+feature under test. Read [What this measured](#what-this-measured-2026-08-20) before you quote a number from these
+scripts.
 
 ## Scripts
 
@@ -971,9 +971,7 @@ Scripts use `payloads/webhook.json` — a single webhook step targeting WireMock
 step plus a `mailbox` block, enqueued as a collection head with no head dependency, which is what the
 app-lib's relay does. The mailbox id and collection key are filled in per request by the script.
 
-## Shared Library
-
-`lib/helpers.js` contains reusable utilities (payload building, health polling, summary formatting) shared with `workflow-engine-app/.k6/` scripts.
+## Shared library
 
 `lib/compare-summaries.mjs` is the comparator the wrapper calls: it reads the per-run summaries of two
 arms, applies the gates described above, and prints a three-valued verdict per metric with its reason

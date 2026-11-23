@@ -63,9 +63,15 @@ public class ApplicationMetadataServiceTest
             );
 
         // Act
+        string appMetadataJson = await fixture.Service.GetApplicationMetadataJsonFromSpecificReference(
+            "new-org",
+            "new-app",
+            "abcd1234"
+        );
         await fixture.Service.UpdateApplicationMetadataInStorageAsync(
             "new-org",
             "new-app",
+            appMetadataJson,
             "abcd1234",
             "tt02",
             CancellationToken.None
@@ -101,7 +107,8 @@ public class ApplicationMetadataServiceTest
                 mockStorageAppMetadataClient.Object,
                 mockAltinnGitRepositoryFactory.Object,
                 Mock.Of<IHttpContextAccessor>(),
-                mockGiteaClient.Object
+                mockGiteaClient.Object,
+                Mock.Of<IAppVersionService>()
             );
 
             return new Fixture(service, mockStorageAppMetadataClient, mockAltinnGitRepositoryFactory, mockGiteaClient);

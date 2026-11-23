@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
-using Json.Patch;
 
 namespace Altinn.App.Api.Models;
 
@@ -29,10 +28,10 @@ public class DataPatchRequestMultiple
     /// Item class for the list of patches with Id
     /// </summary>
     /// <param name="DataElementId">The guid for the data element this patch applies to</param>
-    /// <param name="Patch">The JsonPatch</param>
+    /// <param name="Patch">The JSON Patch (RFC 6902) to apply to the data element, as an ordered list of operations</param>
     public record PatchListItem(
         [property: JsonPropertyName("dataElementId")] Guid DataElementId,
-        [property: JsonPropertyName("patch")] JsonPatch Patch
+        [property: JsonPropertyName("patch")] List<JsonPatchOperation> Patch
     );
 
     /// <summary>

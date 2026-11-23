@@ -1,11 +1,9 @@
-## Mock of Altinn Notifications for localtest
+# Notifications
 
-Repository: https://github.com/Altinn/altinn-notifications
+Localtest's Notifications emulation copies code from
+[altinn-notifications](https://github.com/Altinn/altinn-notifications). When you copy more of it:
 
-Things to be aware of when copying code:
-
-- Persistence: code should not be copied directly, rather create a new implementation of the required repository class/method that writes data to disk.
-- Controllers: code should be copied, but changes might be required related to authorization (e.g., platform access token is not included in local requests)
-- Core: code can be copied directly without changes
-
-Update Startup.cs with required services.
+- Copy core code as it is.
+- Copy controllers, and adapt their authorization, since local requests carry no platform access token.
+- Do not copy persistence. Write a repository that stores the data on disk instead.
+- Register new services in `Startup.cs`.

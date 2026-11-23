@@ -2,12 +2,12 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Altinn.Studio.Common.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using OpenTelemetry.Logs;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace WorkflowEngine.Telemetry.Extensions;
@@ -17,8 +17,6 @@ namespace WorkflowEngine.Telemetry.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    private const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
-
     extension(IServiceCollection services)
     {
         /// <summary>
@@ -26,11 +24,9 @@ public static class ServiceCollectionExtensions
         /// deployment sets the OTLP endpoint.
         /// </summary>
         /// <remarks>
-        /// Traces, metrics and logs are exported exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> is set, so an engine
-        /// without a collector sends nothing and logs no export errors, rather than falling back to the SDK's
-        /// default endpoint. The per-signal endpoint variables do not turn exporting on. The exporter reads the
-        /// endpoint, the protocol and every other <c>OTEL_*</c> setting itself. The instrumentation, sources and
-        /// meters are registered either way.
+        /// The shared setup exports traces, metrics and logs exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> is set, as
+        /// <see cref="AltinnStudioOpenTelemetry"/> describes. The instrumentation, sources and meters are registered
+        /// either way.
         /// </remarks>
         /// <param name="configuration">The host's configuration, from which the OTLP endpoint variable is read.</param>
         /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
@@ -45,19 +41,28 @@ public static class ServiceCollectionExtensions
             double traceSamplingRate = 1.0
         )
         {
-            bool export = !string.IsNullOrWhiteSpace(configuration[OtlpEndpointVariable]);
+            services.Configure<AspNetCoreTraceInstrumentationOptions>(opts =>
+                opts.Filter = httpContext =>
+                {
+                    var path = httpContext.Request.Path.Value ?? "";
+                    string[] excludedPaths = ["/health", "/dashboard"];
+                    return !excludedPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
+                }
+            );
+            // The log exporter falls back to these batch settings too, where OTEL_BLRP_* sets none.
+            services.Configure<OtlpExporterOptions>(opts =>
+            {
+                opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+            });
 
             services
-                .AddOpenTelemetry()
-                .ConfigureResource(r =>
-                    r.AddService(
-                            serviceName: Metrics.ServiceName,
-                            serviceVersion: Metrics.ServiceVersion,
-                            serviceInstanceId: Metrics.ServiceInstanceId
-                        )
-                        // Detected again after AddService, which would otherwise override them: a deployment's
-                        // OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES take precedence over these defaults.
-                        .AddEnvironmentVariableDetector()
+                .AddAltinnStudioOpenTelemetry(
+                    configuration,
+                    Metrics.ServiceAssembly,
+                    defaultServiceName: Metrics.ServiceName
                 )
                 .WithTracing(builder =>
                 {
@@ -70,18 +75,7 @@ public static class ServiceCollectionExtensions
                         );
                     }
 
-                    builder
-                        .AddSource(Metrics.ServiceName)
-                        .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation(opts =>
-                        {
-                            opts.Filter = httpContext =>
-                            {
-                                var path = httpContext.Request.Path.Value ?? "";
-                                string[] excludedPaths = ["/health", "/dashboard"];
-                                return !excludedPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
-                            };
-                        });
+                    builder.AddSource(Metrics.ServiceName);
 
                     if (enableDatabaseInstrumentation)
                     {
@@ -110,17 +104,6 @@ public static class ServiceCollectionExtensions
                                     SetQueryParameterTags(activity, command.Parameters);
                                 }
                             };
-                        });
-                    }
-
-                    if (export)
-                    {
-                        builder.AddOtlpExporter(opts =>
-                        {
-                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
-                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
-                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
-                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
                         });
                     }
                 })
@@ -235,29 +218,8 @@ public static class ServiceCollectionExtensions
                         .AddView(Metrics.EngineMainLoopServiceTime.Name, durationView)
                         .AddView(Metrics.EngineMainLoopTotalTime.Name, durationView)
                         .AddView(Metrics.MailboxReceiverWakeLatency.Name, wakeLatencyView)
-                        .AddView(Metrics.StepWaitDuration.Name, waitBudgetView)
-                        .AddRuntimeInstrumentation()
-                        .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation();
-
-                    if (export)
-                    {
-                        // The export interval is the deployment's to set, through OTEL_METRIC_EXPORT_INTERVAL.
-                        builder.AddOtlpExporter();
-                    }
+                        .AddView(Metrics.StepWaitDuration.Name, waitBudgetView);
                 });
-
-            services.AddLogging(logging =>
-            {
-                logging.AddOpenTelemetry(options =>
-                {
-                    options.IncludeFormattedMessage = true;
-                    if (export)
-                    {
-                        options.AddOtlpExporter();
-                    }
-                });
-            });
 
             return services;
         }

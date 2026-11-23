@@ -5,7 +5,7 @@ import {
   StudioParagraph,
   StudioHeading,
   StudioAlert,
-} from '@studio/components';
+} from '@designer/components';
 import { useBpmnContext } from '../../contexts/BpmnContext';
 import { ConfigIcon } from '../ConfigPanel/ConfigContent/ConfigIcon';
 import { getConfigTitleHelpTextKey, getConfigTitleKey } from '../../utils/configPanelUtils';

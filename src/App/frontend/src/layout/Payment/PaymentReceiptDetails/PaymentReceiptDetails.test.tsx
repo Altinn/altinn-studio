@@ -11,15 +11,13 @@ describe('PaymentReceiptDetails', () => {
     await renderGenericComponentTest({
       type: 'Payment',
       renderer: () => <PaymentReceiptDetails />,
-      apis: {
-        instanceApi: {
-          getInstance: async () => {
-            const instance = getInstanceWithProcessMock();
-            if (instance.process.currentTask) {
-              instance.process.currentTask.altinnTaskType = 'payment';
-            }
-            return instance;
-          },
+      queries: {
+        getInstance: async () => {
+          const instance = getInstanceWithProcessMock();
+          if (instance.process.currentTask) {
+            instance.process.currentTask.altinnTaskType = 'payment';
+          }
+          return instance;
         },
       },
     });

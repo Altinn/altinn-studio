@@ -121,6 +121,29 @@ public class WorkflowHandlerTests
             Steps = [.. steps],
         };
 
+    private static Workflow CreateWorkflowWithFailedDependency(Step step) =>
+        new()
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [step],
+            Dependencies =
+            [
+                new Workflow
+                {
+                    OperationId = "dep-op",
+                    IdempotencyKey = "dep-key",
+                    Namespace = "test-ns",
+                    Context = JsonSerializer.SerializeToElement(new { }),
+                    Status = PersistentItemStatus.Failed,
+                    Steps = [],
+                },
+            ],
+        };
+
     private static Step CreateStep(
         string operationId = "step",
         int processingOrder = 0,
@@ -270,6 +293,46 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
+    public async Task Handle_StepRetryableError_FirstFailure_StampsFirstFailedAt()
+    {
+        var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var handler = CreateHandler(executor.Object, settings, timeProvider: new FakeTimeProvider(_t0));
+        var step = CreateStep();
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, step.RequeueCount);
+        Assert.Equal(_t0, step.FirstFailedAt);
+    }
+
+    [Fact]
+    public async Task Handle_StepRetryableError_LaterFailure_KeepsFirstFailedAt()
+    {
+        // The stamp marks where the run of consecutive failures began, so a later failure in the same run
+        // leaves it alone.
+        var executor = MockExecutor(ExecutionResult.RetryableError("still transient"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var handler = CreateHandler(executor.Object, settings, timeProvider: new FakeTimeProvider(_t0));
+        var step = CreateStep();
+        step.RequeueCount = 1;
+        step.FirstFailedAt = _t0.AddMinutes(-1);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, step.RequeueCount);
+        Assert.Equal(_t0.AddMinutes(-1), step.FirstFailedAt);
+    }
+
+    [Fact]
     public async Task Handle_StepRetryableError_RetriesExhausted_WorkflowFailed()
     {
         var executor = MockExecutor(ExecutionResult.RetryableError("still failing"));
@@ -318,27 +381,7 @@ public class WorkflowHandlerTests
         var executor = MockExecutor();
         var handler = CreateHandler(executor.Object);
         var step = CreateStep();
-        var workflow = new Workflow
-        {
-            OperationId = "test-op",
-            IdempotencyKey = "test-key",
-            Namespace = "test-ns",
-            Context = JsonSerializer.SerializeToElement(new { }),
-            Status = PersistentItemStatus.Processing,
-            Steps = [step],
-            Dependencies =
-            [
-                new Workflow
-                {
-                    OperationId = "dep-op",
-                    IdempotencyKey = "dep-key",
-                    Namespace = "test-ns",
-                    Context = JsonSerializer.SerializeToElement(new { }),
-                    Status = PersistentItemStatus.Failed,
-                    Steps = [],
-                },
-            ],
-        };
+        var workflow = CreateWorkflowWithFailedDependency(step);
 
         await handler.Handle(workflow, CancellationToken.None);
 
@@ -348,6 +391,57 @@ public class WorkflowHandlerTests
             e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
+    }
+
+    public static TheoryData<string> StepFailures => ["critical", "retries_exhausted", "invalid_defer", "wait_expired"];
+
+    [Theory]
+    [MemberData(nameof(StepFailures))]
+    public async Task Handle_StepFails_FailureCountersCarryTheNamespace(string failure)
+    {
+        using var counters = new CounterCollector(
+            "altinn.workflow_engine.step.execution.failed",
+            "altinn.workflow_engine.workflow.execution.failed"
+        );
+        var result = failure switch
+        {
+            "critical" => ExecutionResult.CriticalError("fatal"),
+            "retries_exhausted" => ExecutionResult.RetryableError("transient"),
+            "invalid_defer" => ExecutionResult.Defer(TimeSpan.Zero),
+            "wait_expired" => ExecutionResult.Defer(TimeSpan.FromMinutes(5)),
+            _ => throw new ArgumentOutOfRangeException(nameof(failure)),
+        };
+        var handler = CreateHandler(MockExecutor(result).Object);
+        var step = CreateStep();
+        if (failure == "wait_expired")
+            step.FirstDeferredAt = DateTimeOffset.UtcNow - TimeSpan.FromDays(2);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(
+            ["altinn.workflow_engine.step.execution.failed", "altinn.workflow_engine.workflow.execution.failed"],
+            counters.Measurements.Select(m => m.Instrument).Order(StringComparer.Ordinal)
+        );
+        Assert.All(
+            counters.Measurements,
+            m => Assert.Equal("test-ns", m.Tags.Single(t => t.Key == TelemetryAttributes.Namespace).Value)
+        );
+    }
+
+    [Fact]
+    public async Task Handle_DependencyFailed_FailureCounterCarriesTheNamespace()
+    {
+        using var counters = new CounterCollector("altinn.workflow_engine.workflow.execution.failed");
+        var handler = CreateHandler(MockExecutor().Object);
+        var workflow = CreateWorkflowWithFailedDependency(CreateStep());
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        var failed = Assert.Single(counters.Measurements);
+        Assert.Equal("dependency_failed", failed.Tags.Single(t => t.Key == TelemetryAttributes.Reason).Value);
+        Assert.Equal("test-ns", failed.Tags.Single(t => t.Key == TelemetryAttributes.Namespace).Value);
     }
 
     [Fact]
@@ -607,6 +701,27 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
+    public async Task Handle_RetryableError_RecordsTheFailureTimeToTheMicrosecond()
+    {
+        // A clock with sub-microsecond ticks, as on Linux. FirstFailedAt and the first error must still read as
+        // one instant after PostgreSQL drops the ticks below a microsecond.
+        var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var time = new FakeTimeProvider(_t0.AddTicks(1_234_567));
+        var handler = CreateHandler(executor.Object, settings, timeProvider: time);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        var step = workflow.Steps[0];
+        Assert.Equal(_t0.AddTicks(1_234_560), step.FirstFailedAt);
+        Assert.Equal(step.FirstFailedAt, Assert.Single(step.ErrorHistory).Timestamp);
+    }
+
+    [Fact]
     public async Task Handle_Success_DoesNotAddErrorHistory()
     {
         var executor = MockExecutor(ExecutionResult.Success());
@@ -682,18 +797,20 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_StepDefers_ResetsRequeueCount()
+    public async Task Handle_StepDefers_ResetsRequeueCountAndFirstFailedAt()
     {
         var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
         var handler = CreateHandler(executor.Object);
         var step = CreateStep();
         step.RequeueCount = 3; // Transient errors before this successful "not yet" check
+        step.FirstFailedAt = DateTimeOffset.UtcNow.AddMinutes(-1);
         var workflow = CreateWorkflow(step);
 
         await handler.Handle(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.Waiting, step.Status);
         Assert.Equal(0, step.RequeueCount);
+        Assert.Null(step.FirstFailedAt);
     }
 
     [Fact]
@@ -1332,34 +1449,38 @@ public class WorkflowHandlerTests
     }
 
     /// <summary>
-    /// Captures the errors counter in the creating test's async flow, like <see cref="WorkflowDurationCollector"/>.
+    /// Captures the named counters in the creating test's async flow, like <see cref="WorkflowDurationCollector"/>.
     /// </summary>
-    private sealed class ErrorsCollector : IDisposable
+    private sealed class CounterCollector : IDisposable
     {
-        private static readonly AsyncLocal<ErrorsCollector?> _current = new();
+        private static readonly AsyncLocal<CounterCollector?> _current = new();
 
         private readonly MeterListener _listener;
 
-        public ConcurrentBag<(long Value, KeyValuePair<string, object?>[] Tags)> Measurements { get; } = [];
+        public ConcurrentBag<(
+            string Instrument,
+            long Value,
+            KeyValuePair<string, object?>[] Tags
+        )> Measurements { get; } = [];
 
-        public ErrorsCollector()
+        public CounterCollector(params string[] instrumentNames)
         {
             _current.Value = this;
 
             _listener = new MeterListener();
             _listener.InstrumentPublished = (instrument, listener) =>
             {
-                if (instrument.Meter.Name == Metrics.Meter.Name && instrument.Name == "altinn.workflow_engine.errors")
+                if (instrument.Meter.Name == Metrics.Meter.Name && instrumentNames.Contains(instrument.Name))
                 {
                     listener.EnableMeasurementEvents(instrument);
                 }
             };
             _listener.SetMeasurementEventCallback<long>(
-                (_, measurement, tags, _) =>
+                (instrument, measurement, tags, _) =>
                 {
                     if (ReferenceEquals(_current.Value, this))
                     {
-                        Measurements.Add((measurement, tags.ToArray()));
+                        Measurements.Add((instrument.Name, measurement, tags.ToArray()));
                     }
                 }
             );
@@ -1700,7 +1821,7 @@ public class WorkflowHandlerTests
         using var listener = ListenToEngineSpans();
         var spans = new CapturedSpans();
         using var logs = new TraceCapturingLoggerProvider();
-        using var errors = new ErrorsCollector();
+        using var errors = new CounterCollector("altinn.workflow_engine.errors");
         var writeBackFailure = new TimeoutException("final write-back failed");
         var settings = _defaultSettings with
         {

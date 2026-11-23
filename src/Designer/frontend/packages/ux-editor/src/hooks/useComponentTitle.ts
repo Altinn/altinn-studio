@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
-import { formItemConfigs } from '../data/formItemConfig';
+import { getFormItemConfig } from '../data/formItemConfig';
 import type { IToolbarElement } from '../types/global';
 import { textResourcesByLanguageSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -23,7 +23,7 @@ export function useComponentTitle(): (
         'textResourceBindings' in formItem ? getTitleByTextResource(formItem) : null;
       if (titleFromResource) return titleFromResource;
 
-      const getDisplayName = formItemConfigs[formItem.type]?.getDisplayName;
+      const getDisplayName = getFormItemConfig(formItem.type).getDisplayName;
       const componentType = getDisplayName ? getDisplayName(formItem) : formItem.type;
       return getTitleByComponentType(componentType, t);
     },

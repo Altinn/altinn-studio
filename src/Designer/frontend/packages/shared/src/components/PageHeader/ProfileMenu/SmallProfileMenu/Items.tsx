@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
-import { StudioDropdown, StudioLink } from '@studio/components';
-import type { StudioProfileMenuGroup } from '@studio/components';
+import { StudioDropdown, StudioLink } from '@designer/components';
+import type { StudioProfileMenuGroup } from '@designer/components';
 import classes from './Items.module.css';
 
 type ItemsProps = {

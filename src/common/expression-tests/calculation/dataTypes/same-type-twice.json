@@ -1,0 +1,43 @@
+{
+  "name": "Calculations run on every data element of a data type",
+  "comment": "The frontend has one data element for each data type, so only the backend runs on two. expects is keyed by data element id.",
+  "disabledFrontend": true,
+  "dataModels": [
+    {
+      "dataElement": { "id": "d0000000-0000-4000-8000-000000000001", "dataType": "default" },
+      "data": { "rows": [{ "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 2 }] }
+    },
+    {
+      "dataElement": { "id": "d0000000-0000-4000-8000-000000000002", "dataType": "default" },
+      "data": {
+        "rows": [
+          { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 3 },
+          { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 4 }
+        ]
+      }
+    }
+  ],
+  "calculations": [
+    {
+      "field": "rows[]",
+      "expression": ["object", "total", ["multiply", ["dataModel", "rows.decimal"], 10]]
+    },
+    {
+      "field": "text",
+      "expression": ["concat", "rows: ", ["jmespath", ["dataModel", "rows"], "length(@)"]]
+    }
+  ],
+  "expects": {
+    "d0000000-0000-4000-8000-000000000001": {
+      "text": "rows: 1",
+      "rows": [{ "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 2, "total": 20 }]
+    },
+    "d0000000-0000-4000-8000-000000000002": {
+      "text": "rows: 2",
+      "rows": [
+        { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 3, "total": 30 },
+        { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 4, "total": 40 }
+      ]
+    }
+  }
+}

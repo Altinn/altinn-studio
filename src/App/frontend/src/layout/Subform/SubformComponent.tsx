@@ -1,24 +1,23 @@
 import React from 'react';
 import { useNavigation } from 'react-router';
 
-import { Button, FatalError, Flex, Spinner } from '@app/form-component';
+import { BaseTable, Button, FatalError, Flex, Spinner } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/core/queries/processing';
+import { useAddEntryMutation, useDeleteEntryMutation } from 'src/core/queries/subform';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useEnterSubform } from 'src/hooks/useNavigatePage';
-import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -62,7 +61,8 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const lock = FormStore.data.useLocking(componentId);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
-  const isAddingDisabled = useIsAnyProcessing();
+  const instanceLocked = FormStore.useIsInstanceLocked();
+  const isAddingDisabled = useIsAnyProcessing() || instanceLocked;
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -70,6 +70,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const addEntry = () =>
     performProcess(async () => {
+      // Adding an entry writes to the instance, which is locked
+      if (instanceLocked) {
+        return;
+      }
       const currentLock = await lock();
       try {
         const result = await addSubformEntryMutation.mutateAsync({});
@@ -99,9 +103,14 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
         data-componentid={componentId}
         data-componentbaseid={baseComponentId}
       >
-        <Table
+        <BaseTable
           id={`subform-${componentId}-table`}
           className={classes.subformTable}
+          headerBackground='gray'
+          headerDivider='light'
+          headerPadding='large'
+          rowDivider='light'
+          cellPadding='medium'
         >
           {title && (
             <Caption
@@ -120,37 +129,37 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
           )}
           {subformEntries.length > 0 && (
             <>
-              <Table.Head id={`subform-${componentId}-table-body`}>
-                <Table.Row>
+              <BaseTable.Head id={`subform-${componentId}-table-body`}>
+                <BaseTable.Row>
                   {(config.tableColumns ?? []).length ? (
                     (config.tableColumns ?? []).map((entry, index) => (
-                      <Table.HeaderCell
-                        className={classes.tableCellFormatting}
+                      <BaseTable.HeaderCell
+                        columnWidth
                         key={index}
                       >
                         <Lang id={entry.headerContent} />
-                      </Table.HeaderCell>
+                      </BaseTable.HeaderCell>
                     ))
                   ) : (
-                    <Table.HeaderCell className={classes.tableCellFormatting}>
+                    <BaseTable.HeaderCell columnWidth>
                       <Lang id='form_filler.subform_default_header' />
-                    </Table.HeaderCell>
+                    </BaseTable.HeaderCell>
                   )}
-                  <Table.HeaderCell>
+                  <BaseTable.HeaderCell>
                     <span className={utilClasses.visuallyHidden}>
                       <Lang id='general.edit' />
                     </span>
-                  </Table.HeaderCell>
+                  </BaseTable.HeaderCell>
                   {(config.showDeleteButton ?? true) && (
-                    <Table.HeaderCell>
+                    <BaseTable.HeaderCell>
                       <span className={utilClasses.visuallyHidden}>
                         <Lang id='general.delete' />
                       </span>
-                    </Table.HeaderCell>
+                    </BaseTable.HeaderCell>
                   )}
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
+                </BaseTable.Row>
+              </BaseTable.Head>
+              <BaseTable.Body>
                 {subformEntries.map((dataElement, index) => (
                   <SubformTableRow
                     key={dataElement.id}
@@ -161,10 +170,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
                     showDeleteButton={config.showDeleteButton ?? true}
                   />
                 ))}
-              </Table.Body>
+              </BaseTable.Body>
             </>
           )}
-        </Table>
+        </BaseTable>
 
         {(config.showAddButton ?? true) && (
           <div className={classes.addButton}>
@@ -226,6 +235,7 @@ function SubformTableRow({
 
   const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   const editButtonText = component?.textResourceBindings?.tableEditButton
     ? langAsString(evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource))
@@ -237,82 +247,84 @@ function SubformTableRow({
 
   if (isSubformDataFetching) {
     return (
-      <Table.Row>
-        <Table.Cell colSpan={actualColumns}>
+      <BaseTable.Row>
+        <BaseTable.Cell colSpan={actualColumns}>
           <Spinner aria-label={langAsString('general.loading')} />
-        </Table.Cell>
-      </Table.Row>
+        </BaseTable.Cell>
+      </BaseTable.Row>
     );
   } else if (subformDataError) {
     return (
-      <Table.Row>
-        <Table.Cell colSpan={actualColumns}>
+      <BaseTable.Row>
+        <BaseTable.Cell colSpan={actualColumns}>
           <FatalError>
             <Lang id='form_filler.error_fetch_subform' />
           </FatalError>
-        </Table.Cell>
-      </Table.Row>
+        </BaseTable.Cell>
+      </BaseTable.Row>
     );
   }
 
   return (
-    <Table.Row
+    <BaseTable.Row
       key={`subform-row-${id}`}
       data-row-num={rowNumber}
-      className={cn({ [classes.disabledRow]: isDeleting, [classes.tableRowError]: hasErrors })}
+      error={hasErrors}
+      className={cn({ [classes.disabledRow]: isDeleting })}
     >
       {(config.tableColumns ?? []).length ? (
         (config.tableColumns ?? []).map((entry, index) => (
-          <Table.Cell key={`subform-cell-${id}-${index}`}>
+          <BaseTable.Cell key={`subform-cell-${id}-${index}`}>
             <SubformCellContent
               cellContent={entry.cellContent}
               baseComponentId={baseComponentId}
               data={subformData}
               dataSources={subformDataSources}
             />
-          </Table.Cell>
+          </BaseTable.Cell>
         ))
       ) : (
-        <Table.Cell key={`subform-cell-${id}-0`}>{String(id)}</Table.Cell>
+        <BaseTable.Cell key={`subform-cell-${id}-0`}>{String(id)}</BaseTable.Cell>
       )}
-      <Table.Cell className={classes.buttonCell}>
-        <div className={classes.buttonInCellWrapper}>
+      <BaseTable.ButtonCell>
+        <Button
+          disabled={isDeleting || instanceLocked}
+          variant='tertiary'
+          color='second'
+          onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
+          aria-label={editButtonText}
+          className={classes.tableButton}
+        >
+          {editButtonText}
+          <PencilIcon
+            fontSize='1rem'
+            aria-hidden='true'
+          />
+        </Button>
+      </BaseTable.ButtonCell>
+      {showDeleteButton && (
+        <BaseTable.ButtonCell>
           <Button
-            disabled={isDeleting}
+            disabled={isDeleting || instanceLocked}
             variant='tertiary'
-            color='second'
-            onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
-            aria-label={editButtonText}
+            color='danger'
+            onClick={() => {
+              // Deleting an entry writes to the instance, which is locked
+              if (!instanceLocked) {
+                deleteSubformEntry(id);
+              }
+            }}
+            aria-label={deleteButtonText}
             className={classes.tableButton}
           >
-            {editButtonText}
-            <PencilIcon
+            {deleteButtonText}
+            <TrashIcon
               fontSize='1rem'
               aria-hidden='true'
             />
           </Button>
-        </div>
-      </Table.Cell>
-      {showDeleteButton && (
-        <Table.Cell className={classes.buttonCell}>
-          <div className={classes.buttonInCellWrapper}>
-            <Button
-              disabled={isDeleting}
-              variant='tertiary'
-              color='danger'
-              onClick={() => deleteSubformEntry(id)}
-              aria-label={deleteButtonText}
-              className={classes.tableButton}
-            >
-              {deleteButtonText}
-              <TrashIcon
-                fontSize='1rem'
-                aria-hidden='true'
-              />
-            </Button>
-          </div>
-        </Table.Cell>
+        </BaseTable.ButtonCell>
       )}
-    </Table.Row>
+    </BaseTable.Row>
   );
 }

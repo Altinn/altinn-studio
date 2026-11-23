@@ -1,116 +1,66 @@
 # Altinn Studio Fleet Statistics
 
-Statistikk-dashboard over Altinn 3-apper i prod og tt02. Henter klonene, parser strukturen, lagrer i SQLite og viser det i nettleseren.
+_Denne README-en er på norsk fordi UX-teamet leser den._
 
-Kjøres som én Docker-container. UX-teamet kan starte den lokalt og klikke seg fram til svar uten å røre terminalen.
+Statistikk-dashbord over Altinn 3-appene som kjører i prod og tt02. UX-teamet kjører det lokalt for å svare på
+spørsmål om hvordan appene faktisk er bygget, uten å røre terminalen.
+
+Dashbordet spør hver tjenesteeiers `kuberneteswrapper` hvilke apper som er deployet og i hvilken versjon. Så kloner
+det appene fra altinn.studio, eller fra dev.altinn.studio når versjonen bare finnes der, parser strukturen og lagrer
+resultatet i SQLite. Backenden er FastAPI og serverer også React-frontenden, alt i én Docker-container.
 
 ## Kom i gang
 
-```bash
-# Bygg og start
+```sh
 docker compose up -d --build
-
-# Åpne dashbordet
 open http://localhost:9091
 ```
 
-### Installer som app på Mac
+I dashbordet klikker du **Hent apper** for å klone eller oppdatere appene i valgt miljø, og **Re-analyser** for å
+parse dem og oppdatere databasen. Begge kan kjøres på nytt, og re-analysen hopper over apper som ikke har endret seg.
 
-Verktøyet er en PWA — kan installeres som standalone app:
+Innstillingene i fanen **Konfigurasjon**, som miljø, Git-tilgang og samtidighet, lagres i volumet og overstyrer
+standardverdiene i [`docker-compose.yml`](docker-compose.yml). De gjelder uten omstart. Hvert miljø har sin egen
+klonemappe og database i volumet, så du kan bytte mellom prod og tt02 uten å miste dataene fra det andre.
 
-**Chrome / Edge:**
+Fanen **Query Tools** kjører SQL mot databasen for valgt miljø. Skjemaet står i
+[`db.py`](backend/altinn_fleet/db.py).
 
-1. Åpne http://localhost:9091
-2. Trykk install-ikonet i adresselinjen (eller ⋮ → "Install Altinn Studio Fleet Statistics…")
-3. App'en dukker opp i Launchpad og kan startes som vanlig app
-
-**Safari (macOS Sonoma+):**
-
-1. Åpne http://localhost:9091
-2. Fil → Legg til i Dock
-
-App'en kjører i et eget vindu uten browser-chrome. Docker-container må fortsatt være oppe i bakgrunnen siden den er datakilden — `docker compose up -d` overlever maskin-restart hvis du har Docker Desktop satt til å starte automatisk.
-
-I dashbordet:
-
-1. Klikk **Hent apper** — laster ned (eller oppdaterer) alle klonede apper for valgt miljø
-2. Klikk **Re-analyser** — parser appene og oppdaterer databasen
-3. Bla gjennom fanene (Oversikt / Komponenter / Innstillinger / Språk / Prosess / Grensesnitt / Søk)
-
-Begge operasjonene er idempotente — trygt å kjøre igjen. Re-analyse skipper apper som ikke har endret seg.
+Dashbordet kan installeres som app fra nettleseren, men containeren må kjøre.
 
 ## Grensesnitt-fanen
 
-Fanen **Grensesnitt** svarer på hvilke offentlige grensesnitt Altinn.App-bibliotekene tilbyr, og hvor mange apper som faktisk bruker hvert enkelt: hva er mye brukt, hva er lite brukt, og hva rører ingen.
+Fanen **Grensesnitt** viser hvilke offentlige grensesnitt Altinn.App-bibliotekene tilbyr, og hvor mange apper som
+bruker hvert av dem. Scanneren leser appenes egen C#-kode og skiller mellom tre former for bruk: appen implementerer
+grensesnittet, registrerer det i DI, eller injiserer det.
 
-Tallene kommer fra to kilder som møtes i databasen:
+En app som arver en av bibliotekets baseklasser, som `GenericFormDataValidator<T>`, implementerer
+`IFormDataValidator` uten å nevne det. Katalogen har derfor også bibliotekets klasser og grensesnittene de
+implementerer, og scanneren løser arven transitivt. Den løser ikke arv gjennom appens egne mellomklasser. Med
+`class A : GenericFormDataValidator<T>` og `class B : A` telles bare `A`.
 
-- **Katalogen** — alle offentlige grensesnitt i `Altinn.App.Core`, `Altinn.App.Api` og `Altinn.App.Clients.Fiks`, med signatur, dokumentasjonstekst, `[Obsolete]`-merking og om grensesnittet er ment for apper å implementere (`[ImplementableByApps]`).
-- **Appene** — deres egen C#-kode, lest av scanneren. Tre former for bruk skilles fra hverandre: appen **implementerer** grensesnittet, **registrerer** det i DI (`services.AddTransient<IFoo, Bar>()`), eller **injiserer** det (bruker typen uten å implementere den).
-
-En app teller som implementerende også når den arver en av bibliotekets baseklasser i stedet for å navngi grensesnittet — `class MinValidator : GenericFormDataValidator<T>` implementerer `IFormDataValidator`. Katalogen inneholder derfor de 70 klassene i biblioteket som implementerer et grensesnitt, og arven løses transitivt. Detaljvisningen viser «arver GenericFormDataValidator» på disse appene, så tallet kan etterprøves.
-
-Detaljvisningen for ett grensesnitt viser signaturen, hvilke apper som bruker det (med klassenavn, filbane og lenke rett til repoet), fordeling per organisasjon og bibliotekversjon, og hvilke andre grensesnitt de samme appene implementerer.
-
-To lister skiller seg ut:
-
-- **Utvidelsespunkt uten bruk** — ment for apper, men ingen tar dem i bruk.
-- **Grensesnitt utenfor katalogen** — apper implementerer dem, men de finnes ikke i dagens bibliotek. Som regel noe som er fjernet, og som appene henger igjen på.
+**Grensesnitt utenfor katalogen** er grensesnitt som apper implementerer, men som ikke finnes i dagens bibliotek.
+Som regel er de fjernet, og appene står på en eldre versjon.
 
 ### Oppdatere katalogen
 
-Katalogen er generert fra bibliotekets egne, innsjekkede public-API-snapshots (`PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt`) og ligger som `backend/altinn_fleet/data/interface_catalog.json`. Den følger med i imaget, så dashbordet virker uten at biblioteket er sjekket ut ved siden av.
+[`generate_interface_catalog.py`](backend/scripts/generate_interface_catalog.py) bygger
+[`interface_catalog.json`](backend/altinn_fleet/data/interface_catalog.json) fra de innsjekkede public-API-snapshotene
+til [app-bibliotekene](../../App/backend) og XML-dokumentasjonen i kildekoden. Filen er sjekket inn og følger med i
+imaget, så dashbordet virker uten resten av repoet.
 
-Kjør generatoren på nytt når bibliotekets offentlige API har endret seg:
+Ingen CI-jobb sjekker at katalogen er oppdatert. Kjør generatoren når bibliotekenes offentlige API endrer seg:
 
-```bash
+```sh
 python3 backend/scripts/generate_interface_catalog.py
 ```
 
-`--check` feiler hvis den innsjekkede katalogen er utdatert, og egner seg i CI. Bygg imaget på nytt etter en regenerering, og kjør **Re-analyser** — databasen fylles fra katalogen ved hver analyse.
-
-## Konfigurasjon
-
-All konfigurasjon gjøres i UI under fanen **Konfigurasjon** — miljøvalg (prod/tt02), git-credentials og concurrency-innstillinger. Endringer lagres og trer i kraft uten å restarte containeren.
-
-## Bytte mellom prod og tt02
-
-Bytt miljø i UI under fanen **Konfigurasjon** og klikk **Hent apper** for å fylle den. Hver miljø får sin egen klone- og database-mappe under volumet, så data fra det andre miljøet beholdes:
-
-```
-/data/
-├── apps-prod/        ← klonede prod-apper
-├── apps-tt02/        ← klonede tt02-apper
-├── fleet-prod.sqlite ← database for prod
-├── fleet-tt02.sqlite ← database for tt02
-└── .cache/           ← API-cache (1 t TTL)
-```
-
-## Arkitektur
-
-```
-┌────────────────────────────────────────┐
-│ Docker container (localhost:9091)      │
-│                                        │
-│  React (Vite) ──→ FastAPI ──→ SQLite   │
-│      ▲              │                  │
-│      │              ▼                  │
-│      └── SSE ── fetcher / scanner      │
-│                     │                  │
-│                     ▼                  │
-│              git clone over HTTPS      │
-│              (altinn.studio)           │
-└────────────────────────────────────────┘
-```
-
-- **Backend**: Python 3.12 + FastAPI + httpx + sqlite3 (stdlib). Multi-stage Dockerfile.
-- **Frontend**: React 18 + Vite + TypeScript + Tailwind + Recharts. Bygget statisk og servert av FastAPI.
-- **Data**: SQLite på en navngitt volume (`fleet-data`) så data overlever container-restart.
-- **Auth**: Tokens injiseres som Basic Auth i HTTPS-URL-en for git clone.
+`--check` feiler når den innsjekkede katalogen er utdatert. Bygg imaget på nytt etterpå og kjør **Re-analyser**, siden
+analysen fyller databasen fra katalogen.
 
 ## Utvikling utenfor Docker
 
-```bash
+```sh
 # Backend
 cd backend
 python -m venv .venv && source .venv/bin/activate
@@ -120,36 +70,20 @@ FLEET_DATA_DIR=$(pwd)/../data uvicorn altinn_fleet.main:app --reload
 # Frontend
 cd ../frontend
 yarn install
-yarn dev   # på http://localhost:5173, proxyer /api → :9091
+yarn dev   # http://localhost:5173, sender /api videre til :9091
 ```
 
-## Databaseutforskning
+Appene i flåten spenner over alle bibliotekversjoner tilbake til den første Altinn 3-versjonen, og de bygger ikke i
+containeren. Derfor leser [`csharp.py`](backend/altinn_fleet/csharp.py) C#-koden med regulære uttrykk i stedet for en
+kompilator. Parseren må tåle strukturer den ikke kjenner, heller enn å være presis. Når du legger til et nytt signal,
+sammenlign det med antall DI-registreringer. Et grensesnitt som registreres langt oftere enn det implementeres, tyder
+på at parseren går glipp av en form.
 
-Enkleste vei: bruk **Query-fanen** i UI — ferdig oppsett med autocomplete på tabeller/kolonner og kjør SQL direkte mot databasen for valgt miljø.
+## Begrensninger
 
-For rå tilgang kan SQLite-fila åpnes direkte:
-
-```bash
-docker compose exec fleet sqlite3 /data/fleet-prod.sqlite
-```
-
-Skjemaet ligger i `backend/altinn_fleet/db.py`. Hovedtabeller:
-
-- `apps` — én rad per app, med backend-versjon, hash, telleverk
-- `layouts` — én per layout-fil
-- `components` — én per komponent, med type, optionsId, hidden-flagg, raw_props (JSON)
-- `component_props` — én per komponent × prop-nøkkel
-- `settings_keys` — alle nøkler i `Settings.json` og `applicationmetadata.json`
-- `bpmn_tasks` — én per task i `process.bpmn`
-- `languages` — én per app × språkkode
-- `interfaces` — katalogen over offentlige grensesnitt i Altinn.App-bibliotekene
-- `app_interfaces` — én rad per app × grensesnitt × brukstype (`implements`/`registers`/`injects`)
-
-## Begrensninger / TODO
-
-- Henter kun apper som er aktivt deployet via `kuberneteswrapper/api/v1/deployments`. Apper som er publisert men ikke deployet til den valgte env vises ikke.
-- Layouts som lastes dynamisk via expressions kan ikke fullt ut spores statisk — `in_pages_order` heuristikken sjekker `Settings.json` `pages.order`/`pages.groups[].order`.
-- Grensesnitt-bruk leses med regexer over C#-koden, ikke med en kompilator — appene i flåten spenner over alle bibliotekversjoner og bygger ikke i denne containeren. Kall via refleksjon eller kodegenerering fanges derfor ikke opp.
-- Arv gjennom bibliotekets egne baseklasser løses, men ikke arvekjeder som går via appens egne mellomklasser (`class A : GenericFormDataValidator<T>`, `class B : A` — bare `A` telles).
-- Katalogen beskriver den bibliotekversjonen imaget ble bygget fra. Apper på eldre versjoner kan bruke grensesnitt som er fjernet siden — de dukker opp under «Grensesnitt utenfor katalogen».
-- Schema-migrasjoner: ny versjon dropper bare alle tabeller når skjemaet endres. Egnet for tidlige iterasjoner: det er OK for en app som dette.
+- Dashbordet ser bare apper som er deployet i valgt miljø. Apper som er publisert men ikke deployet, vises ikke.
+- Layouts som lastes dynamisk via expressions kan ikke spores statisk. En side regnes som i bruk når den står i
+  `pages.order` eller `pages.groups[].order` i `Settings.json`.
+- Kall via refleksjon eller kodegenerering fanges ikke opp, siden scanneren ikke kompilerer koden.
+- En eksisterende database får bare nye tabeller og de nye kolonnene som `_migrate` i `db.py` legger til. Andre
+  skjemaendringer krever at databasefilen i volumet slettes.

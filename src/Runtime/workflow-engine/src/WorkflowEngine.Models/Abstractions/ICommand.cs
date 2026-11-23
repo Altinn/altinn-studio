@@ -9,7 +9,7 @@ namespace WorkflowEngine.Models.Abstractions;
 public interface ICommand
 {
     /// <summary>
-    /// The command type this descriptor handles (matches <see cref="CommandDefinition.Type"/>).
+    /// The type steps name to run this command (matches <see cref="CommandDefinition.Type"/>).
     /// </summary>
     string CommandType { get; }
 
@@ -27,7 +27,7 @@ public interface ICommand
 
     /// <summary>
     /// Validates deserialized command data and workflow context at enqueue time.
-    /// Called before persistence, giving descriptors a chance to reject invalid requests early.
+    /// Called before persistence, giving the command a chance to reject invalid requests early.
     /// </summary>
     CommandValidationResult Validate(object? commandData, object? workflowContext);
 

@@ -1,8 +1,9 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
-import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelReference, IFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { SearchParams } from 'src/core/routing/types';
+import { withSchemaProperties } from 'src/features/datamodel/withSchemaProperties';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
 import { Decimal } from 'src/features/expressions/Decimal';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
@@ -16,6 +17,7 @@ import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
+import { formatNumericText, getMapToReactNumberConfig } from 'src/utils/formattingUtils';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
@@ -24,6 +26,7 @@ import type {
   ExprDate,
   ExprFunctionName,
   ExprFunctions,
+  ExprResolved,
   ExprValToActual,
   ExprValToActualOrExpr,
   ValidObject,
@@ -187,6 +190,10 @@ export const ExprFunctionDefinitions = {
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
+    returns: ExprVal.String,
+  },
+  formatNumber: {
+    args: args(required(ExprVal.Number), optional(ExprVal.Object)),
     returns: ExprVal.String,
   },
   formatDate: {
@@ -495,10 +502,10 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
         subject: reference,
         currentLocation: this.dataSources.currentDataModelPath,
       });
-      return pickSimpleValue(newReference, this);
+      return pickDataModelValue(newReference, this);
     }
 
-    return pickSimpleValue(reference, this);
+    return pickDataModelValue(reference, this);
   },
   countDataElements(dataType) {
     if (dataType === null) {
@@ -576,6 +583,25 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
 
     return null;
+  },
+  formatNumber(number, formatting) {
+    if (number === null) {
+      return null;
+    }
+
+    const text = number.toString();
+    try {
+      // Object arguments have no property types. Use the same formatting contract as Input and Number.
+      const config = getMapToReactNumberConfig(
+        formatting as ExprResolved<IFormatting> | undefined,
+        text,
+        this.dataSources.context.currentLanguage(),
+      );
+      return formatNumericText(text, config.number);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown formatting error';
+      throw new ExprRuntimeError(this.expr, this.path, `Number formatting error: ${message}`);
+    }
   },
   formatDate(date, format) {
     if (date === null) {
@@ -894,6 +920,17 @@ function pickSimpleValue(path: IDataModelReference, params: EvaluateExpressionPa
     return value;
   }
   return null;
+}
+
+/**
+ * An object, or a list of objects, has every property the schema knows, as null when the data leaves it out. That is
+ * what the backend reads from its C# model, so copying rows gives the same result on both sides.
+ */
+function pickDataModelValue(path: IDataModelReference, params: EvaluateExpressionParams) {
+  const value = pickSimpleValue(path, params);
+  const lookupTool =
+    value && typeof value === 'object' ? params.dataSources.formData.getSchemaLookupTool?.(path.dataType) : undefined;
+  return lookupTool ? withSchemaProperties(value, path.field, lookupTool) : value;
 }
 
 function isComponentOrAncestorHidden(ctx: EvaluateExpressionParams, componentId: string) {

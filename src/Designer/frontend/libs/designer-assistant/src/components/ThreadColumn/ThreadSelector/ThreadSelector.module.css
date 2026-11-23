@@ -1,0 +1,72 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-border-width-default);
+  margin: 0;
+  padding: var(--ds-border-width-default);
+  list-style: none;
+  background-color: var(--ds-color-neutral-surface-tinted);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  padding-inline-end: var(--ds-size-2);
+  background-color: var(--ds-color-neutral-background-tinted);
+  border-left: var(--ds-size-1) solid transparent;
+}
+
+.item.selected {
+  background-color: var(--ds-color-neutral-background-default);
+  border-left-color: var(--ds-color-accent-border-strong);
+}
+
+.item:hover {
+  background-color: var(--ds-color-accent-surface-tinted);
+}
+
+.threadButton {
+  flex: 1;
+  min-width: 0;
+  padding: var(--ds-size-3);
+  font: inherit;
+  font-size: var(--ds-body-md-font-size);
+  text-align: start;
+  color: var(--ds-color-neutral-text-default);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+/* The list scrolls. Its edges can hide an outline that is outside the button. */
+.threadButton:focus-visible {
+  outline: var(--ds-border-width-focus) solid var(--ds-color-focus-outer);
+  outline-offset: calc(-1 * var(--ds-border-width-focus));
+}
+
+.title {
+  display: block;
+  font-weight: var(--ds-font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleteButton {
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.item:hover .deleteButton,
+.item:focus-within .deleteButton,
+.item.selected .deleteButton {
+  opacity: 1;
+}
+
+/* Touch screens have no hover. Without this rule, the button shows only on the selected thread. */
+@media (hover: none) {
+  .deleteButton {
+    opacity: 1;
+  }
+}

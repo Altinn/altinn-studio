@@ -33,14 +33,16 @@ public static class TelemetryAttributes
     /// <remarks>
     /// Unbounded across the fleet, so a metric carries it only where its values are rare events — the
     /// throttle counters, whose cardinality is bounded by incident count (a documented decision in the
-    /// failure-throttling ADR), and the errors counter.
+    /// failure-throttling ADR), the errors counter, and the step and workflow failure counters. Each engine
+    /// serves one service owner, so a process's series are bounded by that owner's apps, and only the apps that
+    /// failed in the process's lifetime get one.
     /// </remarks>
     public const string Namespace = "altinn.workflow_engine.namespace";
 
     /// <summary>
     /// Why something ended the way it did — a workflow or step failing, a workflow being canceled or
-    /// requeued, a mailbox closing. A small fixed set per instrument, such as <c>execution</c>,
-    /// <c>poisoned</c>, <c>wait_expired</c>, <c>manual</c> or <c>deadline</c>.
+    /// requeued, a mailbox closing — or why the engine is not healthy. A small fixed set per instrument, such as
+    /// <c>execution</c>, <c>poisoned</c>, <c>wait_expired</c>, <c>manual</c>, <c>deadline</c> or <c>queue_full</c>.
     /// </summary>
     public const string Reason = "altinn.workflow_engine.reason";
 

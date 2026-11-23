@@ -3,7 +3,7 @@ import { renderWithProviders } from '../../../../../testing/mocks';
 import { ShapeOptions } from '../ImageUploadUtils';
 import { ImageUploadSize, type ImageUploadSizeProps } from './ImageUploadSize';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('ImageUploadSize', () => {

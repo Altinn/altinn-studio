@@ -1,34 +1,9 @@
-import { useQueryClient } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
-
-import { createExternalApiQueries } from 'src/core/queries/externalApi';
-import { createCachedInstanceQueries } from 'src/core/queries/instance';
-import { createTextResourcesQueries } from 'src/core/queries/textResources';
+import { useExpressionQueryReaders } from 'src/core/queries/AppQueriesProvider';
+import type { createExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders.queries';
 
 export type ExpressionQueryReaders = ReturnType<typeof createExpressionQueryReaders>;
 
-const readersByClient = new WeakMap<QueryClient, ExpressionQueryReaders>();
-
-export function useExpressionQueryReaders(): ExpressionQueryReaders {
-  const queryClient = useQueryClient();
-  const cached = readersByClient.get(queryClient);
-  if (cached) {
-    return cached;
-  }
-
-  const readers = createExpressionQueryReaders(queryClient);
-  readersByClient.set(queryClient, readers);
-  return readers;
-}
-
-function createExpressionQueryReaders(queryClient: QueryClient) {
-  return {
-    instanceQueries: createCachedInstanceQueries(queryClient),
-    queryCacheObserver: createQueryCacheObserver(queryClient),
-    externalApiQueries: createExternalApiQueries(queryClient),
-    textResourceQueries: createTextResourcesQueries(queryClient),
-  };
-}
+export { useExpressionQueryReaders };
 
 /**
  * Minimal query-cache observer API for code outside src/core/queries.
@@ -36,29 +11,4 @@ function createExpressionQueryReaders(queryClient: QueryClient) {
  */
 export interface QueryCacheObserver {
   subscribe: (onChange: () => void) => () => void;
-}
-
-export function createQueryCacheObserver(queryClient: QueryClient): QueryCacheObserver {
-  const listeners = new Set<() => void>();
-  let unsubscribeCache: (() => void) | undefined;
-
-  return {
-    subscribe: (onChange) => {
-      listeners.add(onChange);
-      unsubscribeCache ??= queryClient.getQueryCache().subscribe((event) => {
-        if (event.type !== 'added' && event.type !== 'updated' && event.type !== 'removed') {
-          return;
-        }
-        listeners.forEach((listener) => listener());
-      });
-
-      return () => {
-        listeners.delete(onChange);
-        if (listeners.size === 0) {
-          unsubscribeCache?.();
-          unsubscribeCache = undefined;
-        }
-      };
-    },
-  };
 }

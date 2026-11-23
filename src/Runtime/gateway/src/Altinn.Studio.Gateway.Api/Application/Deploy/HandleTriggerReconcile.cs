@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Net;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Altinn.Studio.Gateway.Contracts.Deploy;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +21,8 @@ internal static class HandleTriggerReconcile
         CancellationToken cancellationToken
     )
     {
+        Activity.Current?.SetTag(ServiceTelemetry.Attributes.ReconcileUndeploy, request.IsUndeploy);
+
         if (!request.IsUndeploy)
         {
             try

@@ -106,6 +106,7 @@ const common = {
               .setDescription('Sets expanded width for pages', 'Viser sidene med utvidet bredde.'),
           ),
           new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+          new CG.prop('validateOnBackToSummary', CG.common('PageValidation').optional()),
         ),
       ),
     )
@@ -122,8 +123,8 @@ const common = {
         new CG.bool()
           .setTitle('Optional indicator', 'Markering av valgfritt felt')
           .setDescription(
-            'Show the optional indicator on the label of non-required fields. Enabled by default.',
-            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard.',
+            'Show the optional indicator on the label of non-required fields. Enabled by default, unless hideOptionalIndicator is true in Settings.json. When set, this overrides Settings.json.',
+            'Viser en markering for valgfrie felt ved ledeteksten. Aktivert som standard, med mindre hideOptionalIndicator er true i Settings.json. Når denne er satt, overstyrer den Settings.json.',
           )
           .optional({ default: true }),
       ),
@@ -262,8 +263,10 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for label', 'Datamodellbinding for ledetekst')
           .setDescription(
-            'Describes the location in the data model where the component should store its labels',
-            'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+            'Location in the data model for the translated labels. Must point to a string for single-select components ' +
+              'or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+            'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg ' +
+              'eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
           )
           .optional(),
       ),
@@ -272,8 +275,8 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for metadata', 'Datamodellbinding for metadata')
           .setDescription(
-            'Describes the location in the data model where the component should store its metadata',
-            'Angir hvor i datamodellen komponenten skal lagre metadata.',
+            'Location in the data model for options metadata. Must point to a string.',
+            'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
           )
           .optional(),
       ),
@@ -628,7 +631,7 @@ const common = {
       ),
     ),
   ITableColumnFormatting: () => new CG.obj().additionalProperties(CG.common('ITableColumnProperties')),
-  ITableColumnProperties: () =>
+  ITableColumnWidth: () =>
     new CG.obj(
       new CG.prop(
         'width',
@@ -641,6 +644,10 @@ const common = {
           )
           .setPattern(/^([0-9]{1,2}%|100%|auto)$/),
       ),
+    ),
+  ITableColumnProperties: () =>
+    new CG.obj(
+      ...CG.common('ITableColumnWidth').getProperties(),
       new CG.prop('alignText', CG.common('ITableColumnsAlignText').optional()),
       new CG.prop('textOverflow', CG.common('ITableColumnsTextOverflow').optional()),
       new CG.prop(
@@ -974,6 +981,16 @@ const common = {
           ),
       ),
       new CG.prop(
+        'hideOptionalIndicator',
+        new CG.bool()
+          .optional({ default: false })
+          .setTitle('Hide optional indicator', 'Skjul markering av valgfrie felt')
+          .setDescription(
+            "Hides the marking that says a field is optional. Defaults to false, which we recommend because the marking makes it explicit which fields are optional. A component's own labelSettings.optionalIndicator overrides it.",
+            'Skjuler markeringen som viser at et felt er valgfritt. Standard er false, som vi anbefaler fordi markeringen gjør det tydelig hvilke felt som er valgfrie. En komponents egen labelSettings.optionalIndicator overstyrer den.',
+          ),
+      ),
+      new CG.prop(
         'autoSaveBehavior',
         new CG.enum('onChangeFormData', 'onChangePage')
           .optional({ default: 'onChangeFormData' })
@@ -1017,6 +1034,7 @@ const common = {
           ),
       ),
       new CG.prop('validationOnNavigation', CG.common('PageValidation').optional()),
+      new CG.prop('validateOnBackToSummary', CG.common('PageValidation').optional()),
       new CG.prop(
         'hideAppNameInPdf',
         new CG.expr(ExprVal.Boolean)

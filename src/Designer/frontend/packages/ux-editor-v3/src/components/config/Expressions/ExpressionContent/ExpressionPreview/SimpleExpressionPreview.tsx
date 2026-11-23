@@ -5,7 +5,7 @@ import {
   expressionFunctionTexts,
   Operator,
 } from '../../../../../types/Expressions';
-import { ArrowRightIcon } from '@studio/icons';
+import { ArrowRightIcon } from '@designer/icons';
 import { useText } from '../../../../../hooks';
 import { stringifyValueForDisplay } from '../../../../../utils/expressionsUtils';
 

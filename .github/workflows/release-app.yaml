@@ -1,65 +1,51 @@
 name: Release - app
 
-# Automatically triggers release when an app changelog promotion PR is merged.
-# PRs must have the 'release/app' label.
+# Releases the latest version in the app changelog when it has no GitHub release yet.
+#
+# Runs on push because the `libraries` environment, which nuget.org's trusted publishing requires, rejects pull
+# request runs. GitHub checks those against refs/pull/<n>/merge.
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
       - 'release/app/v*'
     paths:
-      - 'src/App/backend/CHANGELOG.md'
+      - 'src/App/CHANGELOG.md'
   workflow_dispatch: {}
 
 permissions:
   contents: read
 
+# A later push on the same branch waits, then finds the draft that the earlier run created.
+concurrency:
+  group: release-app-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   resolve-release-context:
     name: Resolve release context
     runs-on: ubuntu-latest
-    # Automatically release same-repo release PRs. Fork PRs can be retried manually
-    # from their merged base branch because their pull_request token cannot publish releases.
-    if: >
-      (
-        github.event_name == 'workflow_dispatch' &&
-        github.ref_type == 'branch'
-      ) ||
-      (
-        github.event_name == 'pull_request' &&
-        github.event.pull_request.merged == true &&
-        github.event.pull_request.head.repo.full_name == github.repository &&
-        contains(github.event.pull_request.labels.*.name, 'release/app')
-      )
+    # workflow_dispatch can also run on a tag
+    if: github.ref_type == 'branch'
+    permissions:
+      # Draft releases are only visible with write access
+      contents: write
     outputs:
-      environment: ${{ steps.context.outputs.environment }}
-      version: ${{ steps.context.outputs.version }}
+      release: ${{ steps.resolve.outputs.release }}
+      version: ${{ steps.resolve.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
-      - name: Setup Go
-        uses: ./.github/actions/setup-go-cached
+      - name: Resolve release
+        id: resolve
+        uses: ./.github/actions/resolve-library-release
         with:
-          module: src/tools/releaser
-
-      - name: Resolve environment
-        id: context
-        env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
-        run: |
-          version="$(go run . resolve-version --component app --base-branch "$BASE_BRANCH")"
-
-          environment="$("$GITHUB_WORKSPACE/.github/scripts/resolve-app-release-environment.sh" "$version")"
-
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "environment=$environment" >> "$GITHUB_OUTPUT"
-        working-directory: src/tools/releaser
+          component: app
 
   release:
     name: Build, release and publish
@@ -70,7 +56,8 @@ jobs:
       id-token: write
       packages: write
     concurrency: app-dist-${{ needs.resolve-release-context.outputs.version }}
-    environment: ${{ needs.resolve-release-context.outputs.environment }}
+    if: needs.resolve-release-context.outputs.release == 'true'
+    environment: libraries
 
     steps:
       - name: Checkout repository
@@ -78,13 +65,13 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Checkout base branch
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
-          MERGE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.merge_commit_sha || github.sha }}
+          BASE_BRANCH: ${{ github.ref_name }}
+          MERGE_SHA: ${{ github.sha }}
         run: |
           if [[ "${BASE_BRANCH}" != "main" && ! "${BASE_BRANCH}" =~ ^release/app/v[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid base branch: ${BASE_BRANCH}"
@@ -119,7 +106,7 @@ jobs:
       - name: Run release workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
+          BASE_BRANCH: ${{ github.ref_name }}
         run: |
           go run . workflow --component app --base-branch "$BASE_BRANCH"
         working-directory: src/tools/releaser
@@ -171,13 +158,9 @@ jobs:
           {
             echo "## Release Summary"
             echo ""
-            if [[ -n "${PR_NUMBER}" ]]; then
-              echo "- **PR**: #${PR_NUMBER}"
-            fi
             echo "- **Base branch**: ${BASE_BRANCH}"
             echo "- **Version**: ${RELEASE_VERSION}"
-            echo "- **Environment**: ${{ needs.resolve-release-context.outputs.environment }}"
-            echo "- **Version source**: latest released section in src/App/backend/CHANGELOG.md"
+            echo "- **Version source**: latest released section in src/App/CHANGELOG.md"
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -190,6 +173,5 @@ jobs:
             echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
         env:
-          BASE_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref || github.ref_name }}
-          PR_NUMBER: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
+          BASE_BRANCH: ${{ github.ref_name }}
           RELEASE_VERSION: ${{ needs.resolve-release-context.outputs.version }}

@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
@@ -21,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
+	"altinn.studio/common/snapshot"
 	"altinn.studio/operator/internal"
 	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
@@ -185,7 +185,7 @@ func TestResolveClusterState(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal snapshot: %v", err)
 	}
-	snaps.MatchJSON(t, payload)
+	snapshot.MatchJSON(t, payload, "")
 }
 
 func TestSyncAll_DoesNotAccessLocalPdf3Resources(t *testing.T) {
@@ -409,7 +409,7 @@ func TestSyncAll_TtdOffhoursAndRestore(t *testing.T) {
 		"workhours": workhoursSnapshot,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, payload)
+	snapshot.MatchJSON(t, payload, "")
 }
 
 func TestSyncAll_NonTtdNoApps(t *testing.T) {
@@ -426,7 +426,7 @@ func TestSyncAll_NonTtdNoApps(t *testing.T) {
 
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "nav"))
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, payload)
+	snapshot.MatchJSON(t, payload, "")
 }
 
 func TestSyncAll_NonTtdNoAppsToAppsTransitionRestoresGatewayAndRelay(t *testing.T) {
@@ -492,7 +492,7 @@ func TestSyncAll_TtdOffhoursNoApps(t *testing.T) {
 
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "ttd"))
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, payload)
+	snapshot.MatchJSON(t, payload, "")
 }
 
 func TestSyncAll_RetriesOnConflict(t *testing.T) {
@@ -526,7 +526,7 @@ func TestSyncAll_RetriesOnConflict(t *testing.T) {
 
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "ttd"))
 	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, payload)
+	snapshot.MatchJSON(t, payload, "")
 }
 
 func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string) []resourceSnapshot {

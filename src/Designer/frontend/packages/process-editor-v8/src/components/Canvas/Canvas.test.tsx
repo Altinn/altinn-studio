@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Canvas } from './Canvas';
 import { BpmnContextProvider } from '../../contexts/BpmnContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 
 vi.mock('./BPMNViewer', () => ({

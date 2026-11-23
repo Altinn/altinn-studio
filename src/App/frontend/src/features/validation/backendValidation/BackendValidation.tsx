@@ -25,6 +25,7 @@ export function BackendValidation() {
         { initial: queriedInitialValidations },
         initialTaskValidations,
         initialComponentValidations,
+        queriedInitialValidations,
       );
     }
   }, [queriedInitialValidations, updateBackendValidations]);

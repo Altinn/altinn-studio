@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@studio/icons';
+import { MenuElipsisVerticalIcon, ArrowUpIcon, ArrowDownIcon } from '@designer/icons';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useUpdateLayoutOrderMutation } from '../../../../hooks/mutations/useUpdateLayoutOrderMutation';
 import { useUpdateLayoutNameMutation } from '../../../../hooks/mutations/useUpdateLayoutNameMutation';
@@ -9,9 +9,9 @@ import { useSelector } from 'react-redux';
 import type { IAppState } from '../../../../types/global';
 import { useSearchParams } from 'react-router-dom';
 import { InputPopover } from './InputPopover';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { useAppContext } from '../../../../hooks/useAppContext';
-import { StudioDropdown } from '@studio/components';
+import { StudioDropdown } from '@designer/components';
 
 export type NavigationMenuProps = {
   pageName: string;

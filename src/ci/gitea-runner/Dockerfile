@@ -1,4 +1,4 @@
-FROM docker.io/gitea/runner:3.5.0@sha256:66b7da94dc7dcadb2e076bec6928221336a9a637196399281c4b766fe1288242 AS gitea-basic
+FROM docker.io/gitea/runner:5.2.4@sha256:e8b3c7a5ed435fec38d1faf730cb784606cdd1c02e8543b6b96525b53281e60a AS gitea-basic
 
 FROM ghcr.io/renovatebot/renovate:42.34.1@sha256:76265a40295d41facff1967a60e893fbce7de39e4975bc2b63884a8482170e39 AS renovate
 

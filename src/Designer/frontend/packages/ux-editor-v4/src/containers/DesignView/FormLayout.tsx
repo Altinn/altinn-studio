@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { FormLayoutWarning } from './FormLayoutWarning';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItem } from './AddItem';
-import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
-import { StudioParagraph, StudioAlert } from '@studio/components';
+import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
+import { StudioParagraph, StudioAlert } from '@designer/components';
 import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface FormLayoutProps {

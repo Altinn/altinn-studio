@@ -16,17 +16,18 @@ COPY src/Designer/frontend/app-preview/package.json ./src/Designer/frontend/app-
 COPY src/Designer/frontend/dashboard/package.json ./src/Designer/frontend/dashboard/
 COPY src/Designer/frontend/admin/package.json ./src/Designer/frontend/admin/
 COPY src/Designer/frontend/language/package.json ./src/Designer/frontend/language/
-COPY src/Designer/frontend/libs/studio-assistant/package.json ./src/Designer/frontend/libs/studio-assistant/
-COPY src/Designer/frontend/libs/studio-browser-storage/package.json ./src/Designer/frontend/libs/studio-browser-storage/
-COPY src/Designer/frontend/libs/studio-components/package.json ./src/Designer/frontend/libs/studio-components/
-COPY src/Designer/frontend/libs/studio-content-library/package.json ./src/Designer/frontend/libs/studio-content-library/
-COPY src/Designer/frontend/libs/studio-feature-flags/package.json ./src/Designer/frontend/libs/studio-feature-flags/
-COPY src/Designer/frontend/libs/studio-feedback-form/package.json ./src/Designer/frontend/libs/studio-feedback-form/
-COPY src/Designer/frontend/libs/studio-guard/package.json ./src/Designer/frontend/libs/studio-guard/
-COPY src/Designer/frontend/libs/studio-hooks/package.json ./src/Designer/frontend/libs/studio-hooks/
-COPY src/Designer/frontend/libs/studio-icons/package.json ./src/Designer/frontend/libs/studio-icons/
-COPY src/Designer/frontend/libs/studio-pure-functions/package.json ./src/Designer/frontend/libs/studio-pure-functions/
-COPY src/Designer/frontend/libs/studio-ui-test/package.json ./src/Designer/frontend/libs/studio-ui-test/
+COPY src/Designer/frontend/libs/designer-assistant/package.json ./src/Designer/frontend/libs/designer-assistant/
+COPY src/Designer/frontend/libs/designer-browser-storage/package.json ./src/Designer/frontend/libs/designer-browser-storage/
+COPY src/Designer/frontend/libs/designer-components/package.json ./src/Designer/frontend/libs/designer-components/
+COPY src/Designer/frontend/libs/designer-content-library/package.json ./src/Designer/frontend/libs/designer-content-library/
+COPY src/Designer/frontend/libs/designer-feature-flags/package.json ./src/Designer/frontend/libs/designer-feature-flags/
+COPY src/Designer/frontend/libs/designer-feedback-form/package.json ./src/Designer/frontend/libs/designer-feedback-form/
+COPY src/Designer/frontend/libs/designer-guard/package.json ./src/Designer/frontend/libs/designer-guard/
+COPY src/Designer/frontend/libs/designer-hooks/package.json ./src/Designer/frontend/libs/designer-hooks/
+COPY src/Designer/frontend/libs/designer-icons/package.json ./src/Designer/frontend/libs/designer-icons/
+COPY src/Designer/frontend/libs/designer-pure-functions/package.json ./src/Designer/frontend/libs/designer-pure-functions/
+COPY src/Designer/frontend/libs/designer-ui-test/package.json ./src/Designer/frontend/libs/designer-ui-test/
+COPY src/Designer/frontend/packages/app-builder/package.json ./src/Designer/frontend/packages/app-builder/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/process-editor-v8/package.json ./src/Designer/frontend/packages/process-editor-v8/
@@ -44,6 +45,7 @@ COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/setting
 COPY src/common/ts/package.json ./src/common/ts/
 COPY src/common/ts/form-component/package.json ./src/common/ts/form-component/
 COPY src/common/ts/form-engine/package.json ./src/common/ts/form-engine/
+COPY src/common/ts/http-client/package.json ./src/common/ts/http-client/
 COPY src/common/ts/language/package.json ./src/common/ts/language/
 COPY src/common/ts/layout-contract/package.json ./src/common/ts/layout-contract/
 
@@ -62,15 +64,20 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
+# The same Ubuntu as the final image, so that what dotnet publish builds for the build machine, such as the native
+# launcher, also runs there.
+FROM mcr.microsoft.com/dotnet/sdk:10.0-resolute@sha256:667f3cee6f24afb202d3e32c7941e3800bbac57dd70bb68f89e52a6245aff88f AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/common/dotnet/Altinn.Studio.Common.Telemetry ./src/common/dotnet/Altinn.Studio.Common.Telemetry
 COPY src/cli/.editorconfig src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/
-COPY src/cli/common/dotnet/.editorconfig src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
+COPY src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
 COPY src/cli/common/dotnet/Altinn.Studio.AppDist ./src/cli/common/dotnet/Altinn.Studio.AppDist
 COPY src/Designer/backend ./src/Designer/backend
-RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
+RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true \
+  /p:RunAnalyzers=false \
+  "/p:InformationalVersion=${DESIGNER_VERSION:-dev}"
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version
@@ -80,7 +87,7 @@ RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 # The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
 # at the repository folder without a second path convention. rsync will not create intermediate
 # directories, hence the mkdir.
-FROM alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS app-template-release
+FROM alpine@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS app-template-release
 RUN apk add --no-cache rsync
 RUN mkdir -p /app-template-release/v8 /app-template-release/v9
 
@@ -92,15 +99,13 @@ COPY ./src/App/template/v9/src /app-template-dotnet-src/v9
 WORKDIR /app-template-dotnet-src/v9
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v9/src
 
-# Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:ecf8dcbaab8ebc4bdfb2322d6fe4217bbb118894310ebb6d53c580874ab4b27d AS final
-EXPOSE 80
+# Building the final image. The chiseled image has no shell or package manager, so this stage only copies files.
+# Its -extra variant adds ICU and time zones, which Designer needs.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled-extra@sha256:728d90568c65ec25adf8bacd9da65356a7f5bbeb37eaca1193e6ed082900a1bc AS final
 WORKDIR /app
-ARG DESIGNER_VERSION=''
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true \
-  DESIGNER_VERSION=${DESIGNER_VERSION}
-RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
+# Designer's database connections never use Kerberos. Without this, Npgsql looks for the Kerberos library, which the
+# image does not have, and the runtime prints an error at startup. A connection string can still set the mode.
+ENV PGGSSENCMODE=disable
 
 COPY --from=generate-studio-backend /app_output .
 
@@ -117,4 +122,5 @@ COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/ver
 ## Copying app templates. GeneralSettings decides which one new applications default to.
 COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

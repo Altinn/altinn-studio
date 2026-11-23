@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import SupportedPaletteProviderModule from './SupportedPaletteProvider';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const SupportedPaletteProvider = SupportedPaletteProviderModule.supportedPaletteProvider[1] as any;
 

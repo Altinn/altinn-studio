@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -43,7 +44,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         _dataElementAccessChecker = dataElementAccessChecker;
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public async Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
@@ -56,7 +57,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
             List<Task> tasks = [];
             foreach (
                 var dataType in applicationMetadata.DataTypes.Where(dt =>
-                    dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
+                    dt.IsBoundToTask(taskId) && dt.AppLogic?.ClassRef is not null
                 )
             )
             {
@@ -75,11 +76,11 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
             await Task.WhenAll(tasks);
 
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 
@@ -158,17 +159,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
-                // SetFormData is internal, but we know the dataMutator is InstanceDataUnitOfWork
-                if (dataMutator is Internal.Data.InstanceDataUnitOfWork unitOfWork)
-                {
-                    unitOfWork.SetFormData(dataElement, FormDataWrapperFactory.Create(newData, dataType, dataElement));
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        "Data mutator does not support SetFormData for shadow field removal"
-                    );
-                }
+                formDataWrapper.ReplaceBackingData(newData);
             }
         }
     }

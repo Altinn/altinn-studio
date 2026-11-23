@@ -24,7 +24,7 @@ public sealed class NotificationMetrics
 
     public NotificationMetrics(IMeterFactory meterFactory)
     {
-        Meter meter = meterFactory.Create(InstanceTelemetry.MeterName);
+        Meter meter = meterFactory.Create(ServiceTelemetry.MeterName);
         _deliveries = meter.CreateCounter<long>(
             DeliveriesMetricName,
             unit: "{delivery}",

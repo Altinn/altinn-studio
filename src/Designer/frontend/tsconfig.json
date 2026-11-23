@@ -8,7 +8,7 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
-    "rootDir": "./",
+    "rootDir": "../..",
     "resolveJsonModule": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -18,6 +18,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "paths": {
+      "@altinn/app-builder/*": ["./packages/app-builder/src/*"],
+      "@app/form-component": ["../../common/ts/form-component/src/index.ts"],
+      "@app/form-component/*": ["../../common/ts/form-component/src/*"],
+      "@app/language": ["../../common/ts/language/src/index.ts"],
+      "@app/language/*": ["../../common/ts/language/src/*"],
       "@altinn/policy-editor/*": ["./packages/policy-editor/src/*"],
       "@altinn/process-editor/*": ["./packages/process-editor/src/*"],
       "@altinn/process-editor-v8/*": ["./packages/process-editor-v8/src/*"],
@@ -30,7 +35,7 @@
       "@altinn/ux-editor-v3/*": ["./packages/ux-editor-v3/src/*"],
       "language/*": ["./language/*"],
       "packages/*": ["./packages/*"],
-      "@studio/testing/*": ["./testing/*"]
+      "@designer/testing/*": ["./testing/*"]
     },
     "plugins": [
       {

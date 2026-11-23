@@ -1,6 +1,6 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model/types';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 
 export function isDateOrTimeFormat(stringRestrictions: KeyValuePairs): boolean {
   return [StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(

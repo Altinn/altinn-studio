@@ -59,6 +59,20 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
+    public async Task<ChatThreadEntity?> GetDeveloperThreadAsync(
+        Guid threadId,
+        string developer,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var dbModel = await _dbContext
+            .ChatThreads.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == threadId && t.CreatedBy == developer, cancellationToken);
+
+        return dbModel is null ? null : ChatThreadMapper.MapToModel(dbModel);
+    }
+
+    /// <inheritdoc />
     public async Task<ChatThreadEntity> CreateThreadAsync(
         ChatThreadEntity thread,
         CancellationToken cancellationToken = default

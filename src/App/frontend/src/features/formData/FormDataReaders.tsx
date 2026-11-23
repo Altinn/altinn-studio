@@ -1,18 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
+import { useFormDataQuery } from 'src/core/queries/formData';
 import { useAvailableDataModels } from 'src/features/datamodel/useAvailableDataModels';
 import { useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useAsRef } from 'src/hooks/useAsRef';
 
 type ReaderMap = { [name: string]: DataModelReader };
 
@@ -140,7 +139,7 @@ export function GlobalFormDataReadersProvider({ children }: PropsWithChildren) {
   }, [readerMap, updateModel]);
 
   const reset = useCallback(() => {
-    setReaderMap({});
+    setReaderMap((all) => (Object.keys(all).length === 0 ? all : {}));
   }, []);
 
   return (
@@ -164,18 +163,11 @@ export function GlobalFormDataReadersProvider({ children }: PropsWithChildren) {
 export function DataModelFetcher() {
   const ctx = useLaxCtx();
   const taskId = useNavigationParam('taskId');
-  const taskWas = useRef(taskId);
-
-  // Reset the readers when the task changes
   const reset = ctx === ContextNotProvided ? undefined : ctx.reset;
-  const resetRef = useAsRef(reset);
-  useEffect(() => {
-    if (taskId === taskWas.current) {
-      return;
-    }
-    resetRef.current && resetRef.current();
-    taskWas.current = taskId;
-  }, [resetRef, taskId]);
+
+  // Process transitions can unmount this fetcher before the URL changes. Clear the
+  // global readers on unmount too, so revisiting a task fetches its models again.
+  useEffect(() => () => reset?.(), [reset, taskId]);
 
   if (ctx == ContextNotProvided) {
     return null;

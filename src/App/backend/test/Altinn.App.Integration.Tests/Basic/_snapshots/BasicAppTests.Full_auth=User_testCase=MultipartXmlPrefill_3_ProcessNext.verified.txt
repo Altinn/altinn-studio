@@ -56,6 +56,14 @@
     IsSuccessStatusCode: true
   },
   Response: {
+    ProcessTasks: [
+      {
+        AltinnTaskType: data,
+        ElementId: Task_1,
+        ElementType: Task
+      }
+    ],
+    Workflow: {},
     Status: idle,
     Started: DateTime_1,
     StartEvent: StartEvent_1,

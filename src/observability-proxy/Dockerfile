@@ -12,14 +12,16 @@ COPY global.json ./
 COPY .csharpierignore ./
 COPY .csharpierrc.yaml ./
 COPY src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj src/Altinn.Studio.Observability.Proxy/
-RUN dotnet restore src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj
+# Warnings fail builds and tests, not image builds. Publish raises warnings of its own, which must not block an image.
+RUN dotnet restore src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj /p:TreatWarningsAsErrors=false
 
 COPY src/Altinn.Studio.Observability.Proxy/ src/Altinn.Studio.Observability.Proxy/
 RUN dotnet publish src/Altinn.Studio.Observability.Proxy/Altinn.Studio.Observability.Proxy.csproj \
     -c Release \
     -o /app/out \
     --no-restore \
-    /p:CSharpier_Bypass=true
+    /p:CSharpier_Bypass=true \
+    /p:TreatWarningsAsErrors=false
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:2c2757fcb6e0dbf9030f6a47d950233e21008d0da838583587044418b4e80d46 AS final
 WORKDIR /app

@@ -6,23 +6,28 @@ import { ShareChangesPopover } from './components/ShareChangesPopover';
 import { BranchDropdown } from './components/BranchDropdown';
 import { VersionControlButtonsContextProvider } from './context';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
+import { useRefreshRepoStatusAfterChanges } from './hooks/useRefreshRepoStatusAfterChanges';
 
 export type VersionControlButtonsProps = {
   onPullSuccess: () => void;
+  onBeforeShare?: () => Promise<void>;
 };
 
 export const VersionControlButtons = ({
   onPullSuccess,
+  onBeforeShare,
 }: VersionControlButtonsProps): React.ReactElement => {
   const { owner, repoName } = useGiteaHeaderContext();
   const { data: currentRepo } = useRepoMetadataQuery(owner, repoName);
   const { data: repoStatus } = useRepoStatusQuery(owner, repoName);
+  useRefreshRepoStatusAfterChanges(owner, repoName);
 
   return (
     <VersionControlButtonsContextProvider
       currentRepo={currentRepo}
       repoStatus={repoStatus}
       onPullSuccess={onPullSuccess}
+      onBeforeShare={onBeforeShare}
     >
       <div className={classes.headerStyling}>
         <FetchChangesPopover />

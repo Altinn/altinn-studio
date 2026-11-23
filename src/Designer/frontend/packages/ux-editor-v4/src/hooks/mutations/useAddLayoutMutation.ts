@@ -1,6 +1,6 @@
 import { useFormLayoutsQuery } from '../queries/useFormLayoutsQuery';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
 import type { IInternalLayout } from '../../types/global';
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';

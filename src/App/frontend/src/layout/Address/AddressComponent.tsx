@@ -4,6 +4,7 @@ import { AddressLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { AddressFieldKey } from '@app/form-component';
 
+import { usePostPlace } from 'src/core/queries/postalCodes';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
@@ -11,10 +12,10 @@ import { useBindingValidationsFor } from 'src/features/validation/selectors/bind
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
-import { usePostPlace } from 'src/layout/Address/usePostPlace';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<'Address'>) {
@@ -22,6 +23,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Address');
   const componentId = useIndexedId(baseComponentId);
   const required = useEvalExpression(config.required, Expressions.Address.required);
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const readOnly = useEvalExpression(config.readOnly, Expressions.Address.readOnly);
   const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Address.textResourceBindings.title);
   const careOfTitle = useEvalOptionalText(
@@ -72,7 +74,7 @@ export function AddressComponent({ baseComponentId }: PropsFromGenericComponent<
       simplified={config.simplified}
       required={required}
       readOnly={readOnly}
-      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+      showOptionalMarking={showOptionalMarking}
       title={title}
       careOfTitle={careOfTitle}
       zipCodeTitle={zipCodeTitle}

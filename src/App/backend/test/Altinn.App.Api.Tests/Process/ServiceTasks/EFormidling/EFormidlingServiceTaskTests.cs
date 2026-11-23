@@ -5,19 +5,20 @@ using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.EFormidling.Interface;
 using Altinn.App.Core.EFormidling.Models;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
 using Argon;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Process.ServiceTasks.EFormidling;
 
-public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class EFormidlingServiceTaskTests : ApiTestBase
 {
     private const string Org = "ttd";
     private const string App = "service-tasks";
@@ -28,13 +29,17 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
 
     private readonly Mock<IEFormidlingService> _eFormidlingServiceMock = new();
 
-    public EFormidlingServiceTaskTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public EFormidlingServiceTaskTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
+        // The instance waits in the PDF task before the eFormidling task, idle as v8 left it, so process/next runs the
+        // PDF task first, which authenticates with Maskinporten.
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_eFormidlingServiceMock.Object);
             services.AddTransient<IProcessClient, ProcessClientMock>();
+            services.RemoveAll<IMaskinportenClient>();
+            services.AddSingleton(Mock.Of<IMaskinportenClient>());
         };
 
         // The task concludes only once delivery is confirmed, so the default here is an
@@ -111,6 +116,46 @@ public class EFormidlingServiceTaskTests : ApiTestBase, IClassFixture<WebApplica
         // Check that the process has been moved to end task
         var processState = JsonConvert.DeserializeObject<ProcessState>(nextResponseContent);
         processState.Ended.Should().NotBeNull();
+    }
+
+    // process/next answers with the process the task moved on to. Its workflow annotation must describe that
+    // process too, not the service task the request read the instance in.
+    [Fact]
+    public async Task ProcessNext_OnAServiceTaskV8Left_AnswersWithAWorkflowAnnotationForTheProcessItMovedTo()
+    {
+        SendAsync = message =>
+        {
+            if (message.RequestUri!.PathAndQuery.Contains("pdf"))
+            {
+                return Task.FromResult(
+                    new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("this is the binary pdf content"),
+                    }
+                );
+            }
+
+            throw new Exception($"Not mocked http request: {message.RequestUri!.PathAndQuery}");
+        };
+
+        using HttpClient client = GetRootedUserClient(Org, App);
+
+        using HttpResponseMessage processNextResponse = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next?language={Language}",
+            null
+        );
+
+        string nextResponseContent = await processNextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        processNextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+        using var document = System.Text.Json.JsonDocument.Parse(nextResponseContent);
+        document.RootElement.GetProperty("ended").ValueKind.Should().NotBe(System.Text.Json.JsonValueKind.Null);
+        document
+            .RootElement.GetProperty("workflow")
+            .GetProperty("status")
+            .ToString()
+            .Should()
+            .NotBeEquivalentTo("failed", "the process ended, and nothing failed");
     }
 
     [Fact]

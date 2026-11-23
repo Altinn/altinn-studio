@@ -137,7 +137,7 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     }
 }
 
-internal static partial class WebhookCommandDescriptorLogs
+internal static partial class WebhookCommandLogs
 {
     // Log only the payload size and content type, never the body: webhook payloads can carry
     // caller-supplied secrets or PII.

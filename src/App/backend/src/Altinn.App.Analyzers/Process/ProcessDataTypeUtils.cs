@@ -47,8 +47,6 @@ internal static class ProcessDataTypeUtils
         "dataType",
     ];
 
-    private static readonly string[] _subformDataTypeId = ["subformPdfConfig", "subformDataTypeId"];
-
     /// <summary>
     /// The elements under <c>altinn:taskExtension</c> that name a single data type each. The runtime deserializes
     /// them on every task, and the app's own task types may read them too, so they are checked whatever the task's
@@ -72,16 +70,6 @@ internal static class ProcessDataTypeUtils
         // AltinnPaymentConfiguration.Validate rejects blank ids itself.
         new(["paymentConfig", "paymentDataType"], SkipBlank: true),
         new(["paymentConfig", "paymentReceiptPdfDataType"], SkipBlank: true),
-        // SubformPdfServiceTask generates a PDF per data element of the type. On a subformPdf task its startup check
-        // (ValidateConfiguration) rejects a blank id and one that names no data type, so the app does not start.
-        // Another task type finds no data elements of an unknown type.
-        new(
-            _subformDataTypeId,
-            SkipBlank: true,
-            Skipped: "the task generates no PDFs for it and still succeeds",
-            FailsInTaskType: SubformPdfTaskType,
-            CheckedAtStartupIn: SubformPdfTaskType
-        ),
         // Every list counts, whatever its env: one that names no known environment applies when the app runs in
         // an environment the runtime does not recognize either. The startup check in EFormidlingServiceTask
         // fails on an empty id like any other unknown one.
@@ -92,7 +80,8 @@ internal static class ProcessDataTypeUtils
 
     /// <summary>
     /// Appends a diagnostic for every data type the process names that applicationmetadata.json does not declare,
-    /// or that cannot hold what a task stores in it, and for every data type whose <c>taskId</c> names no task.
+    /// or that cannot hold what a task stores in it, and for every task id in a data type's <c>taskIds</c> that
+    /// names no task.
     /// </summary>
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
@@ -179,17 +168,10 @@ internal static class ProcessDataTypeUtils
             case "pdf" when reachable:
                 CheckPdfDataType(context, task, taskId, taskType, "every time the task runs");
                 break;
-            // The task stores a PDF per data element of its subform data type, so without a data type the app
-            // declares it stores nothing. ALTINNAPP1013 reports an unknown id.
+            // The task stores a PDF per entry of the subform, whose data type is the defaultDataType of the subform's
+            // UI folder. ALTINNAPP1024 reports a folder without a declared one.
             case SubformPdfTaskType when reachable:
-                if (
-                    Follow(taskExtension, _subformDataTypeId).FirstOrDefault() is { } subformDataTypeId
-                    && context.DataTypes.Find(subformDataTypeId.Value) is not null
-                )
-                {
-                    CheckPdfDataType(context, task, taskId, taskType, "whenever an instance has a subform to print");
-                }
-
+                CheckPdfDataType(context, task, taskId, taskType, "whenever an instance has a subform to print");
                 break;
             case "signing":
                 CheckSigningDataTypes(context, taskId, taskExtension, reachable, signs);
@@ -319,14 +301,14 @@ internal static class ProcessDataTypeUtils
 
         if (Resolve(context, config, "signatureDataType") is (var signature, var signatureDataType))
         {
-            // Storage's sign endpoint accepts a signature only when some data type with the id has a taskId that is
-            // empty or the current task (ApplicationService.ValidateDataTypeForApp; localtest mirrors Storage), so
-            // otherwise every signature in the task is rejected.
+            // Storage's sign endpoint accepts a signature only when some data type with the id is bound to no task
+            // or to the current task (ApplicationService.ValidateDataTypeForApp; localtest mirrors Storage), so
+            // otherwise every signature in the task is rejected. Storage still reads a v8 taskId when there is no
+            // taskIds, which ALTINNAPP0603 reports.
             if (
                 signs
                 && !context.DataTypes.All.Exists(dataType =>
-                    dataType.Id == signatureDataType.Id
-                    && (string.IsNullOrEmpty(dataType.TaskId) || dataType.TaskId == taskId)
+                    dataType.Id == signatureDataType.Id && IsAllowedInTask(dataType, taskId)
                 )
             )
             {
@@ -336,9 +318,9 @@ internal static class ProcessDataTypeUtils
                     taskId,
                     "its signatures",
                     signatureDataType.Id,
-                    $"the data type's taskId is '{signatureDataType.TaskId}', and Storage accepts a signature only in "
-                        + "a data type whose taskId is empty or the signing task, so every signature fails",
-                    $"Set its taskId to '{taskId}', or remove the taskId"
+                    $"the data type's taskIds does not list '{taskId}', and Storage accepts a signature only in a "
+                        + "data type that is bound to no task or to the signing task, so every signature fails",
+                    $"Add '{taskId}' to its taskIds"
                 );
             }
 
@@ -368,6 +350,9 @@ internal static class ProcessDataTypeUtils
         {
             ReportIfCannotStore(context, signingPdf, taskId, "its signing PDF", PdfContentType, signingPdfDataType);
         }
+
+        static bool IsAllowedInTask(MetadataDataType dataType, string task) =>
+            dataType.TaskIds is not { Count: > 0 } taskIds || taskIds.Exists(t => t.Value == task);
     }
 
     /// <summary>
@@ -461,8 +446,8 @@ internal static class ProcessDataTypeUtils
 
     /// <summary>
     /// Only a <c>bpmn:task</c> or <c>bpmn:serviceTask</c> directly in the process becomes the current task, which is
-    /// what the runtime compares a data type's taskId with, exactly (DataElementAccessChecker, the validators). An
-    /// empty taskId is a taskId too, which no task has.
+    /// what the runtime looks up, exactly, in a data type's taskIds (DataElementAccessChecker, the validators). An
+    /// empty or null entry is a task id too, which no task has.
     /// </summary>
     private static void CheckDataTypeTaskIds(
         Context context,
@@ -474,32 +459,51 @@ internal static class ProcessDataTypeUtils
     {
         foreach (var dataType in context.DataTypes.All)
         {
-            if (dataType.TaskId is not { } taskId || taskIds.Contains(taskId))
+            if (dataType.TaskIds is not { } dataTypeTaskIds)
             {
                 continue;
             }
 
-            // A stateless app finds the data model of the folder it shows by a taskId that names that folder, when
-            // the folder's Settings.json has no defaultDataType (HomeController.GetStatelessDataType).
-            if (taskId == statelessFolder && dataType.HasClassRef)
+            var namesATask = dataTypeTaskIds.Exists(t => t.Value is { } value && taskIds.Contains(value));
+            foreach (var dataTypeTaskId in dataTypeTaskIds)
             {
-                continue;
-            }
+                var taskId = dataTypeTaskId.Value;
+                if (taskId is not null && taskIds.Contains(taskId))
+                {
+                    continue;
+                }
 
-            context.Output.Add(
-                Diagnostic.Create(
-                    Diagnostics.Process.DataTypeTaskNotFound,
-                    FileLocationHelper.GetLocation(metadataFile, dataType.TaskIdStart, dataType.TaskIdEnd),
-                    dataType.Id,
-                    taskId,
-                    WhyNotATask(process, taskId)
-                )
-            );
+                // A stateless app finds the data model of the folder it shows by a task id that names that folder,
+                // when the folder's Settings.json has no defaultDataType (HomeController.GetStatelessDataType).
+                if (taskId is not null && taskId == statelessFolder && dataType.HasClassRef)
+                {
+                    continue;
+                }
+
+                context.Output.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.DataTypeTaskNotFound,
+                        FileLocationHelper.GetLocation(metadataFile, dataTypeTaskId.Start, dataTypeTaskId.End),
+                        dataType.Id,
+                        taskId is null ? "null" : $"'{taskId}'",
+                        WhyNotATask(process, taskId),
+                        namesATask
+                            ? "that entry has no effect"
+                            : "users cannot change the data type's data through the app, and its minCount and "
+                                + "validation never apply"
+                    )
+                );
+            }
         }
     }
 
-    private static string WhyNotATask(XElement process, string taskId)
+    private static string WhyNotATask(XElement process, string? taskId)
     {
+        if (taskId is null)
+        {
+            return "null names no task";
+        }
+
         if (taskId.Length == 0)
         {
             return "no task has an empty id";
@@ -538,7 +542,6 @@ internal static class ProcessDataTypeUtils
         TaskReference reference
     )
     {
-        var skipped = taskType is not null && taskType == reference.FailsInTaskType ? null : reference.Skipped;
         var skipBlank = reference.SkipBlank || (taskType is not null && taskType == reference.BlankIsMissingIn);
         foreach (var element in Follow(taskExtension, reference.Path))
         {
@@ -548,7 +551,7 @@ internal static class ProcessDataTypeUtils
                 continue;
             }
 
-            ReportUnknown(context, element, taskId, reference.Path, skipped);
+            ReportUnknown(context, element, taskId, reference.Path, reference.Skipped);
         }
     }
 
@@ -627,10 +630,6 @@ internal static class ProcessDataTypeUtils
     /// <param name="Skipped">
     /// What the app skips when the id is unknown, for a reference that fails nothing; null when an unknown id fails.
     /// </param>
-    /// <param name="FailsInTaskType">
-    /// The task type in which an unknown id fails after all, so it is reported as one that fails rather than as
-    /// <paramref name="Skipped"/>.
-    /// </param>
     /// <param name="CheckedAtStartupIn">
     /// The task type whose startup check fails on an unknown id, so it is reported in a task of that type that no
     /// instance reaches as well. Otherwise an unknown id fails only when an instance uses the task.
@@ -643,7 +642,6 @@ internal static class ProcessDataTypeUtils
         string[] Path,
         bool SkipBlank,
         string? Skipped = null,
-        string? FailsInTaskType = null,
         string? CheckedAtStartupIn = null,
         bool WhenSigning = false,
         string? BlankIsMissingIn = null

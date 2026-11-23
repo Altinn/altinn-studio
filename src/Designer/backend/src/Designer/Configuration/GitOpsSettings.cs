@@ -1,4 +1,5 @@
 #nullable disable
+using System.IO;
 using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.Configuration;
@@ -22,4 +23,11 @@ public class GitOpsSettings : ISettingsMarker
     /// Organization where GitOps repositories are hosted
     /// </summary>
     public string GitOpsOrg { get; set; } = "als";
+
+    /// <summary>
+    /// Directory for the local clones of the GitOps repositories. It should be on local disk rather than the shared
+    /// repository volume, since every deploy checks each file in the clone, and that is slow over the network. The
+    /// cleanup of inactive repositories does not look here, so it cannot delete a clone that a deploy is using.
+    /// </summary>
+    public string LocalRepositoryLocation { get; set; } = Path.Join(Path.GetTempPath(), "gitops");
 }

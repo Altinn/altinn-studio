@@ -45,5 +45,33 @@ public class AddAsyncTests : DbIntegrationTestsBase
         Assert.Equal(entry.Status, dbEntry.Status);
         Assert.Equal(entry.UserName, dbEntry.UserName);
         Assert.Equal(entry.Timestamp.UtcDateTime, dbEntry.Timestamp.UtcDateTime);
+        Assert.Null(dbEntry.WorkflowId);
+    }
+
+    [Fact]
+    public async Task AddAsync_StoresTheWorkflowId_OfAWorkflowAction()
+    {
+        string org = Guid.NewGuid().ToString();
+        var workflowId = Guid.NewGuid();
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AdminAuditLogRepository(
+            DbFixture.DbContext
+        );
+        var entry = new AdminAuditLogEntry
+        {
+            Org = org,
+            Env = "tt02",
+            App = "test-app",
+            InstanceId = "51e58b12-6de1-4d0f-9052-ec2ee9d43adf",
+            WorkflowId = workflowId,
+            Action = AdminAuditActions.ResumeWorkflow,
+            Status = AdminAuditStatuses.Requested,
+            UserName = "testDeveloper",
+            Timestamp = new DateTimeOffset(2026, 10, 28, 12, 0, 0, TimeSpan.Zero),
+        };
+
+        await repository.AddAsync(entry);
+        var entries = await repository.GetForOrgAsync(org);
+
+        Assert.Equal(workflowId, Assert.Single(entries).WorkflowId);
     }
 }

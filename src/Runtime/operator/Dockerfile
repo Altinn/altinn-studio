@@ -3,24 +3,33 @@ FROM --platform=$BUILDPLATFORM golang:1.27.3-trixie@sha256:fbb7ae40b62ff8afe3166
 ARG TARGETOS
 ARG TARGETARCH
 
-WORKDIR /workspace
+# The build context is src/: the operator builds against the shared Go module in common/go, which
+# its go.mod replaces with that directory. <Dockerfile>.dockerignore keeps the context to the two
+# modules.
+WORKDIR /src/Runtime/operator
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY common/go/go.mod common/go/go.sum /src/common/go/
+COPY Runtime/operator/go.mod Runtime/operator/go.sum ./
 
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
 # Copy the go source
-COPY . ./
+COPY common/go/ /src/common/go/
+COPY Runtime/operator/ ./
+
+# The commit the image is built from, reported as service.version. "dev" in local builds.
+ARG SERVICE_VERSION=dev
 
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command
 # was called. For example, if we call make docker-build in a local env which has the Apple Silicon M1 SO
 # the docker BUILDPLATFORM arg will be linux/arm64 when for Apple x86 it will be linux/amd64. Therefore,
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -o manager cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build \
+    -ldflags "-X altinn.studio/operator/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
+    -o /workspace/manager cmd/main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import type { PageAccordionProps } from './PageAccordion';
 import { PageAccordion } from './PageAccordion';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import {
   formLayoutSettingsMock,
@@ -13,7 +13,7 @@ import {
 } from '../../../testing/mocks';
 import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import * as useDeleteLayoutModule from './useDeleteLayout';
 
 const mockPageName1: string = layout1NameMock;

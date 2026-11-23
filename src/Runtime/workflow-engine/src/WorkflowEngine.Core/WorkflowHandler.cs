@@ -120,7 +120,8 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(
                 1,
                 (TelemetryAttributes.Reason, "dependency_failed"),
-                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue()),
+                (TelemetryAttributes.Namespace, workflow.Namespace)
             );
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
@@ -184,7 +185,8 @@ internal sealed class WorkflowHandler(
             Metrics.WorkflowsFailed.Add(
                 1,
                 (TelemetryAttributes.Reason, FailureReason(workflow)),
-                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue()),
+                (TelemetryAttributes.Namespace, workflow.Namespace)
             );
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
@@ -371,7 +373,7 @@ internal sealed class WorkflowHandler(
             );
             workflow.BackoffUntil = null;
 
-            Metrics.StepsFailed.Add(1);
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
             logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
 
             return;
@@ -388,15 +390,17 @@ internal sealed class WorkflowHandler(
 
         if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, timeProvider))
         {
+            // PostgreSQL keeps FirstFailedAt to the microsecond, while the error history's JSON keeps every
+            // tick. Cut to the microsecond here, so the two read as the same instant after a round trip.
+            var failedAt = timeProvider.GetUtcNow();
+            failedAt = failedAt.AddTicks(-(failedAt.Ticks % TimeSpan.TicksPerMicrosecond));
+            if (currentStep.RequeueCount == 0)
+                currentStep.FirstFailedAt = failedAt;
+
             currentStep.RequeueCount++;
             currentStep.Status = PersistentItemStatus.Requeued;
             currentStep.ErrorHistory.Add(
-                new ErrorEntry(
-                    timeProvider.GetUtcNow(),
-                    result.Message ?? "Unknown error",
-                    result.HttpStatusCode,
-                    WasRetryable: true
-                )
+                new ErrorEntry(failedAt, result.Message ?? "Unknown error", result.HttpStatusCode, WasRetryable: true)
             );
             workflow.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
             ParkIfNamespaceThrottled(workflow, retryStrategy, initialStartTime);
@@ -419,7 +423,7 @@ internal sealed class WorkflowHandler(
         );
         workflow.BackoffUntil = null;
 
-        Metrics.StepsFailed.Add(1);
+        Metrics.StepsFailed.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
         logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
     }
 
@@ -446,7 +450,7 @@ internal sealed class WorkflowHandler(
             );
             workflow.BackoffUntil = null;
 
-            Metrics.StepsFailed.Add(1);
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
             logger.FailingStepInvalidDefer(currentStep, delay);
 
             return;
@@ -475,7 +479,11 @@ internal sealed class WorkflowHandler(
             workflow.BackoffUntil = null;
             workflow.FailureReason = "wait_expired";
 
-            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "wait_expired"));
+            Metrics.StepsFailed.Add(
+                1,
+                (TelemetryAttributes.Reason, "wait_expired"),
+                (TelemetryAttributes.Namespace, workflow.Namespace)
+            );
             logger.FailingStepWaitExpired(currentStep, currentStep.DeferCount, waitBudget);
 
             return;
@@ -495,6 +503,7 @@ internal sealed class WorkflowHandler(
         currentStep.FirstDeferredAt ??= now;
         currentStep.LastDeferredAt = now;
         currentStep.RequeueCount = 0;
+        currentStep.FirstFailedAt = null;
         currentStep.Status = PersistentItemStatus.Waiting;
         workflow.BackoffUntil = now.Add(scheduledDelay);
 

@@ -3,7 +3,7 @@ import type { Mock } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { OrgPageLayout } from './OrgPageLayout';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';

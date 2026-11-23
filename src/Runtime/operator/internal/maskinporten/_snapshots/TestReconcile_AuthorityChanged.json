@@ -1,0 +1,3 @@
+[
+ {"type":"UpdateSecretContent","clientId":"test-client-id-123","authority":"https://test.maskinporten.no/","keyIds":["9e5e51c1-de0e-4ad8-bb34-41018903b777.0"],"expiries":["2024-01-31T00:00:00Z"]}
+]

@@ -295,6 +295,14 @@ internal class ProcessEngine : IProcessEngine
             return retryingResult;
         }
 
+        // No workflow to resume: process/next starts the task again.
+        if (workflowStatus.ServiceTaskWithoutWorkflow)
+        {
+            ProcessChangeResult nextResult = await ProcessNext(request with { Action = null }, cancellationToken);
+            activity?.SetProcessChangeResult(nextResult);
+            return nextResult;
+        }
+
         if (
             workflowStatus.Status != WorkflowActivityStatus.Failed
             || (workflowStatus.Failure?.RetryTargetWorkflowId ?? workflowStatus.Failure?.WorkflowId)
@@ -342,6 +350,7 @@ internal class ProcessEngine : IProcessEngine
                 NewProcessState = workflowResult.Instance.Process,
                 Events = [],
             },
+            WorkflowParked = workflowResult.Parked,
         };
 
         activity?.SetProcessChangeResult(changeResult);
@@ -380,17 +389,6 @@ internal class ProcessEngine : IProcessEngine
 
         if (!authorized)
         {
-            if (
-                request.Mode is ProcessNextMode.CompleteProcess
-                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance, cancellationToken: cancellationToken)
-            )
-            {
-                ProcessChangeResult completeProcessAuthorizationFailedResult =
-                    CreateCompleteProcessAuthorizationFailedResult(currentTaskId, altinnTaskType);
-                activity?.SetProcessChangeResult(completeProcessAuthorizationFailedResult);
-                return completeProcessAuthorizationFailedResult;
-            }
-
             var result = new ProcessChangeResult
             {
                 Success = false,
@@ -431,33 +429,19 @@ internal class ProcessEngine : IProcessEngine
             return blockedResult;
         }
 
-        if (request.Mode is ProcessNextMode.CompleteProcess)
+        // An idle instance in a service task has no workflow for it. Unless a reject abandons the task, process/next
+        // starts the task again. See WorkflowTaskStatus.ServiceTaskWithoutWorkflow.
+        bool restartServiceTask = isServiceTask && !rejectAllowedForTask;
+        if (
+            restartServiceTask
+            && await CheckServiceTaskRestart(instance, altinnTaskType, request.Action, cancellationToken) is { } refused
+        )
         {
-            bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(
-                instance,
-                cancellationToken: cancellationToken
-            );
-            if (!completeProcessAuthorized)
-            {
-                ProcessChangeResult unauthorizedResult = CreateCompleteProcessAuthorizationFailedResult(
-                    currentTaskId,
-                    altinnTaskType
-                );
-                activity?.SetProcessChangeResult(unauthorizedResult);
-                return unauthorizedResult;
-            }
-
-            if (
-                await GetValidationError(instance, versions, currentTaskId, request.Language) is
-                { } completeValidationError
-            )
-            {
-                activity?.SetProcessChangeResult(completeValidationError);
-                return completeValidationError;
-            }
+            activity?.SetProcessChangeResult(refused);
+            return refused;
         }
 
-        if (request.Action is not "reject")
+        if (request.Action is not "reject" && !restartServiceTask)
         {
             if (request.Action is not null)
             {
@@ -528,7 +512,9 @@ internal class ProcessEngine : IProcessEngine
         ProcessStateChange processStateChange;
         try
         {
-            processStateChange = await ComputeNextTransition(transitionData, processNextAction);
+            processStateChange = restartServiceTask
+                ? CreateTaskRestart(instance)
+                : await ComputeNextTransition(transitionData, processNextAction);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -607,10 +593,98 @@ internal class ProcessEngine : IProcessEngine
                 OldProcessState = instance.Process,
                 NewProcessState = newProcessState,
             },
+            WorkflowParked = workflowResult.Parked,
         };
 
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;
+    }
+
+    /// <summary>
+    /// Why process/next does not start a service task without workflow again, or null when it does: an action the
+    /// task does not take, refused as v8 refused it, a task the process no longer declares as a service task, or a
+    /// workflow that still runs or must be resumed.
+    /// </summary>
+    private async Task<ProcessChangeResult?> CheckServiceTaskRestart(
+        Instance instance,
+        string altinnTaskType,
+        string? action,
+        CancellationToken cancellationToken
+    )
+    {
+        if (action is not (null or "write") && action != altinnTaskType)
+        {
+            return new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "User action not supported.",
+                ErrorMessage =
+                    $"Service tasks do not support running user actions. Received action {LogSanitizer.Sanitize(action)}.",
+            };
+        }
+
+        // The restart runs the task type stored on the instance. A deploy that removed the task, or made it another
+        // kind of element, would have it run for an element the process cannot move on from.
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
+        if (_processReader.GetFlowElement(taskId) is not ServiceTask)
+        {
+            return new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "Service task not in the process.",
+                ErrorMessage =
+                    $"The process no longer declares {LogSanitizer.Sanitize(taskId)} as a service task, so it cannot "
+                    + "run again.",
+            };
+        }
+
+        WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
+            instance,
+            cancellationToken
+        );
+        if (workflowStatus.ServiceTaskWithoutWorkflow)
+        {
+            return null;
+        }
+
+        // An idle instance in a service task never reads as idle: without a workflow it is ServiceTaskWithoutWorkflow.
+        return CreateWorkflowBlockedResult(workflowStatus)
+            ?? throw new UnreachableException("An idle instance in a service task read as idle.");
+    }
+
+    /// <summary>
+    /// A transition from the current task to a new visit of it, which starts the task again without ending it.
+    /// </summary>
+    private static ProcessStateChange CreateTaskRestart(Instance instance)
+    {
+        ProcessState process = instance.Process ?? throw new ProcessException("Process is null");
+        ProcessElementInfo task = process.CurrentTask ?? throw new ProcessException("Current task is null");
+        ProcessState newProcessState = new()
+        {
+            Started = process.Started,
+            StartEvent = process.StartEvent,
+            CurrentTask = new ProcessElementInfo
+            {
+                Flow = (task.Flow ?? 0) + 1,
+                ElementId = task.ElementId,
+                Name = task.Name,
+                AltinnTaskType = task.AltinnTaskType,
+                FlowType = task.FlowType,
+            },
+        };
+        return new ProcessStateChange
+        {
+            OldProcessState = new ProcessState
+            {
+                Started = process.Started,
+                CurrentTask = task,
+                StartEvent = process.StartEvent,
+            },
+            NewProcessState = newProcessState,
+            Events = [CreateInstanceEvent(InstanceEventType.process_StartTask.ToString(), instance, newProcessState)],
+        };
     }
 
     // Flow distinguishes a new visit when a gateway returns to the same task.
@@ -1035,7 +1109,7 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <summary>
-    /// Selects the action performed by process/completeProcess, or the implicit reject for process/next.
+    /// Selects the action a task type implies when process/next names none, such as the implicit reject.
     /// </summary>
     /// <remarks>
     /// This differs from the authorization table: unmapped task types keep their name, so <c>payment</c> does not
@@ -1120,19 +1194,6 @@ internal class ProcessEngine : IProcessEngine
         return true;
     }
 
-    private static ProcessChangeResult CreateCompleteProcessAuthorizationFailedResult(
-        string currentTaskId,
-        string altinnTaskType
-    ) =>
-        new()
-        {
-            Success = false,
-            ErrorType = ProcessErrorType.Unauthorized,
-            ErrorMessage =
-                $"User is not authorized to complete the current task. Task ID: {LogSanitizer.Sanitize(currentTaskId)}. Task type: {LogSanitizer.Sanitize(altinnTaskType)}.",
-            CompleteProcessAuthorizationFailed = true,
-        };
-
     private static string CreateWorkflowFailureMessage(WorkflowFailure workflowFailure) =>
         workflowFailure.Kind switch
         {
@@ -1168,6 +1229,18 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
+    /// <summary>
+    /// The answer to a request the current task's workflow blocks: retry while it runs, resume once it has failed. Null
+    /// when the status is idle.
+    /// </summary>
+    private static ProcessChangeResult? CreateWorkflowBlockedResult(WorkflowTaskStatus workflowStatus) =>
+        workflowStatus.Status switch
+        {
+            WorkflowActivityStatus.Processing => CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying),
+            WorkflowActivityStatus.Failed => CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired),
+            _ => null,
+        };
+
     private async Task<ProcessChangeResult> CreateProcessStatusBlockedResult(
         Instance instance,
         ProcessStatus currentStatus,
@@ -1178,14 +1251,9 @@ internal class ProcessEngine : IProcessEngine
             instance,
             cancellationToken
         );
-        if (workflowStatus.Status == WorkflowActivityStatus.Processing)
+        if (CreateWorkflowBlockedResult(workflowStatus) is { } blockedResult)
         {
-            return CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.Retrying);
-        }
-
-        if (workflowStatus.Status == WorkflowActivityStatus.Failed)
-        {
-            return CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired);
+            return blockedResult;
         }
 
         // Idle: the transition finished after the read, or nothing owns the instance; only the status is certain.
@@ -1200,7 +1268,7 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    private IPipelineServiceTask? CheckIfServiceTask(string? altinnTaskType)
+    private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;

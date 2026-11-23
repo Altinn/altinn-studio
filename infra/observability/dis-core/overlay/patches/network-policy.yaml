@@ -1,0 +1,37 @@
+# Only the namespaces of Studio's services in DIS Core reach the router, and this one, whose
+# gateways send their own metrics through it. Add a service's namespace when it moves here.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: otel-router-ingress
+spec:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - product-studio-obs
+                  - product-studio-pdf3
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: otel-gateway-ingress
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              altinn.studio/otel-collector: otel-router
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318

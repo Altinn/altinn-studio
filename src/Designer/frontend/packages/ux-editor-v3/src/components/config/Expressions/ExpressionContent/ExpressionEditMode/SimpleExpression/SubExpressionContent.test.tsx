@@ -11,14 +11,14 @@ import {
 } from '../../../../../../testing/expressionMocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithMockStore } from '../../../../../../testing/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor-v3/testing/layoutMock';
 import { layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../../../../../types/global';
 import { DataSource } from '../../../../../../types/Expressions';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const user = userEvent.setup();
 const layoutSetName = layoutSet1NameMock;

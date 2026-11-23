@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ReleaseContainer } from './ReleaseContainer';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import {
   type ServicesContextProps,
@@ -11,10 +11,10 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { repoStatus } from 'app-shared/mocks/mocks';
 import userEvent from '@testing-library/user-event';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 import type { OrgList } from 'app-shared/types/OrgList';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
-import { app, org } from '@studio/testing/testids';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
+import { app, org } from '@designer/testing/testids';
 import { gitCommitPath } from 'app-shared/api/paths';
 import type { CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';

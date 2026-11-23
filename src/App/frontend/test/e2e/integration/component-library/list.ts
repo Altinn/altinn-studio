@@ -13,6 +13,8 @@ describe('List component', () => {
     cy.get(source).find('caption').should('have.attr', 'id', 'label-ListPage-InformationalList');
     cy.get(summary).findByRole('table', { name: 'Personoversikt' }).should('be.visible');
     cy.get(summary).find('caption').should('have.attr', 'id', 'label-ListPage-InformationalList-summary');
+    cy.get(summary).findByRole('button', { name: 'Hjelpetekst for Personoversikt' }).click();
+    cy.get(summary).findByTestId('helptext').should('contain.text', 'Hjelp til personoversikten');
     cy.get(summary).findByRole('cell', { name: 'Kari' }).should('be.visible');
     cy.get(summary).findByRole('cell', { name: 'Johanne' }).should('be.visible');
     cy.get(summary).findByRole('button', { name: 'Endre', timeout: 0 }).should('not.exist');
@@ -86,6 +88,19 @@ describe('List component', () => {
     // Summary2 is a bit more tricky to find
     cy.get('table').last().should('have.not.have.attr', 'id');
     cy.get('table').last().findAllByRole('row').should('have.length', 3); // Header + 2 row
+    cy.get('table')
+      .last()
+      .find('thead th')
+      .should(($headers) => {
+        expect([...$headers].map((header) => header.textContent)).to.deep.equal(['Navn', 'Alder', 'Yrke']);
+      });
+    cy.get('table')
+      .last()
+      .find('colgroup col')
+      .should('have.length', 3)
+      .and(($columns) => {
+        expect([...$columns].map((column) => column.style.width)).to.deep.equal(['55%', '', '25%']);
+      });
 
     // Find Kåre, make sure he's selected in both summaries
     cy.get(list).findByRole('cell', { name: 'Kåre' }).parent().click();

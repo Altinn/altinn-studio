@@ -27,7 +27,8 @@
         "type": "RepeatingGroup",
         "textResourceBindings": {
           "title": "Repeterende Gruppe",
-          "description": "Beskrivelse av repeterende gruppe"
+          "description": "Beskrivelse av repeterende gruppe",
+          "help": "Hjelp til repeterende gruppe"
         },
         "dataModelBindings": {
           "group": "repeatingGroup"
@@ -35,15 +36,30 @@
         "hidden": false,
         "children": [
           "RepeatingGroup-Input-Name",
+          "RepeatingGroup-ExtraAction",
           "RepeatingGroup-Input-Points",
           "RepeatingGroup-Input-Date"
+        ],
+        "tableHeaders": [
+          "RepeatingGroup-Input-Name",
+          "RepeatingGroup-ExtraAction",
+          "RepeatingGroup-Input-Points",
+          "RepeatingGroup-Input-Date"
+        ],
+        "rowsBefore": [
+          { "cells": [{ "text": "" }, { "text": "Additional information" }, { "text": "" }, { "text": "" }] }
+        ],
+        "rowsAfter": [
+          { "cells": [{ "text": "Across columns", "cellStyle": { "colSpan": 2 } }, { "text": "Points" }, { "text": "Date" }] }
         ]
       },
       {
         "id": "RepeatingGroup-Input-Name",
         "type": "Input",
         "textResourceBindings": {
-          "title": "RepeatingGroup.Name"
+          "title": "RepeatingGroup.Name",
+          "description": "Beskrivelse av navn",
+          "help": "Hjelp til navn"
         },
         "dataModelBindings": {
           "simpleBinding": "repeatingGroup.name"
@@ -52,6 +68,12 @@
           "xs": 12,
           "sm": 6
         }
+      },
+      {
+        "id": "RepeatingGroup-ExtraAction",
+        "type": "CustomButton",
+        "actions": [{ "type": "ClientAction", "id": "nextPage" }],
+        "textResourceBindings": { "title": "Extra action" }
       },
       {
         "id": "RepeatingGroup-Input-Points",

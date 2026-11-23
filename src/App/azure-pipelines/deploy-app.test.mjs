@@ -216,3 +216,40 @@ test('reject environment names containing path separators', (t) => {
   assert.notEqual(result.status, 0);
   assert.match(result.stdout, /Invalid environment name/);
 });
+
+test('pod annotations name the Studio deploy that runs', (t) => {
+  const overridesStep = pipeline.steps.find(
+    (step) => step.displayName === 'Generate overrides file.',
+  );
+  assert.ok(overridesStep?.inputs.script, 'overrides step must exist');
+  const artifact = mkdtempSync(join(tmpdir(), 'deployment-overrides-'));
+  t.after(() => rmSync(artifact, { recursive: true, force: true }));
+
+  const result = spawnSync('bash', ['-c', overridesStep.inputs.script], {
+    cwd: artifact,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      ...pipeline.variables,
+      APP_ENVIRONMENT: 'tt02',
+      ALTINN_HOST: 'altinn.no',
+      APP_OWNER: 'ttd',
+      APP_REPO: 'my-app',
+      RELEASE_NAME: 'ttd-my-app',
+      TAGNAME: '9cf6fc1',
+      DEPLOYMENT_ID: '42',
+      BUILD_BUILDID: '1234',
+      STUDIO_ENVIRONMENT: 'prod',
+    },
+  });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+
+  const overrides = JSON.parse(
+    execFileSync('yq', ['-o=json', '.', join(artifact, pipeline.variables.OVERRIDES_FILE)]),
+  );
+  assert.deepEqual(overrides.podAnnotations, {
+    'altinn.studio/deployment-id': '42',
+    'altinn.studio/build-id': '1234',
+    'altinn.studio/source-environment': 'prod',
+  });
+});

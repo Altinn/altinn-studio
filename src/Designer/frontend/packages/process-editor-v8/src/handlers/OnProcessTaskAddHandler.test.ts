@@ -4,7 +4,7 @@ import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProce
 import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
 import type { TaskEvent } from '@altinn/process-editor-v8/types/TaskEvent';
 import type { BpmnTaskType } from '@altinn/process-editor-v8/types/BpmnTaskType';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor-v8/types/BpmnBusinessObjectEditor';
 import type * as StudioModelerModule from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';

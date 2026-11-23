@@ -19,6 +19,18 @@ type Props = LinkProps & { children?: React.ReactNode };
  */
 export const LinkToPotentialNode = (props: Props) => {
   const to = props.to;
+  const search = typeof to === 'string' ? to.split('?').at(1) : to.search;
+  const componentId = new URLSearchParams(search).get(SearchParams.FocusComponentId);
+  return (
+    <LinkToPotentialNodeInner
+      key={componentId}
+      {...props}
+    />
+  );
+};
+
+function LinkToPotentialNodeInner(props: Props) {
+  const to = props.to;
   const searchParams = typeof to === 'string' ? to.split('?').at(1) : to.search;
 
   const params = new URLSearchParams(searchParams);
@@ -68,7 +80,7 @@ export const LinkToPotentialNode = (props: Props) => {
   }
 
   return props.children;
-};
+}
 
 function withoutFocusComponentParams(to: LinkProps['to'], params: URLSearchParams): LinkProps['to'] {
   const cleanParams = new URLSearchParams(params);

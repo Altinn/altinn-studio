@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using Altinn.Studio.Common.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -202,7 +203,7 @@ public sealed class TelemetryConfigurationTests
         {
             Assert.Equal("WorkflowEngine", resource["service.name"]);
             Assert.Equal(Metrics.ServiceVersion, resource["service.version"]);
-            Assert.Equal(Metrics.ServiceInstanceId, resource["service.instance.id"]);
+            Assert.Equal(Workload.InstanceId, resource["service.instance.id"]);
         }
     }
 
@@ -302,7 +303,7 @@ public sealed class TelemetryConfigurationTests
 
             // Still from code: the deployment sets neither
             Assert.Equal(Metrics.ServiceVersion, resource["service.version"]);
-            Assert.Equal(Metrics.ServiceInstanceId, resource["service.instance.id"]);
+            Assert.Equal(Workload.InstanceId, resource["service.instance.id"]);
         }
     }
 

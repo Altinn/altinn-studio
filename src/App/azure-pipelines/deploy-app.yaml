@@ -40,8 +40,8 @@ variables:
   MERGED_VALUES: 'values.merged.yaml'
   MASKINPORTEN_CR_FILE: 'maskinportenclient.yaml'
 
-  AI_SERVICE_CONNECTION_ID_TEST: 'c3cabb67-2cf6-4114-acd3-e1f0e32eea82'
-  AI_SERVICE_CONNECTION_ID_PROD: '4c145755-0ab0-4c62-b182-4d2fbb9563ed'
+  AI_SERVICE_CONNECTION_ID_TEST: '251ddc4d-a08f-4577-adfa-b2b8d3b9e2ed'
+  AI_SERVICE_CONNECTION_ID_PROD: 'b6869e6f-2ae7-4876-acf5-90800d281180'
 
   GITOPS_ORGANIZATION: 'als'
   GITOPS_REPO_SUFFIX: '-gitops'
@@ -380,7 +380,7 @@ steps:
 
         echo "PowerShell script generated successfully"
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Get Application Insights configuration (Production)
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
@@ -391,7 +391,7 @@ steps:
       pwsh: true
       TargetAzurePs: LatestVersion
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Get Application Insights configuration (Non-Production)
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'))
     inputs:
@@ -402,11 +402,11 @@ steps:
       pwsh: true
       TargetAzurePs: LatestVersion
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Test
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), ne(variables['APP_ENVIRONMENT'], 'production'), ne(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
-      ConnectedServiceNameARM: fa66913f-0df2-411a-89b7-9248e463423d
+      ConnectedServiceNameARM: 610b89d4-a06f-448d-876b-8e2aaef817a8
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
@@ -465,11 +465,11 @@ steps:
       TargetAzurePs: LatestVersion
       pwsh: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Staging
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'tt02'))"
     inputs:
-      ConnectedServiceNameARM: a00b78e7-d6bd-414a-abec-aaae2be043bc
+      ConnectedServiceNameARM: 1f0ab441-0bb3-4658-8aba-c06e4fb737fd
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO TEST ENV. SEE CONTROL OPTIONS.
@@ -529,11 +529,11 @@ steps:
       TargetAzurePs: LatestVersion
       pwsh: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: Ensure API management subscription key - Production
     condition: "and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'), eq(variables['APP_ENVIRONMENT'], 'production'))"
     inputs:
-      ConnectedServiceNameARM: 09d70185-733d-4973-8dfa-c4be37a8ac3a
+      ConnectedServiceNameARM: c244af33-d252-4ca6-a250-bd070baec9d9
       ScriptType: InlineScript
       Inline: |
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
@@ -644,7 +644,8 @@ steps:
           HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
         fi
 
-        # Start writing to overrides file
+        # Start writing to overrides file. The chart copies podAnnotations onto the Deployment's pod template,
+        # where the runtime gateway reads them to tell Designer which Studio deploy runs in the cluster.
         cat << EOF > "$OVERRIDES_FILE"
         image:
           pullSecrets: []
@@ -668,6 +669,8 @@ steps:
               value: "${TAGNAME}"
         podAnnotations:
           altinn.studio/deployment-id: "${DEPLOYMENT_ID}"
+          altinn.studio/build-id: "${BUILD_BUILDID}"
+          altinn.studio/source-environment: "${STUDIO_ENVIRONMENT}"
         EOF
 
         # Add service and ingressRoute

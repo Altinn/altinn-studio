@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { StudioProperty } from '@studio/components';
+import { StudioProperty } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { LinkIcon } from '@studio/icons';
+import { LinkIcon } from '@designer/icons';
 import { SelectDataTypesToSign } from './SelectDataTypesToSign';
 import { useGetDataTypesToSign } from '../../../../hooks/dataTypesToSign/useGetDataTypesToSign';
 

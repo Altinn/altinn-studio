@@ -19,7 +19,7 @@ void RegisterCustomAppServices(
     // scenario also drives the multi-stage contract (dispatch by stage index, per-stage
     // durability/options). The engine runs the pipeline as critical post-commit steps, so
     // delays/failures are frontend-observable (committed = the service task).
-    services.AddTransient<IPipelineServiceTask, ScenarioServiceTask>();
+    services.AddTransient<IServiceTask, ScenarioServiceTask>();
 }
 
 // ###########################################################################

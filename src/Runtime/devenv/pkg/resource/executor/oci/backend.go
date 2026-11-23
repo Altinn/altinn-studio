@@ -5,16 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"altinn.studio/devenv/pkg/helm"
 	"altinn.studio/devenv/pkg/oci"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/resource/executor"
 )
-
-const helmPackageDirPerm = 0o750
 
 var errUnsupportedResource = errors.New("unsupported OCI backend resource")
 
@@ -29,20 +25,15 @@ type ociOperations interface {
 }
 
 type helmOperations interface {
-	PackageChart(chartPath, destDir string) (string, error)
-	PushChart(chartFile, ociRef string) error
+	PushChart(chartPath, ociRef string) error
 }
 
 // New creates an OCI publishing resource backend.
-func New() (*Backend, error) {
-	helmClient, err := helm.NewClient(true)
-	if err != nil {
-		return nil, fmt.Errorf("create helm client: %w", err)
-	}
+func New() *Backend {
 	return &Backend{
 		oci:  oci.NewClient(),
-		helm: helmClient,
-	}, nil
+		helm: helm.NewClient(),
+	}
 }
 
 // Supports reports whether this backend can apply and observe r.
@@ -112,30 +103,10 @@ func (b *Backend) applyOCIArtifact(artifact *resource.OCIArtifact) error {
 }
 
 func (b *Backend) applyHelmChartArtifact(artifact *resource.OCIArtifact) error {
-	tmp, err := os.MkdirTemp("", "devenv-helm-chart-*")
-	if err != nil {
-		return fmt.Errorf("create helm chart temp dir: %w", err)
-	}
-	defer removeAllBestEffort(tmp)
-
-	packageDir := filepath.Join(tmp, "packages")
-	if mkdirErr := os.MkdirAll(packageDir, helmPackageDirPerm); mkdirErr != nil {
-		return fmt.Errorf("create helm package dir: %w", mkdirErr)
-	}
-	chartFile, err := b.helm.PackageChart(artifact.Path, packageDir)
-	if err != nil {
-		return fmt.Errorf("package helm chart artifact %s: %w", artifact.Name, err)
-	}
-	if err := b.helm.PushChart(chartFile, artifact.URL); err != nil {
+	if err := b.helm.PushChart(artifact.Path, artifact.URL); err != nil {
 		return fmt.Errorf("push helm chart artifact %s: %w", artifact.Name, err)
 	}
 	return nil
-}
-
-func removeAllBestEffort(path string) {
-	if err := os.RemoveAll(path); err != nil {
-		return
-	}
 }
 
 var _ executor.Backend = (*Backend)(nil)

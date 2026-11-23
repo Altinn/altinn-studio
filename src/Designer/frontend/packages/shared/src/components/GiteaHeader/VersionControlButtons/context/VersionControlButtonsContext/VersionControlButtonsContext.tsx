@@ -5,8 +5,16 @@ import { useHasMergeConflict } from '../../hooks/useHasMergeConflict';
 import { toast } from 'react-toastify';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
+import { isGitNonFastForwardError } from 'app-shared/utils/ApiErrorUtils';
 import { useTranslation } from 'react-i18next';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import {
+  isCheckoutConflict,
+  isMergeConflict,
+  toMergeConflictRepoStatus,
+} from '../../utils/repoStatus';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export type VersionControlButtonsContextProps = {
   isLoading: boolean;
@@ -16,8 +24,16 @@ export type VersionControlButtonsContextProps = {
   setHasMergeConflict: React.Dispatch<React.SetStateAction<boolean>>;
   repoStatus: RepoStatus;
   commitAndPushChanges: (message: string) => Promise<void>;
+  fetchChanges: () => Promise<boolean>;
   onPullSuccess: () => void;
+  /**
+   * Runs when the user opens "share changes", before the changed files are listed, so files it changes
+   * are listed and shared too. It should handle its own errors; sharing goes on if it fails.
+   */
+  onBeforeShare?: () => Promise<void>;
 };
+
+type PullOutcome = 'upToDate' | 'mergeConflict' | 'checkoutConflict' | 'failed';
 
 export const VersionControlButtonsContext =
   createContext<Partial<VersionControlButtonsContextProps>>(undefined);
@@ -27,6 +43,7 @@ export type VersionControlButtonsContextProviderProps = {
   currentRepo: Repository;
   repoStatus: RepoStatus;
   onPullSuccess: () => void;
+  onBeforeShare: () => Promise<void>;
 };
 
 export const VersionControlButtonsContextProvider = ({
@@ -34,9 +51,11 @@ export const VersionControlButtonsContextProvider = ({
   currentRepo,
   repoStatus,
   onPullSuccess,
+  onBeforeShare,
 }: Partial<VersionControlButtonsContextProviderProps>) => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
+  const queryClient = useQueryClient();
 
   const hasPushRights: boolean = currentRepo?.permissions?.push;
   const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
@@ -46,6 +65,54 @@ export const VersionControlButtonsContextProvider = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const enterMergeConflictMode = (status: RepoStatus) => {
+    queryClient.setQueryData(
+      [QueryKey.RepoStatus, owner, repoName],
+      toMergeConflictRepoStatus(status),
+    );
+    setIsLoading(false);
+    setHasMergeConflict(true);
+  };
+
+  const showToast = (textKey: string) => toast.error(t(textKey), { toastId: textKey });
+
+  // A pull or a share may have brought in other people's changes, which the open editors should show.
+  const refreshEditors = async () => {
+    onPullSuccess?.();
+    await queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey.includes(owner) && query.queryKey.includes(repoName),
+    });
+  };
+
+  const pull = async (): Promise<PullOutcome> => {
+    const { data: result, isError } = await fetchPullData();
+    // The default error message explains a failure, and a failed refetch keeps the previous result. There is no
+    // result when the user has moved to another repository meanwhile.
+    if (isError || !result) return 'failed';
+    if (isMergeConflict(result)) {
+      enterMergeConflictMode(result);
+      return 'mergeConflict';
+    }
+    if (isCheckoutConflict(result)) return 'checkoutConflict';
+
+    await refreshEditors();
+    return 'upToDate';
+  };
+
+  const fetchChanges = async (): Promise<boolean> => {
+    const outcome = await pull();
+    if (outcome === 'checkoutConflict') showToast('sync_header.checkout_conflict_blocked_action');
+    return outcome === 'upToDate';
+  };
+
+  const explainFailedShare = async (error: unknown) => {
+    const outcome = await pull();
+    // Other errors already show the default error message.
+    if (!isGitNonFastForwardError(error)) return;
+    if (outcome === 'checkoutConflict') showToast('sync_header.checkout_conflict_blocked_action');
+    if (outcome === 'upToDate') showToast('sync_header.sharing_changes_rejected');
+  };
+
   const commitAndPushChanges = async (commitMessage: string) => {
     setIsLoading(true);
 
@@ -53,20 +120,14 @@ export const VersionControlButtonsContextProvider = ({
       await repoCommitAndPushMutation({ commitMessage });
     } catch (error) {
       console.error(error);
-      const { data: result } = await fetchPullData();
-      if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-        // if pull resulted in a merge conflict, show merge conflict message
-        forceRepoStatusCheck();
-        setIsLoading(false);
-        setHasMergeConflict(true);
-      }
+      await explainFailedShare(error);
+      setIsLoading(false);
       return;
     }
 
-    const { data: result } = await fetchPullData();
-    if (result.repositoryStatus === 'Ok') {
-      toast.success(t('sync_header.sharing_changes_completed'));
-    }
+    // Sharing combined the user's changes with everything on Gitea, so there is nothing to pull.
+    toast.success(t('sync_header.sharing_changes_completed'));
+    void refreshEditors();
   };
 
   return (
@@ -78,8 +139,10 @@ export const VersionControlButtonsContextProvider = ({
         hasMergeConflict,
         setHasMergeConflict,
         commitAndPushChanges,
+        fetchChanges,
         repoStatus,
         onPullSuccess,
+        onBeforeShare,
       }}
     >
       {children}
@@ -96,5 +159,3 @@ export const useVersionControlButtonsContext = (): Partial<VersionControlButtons
   }
   return context;
 };
-
-const forceRepoStatusCheck = () => window.postMessage('forceRepoStatusCheck', window.location.href);

@@ -47,7 +47,7 @@ describe('PDF', () => {
           headers: {
             cookie: new RegExp('altinn-telemetry-traceparent='),
           },
-          resourceType: 'xhr',
+          resourceType: 'fetch',
         }).as('allRequests');
       },
       callback: () => {
@@ -127,7 +127,7 @@ describe('PDF', () => {
         cy.get('[data-summary-target="test-alert5"]')
           .should('contain.text', 'Vedrørende navneendring')
           .and('be.visible');
-        cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
+        cy.get('[data-summary-target="newFirstName"]').should('contain.text', 'Ola');
         cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
         cy.getSummary('Nytt mellomnavn').should('contain.text', '"Big G"');
         cy.getSummary('Til:').should('contain.text', 'Ola "Big G" Nordmann');
@@ -172,7 +172,7 @@ describe('PDF', () => {
         {
         cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
         cy.get('[data-summary-target="test-alert5"]').should('contain.text', 'Vedrørende navneendring').and('be.visible');
-        cy.getSummary('Nytt fornavn').should('contain.text', 'Ola');
+        cy.get('[data-summary-target="newFirstName"]').should('contain.text', 'Ola');
         cy.getSummary('Nytt etternavn').should('contain.text', 'Nordmann');
         cy.getSummary('Nytt mellomnavn').should('contain.text', '"Big G"');
         cy.getSummary('Til:').should('contain.text', 'Ola "Big G" Nordmann');

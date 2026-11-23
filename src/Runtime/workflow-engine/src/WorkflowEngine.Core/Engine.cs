@@ -105,11 +105,6 @@ internal interface IEngineStatus
     EngineHealthStatus Status { get; }
 
     /// <summary>
-    /// Coarse health level derived from <see cref="Status"/> flags.
-    /// </summary>
-    EngineHealthLevel HealthLevel { get; }
-
-    /// <summary>
     /// Number of workflows currently being processed (active workers).
     /// </summary>
     int ActiveWorkerCount { get; }
@@ -169,17 +164,6 @@ internal sealed class Engine(
 {
     private readonly EngineSettings _settings = engineSettings.Value;
 
-    /// <summary>
-    /// Unhealthy: the engine is stopped or explicitly unhealthy.
-    /// </summary>
-    private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
-
-    /// <summary>
-    /// Degraded: the engine is disabled, the queue is full, or the database is unavailable.
-    /// </summary>
-    private const EngineHealthStatus DegradedMask =
-        EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull | EngineHealthStatus.DatabaseUnavailable;
-
     private volatile int _activeWorkflowCount;
     private volatile int _scheduledWorkflowCount;
     private volatile int _failedWorkflowCount;
@@ -202,23 +186,6 @@ internal sealed class Engine(
                 status |= EngineHealthStatus.DatabaseUnavailable;
 
             return status;
-        }
-    }
-
-    /// <inheritdoc/>
-    public EngineHealthLevel HealthLevel
-    {
-        get
-        {
-            var status = Status;
-
-            if ((status & UnhealthyMask) != 0)
-                return EngineHealthLevel.Unhealthy;
-
-            if ((status & DegradedMask) != 0)
-                return EngineHealthLevel.Degraded;
-
-            return EngineHealthLevel.Healthy;
         }
     }
 
@@ -502,11 +469,12 @@ internal sealed class Engine(
 
         if (failed is not null)
         {
-            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "manual"));
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "manual"), (TelemetryAttributes.Namespace, ns));
             Metrics.WorkflowsFailed.Add(
                 1,
                 (TelemetryAttributes.Reason, "manual"),
-                (TelemetryAttributes.WorkflowIsHead, WorkflowExtensions.IsHeadTagValue(failed.IsHead))
+                (TelemetryAttributes.WorkflowIsHead, WorkflowExtensions.IsHeadTagValue(failed.IsHead)),
+                (TelemetryAttributes.Namespace, ns)
             );
 
             // The failure may unblock dependents (they settle as DependencyFailed on their next

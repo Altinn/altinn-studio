@@ -9,10 +9,12 @@ export type GlobalPageSettings = {
   showExpandWidthButton: boolean;
   expandedWidth: boolean;
   showProgress: boolean;
+  hideOptionalIndicator: boolean;
   autoSaveBehavior: 'onChangeFormData' | 'onChangePage';
   navigationTitle: ExprValToActualOrExpr<ExprVal.String> | undefined;
   taskNavigation: (NavigationTask | NavigationReceipt)[];
   validationOnNavigation: PageValidation | undefined;
+  validateOnBackToSummary: PageValidation | undefined;
   hideAppNameInPdf: ExprValToActualOrExpr<ExprVal.Boolean> | undefined;
 };
 

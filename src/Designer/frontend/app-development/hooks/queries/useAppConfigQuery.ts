@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { AxiosError } from 'axios';
+import type { HttpError } from 'app-shared/utils/networking';
 
 /**
  * Query to get config for an application
@@ -18,10 +18,10 @@ export const useAppConfigQuery = (
   org: string,
   app: string,
   meta?: QueryMeta,
-): UseQueryResult<AppConfig, AxiosError> => {
+): UseQueryResult<AppConfig, HttpError> => {
   const { getAppConfig } = useServicesContext();
 
-  return useQuery<AppConfig, AxiosError>({
+  return useQuery<AppConfig, HttpError>({
     queryKey: [QueryKey.AppConfig, org, app],
     queryFn: () => getAppConfig(org, app),
     meta,

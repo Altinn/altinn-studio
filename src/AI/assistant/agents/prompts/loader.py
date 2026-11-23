@@ -73,11 +73,8 @@ def compiled_system_message(compiled: Any) -> str | None:
     return None
 
 
-def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) -> tuple[str, object]:
-    """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls.
-
-    ``local_path`` names the fallback ``.md`` when it differs from ``prompt_name``.
-    """
+def get_prompt_with_langfuse(prompt_name: str) -> tuple[str, object]:
+    """Return ``(compiled_content, raw_langfuse_prompt)`` for use with LLM calls."""
     lf_prompt = get_raw_langfuse_prompt(prompt_name)
     if lf_prompt is not None:
         try:
@@ -88,7 +85,7 @@ def get_prompt_with_langfuse(prompt_name: str, local_path: str | None = None) ->
         except Exception as e:
             log.warning(f"Failed to compile Langfuse prompt '{prompt_name}': {e}")
             # Fall through to local prompt
-    return load_prompt(local_path or prompt_name)["content"], None
+    return load_prompt(prompt_name)["content"], None
 
 
 _IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { repository } from 'app-shared/mocks/mocks';
 import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';

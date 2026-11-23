@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
-import { StudioDetails } from '@studio/components';
-import { FileIcon } from '@studio/icons';
+import { StudioDetails } from '@designer/components';
+import { FileIcon } from '@designer/icons';
 import { useText, useFormLayouts } from '../../../hooks';
 import { useTextResourcesSelector } from 'app-shared/hooks';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
@@ -22,6 +22,10 @@ import type { SelectedItem } from '../../../AppContext';
 import { EditPageId } from './EditPageId';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import useUxEditorParams from '../../../hooks/useUxEditorParams';
+import { useLayoutSetsExtendedQuery } from '../../../hooks/queries/useLayoutSetsExtendedQuery';
+import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
@@ -46,6 +50,18 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const duplicateLayouts: string[] =
     findLayoutsContainingDuplicateComponents(layouts).duplicateLayouts;
   const hasDuplicatedIdsInAllLayouts = duplicateLayouts?.length > 0;
+
+  const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useUxEditorParams();
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const { data: layoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSet);
+  const selectedLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
+  // A PDF task's PDF and each subform entry's PDF come from the folder's PDF page. The PDF page
+  // itself shows the card wherever it is, since the card is the only way to convert it back.
+  const showPdfCard =
+    selectedLayoutSet?.taskType === 'pdf' ||
+    selectedLayoutSet?.type === 'subform' ||
+    layoutSettings?.pages?.pdfLayoutName === selectedItem.id;
 
   if (hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;
@@ -72,12 +88,14 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
             <HiddenExpressionOnLayout />
           </StudioDetails.Content>
         </StudioDetails>
-        <StudioDetails>
-          <StudioDetails.Summary>{t('right_menu.pdf')}</StudioDetails.Summary>
-          <StudioDetails.Content className={classes.pdf}>
-            <PdfConfig />
-          </StudioDetails.Content>
-        </StudioDetails>
+        {showPdfCard && (
+          <StudioDetails>
+            <StudioDetails.Summary>{t('right_menu.pdf')}</StudioDetails.Summary>
+            <StudioDetails.Content className={classes.pdf}>
+              <PdfConfig />
+            </StudioDetails.Content>
+          </StudioDetails>
+        )}
       </Fragment>
       <PageConfigWarningModal open={hasDuplicatedIdsInAllLayouts} />
     </>

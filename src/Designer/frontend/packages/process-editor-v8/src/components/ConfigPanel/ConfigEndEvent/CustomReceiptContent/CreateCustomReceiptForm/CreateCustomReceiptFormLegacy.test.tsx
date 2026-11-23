@@ -4,7 +4,7 @@ import {
   type CreateCustomReceiptFormLegacyProps,
 } from './CreateCustomReceiptFormLegacy';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import { BpmnApiContext, type BpmnApiContextProps } from '../../../../../contexts/BpmnApiContext';

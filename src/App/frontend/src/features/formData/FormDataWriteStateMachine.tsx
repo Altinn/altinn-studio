@@ -17,7 +17,7 @@ import { updateBackendValidations } from 'src/features/validation/validationCont
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FDLeafValue, FormDataSliceProps } from 'src/features/formData/FormDataWrite';
 import type { Proxy } from 'src/features/formData/FormDataWriteProxies';
-import type { DebounceReason } from 'src/features/formData/types';
+import type { DebounceReason, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/types';
 import type { InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { BackendValidationIssueGroups, FieldValidations } from 'src/features/validation';
 import type { IInstance } from 'src/types/shared';
@@ -112,6 +112,14 @@ export interface FDNewValue extends FDChange {
   newValue: FDLeafValue;
 }
 
+export interface FDSetLeafValueInList extends FDChange {
+  reference: IDataModelReference;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  findRow: (row: any) => boolean;
+  field: string;
+  newValue: FDLeafValue;
+}
+
 export interface FDNewValues extends FDChange {
   changes: FDNewValue[];
 }
@@ -146,18 +154,6 @@ export interface FDRemoveFromListCallback {
   callback: (value: any) => boolean;
 }
 
-export interface UpdatedDataModel {
-  data: unknown;
-  dataType: string;
-  dataElementId: string | undefined; // Can be undefined in stateless apps
-}
-
-export interface FDSaveResult {
-  newDataModels: UpdatedDataModel[];
-  validationIssues: BackendValidationIssueGroups | undefined;
-  instance?: IInstance;
-}
-
 export interface FDActionResult {
   instance?: IInstance;
   updatedDataModels:
@@ -166,12 +162,6 @@ export interface FDActionResult {
       }
     | undefined;
   updatedValidationIssues: BackendValidationIssueGroups | undefined;
-}
-
-export interface FDSaveFinished extends FDSaveResult {
-  savedData: {
-    [dataType: string]: object;
-  };
 }
 
 export interface FDSetValueSuccessful {
@@ -192,6 +182,7 @@ export interface FormDataMethods {
   // Methods used for updating the data model. These methods will update the currentData model, and after
   // the debounce() method is called, the debouncedCurrentData model will be updated as well.
   setLeafValue: (change: FDNewValue) => void;
+  setLeafValueInList: (change: FDSetLeafValueInList) => void;
   setMultiLeafValues: (changes: FDNewValues) => void;
   appendToListUnique: (change: FDAppendToListUnique) => void;
   appendToList: (change: FDAppendToList) => void;
@@ -211,14 +202,7 @@ export interface FormDataMethods {
 
 function makeActions(
   set: FormStoreSet,
-  {
-    selectFromInstance,
-    dataModels,
-    changeInstance,
-    getCachedInitialValidations,
-    getCalculationDataSources,
-    locked,
-  }: FormDataSliceProps,
+  { selectFromInstance, dataModels, changeInstance, getCalculationDataSources, locked }: FormDataSliceProps,
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
   let calculationsInitialized = false;
@@ -293,11 +277,7 @@ function makeActions(
     state.data.manualSaveRequested = false;
 
     if (validationIssues) {
-      updateIncrementalValidations(
-        validationIssues,
-        getCachedInitialValidations().cachedInitialValidations,
-        updateBackendValidations(state),
-      );
+      updateIncrementalValidations(validationIssues, state.validation.backendIssues, updateBackendValidations(state));
     }
 
     if (instance) {
@@ -395,6 +375,23 @@ function makeActions(
     }
   }
 
+  function setLeafValueInState(state: FormStoreState, { reference, newValue, callback, ...rest }: FDNewValue) {
+    if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
+      window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
+      callback?.(FDSetValueReadOnly);
+      return;
+    }
+    const existingValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
+    if (existingValue === newValue) {
+      callback?.(FDSetValueEqual);
+      return;
+    }
+
+    setDebounceTimeout(state, rest);
+    const result = setValue({ newValue, reference, state });
+    callback?.(result);
+  }
+
   return {
     debounce: (reason: DebounceReason) =>
       set((state) => {
@@ -409,22 +406,21 @@ function makeActions(
       set((state) => {
         processChanges(state, props);
       }),
-    setLeafValue: ({ reference, newValue, callback, ...rest }) =>
+    setLeafValue: (change) =>
       set((state) => {
-        if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
-          window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
-          callback?.(FDSetValueReadOnly);
+        setLeafValueInState(state, change);
+      }),
+    setLeafValueInList: ({ reference, findRow, field, ...rest }) =>
+      set((state) => {
+        const list = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
+        const index = Array.isArray(list) ? list.findIndex(findRow) : -1;
+        if (index === -1) {
           return;
         }
-        const existingValue = dot.pick(reference.field, state.data.models[reference.dataType].currentData);
-        if (existingValue === newValue) {
-          callback?.(FDSetValueEqual);
-          return;
-        }
-
-        setDebounceTimeout(state, rest);
-        const result = setValue({ newValue, reference, state });
-        callback?.(result);
+        setLeafValueInState(state, {
+          ...rest,
+          reference: { ...reference, field: `${reference.field}[${index}].${field}` },
+        });
       }),
 
     // All the list methods perform their work immediately, without debouncing, so that UI updates for new/removed

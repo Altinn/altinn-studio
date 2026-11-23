@@ -18,13 +18,16 @@ import {
   usePdfExclusions,
   usePdfLayoutName,
 } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
+import { SubformEntryForm } from 'src/layout/Subform/SubformWrapper';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
@@ -54,8 +57,8 @@ function AutoGeneratePdfFromLayout() {
     throw new Error(
       `Unexpected search param ${SearchParams.PdfForTask} provided. This mode does not support passing ` +
         `${SearchParams.PdfForTask} as a search param, but will auto-generate a PDF from the ` +
-        `current layout-set instead. To use the multi-task mode, you cannot have a layout-set ` +
-        `set up for the current task.`,
+        `current UI folder instead. Only a PDF service task without a pdfLayoutName renders the tasks ` +
+        `passed as ${SearchParams.PdfForTask}.`,
     );
   }
 
@@ -91,7 +94,49 @@ export function PdfForServiceTask() {
   return <AutoGeneratePdfFromTasks taskIds={taskIds} />;
 }
 
+/**
+ * The PDF of one subform entry, named in the search params, rendered from the subform's UI folder with the entry as
+ * its data. A subform PDF service task renders each entry this way, whether or not the task has a UI folder of its own.
+ */
+export function PdfForSubform() {
+  const [params] = useSearchParams();
+  const uiFolder = params.get(SearchParams.PdfSubformUiFolder);
+  const dataElementId = params.get(SearchParams.PdfSubformDataElementId);
+  if (!uiFolder || !dataElementId) {
+    throw new Error(
+      `A subform PDF requires both ${SearchParams.PdfSubformUiFolder} and ${SearchParams.PdfSubformDataElementId} ` +
+        `as search params`,
+    );
+  }
+
+  const settings = getUiFolderSettings(uiFolder);
+  if (!settings) {
+    throw new Error(`Cannot render the subform PDF: the app has no UI folder '${uiFolder}'`);
+  }
+  if (!settings.defaultDataType) {
+    throw new Error(
+      `Cannot render the subform PDF: the subform UI folder '${uiFolder}' has no defaultDataType, which names the ` +
+        `data type of its entries`,
+    );
+  }
+
+  return (
+    <SubformEntryForm
+      uiFolder={uiFolder}
+      dataElementId={dataElementId}
+      readOnly={true}
+    >
+      <PdfFromLayout />
+    </SubformEntryForm>
+  );
+}
+
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
+  // Only a task with a UI folder of its own has pages to render. Any other entry, a blank one or the PDF task itself
+  // included, would render the pages of the PDF task's own folder, which are its waiting page.
+  const pdfTaskId = useNavigationParam('taskId');
+  const tasksToRender = taskIds.filter((taskId) => taskId !== pdfTaskId && getUiFolderSettings(taskId));
+
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -105,7 +150,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             }}
           />
         </div>
-        {taskIds.map((taskId, idx) => (
+        {tasksToRender.map((taskId, idx) => (
           <TaskSummaryWrapper
             key={taskId}
             taskId={taskId}
