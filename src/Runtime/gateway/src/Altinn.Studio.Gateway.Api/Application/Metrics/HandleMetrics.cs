@@ -166,6 +166,7 @@ internal static class HandleMetrics
                         Name = existing.Name,
                         Timestamps = existing.Timestamps,
                         Counts = existing.Counts,
+                        Count = existing.Count,
                         BucketSize = bucketSize,
                         LogsUrl = logsUrl,
                     }
@@ -175,6 +176,7 @@ internal static class HandleMetrics
                         Name = name,
                         Timestamps = [],
                         Counts = [],
+                        Count = 0,
                         BucketSize = bucketSize,
                         LogsUrl = logsUrl,
                     };
@@ -242,6 +244,7 @@ internal static class HandleMetrics
             Name = failedRequest.Name,
             Timestamps = failedRequest.Timestamps,
             Counts = failedRequest.Counts,
+            Count = failedRequest.Count,
             BucketSize = bucketSize,
             LogsUrl = metricsClient.GetLogsUrl(
                 currentGatewayContext.AzureSubscriptionId,

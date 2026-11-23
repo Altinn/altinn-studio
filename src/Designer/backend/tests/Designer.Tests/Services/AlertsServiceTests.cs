@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
@@ -23,6 +25,7 @@ public class AlertsServiceTests
     private readonly Mock<IHubContext<AlertsUpdatedHub, IAlertsUpdateClient>> _hubContext;
     private readonly Mock<IAlertsUpdateClient> _hubClient = new();
     private readonly Mock<INotificationService> _notificationService = new();
+    private NotificationPayload _sentPayload;
 
     public AlertsServiceTests()
     {
@@ -52,6 +55,9 @@ public class AlertsServiceTests
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
+            )
+            .Callback<string, AltinnEnvironment, NotificationKind, NotificationPayload, CancellationToken>(
+                (_, _, _, payload, _) => _sentPayload = payload
             )
             .Returns(Task.CompletedTask);
     }
@@ -209,7 +215,8 @@ public class AlertsServiceTests
             _runtimeGatewayClient.Object,
             _hubContext.Object,
             _notificationService.Object,
-            hostEnvironment.Object
+            hostEnvironment.Object,
+            new GeneralSettings { HostName = "altinn.studio" }
         );
     }
 
@@ -235,6 +242,116 @@ public class AlertsServiceTests
         );
     }
 
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_ForAFailedWorkflow_ShouldLinkTheInstanceInStudioAndSayWhatToDo()
+    {
+        const string instanceId = "9a3c1b6e-7d2f-4e8a-b5c4-1f0e2d3c4b5a";
+        var alert = BuildAlert(
+            [BuildApp("app1", "firing", instanceId), BuildApp("app2", "resolved")],
+            AlertsService.FailedWorkflowCallbacksRuleId
+        );
+
+        await CreateService()
+            .NotifyAlertsUpdatedAsync("ttd", AltinnEnvironment.FromName("tt02"), alert, CancellationToken.None);
+
+        Assert.Equal(
+            [
+                ("https://grafana.example.com/dashboard", "Grafana"),
+                ("https://appinsights.example.com/logs", "Application Insights"),
+                (
+                    $"https://altinn.studio/admin/ttd/apps/tt02/app1/instances/{instanceId}",
+                    $"Studio: app1, instans {instanceId}"
+                ),
+            ],
+            _sentPayload.Links
+        );
+        Assert.Contains("prøv arbeidsflyten på nytt", _sentPayload.Body);
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_ForAFailedWorkflowInProduction_ShouldLinkTheProductionEnvironmentInStudio()
+    {
+        const string instanceId = "9a3c1b6e-7d2f-4e8a-b5c4-1f0e2d3c4b5a";
+
+        await CreateService()
+            .NotifyAlertsUpdatedAsync(
+                "ttd",
+                AltinnEnvironment.FromName("prod"),
+                BuildAlert([BuildApp("app1", "firing", instanceId)], AlertsService.FailedWorkflowCallbacksRuleId),
+                CancellationToken.None
+            );
+
+        Assert.Contains(
+            (
+                $"https://altinn.studio/admin/ttd/apps/production/app1/instances/{instanceId}",
+                $"Studio: app1, instans {instanceId}"
+            ),
+            _sentPayload.Links
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_ForMoreFailedWorkflowsThanFit_ShouldLinkTheAppsInStudio()
+    {
+        var alert = BuildAlert(
+            [BuildApp("app1", "firing", instanceCount: 4), BuildApp("app2", "firing", instanceCount: 2)],
+            AlertsService.FailedWorkflowCallbacksRuleId
+        );
+
+        await CreateService()
+            .NotifyAlertsUpdatedAsync("ttd", AltinnEnvironment.FromName("tt02"), alert, CancellationToken.None);
+
+        Assert.Equal(
+            [
+                ("https://altinn.studio/admin/ttd/apps/tt02/app1", "Studio: app1"),
+                ("https://altinn.studio/admin/ttd/apps/tt02/app2", "Studio: app2"),
+            ],
+            _sentPayload.Links.Skip(2)
+        );
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_ForAFailedWorkflowWithoutAnInstanceId_ShouldLinkOnlyGrafanaAndLogs()
+    {
+        await CreateService()
+            .NotifyAlertsUpdatedAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                BuildAlert(
+                    [BuildApp("app1", "firing", instanceId: string.Empty)],
+                    AlertsService.FailedWorkflowCallbacksRuleId
+                ),
+                CancellationToken.None
+            );
+
+        Assert.Equal(["Grafana", "Application Insights"], _sentPayload.Links.Select(link => link.Label));
+    }
+
+    [Fact]
+    public async Task NotifyAlertsUpdatedAsync_ForOtherRules_ShouldNotLinkStudio()
+    {
+        await CreateService()
+            .NotifyAlertsUpdatedAsync(
+                "ttd",
+                AltinnEnvironment.FromName("tt02"),
+                BuildAlert([BuildApp("app1", "firing")], "failed_process_next_requests"),
+                CancellationToken.None
+            );
+
+        Assert.Equal(["Grafana", "Application Insights"], _sentPayload.Links.Select(link => link.Label));
+        Assert.Equal("", _sentPayload.Body);
+    }
+
+    private static AlertApp BuildApp(string app, string status, int instanceCount) =>
+        new()
+        {
+            App = app,
+            Instances = Enumerable
+                .Range(0, instanceCount)
+                .Select(_ => new AlertInstance { Status = status, InstanceId = Guid.NewGuid().ToString() })
+                .ToList(),
+        };
+
     private static AlertApp BuildApp(string app, string status, string instanceId = null) =>
         new()
         {
@@ -242,11 +359,11 @@ public class AlertsServiceTests
             Instances = [new AlertInstance { Status = status, InstanceId = instanceId ?? Guid.NewGuid().ToString() }],
         };
 
-    private static Alert BuildAlert(IEnumerable<AlertApp> apps) =>
+    private static Alert BuildAlert(IEnumerable<AlertApp> apps, string ruleId = "rule-456") =>
         new()
         {
             Id = "alert-123",
-            RuleId = "rule-456",
+            RuleId = ruleId,
             Name = "HighErrorRate",
             Apps = apps,
             Url = new Uri("https://grafana.example.com/dashboard"),

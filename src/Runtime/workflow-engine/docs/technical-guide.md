@@ -601,8 +601,8 @@ The per-workflow `isHead` directive on enqueue encodes the category: `true` or u
 auxiliary. The engine stores it as given and returns it on status reads. An auxiliary workflow never joins the
 collection's heads, and its dependency edges never consume them, so no later enqueue waits on it. With
 `dependsOnHeads`, the default, it still waits for the current heads before it runs. Nothing waits on an auxiliary
-workflow, so its failure shows only on `workflow.execution.failed`, through the `is_head` attribute (see
-[alerting](#alerting-on-terminal-failures)).
+workflow, so no caller reports its failure. The engine counts it on `workflow.execution.failed`, through the `is_head`
+attribute (see [alerting](#alerting-on-terminal-failures)).
 
 The collection's head frontier (`heads` on collection responses) is a different thing: the workflows the next enqueue
 will depend on now. A primary workflow leaves the frontier once a later workflow depends on it, and stays primary.
@@ -677,11 +677,16 @@ records, and on the errors counter's `workflow_handling` errors. Both count rare
 
 ### Alerting on terminal failures
 
+This alert is for the team that runs the engine. Its metrics carry no app or instance (see
+[bounded attributes](#metrics-carry-bounded-attributes-spans-carry-identities)), so it cannot reach a service owner.
+Service owners get an alert of their own from their app's requests, as the
+[app integration guide](../../../App/backend/docs/workflow-engine-integration.md#alerts) describes.
+
 The default ops alert is a terminal failure that the engine or the command caused:
 `altinn.workflow_engine.workflow.execution.failed` with `altinn.workflow_engine.reason` in (`execution`, `poisoned`),
 across **every** `altinn.workflow_engine.workflow.is_head` value. Route and prioritize on `is_head`, never filter on
-it. `false` marks an [auxiliary workflow](#primary-and-auxiliary-workflows), whose terminal failure blocks nothing and
-shows nowhere else. Leave three reasons out:
+it. `false` marks an [auxiliary workflow](#primary-and-auxiliary-workflows), whose terminal failure blocks nothing, so
+no waiting caller reports it. Leave three reasons out:
 
 - `dependency_failed` mirrors an upstream failure that fired the alert itself, and a cascade resume of that failure
   revives the dependent.
