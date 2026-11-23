@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
@@ -17,7 +18,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <p><c>Finally</c> and <c>ConcludeOnReplies</c> are common names, so a call is renamed only when its receiver is the
 /// builder: by its type when the semantic model resolves it, and otherwise when it is a chain of <c>Stage</c> and
 /// <c>HandleReplies</c> calls rooted at a parameter or local declared <c>PipelineBuilder</c>, at a <c>var</c> local
-/// holding such a chain, or at a call to a method declared to return <c>PipelineBuilder</c>. A lifecycle method that
+/// holding such a chain, or at a call that reaches a method of the app declared to return <c>PipelineBuilder</c>, which
+/// is found the way C# finds it: in the caller's type and its bases, through a type name or <c>base</c>, or as an
+/// extension method. A lifecycle method that
 /// only returns <c>pipeline.Build()</c> keeps an empty body rather than being removed: it does what the interface
 /// default does, and removing it would break an override of it or a call to it.</p>
 /// <p>A helper method that takes or returns a <c>PipelineBuilder</c> gets the variant its callers in the
@@ -155,16 +158,13 @@ internal sealed partial class PipelineBuilderVariantMigration
             methods.AddRange(found.Select(method => new PipelineMethod(file, method, RoleOf(method))));
         }
 
-        var builderHelpers = methods
-            .Where(static method => IsBuilder(method.Method.ReturnType, method.Model))
-            .Select(static method => method.Method.Identifier.ValueText)
-            .ToHashSet(StringComparer.Ordinal);
+        var helpers = new HelperResolver(files, methods);
         foreach (var method in methods)
         {
-            CollectBuilders(method, builderHelpers);
+            CollectBuilders(method, helpers);
         }
 
-        DecideVariants(methods, builderHelpers);
+        DecideVariants(methods, helpers);
 
         var rewrites =
             new Dictionary<ScannedCSharpFile, Dictionary<MethodDeclarationSyntax, MemberDeclarationSyntax>>();
@@ -172,7 +172,7 @@ internal sealed partial class PipelineBuilderVariantMigration
         {
             cancellationToken.ThrowIfCancellationRequested();
             reported.Add(method.Method);
-            if (Rewrite(method, builderHelpers, messages) is { } rewritten)
+            if (Rewrite(method, helpers, messages) is { } rewritten)
             {
                 if (!rewrites.TryGetValue(method.File, out var fileRewrites))
                 {
@@ -223,7 +223,7 @@ internal sealed partial class PipelineBuilderVariantMigration
     /// The names that hold the builder in the method: its parameters and locals declared <c>PipelineBuilder</c>, and
     /// <c>var</c> locals initialized with a chain on one.
     /// </summary>
-    private static void CollectBuilders(PipelineMethod method, IReadOnlySet<string> builderHelpers)
+    private static void CollectBuilders(PipelineMethod method, HelperResolver helpers)
     {
         foreach (var node in method.Method.DescendantNodes())
         {
@@ -247,7 +247,7 @@ internal sealed partial class PipelineBuilderVariantMigration
                             || (
                                 variable.Type.IsVar
                                 && declarator.Initializer is { } initializer
-                                && IsBuilderExpression(initializer.Value, method, builderHelpers)
+                                && IsBuilderExpression(initializer.Value, method, helpers)
                             )
                         )
                         {
@@ -264,46 +264,37 @@ internal sealed partial class PipelineBuilderVariantMigration
     /// A <c>Define</c> method composes its own variant. A helper composes what its calls on the builder need, and what
     /// the <c>Define</c> methods that pass it their builder compose.
     /// </summary>
-    private static void DecideVariants(List<PipelineMethod> methods, IReadOnlySet<string> builderHelpers)
+    private static void DecideVariants(List<PipelineMethod> methods, HelperResolver helpers)
     {
-        var callers = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        foreach (var method in methods)
+        foreach (var method in methods.Where(static method => method.Role != Role.Helper))
         {
-            if (method.Role == Role.Helper)
-            {
-                continue;
-            }
-
             var variant = method.Role == Role.Execute ? ServiceTaskVariant : LifecycleVariant;
             method.Variants.Add(variant);
             foreach (var invocation in method.Method.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                if (
-                    CalledName(invocation.Expression) is { } called
-                    && invocation.ArgumentList.Arguments.Any(argument =>
-                        IsBuilderExpression(argument.Expression, method, builderHelpers)
+                var passesBuilder =
+                    invocation.ArgumentList.Arguments.Any(argument =>
+                        IsBuilderExpression(argument.Expression, method, helpers)
                     )
-                )
+                    || (
+                        invocation.Expression is MemberAccessExpressionSyntax { Expression: var receiver }
+                        && IsBuilderExpression(receiver, method, helpers)
+                    );
+                if (!passesBuilder)
                 {
-                    if (!callers.TryGetValue(called, out var variants))
-                    {
-                        variants = new HashSet<string>(StringComparer.Ordinal);
-                        callers[called] = variants;
-                    }
+                    continue;
+                }
 
-                    variants.Add(variant);
+                foreach (var helper in helpers.Resolve(invocation, method).Where(static h => h.Role == Role.Helper))
+                {
+                    helper.Variants.Add(variant);
                 }
             }
         }
 
         foreach (var method in methods.Where(static method => method.Role == Role.Helper))
         {
-            if (callers.TryGetValue(method.Method.Identifier.ValueText, out var variants))
-            {
-                method.Variants.UnionWith(variants);
-            }
-
-            foreach (var (name, invocation) in BuilderCalls(method, builderHelpers))
+            foreach (var (name, invocation) in BuilderCalls(method, helpers))
             {
                 if (_endingRenames.ContainsKey(name) || name == "HandleReplies" || HasOutArgument(invocation))
                 {
@@ -322,7 +313,7 @@ internal sealed partial class PipelineBuilderVariantMigration
     /// </summary>
     private static MemberDeclarationSyntax? Rewrite(
         PipelineMethod method,
-        IReadOnlySet<string> builderHelpers,
+        HelperResolver helpers,
         List<UpgradeMessage> messages
     )
     {
@@ -362,7 +353,7 @@ internal sealed partial class PipelineBuilderVariantMigration
 
         var unsupported = new List<string>();
         var builds = new List<InvocationExpressionSyntax>();
-        foreach (var (name, invocation) in BuilderCalls(method, builderHelpers))
+        foreach (var (name, invocation) in BuilderCalls(method, helpers))
         {
             if (variant == ServiceTaskVariant)
             {
@@ -396,7 +387,7 @@ internal sealed partial class PipelineBuilderVariantMigration
             }
             else if (method.Role == Role.Phase)
             {
-                PlanReturns(method, builderHelpers, rewriter, builds, unsupported);
+                PlanReturns(method, helpers, rewriter, builds, unsupported);
             }
         }
 
@@ -441,7 +432,7 @@ internal sealed partial class PipelineBuilderVariantMigration
     /// </summary>
     private static void PlanReturns(
         PipelineMethod method,
-        IReadOnlySet<string> builderHelpers,
+        HelperResolver helpers,
         MethodRewriter rewriter,
         List<InvocationExpressionSyntax> builds,
         List<string> unsupported
@@ -450,7 +441,7 @@ internal sealed partial class PipelineBuilderVariantMigration
         var handled = new HashSet<InvocationExpressionSyntax>();
         if (method.Method.ExpressionBody is { Expression: var arrow })
         {
-            if (BuiltChain(arrow, method, builderHelpers) is not { } chain)
+            if (BuiltChain(arrow, method, helpers) is not { } chain)
             {
                 unsupported.Add("an expression body that is not a composed pipeline's Build()");
                 return;
@@ -477,10 +468,7 @@ internal sealed partial class PipelineBuilderVariantMigration
             .Where(statement => OwningFunction(statement) == method.Method);
         foreach (var statement in returns)
         {
-            if (
-                statement.Expression is not { } returned
-                || BuiltChain(returned, method, builderHelpers) is not { } chain
-            )
+            if (statement.Expression is not { } returned || BuiltChain(returned, method, helpers) is not { } chain)
             {
                 unsupported.Add(
                     $"a return at line {method.File.GetLine(statement)} that is not a composed pipeline's Build()"
@@ -533,7 +521,7 @@ internal sealed partial class PipelineBuilderVariantMigration
     private static ExpressionSyntax? BuiltChain(
         ExpressionSyntax expression,
         PipelineMethod method,
-        IReadOnlySet<string> builderHelpers
+        HelperResolver helpers
     ) =>
         expression
             is InvocationExpressionSyntax
@@ -541,7 +529,7 @@ internal sealed partial class PipelineBuilderVariantMigration
                 Expression: MemberAccessExpressionSyntax { Name.Identifier.ValueText: "Build", Expression: var chain },
                 ArgumentList.Arguments.Count: 0,
             }
-        && IsBuilderExpression(chain, method, builderHelpers)
+        && IsBuilderExpression(chain, method, helpers)
             ? chain
             : null;
 
@@ -575,18 +563,19 @@ internal sealed partial class PipelineBuilderVariantMigration
     }
 
     /// <summary>
-    /// The calls in the method whose receiver is the builder.
+    /// The calls in the method whose receiver is the builder, other than to the app's own extension methods.
     /// </summary>
     private static IEnumerable<(string Name, InvocationExpressionSyntax Invocation)> BuilderCalls(
         PipelineMethod method,
-        IReadOnlySet<string> builderHelpers
+        HelperResolver helpers
     )
     {
         foreach (var invocation in method.Method.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (
                 invocation.Expression is MemberAccessExpressionSyntax { Expression: var receiver, Name: var name }
-                && IsBuilderExpression(receiver, method, builderHelpers)
+                && IsBuilderExpression(receiver, method, helpers)
+                && helpers.Resolve(invocation, method).Count == 0
             )
             {
                 yield return (name.Identifier.ValueText, invocation);
@@ -596,14 +585,10 @@ internal sealed partial class PipelineBuilderVariantMigration
 
     /// <summary>
     /// Whether the expression is the previews' builder: by its type when the semantic model resolves it, and otherwise
-    /// a name that holds the builder, a call to a method declared to return one, or a <c>Stage</c> or
+    /// a name that holds the builder, a call to an app method declared to return one, or a <c>Stage</c> or
     /// <c>HandleReplies</c> on one of those.
     /// </summary>
-    private static bool IsBuilderExpression(
-        ExpressionSyntax expression,
-        PipelineMethod method,
-        IReadOnlySet<string> builderHelpers
-    )
+    private static bool IsBuilderExpression(ExpressionSyntax expression, PipelineMethod method, HelperResolver helpers)
     {
         if (
             method.Model is { } model
@@ -620,18 +605,9 @@ internal sealed partial class PipelineBuilderVariantMigration
             InvocationExpressionSyntax
             {
                 Expression: MemberAccessExpressionSyntax { Name: var name, Expression: var receiver },
-            } when _chainingCalls.Contains(name.Identifier.ValueText) => IsBuilderExpression(
-                receiver,
-                method,
-                builderHelpers
-            ),
-            InvocationExpressionSyntax { Expression: IdentifierNameSyntax called } => builderHelpers.Contains(
-                called.Identifier.ValueText
-            ),
-            InvocationExpressionSyntax
-            {
-                Expression: MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: var called },
-            } => builderHelpers.Contains(called.Identifier.ValueText),
+            } when _chainingCalls.Contains(name.Identifier.ValueText) => IsBuilderExpression(receiver, method, helpers),
+            InvocationExpressionSyntax invocation => helpers.Resolve(invocation, method) is { Count: > 0 } targets
+                && targets.All(static target => IsBuilder(target.Method.ReturnType, target.Model)),
             _ => false,
         };
     }
@@ -856,17 +832,6 @@ internal sealed partial class PipelineBuilderVariantMigration
             _ => expression,
         };
 
-    /// <summary>
-    /// The simple name an invocation calls.
-    /// </summary>
-    private static string? CalledName(ExpressionSyntax expression) =>
-        expression switch
-        {
-            IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
-            MemberAccessExpressionSyntax access => access.Name.Identifier.ValueText,
-            _ => null,
-        };
-
     private static string? SimpleName(TypeSyntax? type) =>
         type switch
         {
@@ -893,6 +858,277 @@ internal sealed partial class PipelineBuilderVariantMigration
         RegexOptions.CultureInvariant
     )]
     private static partial Regex StubCallName();
+
+    /// <summary>
+    /// Finds the app's own methods taking or returning the builder that a call reaches: through its symbol when the
+    /// semantic model resolves it, and otherwise the way C# looks a method up by name. A bare or <c>this.</c> call
+    /// looks in the caller's type and its bases, then for a bare call in its containing types and
+    /// <c>using static</c> types; <c>base.</c> looks in the bases; a call through a type name looks in that type;
+    /// and a call on the builder looks among extension methods.
+    /// </summary>
+    private sealed class HelperResolver
+    {
+        /// <summary>
+        /// The calls on the previews' builder that are its own methods, which win over an extension method.
+        /// </summary>
+        private static readonly HashSet<string> _builderMembers = new(StringComparer.Ordinal)
+        {
+            "Stage",
+            "HandleReplies",
+            "Finally",
+            "ConcludeOnReplies",
+            "Build",
+        };
+
+        private readonly Dictionary<(SyntaxTree Tree, TextSpan Span), PipelineMethod> _byDeclaration = [];
+        private readonly Dictionary<string, List<PipelineMethod>> _byType = new(StringComparer.Ordinal);
+        private readonly List<PipelineMethod> _extensions = [];
+        private readonly Dictionary<string, List<TypeDeclarationSyntax>> _typesByName = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<TypeDeclarationSyntax>> _typesByKey = new(StringComparer.Ordinal);
+        private readonly List<UsingDirectiveSyntax> _globalStaticUsings = [];
+
+        public HelperResolver(IEnumerable<ScannedCSharpFile> files, IEnumerable<PipelineMethod> methods)
+        {
+            foreach (var file in files)
+            {
+                foreach (var type in file.Root.DescendantNodes().OfType<TypeDeclarationSyntax>())
+                {
+                    Add(_typesByName, type.Identifier.ValueText, type);
+                    Add(_typesByKey, TypeKey(type), type);
+                }
+
+                _globalStaticUsings.AddRange(
+                    file.Root.Usings.Where(static u => u.GlobalKeyword != default && u.StaticKeyword != default)
+                );
+            }
+
+            foreach (var method in methods)
+            {
+                _byDeclaration[(method.Method.SyntaxTree, method.Method.Span)] = method;
+                if (method.Method.Parent is TypeDeclarationSyntax type)
+                {
+                    Add(_byType, TypeKey(type), method);
+                }
+
+                if (
+                    method.Method.ParameterList.Parameters is [var first, ..]
+                    && first.Modifiers.Any(SyntaxKind.ThisKeyword)
+                )
+                {
+                    _extensions.Add(method);
+                }
+            }
+        }
+
+        public IReadOnlyList<PipelineMethod> Resolve(InvocationExpressionSyntax invocation, PipelineMethod caller) =>
+            BySymbol(invocation, caller) ?? ByName(invocation, caller);
+
+        private IReadOnlyList<PipelineMethod>? BySymbol(InvocationExpressionSyntax invocation, PipelineMethod caller)
+        {
+            if (caller.Model is not { } model || model.SyntaxTree != invocation.SyntaxTree)
+            {
+                return null;
+            }
+
+            var info = model.GetSymbolInfo(invocation);
+            IEnumerable<ISymbol> symbols = info.Symbol is { } symbol ? [symbol] : info.CandidateSymbols;
+            var methods = symbols.OfType<IMethodSymbol>().ToList();
+            if (methods.Count == 0)
+            {
+                return null;
+            }
+
+            return
+            [
+                .. methods
+                    .SelectMany(static method =>
+                        (method.ReducedFrom ?? method).OriginalDefinition.DeclaringSyntaxReferences
+                    )
+                    .Select(reference => _byDeclaration.GetValueOrDefault((reference.SyntaxTree, reference.Span)))
+                    .OfType<PipelineMethod>()
+                    .Distinct(),
+            ];
+        }
+
+        private IReadOnlyList<PipelineMethod> ByName(InvocationExpressionSyntax invocation, PipelineMethod caller)
+        {
+            var arguments = invocation.ArgumentList.Arguments.Count;
+            var callerType = caller.Method.Parent as TypeDeclarationSyntax;
+            switch (invocation.Expression)
+            {
+                case SimpleNameSyntax name:
+                    for (var type = callerType; type is not null; type = type.Parent as TypeDeclarationSyntax)
+                    {
+                        if (InHierarchy(type, name.Identifier.ValueText, arguments, []) is { } found)
+                        {
+                            return found;
+                        }
+                    }
+
+                    return caller
+                            .File.Root.Usings.Where(static u => u.StaticKeyword != default)
+                            .Concat(_globalStaticUsings)
+                            .SelectMany(u => TypesNamed(u.NamespaceOrType))
+                            .Select(type => InHierarchy(type, name.Identifier.ValueText, arguments, []))
+                            .FirstOrDefault(static found => found is not null)
+                        ?? [];
+                case MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax, Name: var name }
+                    when callerType is not null:
+                    return InHierarchy(callerType, name.Identifier.ValueText, arguments, []) ?? [];
+                case MemberAccessExpressionSyntax { Expression: BaseExpressionSyntax, Name: var name }
+                    when callerType is not null:
+                    return Bases(callerType)
+                            .Select(type => InHierarchy(type, name.Identifier.ValueText, arguments, []))
+                            .FirstOrDefault(static found => found is not null)
+                        ?? [];
+                case MemberAccessExpressionSyntax { Expression: var receiver, Name: var name }:
+                    var called = name.Identifier.ValueText;
+                    if (!_builderMembers.Contains(called) && IsBuilderExpression(receiver, caller, this))
+                    {
+                        return
+                        [
+                            .. _extensions.Where(m =>
+                                m.Method.Identifier.ValueText == called && Fits(m, arguments + 1)
+                            ),
+                        ];
+                    }
+
+                    if (
+                        receiver is IdentifierNameSyntax local
+                        && DeclaresLocal(caller.Method, local.Identifier.ValueText)
+                    )
+                    {
+                        return [];
+                    }
+
+                    return TypesNamed(receiver)
+                            .Select(type => InHierarchy(type, called, arguments, []))
+                            .FirstOrDefault(static found => found is not null)
+                        ?? [];
+                default:
+                    return [];
+            }
+        }
+
+        /// <summary>
+        /// The helpers named <paramref name="name"/> that fit the call in the nearest of the type, across its partial
+        /// declarations, and its bases.
+        /// </summary>
+        private List<PipelineMethod>? InHierarchy(
+            TypeDeclarationSyntax type,
+            string name,
+            int arguments,
+            HashSet<string> seen
+        )
+        {
+            var key = TypeKey(type);
+            if (!seen.Add(key))
+            {
+                return null;
+            }
+
+            if (
+                _byType
+                    .GetValueOrDefault(key)
+                    ?.Where(m => m.Method.Identifier.ValueText == name && Fits(m, arguments))
+                    .ToList() is
+                { Count: > 0 } here
+            )
+            {
+                return here;
+            }
+
+            return Bases(type)
+                .Select(baseType => InHierarchy(baseType, name, arguments, seen))
+                .FirstOrDefault(static found => found is not null);
+        }
+
+        /// <summary>
+        /// The app's types that the type's declarations name as bases.
+        /// </summary>
+        private IEnumerable<TypeDeclarationSyntax> Bases(TypeDeclarationSyntax type) =>
+            _typesByKey[TypeKey(type)]
+                .SelectMany(static part => part.BaseList?.Types ?? default)
+                .SelectMany(baseType => TypesNamed(baseType.Type));
+
+        /// <summary>
+        /// The app's types with the simple name that a type or an expression naming one ends with.
+        /// </summary>
+        private IEnumerable<TypeDeclarationSyntax> TypesNamed(SyntaxNode node) =>
+            (
+                node switch
+                {
+                    SimpleNameSyntax simple => simple.Identifier.ValueText,
+                    QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText,
+                    AliasQualifiedNameSyntax alias => alias.Name.Identifier.ValueText,
+                    MemberAccessExpressionSyntax access => access.Name.Identifier.ValueText,
+                    _ => null,
+                }
+            )
+                is { } name
+            && _typesByName.TryGetValue(name, out var types)
+                ? types
+                : [];
+
+        private static bool DeclaresLocal(MethodDeclarationSyntax method, string name) =>
+            method
+                .DescendantNodes()
+                .Any(node =>
+                    node switch
+                    {
+                        ParameterSyntax parameter => parameter.Identifier.ValueText == name,
+                        VariableDeclaratorSyntax variable => variable.Identifier.ValueText == name,
+                        SingleVariableDesignationSyntax designation => designation.Identifier.ValueText == name,
+                        ForEachStatementSyntax loop => loop.Identifier.ValueText == name,
+                        _ => false,
+                    }
+                );
+
+        /// <summary>
+        /// Whether a method can take this many arguments.
+        /// </summary>
+        private static bool Fits(PipelineMethod method, int arguments)
+        {
+            var parameters = method.Method.ParameterList.Parameters;
+            if (parameters.Any(static p => p.Modifiers.Any(SyntaxKind.ParamsKeyword)))
+            {
+                return arguments >= parameters.Count - 1;
+            }
+
+            return arguments >= parameters.Count(static p => p.Default is null) && arguments <= parameters.Count;
+        }
+
+        /// <summary>
+        /// A type's name with its namespaces and containing types, which its partial declarations share.
+        /// </summary>
+        private static string TypeKey(TypeDeclarationSyntax type) =>
+            string.Join(
+                '.',
+                type.AncestorsAndSelf()
+                    .Reverse()
+                    .Select(static node =>
+                        node switch
+                        {
+                            BaseNamespaceDeclarationSyntax ns => ns.Name.ToString(),
+                            TypeDeclarationSyntax declaration => declaration.Identifier.ValueText
+                                + (declaration.TypeParameterList is { } list ? $"`{list.Parameters.Count}" : ""),
+                            _ => null,
+                        }
+                    )
+                    .OfType<string>()
+            );
+
+        private static void Add<T>(Dictionary<string, List<T>> index, string key, T value)
+        {
+            if (!index.TryGetValue(key, out var values))
+            {
+                values = [];
+                index[key] = values;
+            }
+
+            values.Add(value);
+        }
+    }
 
     /// <summary>
     /// Applies the planned changes to one method.

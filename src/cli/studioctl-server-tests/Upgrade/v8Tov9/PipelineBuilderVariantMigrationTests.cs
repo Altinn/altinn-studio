@@ -1020,4 +1020,43 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
             migrated
         );
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ExtensionHelper_OfALifecyclePhase_TakesTheLifecycleBuilder(bool semantic)
+    {
+        var task = Write(
+            "logic/AuditTask.cs",
+            """
+            public static class AuditStages
+            {
+                public static PipelineBuilder WithAudit(this PipelineBuilder pipeline) =>
+                    pipeline.Stage(static context => Task.FromResult(StageResult.Completed()));
+            }
+
+            public class AuditTask : IProcessTask
+            {
+                public string Type => "audit";
+
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.WithAudit().Build();
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        Assert.Equal(2, Oks(result).Count);
+        AssertCompilesAgainstCurrent();
+        var migrated = await ReadMigrated(task);
+        Assert.Contains(
+            "    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.WithAudit();\n",
+            migrated
+        );
+        Assert.Contains(
+            "    public static PipelineBuilder.Lifecycle WithAudit(this PipelineBuilder.Lifecycle pipeline) =>\n",
+            migrated
+        );
+    }
 }
