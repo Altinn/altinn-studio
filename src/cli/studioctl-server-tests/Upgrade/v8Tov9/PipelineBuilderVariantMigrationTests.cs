@@ -901,4 +901,43 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
             todo => todo.StartsWith(Path.Combine("logic", "ConfigurableTask.cs") + ":8:", StringComparison.Ordinal)
         );
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HelpersOfOneName_InDifferentTasks_TakeTheirOwnTasksVariant(bool semantic)
+    {
+        Write(
+            "logic/TwoTasks.cs",
+            $$"""
+            public class FirstTask : IServiceTask
+            {
+                public string Type => "first";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => Compose(pipeline).Finally(Done);
+
+                private PipelineBuilder Compose(PipelineBuilder pipeline) => pipeline.Stage(Archive);
+
+            {{StageMethods}}
+            }
+
+            public class SecondTask : IProcessTask
+            {
+                public string Type => "second";
+
+                public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => Compose(pipeline).Build();
+
+                private PipelineBuilder Compose(PipelineBuilder pipeline) => pipeline.Stage(Archive);
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        // Each Compose is called by one task only, but both are reported as composing both kinds.
+        Assert.Empty(result.Todos);
+        AssertCompilesAgainstCurrent();
+    }
 }
