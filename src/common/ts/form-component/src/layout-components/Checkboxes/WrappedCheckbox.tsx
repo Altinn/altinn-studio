@@ -38,7 +38,7 @@ export function WrappedCheckbox({
   ref,
   ...rest
 }: WrappedCheckboxProps) {
-  const { lang, langAsString } = useTranslation();
+  const { lang, langAsString, optionLabel = langAsString } = useTranslation();
 
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange } = useAlertOnChange<
     (isChecked: boolean) => void
@@ -98,7 +98,7 @@ export function WrappedCheckbox({
         readOnly={readOnly}
         label={
           <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
-            {langAsString(option.label)}
+            {optionLabel(option.label)}
             {option.helpText && (
               <HelpText id={componentId} title={langAsString(option.helpText)}>
                 {lang(option.helpText)}

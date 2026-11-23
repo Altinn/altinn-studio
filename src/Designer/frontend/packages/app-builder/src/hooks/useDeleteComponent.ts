@@ -1,0 +1,68 @@
+import { ComponentType } from 'app-shared/types/ComponentType';
+import type { PageLayout } from '../types';
+import { removeFields } from '../utils/dataModelUtils';
+import { findComponent, getComponentAndDescendantIds, removeComponent } from '../utils/layoutUtils';
+import { useDeleteAttachmentDataTypeMutation } from './useAttachmentDataTypeMutations';
+import type { DataModel } from './useDataModelQuery';
+import { useDeleteTextsMutation } from './useDeleteTextsMutation';
+import { useSaveDataModelMutation } from './useSaveDataModelMutation';
+import { useSavePageLayoutMutation } from './useSavePageLayoutMutation';
+
+export type DeleteComponentArgs = {
+  componentId: string;
+  textKeysToDelete: string[];
+  fieldNamesToDelete: string[];
+};
+
+/**
+ * Deletes a component and whatever the user chose to remove with it, and the attachment data type of
+ * a file upload. The page is saved first, so nothing on it refers to what is removed next. If a later
+ * step fails, what is left behind is unused and harmless. Returns whether everything was deleted; the error itself is
+ * shown by the global error handler of the services context.
+ */
+export const useDeleteComponent = (
+  org: string,
+  app: string,
+  layoutSetName: string,
+  pageName: string,
+  layout: PageLayout,
+  dataModel: DataModel | undefined,
+) => {
+  const { mutateAsync: savePageLayout } = useSavePageLayoutMutation(org, app, layoutSetName);
+  const { mutateAsync: deleteTexts } = useDeleteTextsMutation(org, app);
+  const { mutateAsync: saveDataModel } = useSaveDataModelMutation(org, app);
+  const { mutateAsync: deleteAttachmentDataType } = useDeleteAttachmentDataTypeMutation(org, app);
+
+  return async ({
+    componentId,
+    textKeysToDelete,
+    fieldNamesToDelete,
+  }: DeleteComponentArgs): Promise<boolean> => {
+    const removedIds = Array.from(getComponentAndDescendantIds(layout, componentId));
+    // A file upload's attachments are saved as a data type with the same ID as the component.
+    const fileUploadIds = removedIds.filter(
+      (id) => findComponent(layout, id)?.type === ComponentType.FileUpload,
+    );
+    try {
+      await savePageLayout({
+        pageName,
+        layout: removeComponent(layout, componentId),
+        componentIdsChange: removedIds.map((id) => ({
+          oldComponentId: id,
+          newComponentId: undefined,
+        })),
+      });
+      for (const fileUploadId of fileUploadIds) await deleteAttachmentDataType(fileUploadId);
+      if (textKeysToDelete.length > 0) await deleteTexts(textKeysToDelete);
+      if (dataModel && fieldNamesToDelete.length > 0) {
+        await saveDataModel({
+          modelPath: dataModel.modelPath,
+          schema: removeFields(dataModel.schema, fieldNamesToDelete),
+        });
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  };
+};

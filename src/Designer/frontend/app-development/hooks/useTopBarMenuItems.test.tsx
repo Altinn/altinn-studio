@@ -6,6 +6,8 @@ import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { type CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import { FeatureFlag } from '@designer/feature-flags';
+import type { AppVersion } from 'app-shared/types/AppVersion';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 
 const mockUseIsRepoOwnerOrg = vi.fn();
 
@@ -82,7 +84,66 @@ describe('useTopBarMenuItems', () => {
 
     expect(keysOf(renderHookResult.result.current)).not.toContain(HeaderMenuItemKey.AiAssistant);
   });
+
+  it('includes the app builder for a new v9 app when its feature flag is active', async () => {
+    const { result } = renderUseTopBarMenuItemsForAppBuilder({
+      featureFlags: [FeatureFlag.AppBuilder],
+    });
+
+    await waitFor(() => expect(keysOf(result.current)).toContain(HeaderMenuItemKey.AppBuilder));
+  });
+
+  it('excludes the app builder when its feature flag is inactive', async () => {
+    const { result, getAppMetadata } = renderUseTopBarMenuItemsForAppBuilder({ featureFlags: [] });
+
+    await waitFor(() => expect(getAppMetadata).toHaveBeenCalled());
+    expect(keysOf(result.current)).not.toContain(HeaderMenuItemKey.AppBuilder);
+  });
+
+  it('excludes the app builder for an app created before it was offered', async () => {
+    const { result, getAppMetadata } = renderUseTopBarMenuItemsForAppBuilder({
+      featureFlags: [FeatureFlag.AppBuilder],
+      created: '2026-01-01T00:00:00Z',
+    });
+
+    await waitFor(() => expect(getAppMetadata).toHaveBeenCalled());
+    expect(keysOf(result.current)).not.toContain(HeaderMenuItemKey.AppBuilder);
+  });
+
+  it('excludes the app builder for an app below v9', async () => {
+    const { result, getAppVersion } = renderUseTopBarMenuItemsForAppBuilder({
+      featureFlags: [FeatureFlag.AppBuilder],
+      version: { backendVersion: '8.0.0', frontendVersion: '4.0.0' },
+    });
+
+    await waitFor(() => expect(getAppVersion).toHaveBeenCalled());
+    expect(keysOf(result.current)).not.toContain(HeaderMenuItemKey.AppBuilder);
+  });
 });
+
+type RenderUseTopBarMenuItemsForAppBuilderProps = {
+  featureFlags: FeatureFlag[];
+  created?: string;
+  version?: AppVersion;
+};
+
+const renderUseTopBarMenuItemsForAppBuilder = ({
+  featureFlags,
+  created = '2026-12-01T00:00:00Z',
+  version = { backendVersion: '9.0.0', frontendVersion: '9.0.0' },
+}: RenderUseTopBarMenuItemsForAppBuilderProps) => {
+  mockUseIsRepoOwnerOrg.mockReturnValue(false);
+  const getAppVersion = vi.fn().mockResolvedValue(version);
+  const getAppMetadata = vi
+    .fn()
+    .mockResolvedValue({ id: 'org/app', org: 'org', created } satisfies ApplicationMetadata);
+  const { renderHookResult } = renderHookWithProviders(
+    { getAppVersion, getAppMetadata },
+    undefined,
+    featureFlags,
+  )(() => useTopBarMenuItems());
+  return { result: renderHookResult.result, getAppVersion, getAppMetadata };
+};
 
 type RenderUseTopBarMenuItemsProps = {
   isRepoOwnerOrg?: boolean;
