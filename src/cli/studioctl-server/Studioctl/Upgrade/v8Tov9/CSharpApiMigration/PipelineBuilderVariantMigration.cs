@@ -25,8 +25,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// default does, and removing it would break an override of it or a call to it.</p>
 /// <p>A helper method that takes or returns a <c>PipelineBuilder</c> gets the variant its callers in the
 /// <c>Define</c> methods and its own calls show. When they show both, or neither, it is reported. So is a lifecycle
-/// method whose returns are not a composed pipeline's <c>Build()</c>, and a <c>PipelineBuilder</c> declared anywhere
-/// else, such as a field.</p>
+/// method whose returns are not a composed pipeline's <c>Build()</c>, and a <c>PipelineBuilder</c> written anywhere
+/// else, such as a field or a type argument. A method is reported rather than done when something in it would still
+/// name the previews' API: a <c>Finally</c>, <c>ConcludeOnReplies</c> or <c>Build</c> call on something the rules
+/// cannot tell apart from the builder, a <c>PipelineBuilder</c> they cannot retype, or code disabled by a directive
+/// that names either.</p>
 /// <p>A port stub written by an earlier studioctl preview, <c>ProcessTaskPipeline DefineStart(PipelineBuilder)</c>
 /// with an <c>#error</c> line and no statements, becomes the stub <see cref="ProcessTaskLifecycleMigration"/> writes
 /// now. Runs before that migration, so that it then counts the rewritten <c>Define</c> methods as the task's own.</p>
@@ -391,6 +394,7 @@ internal sealed partial class PipelineBuilderVariantMigration
             }
         }
 
+        unsupported.AddRange(Unplaced(method, helpers, rewriter));
         if (unsupported.Count > 0)
         {
             messages.Todo(
@@ -423,6 +427,125 @@ internal sealed partial class PipelineBuilderVariantMigration
             }
         );
         return rewrittenMethod;
+    }
+
+    /// <summary>
+    /// What would still name the previews' API after the planned rewrite, so that the method is reported rather than
+    /// done: a <c>Finally</c>, <c>ConcludeOnReplies</c> or <c>Build</c> call that is not provably on something other
+    /// than the builder, a <c>PipelineBuilder</c> that is not retyped, such as a type argument, and code disabled by a
+    /// directive that names any of them.
+    /// </summary>
+    private static IEnumerable<string> Unplaced(PipelineMethod method, HelperResolver helpers, MethodRewriter rewriter)
+    {
+        var builderCalls = BuilderCalls(method, helpers).Select(static call => call.Invocation).ToHashSet();
+        foreach (var invocation in method.Method.DescendantNodes().OfType<InvocationExpressionSyntax>())
+        {
+            var (receiver, name) = invocation.Expression switch
+            {
+                MemberAccessExpressionSyntax access => (access.Expression, access.Name.Identifier.ValueText),
+                MemberBindingExpressionSyntax binding => (
+                    invocation.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>()?.Expression,
+                    binding.Name.Identifier.ValueText
+                ),
+                _ => (null, null),
+            };
+            if (
+                receiver is not null
+                && name is not null
+                && (_endingRenames.ContainsKey(name) || name == "Build")
+                && !builderCalls.Contains(invocation)
+                && !IsNotBuilder(receiver, method, helpers)
+            )
+            {
+                yield return $"{name} at line {method.File.GetLine(invocation)} on something it cannot tell apart "
+                    + "from the builder";
+            }
+        }
+
+        foreach (var type in BuilderReferences(method.Method, method.Model).Where(t => !rewriter.Retype.Contains(t)))
+        {
+            yield return $"a {BuilderName} it cannot give a variant at line {method.File.GetLine(type)}";
+        }
+
+        foreach (
+            var disabled in method
+                .Method.DescendantTrivia()
+                .Where(trivia =>
+                    trivia.IsKind(SyntaxKind.DisabledTextTrivia)
+                    && trivia.SpanStart >= method.Method.SpanStart
+                    && OldApiName().IsMatch(trivia.ToString())
+                )
+        )
+        {
+            yield return $"code disabled by a preprocessor directive at line {disabled.GetLocation().GetLineSpan().StartLinePosition.Line + 1} "
+                + $"that names {BuilderName}, Finally, ConcludeOnReplies or Build";
+        }
+    }
+
+    /// <summary>
+    /// Whether the expression is provably not the builder: by its type when the semantic model resolves it, and
+    /// otherwise when nothing in it is a name that holds the builder, a field or property whose type names it, the
+    /// type itself, or a call to a method of the app that takes or returns it.
+    /// </summary>
+    private static bool IsNotBuilder(ExpressionSyntax expression, PipelineMethod method, HelperResolver helpers)
+    {
+        if (
+            method.Model is { } model
+            && model.SyntaxTree == expression.SyntaxTree
+            && model.GetTypeInfo(expression).Type is { TypeKind: not TypeKind.Error } type
+        )
+        {
+            return !IsBuilderSymbol(type);
+        }
+
+        return !expression
+            .DescendantNodesAndSelf()
+            .Any(node =>
+                node switch
+                {
+                    IdentifierNameSyntax identifier => identifier.Identifier.ValueText is var name
+                        && (
+                            name == BuilderName
+                            || method.Builders.Contains(name)
+                            || helpers.BuilderMembers.Contains(name)
+                        ),
+                    InvocationExpressionSyntax invocation => helpers.Resolve(invocation, method).Count > 0,
+                    _ => false,
+                }
+            );
+    }
+
+    /// <summary>
+    /// The written types in the node that are the previews' builder, at any depth, such as a type argument: each the
+    /// outermost name that ends with <c>PipelineBuilder</c>, and not one that only qualifies another, such as
+    /// <c>PipelineBuilder.ServiceTask</c>.
+    /// </summary>
+    private static IEnumerable<NameSyntax> BuilderReferences(SyntaxNode node, SemanticModel? model) =>
+        node.DescendantNodesAndSelf()
+            .OfType<IdentifierNameSyntax>()
+            .Select(identifier => BuilderReference(identifier, model))
+            .OfType<NameSyntax>();
+
+    private static NameSyntax? BuilderReference(IdentifierNameSyntax identifier, SemanticModel? model)
+    {
+        if (identifier.Identifier.ValueText != BuilderName)
+        {
+            return null;
+        }
+
+        NameSyntax name = identifier;
+        while (name.Parent is QualifiedNameSyntax qualified && qualified.Right == name)
+        {
+            name = qualified;
+        }
+
+        var qualifiesAnother = name.Parent switch
+        {
+            QualifiedNameSyntax qualified => qualified.Left == name,
+            MemberAccessExpressionSyntax => true,
+            _ => false,
+        };
+        return !qualifiesAnother && IsBuilder(name, model) ? name : null;
     }
 
     /// <summary>
@@ -687,12 +810,10 @@ internal sealed partial class PipelineBuilderVariantMigration
     {
         var lines = new SortedSet<int>();
         foreach (
-            var node in file
-                .Root.DescendantNodes(node => !reported.Contains(node))
-                .Where(node => !reported.Contains(node))
+            var identifier in file.Root.DescendantNodes(node => !reported.Contains(node)).OfType<IdentifierNameSyntax>()
         )
         {
-            if (DeclaredType(node) is { } type && IsBuilder(type, file.SemanticModel))
+            if (BuilderReference(identifier, file.SemanticModel) is { } type)
             {
                 lines.Add(file.GetLine(type));
             }
@@ -850,6 +971,15 @@ internal sealed partial class PipelineBuilderVariantMigration
             : method.Identifier.Text;
 
     /// <summary>
+    /// A call of the previews' API that the variants do not have, or <c>PipelineBuilder</c> without a variant.
+    /// </summary>
+    [GeneratedRegex(
+        @"\b(?:Finally|ConcludeOnReplies|Build)\s*\(|\bPipelineBuilder\b(?!\s*\.\s*(?:ServiceTask|Lifecycle)\b)",
+        RegexOptions.CultureInvariant
+    )]
+    private static partial Regex OldApiName();
+
+    /// <summary>
     /// The v8 method an earlier preview's port stub names, from its <c>#error</c> line or, once that is removed, its
     /// comment.
     /// </summary>
@@ -887,6 +1017,11 @@ internal sealed partial class PipelineBuilderVariantMigration
         private readonly Dictionary<string, List<TypeDeclarationSyntax>> _typesByKey = new(StringComparer.Ordinal);
         private readonly List<UsingDirectiveSyntax> _globalStaticUsings = [];
 
+        /// <summary>
+        /// The names of the app's fields and properties whose type names the builder, such as a type argument.
+        /// </summary>
+        public HashSet<string> BuilderMembers { get; } = new(StringComparer.Ordinal);
+
         public HelperResolver(IEnumerable<ScannedCSharpFile> files, IEnumerable<PipelineMethod> methods)
         {
             foreach (var file in files)
@@ -900,6 +1035,22 @@ internal sealed partial class PipelineBuilderVariantMigration
                 _globalStaticUsings.AddRange(
                     file.Root.Usings.Where(static u => u.GlobalKeyword != default && u.StaticKeyword != default)
                 );
+                foreach (var member in file.Root.DescendantNodes().OfType<MemberDeclarationSyntax>())
+                {
+                    switch (member)
+                    {
+                        case BaseFieldDeclarationSyntax field
+                            when BuilderReferences(field.Declaration.Type, file.SemanticModel).Any():
+                            BuilderMembers.UnionWith(
+                                field.Declaration.Variables.Select(static v => v.Identifier.ValueText)
+                            );
+                            break;
+                        case PropertyDeclarationSyntax property
+                            when BuilderReferences(property.Type, file.SemanticModel).Any():
+                            BuilderMembers.Add(property.Identifier.ValueText);
+                            break;
+                    }
+                }
             }
 
             foreach (var method in methods)

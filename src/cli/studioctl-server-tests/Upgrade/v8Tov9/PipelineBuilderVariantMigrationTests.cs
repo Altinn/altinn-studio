@@ -1059,4 +1059,125 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
             migrated
         );
     }
+
+    /// <summary>
+    /// Migrates the fixture, which must be reported and left as it is, and returns the to-dos.
+    /// </summary>
+    private async Task<IReadOnlyList<string>> ReportedAndUnchanged(bool semantic, string fixture)
+    {
+        var task = Write("logic/UnplacedTasks.cs", fixture);
+        var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(Oks(result));
+        Assert.Equal(original, await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken));
+        return result.Todos;
+    }
+
+    [Fact]
+    public async Task FinallyAfterAHelperTheUpgradeCannotSee_IsReported_NotDone()
+    {
+        // SharedStages, LibraryTaskBase and the WithArchive extension come from a library the upgrade cannot see, so
+        // whether the receiver of Finally is the builder cannot be told.
+        var todos = await ReportedAndUnchanged(
+            semantic: false,
+            $$"""
+            public class StaticTask : IServiceTask
+            {
+                public string Type => "static";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                    SharedStages.WithArchive(pipeline).Finally(Done);
+            }
+
+            public class BaseTask : LibraryTaskBase, IServiceTask
+            {
+                public string Type => "base";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => base.WithArchive(pipeline).Finally(Done);
+            }
+
+            public class ExtensionTask : IServiceTask
+            {
+                public string Type => "extension";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.WithArchive().Finally(Done);
+            }
+            """
+        );
+
+        Assert.Collection(
+            todos,
+            todo =>
+                Assert.Contains("StaticTask.DefineExecute uses Finally at line 11 on something it cannot tell", todo),
+            todo => Assert.Contains("BaseTask.DefineExecute uses Finally at line 18 on something", todo),
+            todo => Assert.Contains("ExtensionTask.DefineExecute uses Finally at line 25 on something", todo)
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task OldApiTheRulesCannotPlace_IsReported_NotDone(bool semantic)
+    {
+        var todos = await ReportedAndUnchanged(
+            semantic,
+            $$"""
+            public class ConditionalTask : IServiceTask
+            {
+                public string Type => "conditional";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline?.Finally(Done)!;
+
+            {{StageMethods}}
+            }
+
+            public class ConfiguredTask : IServiceTask
+            {
+                public string Type => "configured";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+                {
+                    Func<PipelineBuilder, PipelineBuilder> configure = static builder => builder;
+                    return configure(pipeline).Stage(Archive).Finally(Done);
+                }
+
+            {{StageMethods}}
+            }
+
+            public class DebugTask : IServiceTask
+            {
+                public string Type => "debug";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+                {
+            #if DEBUG
+                    return pipeline.Finally(Done);
+            #else
+                    return pipeline.Stage(Archive).Finally(Done);
+            #endif
+                }
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        Assert.Collection(
+            todos,
+            todo => Assert.Contains("ConditionalTask.DefineExecute uses Finally at line 10 on something", todo),
+            todo =>
+                Assert.Contains(
+                    "a PipelineBuilder it cannot give a variant at line 38, "
+                        + "a PipelineBuilder it cannot give a variant at line 38, which",
+                    Assert.Single(todo.Split("ConfiguredTask.DefineExecute uses ").Skip(1))
+                ),
+            todo =>
+                Assert.Contains(
+                    "DebugTask.DefineExecute uses code disabled by a preprocessor directive at line 69 that names",
+                    todo
+                )
+        );
+    }
 }
