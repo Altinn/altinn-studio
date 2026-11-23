@@ -48,6 +48,45 @@ public class AppLibVersionServiceTests
     }
 
     [Fact]
+    public async Task GetAppLibVersions_LeavesOutAnAppWhoseRequestTimesOut()
+    {
+        SetUpVersion("app-one", "8.5.3.108");
+        _appResourcesService
+            .Setup(s => s.GetApplicationMetadata(Org, Env, "app-hanging", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TaskCanceledException("The request timed out.", new TimeoutException()));
+
+        var versions = await _service.GetAppLibVersions(
+            Org,
+            Env,
+            [new AppImage("app-one", "1"), new AppImage("app-hanging", "2")],
+            CancellationToken.None
+        );
+
+        Assert.Equal("8.5.3", versions["app-one"]);
+        Assert.Null(versions["app-hanging"]);
+    }
+
+    [Fact]
+    public async Task GetAppLibVersions_WhenTheCallerCancels_IsCancelled()
+    {
+        using var cancellation = new CancellationTokenSource();
+        _appResourcesService
+            .Setup(s => s.GetApplicationMetadata(Org, Env, "app-one", It.IsAny<CancellationToken>()))
+            .Returns(
+                async (string _, string _, string _, CancellationToken ct) =>
+                {
+                    await cancellation.CancelAsync();
+                    ct.ThrowIfCancellationRequested();
+                    return new ApplicationMetadata($"{Org}/app-one");
+                }
+            );
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _service.GetAppLibVersions(Org, Env, [new AppImage("app-one", "1")], cancellation.Token)
+        );
+    }
+
+    [Fact]
     public async Task GetAppLibVersions_AsksAnAppAgainOnlyWhenItRunsAnotherImage()
     {
         SetUpVersion("app-one", "8.5.3.108");

@@ -27,6 +27,8 @@ namespace Altinn.Studio.Designer.Controllers.Admin;
 [Route("designer/api/v1/admin/[controller]/{org}")]
 public class ApplicationsController : ControllerBase
 {
+    private const string ReadyStatus = "ready";
+
     private readonly IEnvironmentsService _environmentsService;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly IDeploymentRepository _deploymentRepository;
@@ -150,8 +152,16 @@ public class ApplicationsController : ControllerBase
         {
             var environment = AltinnEnvironment.FromName(env);
             var running = await _runtimeGatewayClient.GetRunningAppDeployments(org, environment, ct);
+            // Until a rollout is done, pods of the previous image may still answer for the app, so its version is
+            // not kept under the new image's tag.
             List<AppImage> apps = running is not null
-                ? [.. running.Select(app => new AppImage(app.Key, app.Value.ImageTag))]
+                ?
+                [
+                    .. running.Select(app => new AppImage(
+                        app.Key,
+                        app.Value.Status == ReadyStatus ? app.Value.ImageTag : null
+                    )),
+                ]
                 :
                 [
                     .. (await _runtimeGatewayClient.GetAppDeployments(org, environment, ct)).Select(

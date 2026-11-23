@@ -53,6 +53,7 @@ public class GetApplicationStatusesTests
                 {
                     ["app-one"] = new("12", "1", "tt02", "ready", null),
                     ["app-two"] = new("7", "2", "tt02", "unavailable", null),
+                    ["app-three"] = new("3", "3", "tt02", "updating", null),
                 }
             );
         _appLibVersionServiceMock
@@ -61,18 +62,33 @@ public class GetApplicationStatusesTests
                     Org,
                     Env,
                     It.Is<IEnumerable<AppImage>>(apps =>
-                        apps.SequenceEqual(new[] { new AppImage("app-one", "12"), new AppImage("app-two", "7") })
+                        // Only an app that is ready surely answers from the image it reports.
+                        apps.SequenceEqual(
+                            new[]
+                            {
+                                new AppImage("app-one", "12"),
+                                new AppImage("app-two", null),
+                                new AppImage("app-three", null),
+                            }
+                        )
                     ),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new Dictionary<string, string> { ["app-one"] = "8.7.2", ["app-two"] = null });
+            .ReturnsAsync(
+                new Dictionary<string, string>
+                {
+                    ["app-one"] = "8.7.2",
+                    ["app-two"] = null,
+                    ["app-three"] = "8.6.0",
+                }
+            );
 
         using var response = await HttpClient.GetAsync($"designer/api/v1/admin/applications/{Org}/{Env}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(
-            """[{"app":"app-one","status":"ready","appLibVersion":"8.7.2"},{"app":"app-two","status":"unavailable","appLibVersion":null}]""",
+            """[{"app":"app-one","status":"ready","appLibVersion":"8.7.2"},{"app":"app-two","status":"unavailable","appLibVersion":null},{"app":"app-three","status":"updating","appLibVersion":"8.6.0"}]""",
             await response.Content.ReadAsStringAsync()
         );
         _runtimeGatewayClientMock.Verify(

@@ -72,9 +72,10 @@ public sealed class AppLibVersionService(IAppResourcesService appResourcesServic
 
             return version;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
-            // An app that does not answer, such as one that is down, has no version to show, and the others still do.
+            // An app that does not answer, such as one that is down or whose request times out, has no version to
+            // show, and the others still do. A timeout is a cancellation the caller did not ask for.
             return null;
         }
         finally
