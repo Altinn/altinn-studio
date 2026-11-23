@@ -673,7 +673,9 @@ which workflow.
 
 The one exception is `altinn.workflow_engine.namespace`, which is unbounded across the fleet. It is on the throttle
 counters, as the [failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
-records, and on the errors counter's `workflow_handling` errors. Both count rare events.
+records, on the errors counter's `workflow_handling` errors, and on the step and workflow failure counters, so the
+dashboard shows which app fails. All of them count rare events: an app gets a series only once it has failed in the
+process's lifetime. Its value is the namespace as the engine stores it, `{org}/{app}` for the Altinn apps.
 
 ### Alerting on terminal failures
 
@@ -908,9 +910,17 @@ status, and `/api/v1/health/live` answers `200` while the process runs. The vers
 `/health/live` redirect to them with `301`. Never point a probe at those: a probe counts a `3xx` as a pass, and the
 redirect never runs the readiness check.
 
-The engine is degraded while it is disabled, its queue is full or the database is unavailable, and unhealthy when it
-is stopped or reports itself unhealthy (`Engine.HealthLevel`). The response includes worker, connection and queue counts. Probes are left out of
-the HTTP request metrics and the traces.
+The Engine check is degraded while the engine's queue is full or the database is unavailable
+(`HealthStatusExtensions.ToHealthLevel`), and healthy otherwise. The response includes worker, connection and queue
+counts. Probes are left out of the HTTP request metrics and the traces.
+
+The gauge `altinn.workflow_engine.health.status` reports the Engine check's level: 0 healthy, 1 degraded. The endpoints
+can still answer Unhealthy through the Database check: in a database outage the gauge reads 1 while `/api/v1/health`
+answers Unhealthy. The engine notices an outage when its own fetch of work fails: at once if the database refuses
+connections, and only after the fetch times out if it stops answering. `altinn.workflow_engine.health.reason` says why
+the engine is degraded, with one series for `queue_full` and one for `database_unavailable`, at 1 while it holds and 0
+otherwise. Both gauges read the engine's status when the metrics are exported, not in the metrics collector's pass: in
+a database outage the pass's first database read fails, or is held until it times out, and nothing retries it.
 
 ## Configuration
 
