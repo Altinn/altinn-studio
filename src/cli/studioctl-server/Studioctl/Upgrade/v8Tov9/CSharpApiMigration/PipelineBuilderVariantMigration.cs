@@ -707,8 +707,9 @@ internal sealed partial class PipelineBuilderVariantMigration
                 )
         )
         {
-            yield return $"code disabled by a preprocessor directive at line {disabled.GetLocation().GetLineSpan().StartLinePosition.Line + 1} "
-                + $"that names {BuilderName}, Finally, ConcludeOnReplies or Build";
+            var line = disabled.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
+            yield return $"code disabled by a preprocessor directive at line {line} that names {BuilderName}, Finally, "
+                + "ConcludeOnReplies or Build";
         }
     }
 
