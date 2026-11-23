@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -28,6 +29,7 @@ export const NAVIGATION_BUTTONS_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/NavigationButtons',
   component: NavigationButtons,
+  decorators: [withComponentGrid],
   excludeStories: ['NAVIGATION_BUTTONS_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
