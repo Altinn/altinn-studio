@@ -21,18 +21,15 @@ internal sealed record SignedWorkflowState
     /// <remarks>
     /// It is outside the signature. Lowering it makes an older pod read the payload as it would have without the
     /// version, and raising it makes pods leave the envelope alone. Neither lets a forged payload through.
+    /// <para>
+    /// It is the only thing in the envelope that follows the library, and it changes only with the contract. The
+    /// engine includes the state in its fingerprint of an enqueue, so a retried step that lands on another release
+    /// must write the same envelope as its first attempt. Do not add anything that differs between releases.
+    /// </para>
     /// </remarks>
     [JsonPropertyName(WorkflowContract.VersionProperty)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? ContractVersion { get; init; }
-
-    /// <summary>
-    /// <see cref="WorkflowContract.LibraryVersion"/> of the pod that wrote the envelope, for the message a pod logs
-    /// when it leaves the envelope to a newer one. Never compared.
-    /// </summary>
-    [JsonPropertyName(WorkflowContract.WrittenByProperty)]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? WrittenBy { get; init; }
 
     /// <summary>
     /// The exact transported bytes: a serialized <see cref="WorkflowCallbackState"/> for a state blob, the

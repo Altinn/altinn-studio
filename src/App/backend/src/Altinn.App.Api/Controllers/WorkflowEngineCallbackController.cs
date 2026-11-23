@@ -73,15 +73,11 @@ public class WorkflowEngineCallbackController : ControllerBase
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
         if (
-            WorkflowContract.IsWrittenUnderNewerVersion(payload.State, out string? version, out string? writtenBy)
-            || WorkflowContract.IsWrittenUnderNewerVersion(
-                payload.Mailbox?.Delivery?.Payload,
-                out version,
-                out writtenBy
-            )
+            WorkflowContract.IsWrittenUnderNewerVersion(payload.State, out string? version)
+            || WorkflowContract.IsWrittenUnderNewerVersion(payload.Mailbox?.Delivery?.Payload, out version)
         )
         {
-            return NewerWorkflowContract(commandKey, instanceId, payload, version, writtenBy, activity);
+            return NewerWorkflowContract(commandKey, instanceId, payload, version, activity);
         }
 
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
@@ -520,15 +516,12 @@ public class WorkflowEngineCallbackController : ControllerBase
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
         string? version,
-        string? writtenBy,
         Activity? activity
     )
     {
-        string writer = LogSanitizer.Sanitize(writtenBy) is { Length: > 0 } named ? named : "unknown";
         _logger.LogWarning(
-            "Workflow step carries an envelope written under workflow contract version {ContractVersion} by app library {WrittenBy}, and this pod, on {PodVersion}, reads up to version {PodContractVersion}. Answering 503 so the workflow engine retries it until it reaches a pod that reads it. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+            "Workflow step carries an envelope written under workflow contract version {ContractVersion}, and this pod, on app library {PodVersion}, reads up to version {PodContractVersion}. Answering 503 so the workflow engine retries it until it reaches a pod that reads it. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
             LogSanitizer.Sanitize(version),
-            writer,
             WorkflowContract.LibraryVersion,
             WorkflowContract.Version,
             LogSanitizer.Sanitize(commandKey),
@@ -540,7 +533,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         activity?.SetStatus(ActivityStatusCode.Error, "Written under a newer workflow contract version");
         return Problem(
             title: "Newer Workflow Contract Version",
-            detail: $"This step carries state or a message that app library {writer} wrote under a newer workflow contract version than this pod, on {WorkflowContract.LibraryVersion}, reads. It runs once a retry reaches a pod that reads it.",
+            detail: $"This step carries state or a message written under a newer workflow contract version than this pod, on app library {WorkflowContract.LibraryVersion}, reads. It runs once a retry reaches a pod that reads it.",
             statusCode: StatusCodes.Status503ServiceUnavailable
         );
     }

@@ -65,28 +65,26 @@ public class WorkflowContractTests
     [InlineData("""{"contractVersion":0,"payload":"p"}""")]
     public void IsWrittenUnderNewerVersion_NoVersionOrAnOlderOne_IsNotNewer(string? envelope)
     {
-        Assert.False(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out string? version, out string? writtenBy));
+        Assert.False(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out string? version));
         Assert.Null(version);
-        Assert.Null(writtenBy);
     }
 
     [Fact]
     public void IsWrittenUnderNewerVersion_ThisVersion_IsNotNewer()
     {
-        string envelope = $$"""{"contractVersion":{{WorkflowContract.Version}},"writtenBy":"9.0.0","payload":"p"}""";
+        string envelope = $$"""{"contractVersion":{{WorkflowContract.Version}},"payload":"p"}""";
 
-        Assert.False(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out _, out _));
+        Assert.False(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out _));
     }
 
     [Fact]
-    public void IsWrittenUnderNewerVersion_HigherVersion_IsNewerAndNamesTheWriter()
+    public void IsWrittenUnderNewerVersion_HigherVersion_IsNewer()
     {
         int newer = WorkflowContract.Version + 1;
-        string envelope = $$"""{"payload":"p","writtenBy":"9.4.0","contractVersion":{{newer}}}""";
+        string envelope = $$"""{"payload":"p","contractVersion":{{newer}}}""";
 
-        Assert.True(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out string? version, out string? writtenBy));
+        Assert.True(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out string? version));
         Assert.Equal(newer.ToString(System.Globalization.CultureInfo.InvariantCulture), version);
-        Assert.Equal("9.4.0", writtenBy);
     }
 
     /// <summary>
@@ -102,9 +100,8 @@ public class WorkflowContractTests
     {
         string envelope = $$"""{"contractVersion":{{contractVersion}},"payload":"p"}""";
 
-        Assert.True(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out string? version, out string? writtenBy));
+        Assert.True(WorkflowContract.IsWrittenUnderNewerVersion(envelope, out string? version));
         Assert.Equal(contractVersion, version);
-        Assert.Null(writtenBy);
     }
 
     [Fact]

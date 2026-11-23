@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
@@ -66,17 +67,26 @@ public class WorkflowStateSignerTests
         Assert.Equal(expected, envelope.Signature);
     }
 
+    /// <summary>
+    /// The engine includes the state in its fingerprint of an enqueue, and answers another fingerprint under the same
+    /// idempotency key with 409. A retried step can land on another release of the library, so the envelope holds
+    /// nothing that follows the release, such as its package version.
+    /// </summary>
     [Fact]
-    public void Sign_NamesTheWorkflowContractVersionAndTheLibraryVersion()
+    public void Sign_WritesNothingThatDiffersBetweenReleasesOfOneContractVersion()
     {
         _secretProviderMock.Setup(x => x.GetSigningSecret()).Returns(Code("id-1", "secret-code-long-enough-for-hmac"));
+        var sut = CreateSut();
 
-        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(
-            CreateSut().Sign(Payload, SigningDomain.CallbackState)
-        )!;
+        string signed = sut.Sign(Payload, SigningDomain.CallbackState);
 
-        Assert.Equal(WorkflowContract.Version, envelope.ContractVersion);
-        Assert.Equal(WorkflowContract.LibraryVersion, envelope.WrittenBy);
+        JsonObject envelope = JsonNode.Parse(signed)!.AsObject();
+        Assert.Equal(
+            [WorkflowContract.VersionProperty, "payload", "signature", "secretId"],
+            envelope.Select(property => property.Key)
+        );
+        Assert.Equal(WorkflowContract.Version, envelope[WorkflowContract.VersionProperty]!.GetValue<int>());
+        Assert.Equal(signed, sut.Sign(Payload, SigningDomain.CallbackState));
     }
 
     [Theory]

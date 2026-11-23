@@ -46,7 +46,6 @@ internal sealed class WorkflowStateSigner
         var envelope = new SignedWorkflowState
         {
             ContractVersion = WorkflowContract.Version,
-            WrittenBy = WorkflowContract.LibraryVersion,
             Payload = payload,
             Signature = signature,
             SecretId = signingCode.Id,

@@ -426,15 +426,14 @@ public class WorkflowEngineCallbackControllerTests
         IActionResult result = await setup.Execute(command.GetKey(), stepId: Guid.NewGuid());
 
         ProblemDetails problem = AssertNewerWorkflowContract(result);
-        Assert.Contains("app library 999.0.0", problem.Detail, StringComparison.Ordinal);
+        Assert.Contains(WorkflowContract.LibraryVersion, problem.Detail, StringComparison.Ordinal);
         Assert.False(command.Executed);
         Assert.Empty(setup.Services.Storage.RequestsResponses);
         Assert.Contains(
             setup.ServiceProvider.Logs,
             log =>
                 log.LogLevel == LogLevel.Warning
-                && log.FormattedMessage?.Contains("999.0.0", StringComparison.Ordinal) == true
-                && log.FormattedMessage.Contains(WorkflowContract.LibraryVersion, StringComparison.Ordinal)
+                && log.FormattedMessage?.Contains(WorkflowContract.LibraryVersion, StringComparison.Ordinal) == true
         );
     }
 
@@ -498,7 +497,6 @@ public class WorkflowEngineCallbackControllerTests
         Assert.True(command.Executed);
         JsonNode handedOn = JsonNode.Parse(response.State!)!;
         Assert.Equal(WorkflowContract.Version, handedOn[WorkflowContract.VersionProperty]!.GetValue<int>());
-        Assert.Equal(WorkflowContract.LibraryVersion, handedOn[WorkflowContract.WrittenByProperty]!.GetValue<string>());
     }
 
     private static ProblemDetails AssertNewerWorkflowContract(IActionResult result)
@@ -1459,7 +1457,6 @@ public class WorkflowEngineCallbackControllerTests
                 envelope[WorkflowContract.VersionProperty] = JsonNode.Parse(contractVersion);
             }
 
-            envelope[WorkflowContract.WrittenByProperty] = "999.0.0";
             return envelope.ToJsonString();
         };
 

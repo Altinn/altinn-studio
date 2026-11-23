@@ -21,9 +21,6 @@ internal static class WorkflowContract
     /// <summary>The JSON name of <see cref="SignedWorkflowState.ContractVersion"/>.</summary>
     public const string VersionProperty = "contractVersion";
 
-    /// <summary>The JSON name of <see cref="SignedWorkflowState.WrittenBy"/>.</summary>
-    public const string WrittenByProperty = "writtenBy";
-
     /// <summary>
     /// The version this library writes, and the highest it reads. Raise it in the change that makes the library plan or
     /// write something a pod on the previous version cannot run or would drop: a new command, a changed command
@@ -32,8 +29,10 @@ internal static class WorkflowContract
     public const int Version = 1;
 
     /// <summary>
-    /// This pod's Altinn.App.Core package version without build metadata, such as <c>9.0.0-preview.10</c>. It is
-    /// written next to <see cref="Version"/> for the message a refusing pod logs, and never compared.
+    /// This pod's Altinn.App.Core package version without build metadata, such as <c>9.0.0-preview.10</c>, for the
+    /// message a refusing pod logs. It is never compared, and never written into an envelope: the engine includes the
+    /// state in its fingerprint of an enqueue, so an envelope must not differ between releases under one
+    /// <see cref="Version"/>.
     /// </summary>
     public static string LibraryVersion { get; } = ResolveLibraryVersion(typeof(WorkflowContract).Assembly);
 
@@ -44,11 +43,9 @@ internal static class WorkflowContract
     /// </summary>
     /// <param name="envelopeJson">The envelope as the callback carried it. It is not verified first.</param>
     /// <param name="version">The version the envelope names, as written, when the method returns true.</param>
-    /// <param name="writtenBy">The library version the envelope names, when it names one.</param>
-    public static bool IsWrittenUnderNewerVersion(string? envelopeJson, out string? version, out string? writtenBy)
+    public static bool IsWrittenUnderNewerVersion(string? envelopeJson, out string? version)
     {
         version = null;
-        writtenBy = null;
         if (string.IsNullOrEmpty(envelopeJson))
         {
             return false;
@@ -69,10 +66,6 @@ internal static class WorkflowContract
             }
 
             version = stamp.GetRawText();
-            writtenBy =
-                root.TryGetProperty(WrittenByProperty, out JsonElement by) && by.ValueKind == JsonValueKind.String
-                    ? by.GetString()
-                    : null;
             return true;
         }
         catch (JsonException)

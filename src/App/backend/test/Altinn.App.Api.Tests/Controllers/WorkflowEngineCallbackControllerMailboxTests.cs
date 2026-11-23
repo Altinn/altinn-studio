@@ -258,7 +258,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
         Exception? engineThrowsOnEnqueue = null,
         CallRecorder? recorder = null,
-        bool trailingStage = false
+        bool trailingStage = false,
+        int attempts = 1
     )
     {
         var instanceGuid = Guid.NewGuid();
@@ -352,11 +353,21 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             State = signer.Sign(JsonSerializer.Serialize(incoming), SigningDomain.CallbackState),
         };
 
+        string url =
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{ExecuteServiceTask.Key}";
+        for (int earlierAttempt = 1; earlierAttempt < attempts; earlierAttempt++)
+        {
+            using var sameContent = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json"
+            );
+            using HttpResponseMessage earlier = await client.PostAsync(url, sameContent);
+            Assert.Equal(HttpStatusCode.OK, earlier.StatusCode);
+        }
+
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-        using HttpResponseMessage response = await client.PostAsync(
-            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{ExecuteServiceTask.Key}",
-            content
-        );
+        using HttpResponseMessage response = await client.PostAsync(url, content);
 
         WorkflowCallbackState? returned = null;
         if (response.StatusCode == HttpStatusCode.OK)
@@ -604,6 +615,32 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         // The exchange is only starting: its entry keeps traveling.
         Assert.NotNull(outcome.Returned!.Mailboxes);
         Assert.Equal(_mailboxId, Assert.Contains("0", outcome.Returned.Mailboxes).Id);
+    }
+
+    /// <summary>
+    /// The engine fingerprints an enqueue on everything but its context, and answers another fingerprint under the
+    /// same idempotency key with 409, which the relay does not recover from. A retried step whose first enqueue was
+    /// accepted must therefore ask for the same workflow on the same state, byte for byte.
+    /// </summary>
+    [Fact]
+    public async Task ARetriedSendStage_EnqueuesItsReceiverWithTheSameFingerprint()
+    {
+        CallbackOutcome outcome = await RunCallback(
+            mailbox: null,
+            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0),
+            onMessage: null,
+            onClosed: null,
+            onSend: (_, _) => ServiceTaskOpeningStageResult.Completed(),
+            attempts: 2
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal([outcome.StepId.ToString(), outcome.StepId.ToString()], outcome.Recorder.EnqueueKeys);
+        Assert.Equal(2, outcome.Recorder.EnqueueRequests.Count);
+        Assert.Equal(
+            JsonSerializer.Serialize(outcome.Recorder.EnqueueRequests[0] with { Context = null }),
+            JsonSerializer.Serialize(outcome.Recorder.EnqueueRequests[1] with { Context = null })
+        );
     }
 
     [Fact]

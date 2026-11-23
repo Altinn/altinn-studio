@@ -584,12 +584,6 @@
           "null"
         ]
       },
-      "writtenBy": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
       "payload": {
         "type": "string"
       },
