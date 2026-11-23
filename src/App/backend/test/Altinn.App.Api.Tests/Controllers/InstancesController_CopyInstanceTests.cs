@@ -1902,6 +1902,32 @@ public class InstancesController_CopyInstanceTests
     }
 
     [Fact]
+    public async Task CopyInstance_NoInstantiationProcessorRegistered_CopiesFormData()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth, registerInstantiationProcessor: false);
+        (_, List<CommittedMutation> commits) = SetupSuccessfulCopy(fixture, instance, application);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        AssertCreatesFormData(Assert.Single(commits), "data_type_1", "test");
+    }
+
+    [Fact]
     public async Task CopyInstance_InstantiationProcessorAbandonsChanges_ReturnsProblemAndDeletesInstance()
     {
         // Arrange
@@ -1944,6 +1970,7 @@ public class InstancesController_CopyInstanceTests
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         ProblemDetails problem = Assert.IsAssignableFrom<ProblemDetails>(objectResult.Value);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Equal("Instance copy rejected", problem.Title);
         Assert.Empty(commits);
         fixture
             .Mock<IInstantiationProcessor>()

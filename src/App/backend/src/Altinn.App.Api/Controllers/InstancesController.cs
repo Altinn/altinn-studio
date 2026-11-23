@@ -1609,7 +1609,7 @@ public class InstancesController : ControllerBase
             taskId: null,
             language
         );
-        var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
+        var instantiationProcessor = _appImplementationFactory.Get<IInstantiationProcessor>();
 
         foreach (var (de, dt) in formDataToCopy)
         {
@@ -1637,10 +1637,19 @@ public class InstancesController : ControllerBase
                 data
             );
 
-            await instantiationProcessor.DataCreation(dataMutator, data, null);
-            if (dataMutator.GetAbandonResponse() is { } abandonResponse)
+            if (instantiationProcessor is not null)
             {
-                return abandonResponse;
+                await instantiationProcessor.DataCreation(dataMutator, data, null);
+                if (
+                    dataMutator.GetAbandonResponse(
+                        title: "Instance copy rejected",
+                        detail: "The app rejected copying the instance"
+                    ) is
+                    { } abandonResponse
+                )
+                {
+                    return abandonResponse;
+                }
             }
 
             dataMutator.AddFormDataElement(dt.Id, data);
@@ -2119,8 +2128,10 @@ public class InstancesController : ControllerBase
 
                 await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
 
-                var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(dataMutator, data, null);
+                if (_appImplementationFactory.Get<IInstantiationProcessor>() is { } instantiationProcessor)
+                {
+                    await instantiationProcessor.DataCreation(dataMutator, data, null);
+                }
 
                 dataMutator.AddFormDataElement(dataType.Id, data);
             }

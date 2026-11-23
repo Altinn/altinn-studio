@@ -117,7 +117,10 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
 
     public void Dispose() => (ServiceProvider as IDisposable)?.Dispose();
 
-    internal static InstancesControllerFixture Create(Authenticated? auth = null)
+    internal static InstancesControllerFixture Create(
+        Authenticated? auth = null,
+        bool registerInstantiationProcessor = true
+    )
     {
         var services = new ServiceCollection();
         services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
@@ -139,7 +142,8 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddSingleton<IInstanceMutationClient>(mutationClientMock.Object);
         services.AddSingleton(new Mock<IAppMetadata>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
-        services.AddSingleton(new Mock<IInstantiationProcessor>(MockBehavior.Loose).Object);
+        if (registerInstantiationProcessor)
+            services.AddSingleton(new Mock<IInstantiationProcessor>(MockBehavior.Loose).Object);
         services.AddSingleton(new Mock<IInstantiationValidator>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<ICopyInstanceValidator>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IPDP>(MockBehavior.Strict).Object);

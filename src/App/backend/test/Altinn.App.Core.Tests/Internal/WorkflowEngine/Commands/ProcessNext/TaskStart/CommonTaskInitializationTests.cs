@@ -109,7 +109,8 @@ public class CommonTaskInitializationTests
         Mock<IAppModel>? appModelMock = null,
         Mock<IInstantiationProcessor>? instantiationProcessorMock = null,
         IInstantiationProcessor? instantiationProcessor = null,
-        IAppResources? appResources = null
+        IAppResources? appResources = null,
+        bool registerInstantiationProcessor = true
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
@@ -125,7 +126,11 @@ public class CommonTaskInitializationTests
 
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        services.AddSingleton(instantiationProcessor);
+        if (registerInstantiationProcessor)
+        {
+            services.AddSingleton(instantiationProcessor);
+        }
+
         services.AddSingleton(appResources ?? Mock.Of<IAppResources>());
         services.AddSingleton(accessChecker.Object);
         services.AddSingleton(NullLogger<DataModelFieldCalculator>.Instance as ILogger<DataModelFieldCalculator>);
@@ -172,6 +177,40 @@ public class CommonTaskInitializationTests
         appModelMock.Verify(x => x.Create("App.Models.TestModel"), Times.Once);
         prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null), Times.Once);
         instantiationProcessorMock.Verify(x => x.DataCreation(mutatorMock.Object, testData, null), Times.Once);
+        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
+    }
+
+    [Fact]
+    public async Task Execute_WithoutAnInstantiationProcessor_StillCreatesDataElements()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        var testData = new TestModel { Name = "test" };
+
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskIds = ["Task_1"],
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        var command = CreateCommand(appMetadata, appModelMock: appModelMock, registerInstantiationProcessor: false);
+        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
     }
 

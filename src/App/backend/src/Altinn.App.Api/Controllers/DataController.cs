@@ -291,8 +291,10 @@ public class DataController : ControllerBase
                     dataType.Id,
                     appModel
                 );
-                var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(dataMutator, appModel, null);
+                if (_appImplementationFactory.Get<IInstantiationProcessor>() is { } instantiationProcessor)
+                {
+                    await instantiationProcessor.DataCreation(dataMutator, appModel, null);
+                }
 
                 // Just stage the element to be created. We don't get the element id before we call UpdateInstanceData
                 dataMutator.AddFormDataElement(dataType.Id, appModel);

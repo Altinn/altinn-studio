@@ -11,7 +11,15 @@ internal static class InstanceDataUnitOfWorkExtensions
         public List<ValidationIssueWithSource>? UploadValidationIssues { get; set; }
     }
 
-    public static ProblemDetails? GetAbandonResponse(this InstanceDataUnitOfWork instanceDataUnitOfWork)
+    /// <summary>
+    /// The problem to return when a processor abandoned the changes, or <c>null</c> when none did. The title and
+    /// detail default to the file upload wording; an endpoint that is not a file upload passes its own.
+    /// </summary>
+    public static ProblemDetails? GetAbandonResponse(
+        this InstanceDataUnitOfWork instanceDataUnitOfWork,
+        string title = "File validation failed",
+        string detail = "Validation issues were found in the file upload"
+    )
     {
         if (instanceDataUnitOfWork.HasAbandonIssues)
         {
@@ -22,8 +30,8 @@ internal static class InstanceDataUnitOfWorkExtensions
                 .ToList();
             return new FileValidationIssueProblemDetails
             {
-                Title = "File validation failed",
-                Detail = "Validation issues were found in the file upload",
+                Title = title,
+                Detail = detail,
                 Status = 400,
                 UploadValidationIssues = issues,
             };
