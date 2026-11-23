@@ -14,6 +14,27 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models;
 internal sealed record SignedWorkflowState
 {
     /// <summary>
+    /// <see cref="WorkflowContract.Version"/> of the library that wrote the envelope. A pod reads it before it
+    /// verifies or reads anything else, and leaves an envelope with a higher one to a newer pod, so the name and
+    /// place of this property can never change. Absent from envelopes written before versions existed.
+    /// </summary>
+    /// <remarks>
+    /// It is outside the signature. Lowering it makes an older pod read the payload as it would have without the
+    /// version, and raising it makes pods leave the envelope alone. Neither lets a forged payload through.
+    /// </remarks>
+    [JsonPropertyName(WorkflowContract.VersionProperty)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? ContractVersion { get; init; }
+
+    /// <summary>
+    /// <see cref="WorkflowContract.LibraryVersion"/> of the pod that wrote the envelope, for the message a pod logs
+    /// when it leaves the envelope to a newer one. Never compared.
+    /// </summary>
+    [JsonPropertyName(WorkflowContract.WrittenByProperty)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WrittenBy { get; init; }
+
+    /// <summary>
     /// The exact transported bytes: a serialized <see cref="WorkflowCallbackState"/> for a state blob, the
     /// forwarded body for a message. The signature is computed over these exact transmitted bytes (UTF-8),
     /// never over a re-serialized object, to avoid canonicalization drift.

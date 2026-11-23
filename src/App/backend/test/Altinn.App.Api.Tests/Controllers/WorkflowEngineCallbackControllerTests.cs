@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
@@ -405,6 +406,111 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Empty(GetMutationRequests(setup.Services));
     }
 
+    /// <summary>
+    /// A higher version, and two that are not whole numbers, which this library never writes.
+    /// </summary>
+    public static TheoryData<string> NewerContractVersions => new() { NextContractVersion, "\"1\"", "1.5" };
+
+    [Theory]
+    [MemberData(nameof(NewerContractVersions))]
+    public async Task ExecuteCommand_StateUnderNewerContractVersion_AnswersRetryableWithoutRestoringStateOrRunningTheCommand(
+        string contractVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(
+            services => services.Services.AddSingleton<IWorkflowEngineCommand>(command),
+            createState: StateUnderContractVersion(contractVersion)
+        );
+
+        IActionResult result = await setup.Execute(command.GetKey(), stepId: Guid.NewGuid());
+
+        ProblemDetails problem = AssertNewerWorkflowContract(result);
+        Assert.Contains("app library 999.0.0", problem.Detail, StringComparison.Ordinal);
+        Assert.False(command.Executed);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+        Assert.Contains(
+            setup.ServiceProvider.Logs,
+            log =>
+                log.LogLevel == LogLevel.Warning
+                && log.FormattedMessage?.Contains("999.0.0", StringComparison.Ordinal) == true
+                && log.FormattedMessage.Contains(WorkflowContract.LibraryVersion, StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>
+    /// The case the version exists for: a newer pod planned a command this pod does not have. Without the version
+    /// this pod would fail the workflow permanently.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteCommand_CommandThisPodLacks_StateUnderNewerContractVersion_AnswersRetryable()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            _ => { },
+            createState: StateUnderContractVersion(NextContractVersion)
+        );
+
+        IActionResult result = await setup.Execute("CommandFromANewerVersion", stepId: Guid.NewGuid());
+
+        AssertNewerWorkflowContract(result);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireWithStateUnderNewerContractVersion_AnswersRetryableWithoutClaimingTheInstance()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            _ => { },
+            createState: StateUnderContractVersion(NextContractVersion)
+        );
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            setup.CreateAcquirePayload(),
+            collectionKey: "acquire-chain"
+        );
+
+        AssertNewerWorkflowContract(result);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+    }
+
+    /// <summary>
+    /// State this pod reads: written under its own version, an older one, or none, from before versions existed.
+    /// </summary>
+    public static TheoryData<string?> ReadableContractVersions =>
+        new() { WorkflowContract.Version.ToString(System.Globalization.CultureInfo.InvariantCulture), "0", null };
+
+    [Theory]
+    [MemberData(nameof(ReadableContractVersions))]
+    public async Task ExecuteCommand_StateUnderAContractVersionThisPodReads_RunsTheStepAndHandsOnItsOwnVersion(
+        string? contractVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(
+            services => services.Services.AddSingleton<IWorkflowEngineCommand>(command),
+            createState: StateUnderContractVersion(contractVersion)
+        );
+
+        IActionResult result = await setup.Execute(command.GetKey(), stepId: Guid.NewGuid());
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        Assert.True(command.Executed);
+        JsonNode handedOn = JsonNode.Parse(response.State!)!;
+        Assert.Equal(WorkflowContract.Version, handedOn[WorkflowContract.VersionProperty]!.GetValue<int>());
+        Assert.Equal(WorkflowContract.LibraryVersion, handedOn[WorkflowContract.WrittenByProperty]!.GetValue<string>());
+    }
+
+    private static ProblemDetails AssertNewerWorkflowContract(IActionResult result)
+    {
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.Equal("Newer Workflow Contract Version", problem.Title);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        return problem;
+    }
+
     [Fact]
     public async Task ExecuteCommand_WhenUnitOfWorkHasNothingToSave_SkipsStorageMutation()
     {
@@ -418,129 +524,6 @@ public class WorkflowEngineCallbackControllerTests
         Assert.NotNull(response.State);
         Assert.True(command.Executed);
         Assert.Empty(GetMutationRequests(setup.Services));
-    }
-
-    [Theory]
-    [InlineData("999.0.0")]
-    [InlineData("not-a-version")]
-    public async Task ExecuteCommand_NeedsNewerAppLibVersion_AnswersRetryableWithoutRestoringStateOrRunningTheCommand(
-        string minAppLibVersion
-    )
-    {
-        var command = new TrackingNoOpCommand();
-        await using ControllerSetup setup = CreateSetup(command);
-
-        IActionResult result = await setup.Execute(
-            command.GetKey(),
-            stepId: Guid.NewGuid(),
-            minAppLibVersion: minAppLibVersion
-        );
-
-        ProblemDetails problem = AssertNewerAppLibVersionRequired(result);
-        Assert.Contains(
-            $"needs app library version {minAppLibVersion} or newer, and this pod runs {AppLibVersion.Current}",
-            problem.Detail,
-            StringComparison.Ordinal
-        );
-        Assert.False(command.Executed);
-        Assert.Empty(setup.Services.Storage.RequestsResponses);
-        Assert.Contains(
-            setup.ServiceProvider.Logs,
-            log =>
-                log.LogLevel == LogLevel.Warning
-                && log.FormattedMessage?.Contains(minAppLibVersion, StringComparison.Ordinal) == true
-                && log.FormattedMessage.Contains(AppLibVersion.Current, StringComparison.Ordinal)
-        );
-    }
-
-    /// <summary>
-    /// The case the stamp exists for: a newer version planned a command this pod does not have. Without the stamp
-    /// this pod would fail the workflow permanently.
-    /// </summary>
-    [Fact]
-    public async Task ExecuteCommand_CommandThisPodLacks_NeedsNewerAppLibVersion_AnswersRetryable()
-    {
-        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
-
-        IActionResult result = await setup.Execute(
-            "CommandFromANewerVersion",
-            stepId: Guid.NewGuid(),
-            minAppLibVersion: "999.0.0"
-        );
-
-        AssertNewerAppLibVersionRequired(result);
-    }
-
-    [Fact]
-    public async Task ExecuteCommand_AcquireNeedsNewerAppLibVersion_AnswersRetryableWithoutClaimingTheInstance()
-    {
-        await using ControllerSetup setup = CreateSetup(_ => { });
-
-        IActionResult result = await setup.Execute(
-            ProcessingStatusAcquirer.Key,
-            Guid.NewGuid(),
-            setup.CreateAcquirePayload(),
-            collectionKey: "acquire-chain",
-            minAppLibVersion: "999.0.0"
-        );
-
-        AssertNewerAppLibVersionRequired(result);
-        Assert.Empty(setup.Services.Storage.RequestsResponses);
-    }
-
-    /// <summary>
-    /// Stamps this pod may run: its own version, an older one, or none, from before the stamp existed.
-    /// </summary>
-    public static TheoryData<string?> RunnableStamps => new() { AppLibVersion.Current, "8.12.7", null };
-
-    [Theory]
-    [MemberData(nameof(RunnableStamps))]
-    public async Task ExecuteCommand_PodAtOrAboveTheMinimum_RunsTheStep(string? minAppLibVersion)
-    {
-        var command = new TrackingNoOpCommand();
-        await using ControllerSetup setup = CreateSetup(command);
-
-        IActionResult result = await setup.Execute(
-            command.GetKey(),
-            stepId: Guid.NewGuid(),
-            minAppLibVersion: minAppLibVersion
-        );
-
-        Assert.IsType<OkObjectResult>(result);
-        Assert.True(command.Executed);
-    }
-
-    /// <summary>
-    /// A pod at or above the minimum treats the plan as its own, so a command it lacks fails the step.
-    /// </summary>
-    [Theory]
-    [MemberData(nameof(RunnableStamps))]
-    public async Task ExecuteCommand_CommandThisPodLacks_PodAtOrAboveTheMinimum_FailsPermanently(
-        string? minAppLibVersion
-    )
-    {
-        await using ControllerSetup setup = CreateSetup(new TrackingNoOpCommand());
-
-        IActionResult result = await setup.Execute(
-            "RemovedCommand",
-            stepId: Guid.NewGuid(),
-            minAppLibVersion: minAppLibVersion
-        );
-
-        var error = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status404NotFound, error.StatusCode);
-        var problem = Assert.IsType<ProblemDetails>(error.Value);
-        Assert.True((bool)problem.Extensions["nonRetryable"]!);
-    }
-
-    private static ProblemDetails AssertNewerAppLibVersionRequired(IActionResult result)
-    {
-        var error = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
-        var problem = Assert.IsType<ProblemDetails>(error.Value);
-        Assert.Equal("Newer App Library Version Required", problem.Title);
-        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
-        return problem;
     }
 
     [Fact]
@@ -1443,23 +1426,45 @@ public class WorkflowEngineCallbackControllerTests
         );
 
         WorkflowStateSigner stateSigner = serviceProvider.GetRequiredService<WorkflowStateSigner>();
-        string state =
-            createState?.Invoke(stateSigner, instance)
-            ?? stateSigner.Sign(
-                JsonSerializer.Serialize(
-                    new WorkflowCallbackState
-                    {
-                        Instance = instance,
-                        InstanceVersion = 1,
-                        ProcessStateVersion = 1,
-                        FormData = [],
-                    }
-                ),
-                SigningDomain.CallbackState
-            );
+        string state = createState?.Invoke(stateSigner, instance) ?? SignDefaultState(stateSigner, instance);
 
         return new ControllerSetup(services, serviceProvider, controller, instanceGuid, state);
     }
+
+    private static string SignDefaultState(WorkflowStateSigner stateSigner, Instance instance) =>
+        stateSigner.Sign(
+            JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = instance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
+            SigningDomain.CallbackState
+        );
+
+    /// <summary>
+    /// The state a pod on another workflow contract version would hand on: the default state with that version in its
+    /// envelope, as JSON text. <c>null</c> leaves the version out, as in state from before versions existed.
+    /// </summary>
+    private static Func<WorkflowStateSigner, Instance, string> StateUnderContractVersion(string? contractVersion) =>
+        (signer, instance) =>
+        {
+            JsonObject envelope = JsonNode.Parse(SignDefaultState(signer, instance))!.AsObject();
+            envelope.Remove(WorkflowContract.VersionProperty);
+            if (contractVersion is not null)
+            {
+                envelope[WorkflowContract.VersionProperty] = JsonNode.Parse(contractVersion);
+            }
+
+            envelope[WorkflowContract.WrittenByProperty] = "999.0.0";
+            return envelope.ToJsonString();
+        };
+
+    private static string NextContractVersion =>
+        (WorkflowContract.Version + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private static Guid GetInstanceGuid(Instance instance) => Guid.Parse(instance.Id!.Split('/')[1]);
 
@@ -1695,18 +1700,8 @@ public class WorkflowEngineCallbackControllerTests
             Guid stepId,
             string? commandPayload = null,
             string? collectionKey = null,
-            Actor? actor = null,
-            string? minAppLibVersion = null
-        ) =>
-            Execute(
-                commandKey,
-                stepId,
-                commandPayload,
-                FixtureExecutionReferenceTime,
-                collectionKey,
-                actor,
-                minAppLibVersion
-            );
+            Actor? actor = null
+        ) => Execute(commandKey, stepId, commandPayload, FixtureExecutionReferenceTime, collectionKey, actor);
 
         public async Task<IActionResult> Execute(
             string commandKey,
@@ -1714,8 +1709,7 @@ public class WorkflowEngineCallbackControllerTests
             string? commandPayload,
             DateTimeOffset executionReferenceTime,
             string? collectionKey = null,
-            Actor? actor = null,
-            string? minAppLibVersion = null
+            Actor? actor = null
         )
         {
             Controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
@@ -1733,7 +1727,6 @@ public class WorkflowEngineCallbackControllerTests
                 StepId = stepId,
                 ExecutionReferenceTime = executionReferenceTime,
                 State = State,
-                MinAppLibVersion = minAppLibVersion,
             };
             // What the callback scheme would authenticate for a token minted for this actor.
             Controller.HttpContext.User = new ClaimsPrincipal(

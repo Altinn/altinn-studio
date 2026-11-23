@@ -3,6 +3,8 @@
 - Ask before you change the JSON of the callback state, a command's key or payload, or the shape of the steps a
   workflow is enqueued with. Workflows already in flight still carry what the previous version wrote, as
   [in-flight workflows](../../../../docs/workflow-engine-integration.md#in-flight-workflows) explains.
+- When such a change is one a pod on the previous version cannot run or would drop, raise `WorkflowContract.Version`
+  in the same change. `WorkflowContractTests` fails until you decide.
 - Some types here and in `Features/Process` look redundant and are deliberate, such as the enums that come in pairs.
   Do not merge them in passing.
 - After you change the steps a transition plans, the callbacks or the mailbox relay, run the

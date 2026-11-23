@@ -3922,8 +3922,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand
         public bool IsFinalWaitCheck { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("mailbox")]
         public Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.AppCallbackMailbox? Mailbox { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("minAppLibVersion")]
-        public string? MinAppLibVersion { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("payload")]
         public string? Payload { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("retryCount")]

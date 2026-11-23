@@ -194,7 +194,6 @@ internal sealed class ProcessNextRequestFactory
             InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
             InstanceGuid = instanceId.InstanceGuid,
             CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, workflows),
-            MinAppLibVersion = AppLibVersion.MinForWorkflows,
         };
         var request = new WorkflowEnqueueRequest
         {
@@ -342,7 +341,6 @@ internal sealed class ProcessNextRequestFactory
             InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
             InstanceGuid = instanceId.InstanceGuid,
             CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, resolvedActor, workflows),
-            MinAppLibVersion = AppLibVersion.MinForWorkflows,
         };
 
         var request = new WorkflowEnqueueRequest

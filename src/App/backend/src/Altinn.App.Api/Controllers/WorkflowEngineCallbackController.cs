@@ -72,9 +72,16 @@ public class WorkflowEngineCallbackController : ControllerBase
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
 
-        if (AppLibVersion.IsNewerThan(payload.MinAppLibVersion, AppLibVersion.Current))
+        if (
+            WorkflowContract.IsWrittenUnderNewerVersion(payload.State, out string? version, out string? writtenBy)
+            || WorkflowContract.IsWrittenUnderNewerVersion(
+                payload.Mailbox?.Delivery?.Payload,
+                out version,
+                out writtenBy
+            )
+        )
         {
-            return NewerAppLibVersionRequired(commandKey, instanceId, payload, activity);
+            return NewerWorkflowContract(commandKey, instanceId, payload, version, writtenBy, activity);
         }
 
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
@@ -503,31 +510,37 @@ public class WorkflowEngineCallbackController : ControllerBase
     }
 
     /// <summary>
-    /// Refuses a step whose workflow needs a newer app library version than this pod runs, without the
-    /// <c>nonRetryable</c> marker, so the engine retries it. During a rolling deploy a retry reaches a pod on the new
-    /// version. After a rollback the step retries until the app is rolled forward or its retry strategy runs out.
+    /// Leaves a step whose callback state or delivered message was written under a newer
+    /// <see cref="WorkflowContract.Version"/> to a newer pod, by answering without the <c>nonRetryable</c> marker so
+    /// the engine retries it. During a rolling deploy a retry reaches a pod on the new version. After a rollback the
+    /// step retries until the app is rolled forward or its retry strategy runs out.
     /// </summary>
-    private ObjectResult NewerAppLibVersionRequired(
+    private ObjectResult NewerWorkflowContract(
         string commandKey,
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
+        string? version,
+        string? writtenBy,
         Activity? activity
     )
     {
+        string writer = LogSanitizer.Sanitize(writtenBy) is { Length: > 0 } named ? named : "unknown";
         _logger.LogWarning(
-            "Workflow step needs app library version {MinAppLibVersion} or newer, and this pod runs {PodVersion}. Answering 503 so the workflow engine retries it until it reaches a pod on that version or newer. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
-            LogSanitizer.Sanitize(payload.MinAppLibVersion),
-            AppLibVersion.Current,
+            "Workflow step carries an envelope written under workflow contract version {ContractVersion} by app library {WrittenBy}, and this pod, on {PodVersion}, reads up to version {PodContractVersion}. Answering 503 so the workflow engine retries it until it reaches a pod that reads it. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+            LogSanitizer.Sanitize(version),
+            writer,
+            WorkflowContract.LibraryVersion,
+            WorkflowContract.Version,
             LogSanitizer.Sanitize(commandKey),
             instanceId,
             payload.WorkflowId,
             payload.StepId
         );
 
-        activity?.SetStatus(ActivityStatusCode.Error, "Needs a newer app library version");
+        activity?.SetStatus(ActivityStatusCode.Error, "Written under a newer workflow contract version");
         return Problem(
-            title: "Newer App Library Version Required",
-            detail: $"This step needs app library version {payload.MinAppLibVersion} or newer, and this pod runs {AppLibVersion.Current}. It runs once a retry reaches a pod on that version or newer.",
+            title: "Newer Workflow Contract Version",
+            detail: $"This step carries state or a message that app library {writer} wrote under a newer workflow contract version than this pod, on {WorkflowContract.LibraryVersion}, reads. It runs once a retry reaches a pod that reads it.",
             statusCode: StatusCodes.Status503ServiceUnavailable
         );
     }

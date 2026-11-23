@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
@@ -404,6 +405,45 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                 AcceptedAt = DateTimeOffset.UnixEpoch,
             },
         };
+    }
+
+    /// <summary>
+    /// A delivered message that a pod on the next workflow contract version sealed.
+    /// </summary>
+    private static AppCallbackMailbox DeliveredUnderNewerContractVersion(IServiceProvider services)
+    {
+        AppCallbackMailbox delivered = Delivered(services);
+        JsonObject envelope = JsonNode.Parse(delivered.Delivery!.Payload)!.AsObject();
+        envelope[WorkflowContract.VersionProperty] = WorkflowContract.Version + 1;
+        return new AppCallbackMailbox
+        {
+            Id = delivered.Id,
+            Seq = delivered.Seq,
+            Delivery = new AppCallbackMailboxDelivery
+            {
+                IdempotencyKey = delivered.Delivery.IdempotencyKey,
+                Payload = envelope.ToJsonString(),
+                AcceptedAt = delivered.Delivery.AcceptedAt,
+            },
+        };
+    }
+
+    [Fact]
+    public async Task AMessageSealedUnderANewerContractVersion_IsLeftToANewerPod()
+    {
+        bool handled = false;
+
+        CallbackOutcome outcome = await RunReceiveCallback(
+            DeliveredUnderNewerContractVersion,
+            onMessage: (_, _) =>
+            {
+                handled = true;
+                return ServiceTaskResult.Success();
+            }
+        );
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, outcome.Status);
+        Assert.False(handled);
     }
 
     private static AppCallbackMailbox Closed(IServiceProvider _) =>

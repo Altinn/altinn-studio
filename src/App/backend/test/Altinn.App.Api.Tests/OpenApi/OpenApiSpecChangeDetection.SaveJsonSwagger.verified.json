@@ -8358,10 +8358,6 @@
             "type": "string",
             "nullable": true
           },
-          "minAppLibVersion": {
-            "type": "string",
-            "nullable": true
-          },
           "workflowId": {
             "type": "string",
             "format": "uuid"

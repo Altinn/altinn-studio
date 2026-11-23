@@ -66,6 +66,19 @@ public class WorkflowStateSignerTests
         Assert.Equal(expected, envelope.Signature);
     }
 
+    [Fact]
+    public void Sign_NamesTheWorkflowContractVersionAndTheLibraryVersion()
+    {
+        _secretProviderMock.Setup(x => x.GetSigningSecret()).Returns(Code("id-1", "secret-code-long-enough-for-hmac"));
+
+        var envelope = JsonSerializer.Deserialize<SignedWorkflowState>(
+            CreateSut().Sign(Payload, SigningDomain.CallbackState)
+        )!;
+
+        Assert.Equal(WorkflowContract.Version, envelope.ContractVersion);
+        Assert.Equal(WorkflowContract.LibraryVersion, envelope.WrittenBy);
+    }
+
     [Theory]
     [MemberData(nameof(GoldenVectors))]
     public void Verify_AcceptsAnEnvelopeCarryingTheKnownSignature(string code, string payload, string expected)

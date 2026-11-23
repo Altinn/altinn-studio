@@ -247,32 +247,38 @@ A workflow runs its later steps on whatever app version is running then, with th
 payloads and step lists that the enqueueing version wrote. A change to any of them decides whether those workflows
 keep working or fail with a permanent error that names the problem.
 
-A pod never runs a step of a workflow that needs a newer version of the app libraries than the pod runs. A newer
-version may have planned a command, a payload or a state field that the older one lacks, and the older one would fail
-the workflow permanently or drop the field for the steps after it. Every workflow therefore carries the oldest version
-that may run it in its context, as `minAppLibVersion`, and the engine hands it back with each callback. It is the
-version that planned the workflow, unless that version declared an older one. A pod on an older version answers 503
-without the `nonRetryable` marker before it checks the actor, restores the callback state or looks up the command, and
-logs a warning that names the versions. The engine retries the step under its retry strategy, which gives up after a
-day by default.
+A pod never runs a step whose callback state another pod wrote under a newer workflow contract version than its own.
+The contract is what one pod hands another through the engine: the steps a transition plans, each command's key and
+payload, and the callback state. A newer version may have planned a command, a payload or a state field that the
+older one lacks, and the older one would fail the workflow permanently or drop the field for the steps after it.
 
+Every signed envelope therefore names the contract version of the library that wrote it, as `contractVersion`, and
+that library's package version, as `writtenBy`. Both sit in the envelope the app owns, so the engine carries them
+without reading them. A pod reads `contractVersion` before it checks the actor, verifies or restores the state, or
+looks up the command. When it is higher than `WorkflowContract.Version`, the pod answers 503 without the
+`nonRetryable` marker and logs a warning that names both versions. The engine retries the step under its retry
+strategy, which gives up after a day by default. A message delivered to a mailbox is sealed the same way and gets the
+same check.
+
+- Raise `WorkflowContract.Version` in the change that makes the library plan or write something a pod on the previous
+  version cannot run or would drop. `WorkflowContractTests` keeps a snapshot of the command keys, the command payloads
+  and the callback state for each version, and fails when they change. A release that changes none of them keeps the
+  version, so a rollback across it continues every workflow.
+- A step hands on its state under the version of the pod that ran it. A workflow therefore never returns to a pod
+  older than one that has planned or run a part of it.
 - A rolling deploy heals by itself, since a retry reaches a pod on the new version.
-- After a rollback, the step retries until the app is rolled forward or its retry strategy runs out. A workflow that
-  ran out can be resumed once the newer version runs again.
-- Versions follow Semantic Versioning, so `9.0.0-preview.10` is older than `9.0.0`. A version that does not parse
-  counts as newer, since every version that stamps a workflow writes one that parses.
-- A workflow planned before the stamp existed has none, and runs on any version.
-- A version can declare an older version that may also run its workflows in `AppLibVersion.CompatibleFrom`, and then
-  writes that one as `minAppLibVersion`. Set it only when a test shows that the older version reads the plan, the
-  payloads and the callback state the newer one writes. A rollback to the older version then continues the newer one's
-  workflows. The declaration can only lower the bar: one that does not parse, or one above the version that declares
-  it, counts as missing.
-- The engine leaves the context out of its enqueue fingerprint, so a replay from another version matches the first
-  enqueue when it plans the same steps. The workflow keeps the first enqueue's `minAppLibVersion`. When that was the
-  newer one, older pods leave even the steps they could run to a newer pod.
+- After a rollback across a version that raised the contract version, the steps written under it retry until the app
+  is rolled forward or their retry strategy runs out. A workflow that ran out can be resumed once the newer version
+  runs again.
+- An envelope without a version, from before versions existed, runs on any pod. A version that is not a whole number
+  counts as newer, since this library always writes one.
+- The version is outside the signature. Lowering it makes an older pod read the payload as it would have without the
+  version, and raising it makes pods leave the envelope alone. Neither lets a forged payload through.
+- The check cannot protect what runs before it. The callback token and the JSON around the state are read first, so a
+  version must keep both readable by the previous one.
 
-The rest of this section is about a pod on a workflow's `minAppLibVersion` or newer. It runs every step, and a command
-it does not have fails permanently.
+The rest of this section is about a pod that reads the state's contract version. It runs every step, and a command it
+does not have fails permanently.
 
 A step names its pipeline item by position, so reshaping a pipeline in flight is the same problem. The
 [authoring guide](service-task-pipelines.md#redeploys-and-in-flight-workflows) leaves it to the app developer, and the

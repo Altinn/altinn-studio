@@ -45,6 +45,8 @@ internal sealed class WorkflowStateSigner
         string signature = ComputeSignature(signingCode.Code, domain, payload);
         var envelope = new SignedWorkflowState
         {
+            ContractVersion = WorkflowContract.Version,
+            WrittenBy = WorkflowContract.LibraryVersion,
             Payload = payload,
             Signature = signature,
             SecretId = signingCode.Id,

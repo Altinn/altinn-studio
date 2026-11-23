@@ -83,7 +83,6 @@ internal sealed class EnqueueAuxiliaryWorkflows(
                                 context.Payload.Actor,
                                 auxiliaryWorkflows
                             ),
-                            MinAppLibVersion = context.Payload.MinAppLibVersion,
                         }
                     ),
                     Workflows = auxiliaryWorkflows,

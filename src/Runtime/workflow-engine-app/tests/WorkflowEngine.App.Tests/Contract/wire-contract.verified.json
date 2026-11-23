@@ -173,11 +173,6 @@
         "Nullable": true
       },
       {
-        "Name": "minAppLibVersion",
-        "Kind": "string",
-        "Nullable": true
-      },
-      {
         "Name": "payload",
         "Kind": "string",
         "Nullable": true
@@ -266,11 +261,6 @@
         "Name": "instanceOwnerPartyId",
         "Kind": "int",
         "Nullable": false
-      },
-      {
-        "Name": "minAppLibVersion",
-        "Kind": "string",
-        "Nullable": true
       },
       {
         "Name": "org",
