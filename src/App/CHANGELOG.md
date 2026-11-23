@@ -12,11 +12,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Build check `ALTINNAPP0704` (error) reports a method in a process or service task that is named after `DefineStart`, `DefineEnd`, `DefineAbandon` or `ValidateConfiguration` but does not implement it, such as `void DefineStart(PipelineBuilder.ServiceTask pipeline)`. The runtime would never call it.
+- Build check `ALTINNAPP0704` (error) reports a method in a process or service task that is named after `DefineStart`, `DefineEnd`, `DefineAbandon` or `ValidateConfiguration` but does not implement it, such as `void DefineStart(PipelineBuilder.ServiceTask pipeline)`. The runtime would never call it. ([#22050](https://github.com/Altinn/altinn-studio/pull/22050))
 
 ### Changed
 
-- Breaking: each `Define` method takes its own `PipelineBuilder` variant. Run `studioctl app upgrade v9` again to make these changes:
+- Breaking: each `Define` method takes its own `PipelineBuilder` variant. Run `studioctl app upgrade v9` again to make these changes: ([#22050](https://github.com/Altinn/altinn-studio/pull/22050))
   - `IServiceTask.DefineExecute` takes `PipelineBuilder.ServiceTask`, without `Finally` and `ConcludeOnReplies`: a step whose work returns `ServiceTaskResult` or `ServiceTaskExchangeResult` ends the task. Replace `.Finally(x)` with `.Stage(x)` and `.ConcludeOnReplies(...)` with `.HandleReplies(...)`. ([custom service tasks](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/service-tasks/custom/), [multi-step service tasks](https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/process/service-tasks/flere-steg/))
   - `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take `PipelineBuilder.Lifecycle` and return `void`: drop `ProcessTaskPipeline` and `.Build()`, as in `public void DefineEnd(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(RevokeRights).Stage(StorePdf);`
 

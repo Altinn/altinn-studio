@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- `studioctl app upgrade v9` writes service tasks and process tasks for the `PipelineBuilder` variants:
+- `studioctl app upgrade v9` writes service tasks and process tasks for the `PipelineBuilder` variants: ([#22050](https://github.com/Altinn/altinn-studio/pull/22050))
     - run again, it moves those written for earlier v9 previews: `Finally` becomes `Stage`, `ConcludeOnReplies` becomes `HandleReplies`, and `Build()` goes
     - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds takes `PipelineBuilder.Lifecycle`. Without its `#error` line the app builds, but does not start until you port the work
 
