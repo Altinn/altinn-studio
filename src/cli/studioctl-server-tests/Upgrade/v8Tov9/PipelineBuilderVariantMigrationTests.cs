@@ -833,4 +833,43 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
         AssertCompilesAgainstCurrent();
         Assert.Empty(SemanticScannerFactory.CompileErrors(AppFolder, _currentSdk.Value, "DEBUG"));
     }
+
+    [Theory]
+    [InlineData("public static class CommonStages", "static", "CommonStages.WithArchive(pipeline)")]
+    [InlineData("public abstract class TaskBase", "protected", "base.WithArchive(pipeline)")]
+    [InlineData("public static class PipelineExtensions", "static", "pipeline.WithArchive()")]
+    public async Task BuilderFromAQualifiedHelperCall_EndsWithStage(string helperClass, string modifier, string call)
+    {
+        // An app already on v9 has no compilation, so this is the receiver check real apps get.
+        var parameter = call.StartsWith("pipeline.", StringComparison.Ordinal) ? "this " : "";
+        var task = Write(
+            "logic/HelperTask.cs",
+            $$"""
+            {{helperClass}}
+            {
+                public {{modifier}} PipelineBuilder WithArchive({{parameter}}PipelineBuilder pipeline) =>
+                    pipeline.Stage(static context => Task.FromResult(StageResult.Completed()));
+            }
+
+            public class HelperTask : {{(helperClass.Contains("TaskBase") ? "TaskBase, " : "")}}IServiceTask
+            {
+                public string Type => "helper";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => {{call}}.Finally(Done);
+
+            {{StageMethods}}
+            }
+            """.Replace("public protected", "protected", StringComparison.Ordinal)
+        );
+
+        var result = Migrate(semantic: false);
+
+        // DefineExecute is reported as moved to the service task builder, which has no Finally.
+        Assert.Contains(Oks(result), ok => ok.Contains("HelperTask.DefineExecute takes a PipelineBuilder.ServiceTask"));
+        var migrated = await ReadMigrated(task);
+        Assert.Contains($"=> {call}.Stage(Done);", migrated);
+        Assert.Empty(result.Todos);
+        AssertCompilesAgainstCurrent();
+    }
+
 }
