@@ -39,18 +39,17 @@ public class ActionsController : ControllerBase
     public ActionsController(
         IAuthorizationService authorization,
         IInstanceClient instanceClient,
-        UserActionService userActionService,
         IValidationService validationService,
         IServiceProvider serviceProvider,
         IAuthenticationContext authenticationContext
     )
     {
         _authorization = authorization;
-        _userActionService = userActionService;
         _validationService = validationService;
         _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _authenticationContext = authenticationContext;
+        _userActionService = serviceProvider.GetRequiredService<UserActionService>();
     }
 
     /// <summary>

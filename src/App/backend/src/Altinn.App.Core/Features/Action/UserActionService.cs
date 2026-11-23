@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Features.Action;
 /// Factory class for resolving <see cref="IUserAction"/> implementations
 /// based on the id of the action.
 /// </summary>
-public class UserActionService
+internal sealed class UserActionService
 {
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ITranslationService _translationService;
@@ -51,7 +51,7 @@ public class UserActionService
     /// Runs <paramref name="handler"/>. A handler that throws, or that abandons its changes without failing, fails the
     /// action, and the issues of a failure are translated. Saving the changes is up to the caller.
     /// </summary>
-    internal async Task<UserActionOutcome> HandleAction(
+    public async Task<UserActionOutcome> HandleAction(
         IUserAction handler,
         InstanceDataUnitOfWork dataMutator,
         Authenticated authentication,

@@ -6,7 +6,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/actions")]
     public class ActionsController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public ActionsController(Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.Action.UserActionService userActionService, Altinn.App.Core.Internal.Validation.IValidationService validationService, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
+        public ActionsController(Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, System.IServiceProvider serviceProvider, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
