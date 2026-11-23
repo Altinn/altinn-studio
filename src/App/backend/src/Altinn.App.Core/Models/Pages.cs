@@ -1,3 +1,5 @@
+using Altinn.App.Core.Models.Expressions;
+
 namespace Altinn.App.Core.Models;
 
 /// <summary>
@@ -31,9 +33,36 @@ public class Pages
     public bool? ShowProgress { get; set; }
 
     /// <summary>
+    /// Hides the explicit marking that says a field is optional. A component's own
+    /// <c>labelSettings.optionalIndicator</c> overrides it.
+    /// </summary>
+    public bool? HideOptionalIndicator { get; set; }
+
+    /// <summary>
     /// Specifies when the application saves form data.
     /// </summary>
     public AutoSaveBehavior? AutoSaveBehavior { get; set; }
+
+    /// <summary>
+    /// Overrides the default navigation panel title. Can be a text resource key or an expression.
+    /// </summary>
+    public Expression? NavigationTitle { get; set; }
+
+    /// <summary>
+    /// Default forward navigation validation for this task or UI folder.
+    /// </summary>
+    public PageValidation? ValidationOnNavigation { get; set; }
+
+    /// <summary>
+    /// Controls whether the app name is hidden in the PDF header and footer. Can be a boolean or an expression.
+    /// </summary>
+    public Expression? HideAppNameInPdf { get; set; }
+
+    /// <summary>
+    /// Validation when returning to a summary or a page linked with a return button.
+    /// Falls back to forward navigation validation at this configuration level.
+    /// </summary>
+    public PageValidation? ValidateOnBackToSummary { get; set; }
 
     /// <summary>
     /// Shows the listed tasks in the sidebar navigation menu.

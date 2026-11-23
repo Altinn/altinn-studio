@@ -23,6 +23,27 @@ public interface IRuntimeGatewayClient
         AltinnEnvironment environment,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Gets the version of the app that runs in the environment's cluster, whichever Studio environment deployed it.
+    /// </summary>
+    /// <returns>The running deployment, or null when the app does not run there.</returns>
+    Task<RunningAppDeployment?> GetRunningAppDeployment(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Restarts the app in the environment's cluster by replacing its instances with new ones of the same version.
+    /// </summary>
+    Task<GatewayAppRestart> RestartApp(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
     Task<IEnumerable<AlertRule>> GetAlertRulesAsync(
         string org,
         AltinnEnvironment environment,

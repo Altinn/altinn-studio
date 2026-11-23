@@ -90,7 +90,7 @@ without the filters, and sets the status checkboxes to the found workflow's stat
 
 Always visible. It shows:
 
-- The engine status icon and label (Running, Idle, Unhealthy, Disabled, Queue Full, Stopped)
+- The engine status icon and label (Running, Idle, Unhealthy, Queue Full, Stopped)
 - Capacity meters: Workers, DB connections and HTTP connections, each as used/total
 - Meter colors: green below 50%, yellow from 50 to 80%, red above 80%
 
@@ -115,7 +115,6 @@ Pushes the engine status and capacity, throttled to about 50 ms, and only when t
         "running": true,
         "healthy": true,
         "idle": false,
-        "disabled": false,
         "queueFull": false
     },
     "capacity": {
@@ -964,10 +963,10 @@ event on a process-end step. The dashboard uses the label as it is, so it groups
 than by the command's name, and groups a command it has never seen correctly on its first run. A process end also
 gets its real end event id, where the fallback can only say "End Event".
 
-Only the pre-commit lifecycle steps carry the label. The transition's own steps (`AcquireProcessingStatus`,
-`MutateProcessState`, `CommitProcessState`, `EnqueueAuxiliaryWorkflows`) belong to neither element. The post-commit
-steps and the auxiliary workflows' steps are deliberately unlabeled: a label would draw the entered element's name a
-second time, after the commit, around work the first bracket already named.
+Only the task-end, abandon and task-start lifecycle steps carry the label. The transition's own steps
+(`AcquireProcessingStatus`, `CommitProcessState`, `EnqueueAuxiliaryWorkflows`) belong to neither element. The
+post-commit steps and the auxiliary workflows' steps are deliberately unlabeled: a label would draw the entered
+element's name a second time, after the task start, around work the first bracket already named.
 
 ### `stepPhase(commandDetail)` is the fallback
 

@@ -153,7 +153,7 @@ public sealed class RepositoryFileAccessTests : IDisposable
         string path = _factory.GetRepositoryPath("ttd", "ttd-content", "testUser");
         Directory.CreateDirectory(Path.Join(path, ".git"));
         File.WriteAllText(Path.Join(path, ".git/config"), "original");
-        var service = new OrgLibraryService(null, null, _factory, null);
+        var service = new OrgLibraryService(null, null, _factory, null, null);
         await Assert.ThrowsAsync<ArgumentException>(() =>
             service.UpdateFile("ttd", "testUser", new FileMetadata(".git/config", "replacement"))
         );

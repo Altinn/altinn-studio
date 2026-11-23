@@ -1,7 +1,7 @@
 # GitHub Actions runner
 
 The self-hosted runners for this repository's workflows. Workflows select them with `runs-on: self-hosted-ubuntu`,
-and [GitHub Actions](../../../.github/README.md) says when to use them.
+and [GitHub Actions](../../../docs/cicd.md) says when to use them.
 
 Each job runs in its own Sandbox virtual machine:
 
@@ -22,4 +22,4 @@ Flux deploys the runners to the Studio cluster from its
   credentials. A prepared image never changes once published.
 - Jobs on the same node share only that image cache. Each job keeps its file system, workspace and Docker data to
   itself.
-- Only [provider.rs](coordinator/src/provider.rs) knows which Sandbox provider the runners use.
+- Only the shared [sandbox-hosting](../sandbox-hosting/README.md) crate knows which Sandbox provider the runners use.

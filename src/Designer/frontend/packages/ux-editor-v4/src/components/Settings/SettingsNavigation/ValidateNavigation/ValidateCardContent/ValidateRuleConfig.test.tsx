@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { renderAndRunTimers } from '@studio/ui-test';
+import { renderAndRunTimers } from '@designer/ui-test';
 import { ValidateRuleConfig, type ValidateRuleConfigProps } from './ValidateRuleConfig';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 
 describe('ValidateRuleConfig', () => {

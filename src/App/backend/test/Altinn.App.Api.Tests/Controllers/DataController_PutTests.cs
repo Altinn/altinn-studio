@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Core.Constants;
@@ -9,20 +10,19 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class DataController_PutTests : ApiTestBase
 {
     private readonly Mock<IDataProcessor> _dataProcessor = new(MockBehavior.Strict);
     private readonly Mock<IDataWriteProcessor> _dataWriteProcessor = new(MockBehavior.Strict);
 
-    public DataController_PutTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public DataController_PutTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) =>
         {
@@ -95,8 +95,16 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
             updateDataElementContent
         );
-        OutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        // default.calculation.json sets melding.calculated-fixed-value, so the response lists the changed fields
+        var changes = await VerifyStatusAndDeserialize<CalculationResult>(response, HttpStatusCode.OK);
+        changes
+            .ChangedFields.Should()
+            .ContainKey("melding.calculated-fixed-value")
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which.GetString()
+            .Should()
+            .Be("Hello Ola Olsen");
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
@@ -105,6 +113,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             HttpStatusCode.OK
         );
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
+        readDataElementResponseParsed.Melding.CalculatedFixedValue.Should().Be("Hello Ola Olsen");
 
         TestData.DeleteInstanceAndData(org, app, instanceId);
 
@@ -208,7 +217,11 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             firstReadDataElementResponse,
             HttpStatusCode.OK
         );
-        firstReadDataElementResponseParsed.Melding.Should().BeNull();
+        // Task start calculated the element it created, and the custom data processors have not run yet
+        firstReadDataElementResponseParsed.Melding.Should().NotBeNull();
+        firstReadDataElementResponseParsed.Melding!.CalculatedFixedValue.Should().Be("Hello ");
+        firstReadDataElementResponseParsed.Melding.Name.Should().BeNull();
+        firstReadDataElementResponseParsed.Melding.Toggle.Should().BeFalse();
 
         // Update data element
         using var updateDataElementContent = new StringContent(
@@ -299,5 +312,99 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             .Be("System.Text.Json.JsonException");
 
         TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, instanceId);
+    }
+
+    [Fact]
+    public async Task PutDataElement_WhenAProcessorReplacesTheForm_LaterProcessorsAndTheResponseUseTheReplacement()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        var instanceOwnerPartyId = 500600;
+        var instanceId = Guid.Parse("00000000-DEAD-0000-BABE-000000000999");
+        var dataGuid = Guid.Parse("cd691c32-0000-4555-8aee-0b7054a413e4");
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, instanceId);
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _dataWriteProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DataElementChanges>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton<IDataWriteProcessor>(new ReplacingDataWriteProcessor());
+            services.AddSingleton<IDataWriteProcessor>(new EditingDataWriteProcessor());
+        };
+        var client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
+
+        using var content = new StringContent(
+            """{"melding":{"name": "Ola Olsen"}}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+        var response = await client.PutAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceId}/data/{dataGuid}",
+            content
+        );
+
+        var responseText = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseText);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Replaced", responseText);
+        Assert.Contains("Edited after the replacement", responseText);
+        string stored = TestData.GetDataElementBlobContnet(org, app, instanceOwnerPartyId, instanceId, dataGuid);
+        Assert.Contains("<name>Replaced</name>", stored);
+        Assert.Contains("<random>Edited after the replacement</random>", stored);
+
+        TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, instanceId);
+    }
+
+    internal sealed class ReplacingDataWriteProcessor : IDataWriteProcessor
+    {
+        public Task ProcessDataWrite(
+            IInstanceDataMutator instanceDataMutator,
+            string taskId,
+            DataElementChanges changes,
+            string? language
+        ) =>
+            instanceDataMutator.ReplaceFormData(
+                Assert.Single(changes.FormDataChanges).DataElementIdentifier,
+                new Skjema { Melding = new Dummy { Name = "Replaced" } }
+            );
+    }
+
+    internal sealed class EditingDataWriteProcessor : IDataWriteProcessor
+    {
+        public Task ProcessDataWrite(
+            IInstanceDataMutator instanceDataMutator,
+            string taskId,
+            DataElementChanges changes,
+            string? language
+        )
+        {
+            foreach (FormDataChange change in changes.FormDataChanges)
+            {
+                if (change.CurrentFormData is Skjema { Melding: { } melding })
+                {
+                    melding.Random = "Edited after the replacement";
+                }
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

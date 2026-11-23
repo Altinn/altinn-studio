@@ -120,7 +120,7 @@ internal sealed class PdfService : IPdfService
             language,
             isPreview
                 ? await GetPreviewFooter(language)
-                : await GetFooterContent(instance, taskId, language, authenticationMethod),
+                : await GetFooterContent(instance, taskId, subformPdfContext, language, authenticationMethod),
             subformPdfContext,
             autoGeneratePdfForTaskIds,
             authenticationMethod,
@@ -212,6 +212,7 @@ internal sealed class PdfService : IPdfService
     private async Task<string?> GetFooterContent(
         Instance instance,
         string taskId,
+        SubformPdfContext? subformPdfContext,
         string language,
         StorageAuthenticationMethod? authenticationMethod
     )
@@ -234,7 +235,13 @@ internal sealed class PdfService : IPdfService
 
         DateTimeOffset now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
 
-        bool hideAppName = await GetHideAppNameInPdf(instance, taskId, language, authenticationMethod);
+        bool hideAppName = await GetHideAppNameInPdf(
+            instance,
+            taskId,
+            subformPdfContext,
+            language,
+            authenticationMethod
+        );
 
         string dateGenerated = now.ToString("dd.MM.yyyy HH:mm", new CultureInfo("nb-NO"));
         string altinnReferenceId = instance.Id.Split("/")[1].Split("-")[4];
@@ -267,13 +274,15 @@ internal sealed class PdfService : IPdfService
     private async Task<bool> GetHideAppNameInPdf(
         Instance instance,
         string taskId,
+        SubformPdfContext? subformPdfContext,
         string language,
         StorageAuthenticationMethod? authenticationMethod
     )
     {
         try
         {
-            var hideAppName = _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
+            var settings = _resources.GetLayoutSettingsForFolder(subformPdfContext?.UiFolder ?? taskId);
+            var hideAppName = settings?.Pages?.HideAppNameInPdf ?? _resources.GetGlobalUiSettings()?.HideAppNameInPdf;
             if (hideAppName is null)
                 return false;
 
@@ -291,9 +300,9 @@ internal sealed class PdfService : IPdfService
             );
             var state = dataAccessor.GetLayoutEvaluatorState();
 
-            var settings = _resources.GetLayoutSettingsForFolder(taskId);
-            DataElementIdentifier? dataElement = settings?.DefaultDataType is { } dataType
-                ? instance.Data?.Find(d => d.DataType == dataType)
+            DataElementIdentifier? dataElement =
+                subformPdfContext is { } subform ? instance.Data?.Find(d => d.Id == subform.DataElementId)
+                : settings?.DefaultDataType is { } dataType ? instance.Data?.Find(d => d.DataType == dataType)
                 : null;
 
             var componentContext = new ComponentContext(

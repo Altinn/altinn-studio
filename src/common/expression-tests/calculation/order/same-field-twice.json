@@ -1,0 +1,22 @@
+{
+  "name": "The last calculation of a field wins",
+  "dataModel": {},
+  "calculations": [
+    {
+      "field": "text",
+      "expression": "first"
+    },
+    {
+      "field": "otherText",
+      "expression": ["dataModel", "text"]
+    },
+    {
+      "field": "text",
+      "expression": "second"
+    }
+  ],
+  "expects": {
+    "text": "second",
+    "otherText": "first"
+  }
+}

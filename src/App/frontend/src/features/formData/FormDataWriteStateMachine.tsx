@@ -17,7 +17,7 @@ import { updateBackendValidations } from 'src/features/validation/validationCont
 import type { FormStoreSet, FormStoreState } from 'src/features/form/FormContext';
 import type { FDLeafValue, FormDataSliceProps } from 'src/features/formData/FormDataWrite';
 import type { Proxy } from 'src/features/formData/FormDataWriteProxies';
-import type { DebounceReason } from 'src/features/formData/types';
+import type { DebounceReason, FDSaveFinished, UpdatedDataModel } from 'src/features/formData/types';
 import type { InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { BackendValidationIssueGroups, FieldValidations } from 'src/features/validation';
 import type { IInstance } from 'src/types/shared';
@@ -154,18 +154,6 @@ export interface FDRemoveFromListCallback {
   callback: (value: any) => boolean;
 }
 
-export interface UpdatedDataModel {
-  data: unknown;
-  dataType: string;
-  dataElementId: string | undefined; // Can be undefined in stateless apps
-}
-
-export interface FDSaveResult {
-  newDataModels: UpdatedDataModel[];
-  validationIssues: BackendValidationIssueGroups | undefined;
-  instance?: IInstance;
-}
-
 export interface FDActionResult {
   instance?: IInstance;
   updatedDataModels:
@@ -174,12 +162,6 @@ export interface FDActionResult {
       }
     | undefined;
   updatedValidationIssues: BackendValidationIssueGroups | undefined;
-}
-
-export interface FDSaveFinished extends FDSaveResult {
-  savedData: {
-    [dataType: string]: object;
-  };
 }
 
 export interface FDSetValueSuccessful {

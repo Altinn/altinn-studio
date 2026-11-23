@@ -3,16 +3,17 @@ import { IndicatorTag } from '@app/form-component/layout-components/common/Indic
 
 export interface IRequiredIndicatorProps {
   required?: boolean;
+  readOnly?: boolean;
 }
 
-export const RequiredIndicator = ({ required }: IRequiredIndicatorProps) => {
+export const RequiredIndicator = ({ required, readOnly }: IRequiredIndicatorProps) => {
   const { langAsNonProcessedString } = useTranslation();
-  if (!required) {
+  if (!required || readOnly) {
     return null;
   }
 
   return (
-    <IndicatorTag color='warning'>
+    <IndicatorTag kind='required'>
       {langAsNonProcessedString('form_filler.required_label')}
     </IndicatorTag>
   );

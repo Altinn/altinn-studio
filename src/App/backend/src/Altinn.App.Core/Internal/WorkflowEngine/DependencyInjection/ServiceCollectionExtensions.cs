@@ -74,10 +74,10 @@ internal static class ServiceCollectionExtensions
         // Workflow engine commands - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();
         services.AddTransient<IWorkflowEngineCommand, DeleteDataOnProcessEnd>();
+        services.AddTransient<IWorkflowEngineCommand, ConfirmCompleteOnProcessEnd>();
 
         // Workflow engine commands - State Management
         services.AddTransient<ProcessingStatusAcquirer>();
-        services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, ReleaseProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueAuxiliaryWorkflows>();

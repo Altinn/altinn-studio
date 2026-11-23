@@ -6,8 +6,8 @@ import {
   mockRepository1,
   mockRepository2,
 } from 'app-development/features/appSettings/mocks/repositoryMock';
-import { DateUtils } from '@studio/pure-functions';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { DateUtils } from '@designer/pure-functions';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const mockAuthorName = 'Mock Mockesen';
 

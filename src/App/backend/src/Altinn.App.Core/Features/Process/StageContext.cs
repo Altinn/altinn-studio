@@ -25,10 +25,9 @@ public sealed record StageContext
     public CancellationToken CancellationToken { get; init; } = CancellationToken.None;
 
     /// <summary>
-    /// The engine-assigned id of the workflow executing this service task. Stable across retries of
-    /// the same process transition; a new visit to the task runs under a new workflow id. Service
-    /// tasks with external side effects can use it to tell a retried attempt apart from a genuinely
-    /// new pass through the task.
+    /// The engine-assigned id of the workflow executing this service task, which every step of the
+    /// process transition shares. It does not tell one call apart from another; use
+    /// <see cref="StepId"/> as the idempotency key.
     /// </summary>
     public required Guid WorkflowId { get; init; }
 

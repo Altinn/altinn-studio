@@ -1,17 +1,12 @@
 package simple
 
 import (
-	"archive/tar"
 	"context"
 	"crypto/x509"
-	"errors"
-	"io"
 	"testing"
 	"time"
 
-	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/google/go-containerregistry/pkg/v1/mutate"
-	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"altinn.studio/pdf3/test/harness"
 )
 
 // caBundlePath is where Go looks for the system's CA certificates first on Linux, in the image's
@@ -30,49 +25,12 @@ func Test_ProxyImage_HasCACertificates(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
-	ref, err := name.ParseReference("localhost:5001/runtime-pdf3-proxy:latest")
+	bundle, err := harness.ReadImageFile(ctx, "localhost:5001/runtime-pdf3-proxy:latest", caBundlePath)
 	if err != nil {
-		t.Fatalf("ParseReference() error = %v", err)
+		t.Fatalf("Failed to read the proxy image's CA certificates: %v", err)
 	}
-	img, err := remote.Image(ref, remote.WithContext(ctx))
-	if err != nil {
-		t.Fatalf("Failed to read the proxy image from the registry: %v", err)
-	}
-
-	files := mutate.Extract(img)
-	defer func() {
-		if closeErr := files.Close(); closeErr != nil {
-			t.Errorf("Close() error = %v", closeErr)
-		}
-	}()
-	bundle := readImageFile(t, tar.NewReader(files), caBundlePath)
 
 	if !x509.NewCertPool().AppendCertsFromPEM(bundle) {
 		t.Fatalf("/%s in the proxy image holds no certificates", caBundlePath)
-	}
-}
-
-// readImageFile returns the regular file at path in the image file system files.
-func readImageFile(t *testing.T, files *tar.Reader, path string) []byte {
-	t.Helper()
-	for {
-		header, err := files.Next()
-		if errors.Is(err, io.EOF) {
-			t.Fatalf("The proxy image has no /%s", path)
-		}
-		if err != nil {
-			t.Fatalf("Failed to read the proxy image's files: %v", err)
-		}
-		if header.Name != path {
-			continue
-		}
-		if header.Typeflag != tar.TypeReg {
-			t.Fatalf("/%s in the proxy image is not a regular file", path)
-		}
-		data, err := io.ReadAll(files)
-		if err != nil {
-			t.Fatalf("Failed to read /%s from the proxy image: %v", path, err)
-		}
-		return data
 	}
 }

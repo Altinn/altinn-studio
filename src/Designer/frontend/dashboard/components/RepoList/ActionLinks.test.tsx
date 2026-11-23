@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ActionLinks } from './ActionLinks';
 import { repository } from 'app-shared/mocks/mocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import type { Repository } from 'app-shared/types/Repository';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

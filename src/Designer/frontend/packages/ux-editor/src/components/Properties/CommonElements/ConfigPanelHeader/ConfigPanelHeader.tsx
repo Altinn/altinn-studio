@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioSectionHeader } from '@studio/components';
+import { StudioSectionHeader } from '@designer/components';
 import classes from './ConfigPanelHeader.module.css';
 
 export type ConfigPanelHeaderProps = {

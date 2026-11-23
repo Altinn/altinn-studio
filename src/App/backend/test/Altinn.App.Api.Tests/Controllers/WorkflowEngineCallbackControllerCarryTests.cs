@@ -12,7 +12,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,7 +22,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 /// The controller's half of the state carry: restored from the incoming blob, handed to the command,
 /// written back into the returned blob.
 /// </summary>
-public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -36,11 +35,8 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
     /// <summary>The item index the tests key the carried mailbox on.</summary>
     private const int OpeningIndex = 0;
 
-    public WorkflowEngineCallbackControllerCarryTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public WorkflowEngineCallbackControllerCarryTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     /// <summary>
     /// Stands in for whichever command the callback resolves: reports the carry it was handed and, on request,

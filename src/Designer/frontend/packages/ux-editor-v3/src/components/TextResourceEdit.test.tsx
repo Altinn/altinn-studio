@@ -13,8 +13,8 @@ import { appDataMock, textResourcesMock } from '../testing/stateMocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { appContextMock } from '../testing/appContextMock';
-import { app, org } from '@studio/testing/testids';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { app, org } from '@designer/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 

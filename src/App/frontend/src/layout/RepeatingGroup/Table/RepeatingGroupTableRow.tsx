@@ -1,9 +1,8 @@
 import React, { useLayoutEffect } from 'react';
 import type { JSX } from 'react';
 
-import { Button, Flex, useIsMobile } from '@app/form-component';
+import { BaseTable, Button, Flex, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
@@ -110,9 +109,10 @@ export function RepeatingGroupTableRow({
   const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
 
   return (
-    <Table.Row
+    <BaseTable.Row
       ref={(node) => refSetter(index, 'row', node)}
-      className={cn({ [classes.tableRowError]: rowHasErrors }, className)}
+      error={rowHasErrors}
+      className={className}
       data-row-num={index}
       data-row-uuid={uuid}
     >
@@ -142,7 +142,7 @@ export function RepeatingGroupTableRow({
           ),
         )
       ) : (
-        <Table.Cell className={classes.mobileTableCell}>
+        <BaseTable.Cell className={classes.mobileTableCell}>
           <Flex
             container
             spacing={6}
@@ -185,65 +185,17 @@ export function RepeatingGroupTableRow({
                 )),
             )}
           </Flex>
-        </Table.Cell>
+        </BaseTable.Cell>
       )}
       {!mobileView ? (
         useVerticalButtonLayout ? (
           <>
             {editButton === false && deleteButton === false && (displayEditColumn || displayDeleteColumn) ? (
-              <Table.Cell key={`editDelete-${uuid}`} />
+              <BaseTable.Cell key={`editDelete-${uuid}`} />
             ) : null}
             {(editButton !== false || deleteButton !== false) && (displayEditColumn || displayDeleteColumn) && (
-              <Table.Cell
-                key={`actions-${uuid}`}
-                className={classes.buttonCell}
-              >
-                <div className={classes.buttonInCellWrapper}>
-                  {editButton !== false && displayEditColumn && (
-                    <EditElement
-                      mobileViewSmall={false}
-                      ariaExpanded={isEditingRow}
-                      indexedId={indexedId}
-                      uuid={uuid}
-                      onClick={() => toggleEditing({ index, uuid })}
-                      disabled={instanceLocked}
-                      editButtonText={editButtonText}
-                      rowHasErrors={rowHasErrors}
-                      compactButtons={compactButtons}
-                      buttonRef={(node) => refSetter(index, 'editButton', node)}
-                    />
-                  )}
-                  {deleteButton !== false && displayDeleteColumn && (
-                    <DeleteElement
-                      index={index}
-                      uuid={uuid}
-                      isDeletingRow={isDeletingRow}
-                      disabled={instanceLocked}
-                      deleteButtonText={deleteButtonText}
-                      langAsString={langAsString}
-                    >
-                      {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
-                    </DeleteElement>
-                  )}
-                </div>
-              </Table.Cell>
-            )}
-          </>
-        ) : (
-          <>
-            {editButton === false && deleteButton === false && (displayEditColumn || displayDeleteColumn) ? (
-              <Table.Cell
-                key={`editDelete-${uuid}`}
-                colSpan={displayEditColumn && displayDeleteColumn ? 2 : 1}
-              />
-            ) : null}
-            {editButton !== false && displayEditColumn && (
-              <Table.Cell
-                key={`edit-${uuid}`}
-                className={classes.buttonCell}
-                colSpan={displayDeleteColumn && deleteButton === false ? 2 : 1}
-              >
-                <div className={classes.buttonInCellWrapper}>
+              <BaseTable.ButtonCell key={`actions-${uuid}`}>
+                {editButton !== false && displayEditColumn && (
                   <EditElement
                     mobileViewSmall={false}
                     ariaExpanded={isEditingRow}
@@ -256,16 +208,8 @@ export function RepeatingGroupTableRow({
                     compactButtons={compactButtons}
                     buttonRef={(node) => refSetter(index, 'editButton', node)}
                   />
-                </div>
-              </Table.Cell>
-            )}
-            {deleteButton !== false && displayDeleteColumn && (
-              <Table.Cell
-                key={`delete-${uuid}`}
-                className={cn(classes.buttonCell)}
-                colSpan={displayEditColumn && editButton === false ? 2 : 1}
-              >
-                <div className={classes.buttonInCellWrapper}>
+                )}
+                {deleteButton !== false && displayDeleteColumn && (
                   <DeleteElement
                     index={index}
                     uuid={uuid}
@@ -276,34 +220,44 @@ export function RepeatingGroupTableRow({
                   >
                     {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
                   </DeleteElement>
-                </div>
-              </Table.Cell>
+                )}
+              </BaseTable.ButtonCell>
             )}
           </>
-        )
-      ) : (
-        <Table.Cell
-          className={cn(classes.buttonCell, classes.mobileTableCell)}
-          style={{ verticalAlign: 'top' }}
-        >
-          <div className={classes.buttonInCellWrapper}>
-            {editButton !== false && (
-              <EditElement
-                ariaExpanded={isEditingRow}
-                indexedId={indexedId}
-                uuid={uuid}
-                mobileViewSmall={mobileViewSmall}
-                onClick={() => toggleEditing({ index, uuid })}
-                disabled={instanceLocked}
-                editButtonText={editButtonText}
-                rowHasErrors={rowHasErrors}
-                compactButtons={compactButtons}
-                buttonRef={(node) => refSetter(index, 'editButton', node)}
+        ) : (
+          <>
+            {editButton === false && deleteButton === false && (displayEditColumn || displayDeleteColumn) ? (
+              <BaseTable.Cell
+                key={`editDelete-${uuid}`}
+                colSpan={displayEditColumn && displayDeleteColumn ? 2 : 1}
               />
+            ) : null}
+            {editButton !== false && displayEditColumn && (
+              <BaseTable.ButtonCell
+                key={`edit-${uuid}`}
+
+                colSpan={displayDeleteColumn && deleteButton === false ? 2 : 1}
+              >
+                <EditElement
+                  mobileViewSmall={false}
+                  ariaExpanded={isEditingRow}
+                  indexedId={indexedId}
+                  uuid={uuid}
+                  onClick={() => toggleEditing({ index, uuid })}
+                  disabled={instanceLocked}
+                  editButtonText={editButtonText}
+                  rowHasErrors={rowHasErrors}
+                  compactButtons={compactButtons}
+                  buttonRef={(node) => refSetter(index, 'editButton', node)}
+                />
+              </BaseTable.ButtonCell>
             )}
-            {deleteButton !== false && (
-              <>
-                <div style={{ height: 8 }} />
+            {deleteButton !== false && displayDeleteColumn && (
+              <BaseTable.ButtonCell
+                key={`delete-${uuid}`}
+
+                colSpan={displayEditColumn && editButton === false ? 2 : 1}
+              >
                 <DeleteElement
                   index={index}
                   uuid={uuid}
@@ -312,14 +266,49 @@ export function RepeatingGroupTableRow({
                   deleteButtonText={deleteButtonText}
                   langAsString={langAsString}
                 >
-                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
+                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
                 </DeleteElement>
-              </>
+              </BaseTable.ButtonCell>
             )}
-          </div>
-        </Table.Cell>
+          </>
+        )
+      ) : (
+        <BaseTable.ButtonCell
+          className={classes.mobileTableCell}
+          style={{ verticalAlign: 'top' }}
+        >
+          {editButton !== false && (
+            <EditElement
+              ariaExpanded={isEditingRow}
+              indexedId={indexedId}
+              uuid={uuid}
+              mobileViewSmall={mobileViewSmall}
+              onClick={() => toggleEditing({ index, uuid })}
+              disabled={instanceLocked}
+              editButtonText={editButtonText}
+              rowHasErrors={rowHasErrors}
+              compactButtons={compactButtons}
+              buttonRef={(node) => refSetter(index, 'editButton', node)}
+            />
+          )}
+          {deleteButton !== false && (
+            <>
+              <div style={{ height: 8 }} />
+              <DeleteElement
+                index={index}
+                uuid={uuid}
+                isDeletingRow={isDeletingRow}
+                disabled={instanceLocked}
+                deleteButtonText={deleteButtonText}
+                langAsString={langAsString}
+              >
+                {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
+              </DeleteElement>
+            </>
+          )}
+        </BaseTable.ButtonCell>
       )}
-    </Table.Row>
+    </BaseTable.Row>
   );
 }
 
@@ -475,7 +464,7 @@ function EditableCell({
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
 
   return (
-    <Table.Cell className={classes.tableCell}>
+    <BaseTable.Cell className={classes.tableCell}>
       <div
         className={cn(classes.contentFormatting, classes.contentFormattingEditable)}
         style={style}
@@ -493,7 +482,7 @@ function EditableCell({
           }}
         />
       </div>
-    </Table.Cell>
+    </BaseTable.Cell>
   );
 }
 
@@ -510,14 +499,14 @@ function NonEditableCell({
   const isEditingRow = RepGroupContext.useIsEditingRow(rowUuid);
 
   return (
-    <Table.Cell className={classes.tableCell}>
+    <BaseTable.Cell className={classes.tableCell}>
       <span
         className={cn(classes.contentFormatting, classes.cellContentFormatting)}
         style={style}
       >
         {isEditingRow ? null : <DisplayData baseComponentId={baseComponentId} />}
       </span>
-    </Table.Cell>
+    </BaseTable.Cell>
   );
 }
 

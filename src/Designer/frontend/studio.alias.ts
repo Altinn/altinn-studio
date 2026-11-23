@@ -2,6 +2,18 @@ import path from 'path';
 
 export default [
   {
+    find: '@altinn/app-builder',
+    replacement: path.resolve(__dirname, './packages/app-builder/src'),
+  },
+  {
+    find: '@app/form-component',
+    replacement: path.resolve(__dirname, '../../common/ts/form-component/src'),
+  },
+  {
+    find: '@app/language',
+    replacement: path.resolve(__dirname, '../../common/ts/language/src'),
+  },
+  {
     find: '@altinn/policy-editor',
     replacement: path.resolve(__dirname, './packages/policy-editor/src'),
   },
@@ -38,5 +50,5 @@ export default [
     find: '@altinn/ux-editor-v3',
     replacement: path.resolve(__dirname, './packages/ux-editor-v3/src'),
   },
-  { find: '@studio/testing', replacement: path.resolve(__dirname, './testing') },
+  { find: '@designer/testing', replacement: path.resolve(__dirname, './testing') },
 ];

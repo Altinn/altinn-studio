@@ -109,17 +109,17 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
-    - name: AI_CONNECTION_STRING
+    - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
-    - name: POSTHOG_API_KEY
+    - name: FrontendEnvironmentSettings__PostHogApiKey
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: postHogApiKey
-    - name: POSTHOG_API_HOST
+    - name: FrontendEnvironmentSettings__PostHogApiHost
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
@@ -207,17 +207,17 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
-    - name: AI_CONNECTION_STRING
+    - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
-    - name: POSTHOG_API_KEY
+    - name: FrontendEnvironmentSettings__PostHogApiKey
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: postHogApiKey
-    - name: POSTHOG_API_HOST
+    - name: FrontendEnvironmentSettings__PostHogApiHost
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
@@ -303,17 +303,17 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
-    - name: AI_CONNECTION_STRING
+    - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
-    - name: POSTHOG_API_KEY
+    - name: FrontendEnvironmentSettings__PostHogApiKey
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: postHogApiKey
-    - name: POSTHOG_API_HOST
+    - name: FrontendEnvironmentSettings__PostHogApiHost
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
@@ -366,14 +366,3 @@ ingress:
         traefik.frontend.priority: "600"
     paths:
       - path: /designerapi/
-
-
-lifecycle:
-  postStart:
-    exec:
-      command:
-        - /bin/sh
-        - -c
-        - >
-          mkdir -p wwwroot/designer/config &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": true}}" > wwwroot/designer/config/env.json

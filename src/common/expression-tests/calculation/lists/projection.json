@@ -1,0 +1,54 @@
+{
+  "name": "A projection of rows merges into another list by position",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 10,
+        "text": "a"
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 20,
+        "text": "b"
+      }
+    ],
+    "copies": [
+      {
+        "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+        "text": "kept"
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "copies",
+      "expression": ["jmespath", ["dataModel", "rows"], "[].{total: decimal}"]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 10,
+        "text": "a"
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 20,
+        "text": "b"
+      }
+    ],
+    "copies": [
+      {
+        "altinnRowId": "c0000000-0000-4000-8000-000000000001",
+        "text": "kept",
+        "total": 10
+      },
+      {
+        "altinnRowId": "<new>",
+        "total": 20
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# The Flux Kustomization observability, which applies ./dis-core/env/at22/app from the same
+# artifact, with pruning. The artifact's ./at22 folder, which the product's root Kustomization
+# applies without pruning, points here (build.sh).
+resources:
+  - ../../flux-kustomization
+
+patches:
+  - target:
+      group: kustomize.toolkit.fluxcd.io
+      kind: Kustomization
+      name: observability
+    patch: |-
+      - op: replace
+        path: /spec/path
+        value: ./dis-core/env/at22/app
+      - op: replace
+        path: /spec/postBuild/substitute
+        value:
+          ENVIRONMENT: at22
+          K8S_CLUSTER_NAME: dis-core-at22-aks

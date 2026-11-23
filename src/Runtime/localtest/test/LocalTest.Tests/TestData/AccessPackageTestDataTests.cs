@@ -1,0 +1,391 @@
+using System.Text.Json;
+using Altinn.Platform.Register.Enums;
+using LocalTest.Services.LocalApp.Implementation;
+using LocalTest.Services.TestData;
+using LocalTest.Tests.Authorization;
+using Xunit;
+
+namespace LocalTest.Tests.TestData;
+
+public sealed class AccessPackageTestDataTests : IDisposable
+{
+    private readonly string _root = Path.Join(Path.GetTempPath(), $"localtest-testdata-{Guid.NewGuid():N}");
+
+    private static readonly string BuiltInTestData = Path.GetFullPath(
+        Path.Join(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "testdata")
+    );
+
+    private static TestDataModel Read(string json = AccessPackageHarness.TestData) =>
+        JsonSerializer.Deserialize<AppTestDataModel>(json, LocalAppHttp.JSON_OPTIONS)!.GetTestDataModel();
+
+    [Fact]
+    public void AppTestData_PackagesAreBareLowerCaseIdentifiers()
+    {
+        var authorization = Read().Authorization;
+
+        Assert.Equal(["regnskapsforer-lonn", "lonn"], authorization.AccessPackages["1001"]["500000"]);
+        Assert.Equal(["skattegrunnlag"], authorization.AccessPackages["1001"]["510001"]);
+        Assert.Equal(["lonn"], authorization.SystemUsers[AccessPackageHarness.SystemUserWithPackage].AccessPackages);
+    }
+
+    [Fact]
+    public void AppTestData_NullPackagesAreEmpty()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [
+                { "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1, "accessPackages": { "500000": null } },
+                { "partyId": 2, "ssn": "01017000002", "lastName": "B", "userId": 2, "accessPackages": { "500000": ["lonn", null, " "] } }
+              ],
+              "orgs": [],
+              "systems": [{ "id": "s", "name": "S", "systemUsers": [{ "id": "su", "orgNumber": "1", "actions": [], "accessPackages": null }] }]
+            }
+            """
+        ).Authorization;
+
+        Assert.Empty(authorization.AccessPackages["1"]["500000"]);
+        Assert.Equal(["lonn"], authorization.AccessPackages["2"]["500000"]);
+        Assert.Empty(authorization.SystemUsers["su"].AccessPackages);
+    }
+
+    [Fact]
+    public void AppTestData_UrnPrefixWithoutIdentifierIsNoPackage()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [
+                {
+                  "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1,
+                  "accessPackages": { "500000": ["urn:altinn:accesspackage:", "URN:ALTINN:ACCESSPACKAGE: ", "urn:altinn:accesspackage: lonn"] }
+                }
+              ],
+              "orgs": [],
+              "systems": [{ "id": "s", "name": "S", "systemUsers": [{ "id": "su", "orgNumber": "1", "actions": [], "accessPackages": ["urn:altinn:accesspackage:"] }] }]
+            }
+            """
+        ).Authorization;
+
+        Assert.Equal(["lonn"], authorization.AccessPackages["1"]["500000"]);
+        Assert.Empty(authorization.SystemUsers["su"].AccessPackages);
+    }
+
+    [Fact]
+    public void AppTestData_SystemWithoutSystemUsersHasNone()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [],
+              "orgs": [],
+              "systems": [{ "id": "a", "name": "A", "systemUsers": null }, { "id": "b", "name": "B" }]
+            }
+            """
+        ).Authorization;
+
+        Assert.Empty(authorization.Systems["a"].SystemUsers);
+        Assert.Empty(authorization.Systems["b"].SystemUsers);
+        Assert.Empty(authorization.SystemUsers);
+    }
+
+    [Fact]
+    public void AppTestData_SystemUserWithoutActionsHasNone()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [],
+              "orgs": [],
+              "systems": [
+                {
+                  "id": "s",
+                  "name": "S",
+                  "systemUsers": [{ "id": "su-1", "orgNumber": "1" }, { "id": "su-2", "orgNumber": "1", "actions": null }]
+                }
+              ]
+            }
+            """
+        ).Authorization;
+
+        Assert.Empty(authorization.SystemUsers["su-1"].Actions);
+        Assert.Empty(authorization.SystemUsers["su-2"].Actions);
+    }
+
+    [Fact]
+    public void AppTestData_PartiesWithOnlyPackagesAreInThePartyList()
+    {
+        var partyList = Read().Authorization.PartyList["1001"];
+
+        Assert.Equal([510001, 500000], partyList.Select(p => p.PartyId));
+        Assert.Equal(500001, Assert.Single(partyList[1].ChildParties).PartyId);
+    }
+
+    [Fact]
+    public void AppTestData_OtherPersonsWithRolesOrPackagesAreInThePartyList()
+    {
+        var authorization = Read(
+            """
+            {
+              "persons": [
+                {
+                  "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1,
+                  "partyRoles": { "1": [{ "type": "altinn", "value": "priv" }], "3": [{ "type": "altinn", "value": "regna" }] },
+                  "accessPackages": { "1": ["skattegrunnlag"], "2": ["innbygger-helsetjenester"] }
+                },
+                { "partyId": 2, "ssn": "01017000002", "lastName": "B", "userId": 2 },
+                { "partyId": 3, "ssn": "01017000003", "lastName": "C", "userId": 3 }
+              ],
+              "orgs": [],
+              "systems": []
+            }
+            """
+        ).Authorization;
+
+        // The own party once, first
+        var partyList = authorization.PartyList["1"];
+        Assert.Equal([1, 3, 2], partyList.Select(p => p.PartyId));
+        Assert.All(partyList, p => Assert.Equal(PartyType.Person, p.PartyTypeName));
+    }
+
+    [Fact]
+    public void Merge_AddsPackagesAndSystemUsersOfNewUsers()
+    {
+        var source = Read();
+        var target = new TestDataModel();
+
+        TestDataMerger.MergeTestData(source, target);
+
+        Assert.Equal(["regnskapsforer-lonn", "lonn"], target.Authorization.AccessPackages["1001"]["500000"]);
+        Assert.Contains(AccessPackageHarness.SystemUserWithPackage, target.Authorization.SystemUsers.Keys);
+        Assert.Contains("910000000_sbs", target.Authorization.Systems.Keys);
+    }
+
+    [Fact]
+    public void Merge_KeepsThePackagesAlreadyInTheTarget()
+    {
+        var source = Read();
+        var target = new TestDataModel();
+        target.Authorization.AccessPackages["1001"] = new() { ["500000"] = ["skattegrunnlag"] };
+
+        TestDataMerger.MergeTestData(source, target);
+
+        Assert.Equal(["skattegrunnlag"], target.Authorization.AccessPackages["1001"]["500000"]);
+    }
+
+    [Fact]
+    public void Merge_AddsThePackagesOfAUserForOtherParties()
+    {
+        var source = Read();
+        var target = new TestDataModel();
+        target.Authorization.AccessPackages["1001"] = new() { ["500000"] = ["skattegrunnlag"] };
+
+        TestDataMerger.MergeTestData(source, target);
+
+        var packages = target.Authorization.AccessPackages["1001"];
+        Assert.Equal(["skattegrunnlag"], packages["500000"]);
+        Assert.Equal(["skattegrunnlag"], packages["510001"]);
+        Assert.Equal(["500000", "510001"], packages.Keys.Order());
+    }
+
+    [Fact]
+    public void Merge_TheSameSystemFromTwoSourcesHasTheSystemUsersOfBoth()
+    {
+        static TestDataModel App(string systemUserId) =>
+            Read(
+                $$"""
+                {
+                  "persons": [],
+                  "orgs": [],
+                  "systems": [{ "id": "s", "name": "S", "systemUsers": [{ "id": "{{systemUserId}}", "orgNumber": "1", "actions": [] }] }]
+                }
+                """
+            );
+        var target = new TestDataModel();
+
+        TestDataMerger.MergeTestData(App("su-1"), target);
+        TestDataMerger.MergeTestData(App("su-2"), target);
+
+        Assert.Equal(["su-1", "su-2"], target.Authorization.Systems["s"].SystemUsers.Keys.Order());
+        // The app test data the merged apps give, as Localtest builds it from the merged data
+        var roundTripped = AppTestDataModel.FromTestDataModel(target).GetTestDataModel().Authorization;
+        Assert.Equal(["su-1", "su-2"], roundTripped.SystemUsers.Keys.Order());
+    }
+
+    [Fact]
+    public void Merge_AddsTheRolesAndPartiesOfAUserForOtherParties()
+    {
+        static TestDataModel App(string partyId) =>
+            Read(
+                $$"""
+                {
+                  "persons": [
+                    {
+                      "partyId": 1, "ssn": "01017000001", "lastName": "A", "userId": 1,
+                      "partyRoles": { "{{partyId}}": [{ "type": "altinn", "value": "regna" }] }
+                    }
+                  ],
+                  "orgs": [
+                    { "partyId": 500000, "orgNumber": "910000000", "name": "A AS" },
+                    { "partyId": 500002, "orgNumber": "910000002", "name": "B AS" }
+                  ],
+                  "systems": []
+                }
+                """
+            );
+        var target = new TestDataModel();
+
+        TestDataMerger.MergeTestData(App("500000"), target);
+        TestDataMerger.MergeTestData(App("500002"), target);
+
+        Assert.Equal(["500000", "500002"], target.Authorization.Roles["1"].Keys.Order());
+        Assert.Equal([1, 500000, 500002], target.Authorization.PartyList["1"].Select(p => p.PartyId));
+    }
+
+    [Fact]
+    public void Merge_TheSameSystemUserWithOtherValuesIsAConflict()
+    {
+        static TestDataModel App(string orgNumber) =>
+            Read(
+                $$"""
+                {
+                  "persons": [],
+                  "orgs": [],
+                  "systems": [
+                    { "id": "s", "name": "S", "systemUsers": [{ "id": "su-1", "orgNumber": "{{orgNumber}}", "accessPackages": ["lonn"] }] }
+                  ]
+                }
+                """
+            );
+        var target = new TestDataModel();
+        TestDataMerger.MergeTestData(App("1"), target);
+
+        // The same values are no conflict
+        TestDataMerger.MergeTestData(App("1"), target);
+        var conflict = Assert.Throws<InvalidOperationException>(() => TestDataMerger.MergeTestData(App("2"), target));
+
+        Assert.Contains("System user ID su-1", conflict.Message);
+    }
+
+    [Fact]
+    public void FromTestDataModel_RoundTripsPackages()
+    {
+        var model = Read();
+
+        var roundTripped = AppTestDataModel.FromTestDataModel(model).GetTestDataModel().Authorization;
+
+        Assert.Equal(model.Authorization.AccessPackages["1001"], roundTripped.AccessPackages["1001"]);
+        Assert.Equal(["lonn"], roundTripped.SystemUsers[AccessPackageHarness.SystemUserWithPackage].AccessPackages);
+    }
+
+    [Fact]
+    public async Task DiskTestData_ReadsPackagesNextToRolesAndOnSystemUsers()
+    {
+        var partyFolder = Path.Join(_root, "authorization", "roles", "User_1001", "party_500000");
+        var packageOnlyFolder = Path.Join(_root, "authorization", "roles", "User_1001", "party_500600");
+        var systemUsers = Path.Join(_root, "authorization", "systems", "sys", "systemusers");
+        foreach (var folder in new[] { "authorization/claims", "authorization/partylist", "Profile/User", "Register/Org", "Register/Party", "Register/Person" })
+        {
+            Directory.CreateDirectory(Path.Join(_root, folder));
+        }
+        Directory.CreateDirectory(partyFolder);
+        Directory.CreateDirectory(packageOnlyFolder);
+        Directory.CreateDirectory(systemUsers);
+        await File.WriteAllTextAsync(Path.Join(partyFolder, "roles.json"), """[{ "Type": "altinn", "value": "dagl" }]""");
+        await File.WriteAllTextAsync(Path.Join(partyFolder, "accesspackages.json"), """["lonn", "urn:altinn:accesspackage:skattegrunnlag"]""");
+        await File.WriteAllTextAsync(Path.Join(packageOnlyFolder, "accesspackages.json"), """["lonn"]""");
+        await File.WriteAllTextAsync(Path.Join(_root, "authorization", "systems", "sys", "system.json"), """{ "Id": "sys", "Name": "Sys" }""");
+        await File.WriteAllTextAsync(Path.Join(systemUsers, "1.json"), """{ "Id": "su-1", "OrgNumber": "1", "Actions": ["read"], "AccessPackages": ["LONN"] }""");
+        await File.WriteAllTextAsync(Path.Join(systemUsers, "2.json"), """{ "Id": "su-2", "OrgNumber": "1", "Actions": ["read"] }""");
+
+        var authorization = (await TestDataDiskReader.ReadFromDisk(_root)).Authorization;
+
+        Assert.Equal(["lonn", "skattegrunnlag"], authorization.AccessPackages["1001"]["500000"]);
+        Assert.Equal(["lonn"], authorization.AccessPackages["1001"]["500600"]);
+        Assert.Equal(["500000"], authorization.Roles["1001"].Keys);
+        Assert.Equal(["lonn"], authorization.SystemUsers["su-1"].AccessPackages);
+        Assert.Empty(authorization.SystemUsers["su-2"].AccessPackages);
+    }
+
+    [Fact]
+    public async Task DiskTestData_TheHierarchyAndUnitTypesComeFromTheRegisterAndThePartyLists()
+    {
+        foreach (var folder in new[] { "authorization/claims", "authorization/roles", "authorization/systems", "Profile/User", "Register/Person" })
+        {
+            Directory.CreateDirectory(Path.Join(_root, folder));
+        }
+        Directory.CreateDirectory(Path.Join(_root, "Register", "Org"));
+        Directory.CreateDirectory(Path.Join(_root, "Register", "Party"));
+        Directory.CreateDirectory(Path.Join(_root, "authorization", "partylist"));
+        await File.WriteAllTextAsync(Path.Join(_root, "Register", "Org", "910000000.json"), """{ "OrgNumber": "910000000", "UnitType": "AS" }""");
+        // The unit type is on the organization only
+        await File.WriteAllTextAsync(Path.Join(_root, "Register", "Party", "500000.json"), """{ "partyId": 500000, "orgNumber": "910000000", "partyTypeName": 2 }""");
+        await File.WriteAllTextAsync(Path.Join(_root, "Register", "Party", "510001.json"), """{ "partyId": 510001, "ssn": "01017000001", "partyTypeName": 1 }""");
+        // The sub-unit is only a child party in a party list
+        await File.WriteAllTextAsync(
+            Path.Join(_root, "authorization", "partylist", "1001.json"),
+            """
+            [
+              { "partyId": 510001, "ssn": "01017000001", "partyTypeName": 1 },
+              {
+                "partyId": 500000, "orgNumber": "910000000", "partyTypeName": 2,
+                "childParties": [{ "partyId": 500100, "orgNumber": "910000100", "partyTypeName": 2, "unitType": "VPFO" }]
+              }
+            ]
+            """
+        );
+
+        var data = await TestDataDiskReader.ReadFromDisk(_root);
+
+        Assert.Equal("AS", data.GetUnitType(500000));
+        Assert.Null(data.GetParentPartyId(500000));
+        Assert.Equal("VPFO", data.GetUnitType(500100));
+        Assert.Equal(500000, data.GetParentPartyId(500100));
+        Assert.Null(data.GetUnitType(510001));
+        Assert.Equal(500000, data.GetOrgUnit("910000000")?.PartyId);
+        // Kept when Localtest merges the data of several apps
+        var roundTripped = AppTestDataModel.FromTestDataModel(data).GetTestDataModel();
+        Assert.Equal("AS", roundTripped.GetUnitType(500000));
+    }
+
+    [Fact]
+    public async Task BuiltInTestData_DDGFitnessHasItsSubUnits()
+    {
+        var data = await TestDataDiskReader.ReadFromDisk(BuiltInTestData);
+
+        Assert.Equal("AS", data.GetUnitType(500000));
+        Assert.All([500001, 500002, 500003], subUnit => Assert.Equal(500000, data.GetParentPartyId(subUnit)));
+        Assert.Equal("BEDR", data.GetUnitType(500001));
+        Assert.Equal(500700, data.GetOrgUnit("950474084")?.PartyId);
+    }
+
+    [Fact]
+    public async Task BuiltInTestData_GivesPengelensPartnerAndTheSystemUserPackages()
+    {
+        var authorization = (await TestDataDiskReader.ReadFromDisk(BuiltInTestData)).Authorization;
+
+        string[] packages = ["regnskapsforer-med-signeringsrettighet", "lonn"];
+        Assert.Equal(packages, authorization.AccessPackages["1001"]["500000"]);
+        Assert.Equal(packages, authorization.SystemUsers["d111dbab-d619-4f15-bf29-58fe570a9ae6"].AccessPackages);
+    }
+
+    [Fact]
+    public async Task BuiltInTestData_NoPersonIsDagligLederOfTheirOwnParty()
+    {
+        var data = await TestDataDiskReader.ReadFromDisk(BuiltInTestData);
+
+        foreach (var (userId, profile) in data.Profile.User)
+        {
+            var ownRoles = data.Authorization.Roles.GetValueOrDefault(userId)?.GetValueOrDefault(profile.PartyId.ToString()) ?? [];
+            Assert.DoesNotContain(ownRoles, role => string.Equals(role.Value, "dagl", StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_root))
+        {
+            Directory.Delete(_root, recursive: true);
+        }
+    }
+}

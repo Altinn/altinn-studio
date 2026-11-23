@@ -121,7 +121,7 @@ internal sealed class SigningDelegationService(
                         To = new DelegationParty
                         {
                             Value =
-                                partyUuid.ToString()
+                                partyUuid?.ToString()
                                 ?? throw new InvalidOperationException("Delegatee: PartyUuid is null"),
                         },
                         Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),

@@ -117,7 +117,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
             // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
             // collection heads as dependencies. A DependsOnHeads=false root (e.g. an auxiliary
-            // workflow enqueued at the commit boundary) starts independently.
+            // workflow enqueued after the task start) starts independently.
             if (isCollectionRoot && workflow.DependsOnHeads)
             {
                 foreach (Guid headId in currentCollectionHeads)

@@ -2,13 +2,9 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
-using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,7 +20,6 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly ServiceRepositorySettings _settings;
-    private readonly ISourceControl _sourceControl;
     private readonly GeneralSettings _generalSettings;
     private readonly StudioOidcLoginSettings _studioOidcLoginSettings;
 
@@ -34,20 +29,17 @@ public class HomeController : Controller
     /// <param name="logger">The logger</param>
     /// <param name="repositorySettings">settings for the repository</param>
     /// <param name="generalSettings">the general settings</param>
-    /// <param name="sourceControl">the source control</param>
     /// <param name="studioOidcLoginSettings">the studio oidc login settings</param>
     public HomeController(
         ILogger<HomeController> logger,
         ServiceRepositorySettings repositorySettings,
         GeneralSettings generalSettings,
-        ISourceControl sourceControl,
         StudioOidcLoginSettings studioOidcLoginSettings
     )
     {
         _logger = logger;
         _settings = repositorySettings;
         _generalSettings = generalSettings;
-        _sourceControl = sourceControl;
         _studioOidcLoginSettings = studioOidcLoginSettings;
     }
 
@@ -109,19 +101,5 @@ public class HomeController : Controller
         }
 
         return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme);
-    }
-
-    /// <summary>
-    /// Store app token for user
-    /// </summary>
-    /// <param name="appKey">the app key</param>
-    /// <returns>redirects user</returns>
-    [Authorize]
-    [HttpPost]
-    public IActionResult AppToken(AppKey appKey)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        _sourceControl.StoreAppTokenForUser(appKey.Key, developer);
-        return Redirect("/");
     }
 }

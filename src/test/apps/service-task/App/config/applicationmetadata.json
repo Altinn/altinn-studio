@@ -54,7 +54,7 @@
         "disallowUserCreate": false,
         "disallowUserDelete": false
       },
-      "taskId": "Task_Utfylling1",
+      "taskIds": ["Task_Utfylling1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -75,7 +75,7 @@
         "disallowUserCreate": false,
         "disallowUserDelete": false
       },
-      "taskId": "Task_Utfylling2",
+      "taskIds": ["Task_Utfylling2"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,

@@ -182,11 +182,10 @@ func (r *CnpgSyncReconciler) Start(ctx context.Context) error {
 		"targets", len(r.targets),
 	)
 
-	// Initial sync with retries
+	// Initial sync with retries. A failed run logs its own ERROR, linked to its trace.
 	for range 10 {
 		needsRetry, err := r.SyncAll(ctx)
 		if err != nil {
-			r.logger.Error(err, "initial sync failed")
 			select {
 			case <-ctx.Done():
 				return nil
@@ -212,10 +211,7 @@ func (r *CnpgSyncReconciler) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.Chan():
-			needsRetry, err := r.SyncAll(ctx)
-			if err != nil {
-				r.logger.Error(err, "sync failed")
-			}
+			needsRetry, _ := r.SyncAll(ctx) //nolint:errcheck // A failed run logs its own ERROR, linked to its trace.
 			if needsRetry {
 				ticker.Reset(shortPollInterval)
 			} else {

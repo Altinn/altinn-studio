@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { Tabs } from '@digdir/designsystemet-react';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
+import { QueryDevtools } from 'src/core/queries/QueryDevtools';
 import { DevFontSelector } from 'src/features/devtools/components/DevFontSelector/DevFontSelector';
 import { DevHiddenFunctionality } from 'src/features/devtools/components/DevHiddenFunctionality/DevHiddenFunctionality';
 import { DevLanguageSelector } from 'src/features/devtools/components/DevLanguageSelector/DevLanguageSelector';
@@ -62,7 +62,7 @@ export const DevToolsControls = () => {
           <DevLanguageSelector />
           <DevFontSelector />
           <DownloadXMLButton />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <QueryDevtools />
         </div>
       </Tabs.Panel>
       <Tabs.Panel

@@ -1,0 +1,31 @@
+{
+  "name": "Two calculations write the same list, and the second merges into the rows of the first",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "kept"
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "decimal", 1], ["object", "decimal", 2]]
+    },
+    {
+      "field": "rows",
+      "expression": ["list", ["object", "total", 3]]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "text": "kept",
+        "decimal": 1,
+        "total": 3
+      }
+    ]
+  }
+}

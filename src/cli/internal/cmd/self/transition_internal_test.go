@@ -12,6 +12,7 @@ import (
 
 	containerruntime "altinn.studio/devenv/pkg/container"
 	containermock "altinn.studio/devenv/pkg/container/mock"
+	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
@@ -287,4 +288,30 @@ func assertSelfTransitionCallRecorded(t *testing.T, calls []containermock.Call, 
 		}
 	}
 	t.Fatalf("%s not recorded in calls: %+v", method, calls)
+}
+
+// self update restarts studioctl-server; it has to come back at the port the environment was started with.
+func TestSelfTransitionRestartsStudioctlServerAtTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{DataDir: t.TempDir()}
+	if err := envlocaltest.WriteState(cfg, envlocaltest.State{PublicPort: 8100}); err != nil {
+		t.Fatalf("WriteState() error = %v", err)
+	}
+	var startedWith string
+	transition := &Transition{
+		cfg: cfg,
+		out: ui.NewOutput(&bytes.Buffer{}, io.Discard, true),
+		start: func(_ context.Context, _ *config.Config, ingressPort, _ string) error {
+			startedWith = ingressPort
+			return nil
+		},
+	}
+
+	if err := transition.restartStudioctlServer(t.Context(), ""); err != nil {
+		t.Fatalf("restartStudioctlServer() error = %v", err)
+	}
+	if startedWith != "8100" {
+		t.Fatalf("start port = %q, want 8100", startedWith)
+	}
 }

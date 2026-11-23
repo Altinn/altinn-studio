@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { org } from '@studio/testing/testids';
+import { textMock } from '@designer/testing/mocks/i18nMock';
+import { org } from '@designer/testing/testids';
 import { RepositoryType } from 'app-shared/types/global';
 import type { UnsupportedRepositoryPageProps } from './UnsupportedRepositoryPage';
 import {

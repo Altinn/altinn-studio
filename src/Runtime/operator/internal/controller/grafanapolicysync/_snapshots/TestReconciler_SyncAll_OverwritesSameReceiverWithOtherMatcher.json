@@ -1,0 +1,16 @@
+{
+  "receiver": "grafana-default-email",
+  "routes": [
+    {
+      "object_matchers": [
+        [
+          "Type",
+          "=",
+          "Altinn"
+        ]
+      ],
+      "receiver": "altinn-studio-gateway",
+      "repeat_interval": "5m"
+    }
+  ]
+}

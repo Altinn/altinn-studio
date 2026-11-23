@@ -1,4 +1,5 @@
-# The build context is src/ (see the Dockerfile). Send only the shared Go module and the operator's.
+# Build context: src/
+# Send only the shared Go module and the operator's.
 **
 !common/go/**
 common/go/bin

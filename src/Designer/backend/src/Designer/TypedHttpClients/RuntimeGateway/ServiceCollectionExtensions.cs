@@ -19,6 +19,10 @@ public static class ServiceCollectionExtensions
     /// The client every deploy, metrics and alerts call uses, with the standard resilience
     /// handler as it comes.
     /// </summary>
+    /// <remarks>
+    /// Both gateway clients call one gateway per runtime cluster, so their pipelines are kept per
+    /// cluster. Otherwise one cluster that is down would open the circuit for all the others.
+    /// </remarks>
     internal const string HttpClientName = "runtime-gateway";
 
     /// <summary>
@@ -33,6 +37,15 @@ public static class ServiceCollectionExtensions
     /// a pipeline.
     /// </remarks>
     internal const string WorkflowsHttpClientName = "runtime-gateway-workflows";
+
+    /// <summary>
+    /// The client restarts use: the standard resilience handler, except that it never retries the restart itself.
+    /// </summary>
+    /// <remarks>
+    /// A retry after a restart Kubernetes accepted would be refused as already updating, reporting a restart that
+    /// started as failed, or would restart the app again if the first restart had already finished.
+    /// </remarks>
+    internal const string RestartHttpClientName = "runtime-gateway-restart";
 
     /// <summary>
     /// How long the gateway gives the engine per phase (headers, then body) before answering
@@ -51,8 +64,15 @@ public static class ServiceCollectionExtensions
         if (env.IsDevelopment())
         {
             // Plain HttpClients for a local / mock runtime gateway
-            services.AddHttpClient(HttpClientName).AddStandardResilienceHandler();
-            services.AddHttpClient(WorkflowsHttpClientName).AddStandardResilienceHandler(ConfigureWorkflowsResilience);
+            services.AddHttpClient(HttpClientName).AddStandardResilienceHandler().SelectPipelineByAuthority();
+            services
+                .AddHttpClient(RestartHttpClientName)
+                .AddStandardResilienceHandler(ConfigureRestartResilience)
+                .SelectPipelineByAuthority();
+            services
+                .AddHttpClient(WorkflowsHttpClientName)
+                .AddStandardResilienceHandler(ConfigureWorkflowsResilience)
+                .SelectPipelineByAuthority();
             services
                 .AddHttpClient(RuntimeGatewayClient.ActivitySignalsHttpClientName)
                 .ConfigureHttpClient(client => client.Timeout = RuntimeGatewayClient.ActivitySignalsTimeout);
@@ -68,10 +88,16 @@ public static class ServiceCollectionExtensions
             {
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(HttpClientName, settings)
-                    .AddStandardResilienceHandler();
+                    .AddStandardResilienceHandler()
+                    .SelectPipelineByAuthority();
+                services
+                    .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(RestartHttpClientName, settings)
+                    .AddStandardResilienceHandler(ConfigureRestartResilience)
+                    .SelectPipelineByAuthority();
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(WorkflowsHttpClientName, settings)
-                    .AddStandardResilienceHandler(ConfigureWorkflowsResilience);
+                    .AddStandardResilienceHandler(ConfigureWorkflowsResilience)
+                    .SelectPipelineByAuthority();
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(
                         RuntimeGatewayClient.ActivitySignalsHttpClientName,
@@ -82,6 +108,12 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddTransient<IRuntimeGatewayClient, RuntimeGatewayClient>();
+    }
+
+    internal static void ConfigureRestartResilience(HttpStandardResilienceOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        options.Retry.DisableForUnsafeHttpMethods();
     }
 
     /// <summary>

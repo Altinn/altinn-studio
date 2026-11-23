@@ -9,12 +9,11 @@ using Altinn.Platform.Register.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class LookupOrganizationControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class LookupOrganizationControllerTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
@@ -27,8 +26,8 @@ public class LookupOrganizationControllerTests : ApiTestBase, IClassFixture<WebA
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public LookupOrganizationControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+    public LookupOrganizationControllerTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     [Fact]
     public async Task Get_LookupOrganization_WithValidOrgNr_Returns_LookupOrganizationResponse()

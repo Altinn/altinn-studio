@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { CreateRelease } from './CreateRelease';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import {
   type ServicesContextProps,
@@ -9,10 +9,10 @@ import {
 } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import { BuildResult } from 'app-shared/types/Build';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
+import { FeatureFlagsContextProvider } from '@designer/feature-flags';
 import type { OrgList } from 'app-shared/types/OrgList';
 
 const orgListWithTestOrg: OrgList = {
@@ -58,6 +58,13 @@ describe('CreateRelease', () => {
     expect(
       screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
     ).toBeInTheDocument();
+  });
+
+  it('disables browser autocomplete for the version number field', () => {
+    renderCreateRelease();
+    expect(
+      screen.getByLabelText(textMock('app_create_release.release_version_number')),
+    ).toHaveAttribute('autocomplete', 'off');
   });
 
   it('shows Maskinporten scopes notice for app backend version 9 preview when default scopes are missing', async () => {

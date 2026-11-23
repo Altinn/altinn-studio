@@ -13,7 +13,7 @@ import {
   StudioParagraph,
   StudioSearch,
   StudioTable,
-} from '@studio/components';
+} from '@designer/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { LoggedInTitle } from '../LoggedInTitle';
 import { GetInTouchWith } from 'app-shared/getInTouch';
@@ -22,7 +22,7 @@ import {
   type MaskinportenScopes,
   type MaskinportenScope,
 } from 'app-shared/types/MaskinportenScope';
-import { PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@designer/icons';
 import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
 import { toast } from 'react-toastify';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';

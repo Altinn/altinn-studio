@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"altinn.studio/common/snapshot"
 	ptesting "altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
 	"altinn.studio/pdf3/test/harness"
@@ -33,7 +34,7 @@ func Test_Simple(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
@@ -84,14 +85,14 @@ func Test_CompareOldAndNew(t *testing.T) {
 
 	newPdf := harness.MakePdfDeterministic(t, newResp.Data)
 
-	harness.Snapshot(t, newPdf, "new", "pdf")
-	harness.Snapshot(t, newPdf, "new", "txt")
+	snapshot.Match(t, newPdf, "new", "pdf")
+	snapshot.Match(t, newPdf, "new", "txt")
 
 	output, err := newResp.LoadOutput(t)
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(newResp.Data))
@@ -115,7 +116,7 @@ func Test_WithConsoleErrors(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -139,7 +140,7 @@ func Test_WithThrownErrors(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -159,7 +160,7 @@ func Test_WaitForTimeoutWithErrors(t *testing.T) {
 		t.Fatal("Expected timeout error when element never appears, but PDF generation succeeded")
 	}
 
-	harness.Snapshot(t, []byte(err.Error()), "error", "txt")
+	snapshot.Match(t, []byte(err.Error()), "error", "txt")
 
 	t.Logf("Expected error occurred: %v", err)
 
@@ -196,7 +197,7 @@ func Test_WithCleanupDelay(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
@@ -245,7 +246,7 @@ func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter
 		// We expect an error due to context cancellation
 		elapsed := time.Since(startTime)
 		t.Logf("Request cancelled as expected after %s: %v", elapsed, err)
-		harness.Snapshot(t, []byte(err.Error()), "error", "txt")
+		snapshot.Match(t, []byte(err.Error()), "error", "txt")
 
 		// Verify cancellation happened reasonably quickly (within 2x the cancel time + small buffer)
 		maxExpectedTime := cancelAfter*2 + 200*time.Millisecond
@@ -317,7 +318,7 @@ func Test_CookieIsolation(t *testing.T) {
 		t.Fatalf("Failed to load first request output: %v", err)
 	}
 
-	harness.Snapshot(t, []byte(output1.SnapshotString()), "first_request", "json")
+	snapshot.Match(t, []byte(output1.SnapshotString()), "first_request", "json")
 
 	req2 := harness.GetDefaultPdfRequest(t)
 	req2.URL = harness.TestServerURL + "/app/?render=light" // No setcookie here
@@ -337,7 +338,7 @@ func Test_CookieIsolation(t *testing.T) {
 	}
 
 	// We now expect from these snapshots that there are just the single default cookie in this snapshot
-	harness.Snapshot(t, []byte(output2.SnapshotString()), "second_request", "json")
+	snapshot.Match(t, []byte(output2.SnapshotString()), "second_request", "json")
 }
 
 // Test_StorageIsolation renders a page that leaves sessionStorage, localStorage, IndexedDB and
@@ -494,8 +495,8 @@ func Test_TADForm(t *testing.T) {
 	}
 
 	pdf := harness.MakePdfDeterministic(t, resp.Data)
-	harness.Snapshot(t, pdf, "output", "pdf")
-	harness.Snapshot(t, pdf, "output", "txt")
+	snapshot.Match(t, pdf, "output", "pdf")
+	snapshot.Match(t, pdf, "output", "txt")
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
@@ -515,8 +516,8 @@ func Test_TADFormWaitFor(t *testing.T) {
 	}
 
 	pdf := harness.MakePdfDeterministic(t, resp.Data)
-	harness.Snapshot(t, pdf, "output", "pdf")
-	harness.Snapshot(t, pdf, "output", "txt")
+	snapshot.Match(t, pdf, "output", "pdf")
+	snapshot.Match(t, pdf, "output", "txt")
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))
 }
@@ -559,7 +560,7 @@ func Test_TracestateWithSemicolons(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed loading test output: %v", err)
 	} else {
-		harness.Snapshot(t, []byte(output.SnapshotString()), "testoutput", "json")
+		snapshot.Match(t, []byte(output.SnapshotString()), "testoutput", "json")
 	}
 
 	t.Logf("Generated PDF size: %d bytes", len(resp.Data))

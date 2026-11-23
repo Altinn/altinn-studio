@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
-import { useDebounce } from '@studio/hooks';
+import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@designer/components';
+import { useDebounce } from '@designer/hooks';
 import { useTranslation } from 'react-i18next';
-import { XMarkIcon } from '@studio/icons';
+import { XMarkIcon } from '@designer/icons';
 import classes from './SelectUniqueFromSignaturesInDataTypes.module.css';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { updateDataTypes, getSelectedDataTypes } from '../UniqueFromSignaturesInDataTypesUtils';

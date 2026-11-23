@@ -50,6 +50,9 @@
       "title": "Auto delete on process end",
       "description": "If true, the application data will be hard deleted when the process ends."
     },
+    "onProcessEnd": {
+      "$ref": "#/definitions/onProcessEnd"
+    },
     "partyTypesAllowed": {
       "$ref": "#/definitions/partyTypesAllowed"
     },
@@ -164,6 +167,19 @@
     }
   },
   "definitions": {
+    "onProcessEnd": {
+      "type": "object",
+      "title": "On process end",
+      "description": "What the app does when the process ends.",
+      "additionalProperties": false,
+      "properties": {
+        "confirm": {
+          "type": "boolean",
+          "title": "Confirm",
+          "description": "If true, the app confirms the instance as complete for the service owner when the process ends. The app's policy must grant the service owner the complete action."
+        }
+      }
+    },
     "onEntry": {
       "type": "object",
       "title": "On entry",
@@ -370,7 +386,18 @@
         "taskId": {
           "type": "string",
           "title": "Task id",
-          "description": "A reference to the process element id of the task where this data element should be updated."
+          "description": "**Deprecated**: Use taskIds. Only v8 apps read it; `studioctl app upgrade v9` rewrites it to taskIds.\nThe process element id of the task that elements of this data type belong to.",
+          "deprecated": true
+        },
+        "taskIds": {
+          "type": ["array", "null"],
+          "title": "Task ids",
+          "description": "The process element ids of the tasks that elements of this data type belong to: the tasks where they can be created, changed and deleted through the app, where they are created automatically (appLogic.autoCreate), and at whose end they are validated. Null, missing or an empty list binds the data type to no task. v8 apps read taskId instead.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
         },
         "maxSize": {
           "type": ["integer", "null"],
@@ -465,7 +492,7 @@
         "autoCreate": {
           "type": "boolean",
           "title": "Auto create",
-          "description": "A value indicating whether the data element should be automatically created once an instance moves into the process step indicated by taskId."
+          "description": "A value indicating whether the data element should be automatically created once an instance moves into a process step that the data type belongs to (taskIds)."
         },
         "classRef": {
           "type": "string",

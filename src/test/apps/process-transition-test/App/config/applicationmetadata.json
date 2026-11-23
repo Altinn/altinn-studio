@@ -42,7 +42,7 @@
         "disallowUserCreate": false,
         "disallowUserDelete": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -63,7 +63,7 @@
         "disallowUserCreate": false,
         "disallowUserDelete": false
       },
-      "taskId": "Task_2",
+      "taskIds": ["Task_2"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -79,7 +79,7 @@
       "allowedContributors": [
         "app:owned"
       ],
-      "taskId": "Task_Sign",
+      "taskIds": ["Task_Sign"],
       "maxSize": 25,
       "maxCount": 1,
       "minCount": 0,

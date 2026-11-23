@@ -1,4 +1,4 @@
-import { StudioHeading } from '@studio/components';
+import { StudioHeading } from '@designer/components';
 import { AppMetrics } from './components/AppMetrics';
 import { useQueryParamState } from 'admin/features/apps/hooks/useQueryParamState';
 import classes from './AppDetails.module.css';

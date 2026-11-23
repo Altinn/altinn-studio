@@ -1,9 +1,8 @@
 import { renderHook } from '@testing-library/react';
 import type { IFormatting } from '@app/layout-contract/generated/common.generated';
 
-import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { useResolvedFormatting } from 'src/layout/Input/formatting';
-import { formatNumericText } from 'src/utils/formattingUtils';
+import { formatNumericText, getMapToReactNumberConfig } from 'src/utils/formattingUtils';
 
 vi.mock('src/features/expressions/runtime/useExpressionDataSources', () => ({
   useExpressionDataSources: () => ({}),

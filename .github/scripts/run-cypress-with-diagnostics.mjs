@@ -1,4 +1,4 @@
-// Own the watchdog outside Cypress. A blocked renderer cannot prevent capture.
+// Own the watchdog outside Cypress. A blocked renderer cannot prevent recovery.
 // Keep Cypress and Percy alive so they can finish reporting the interrupted spec.
 import { execFile, spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -7,7 +7,6 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
 
 import { BrowserDiagnostics } from './cypress-browser-diagnostics.mjs';
-import { nativeBrowserStacks } from './cypress-native-stacks.mjs';
 
 const execFileAsync = promisify(execFile);
 const [command, ...args] = process.argv.slice(2);
@@ -32,8 +31,6 @@ const deadline = Math.min(
 );
 const summary = { startedAt: Date.now(), completed: {}, stalls: [] };
 const inactivityReason = 'no output/command/spec progress; renderer hang could not be confirmed';
-let captureNumber = 0;
-let capturedStop = false;
 let interrupted;
 process.on('SIGTERM', () => {
   interrupted = 'SIGTERM';
@@ -47,7 +44,6 @@ function save() {
 }
 function markDiagnostics() {
   summary.suspectedStall = true;
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, 'diagnostics=true\n');
 }
 function readState() {
   const file = path.join(runDirectory, 'cypress.json');
@@ -101,38 +97,6 @@ async function terminate(child, completion) {
   child.stderr.destroy();
 }
 
-async function capture(browser, event) {
-  // Trace retrieval can fail independently. Always proceed to native capture.
-  if (browser)
-    await browser.saveTrace().catch((error) => {
-      event.traceError = error.message;
-    });
-  event.native = [];
-  for (let sample = 1; sample <= 2; sample++) {
-    const output = path.join(directory, `capture-${event.number}`, `native-${sample}`);
-    mkdirSync(output, { recursive: true });
-    try {
-      const stacks = await nativeBrowserStacks(child.pid, output);
-      event.native.push(stacks);
-      writeFileSync(path.join(output, 'capture.json'), JSON.stringify(stacks, null, 2));
-    } catch (error) {
-      event.native.push({ error: error.message });
-    }
-    save();
-    if (sample === 1) await delay(confirmMs);
-  }
-}
-
-async function captureStop() {
-  summary.atStop = { at: Date.now(), state: readState(), lastOutput, lastBrowserProgress };
-  markDiagnostics();
-  const event = { number: ++captureNumber };
-  summary.finalCapture = event;
-  save();
-  await capture(browser, event);
-  capturedStop = true;
-}
-
 // Refuse stale state instead of reading results left by a previous invocation.
 const runDirectory = path.join(directory, 'run');
 mkdirSync(runDirectory);
@@ -146,7 +110,6 @@ let finished = false;
 let lastOutput = Date.now();
 let lastBrowserProgress = 0;
 let nextProbe = 0;
-let connectionNumber = 0;
 let browser;
 let continuation;
 function latestProgress() {
@@ -204,22 +167,15 @@ try {
     }
     const lastProgress = latestProgress();
     if (
+      Date.now() - lastProgress >= suspectMs &&
       state.debugPort &&
       browser?.socket?.readyState !== WebSocket.OPEN &&
       Date.now() >= nextProbe
     ) {
       browser?.close();
-      const output = path.join(directory, `browser-${++connectionNumber}`);
-      mkdirSync(output);
-      browser = new BrowserDiagnostics(output);
+      browser = new BrowserDiagnostics();
       try {
         await browser.connect(state.debugPort);
-        if (browser.traceError) {
-          summary.traceError = browser.traceError;
-          console.error(
-            `::warning::Cypress diagnostics: tracing unavailable: ${browser.traceError}`,
-          );
-        }
       } catch (error) {
         browser.close();
         summary.connectionError = error.message;
@@ -234,8 +190,6 @@ try {
       const first = observeProbe(await browser.probe());
       if (first.blockedTargets.length) {
         markDiagnostics();
-        // Freeze pre-hang scheduler history before more events overwrite it.
-        await browser.saveTrace();
         await delay(confirmMs);
         const second = observeProbe(await browser.probe());
         const progressed = () => finished || latestProgress() > lastProgress;
@@ -244,28 +198,25 @@ try {
           first.blockedTargets.some((id) => second.blockedTargets.includes(id))
         ) {
           const event = {
-            number: ++captureNumber,
+            number: summary.stalls.length + 1,
             at: Date.now(),
             spec: state.currentSpec,
             probes: [first, second],
-            browserDirectory: path.relative(directory, browser.directory),
           };
           summary.stalls.push(event);
           save();
           console.error(
-            'Cypress diagnostics: confirmed renderer stall; capturing before stopping Chrome.',
+            'Cypress watchdog: confirmed renderer stall; stopping Chrome so Cypress can continue.',
           );
-          await capture(browser, event);
-          observeProbe(await browser.probe());
-          // Debugger attachment can unblock a transient pause. Never stop a
-          // browser that progressed to another test or spec during capture.
+          // Never stop a browser that progressed to another test or spec
+          // while the renderer probes were in flight.
           if (!progressed() && !interrupted && Date.now() < deadline) {
             const { processInfo } = await browser.send('SystemInfo.getProcessInfo');
             const pid = processInfo.find((process) => process.type === 'browser')?.id;
             if (!Number.isSafeInteger(pid) || pid <= 1)
               throw new Error('Invalid Chrome browser PID');
             if (progressed() || interrupted || Date.now() >= deadline) {
-              event.progressedDuringCapture = true;
+              event.progressedBeforeStop = true;
               browser.close();
               save();
               continue;
@@ -279,42 +230,27 @@ try {
             event.deadline = Date.now() + continuationMs;
             continuation = event;
             console.error(
-              'Cypress diagnostics: Chrome stopped; Cypress will fail this spec and continue.',
+              'Cypress watchdog: Chrome stopped; Cypress will fail this spec and continue.',
             );
-          } else event.progressedDuringCapture = true;
+          } else event.progressedBeforeStop = true;
           browser.close();
           save();
           continue;
         }
-        // Reconnect to start a fresh bounded trace after a transient pause.
-        browser.close();
       }
       nextProbe = Date.now() + 30_000;
     }
     if (Date.now() - latestProgress() >= fallbackMs) {
       summary.stopReason = inactivityReason;
-      await captureStop();
-      if (browser?.socket?.readyState === WebSocket.OPEN) observeProbe(await browser.probe());
-      // A long spec may finish while diagnostics are collected. Resume watching
-      // when actual work progressed, without abandoning the overall deadline.
-      if (
-        !interrupted &&
-        (finished || (Date.now() < deadline && Date.now() - latestProgress() < fallbackMs))
-      ) {
-        summary.finalCapture.progressedDuringCapture = true;
-        summary.stopReason = null;
-        capturedStop = false;
-        browser?.close();
-        save();
-        continue;
-      }
       break;
     }
     save();
     await Promise.race([completion, delay(1000)]);
   }
   if (summary.stopReason) {
-    if (!capturedStop) await captureStop();
+    summary.atStop = { at: Date.now(), state: readState(), lastOutput, lastBrowserProgress };
+    markDiagnostics();
+    save();
     await terminate(child, completion);
     exitCode = 124;
   } else exitCode = await completion;
@@ -343,8 +279,6 @@ summary.exitCode = interrupted
     : exitCode;
 summary.finishedAt = Date.now();
 save();
-if (process.env.GITHUB_OUTPUT)
-  appendFileSync(process.env.GITHUB_OUTPUT, `diagnostics=${Boolean(summary.suspectedStall)}\n`);
 if (process.env.GITHUB_STEP_SUMMARY && summary.suspectedStall) {
   const stopped = summary.stalls.filter((event) => event.signaledAt);
   appendFileSync(
@@ -353,7 +287,7 @@ if (process.env.GITHUB_STEP_SUMMARY && summary.suspectedStall) {
       `${stopped.filter((event) => event.reported).length} interrupted specs reported by Cypress. ` +
       `${summary.missingSpecs.length} specs lack a completed result. ` +
       `${summary.stopReason || summary.error || 'Cypress continued in the original recording.'} ` +
-      `Interrupted specs remain failures. Diagnostics are retained.\n`,
+      `Interrupted specs remain failures. Recovery details are in the shard logs.\n`,
   );
 }
 process.exitCode = summary.exitCode;

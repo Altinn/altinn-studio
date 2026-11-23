@@ -13,8 +13,8 @@ import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
-import { FilesIcon, TrashIcon } from '@studio/icons';
-import { StudioButton, StudioCenter, StudioSwitch } from '@studio/components';
+import { FilesIcon, TrashIcon } from '@designer/icons';
+import { StudioButton, StudioCenter, StudioSwitch } from '@designer/components';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { ItemFieldType } from './ItemFieldType';
 

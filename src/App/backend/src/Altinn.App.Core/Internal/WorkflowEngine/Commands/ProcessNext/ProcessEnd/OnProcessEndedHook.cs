@@ -41,6 +41,8 @@ internal sealed class OnProcessEndedHook : IWorkflowEngineCommand
         {
             InstanceDataMutator = parameters.InstanceDataMutator,
             CancellationToken = parameters.CancellationToken,
+            WorkflowId = parameters.Payload.WorkflowId,
+            StepId = parameters.Payload.StepId,
         };
 
         try

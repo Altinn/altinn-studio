@@ -4,6 +4,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -170,6 +171,7 @@ public class ActionsController : ControllerBase
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
         {
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             return new NotFoundObjectResult(
                 new UserActionResponse()
                 {
@@ -192,6 +194,7 @@ public class ActionsController : ControllerBase
 
         if (result.ResultType is ResultType.Failure)
         {
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             return StatusCode(
                 statusCode: result.ErrorType switch
                 {
@@ -218,23 +221,17 @@ public class ActionsController : ControllerBase
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
-        // Ensure that the data mutator has the previous binary data for the data elements
-        // that were updated so that it shows up in diff for validation
-        // and ensures that it gets saved to storage
+        // Replace the forms returned in the deprecated UpdatedDataModels, so that they are saved to storage
+        // and the diff against the previous binary data reaches validation and the frontend
         if (result.UpdatedDataModels is { Count: > 0 })
         {
             await Task.WhenAll(
-                result.UpdatedDataModels.Select(row => dataMutator.GetFormData(new DataElementIdentifier(row.Key)))
+                result.UpdatedDataModels.Select(async row =>
+                    (await dataMutator.GetFormDataWrapper(new DataElementIdentifier(row.Key))).ReplaceBackingData(
+                        row.Value
+                    )
+                )
             );
-            foreach (var (elementId, data) in result.UpdatedDataModels)
-            {
-                // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
-                // we still need to return it to the frontend, but we assume it was already saved to storage
-                var elementIdentifier = new DataElementIdentifier(elementId);
-                var dataElement = dataMutator.GetDataElement(elementIdentifier);
-                var dataType = dataMutator.GetDataType(elementIdentifier);
-                dataMutator.SetFormData(elementIdentifier, FormDataWrapperFactory.Create(data, dataType, dataElement));
-            }
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -252,6 +249,8 @@ public class ActionsController : ControllerBase
         var updatedDataModels = changes
             .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)
             .ToDictionary(c => c.DataElementIdentifier.Id, c => c.CurrentFormData);
+
+        SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
         return Ok(
             new UserActionResponse()

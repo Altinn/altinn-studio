@@ -42,6 +42,8 @@ spec:
         {{- with $.Values.runtimeClassName }}
         runtimeClassName: {{ . }}
         {{- end }}
+        # Runner jobs run tenant code and never call the Kubernetes API.
+        automountServiceAccountToken: false
         restartPolicy: Never
         {{- with $.Values.imagePullSecrets }}
         imagePullSecrets:
@@ -51,8 +53,22 @@ spec:
         securityContext:
           {{- toYaml . | nindent 10 }}
         {{- end }}
-        {{- if $.Values.dockerInDocker.enabled }}
         initContainers:
+          # The namespace's egress policy takes effect for a new pod a few seconds after
+          # it starts. Wait until it does, so a job never runs before it applies.
+          - name: wait-for-egress-policy
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+            imagePullPolicy: {{ $.Values.image.pullPolicy }}
+            command: ["bash", "-c"]
+            args:
+              - |
+                for _ in $(seq 120); do
+                  timeout 2 bash -c ': </dev/tcp/169.254.169.254/80' 2>/dev/null || exit 0
+                  sleep 1
+                done
+                echo "The egress policy still does not apply to this pod after 120 attempts" >&2
+                exit 1
+        {{- if $.Values.dockerInDocker.enabled }}
           - name: dockerd
             image: "{{ $.Values.dockerInDocker.image.repository }}:{{ $.Values.dockerInDocker.image.tag }}"
             imagePullPolicy: {{ $.Values.dockerInDocker.image.pullPolicy }}

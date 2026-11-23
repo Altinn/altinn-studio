@@ -14,8 +14,8 @@ namespace Altinn.App.Integration.Tests.Scenarios.LifecycleStageRecovery;
 /// <summary>
 /// A task type whose start pipeline has two stages: "RecordStageA" saves a data element and completes;
 /// "GateStageB" fails permanently while the scenario blocks it, then defers once and completes. The test
-/// proves that recovery re-enters at stage B only, that stage A's data survives, and that the transition
-/// commits only once every stage has completed. Every run logs its run number via <see cref="SnapshotLogger"/>.
+/// proves that recovery re-enters at stage B only, and that stage A's data survives. Every run logs its run number
+/// via <see cref="SnapshotLogger"/>.
 /// </summary>
 public sealed class StagedLifecycleTask : IProcessTask
 {

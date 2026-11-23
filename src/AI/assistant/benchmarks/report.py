@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -494,12 +493,9 @@ def _unwrap(value: object) -> object:
 
 
 def trace_url(trace_id: str | None) -> str | None:
-    """A link to the trace, or nothing rather than a link that goes nowhere."""
-    if not trace_id:
-        return None
-    host = os.environ.get("LANGFUSE_HOST") or os.environ.get("LANGFUSE_BASE_URL") or ""
-    host = host.rstrip("/")
-    return f"{host}/trace/{trace_id}" if host else None
+    from shared.config import BaseConfig
+
+    return f"{BaseConfig.LANGFUSE_HOST}/trace/{trace_id}" if trace_id else None
 
 
 # Wider than this is an item id by another name, and tells a reader nothing.

@@ -4,7 +4,7 @@ import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mo
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { EditPageId } from './EditPageId';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
@@ -14,7 +14,7 @@ import {
   pagesModelMock,
 } from '../../../testing/layoutMock';
 import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 

@@ -1,7 +1,7 @@
-# pdf3's Key Vault, with the API keys the relays in the tenant clusters present and the
-# observability ingest token. dis-vault-operator grants Key Vault Secrets Officer to the pdf3
-# identity and to the group in groupObjectId (set per environment), so its members can write the
-# secrets. With externalSecrets it creates the SecretStore pdf3-secret-store.
+# pdf3's Key Vault, with the API keys the relays in the tenant clusters present. dis-vault-operator
+# grants Key Vault Secrets Officer to the pdf3 identity and to the group in groupObjectId (set per
+# environment), so its members can write the secrets. With externalSecrets it creates the
+# SecretStore pdf3-secret-store.
 apiVersion: vault.dis.altinn.cloud/v1alpha1
 kind: Vault
 metadata:

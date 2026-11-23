@@ -1,0 +1,16 @@
+{
+  "name": "A null result for a field that is already missing",
+  "comment": "The backend has no way to tell a missing property from null, so this only checks that nothing else changes.",
+  "dataModel": {
+    "otherText": "kept"
+  },
+  "calculations": [
+    {
+      "field": "text",
+      "expression": ["if", false, 1, "else", null]
+    }
+  ],
+  "expects": {
+    "otherText": "kept"
+  }
+}

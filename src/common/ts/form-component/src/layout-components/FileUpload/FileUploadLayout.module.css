@@ -1,0 +1,31 @@
+.fileUploadButton {
+  cursor: pointer;
+  background: 0;
+  font-size: 1rem;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  padding: 0;
+  margin-top: 1.5rem;
+}
+
+.betweenTableAndDropMargin {
+  display: block;
+  visibility: hidden;
+  height: 1.5rem;
+}
+
+.fileUploadWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.blueUnderLine {
+  border-bottom: 2px solid var(--colors-primary-blue) !important;
+}
+
+.uploadIcon {
+  font-size: 2.5rem;
+}

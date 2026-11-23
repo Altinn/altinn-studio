@@ -2,14 +2,15 @@ import type { ReactElement } from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { FormItemTitle } from './FormItemTitle';
-import { formItemConfigs } from '../../../../data/formItemConfig';
+import { getFormItemConfig } from '../../../../data/formItemConfig';
+import { getComponentDefinition } from '../../../../data/componentCatalog';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
-import { QuestionmarkDiamondIcon } from '@studio/icons';
+import { QuestionmarkDiamondIcon } from '@designer/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
-import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
+import { useFeatureFlag, FeatureFlag } from '@designer/feature-flags';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';
 
@@ -66,11 +67,11 @@ const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
 
   const formItem = getItem(layout, id);
 
-  const isUnknownInternalComponent: boolean = !formItemConfigs[formItem.type];
+  const isUnknownInternalComponent: boolean = !getComponentDefinition(formItem.type);
 
   const Icon = isUnknownInternalComponent
     ? QuestionmarkDiamondIcon
-    : formItemConfigs[formItem.type]?.icon;
+    : getFormItemConfig(formItem.type).icon;
 
   const labelWrapper = (label: string) => (
     <FormItemTitle duplicateComponents={duplicateComponents} formItem={formItem}>

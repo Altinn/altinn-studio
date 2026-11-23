@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { DeploymentContainer } from './DeploymentContainer';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { environment, pipelineDeployment } from 'app-shared/mocks/mocks';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import { org } from '@studio/testing/testids';
+import { org } from '@designer/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { BuildResult } from 'app-shared/types/Build';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
@@ -48,9 +48,33 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
+
+    expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
+  });
+
+  it('renders org environments when the backend is older and sends no environment list', async () => {
+    const envName = 'tt02';
+    render({
+      getEnvironments: vi
+        .fn()
+        .mockImplementation(() => Promise.resolve([{ ...environment, name: envName }])),
+      getOrgList: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
+        ),
+      getDeployments: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [], environmentList: [] }),
+        ),
     });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('app_deployment.loading')),
@@ -96,7 +120,7 @@ describe('DeploymentContainer', () => {
             secondDeploymentWithNone,
             thirdDeploymentWithSuccess,
           ],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
     });
@@ -136,7 +160,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [firstDeployment, secondDeployment],
-          kubernetesDeploymentList: [],
+          environmentList: [],
         }),
       ),
     });

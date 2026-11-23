@@ -8,6 +8,56 @@ const ICON_COMPLETE = '[data-testid=state-complete]';
 const ICON_ERROR = '[data-testid=state-error]';
 
 describe('navigation', () => {
+  it('preserves UI settings through the backend', { retries: 0 }, () => {
+    cy.startAppInstance(appFrontend.apps.navigationTestSubform);
+    cy.waitForLoad();
+
+    cy.window()
+      .its('altinnAppGlobalData.ui.settings.validationOnNavigation')
+      .should('deep.equal', { page: 'current', show: ['Invalid'] });
+    cy.window()
+      .its('altinnAppGlobalData.ui.folders.Task_1.pages')
+      .should('deep.include', {
+        navigationTitle: ['concat', 'Skjema', 'sider'],
+        hideAppNameInPdf: true,
+      });
+    cy.window()
+      .its('altinnAppGlobalData.ui.folders.subform.pages')
+      .should('deep.include', {
+        navigationTitle: 'Skjemasider for kjøretøy',
+        hideAppNameInPdf: false,
+        validationOnNavigation: { page: 'current', show: ['Required', 'Invalid'] },
+      });
+    cy.window().its('altinnAppGlobalData.ui.folders.subform.pages.groups.1.expandedByDefault').should('equal', true);
+    cy.findByRole('heading', { name: 'Skjemasider' }).should('be.visible');
+
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Kjøretøy/);
+    cy.findByRole('button', { name: 'Legg til bil' }).clickAndGone();
+    cy.waitForLoad();
+    cy.findByRole('heading', { name: 'Skjemasider for kjøretøy' }).should('be.visible');
+    cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'true');
+    cy.navGroup(/Informasjon/).should('not.have.attr', 'aria-current');
+    cy.navGroup(/Informasjon/, /Merke/).should('be.visible');
+
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.get(appFrontend.errorReport).should('contain.text', 'registreringsnummer');
+    cy.findByRole('textbox', { name: /Registreringsnummer/ })
+      .should('be.visible')
+      .type('AB12345');
+    cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+    cy.get('#brand').should('be.visible');
+    cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+    cy.waitForLoad();
+
+    cy.testPdf({
+      freeze: false,
+      callback: () => {
+        cy.get('#pdfView').should('contain.text', 'AB12345');
+        cy.findByRole('heading', { level: 1, name: 'Navigasjonstest' }).should('not.exist');
+      },
+    });
+  });
+
   const viewportSizes = {
     desktop: { width: 1440, height: 900 }, // Desktop
     tablet: { width: 810, height: 1080 }, // iPad
@@ -201,7 +251,7 @@ describe('navigation', () => {
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Registreringsnummer/).should('have.attr', 'aria-current', 'page');
       cy.navGroup(/Registreringsnummer/).should('not.have.attr', 'aria-expanded');
-      cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'false');
+      cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'true');
       cy.navGroup(/Informasjon/).should('not.have.attr', 'aria-current');
       cy.openNavGroup(/Informasjon/);
       cy.navGroup(/Informasjon/, /Merke/).should('not.have.attr', 'aria-current');
@@ -341,6 +391,10 @@ describe('navigation', () => {
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Informasjon/)
+        .should('have.attr', 'aria-expanded', 'true')
+        .click();
+      cy.navGroup(/Informasjon/).should('have.attr', 'aria-expanded', 'false');
+      cy.navGroup(/Informasjon/)
         .find(ICON_COMPLETE)
         .should('be.visible');
       cy.openNavGroup(/Informasjon/);
@@ -415,7 +469,12 @@ describe('navigation', () => {
       isUsingMobile && cy.showNavGroupsMobile();
       isUsingTablet && cy.showNavGroupsTablet();
       cy.navGroup(/Utfylling/, /Kjøretøy/).should('have.attr', 'aria-current', 'page');
-      cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      if (device === 'desktop') {
+        cy.gotoNavGroup(/Innsending/, device, /Samlet oversikt/);
+        cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).clickAndGone();
+      } else {
+        cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      }
 
       cy.findByRole('heading', { name: 'En fet Toyota fra 1998' }).should('be.visible');
       cy.findByRole('heading', { name: 'En fet Lamborghini fra 2010' }).should('be.visible');
@@ -441,6 +500,14 @@ describe('navigation', () => {
         .eq(1)
         .should('contain.text', '⟦XY98765⟧ — Lamborghini — 2010');
 
+      if (device === 'desktop') {
+        // Nested full-summary providers must preserve the parent page's URL return.
+        cy.url().should('include', '/summary?backToPage=summary2');
+        cy.findByRole('button', { name: 'Tilbake til samlet oversikt' }).clickAndGone();
+        cy.findByRole('link', { name: 'Se oppsummering med returknapp' }).should('be.visible');
+        cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      }
+
       // Not a typo, this is different from the two above
       cy.findByTestId('summary-Summary-subform')
         .then((container) => cy.findByRole('button', { name: /Endre/, container }))
@@ -450,8 +517,24 @@ describe('navigation', () => {
       cy.navGroup(/Utfylling/, /Kjøretøy/).should('have.attr', 'aria-current', 'page');
       isUsingMobile && cy.hideNavGroupsMobile();
       isUsingTablet && cy.hideNavGroupsTablet();
+      if (device === 'desktop') {
+        // Editing an entry must keep the parent form's summary return.
+        cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('be.visible');
+        cy.get('#subform-subform-table tbody tr').eq(0).findByRole('button', { name: 'Endre' }).clickAndGone();
+        cy.waitForLoad();
+        cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+        cy.findByRole('button', { name: 'Neste' }).clickAndGone();
+        cy.findByRole('textbox', { name: /Årsmodell/ }).clear();
+        cy.findByRole('textbox', { name: /Årsmodell/ }).type('1999');
+        cy.findByRole('button', { name: /Ferdig/ }).clickAndGone();
+        cy.waitForLoad();
+      }
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
       cy.findByText('skrue.mcduck@altinn.no').should('be.visible');
+      if (device === 'desktop') {
+        cy.findByTestId('summary-Summary-subform').should('be.visible');
+        cy.findByRole('heading', { name: 'En fet Toyota fra 1999' }).should('be.visible');
+      }
 
       cy.get('#subform-subform-table tbody tr')
         .eq(0)
@@ -470,6 +553,18 @@ describe('navigation', () => {
       isUsingTablet && cy.hideNavGroupsTablet();
       cy.findByRole('button', { name: 'Tilbake til oppsummering' }).clickAndGone();
 
+      if (device === 'desktop') {
+        // An entry on a different page must not inherit the edited page's return.
+        cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
+        cy.openNavGroup(/Utfylling/, /Kjøretøy/, /Biler/);
+        cy.findByRole('button', { name: 'En fet Toyota fra 1999' }).clickAndGone();
+        cy.waitForLoad();
+        cy.findByRole('button', { name: /Kjøretøy$/ }).clickAndGone();
+        cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+        cy.findByRole('button', { name: 'Tilbake til oppsummering' }).should('not.exist');
+        cy.gotoNavGroup(/Innsending/, device, /Oppsummering/);
+      }
+
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
       cy.findByRole('heading', { name: 'Se over svarene dine før du sender inn' }).should('be.visible');
       cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
@@ -477,7 +572,7 @@ describe('navigation', () => {
     }),
   );
 
-  it('navigation processing state should not stay pending if a useWaitForState unmounts before resolving', () => {
+  it('validates returns, resets shortcuts and releases navigation processing', () => {
     cy.startAppInstance(appFrontend.apps.navigationTestSubform);
     cy.waitForLoad();
     cy.gotoNavGroup(/Utfylling/, 'desktop', /Fødselsdag/);
@@ -489,7 +584,174 @@ describe('navigation', () => {
     // Make sure this does not lead to everything staying disabled.
     cy.findByRole('textbox', { name: /Fødselsdag/ }).type('1234');
     cy.findByRole('button', { name: 'Neste' }).click();
+    cy.findByRole('button', { name: 'Legg til ny' }).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('button', { name: 'Neste' }).should('not.be.disabled');
+
+    // These values came from the real Settings.json files through the backend HTML response.
+    cy.window().then(({ altinnAppGlobalData: { ui } }) => {
+      expect(ui.settings?.validateOnBackToSummary).to.deep.equal({ page: 'current', show: [] });
+      expect(ui.folders.Task_1.pages.validationOnNavigation).to.deep.equal({ page: 'current', show: [] });
+      expect(ui.folders.Task_1.pages.validateOnBackToSummary).to.deep.equal({ page: 'current', show: ['Required'] });
+    });
+    const summary = () => cy.gotoNavGroup(/Innsending/, 'desktop', /Samlet oversikt/);
+    const edit = (id: string) =>
+      cy.get(`[data-summary-target="${id}"]`).findByRole('button', { name: /Endre/ }).clickAndGone();
+    const back = () => cy.findByRole('button', { name: /^Tilbake til (oppsummering|samlet oversikt)$/ });
+
+    summary();
+    // All-page validation reveals future errors but still lets the user return to reach them.
+    cy.findByRole('link', { name: 'Se informasjon med returknapp' }).clickAndGone();
+    back().click();
+    cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).should('be.visible');
+
+    // A legacy Summary and linkToPage both inherit the task's return validation.
+    cy.gotoNavGroup(/Innsending/, 'desktop', /Oppsummering/);
+    cy.findByTestId('summary-Summary-OUQOpH').findByRole('button', { name: /Endre/ }).clickAndGone();
+    back().click();
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/firstname$/);
+    cy.findByRole('textbox', { name: /Fornavn/ }).should('have.value', '');
+    cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
+    back().click();
+    cy.location('pathname').should('match', /\/summary$/);
+    cy.navGroup(/Innsending/, /Oppsummering/).should('have.attr', 'aria-current', 'page');
+    summary();
+    cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Fornavn/ }).clear();
+    back().click();
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/firstname$/);
+    cy.findByRole('textbox', { name: /Fornavn/ }).should('have.value', '');
+    cy.findByRole('textbox', { name: /Fornavn/ }).type('Ada');
+    back().click();
+
+    // Summary2 and linkToComponent use component Next before the page's disabled return setting.
+    edit('age');
+    back().click();
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/age$/);
+    cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '');
+    cy.findByRole('textbox', { name: /Alder/ }).type('42');
+    back().click();
+    cy.findByRole('link', { name: 'Rediger alder via lenke' }).clickAndGone();
+    cy.findByRole('textbox', { name: /Alder/ }).should('be.focused');
+    cy.findByRole('textbox', { name: /Alder/ }).clear();
+    back().click();
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/age$/);
+    cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '');
+    cy.findByRole('textbox', { name: /Alder/ }).type('42');
+    back().click();
+
+    // The lastname page explicitly opts out, including when errors are already visible.
+    edit('lastname');
+    back().click();
+    edit('lastname');
+    cy.findByRole('textbox', { name: /Etternavn/ }).should('have.value', '');
+    cy.get('#lastname-validations').should('be.visible');
+    back().click();
+
+    // Both hiding and revealing pages before the edited page keep the shortcut.
+    edit('extra');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
+    back().click();
+    edit('extra');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).uncheck();
+    back().click();
+    // Hiding an intervening page keeps the shortcut. Revealing it again removes it.
+    edit('extra');
+    cy.openNavGroup(/Innsending/);
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('not.exist');
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible');
+    // Undoing the reveal cannot bring the shortcut back.
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    back().should('not.exist');
+    // Starting a new edit while the page is hidden also resets when that page reappears.
+    summary();
+    edit('extra');
+    cy.openNavGroup(/Innsending/);
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('not.exist');
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    summary();
+    // The same reset applies to a link return without moving focus away from the edited field.
+    cy.findByRole('link', { name: 'Rediger sidevalg via lenke' }).clickAndGone();
+    cy.openNavGroup(/Innsending/);
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    cy.navGroup(/Innsending/, /Tilbakemelding/).should('not.exist');
+    back().should('be.visible');
+    cy.url().should('include', 'backToPage=summary2');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
+    cy.waitUntilSaved();
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).uncheck();
+    cy.waitUntilSaved();
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    cy.url().should('not.include', 'backToPage=');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).should('be.focused');
+
+    // A legacy summary edit preserves an existing linked-page return. Invalidate only the affected shortcut.
+    const editSideChoices = () => {
+      cy.findByRole('link', { name: 'Se oppsummering med retur til generell info' }).clickAndGone();
+      cy.findByTestId('summary-Summary-extra').findByRole('button', { name: /Endre/ }).clickAndGone();
+      back().should('be.visible');
+      cy.findByRole('button', { name: 'Tilbake til generell info' }).should('be.visible');
+      cy.url().should('include', 'backToPage=info1');
+    };
+    cy.gotoNavGroup(/Informasjon/, 'desktop', /Generell info/);
+    editSideChoices();
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).check();
+    cy.waitUntilSaved();
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul tilbakemelding' }).uncheck();
+    back().should('not.exist');
+    cy.waitUntilSaved();
+    cy.url().should('include', 'backToPage=info1');
+    cy.findByRole('button', { name: 'Tilbake til generell info' }).should('be.visible').click();
+    cy.location('pathname').should('match', /\/info1$/);
+
+    editSideChoices();
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).check();
+    cy.url().should('not.include', 'backToPage=');
+    cy.findByRole('button', { name: 'Tilbake til generell info' }).should('not.exist');
+    back().should('be.visible');
+    cy.findByRole('checkbox', { name: 'Skjul generell info' }).uncheck();
+    back().click();
+    cy.location('pathname').should('match', /\/summary$/);
+    cy.navGroup(/Innsending/, /Oppsummering/).should('have.attr', 'aria-current', 'page');
+    cy.waitUntilSaved();
+
+    // Browser history can move away while a Return is waiting for the real save response.
+    cy.gotoNavGroup(/Utfylling/, 'desktop', /Alder/);
+    summary();
+    cy.findByRole('link', { name: 'Rediger fornavn via lenke' }).clickAndGone();
+    cy.waitUntilSaved();
+    let releaseSave = () => {};
+    const saveReleased = new Promise<void>((resolve) => (releaseSave = resolve));
+    cy.intercept({ method: 'PATCH', url: '**/instances/*/*/data*', times: 1 }, (req) =>
+      req.continue(() => saveReleased),
+    ).as('heldReturnSave');
+    cy.findByRole('textbox', { name: /Fornavn/ }).type(' Lovelace');
+    back().click();
+    cy.get('@heldReturnSave.all').should('have.length', 1);
+    cy.go(-2);
+    cy.location('pathname').should('match', /\/age$/);
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible').and('not.be.disabled');
+    cy.then(() => releaseSave());
+    cy.wait('@heldReturnSave');
+    cy.findByRole('textbox', { name: /Alder/ }).should('have.value', '42');
+    cy.findByRole('button', { name: 'Neste' }).should('be.visible').and('not.be.disabled');
+    cy.waitUntilSaved();
+    cy.location('pathname').should('match', /\/age$/);
   });
 });

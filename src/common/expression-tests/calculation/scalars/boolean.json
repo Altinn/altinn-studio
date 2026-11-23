@@ -1,0 +1,144 @@
+{
+  "name": "Boolean results and boolean fields",
+  "dataModel": {
+    "boolean": false,
+    "text": "old",
+    "decimal": 5
+  },
+  "testCases": [
+    {
+      "name": "boolean into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": true
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "string true into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": "true"
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "string that is not a boolean keeps the previous value",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": "yes"
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 5
+      },
+      "expectsWarnings": ["boolean"]
+    },
+    {
+      "name": "boolean into string",
+      "calculations": [
+        {
+          "field": "text",
+          "expression": true
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "true",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "boolean into number keeps the previous value",
+      "calculations": [
+        {
+          "field": "decimal",
+          "expression": true
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 5
+      },
+      "expectsWarnings": ["decimal"]
+    },
+    {
+      "name": "number into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": 1
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "number other than 0 and 1 into boolean keeps the previous value",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": 2
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 5
+      },
+      "expectsWarnings": ["boolean"]
+    },
+    {
+      "name": "string 1 into boolean",
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": "1"
+        }
+      ],
+      "expects": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      }
+    },
+    {
+      "name": "zero into boolean",
+      "dataModel": {
+        "boolean": true,
+        "text": "old",
+        "decimal": 5
+      },
+      "calculations": [
+        {
+          "field": "boolean",
+          "expression": 0
+        }
+      ],
+      "expects": {
+        "boolean": false,
+        "text": "old",
+        "decimal": 5
+      }
+    }
+  ]
+}

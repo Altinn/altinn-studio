@@ -91,6 +91,19 @@ public sealed class LibGit2ConfigurationTests : IDisposable
         LibGit2Configuration.AssertSymbolicLinksDisabled(configuration);
     }
 
+    [Fact]
+    public void SystemConfiguration_TrustsRepositoriesOfEveryOwner()
+    {
+        string systemConfigurationPath = Path.Join(
+            AppContext.BaseDirectory,
+            LibGit2Configuration.SystemConfigurationFolder,
+            "gitconfig"
+        );
+        using Configuration configuration = BuildConfiguration(File.ReadAllText(systemConfigurationPath));
+
+        Assert.Equal("*", configuration.Get<string>("safe.directory")?.Value);
+    }
+
     public void Dispose()
     {
         Directory.Delete(_directory, recursive: true);

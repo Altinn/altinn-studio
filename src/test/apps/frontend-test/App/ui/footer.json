@@ -1,4 +1,5 @@
 {
+  // App files support comments and trailing commas together.
   "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/footer.schema.v1.json",
   "footer": [
     {
@@ -21,6 +22,6 @@
       "title": "+47 987 65 432",
       "target": "+4798765432"
     }
-  ]
+  ],
 }
 

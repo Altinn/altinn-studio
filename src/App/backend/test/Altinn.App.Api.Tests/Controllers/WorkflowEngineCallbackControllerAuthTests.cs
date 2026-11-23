@@ -12,29 +12,25 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Tests.Common.Auth;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase
 {
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
     private const string SomeCommand = "some-command";
 
-    public WorkflowEngineCallbackControllerAuthTests(
-        WebApplicationFactory<Program> factory,
-        ITestOutputHelper outputHelper
-    )
-        : base(factory, outputHelper) { }
+    public WorkflowEngineCallbackControllerAuthTests(ITestOutputHelper outputHelper)
+        : base(outputHelper) { }
 
     private static StringContent EmptyPayload() => new("{}", Encoding.UTF8, "application/json");
 
     private string GenerateToken(Guid instanceGuid) =>
-        Services.GenerateCallbackToken(instanceGuid, commandKeys: [SomeCommand, MutateProcessState.Key]);
+        Services.GenerateCallbackToken(instanceGuid, commandKeys: [SomeCommand, CommitProcessState.Key]);
 
     /// <summary>
     /// Produces a properly HMAC-signed state envelope around the given inner state, as the app would at enqueue
@@ -109,7 +105,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var client = GetRootedClient(Org, App);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GenerateCallbackToken(instanceGuid, commandKeys: [MutateProcessState.Key])
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [CommitProcessState.Key])
         );
         using var content = EmptyPayload();
 
@@ -131,11 +127,11 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var client = GetRootedClient(Org, App);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GenerateCallbackToken(instanceGuid, mintedFor, MutateProcessState.Key)
+            Services.GenerateCallbackToken(instanceGuid, mintedFor, CommitProcessState.Key)
         );
         var payload = new AppCallbackPayload
         {
-            CommandKey = MutateProcessState.Key,
+            CommandKey = CommitProcessState.Key,
             Actor = claimed,
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
@@ -145,7 +141,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await client.PostAsync(
-            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{instanceGuid}/workflow-engine-callbacks/{CommitProcessState.Key}",
             content
         );
 
@@ -182,7 +178,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         };
         var payload = new AppCallbackPayload
         {
-            CommandKey = MutateProcessState.Key,
+            CommandKey = CommitProcessState.Key,
             Actor = new Actor { Language = "nb" },
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
@@ -201,7 +197,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await client.PostAsync(
-            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{CommitProcessState.Key}",
             content
         );
 
@@ -231,7 +227,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         };
         var payload = new AppCallbackPayload
         {
-            CommandKey = MutateProcessState.Key,
+            CommandKey = CommitProcessState.Key,
             Actor = new Actor { Language = "nb" },
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
@@ -250,7 +246,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await client.PostAsync(
-            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{CommitProcessState.Key}",
             content
         );
 
@@ -299,7 +295,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
 
         var payload = new AppCallbackPayload
         {
-            CommandKey = MutateProcessState.Key,
+            CommandKey = CommitProcessState.Key,
             Actor = new Actor { Language = "nb" },
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
@@ -309,7 +305,7 @@ public class WorkflowEngineCallbackControllerAuthTests : ApiTestBase, IClassFixt
         using var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         using var response = await client.PostAsync(
-            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{MutateProcessState.Key}",
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{routeInstanceGuid}/workflow-engine-callbacks/{CommitProcessState.Key}",
             content
         );
 

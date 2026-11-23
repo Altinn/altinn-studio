@@ -1,5 +1,5 @@
 import { forwardRef, type JSX } from 'react';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading } from '@designer/components';
 import { ChooseFromLibrary } from './ChooseFromLibrary/ChooseFromLibrary';
 import { useTranslation } from 'react-i18next';
 import classes from './AddImageFromLibraryModal.module.css';

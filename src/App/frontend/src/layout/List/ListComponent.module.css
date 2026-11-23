@@ -1,23 +1,15 @@
-.listTable {
-  width: 100%;
-}
-
 .listTable caption {
   text-align: left;
   padding-bottom: var(--ds-size-4);
 }
 
-.listTable th:first-of-type {
+.listTable:not(.configuredColumns, .mobileTable) th:first-of-type,
+.selectionColumn {
   width: 100px;
-}
-
-.listTable th {
-  background-color: var(--ds-color-neutral-background-tinted);
 }
 
 .listTable tr {
   cursor: pointer;
-  height: 60px;
 }
 
 .toggleControl {
@@ -25,55 +17,20 @@
   justify-content: center;
 }
 
-.listTable td {
-  font-size: 16px;
+.readOnly tr {
+  cursor: default;
 }
 
-.selectedRow,
 .selectedRowCell {
   background-color: var(--ds-color-accent-surface-tinted);
 }
 
-.pagination {
-  min-height: 60px;
-  display: flex;
-  justify-content: right;
-  align-items: center;
-  background-color: var(--ds-color-neutral-background-tinted);
-  width: 100%;
-}
-.paginationMobile {
-  justify-content: center;
+/* Without a header row, the browser would give the control column an equal share of the width */
+.mobileControlCell {
+  width: 1px;
 }
 
-.mobileGroup > div :hover {
-  background-color: var(--ds-color-neutral-background-tinted);
-}
-
-.mobile {
-  display: flex;
-  align-items: center;
-  width: auto;
-  border-top: 1px solid var(--ds-color-neutral-border-subtle);
-  padding: var(--ds-size-4);
-  gap: var(--ds-size-8);
-}
-
-.mobile input:checked:hover {
-  background-color: var(--ds-color-accent-base-default);
-}
-
-.mobile label {
-  width: 100%;
-}
-
-.mobile span {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-size-4);
-}
-
-.mobile label div {
+.mobileRowContent {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-2);
@@ -99,8 +56,4 @@
 .editButton {
   margin-left: auto;
   min-width: unset;
-}
-
-.description {
-  max-width: var(--running-text-max-width);
 }

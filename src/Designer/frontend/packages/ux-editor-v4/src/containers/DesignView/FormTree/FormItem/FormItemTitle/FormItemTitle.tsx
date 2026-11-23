@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react';
-import { useCallback } from 'react';
-import { StudioButton } from '@studio/components';
+import { useCallback, useEffect, useRef } from 'react';
+import { StudioButton } from '@designer/components';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@studio/icons';
+import { TrashIcon } from '@designer/icons';
 import classes from './FormItemTitle.module.css';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../types/FormContainer';
 import { useDeleteItem } from './useDeleteItem';
 import { isContainer } from '../../../../../utils/formItemUtils';
+import { getAllDescendants } from '../../../../../utils/formLayoutUtils';
 import { useFormItemContext } from '../../../../FormItemContext';
-import { useAppContext } from '../../../../../hooks';
+import { useAppContext, useSelectedFormLayout } from '../../../../../hooks';
 import classNames from 'classnames';
 import { isComponentDeprecated } from '@altinn/ux-editor-v4/utils/component';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
@@ -25,7 +26,13 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const deleteItem = useDeleteItem(formItem);
   const { updateLayoutsForPreview } = useAppContext();
   const { layoutSet } = useUxEditorParams();
-  const { handleDiscard } = useFormItemContext();
+  const layout = useSelectedFormLayout();
+  const { formItemId: selectedItemId, handleDiscard } = useFormItemContext();
+  const selectedItemIdRef = useRef(selectedItemId);
+
+  useEffect(() => {
+    selectedItemIdRef.current = selectedItemId;
+  }, [selectedItemId]);
 
   const handleDelete = useCallback(() => {
     const confirmMessage = isContainer(formItem)
@@ -33,14 +40,15 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
       : t('ux_editor.component_deletion_text');
 
     if (confirm(confirmMessage)) {
+      const deletedItemIds = [formItem.id, ...getAllDescendants(layout, formItem.id)];
       deleteItem(formItem.id, {
         onSuccess: async () => {
           await updateLayoutsForPreview(layoutSet, true);
-          handleDiscard();
+          if (deletedItemIds.includes(selectedItemIdRef.current)) handleDiscard();
         },
       });
     }
-  }, [formItem, t, deleteItem, updateLayoutsForPreview, layoutSet, handleDiscard]);
+  }, [formItem, t, deleteItem, layout, updateLayoutsForPreview, layoutSet, handleDiscard]);
 
   return (
     <div

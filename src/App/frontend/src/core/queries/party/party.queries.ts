@@ -7,7 +7,10 @@ export const partyQueryKeys = {
   partiesAllowedToInstantiate: () => [...partyQueryKeys.all(), 'partiesAllowedToInstantiate'] as const,
 };
 
-export function partiesAllowedToInstantiateQuery(partyApi: PartyApi, options?: { enabled?: boolean }) {
+export function partiesAllowedToInstantiateQuery(
+  partyApi: Pick<PartyApi, 'getPartiesAllowedToInstantiateHierarchical'>,
+  options?: { enabled?: boolean },
+) {
   return queryOptions({
     queryKey: partyQueryKeys.partiesAllowedToInstantiate(),
     queryFn: () => partyApi.getPartiesAllowedToInstantiateHierarchical(),
@@ -15,7 +18,7 @@ export function partiesAllowedToInstantiateQuery(partyApi: PartyApi, options?: {
   });
 }
 
-export function selectedPartyMutation(partyApi: PartyApi) {
+export function selectedPartyMutation(partyApi: Pick<PartyApi, 'setSelectedParty'>) {
   return mutationOptions({
     mutationKey: ['setSelectedParty'],
     mutationFn: ({ partyId }: { partyId: number | string }) => partyApi.setSelectedParty({ partyId }),

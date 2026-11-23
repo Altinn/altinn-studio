@@ -1,6 +1,8 @@
 import { queryOptions } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
 import type { TextResourcesApi } from 'src/core/api-client/textResources.api';
+import type { TextResourcesQueries } from 'src/core/queries/textResources';
 import type { IRawTextResource, ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
 
 export const textResourcesQueryKeys = {
@@ -45,4 +47,22 @@ const EMPTY_TEXT_RESOURCES: TextResourceMap = {};
 
 export function resourcesAsMap(resources: IRawTextResource[]): TextResourceMap {
   return Object.fromEntries(resources.flatMap(({ id, ...resource }) => [[id, resource]]));
+}
+
+export function createTextResourcesQueries(
+  queryClient: QueryClient,
+  textResourcesApi: TextResourcesApi,
+): TextResourcesQueries {
+  return {
+    ensureLoaded: ({ selectedLanguage, textResourcesFromWindow }) => {
+      if (queryClient.getQueryData(textResourcesQueryKeys.textResources(selectedLanguage))) {
+        return;
+      }
+      void queryClient.ensureQueryData(
+        textResourcesQuery({ selectedLanguage, textResourcesFromWindow, textResourcesApi }),
+      );
+    },
+    getCached: (selectedLanguage) =>
+      queryClient.getQueryData<TextResourceMap>(textResourcesQueryKeys.textResources(selectedLanguage)),
+  };
 }

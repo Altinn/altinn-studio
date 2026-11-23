@@ -27,19 +27,21 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<PlannedStep> Steps, int? ReceiveOpeningIndex);
 
 /// <summary>
-/// The steps one process event adds to a transition, in three lists: the steps before the commit, the steps after it
-/// in the transition's primary workflow, and the steps that each get an auxiliary workflow of their own.
+/// The steps one process event adds to a transition, in three lists: its lifecycle steps, which run before the commit
+/// for a task end or abandon and after it for a task start, the steps after those in the transition's primary workflow,
+/// and the steps that each get an auxiliary workflow of their own.
 /// </summary>
 internal sealed class WorkflowStepSet
 {
-    private readonly List<PlannedStep> _preCommitSteps = [];
+    private readonly List<PlannedStep> _lifecycleSteps = [];
     private readonly List<PlannedStep> _primaryPostCommitSteps = [];
     private readonly List<PlannedStep> _auxiliarySteps = [];
 
     /// <summary>
-    /// The steps that run before the commit. The factory adds the CommitProcessState step after these.
+    /// The lifecycle steps for this event. A task end's or abandon's run before CommitProcessState, a task start's after
+    /// it.
     /// </summary>
-    public IReadOnlyList<PlannedStep> PreCommitSteps => _preCommitSteps;
+    public IReadOnlyList<PlannedStep> LifecycleSteps => _lifecycleSteps;
 
     /// <summary>
     /// The steps after the commit that must complete before the transition is considered done
@@ -72,7 +74,7 @@ internal sealed class WorkflowStepSet
         var group = new WorkflowStepSet()
             .AddStep(UnlockTaskData.Key, new TaskDataLockPayload(context.TaskId))
             .AddStep(CleanupGeneratedFromTask.Key)
-            .AddStep(OnTaskStartingHook.Key)
+            .AddHookStep(OnTaskStartingHook.Key, context.StartingHook)
             .AddStep(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
             .AddProcessTaskStages(StartTask.Key, context.StartPipeline);
 
@@ -111,23 +113,30 @@ internal sealed class WorkflowStepSet
     /// <summary>
     /// The steps for a task end event.
     /// </summary>
-    public static WorkflowStepSet GetTaskEndSteps(string taskId, ProcessTaskPipeline endPipeline)
+    public static WorkflowStepSet GetTaskEndSteps(
+        string taskId,
+        ProcessTaskPipeline endPipeline,
+        IOnTaskEndingHandler? endingHook
+    )
     {
         return new WorkflowStepSet()
             .AddProcessTaskStages(EndTask.Key, endPipeline)
             .AddStep(CommonTaskFinalization.Key)
-            .AddStep(OnTaskEndingHook.Key)
+            .AddHookStep(OnTaskEndingHook.Key, endingHook)
             .AddStep(LockTaskData.Key, new TaskDataLockPayload(taskId));
     }
 
     /// <summary>
     /// The steps for a task abandon event.
     /// </summary>
-    public static WorkflowStepSet GetTaskAbandonSteps(ProcessTaskPipeline abandonPipeline)
+    public static WorkflowStepSet GetTaskAbandonSteps(
+        ProcessTaskPipeline abandonPipeline,
+        IOnTaskAbandoningHandler? abandonHook
+    )
     {
         return new WorkflowStepSet()
             .AddProcessTaskStages(AbandonTask.Key, abandonPipeline)
-            .AddStep(OnTaskAbandonHook.Key);
+            .AddHookStep(OnTaskAbandonHook.Key, abandonHook);
     }
 
     /// <summary>
@@ -136,8 +145,13 @@ internal sealed class WorkflowStepSet
     public static WorkflowStepSet GetProcessEndSteps(ProcessEndContext context)
     {
         var group = new WorkflowStepSet()
-            .AddPrimaryPostCommitStep(OnProcessEndedHook.Key)
+            .AddPrimaryPostCommitHookStep(OnProcessEndedHook.Key, context.ProcessEndedHook)
             .AddPrimaryPostCommitStep(DeleteDataOnProcessEnd.Key);
+
+        if (context.ConfirmComplete)
+        {
+            group.AddPrimaryPostCommitStep(ConfirmCompleteOnProcessEnd.Key);
+        }
 
         if (context.RegisterEvents)
         {
@@ -148,11 +162,24 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Adds a step that runs the command before the commit.
+    /// Adds a lifecycle step that runs the command.
     /// </summary>
     private WorkflowStepSet AddStep(string commandKey, CommandRequestPayload? payload = null)
     {
-        _preCommitSteps.Add(CreateStep(commandKey, payload));
+        _lifecycleSteps.Add(CreateStep(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a hook's lifecycle step when an app handler runs for it, with the handler's own step options. Without a
+    /// handler the step would have nothing to run.
+    /// </summary>
+    private WorkflowStepSet AddHookStep(string commandKey, IProcessStepConfigurable? handler)
+    {
+        if (handler is not null)
+        {
+            _lifecycleSteps.Add(CreateStep(commandKey, declaredOptions: handler.StepOptions));
+        }
         return this;
     }
 
@@ -165,7 +192,7 @@ internal sealed class WorkflowStepSet
         IReadOnlyList<PipelineStage.Plain> stages = pipeline.Stages;
         for (int index = 0; index < stages.Count; index++)
         {
-            _preCommitSteps.Add(
+            _lifecycleSteps.Add(
                 CreateStep(
                     commandKey,
                     new ProcessTaskStagePayload(index),
@@ -179,14 +206,26 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Adds a step that runs the command after CommitProcessState has committed the transition to Storage, and
-    /// that must complete before the transition settles.
+    /// Adds a step that runs the command after CommitProcessState has committed the transition to Storage and after
+    /// any task-start steps, and that must complete before the transition settles.
     /// </summary>
     /// <param name="commandKey">The command's registered key.</param>
     /// <param name="payload">Optional command payload.</param>
     private WorkflowStepSet AddPrimaryPostCommitStep(string commandKey, CommandRequestPayload? payload = null)
     {
         _primaryPostCommitSteps.Add(CreateStep(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a hook's step after the commit, on the same terms as <see cref="AddHookStep"/>.
+    /// </summary>
+    private WorkflowStepSet AddPrimaryPostCommitHookStep(string commandKey, IProcessStepConfigurable? handler)
+    {
+        if (handler is not null)
+        {
+            _primaryPostCommitSteps.Add(CreateStep(commandKey, declaredOptions: handler.StepOptions));
+        }
         return this;
     }
 

@@ -86,6 +86,58 @@ func TestBuildSpecForApp_GeneratesDockerfileForStudioRepoApp(t *testing.T) {
 	if strings.Contains(spec.DockerfileContent, "COPY . .") {
 		t.Fatal("generated Dockerfile must not copy the full context")
 	}
+	wantDockerignore := `**
+!App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj
+!App/backend/src/Altinn.App.Core/Altinn.App.Core.csproj
+!test/apps/frontend-test/App/App.csproj
+!App/backend/Directory.Packages.props
+!App/backend/src/Altinn.App.Api/**
+!App/backend/src/Altinn.App.Core/**
+!test/apps/frontend-test/App/**
+!test/apps/frontend-test/App/config/**
+**/.DS_Store
+**/.cache
+**/.config
+**/.git
+**/.idea
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+`
+	if spec.DockerignoreContent != wantDockerignore {
+		t.Fatalf("DockerignoreContent = %q, want %q", spec.DockerignoreContent, wantDockerignore)
+	}
+}
+
+func TestMaterializeDockerfile_WritesGeneratedDockerignoreNextToDockerfile(t *testing.T) {
+	t.Parallel()
+
+	spec := appimage.BuildSpec{
+		DockerfileContent:   "FROM scratch\n",
+		DockerignoreContent: "**\n",
+	}
+	cleanup, err := appimage.MaterializeDockerfile(&spec)
+	if err != nil {
+		t.Fatalf("MaterializeDockerfile() error = %v", err)
+	}
+	dockerignore := spec.Dockerfile + ".dockerignore"
+	content, err := os.ReadFile(dockerignore)
+	if err != nil {
+		t.Fatalf("read generated dockerignore: %v", err)
+	}
+	if string(content) != spec.DockerignoreContent {
+		t.Fatalf("generated dockerignore = %q, want %q", content, spec.DockerignoreContent)
+	}
+
+	if err := cleanup(); err != nil {
+		t.Fatalf("cleanup() error = %v", err)
+	}
+	for _, path := range []string{spec.Dockerfile, dockerignore} {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Fatalf("%s still exists after cleanup: %v", path, err)
+		}
+	}
 }
 
 func TestBuildSpecForApp_GeneratedDockerfileUsesAppDockerfileEntrypoint(t *testing.T) {

@@ -7,7 +7,7 @@ import { BpmnTypeEnum } from '@altinn/process-editor-v8/enum/BpmnTypeEnum';
 import type { TaskEvent } from '@altinn/process-editor-v8/types/TaskEvent';
 import type { BpmnBusinessObjectEditor } from '@altinn/process-editor-v8/types/BpmnBusinessObjectEditor';
 import type * as StudioModelerModule from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 import type { BpmnTaskType } from '@altinn/process-editor-v8/types/BpmnTaskType';
 import { getMockBpmnElementForTask } from '../../test/mocks/bpmnDetailsMock';
 import { StudioModeler } from '@altinn/process-editor-v8/utils/bpmnModeler/StudioModeler';

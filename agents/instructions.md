@@ -22,7 +22,7 @@ git clone https://dev.azure.com/brreg/altinn-studio-ops/_git/altinn-studio-infra
 Do task work in a dedicated Git worktree under `/home/agent/code/.worktrees/`, with one worktree per task. Keep primary
 checkouts clean for synchronizing remotes and creating, inspecting, or removing worktrees. Start new Altinn Studio
 work from the current `origin/main`; for forked repositories, inspect the remotes and start from the current upstream
-default branch. Never push to `main`, protected release branches, or merge pull requests.
+default branch. Never push to `main`, protected release branches, or merge pull requests in the altinn-studio repository.
 
 ## References in responses
 

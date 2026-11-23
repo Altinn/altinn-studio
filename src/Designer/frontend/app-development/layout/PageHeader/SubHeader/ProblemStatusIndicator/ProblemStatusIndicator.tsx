@@ -1,9 +1,9 @@
-import { StudioButton, StudioDialog } from '@studio/components';
+import { StudioButton, StudioDialog } from '@designer/components';
 import {
   CheckmarkCircleFillIcon,
   ExclamationmarkTriangleIcon,
   SectionHeaderWarningIcon,
-} from '@studio/icons';
+} from '@designer/icons';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
 import { type AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';

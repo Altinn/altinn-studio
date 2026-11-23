@@ -1,0 +1,40 @@
+name: "Set up Rust with the shared cache"
+description: "The toolchain that rust-toolchain.toml pins, cargo-machete and the shared cache of the root Cargo workspace"
+inputs:
+  save-cache:
+    description: "Save the cache after the job (cache-warm.yml only)"
+    required: false
+    default: "false"
+runs:
+  using: "composite"
+  steps:
+    # The runner image bakes the toolchain pinned by rust-toolchain.toml; only
+    # install through rustup when the two have drifted (e.g. a PR bumping
+    # the toolchain before the image has been rebuilt).
+    - name: Verify Rust toolchain
+      shell: bash
+      run: |
+        RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
+        test -n "${RUST_VERSION}"
+        if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
+          || ! rustfmt --version >/dev/null 2>&1 \
+          || ! cargo clippy --version >/dev/null 2>&1; then
+          rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
+          rustup default "${RUST_VERSION}"
+        fi
+
+    # One shared cache for the whole root Cargo workspace, saved only by
+    # cache-warm.yml on main. Saves from PR merge refs cannot be shared with
+    # other PRs and evict main-scoped caches.
+    - name: Restore Rust cache
+      uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      with:
+        shared-key: rust
+        save-if: ${{ inputs.save-cache }}
+
+    - name: Install cargo-machete
+      shell: bash
+      run: |
+        if [ "$(cargo machete --version 2>/dev/null || true)" != "0.9.2" ]; then
+          cargo install cargo-machete --version 0.9.2 --locked
+        fi

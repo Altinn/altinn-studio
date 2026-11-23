@@ -31,7 +31,7 @@ public interface IProcessTask
 
     /// <summary>
     /// Composes the work to do when the task starts as stages, each saved and retried on its own, the way a service
-    /// task composes its pipeline. The stages run inside the transition into the task, before it commits. The default
+    /// task composes its pipeline. The stages run inside the transition into the task. The default
     /// composes no stages, so a task with nothing to do when it starts plans no step. Split the work into stages when
     /// it makes several calls that should not all be repeated when one fails.
     /// </summary>

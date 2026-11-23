@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Controllers;
 
 /// <summary>
 /// Serves files from published Altinn app frontend distributions. The distributions are public, so the
-/// endpoints accept anonymous callers as well as Studio sessions and API keys.
+/// endpoints accept anonymous callers as well as Studio sessions and API keys, and any origin may read them.
 /// </summary>
 [ApiController]
 [AllowAnonymous]
@@ -40,8 +40,11 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     /// Lists the published app frontend versions, in ascending Semantic Versioning precedence.
     /// </summary>
     [HttpGet("versions")]
-    public async Task<IReadOnlyList<string>> GetVersions(CancellationToken cancellationToken) =>
-        await appDistProvider.ListVersions(cancellationToken);
+    public async Task<IReadOnlyList<string>> GetVersions(CancellationToken cancellationToken)
+    {
+        AllowAnyOrigin();
+        return await appDistProvider.ListVersions(cancellationToken);
+    }
 
     /// <summary>
     /// Serves one file from the app frontend distribution of <paramref name="version"/>, or lists the files
@@ -57,6 +60,7 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
         CancellationToken cancellationToken
     )
     {
+        AllowAnyOrigin();
         if (!VersionPattern().IsMatch(version))
         {
             return BadRequest($"Invalid version \"{version}\".");
@@ -126,6 +130,22 @@ public partial class AppDistController(IAppDistProvider appDistProvider) : Contr
     /// indefinitely. Error responses are left uncached since a later publish or fix may change them.
     /// </summary>
     private void MarkResponseImmutable() => Response.GetTypedHeaders().CacheControl = s_immutableCacheControl;
+
+    /// <summary>
+    /// A running app normally uses the app frontend bundled with the app. Only when an app is told to use a specific
+    /// frontend version for testing does it load that version from here, through a crossorigin script tag, and its
+    /// dev tools list the versions from here. Browsers must therefore be allowed to read the responses from any
+    /// origin, as they could from altinncdn.no in v4. The wildcard never allows credentials, so a Studio session
+    /// cannot be used from another origin.
+    /// The header is set when the response starts, because the exception handler clears the headers before it
+    /// writes a 502, and a browser should see that 502 rather than a CORS error.
+    /// </summary>
+    private void AllowAnyOrigin() =>
+        Response.OnStarting(() =>
+        {
+            Response.Headers.AccessControlAllowOrigin = "*";
+            return Task.CompletedTask;
+        });
 
     private static AppDistLayer LayerFor(string path) =>
         path.StartsWith(SchemasLayerPathPrefix, StringComparison.Ordinal) ? AppDistLayer.Schemas : AppDistLayer.Content;

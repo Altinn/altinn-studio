@@ -1,7 +1,7 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { StudioSelect } from '@studio/components';
+import { StudioSelect } from '@designer/components';
 
 enum HeaderSize {
   S = 'h4',

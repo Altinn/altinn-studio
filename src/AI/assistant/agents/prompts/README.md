@@ -1,7 +1,8 @@
 # Prompts
 
-This directory holds the prompts for the gates before the graph, intake and spec. The loop's system prompt is not
-here. [`context.py`](../core/context.py) builds it in code.
+This directory holds the prompts for intake, spec and the goal suggestions. The loop's system prompt is not here.
+[`context.py`](../core/context.py) builds it in code. The request gate asks a decision model, not a language model, so
+its questions are in [`services/decisions/questions.py`](../services/decisions/questions.py).
 
 A system prompt is a Markdown file with YAML frontmatter. A user prompt template in `templates/` has `{{variable}}`
 placeholders, the same syntax as Langfuse.
@@ -12,9 +13,7 @@ When Langfuse is on, the loader serves the Langfuse version with the label `prod
 does not have the prompt, the loader uses the local file without an error. The Langfuse SDK caches a prompt for 60
 seconds by default.
 
-The Langfuse name is the file name without `.md` and without the directory. `intent_security.md` is the exception,
-served as `intent_check`. For a file with another name, give `local_path` to the loader and add the pair to
-`SERVED_FROM` in [`sync_prompts.py`](../../scripts/sync_prompts.py), so that the drift report finds the file.
+The Langfuse name is the file name without `.md` and without the directory.
 
 ## Change a prompt
 
@@ -42,5 +41,7 @@ runs only with `ALLOW_PROMPT_DELETE=1`.
 ## LLM-as-a-judge prompts
 
 The application does not load the prompts in `llm-as-a-judge/`. Langfuse runs them as managed evaluators on trace
-observations, each named after its file. The files are the version-controlled source. After you change one, paste the
-text into its evaluator in the Langfuse UI.
+observations, each named after its file with a `workflow-` prefix and hyphens, such as
+`workflow-no-irrelevant-responses`. `--diff` and `--push` handle the files like the prompts. The push keeps each
+evaluator's model, variable mapping and score definition, so it cannot create an evaluator or publish a file whose
+variables changed. Do those in the UI.

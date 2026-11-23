@@ -3,8 +3,6 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
-import type { IRawOption } from '@app/layout-contract/generated/common.generated';
-import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
@@ -15,12 +13,16 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import { doUpdateAttachmentTags } from 'src/queries/queries';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
+import type { AppMutations } from 'src/core/queries/types';
 import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
+
+const doUpdateAttachmentTags = vi.fn<AppMutations['doUpdateAttachmentTags']>(async ({ setTagsRequest }) => ({
+  tags: setTagsRequest.tags,
+}));
 
 interface GetDataProps extends IGetAttachmentsMock {
   dataType: string;
@@ -198,6 +200,7 @@ describe('File uploading components', () => {
               };
             }),
         },
+        mutations: { doUpdateAttachmentTags },
       });
 
       expect(
@@ -387,6 +390,7 @@ describe('File uploading components', () => {
       it('should show spinner when file status has uploaded=false', async () => {
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 0, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
 
         const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
@@ -400,7 +404,10 @@ describe('File uploading components', () => {
       });
 
       it('should not show spinner when file status has uploaded=true', async () => {
-        await renderWithTag({ attachments: (dataType) => getDataElements({ count: 1, dataType }) });
+        await renderWithTag({
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
+        });
         expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
       });
     });
@@ -411,6 +418,7 @@ describe('File uploading components', () => {
 
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
         await selectTag();
 
@@ -424,7 +432,10 @@ describe('File uploading components', () => {
       });
 
       it('should not show spinner in edit mode when file status has updating=false', async () => {
-        await renderWithTag({ attachments: (dataType) => getDataElements({ count: 1, dataType }) });
+        await renderWithTag({
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
+        });
         await openEdit();
 
         expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
@@ -437,6 +448,7 @@ describe('File uploading components', () => {
 
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
         await selectTag();
 
@@ -451,14 +463,20 @@ describe('File uploading components', () => {
       });
 
       it('should not disable dropdown in edit mode when not updating', async () => {
-        await renderWithTag({ attachments: (dataType) => getDataElements({ count: 1, dataType }) });
+        await renderWithTag({
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
+        });
         await openEdit();
 
         expect(screen.getByRole('combobox')).not.toBeDisabled();
       });
 
       it('should not disable save button', async () => {
-        await renderWithTag({ attachments: (dataType) => getDataElements({ count: 1, dataType }) });
+        await renderWithTag({
+          attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
+        });
         await openEdit();
 
         expect(screen.getByRole('button', { name: 'Lagre' })).not.toBeDisabled();
@@ -471,6 +489,7 @@ describe('File uploading components', () => {
             out[0].tags = [];
             return out;
           },
+          mutations: { doUpdateAttachmentTags },
         });
 
         await userEvent.click(screen.getByRole('button', { name: 'Lagre' }));
@@ -482,12 +501,16 @@ describe('File uploading components', () => {
         await renderWithTag({
           component: { readOnly: true },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
         expect(screen.queryByRole('button', { name: 'Rediger' })).not.toBeInTheDocument();
       });
 
       it('should not show save button when attachment.uploaded=false', async () => {
-        const { mutations } = await renderWithTag({ attachments: () => [] });
+        const { mutations } = await renderWithTag({
+          attachments: () => [],
+          mutations: { doUpdateAttachmentTags },
+        });
 
         const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
@@ -506,6 +529,7 @@ describe('File uploading components', () => {
 
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
         await selectTag();
 
@@ -525,6 +549,7 @@ describe('File uploading components', () => {
             out[0].tags = [];
             return out;
           },
+          mutations: { doUpdateAttachmentTags },
         });
 
         expect(screen.getByRole('button', { name: 'Lagre' })).toBeInTheDocument();
@@ -537,6 +562,7 @@ describe('File uploading components', () => {
             out[0].tags = ['tag1'];
             return out;
           },
+          mutations: { doUpdateAttachmentTags },
         });
         expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
       });
@@ -547,6 +573,7 @@ describe('File uploading components', () => {
         await renderWithTag({
           component: { maxNumberOfAttachments: 3 },
           attachments: (dataType) => getDataElements({ count: 2, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
 
         expect(screen.getByRole('presentation', { name: /attachment-title/i }).textContent).toMatch(
@@ -558,6 +585,7 @@ describe('File uploading components', () => {
         await renderWithTag({
           component: { maxNumberOfAttachments: 3 },
           attachments: (dataType) => getDataElements({ count: 3, dataType }),
+          mutations: { doUpdateAttachmentTags },
         });
 
         expect(screen.queryByRole('presentation', { name: /attachment-title/i })).not.toBeInTheDocument();
@@ -575,6 +603,7 @@ describe('File uploading components', () => {
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     withTag,
     queries,
+    mutations,
   }: Props) {
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
@@ -615,6 +644,12 @@ describe('File uploading components', () => {
         ...component,
       } as CompExternalExact<'FileUpload'>,
       queries: {
+        getInstance: async () => ({
+          ...getInstanceDataMock((i) => {
+            i.data.push(...attachments);
+          }),
+          process: getProcessDataMock(),
+        }),
         fetchOptions: () =>
           Promise.resolve({
             data: [
@@ -623,19 +658,10 @@ describe('File uploading components', () => {
               { value: 'tag3', label: 'Tag 3' },
             ],
             headers: {},
-          } as AxiosResponse<IRawOption[], unknown>),
+          }),
         ...queries,
       },
-      apis: {
-        instanceApi: {
-          getInstance: async () => ({
-            ...getInstanceDataMock((i) => {
-              i.data.push(...attachments);
-            }),
-            process: getProcessDataMock(),
-          }),
-        },
-      },
+      mutations: { ...mutations, doUpdateAttachmentTags },
     });
 
     return { ...utils, id, attachments };

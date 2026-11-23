@@ -74,7 +74,7 @@ stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take the sam
 task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
 them as a single stage. Each stage runs as its own workflow
 step that saves on its own, and a failed stage is retried without the ones before it. There is no conclusion: the
-stages run inside the transition, before it commits, and never advance the process, so the pipeline ends with
+stages run inside the transition and never advance the process, so the pipeline ends with
 `Build()`. The built-in signing task resolves, delegates and notifies its signees this way. A lifecycle stage that
 defers holds the transition: the instance stays `processing` until the stage
 completes, the way a waiting service task holds it. Stages are dispatched by position too, so the rules in
@@ -96,6 +96,10 @@ is the durable guard for send-then-poll and send-then-receive work: give the sen
   stage's data changes are saved into the workflow state and visible to every stage after it.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
   that must _record_ something records it and returns success.
+- A stage also runs again when its save committed but the app's answer never reached the engine. The retry
+  starts from the state the first attempt received, and Storage discards the retry's save because the step
+  id is the same. The stages after it see what the first attempt saved. Work outside Storage runs a second
+  time, which is why it must be idempotent.
 
 ### Stage results
 

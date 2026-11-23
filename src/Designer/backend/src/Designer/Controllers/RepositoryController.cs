@@ -36,6 +36,8 @@ namespace Altinn.Studio.Designer.Controllers;
 [Route("designer/api/repos")]
 public class RepositoryController : ControllerBase
 {
+    private const int MaxPublishAttempts = 3;
+
     private readonly IGiteaClient _giteaClient;
     private readonly ISourceControl _sourceControl;
     private readonly IRepository _repository;
@@ -419,14 +421,52 @@ public class RepositoryController : ControllerBase
         }
         catch (LibGit2Sharp.NonFastForwardException)
         {
-            RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
-            _sourceControl.Push(authenticatedContext);
-            foreach (RepositoryContent repoContent in repoStatus.ContentStatus)
+            // Someone else pushed first. Combining puts the new commit on top of theirs and keeps the history
+            // linear, where pulling would add a merge commit.
+            string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
+                ? commitInfo.BranchName
+                : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
+            List<RepositoryContent> changedFiles = CombineAndPublish(authenticatedContext, branchName);
+            await NotifyFileSyncSuccesses(developer, changedFiles);
+        }
+    }
+
+    private List<RepositoryContent> CombineAndPublish(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        List<RepositoryContent> changedFiles = [];
+        for (int attempt = 1; ; attempt++)
+        {
+            CombineResult combineResult = _sourceControl.CombineWithRemoteBranch(authenticatedContext, branchName);
+            if (combineResult.HasConflicts)
             {
-                Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
-                SyncSuccess syncSuccess = new(source);
-                await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+                throw new LibGit2Sharp.NonFastForwardException(
+                    $"Combining with remote branch '{branchName}' met conflicts."
+                );
             }
+
+            changedFiles.AddRange(combineResult.ContentStatus);
+            try
+            {
+                _sourceControl.PublishBranch(authenticatedContext, branchName);
+                return changedFiles;
+            }
+            catch (LibGit2Sharp.NonFastForwardException) when (attempt < MaxPublishAttempts)
+            {
+                // Someone pushed again while this combined.
+            }
+        }
+    }
+
+    private async Task NotifyFileSyncSuccesses(string developer, IEnumerable<RepositoryContent> contentStatuses)
+    {
+        foreach (RepositoryContent repoContent in contentStatuses)
+        {
+            Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+            SyncSuccess syncSuccess = new(source);
+            await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
         }
     }
 

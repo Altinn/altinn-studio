@@ -1,14 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Mocked } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { EnvironmentConfigProvider, useEnvironmentConfig } from './EnvironmentConfigContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import axios from 'axios';
+import { get } from 'app-shared/utils/networking';
 import type { AltinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 
-vi.mock('axios');
-const axiosMock = axios as Mocked<typeof axios>;
+vi.mock('app-shared/utils/networking', async () => ({
+  ...(await vi.importActual('app-shared/utils/networking')),
+  get: vi.fn(),
+}));
+const getMock = vi.mocked(get);
 
 vi.mock('app-shared/api/paths', () => ({
   envFilePath: vi.fn(() => '/designer/api/v1/environment'),
@@ -44,7 +46,7 @@ describe('EnvironmentConfigContext', () => {
       aiConnectionString: 'test-ai-connection-string',
     };
 
-    axiosMock.get.mockResolvedValueOnce({ data: mockEnvironment });
+    getMock.mockResolvedValueOnce(mockEnvironment);
 
     renderWithProvider();
 
@@ -59,7 +61,7 @@ describe('EnvironmentConfigContext', () => {
 
   it('should handle fetch errors gracefully', async () => {
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    axiosMock.get.mockRejectedValueOnce(new Error('Network error'));
+    getMock.mockRejectedValueOnce(new Error('Network error'));
 
     renderWithProvider();
 
@@ -77,7 +79,7 @@ describe('EnvironmentConfigContext', () => {
 
   it('should handle null response data', async () => {
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    axiosMock.get.mockResolvedValueOnce({ data: null });
+    getMock.mockResolvedValueOnce(null);
 
     renderWithProvider();
 
@@ -104,7 +106,7 @@ describe('EnvironmentConfigContext', () => {
     };
 
     const queryClient = createQueryClientMock();
-    axiosMock.get.mockResolvedValueOnce({ data: mockEnvironment });
+    getMock.mockResolvedValueOnce(mockEnvironment);
 
     const { rerender } = render(
       <QueryClientProvider client={queryClient}>
@@ -128,6 +130,6 @@ describe('EnvironmentConfigContext', () => {
       </QueryClientProvider>,
     );
 
-    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(getMock).toHaveBeenCalledTimes(1);
   });
 });

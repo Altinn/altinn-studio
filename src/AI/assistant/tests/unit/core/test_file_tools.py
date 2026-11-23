@@ -2,15 +2,14 @@
 discard_file_changes.
 
 These tools operate on a real filesystem (tmp_path) — that's the point.
-Each test gets its own tmp_path so they don't interfere.  External git
-calls in discard_file_changes are exercised via subprocess monkeypatch.
+Each test gets its own tmp_path so they don't interfere.  The tests of
+discard_file_changes use a real repository.
 """
 
 from __future__ import annotations
 
-import subprocess
+import json
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -22,6 +21,8 @@ from agents.core import (
     WriteFileTool,
 )
 
+from .git_repo import create_committed_repo, git
+
 
 def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
     return LoopContext(
@@ -29,6 +30,13 @@ def _ctx(repo: Path, *, allow_app_changes: bool = True) -> LoopContext:
         repo_path=str(repo),
         allow_app_changes=allow_app_changes,
     )
+
+
+def _text_resource_file(count: int) -> str:
+    """A Studio-formatted text resource file with `count` texts, about 90
+    characters per text."""
+    resources = [{"id": f"text-{n}", "value": f"Tekst nummer {n} i appen"} for n in range(count)]
+    return json.dumps({"language": "nn", "resources": resources}, indent=2, ensure_ascii=False) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -84,18 +92,76 @@ class TestReadFile:
         # need it to refuse and not actually read.
         assert "not allowed" in result.content or "escapes" in result.content
 
-    async def test_large_file_truncated(self, tmp_path: Path):
-        # 70k chars > _MAX_READ_CHARS (60k).
-        big = "x" * 70_000
-        (tmp_path / "big.txt").write_text(big, encoding="utf-8")
+    async def test_large_file_returns_first_part_with_next_offset(self, tmp_path: Path):
+        text = _text_resource_file(2_000)
+        (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
         tool = ReadFileTool()
         result = await tool.run(
-            tool.input_schema.model_validate({"path": "big.txt"}),
+            tool.input_schema.model_validate({"path": "resource.nn.json"}),
             _ctx(tmp_path),
         )
         assert not result.is_error
-        assert "truncated" in result.content
-        assert result.metadata.get("truncated") is True
+        last, total = result.metadata["end_line"], result.metadata["lines"]
+        assert total == text.count("\n")
+        assert f"Showing lines 1–{last} of {total} in resource.nn.json" in result.content
+        assert f"call `read_file` with the same `path` and `offset` {last + 1}" in result.content
+
+    async def test_offset_reads_the_next_part(self, tmp_path: Path):
+        text = _text_resource_file(2_000)
+        (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
+        tool = ReadFileTool()
+        ctx = _ctx(tmp_path)
+        first = await tool.run(tool.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        offset = first.metadata["end_line"] + 1
+        second = await tool.run(
+            tool.input_schema.model_validate({"path": "resource.nn.json", "offset": offset}),
+            ctx,
+        )
+        assert second.metadata["start_line"] == offset
+        assert second.content.startswith(text.split("\n")[offset - 1] + "\n")
+
+    async def test_offset_past_end_is_error_and_does_not_mark_read(self, tmp_path: Path):
+        (tmp_path / "f.txt").write_text("a\nb\n", encoding="utf-8")
+        tool = ReadFileTool()
+        ctx = _ctx(tmp_path)
+        result = await tool.run(tool.input_schema.model_validate({"path": "f.txt", "offset": 3}), ctx)
+        assert result.is_error
+        assert "has 2 lines" in result.content
+        assert "f.txt" not in ctx.extras.get("read_set", set())
+
+    async def test_offset_and_limit_read_those_lines(self, tmp_path: Path):
+        (tmp_path / "f.txt").write_text("".join(f"line {n}\n" for n in range(1, 11)), encoding="utf-8")
+        tool = ReadFileTool()
+        result = await tool.run(
+            tool.input_schema.model_validate({"path": "f.txt", "offset": 3, "limit": 2}),
+            _ctx(tmp_path),
+        )
+        assert result.content.startswith("line 3\nline 4\n\n\n[Showing lines 3–4 of 10 in f.txt.")
+
+    async def test_lines_moved_by_an_edit_still_count_as_read(self, tmp_path: Path):
+        text = _text_resource_file(2_000)
+        (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        read = ReadFileTool()
+        first = await read.run(read.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        edit = EditFileTool()
+        # Remove the second text, four lines, from the part already read.
+        removed = '    {\n      "id": "text-1",\n      "value": "Tekst nummer 1 i appen"\n    },\n'
+        await edit.run(
+            edit.input_schema.model_validate({"path": "resource.nn.json", "old_string": removed, "new_string": ""}),
+            ctx,
+        )
+        end = first.metadata["end_line"]
+
+        second = await read.run(
+            read.input_schema.model_validate({"path": "resource.nn.json", "offset": end + 1}),
+            ctx,
+        )
+
+        # The offset from the first note is now four lines on, and the note
+        # names the lines in between.
+        assert "Lines have been added or removed since your last read" in second.content
+        assert f"So far, you have not read lines {end - 3}–{end}" in second.content
 
 
 # ---------------------------------------------------------------------------
@@ -237,6 +303,54 @@ class TestWriteFile:
         assert not result.is_error
         assert (tmp_path / "f.txt").read_text() == "new"
 
+    async def test_refuses_to_replace_a_file_read_only_in_part(self, tmp_path: Path):
+        text = _text_resource_file(2_000)
+        (tmp_path / "resource.nn.json").write_text(text, encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        read = ReadFileTool()
+        first = await read.run(read.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        tool = WriteFileTool()
+        args = tool.input_schema.model_validate({"path": "resource.nn.json", "content": "{}"})
+
+        result = await tool.run(args, ctx)
+
+        assert result.is_error
+        total = first.metadata["lines"]
+        assert f"you have not read lines {first.metadata['end_line'] + 1}–{total} of {total}" in result.content
+        assert (tmp_path / "resource.nn.json").read_text() == text
+
+    async def test_refuses_when_it_cannot_check_the_file(self, tmp_path: Path):
+        (tmp_path / "resource.nn.json").write_text(_text_resource_file(2_000), encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        read = ReadFileTool()
+        await read.run(read.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        # Something else makes the file invalid UTF-8 after the model read part of it.
+        (tmp_path / "resource.nn.json").write_bytes(b"\xff\xfe not utf-8")
+        tool = WriteFileTool()
+
+        result = await tool.run(tool.input_schema.model_validate({"path": "resource.nn.json", "content": "{}"}), ctx)
+
+        assert result.is_error
+        assert "Could not read resource.nn.json to check that you have read all of it" in result.content
+        assert (tmp_path / "resource.nn.json").read_bytes() == b"\xff\xfe not utf-8"
+
+    async def test_replaces_a_long_file_once_every_part_is_read(self, tmp_path: Path):
+        (tmp_path / "resource.nn.json").write_text(_text_resource_file(2_000), encoding="utf-8")
+        ctx = _ctx(tmp_path)
+        read = ReadFileTool()
+        result = await read.run(read.input_schema.model_validate({"path": "resource.nn.json"}), ctx)
+        while result.metadata.get("truncated"):
+            offset = result.metadata["end_line"] + 1
+            result = await read.run(
+                read.input_schema.model_validate({"path": "resource.nn.json", "offset": offset}), ctx
+            )
+        assert result.content.endswith("You have now read all of resource.nn.json.]")
+        tool = WriteFileTool()
+
+        written = await tool.run(tool.input_schema.model_validate({"path": "resource.nn.json", "content": "{}"}), ctx)
+
+        assert not written.is_error
+
 
 LAYOUT_ON_ONE_LINE = (
     '{"data":{"layout":[{"id":"navn","type":"Input","textResourceBindings":{"title":"Navn på søker"}}]}}'
@@ -341,41 +455,95 @@ class TestJsonIsFormattedLikeStudio:
 # ---------------------------------------------------------------------------
 
 
-class TestDiscardFileChanges:
-    async def test_runs_git_checkout_for_one_file(self, monkeypatch, tmp_path: Path):
-        called: dict[str, Any] = {}
+class TestDiscardInARepository:
+    """`git checkout HEAD -- <path>` gives an error for a file that HEAD does not have.
+    Thus the tool must also undo a file that the model made."""
 
-        def fake_run(args, **kwargs):
-            called["args"] = args
-            called["cwd"] = kwargs.get("cwd")
-            return subprocess.CompletedProcess(args, 0, "", "")
+    def _repo(self, tmp_path: Path) -> Path:
+        return create_committed_repo(tmp_path / "app", {"App/old.json": '{"old": true}'})
 
-        monkeypatch.setattr("agents.core.tools.discard_file_changes_tool.subprocess.run", fake_run)
-
-        ctx = _ctx(tmp_path)
-        ctx.extras["changed_files"] = {"App/x.json", "App/y.json"}
-        ctx.extras["read_set"] = {"App/x.json", "App/y.json"}
-
+    async def _discard(self, ctx: LoopContext, path: str):
         tool = DiscardFileChangesTool()
-        result = await tool.run(tool.input_schema.model_validate({"path": "App/x.json"}), ctx)
-        assert not result.is_error
-        assert called["args"] == ["git", "checkout", "HEAD", "--", "App/x.json"]
-        assert called["cwd"] == str(tmp_path)
+        return await tool.run(tool.input_schema.model_validate({"path": path}), ctx)
+
+    async def test_resets_a_file_that_the_last_commit_has(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/old.json").write_text('{"old": false}', encoding="utf-8")
+        ctx = _ctx(repo)
+        ctx.extras["changed_files"] = {"App/old.json", "App/other.json"}
+        ctx.extras["read_set"] = {"App/old.json", "App/other.json"}
+
+        result = await self._discard(ctx, "App/old.json")
+
+        assert result.content == "Reset App/old.json to HEAD."
+        assert (repo / "App/old.json").read_text(encoding="utf-8") == '{"old": true}'
         # Only the named file is dropped from tracking — the other survives.
-        assert ctx.extras["changed_files"] == {"App/y.json"}
-        assert ctx.extras["read_set"] == {"App/y.json"}
+        assert ctx.extras["changed_files"] == {"App/other.json"}
+        assert ctx.extras["read_set"] == {"App/other.json"}
 
-    async def test_git_failure_surfaces_as_error(self, monkeypatch, tmp_path: Path):
-        def fake_run(args, **kwargs):
-            raise subprocess.CalledProcessError(1, args, output="", stderr="error: pathspec did not match")
+    async def test_resets_a_committed_file_that_the_model_names_with_a_double_slash(self, tmp_path: Path):
+        """Git does not find `App//old.json` in HEAD. Without the normalisation, the tool deletes the committed file."""
+        repo = self._repo(tmp_path)
+        (repo / "App/old.json").write_text('{"old": false}', encoding="utf-8")
 
-        monkeypatch.setattr("agents.core.tools.discard_file_changes_tool.subprocess.run", fake_run)
+        result = await self._discard(_ctx(repo), "App//old.json")
 
-        tool = DiscardFileChangesTool()
-        result = await tool.run(
-            tool.input_schema.model_validate({"path": "App/nope.json"}),
-            _ctx(tmp_path),
-        )
+        assert not result.is_error, result.content
+        assert (repo / "App/old.json").read_text(encoding="utf-8") == '{"old": true}'
+        assert git(repo, "status", "--porcelain") == ""
+
+    async def test_forgets_the_lines_read_of_the_file(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        ctx = _ctx(repo)
+        read = ReadFileTool()
+        await read.run(read.input_schema.model_validate({"path": "App/old.json"}), ctx)
+
+        await self._discard(ctx, "App/old.json")
+
+        assert "file:App/old.json" not in ctx.extras["text_part_records"]
+
+    async def test_deletes_a_file_that_the_session_created(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/new.json").write_text("{}", encoding="utf-8")
+        ctx = _ctx(repo)
+        ctx.extras["changed_files"] = {"App/new.json"}
+
+        result = await self._discard(ctx, "App/new.json")
+
+        assert not result.is_error, result.content
+        assert "Deleted App/new.json" in result.content
+        assert not (repo / "App/new.json").exists()
+        assert ctx.extras["changed_files"] == set()
+        assert git(repo, "status", "--porcelain") == ""
+
+    async def test_deletes_a_new_file_that_a_failed_commit_left_in_the_index(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/new.json").write_text("{}", encoding="utf-8")
+        git(repo, "add", "App/new.json")
+
+        result = await self._discard(_ctx(repo), "App/new.json")
+
+        assert not result.is_error, result.content
+        assert not (repo / "App/new.json").exists()
+        assert git(repo, "status", "--porcelain") == ""
+
+    async def test_deletes_a_new_file_that_changed_after_a_failed_commit(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+        (repo / "App/new.json").write_text("{}", encoding="utf-8")
+        git(repo, "add", "App/new.json")
+        (repo / "App/new.json").write_text('{"edited": true}', encoding="utf-8")
+
+        result = await self._discard(_ctx(repo), "App/new.json")
+
+        assert not result.is_error, result.content
+        assert not (repo / "App/new.json").exists()
+        assert git(repo, "status", "--porcelain") == ""
+
+    async def test_a_path_that_does_not_exist_gives_the_error_of_git(self, tmp_path: Path):
+        repo = self._repo(tmp_path)
+
+        result = await self._discard(_ctx(repo), "App/nope.json")
+
         assert result.is_error
         assert "did not match" in result.content
 

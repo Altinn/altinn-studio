@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import { usePublishCodeListMutation } from 'app-shared/hooks/mutations/usePublishCodeListMutation';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@designer/pure-functions';
 
 export type PublishCodeListResult = {
   publish: (payload: PublishCodeListPayload) => void;

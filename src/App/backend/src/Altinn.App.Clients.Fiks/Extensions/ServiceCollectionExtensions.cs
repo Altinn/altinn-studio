@@ -47,7 +47,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IServiceTask, FiksArkivServiceTask>();
         services.AddSingleton<IFiksArkivMessageSender, FiksArkivMessageSender>();
         services.AddSingleton<IFiksArkivPayloadGenerator, FiksArkivDefaultPayloadGenerator>();
-        services.AddSingleton<IFiksArkivInstanceClient, FiksArkivInstanceClient>();
         services.AddSingleton<IFiksArkivConfigResolver, FiksArkivConfigResolver>();
         services.AddHostedService<FiksArkivConfigValidationService>();
         services.AddHostedService<FiksArkivSubscriber>();

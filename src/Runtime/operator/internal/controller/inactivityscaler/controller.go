@@ -201,9 +201,8 @@ func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := r.SyncAll(ctx); err != nil {
-		r.logger.Error(err, "initial sync failed")
-	}
+	// A failed run logs its own ERROR, linked to its trace.
+	_ = r.SyncAll(ctx)
 
 	ticker := clock.NewTicker(r.pollInterval)
 	defer ticker.Stop()
@@ -214,9 +213,7 @@ func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 			r.logger.Info("exiting InactivityScaler controller")
 			return nil
 		case <-ticker.Chan():
-			if err := r.SyncAll(ctx); err != nil {
-				r.logger.Error(err, "sync failed")
-			}
+			_ = r.SyncAll(ctx) //nolint:errcheck // A failed run logs its own ERROR, linked to its trace.
 		}
 	}
 }

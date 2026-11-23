@@ -2,8 +2,11 @@
 package cabundle
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -30,6 +33,16 @@ const (
 	redHatTrustPath = "/etc/pki/ca-trust/source/anchors/studio-ca-bundle.crt"
 )
 
+// ErrNoCertificate is returned for a STUDIO_CA_BUNDLE file without a usable certificate: one with no PEM CERTIFICATE
+// block, such as an empty file or one in another format, or one whose every certificate is malformed or rejected by
+// Go's X.509 parser.
+var ErrNoCertificate = errors.New("STUDIO_CA_BUNDLE holds no usable certificate")
+
+var (
+	pemBegin            = []byte("-----BEGIN ")
+	pemBeginCertificate = []byte("-----BEGIN CERTIFICATE-----")
+)
+
 var (
 	errCABundleNotRegular = errors.New("STUDIO_CA_BUNDLE must point to a regular file")
 
@@ -44,16 +57,21 @@ var (
 )
 
 // Bundle describes the complete host CA bundle configured for devenv cluster provisioning.
-//
-//nolint:govet // Field order is kept semantic for this small value.
 type Bundle struct {
+	// Data holds the usable certificates of the file at HostPath, as PEM, without the text between them.
 	Data          []byte
 	HostPath      string
 	ContainerPath string
-	Digest        string
+	// Digest is the SHA-256 of Data.
+	Digest string
+	// Skipped names each certificate of the file that Data leaves out, with the reason, such as
+	// "line 120: x509: negative serial number". The caller decides whether to tell the user.
+	Skipped []string
 }
 
-// FromEnv returns the configured complete CA bundle and whether STUDIO_CA_BUNDLE is set.
+// FromEnv returns the configured complete CA bundle and whether STUDIO_CA_BUNDLE is set. A set variable that names no
+// readable regular file is an error, and so is a file without a usable certificate (ErrNoCertificate). A certificate
+// is usable when Go's X.509 parser accepts it. The others are left out of Data and listed in Skipped.
 func FromEnv() (*Bundle, bool, error) {
 	hostPath := os.Getenv(EnvStudioCABundle)
 	if hostPath == "" {
@@ -79,14 +97,71 @@ func FromEnv() (*Bundle, bool, error) {
 	if err != nil {
 		return nil, true, fmt.Errorf("read %s: %w", EnvStudioCABundle, err)
 	}
-	digest := sha256.Sum256(data)
+	certs, skipped := usableCertificates(data)
+	if len(certs) == 0 {
+		if len(skipped) == 0 {
+			return nil, true, fmt.Errorf("%w: %s: no PEM CERTIFICATE block", ErrNoCertificate, hostPath)
+		}
+		return nil, true, fmt.Errorf("%w: %s: %s, none usable; %s",
+			ErrNoCertificate, hostPath, certificateCount(len(skipped)), skipped[0])
+	}
+	digest := sha256.Sum256(certs)
 
 	return &Bundle{
-		Data:          data,
+		Data:          certs,
 		HostPath:      hostPath,
 		ContainerPath: ContainerPath,
 		Digest:        hex.EncodeToString(digest[:]),
+		Skipped:       skipped,
 	}, true, nil
+}
+
+// usableCertificates returns the CERTIFICATE blocks of data that Go's X.509 parser accepts, re-encoded as PEM, and
+// why it skipped each other CERTIFICATE block. Other PEM blocks, such as keys, and the text around the blocks, as in
+// the comments of a system bundle, are left out without a reason.
+func usableCertificates(data []byte) ([]byte, []string) {
+	var certs bytes.Buffer
+	var skipped []string
+	for offset := 0; ; {
+		start := bytes.Index(data[offset:], pemBegin)
+		if start < 0 {
+			return certs.Bytes(), skipped
+		}
+		start += offset
+		// A block ends before the next one begins, so each block is decoded on its own: pem.Decode would pass over
+		// a malformed block to the next one without saying so.
+		end := bytes.Index(data[start+len(pemBegin):], pemBegin)
+		if end < 0 {
+			end = len(data)
+		} else {
+			end += start + len(pemBegin)
+		}
+		offset = end
+		chunk := data[start:end]
+		if !bytes.HasPrefix(chunk, pemBeginCertificate) {
+			continue
+		}
+		line := 1 + bytes.Count(data[:start], []byte("\n"))
+		block, _ := pem.Decode(chunk)
+		if block == nil || block.Type != "CERTIFICATE" {
+			skipped = append(skipped, fmt.Sprintf("line %d: malformed PEM block", line))
+			continue
+		}
+		if _, err := x509.ParseCertificate(block.Bytes); err != nil {
+			skipped = append(skipped, fmt.Sprintf("line %d: %v", line, err))
+			continue
+		}
+		if err := pem.Encode(&certs, &pem.Block{Type: "CERTIFICATE", Bytes: block.Bytes}); err != nil {
+			skipped = append(skipped, fmt.Sprintf("line %d: %v", line, err))
+		}
+	}
+}
+
+func certificateCount(n int) string {
+	if n == 1 {
+		return "1 certificate"
+	}
+	return fmt.Sprintf("%d certificates", n)
 }
 
 // EnvVars returns the names of environment variables set for CA-aware cluster pods.

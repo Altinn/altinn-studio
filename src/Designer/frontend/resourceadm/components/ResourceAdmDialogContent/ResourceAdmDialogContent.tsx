@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StudioDialog, StudioHeading } from '@studio/components';
+import { StudioDialog, StudioHeading } from '@designer/components';
 import classes from './ResourceAdmDialogContent.module.css';
 
 interface ResourceAdmDialogContentProps {

@@ -4,7 +4,7 @@ import {
   type SelectCustomReceiptDataModelIdProps,
 } from './SelectCustomReceiptDataModelId';
 import { render, screen, waitFor } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
 import {

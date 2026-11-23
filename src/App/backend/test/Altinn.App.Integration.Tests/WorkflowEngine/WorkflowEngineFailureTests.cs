@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
@@ -50,15 +49,13 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 [
                     new(
                         dataElementId,
-                        new Json.Patch.JsonPatch(
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property1"),
-                                JsonNode.Parse("\"2\"")
-                            ),
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property2"),
-                                JsonNode.Parse("\"2\"")
-                            )
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],
@@ -227,6 +224,133 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal("EndEvent_1", refreshedInstance.Data.Model.Process.EndEvent);
     }
 
+    [Fact]
+    public async Task ProcessNext_OnAServiceTaskV8LeftFailed_RunsTheTask()
+    {
+        await using var fixtureScope = await classFixture.Get(
+            output,
+            TestApps.Basic,
+            scenario: "workflow-engine-failure"
+        );
+        var fixture = fixtureScope.Fixture;
+        await ResetScenario(fixture);
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        using AppFixture.ReadApiResponse<Instance> created = await CreateInstance(fixture, token);
+        using AppFixture.ReadApiResponse<Instance> parked = await ParkInServiceTaskAsV8(fixture, token, created);
+
+        // Read as failed, so the frontend shows the task's retry view.
+        using var processResponse = await fixture.Instances.GetProcess(token, parked);
+        using var process = await processResponse.Read<CoreProcessState>();
+        Assert.Equal(WorkflowActivityStatus.Failed, process.Data.Model!.Workflow!.Status);
+        Assert.Equal("Task_Service", process.Data.Model.Workflow.TargetTask);
+
+        // The task runs, and fails again: v9 never moves the instance on without it.
+        using var failedNextResponse = await fixture.Instances.ProcessNext(token, parked);
+        using var failedNext = await failedNextResponse.Read<ProblemDetails>();
+        Assert.Equal(HttpStatusCode.InternalServerError, failedNext.Response.StatusCode);
+        using (JsonDocument failure = JsonDocument.Parse(failedNext.Data.Body!))
+        {
+            Assert.Equal(
+                "ExecuteServiceTask: 0",
+                failure.RootElement.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
+            );
+        }
+
+        // From here it is an ordinary failed service task.
+        using var afterFailureResponse = await fixture.Instances.Get(token, parked);
+        using var afterFailure = await afterFailureResponse.Read<Instance>();
+        Assert.Equal("Task_Service", afterFailure.Data.Model!.Process.CurrentTask!.ElementId);
+        using var blockedNextResponse = await fixture.Instances.ProcessNext(token, afterFailure);
+        using var blockedNext = await blockedNextResponse.Read<ProblemDetails>();
+        Assert.Equal(HttpStatusCode.Conflict, blockedNext.Response.StatusCode);
+        using (JsonDocument blocked = JsonDocument.Parse(blockedNext.Data.Body!))
+        {
+            Assert.Equal("resumeRequired", blocked.RootElement.GetProperty("processNextState").GetString());
+        }
+
+        await AllowServiceTask(fixture);
+        using var resumeResponse = await fixture.Instances.ResumeCurrentTask(token, afterFailure);
+        using var resumed = await resumeResponse.Read<AppProcessState>();
+        Assert.Equal(HttpStatusCode.OK, resumed.Response.StatusCode);
+        Assert.Equal("EndEvent_1", resumed.Data.Model!.EndEvent);
+    }
+
+    [Fact]
+    public async Task ResumeCurrentTask_OnAServiceTaskV8LeftFailed_RunsTheTask()
+    {
+        await using var fixtureScope = await classFixture.Get(
+            output,
+            TestApps.Basic,
+            scenario: "workflow-engine-failure"
+        );
+        var fixture = fixtureScope.Fixture;
+        await ResetScenario(fixture);
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        using AppFixture.ReadApiResponse<Instance> created = await CreateInstance(fixture, token);
+        using AppFixture.ReadApiResponse<Instance> parked = await ParkInServiceTaskAsV8(fixture, token, created);
+
+        // The task runs and fails again.
+        using var failedResumeResponse = await fixture.Instances.ResumeCurrentTask(token, parked);
+        using var failedResume = await failedResumeResponse.Read<ProblemDetails>();
+        Assert.Equal(HttpStatusCode.InternalServerError, failedResume.Response.StatusCode);
+        using (JsonDocument failure = JsonDocument.Parse(failedResume.Data.Body!))
+        {
+            Assert.Equal(
+                "ExecuteServiceTask: 0",
+                failure.RootElement.GetProperty("workflowFailure").GetProperty("stepOperationId").GetString()
+            );
+        }
+
+        await AllowServiceTask(fixture);
+        using var resumeResponse = await fixture.Instances.ResumeCurrentTask(token, parked);
+        using var resumed = await resumeResponse.Read<AppProcessState>();
+        Assert.Equal(HttpStatusCode.OK, resumed.Response.StatusCode);
+        Assert.Equal("EndEvent_1", resumed.Data.Model!.EndEvent);
+    }
+
+    [Fact]
+    public async Task ProcessNext_OnAServiceTaskV8Left_GoesOnAfterTheTask()
+    {
+        await using var fixtureScope = await classFixture.Get(
+            output,
+            TestApps.Basic,
+            scenario: "workflow-engine-failure"
+        );
+        var fixture = fixtureScope.Fixture;
+        await ResetScenario(fixture);
+        await AllowServiceTask(fixture);
+        string token = await fixture.Auth.GetUserToken(userId: 1337);
+        using AppFixture.ReadApiResponse<Instance> created = await CreateInstance(fixture, token);
+        using AppFixture.ReadApiResponse<Instance> parked = await ParkInServiceTaskAsV8(fixture, token, created);
+
+        using var nextResponse = await fixture.Instances.ProcessNext(token, parked);
+        using var next = await nextResponse.Read<AppProcessState>();
+
+        Assert.Equal(HttpStatusCode.OK, next.Response.StatusCode);
+        Assert.Equal("EndEvent_1", next.Data.Model!.EndEvent);
+    }
+
+    /// <summary>
+    /// Leaves the instance in Task_Service as v8 left one whose service task failed: idle, with no workflow.
+    /// </summary>
+    private static async Task<AppFixture.ReadApiResponse<Instance>> ParkInServiceTaskAsV8(
+        AppFixture fixture,
+        string token,
+        AppFixture.ReadApiResponse<Instance> instance
+    )
+    {
+        await PostScenarioEndpoint(
+            fixture,
+            $"/test/workflow-engine-failure/park-in-service-task-as-v8/{instance.Data.Model!.Id}"
+        );
+        // The caller disposes the read, which holds the same response.
+        AppFixture.ApiResponse response = await fixture.Instances.Get(token, instance);
+        var parked = await response.Read<Instance>();
+        Assert.Equal("Task_Service", parked.Data.Model!.Process.CurrentTask!.ElementId);
+        Assert.Null(parked.Data.Model.Process.Status);
+        return parked;
+    }
+
     private static async Task<AppFixture.ReadApiResponse<Instance>> CreateInstance(AppFixture fixture, string token)
     {
         using var instantiationResponse = await fixture.Instances.PostSimplified(
@@ -255,15 +379,13 @@ public class WorkflowEngineFailureTests(ITestOutputHelper output, AppFixtureClas
                 [
                     new(
                         dataElementId,
-                        new Json.Patch.JsonPatch(
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property1"),
-                                JsonNode.Parse("\"2\"")
-                            ),
-                            Json.Patch.PatchOperation.Replace(
-                                Json.Pointer.JsonPointer.Create("property2"),
-                                JsonNode.Parse("\"2\"")
-                            )
+                        JsonPatchOperation.ParseList(
+                            """
+                            [
+                                { "op": "replace", "path": "/property1", "value": "2" },
+                                { "op": "replace", "path": "/property2", "value": "2" }
+                            ]
+                            """
                         )
                     ),
                 ],

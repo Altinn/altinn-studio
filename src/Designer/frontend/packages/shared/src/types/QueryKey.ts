@@ -1,4 +1,5 @@
 export enum QueryKey {
+  AppBuilderFormLayouts = 'AppBuilderFormLayouts',
   AppDeployments = 'AppDeployments',
   AppMetadata = 'AppMetadata',
   AppMetadataModelIds = 'AppMetadataModelIds',
@@ -90,6 +91,7 @@ export enum QueryKey {
 
   // Resourceadm
   ResourceList = 'ResourceList',
+  ResourceEnvironments = 'ResourceEnvironments',
   Altinn2ResourcePolicies = 'Altinn2ResourcePolicies',
   ResourcePolicy = 'ResourcePolicy',
   ResourcePolicySubjects = 'ResourcePolicySubjects',
