@@ -367,12 +367,19 @@ describe('Repeating group validation showcase', () => {
       dialog().findAllByRole('listitem').should('have.length', 1);
       dialog().should('contain.text', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.');
       dialog().type('{esc}');
+      openRow(variant, 6);
+      dialog().find('[role="link"]').click();
+      dialog().should('not.exist');
+      cy.get(`#validation-${variant}-name-6`).should('have.focus');
+      cy.get(row(variant, 6)).find(indicator).should('have.attr', 'aria-expanded', 'false');
+      cy.get(appFrontend.errorReport).find(`[data-target-node="validation-${variant}"]`).eq(1).click();
+      cy.get(`#validation-${variant}-name-4`).should('have.focus');
+      if (variant === 'default') {
+        cy.get(row(variant, 4))
+          .findByTestId('repeating-group-edit-button')
+          .should('have.attr', 'aria-expanded', 'true');
+      }
     }
-    openRow('table', 0);
-    dialog().find('[role="link"][data-target-node="validation-table"]').focus().click();
-    dialog().should('not.exist');
-    cy.get('#validation-table-name-0').should('have.focus');
-    cy.get(row('table', 0)).find(indicator).should('have.attr', 'aria-expanded', 'false');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();

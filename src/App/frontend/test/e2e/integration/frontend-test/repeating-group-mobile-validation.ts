@@ -205,11 +205,14 @@ describe('Repeating-group validation on mobile', () => {
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Denne meldingen gjelder opplysningene');
     cy.get('[data-testid="NavigationButtons"]').find('button').should('not.be.disabled');
-    openRow('table', 0);
+    openRow('table', 6);
     dialog().should('contain.text', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.');
     dialog().find('[role="link"][data-target-node="validation-table"]').focus().click();
     dialog().should('not.exist');
-    cy.get('#validation-table-name-0').should('have.focus');
+    cy.get('#validation-table-name-6').should('have.focus');
+    cy.get(appFrontend.errorReport).find('[data-target-node="validation-default"]').eq(1).click();
+    cy.get('#validation-default-name-4').should('have.focus');
+    cy.get(row('default', 4)).findByTestId('repeating-group-edit-button').should('have.attr', 'aria-expanded', 'true');
     cy.findByRole('checkbox', { name: 'På raden samlet' }).uncheck();
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();

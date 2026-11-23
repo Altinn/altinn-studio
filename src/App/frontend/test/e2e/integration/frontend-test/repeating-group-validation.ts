@@ -124,6 +124,13 @@ function setup(nested: boolean) {
               field: `${groupField}[1].${nestedField}[1].${commentField}.value`,
               customTextKey: 'row.nested',
             },
+            {
+              dataElementId,
+              severity: 2,
+              description: 'Kontroller hele den andre kommentarraden',
+              source: 'RowValidationTest',
+              field: `${groupField}[1].${nestedField}[1]`,
+            },
           ]
         : [];
       res.send(body);
@@ -147,6 +154,11 @@ describe('Repeating group nested validation and visibility', () => {
     cy.get('#validationComment-1-1').should('be.visible').and('have.focus');
     cy.get('#group-validationNested-1-table-body > tr[data-row-num="1"]').find(indicator).should('be.visible');
     cy.get(row(1)).find(indicator).should('have.attr', 'aria-expanded', 'false');
+    cy.get(row(1)).findByTestId('repeating-group-edit-button').click();
+    cy.get('#validationComment-1-1').should('not.exist');
+    cy.get(row(1)).find(indicator).click();
+    cy.findByRole('dialog', { name: 'Meldinger' }).find('[role="link"][data-target-node="validationNested-1"]').click();
+    cy.get('#validationComment-1-1').should('be.visible').and('have.focus');
   });
 
   it('keeps the nested editor frame around directly editable validation messages', () => {
