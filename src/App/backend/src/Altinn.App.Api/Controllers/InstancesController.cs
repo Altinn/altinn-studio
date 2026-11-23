@@ -1638,13 +1638,12 @@ public class InstancesController : ControllerBase
             );
 
             await instantiationProcessor.DataCreation(dataMutator, data, null);
+            if (dataMutator.GetAbandonResponse() is { } abandonResponse)
+            {
+                return abandonResponse;
+            }
 
             dataMutator.AddFormDataElement(dt.Id, data);
-        }
-
-        if (dataMutator.GetAbandonResponse() is { } abandonResponse)
-        {
-            return abandonResponse;
         }
 
         await dataMutator.SaveChanges(dataMutator.GetDataElementChanges(initializeAltinnRowId: true));

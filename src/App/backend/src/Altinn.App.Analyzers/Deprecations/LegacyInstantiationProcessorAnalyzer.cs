@@ -37,7 +37,8 @@ public sealed class LegacyInstantiationProcessorAnalyzer : DiagnosticAnalyzer
             var processor = compilation.GetTypeByMetadataName(InterfaceName);
             var instance = compilation.GetTypeByMetadataName(InstanceName);
             var dictionary = compilation.GetTypeByMetadataName("System.Collections.Generic.Dictionary`2");
-            if (processor is null || instance is null || dictionary is null)
+            var task = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+            if (processor is null || instance is null || dictionary is null || task is null)
                 return;
 
             var legacyMethods = new ConcurrentBag<IMethodSymbol>();
@@ -49,7 +50,7 @@ public sealed class LegacyInstantiationProcessorAnalyzer : DiagnosticAnalyzer
                 {
                     switch (symbolContext.Symbol)
                     {
-                        case IMethodSymbol method when HasLegacySignature(method, instance, dictionary):
+                        case IMethodSymbol method when HasLegacySignature(method, instance, dictionary, task):
                             legacyMethods.Add(method);
                             break;
                         case INamedTypeSymbol type
@@ -89,6 +90,25 @@ public sealed class LegacyInstantiationProcessorAnalyzer : DiagnosticAnalyzer
                         processorTypes.Add(type.OriginalDefinition);
                 }
 
+                // A call through an interface of the app's own, such as one that declares the same method, runs the
+                // processor's implementation of it.
+                foreach (var implementer in implementers)
+                {
+                    foreach (var called in calledMethods.Keys)
+                    {
+                        if (
+                            called.ContainingType.TypeKind == TypeKind.Interface
+                            && implementer.AllInterfaces.Any(i =>
+                                SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, called.ContainingType)
+                            )
+                            && implementer.FindImplementationForInterfaceMember(called) is IMethodSymbol implementation
+                        )
+                        {
+                            calledMethods.TryAdd(implementation.OriginalDefinition, 0);
+                        }
+                    }
+                }
+
                 foreach (var method in legacyMethods)
                 {
                     if (!processorTypes.Contains(method.ContainingType.OriginalDefinition))
@@ -112,13 +132,25 @@ public sealed class LegacyInstantiationProcessorAnalyzer : DiagnosticAnalyzer
         });
     }
 
-    private static bool HasLegacySignature(IMethodSymbol method, INamedTypeSymbol instance, INamedTypeSymbol dictionary)
+    private static bool HasLegacySignature(
+        IMethodSymbol method,
+        INamedTypeSymbol instance,
+        INamedTypeSymbol dictionary,
+        INamedTypeSymbol task
+    )
     {
-        if (method.MethodKind != MethodKind.Ordinary || method.Name != MethodName || method.IsStatic)
+        if (
+            method.MethodKind != MethodKind.Ordinary
+            || method.Name != MethodName
+            || method.IsStatic
+            || method.IsGenericMethod
+            || !SymbolEqualityComparer.Default.Equals(method.ReturnType, task)
+        )
             return false;
 
         var parameters = method.Parameters;
         return parameters.Length == 3
+            && parameters.All(p => p.RefKind == RefKind.None)
             && SymbolEqualityComparer.Default.Equals(parameters[0].Type, instance)
             && parameters[1].Type.SpecialType == SpecialType.System_Object
             && parameters[2].Type is INamedTypeSymbol prefill

@@ -1907,6 +1907,8 @@ public class InstancesController_CopyInstanceTests
         // Arrange
         const int instanceOwnerPartyId = 343234;
         Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        // Two forms, so the copy has to stop at the first one that is abandoned.
+        instance.Data.Add(new DataElement { Id = Guid.NewGuid().ToString(), DataType = "data_type_1" });
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
         ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
 
@@ -1943,6 +1945,21 @@ public class InstancesController_CopyInstanceTests
         ProblemDetails problem = Assert.IsAssignableFrom<ProblemDetails>(objectResult.Value);
         Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
         Assert.Empty(commits);
+        fixture
+            .Mock<IInstantiationProcessor>()
+            .Verify(p => p.DataCreation(It.IsAny<IInstanceDataMutator>(), It.IsAny<object>(), null), Times.Once);
+        fixture
+            .Mock<IDataClient>()
+            .Verify(
+                d =>
+                    d.GetFormData(
+                        It.IsAny<Instance>(),
+                        It.IsAny<DataElement>(),
+                        It.IsAny<StorageAuthenticationMethod?>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         fixture
             .Mock<IInstanceClient>()
             .Verify(

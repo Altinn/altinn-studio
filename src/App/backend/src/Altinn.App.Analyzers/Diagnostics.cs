@@ -475,10 +475,10 @@ public static class Diagnostics
             "ALTINNAPP0605",
             Category.Deprecation,
             "IInstantiationProcessor.DataCreation with an Instance is never called",
-            "'{0}' implements IInstantiationProcessor and declares DataCreation(Instance, object, Dictionary<string, string>?), "
-                + "which this version of the app backend never calls. It calls only "
-                + "DataCreation(IInstanceDataMutator, object, Dictionary<string, string>?). Move the code into that method, "
-                + "and use instanceDataMutator.Instance for the instance; 'studioctl app upgrade v9' makes this change.",
+            "'{0}' declares DataCreation(Instance, object, Dictionary<string, string>?) for an IInstantiationProcessor, "
+                + "but the app backend calls only DataCreation(IInstanceDataMutator, object, Dictionary<string, string>?). "
+                + "Move any code that should run into that method, use instanceDataMutator.Instance for the instance, and "
+                + "remove this one. In an app upgraded from v8, 'studioctl app upgrade v9' removes it.",
             WellKnownDiagnosticTags.CompilationEnd
         );
     }

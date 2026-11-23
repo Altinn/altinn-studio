@@ -40,8 +40,10 @@ public class LegacyInstantiationProcessorAnalyzerTests
         var diagnostic = Assert.Single(diagnostics);
         Assert.Equal(Diagnostics.Deprecations.LegacyInstantiationProcessorDataCreation.Id, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
-        var reportedLine = diagnostic
-            .Location.SourceTree!.GetText()
+        var sourceTree = diagnostic.Location.SourceTree;
+        Assert.NotNull(sourceTree);
+        var reportedLine = sourceTree
+            .GetText()
             .Lines[diagnostic.Location.GetLineSpan().StartLinePosition.Line]
             .ToString();
         Assert.Contains("DataCreation(Instance instance", reportedLine);
@@ -88,6 +90,66 @@ public class LegacyInstantiationProcessorAnalyzerTests
 
                     public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
                         Task.CompletedTask;
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Allows_Legacy_Shaped_Method_The_App_Calls_Through_Its_Own_Interface()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public interface IAppPrefill
+                {
+                    Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill);
+                }
+
+                public sealed class Processor : IInstantiationProcessor, IAppPrefill
+                {
+                {{CurrentOverload}}
+
+                    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+
+                public static class Runner
+                {
+                    public static Task Run(IAppPrefill prefill, Instance instance) =>
+                        prefill.DataCreation(instance, new object(), null);
+                }
+                """
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task Allows_Methods_The_Removed_Overload_Could_Not_Bind_To()
+    {
+        var diagnostics = await Analyze(
+            Usings
+                + $$"""
+                public sealed class Processor : IInstantiationProcessor
+                {
+                {{CurrentOverload}}
+
+                    public Task DataCreation(ref Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+
+                    public Task DataCreation<T>(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        Task.CompletedTask;
+                }
+
+                public sealed class ValueTaskProcessor : IInstantiationProcessor
+                {
+                {{CurrentOverload}}
+
+                    public ValueTask DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) =>
+                        ValueTask.CompletedTask;
                 }
                 """
         );
