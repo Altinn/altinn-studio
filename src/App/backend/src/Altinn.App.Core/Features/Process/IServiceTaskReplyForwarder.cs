@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Process;
 /// <remarks>
 /// Resolve the forwarder per message from a scope — injecting this transient into a singleton subscriber
 /// pins its HttpClient. Forwarding guidance (payload limits, early messages, outcome handling):
-/// <c>docs/service-task-pipelines.md</c> in the app-lib repository.
+/// <c>src/App/backend/docs/service-task-pipelines.md</c> in the altinn-studio repository.
 /// </remarks>
 public interface IServiceTaskReplyForwarder
 {

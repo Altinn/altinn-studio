@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Features.Process;
 /// <remarks>
 /// Each stage runs as its own workflow-engine step, and a completed stage never runs again.
 /// <strong>Implementations MUST be idempotent — every stage may be retried on failure.</strong>
-/// Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
+/// Authoring guidance: <c>src/App/backend/docs/service-task-pipelines.md</c> in the altinn-studio repository.
 /// </remarks>
 [ImplementableByApps]
 public interface IServiceTask : IProcessTask

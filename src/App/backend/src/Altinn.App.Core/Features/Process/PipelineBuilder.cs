@@ -3,7 +3,8 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// Composes a pipeline of durable stages: <see cref="Lifecycle"/> for the work a task does when it starts, ends or is
 /// abandoned, and <see cref="ServiceTask"/> for a service task. Composition mistakes throw from the composing call and
-/// fail app startup. Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
+/// fail app startup. Authoring guidance: <c>src/App/backend/docs/service-task-pipelines.md</c> in the altinn-studio
+/// repository.
 /// </summary>
 public abstract class PipelineBuilder
 {

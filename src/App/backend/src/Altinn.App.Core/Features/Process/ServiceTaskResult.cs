@@ -75,7 +75,7 @@ public abstract record ServiceTaskResult : ServiceTaskExchangeResult
     /// <remarks>
     /// A deferral is not a failure and is <strong>stateless</strong>: nothing is saved, and instance data
     /// changes made by a deferring attempt are rejected as a contract violation. See
-    /// <c>docs/service-task-pipelines.md</c> in the app-lib repository for the waiting contract.
+    /// <c>src/App/backend/docs/service-task-pipelines.md</c> in the altinn-studio repository for the waiting contract.
     /// </remarks>
     public static DeferredServiceTaskResult Defer(TimeSpan delay, string? reason = null)
     {
