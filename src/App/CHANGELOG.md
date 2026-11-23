@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Build check `ALTINNAPP0704` (error) reports a method in a process or service task that is named after `DefineStart`, `DefineEnd`, `DefineAbandon` or `ValidateConfiguration` but does not implement it, such as `void DefineStart(PipelineBuilder.ServiceTask pipeline)`. The runtime would never call it.
+
 ### Changed
 
 - Breaking: each `Define` method takes its own `PipelineBuilder` variant:
