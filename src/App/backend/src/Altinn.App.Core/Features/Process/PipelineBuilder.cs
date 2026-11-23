@@ -1,20 +1,16 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Composes a pipeline of durable stages. Each kind of task is handed the variant that offers what makes sense for
-/// it: <see cref="Lifecycle"/> for the work a task does when it starts, ends or is abandoned, and
-/// <see cref="ServiceTask"/> for a service task. A stage's work takes a <see cref="StageContext"/> in both, and is
-/// written the same way. Composition mistakes throw from the composing call and fail app startup. Authoring guidance:
-/// <c>docs/service-task-pipelines.md</c> in the app-lib repository.
+/// Composes a pipeline of durable stages: <see cref="Lifecycle"/> for the work a task does when it starts, ends or is
+/// abandoned, and <see cref="ServiceTask"/> for a service task. Composition mistakes throw from the composing call and
+/// fail app startup. Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </summary>
-/// <remarks>
-/// The private constructor closes the family: only the variants nested here can exist. The base declares no
-/// <c>Stage</c> of its own on purpose. C# skips a base class's overloads whenever one declared on the subclass fits,
-/// so a <c>Stage</c> here would let a placeholder such as <c>c =&gt; throw new NotImplementedException()</c> compile
-/// as a service task's ending stage instead of failing as ambiguous.
-/// </remarks>
 public abstract class PipelineBuilder
 {
+    // The private constructor closes the family to the variants nested here. The base declares no Stage on purpose:
+    // C# skips a base class's overloads whenever one on the subclass fits, so a Stage here would let a placeholder
+    // such as `c => throw new NotImplementedException()` compile as a service task's ending stage instead of failing
+    // as ambiguous.
     private PipelineBuilder() { }
 
     /// <summary>
@@ -71,13 +67,10 @@ public abstract class PipelineBuilder
     }
 
     /// <summary>
-    /// Composes a service task's pipeline, in <see cref="IServiceTask.DefineExecute"/>: steps that carry on, ended by
-    /// exactly one step that ends the task. What a step's work returns decides which it is. A <c>Stage</c> whose work
-    /// returns <see cref="StageResult"/> carries on, and one whose work returns <see cref="ServiceTaskResult"/> ends the
-    /// task; <c>HandleReplies</c> likewise, by what its handlers return. A step that ends the task returns the
-    /// <see cref="ServiceTaskPipeline"/> that <c>DefineExecute</c> must return, so it is always the last. A task that
-    /// does one thing is that one step: <c>pipeline.Stage(Execute)</c>. A builder composes one pipeline: once a step
-    /// has ended it, every further call on it throws.
+    /// Composes a service task's pipeline in <see cref="IServiceTask.DefineExecute"/>. What a step's work returns
+    /// decides whether it carries on (<see cref="StageResult"/>) or ends the task (<see cref="ServiceTaskResult"/>).
+    /// The step that ends the task returns the <see cref="ServiceTaskPipeline"/> that <c>DefineExecute</c> returns, so
+    /// it comes last. A task that does one thing is that one step: <c>pipeline.Stage(Execute)</c>.
     /// </summary>
     public sealed class ServiceTask : PipelineBuilder
     {
@@ -125,8 +118,8 @@ public abstract class PipelineBuilder
 
         /// <summary>
         /// Ends the pipeline with the step that decides how the task ends, run once everything composed before it has
-        /// finished. For a task that does one thing, this is its whole work. For a polling pipeline this is where the
-        /// wait lives: return <see cref="ServiceTaskResult.Defer"/> until the outcome arrives.
+        /// finished. For a polling pipeline this is where the wait lives: return <see cref="ServiceTaskResult.Defer"/>
+        /// until the outcome arrives.
         /// </summary>
         /// <param name="work">
         /// The concluding work. The idempotency rules of a stage that carries on apply here too.
