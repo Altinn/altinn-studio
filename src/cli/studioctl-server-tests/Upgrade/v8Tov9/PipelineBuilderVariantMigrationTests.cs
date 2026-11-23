@@ -1430,4 +1430,38 @@ public sealed class PipelineBuilderVariantMigrationTests : IDisposable
             migrated
         );
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FinallyAsAMethodGroup_IsReportedOrRewritten(bool semantic)
+    {
+        // pipeline.Finally is not called here, only named, so neither the rename nor the safety net sees it: the method
+        // is reported as done and does not compile against the current API.
+        Write(
+            "logic/GroupTask.cs",
+            $$"""
+            public class GroupTask : IServiceTask
+            {
+                public string Type => "group";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+                {
+                    Func<Func<StageContext, Task<ServiceTaskResult>>, ProcessStepOptions?, ServiceTaskPipeline> end =
+                        pipeline.Stage(Archive).Finally;
+                    return end(Done, null);
+                }
+
+            {{StageMethods}}
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        if (result.Todos.Count == 0)
+            AssertCompilesAgainstCurrent();
+        else
+            Assert.Empty(Oks(result));
+    }
 }
