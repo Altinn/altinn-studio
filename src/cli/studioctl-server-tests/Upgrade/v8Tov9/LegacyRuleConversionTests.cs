@@ -82,6 +82,15 @@ public sealed class LegacyRuleConversionTests
         Assert.Equal(expected, JsonSerializer.Serialize(result));
     }
 
+    [Theory]
+    [InlineData(0, 20)] // Updates run through IDataProcessor, and the write hook must skip them.
+    [InlineData(1, 20)] // Creation runs through the write hook.
+    [InlineData(2, 19)] // Deleted models are not recalculated.
+    public async Task GeneratedProcessor_HandlesCreationAndUpdatesExactlyOnce(int changeType, decimal expected)
+    {
+        Assert.Equal(expected, await Execute("return obj.a + 1;", [], "decimal?", "totals.result", changeType));
+    }
+
     [Fact]
     public async Task FailingRule_KeepsTheCurrentValue()
     {
@@ -194,7 +203,13 @@ public sealed class LegacyRuleConversionTests
         return new CSharpCodeGenerator("form", model, new() { ["first"] = rule }, parser, resolver).Generate();
     }
 
-    private static async Task<object?> Execute(string body, Dictionary<string, JsonElement> inputs, string type)
+    private static async Task<object?> Execute(
+        string body,
+        Dictionary<string, JsonElement> inputs,
+        string type,
+        string input = "a",
+        int changeType = 0
+    )
     {
         using var app = new TempAppFolder();
         var generated = Generate(
@@ -203,7 +218,7 @@ public sealed class LegacyRuleConversionTests
             type,
             new()
             {
-                ["a"] = "a",
+                ["a"] = input,
                 ["b"] = "b",
                 ["s"] = "s",
                 ["t"] = "t",
@@ -248,7 +263,7 @@ public sealed class LegacyRuleConversionTests
             property.SetValue(root, value.ValueKind == JsonValueKind.Number ? value.GetDecimal() : value.GetString());
         }
         var run = Required(Required(assembly.GetType("Entry")).GetMethod("Run"));
-        await Required((Task?)run.Invoke(null, [root]));
+        await Required((Task?)run.Invoke(null, [root, changeType]));
         return result.GetValue(totals);
     }
 
@@ -263,20 +278,32 @@ public sealed class LegacyRuleConversionTests
         global using System.Threading.Tasks;
         global using Altinn.App.Core.Features;
         namespace Altinn.App.Core.Features {
-            public interface IInstanceDataMutator { }
-            public interface IDataWriteProcessor { }
+            public interface IDataWriteProcessor {
+                Task ProcessDataWrite(Altinn.App.Core.Models.IInstanceDataMutator mutator, string taskId, Altinn.App.Core.Models.DataElementChanges changes, string? language);
+            }
+            public interface IDataProcessor {
+                Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, Guid? dataId, object data, string? language);
+                Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, Guid? dataId, object data, object? previousData, string? language);
+            }
         }
+        namespace Altinn.Platform.Storage.Interface.Models { public class Instance { } }
         namespace Altinn.App.Core.Models {
-            public class Change { public object CurrentFormData { get; set; } = null!; }
-            public class DataElementChanges { public List<Change> FormDataChanges { get; } = new(); }
+            public enum ChangeType { Updated, Created, Deleted }
+            public interface IInstanceDataMutator { }
+            public class Mutator : IInstanceDataMutator { }
+            public record FormDataChange(ChangeType Type, object CurrentFormData);
+            public record DataElementChanges(IEnumerable<FormDataChange> FormDataChanges);
         }
         public static class Entry {
-            public static Task Run(object model) {
-                var changes = new Altinn.App.Core.Models.DataElementChanges();
-                changes.FormDataChanges.Add(new() { CurrentFormData = model });
-                return new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor(
+            // An update runs IDataProcessor and then the write hook, as the app does.
+            public static async Task Run(object model, int changeType) {
+                var processor = new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor(
                     Microsoft.Extensions.Logging.Abstractions.NullLogger<Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor>.Instance
-                ).ProcessDataWrite(null!, "task", changes, null);
+                );
+                if (changeType == 0)
+                    await processor.ProcessDataWrite(new(), null, model, null, null);
+                await processor.ProcessDataWrite(new Altinn.App.Core.Models.Mutator(), "Task_1",
+                    new([new((Altinn.App.Core.Models.ChangeType)changeType, model)]), null);
             }
         }
         """;
