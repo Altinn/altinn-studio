@@ -1,0 +1,707 @@
+{
+  "contractVersion": 1,
+  "commandKeys": [
+    "AbandonTask",
+    "AcquireProcessingStatus",
+    "CleanupGeneratedFromTask",
+    "CommitProcessState",
+    "CommonTaskFinalization",
+    "CommonTaskInitialization",
+    "CompletedAltinnEvent",
+    "DeleteDataOnProcessEnd",
+    "EndTask",
+    "EnqueueAuxiliaryWorkflows",
+    "ExecuteServiceTask",
+    "InstanceCreatedAltinnEvent",
+    "LockTaskData",
+    "MintMailbox",
+    "MovedToAltinnEvent",
+    "NotifyInstanceOwnerOnInstantiation",
+    "OnProcessEndedHook",
+    "OnTaskAbandonHook",
+    "OnTaskEndingHook",
+    "OnTaskStartingHook",
+    "ReleaseProcessingStatus",
+    "StartTask",
+    "UnlockTaskData"
+  ],
+  "commandPayload": {
+    "type": [
+      "object",
+      "null"
+    ],
+    "required": [
+      "$type"
+    ],
+    "anyOf": [
+      {
+        "properties": {
+          "$type": {
+            "const": "acquireProcessingStatus"
+          },
+          "processStateChange": {
+            "type": "object",
+            "properties": {
+              "oldProcessState": {
+                "typeFromAnotherAssembly": "Altinn.Platform.Storage.Interface.Models.ProcessState"
+              },
+              "newProcessState": {
+                "typeFromAnotherAssembly": "Altinn.Platform.Storage.Interface.Models.ProcessState"
+              },
+              "events": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "typeFromAnotherAssembly": "Altinn.Platform.Storage.Interface.Models.InstanceEvent"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "processStateChange"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "executeServiceTask"
+          },
+          "serviceTaskType": {
+            "type": "string"
+          },
+          "itemIndex": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "default": null
+          }
+        },
+        "required": [
+          "serviceTaskType"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "processStateChange"
+          },
+          "processStateChange": {
+            "type": "object",
+            "properties": {
+              "oldProcessState": {
+                "typeFromAnotherAssembly": "Altinn.Platform.Storage.Interface.Models.ProcessState"
+              },
+              "newProcessState": {
+                "typeFromAnotherAssembly": "Altinn.Platform.Storage.Interface.Models.ProcessState"
+              },
+              "events": {
+                "$ref": "#/anyOf/0/properties/processStateChange/properties/events"
+              }
+            }
+          }
+        },
+        "required": [
+          "processStateChange"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "commonTaskInitialization"
+          },
+          "prefill": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "required": [
+          "prefill"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "taskDataLock"
+          },
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "notifyInstanceOwnerOnInstantiation"
+          },
+          "notification": {
+            "type": "object",
+            "properties": {
+              "notificationChannel": {
+                "type": "integer"
+              },
+              "allowSendingAfterWorkHours": {
+                "type": "boolean"
+              },
+              "language": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "requestedSendTime": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "customSms": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "senderName": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "object",
+                    "properties": {
+                      "nb": {
+                        "type": "string"
+                      },
+                      "nn": {
+                        "type": "string"
+                      },
+                      "en": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "nb",
+                      "nn",
+                      "en"
+                    ]
+                  }
+                },
+                "required": [
+                  "senderName",
+                  "text"
+                ]
+              },
+              "customEmail": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "subject": {
+                    "type": "object",
+                    "properties": {
+                      "nb": {
+                        "type": "string"
+                      },
+                      "nn": {
+                        "type": "string"
+                      },
+                      "en": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "nb",
+                      "nn",
+                      "en"
+                    ]
+                  },
+                  "body": {
+                    "type": "object",
+                    "properties": {
+                      "nb": {
+                        "type": "string"
+                      },
+                      "nn": {
+                        "type": "string"
+                      },
+                      "en": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "nb",
+                      "nn",
+                      "en"
+                    ]
+                  }
+                },
+                "required": [
+                  "subject",
+                  "body"
+                ]
+              },
+              "reminders": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "requestedSendTime": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "sendAfterDays": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "customSms": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "senderName": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "$ref": "#/anyOf/5/properties/notification/properties/customSms/properties/text"
+                        }
+                      },
+                      "required": [
+                        "senderName",
+                        "text"
+                      ]
+                    },
+                    "customEmail": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "subject": {
+                          "$ref": "#/anyOf/5/properties/notification/properties/customEmail/properties/subject"
+                        },
+                        "body": {
+                          "$ref": "#/anyOf/5/properties/notification/properties/customEmail/properties/body"
+                        }
+                      },
+                      "required": [
+                        "subject",
+                        "body"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "notification"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "enqueueAuxiliaryWorkflows"
+          },
+          "enqueueRequest": {
+            "type": "object",
+            "properties": {
+              "labels": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "context": true,
+              "workflows": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "ref": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operationId": {
+                      "type": "string"
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "operationId": {
+                            "type": "string"
+                          },
+                          "command": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              },
+                              "maxExecutionTime": {
+                                "$comment": "Represents a System.TimeSpan value.",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+                              },
+                              "waitBudget": {
+                                "$comment": "Represents a System.TimeSpan value.",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+                              },
+                              "data": true
+                            },
+                            "required": [
+                              "type"
+                            ]
+                          },
+                          "retryStrategy": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "backoffType": {
+                                "enum": [
+                                  "Constant",
+                                  "Linear",
+                                  "Exponential"
+                                ]
+                              },
+                              "baseInterval": {
+                                "$comment": "Represents a System.TimeSpan value.",
+                                "type": "string",
+                                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+                              },
+                              "maxRetries": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              "maxDelay": {
+                                "$comment": "Represents a System.TimeSpan value.",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+                              },
+                              "maxDuration": {
+                                "$comment": "Represents a System.TimeSpan value.",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "pattern": "^-?(\\d\u002B\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$"
+                              },
+                              "nonRetryableHttpStatusCodes": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "integer"
+                                }
+                              }
+                            }
+                          },
+                          "labels": {
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "additionalProperties": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "operationId",
+                          "command"
+                        ]
+                      }
+                    },
+                    "startAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "state": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dependsOn": {
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "links": {
+                      "type": [
+                        "array",
+                        "null"
+                      ]
+                    },
+                    "dependsOnHeads": {
+                      "type": "boolean"
+                    },
+                    "isHead": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "mailbox": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "operationId",
+                    "steps"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "workflows"
+            ]
+          }
+        },
+        "required": [
+          "enqueueRequest"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "mintMailbox"
+          },
+          "serviceTaskType": {
+            "type": "string"
+          },
+          "stageIndex": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "serviceTaskType",
+          "stageIndex"
+        ]
+      },
+      {
+        "properties": {
+          "$type": {
+            "const": "processTaskStage"
+          },
+          "stageIndex": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "stageIndex"
+        ]
+      }
+    ]
+  },
+  "signedEnvelope": {
+    "type": [
+      "object",
+      "null"
+    ],
+    "properties": {
+      "contractVersion": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "payload": {
+        "type": "string"
+      },
+      "signature": {
+        "type": "string"
+      },
+      "secretId": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "payload",
+      "signature",
+      "secretId"
+    ]
+  },
+  "callbackState": {
+    "type": [
+      "object",
+      "null"
+    ],
+    "properties": {
+      "instance": {
+        "typeFromAnotherAssembly": "Altinn.Platform.Storage.Interface.Models.Instance"
+      },
+      "instanceVersion": {
+        "type": "integer"
+      },
+      "processStateVersion": {
+        "type": "integer"
+      },
+      "formData": {
+        "type": "array",
+        "items": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "dataType": {
+              "type": "string"
+            },
+            "data": true
+          },
+          "required": [
+            "id",
+            "dataType",
+            "data"
+          ]
+        }
+      },
+      "binaryData": {
+        "type": [
+          "array",
+          "null"
+        ],
+        "items": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "blobVersionId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "data": {
+              "type": "string",
+              "contentEncoding": "base64"
+            }
+          },
+          "required": [
+            "id",
+            "blobVersionId",
+            "data"
+          ]
+        }
+      },
+      "mailboxes": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "deadline": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "id",
+            "deadline"
+          ]
+        }
+      }
+    },
+    "required": [
+      "instance",
+      "instanceVersion",
+      "processStateVersion",
+      "formData"
+    ]
+  }
+}

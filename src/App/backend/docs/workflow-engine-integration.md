@@ -124,9 +124,9 @@ The gateways also run as the service owner, through the data accessor they are g
   from the same version collide, and a repeated identical request joins the first.
 - The engine leaves the workflow context out of its idempotency hash. Requests that differ only in actor or language
   share the acquire workflow, and the first request's language applies to the whole chain.
-- A retried callback can enqueue its continuation with different signed state, such as after an app code rotation or a
-  Storage replay. The engine answers 409, and the app accepts the existing continuation when exactly one matches its
-  key, source task visit and parent.
+- A retried callback can enqueue its continuation with different signed state, such as after an app code rotation, a
+  Storage replay or a retry on a pod with a newer workflow contract version. The engine answers 409, and the app
+  accepts the existing continuation when exactly one matches its key, source task visit and parent.
 
 ## Concurrent requests
 
@@ -257,6 +257,42 @@ and delivers messages.
 A workflow runs its later steps on whatever app version is running then, with the callback state, command keys,
 payloads and step lists that the enqueueing version wrote. A change to any of them decides whether those workflows
 keep working or fail with a permanent error that names the problem.
+
+A pod never runs a step whose callback state another pod wrote under a newer workflow contract version than its own.
+The contract is what one pod hands another through the engine: the steps a transition plans, each command's key and
+payload, and the callback state. A newer version may have planned a command, a payload or a state field that the
+older one lacks, and the older one would fail the workflow permanently or drop the field for the steps after it.
+
+Every signed envelope therefore names the contract version of the library that wrote it, as `contractVersion`. It
+sits in the envelope the app owns, so the engine carries it without reading it. A pod reads `contractVersion` before
+it checks the actor, verifies or restores the state, or looks up the command. When it is higher than
+`WorkflowContract.Version`, the pod answers 503 without the `nonRetryable` marker and logs a warning that names both
+contract versions and its own package version. The engine retries the step under its retry strategy, which gives up
+after a day by default. A message delivered to a mailbox is sealed the same way and gets the same check.
+
+- Raise `WorkflowContract.Version` in the change that makes the library plan or write something a pod on the previous
+  version cannot run or would drop. `WorkflowContractTests` keeps a snapshot of the command keys, the command payloads
+  and the callback state for each version, and fails when they change. A release that changes none of them keeps the
+  version, so a rollback across it continues every workflow.
+- A step hands on its state under the version of the pod that ran it. A workflow therefore never returns to a pod
+  older than one that has planned or run a part of it.
+- A rolling deploy heals by itself, since a retry reaches a pod on the new version.
+- After a rollback across a version that raised the contract version, the steps written under it retry until the app
+  is rolled forward or their retry strategy runs out. A workflow that ran out can be resumed once the newer version
+  runs again.
+- An envelope without a version, from before versions existed, runs on any pod. A version that is not a whole number
+  counts as newer, since this library always writes one.
+- The version is outside the signature. Lowering it makes an older pod read the payload as it would have without the
+  version, and raising it makes pods leave the envelope alone. Neither lets a forged payload through.
+- The check cannot protect what runs before it. The callback token and the JSON around the state are read first, so a
+  version must keep both readable by the previous one.
+- The envelope holds nothing else that follows the library, such as its package version. The engine includes the state
+  in its idempotency hash, so a retried step that lands on another release must write the same envelope as its first
+  attempt. A retry on a pod with a newer contract version does not, and gets the 409 that
+  [identity and idempotency](#identity-and-idempotency) describes.
+
+The rest of this section is about a pod that reads the state's contract version. It runs every step, and a command it
+does not have fails permanently.
 
 A step names its pipeline item by position, so reshaping a pipeline in flight is the same problem. The
 [authoring guide](service-task-pipelines.md#redeploys-and-in-flight-workflows) leaves it to the app developer, and the

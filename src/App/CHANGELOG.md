@@ -25,6 +25,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
+- During a rolling deploy or after a rollback, a process transition no longer fails for good when one of its steps reaches a pod on an older library version that cannot run it. The workflow engine retries the step until a pod that can run it answers, for up to a day by default. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 
 ## [9.0.0-preview.14] - 2026-11-20
 

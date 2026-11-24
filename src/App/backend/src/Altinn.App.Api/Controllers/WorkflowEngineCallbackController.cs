@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
@@ -70,6 +71,14 @@ public class WorkflowEngineCallbackController : ControllerBase
 
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
+
+        if (
+            WorkflowContract.IsWrittenUnderNewerVersion(payload.State, out string? version)
+            || WorkflowContract.IsWrittenUnderNewerVersion(payload.Mailbox?.Delivery?.Payload, out version)
+        )
+        {
+            return NewerWorkflowContract(commandKey, instanceId, payload, version, activity);
+        }
 
         // The engine echoes the actor from its stored context; the token binds the one it was minted for.
         if (
@@ -494,6 +503,39 @@ public class WorkflowEngineCallbackController : ControllerBase
             default:
                 throw new UnreachableException($"Unknown acquisition outcome: {acquisition.GetType().Name}");
         }
+    }
+
+    /// <summary>
+    /// Leaves a step whose callback state or delivered message was written under a newer
+    /// <see cref="WorkflowContract.Version"/> to a newer pod, by answering without the <c>nonRetryable</c> marker so
+    /// the engine retries it. During a rolling deploy a retry reaches a pod on the new version. After a rollback the
+    /// step retries until the app is rolled forward or its retry strategy runs out.
+    /// </summary>
+    private ObjectResult NewerWorkflowContract(
+        string commandKey,
+        InstanceIdentifier instanceId,
+        AppCallbackPayload payload,
+        string? version,
+        Activity? activity
+    )
+    {
+        _logger.LogWarning(
+            "Workflow step carries an envelope written under workflow contract version {ContractVersion}, and this pod, on app library {PodVersion}, reads up to version {PodContractVersion}. Answering 503 so the workflow engine retries it until it reaches a pod that reads it. CommandKey: {CommandKey}, Instance: {InstanceId}, WorkflowId: {WorkflowId}, StepId: {StepId}.",
+            LogSanitizer.Sanitize(version),
+            WorkflowContract.LibraryVersion,
+            WorkflowContract.Version,
+            LogSanitizer.Sanitize(commandKey),
+            instanceId,
+            payload.WorkflowId,
+            payload.StepId
+        );
+
+        activity?.SetStatus(ActivityStatusCode.Error, "Written under a newer workflow contract version");
+        return Problem(
+            title: "Newer Workflow Contract Version",
+            detail: $"This step carries state or a message written under a newer workflow contract version than this pod, on app library {WorkflowContract.LibraryVersion}, reads. It runs once a retry reaches a pod that reads it.",
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        );
     }
 
     private string? GetCollectionKey()

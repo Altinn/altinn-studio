@@ -2,6 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Infrastructure.Authentication;
 using Altinn.App.Core.Constants;
@@ -403,6 +404,109 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal("Invalid State", problem.Title);
         Assert.True((bool)problem.Extensions["nonRetryable"]!);
         Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
+    /// <summary>
+    /// A higher version, and two that are not whole numbers, which this library never writes.
+    /// </summary>
+    public static TheoryData<string> NewerContractVersions => new() { NextContractVersion, "\"1\"", "1.5" };
+
+    [Theory]
+    [MemberData(nameof(NewerContractVersions))]
+    public async Task ExecuteCommand_StateUnderNewerContractVersion_AnswersRetryableWithoutRestoringStateOrRunningTheCommand(
+        string contractVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(
+            services => services.Services.AddSingleton<IWorkflowEngineCommand>(command),
+            createState: StateUnderContractVersion(contractVersion)
+        );
+
+        IActionResult result = await setup.Execute(command.GetKey(), stepId: Guid.NewGuid());
+
+        ProblemDetails problem = AssertNewerWorkflowContract(result);
+        Assert.Contains(WorkflowContract.LibraryVersion, problem.Detail, StringComparison.Ordinal);
+        Assert.False(command.Executed);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+        Assert.Contains(
+            setup.ServiceProvider.Logs,
+            log =>
+                log.LogLevel == LogLevel.Warning
+                && log.FormattedMessage?.Contains(WorkflowContract.LibraryVersion, StringComparison.Ordinal) == true
+        );
+    }
+
+    /// <summary>
+    /// The case the version exists for: a newer pod planned a command this pod does not have. Without the version
+    /// this pod would fail the workflow permanently.
+    /// </summary>
+    [Fact]
+    public async Task ExecuteCommand_CommandThisPodLacks_StateUnderNewerContractVersion_AnswersRetryable()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            _ => { },
+            createState: StateUnderContractVersion(NextContractVersion)
+        );
+
+        IActionResult result = await setup.Execute("CommandFromANewerVersion", stepId: Guid.NewGuid());
+
+        AssertNewerWorkflowContract(result);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_AcquireWithStateUnderNewerContractVersion_AnswersRetryableWithoutClaimingTheInstance()
+    {
+        await using ControllerSetup setup = CreateSetup(
+            _ => { },
+            createState: StateUnderContractVersion(NextContractVersion)
+        );
+
+        IActionResult result = await setup.Execute(
+            ProcessingStatusAcquirer.Key,
+            Guid.NewGuid(),
+            setup.CreateAcquirePayload(),
+            collectionKey: "acquire-chain"
+        );
+
+        AssertNewerWorkflowContract(result);
+        Assert.Empty(setup.Services.Storage.RequestsResponses);
+    }
+
+    /// <summary>
+    /// State this pod reads: written under its own version, an older one, or none, from before versions existed.
+    /// </summary>
+    public static TheoryData<string?> ReadableContractVersions =>
+        new() { WorkflowContract.Version.ToString(System.Globalization.CultureInfo.InvariantCulture), "0", null };
+
+    [Theory]
+    [MemberData(nameof(ReadableContractVersions))]
+    public async Task ExecuteCommand_StateUnderAContractVersionThisPodReads_RunsTheStepAndHandsOnItsOwnVersion(
+        string? contractVersion
+    )
+    {
+        var command = new TrackingNoOpCommand();
+        await using ControllerSetup setup = CreateSetup(
+            services => services.Services.AddSingleton<IWorkflowEngineCommand>(command),
+            createState: StateUnderContractVersion(contractVersion)
+        );
+
+        IActionResult result = await setup.Execute(command.GetKey(), stepId: Guid.NewGuid());
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        Assert.True(command.Executed);
+        JsonNode handedOn = JsonNode.Parse(response.State!)!;
+        Assert.Equal(WorkflowContract.Version, handedOn[WorkflowContract.VersionProperty]!.GetValue<int>());
+    }
+
+    private static ProblemDetails AssertNewerWorkflowContract(IActionResult result)
+    {
+        var error = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, error.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(error.Value);
+        Assert.Equal("Newer Workflow Contract Version", problem.Title);
+        Assert.False(problem.Extensions.ContainsKey("nonRetryable"));
+        return problem;
     }
 
     [Fact]
@@ -1398,23 +1502,44 @@ public class WorkflowEngineCallbackControllerTests
         );
 
         WorkflowStateSigner stateSigner = serviceProvider.GetRequiredService<WorkflowStateSigner>();
-        string state =
-            createState?.Invoke(stateSigner, instance)
-            ?? stateSigner.Sign(
-                JsonSerializer.Serialize(
-                    new WorkflowCallbackState
-                    {
-                        Instance = instance,
-                        InstanceVersion = 1,
-                        ProcessStateVersion = 1,
-                        FormData = [],
-                    }
-                ),
-                SigningDomain.CallbackState
-            );
+        string state = createState?.Invoke(stateSigner, instance) ?? SignDefaultState(stateSigner, instance);
 
         return new ControllerSetup(services, serviceProvider, controller, instanceGuid, state);
     }
+
+    private static string SignDefaultState(WorkflowStateSigner stateSigner, Instance instance) =>
+        stateSigner.Sign(
+            JsonSerializer.Serialize(
+                new WorkflowCallbackState
+                {
+                    Instance = instance,
+                    InstanceVersion = 1,
+                    ProcessStateVersion = 1,
+                    FormData = [],
+                }
+            ),
+            SigningDomain.CallbackState
+        );
+
+    /// <summary>
+    /// The state a pod on another workflow contract version would hand on: the default state with that version in its
+    /// envelope, as JSON text. <c>null</c> leaves the version out, as in state from before versions existed.
+    /// </summary>
+    private static Func<WorkflowStateSigner, Instance, string> StateUnderContractVersion(string? contractVersion) =>
+        (signer, instance) =>
+        {
+            JsonObject envelope = JsonNode.Parse(SignDefaultState(signer, instance))!.AsObject();
+            envelope.Remove(WorkflowContract.VersionProperty);
+            if (contractVersion is not null)
+            {
+                envelope[WorkflowContract.VersionProperty] = JsonNode.Parse(contractVersion);
+            }
+
+            return envelope.ToJsonString();
+        };
+
+    private static string NextContractVersion =>
+        (WorkflowContract.Version + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private static Guid GetInstanceGuid(Instance instance) => Guid.Parse(instance.Id!.Split('/')[1]);
 
