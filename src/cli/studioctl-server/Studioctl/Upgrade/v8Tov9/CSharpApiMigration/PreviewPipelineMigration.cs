@@ -74,6 +74,12 @@ internal sealed partial class PreviewPipelineMigration
     /// </summary>
     private static readonly SyntaxAnnotation _leftAsItIs = new(nameof(PreviewPipelineMigration));
 
+    /// <summary>
+    /// Marks a call whose result is held as the type the previews' member returned, as <see cref="MarkHeldResults"/>
+    /// finds it.
+    /// </summary>
+    private static readonly SyntaxAnnotation _heldAsReturned = new(nameof(MarkHeldResults));
+
     private enum Role
     {
         Execute,
@@ -142,9 +148,11 @@ internal sealed partial class PreviewPipelineMigration
     {
         cancellationToken.ThrowIfCancellationRequested();
         var messages = new List<UpgradeMessage>();
+        var names = new TypeNames(_scanner.Files);
+        MarkHeldResults(names);
+
         // Snapshot: Update replaces list entries, which would invalidate a live enumerator.
         var files = _scanner.Files.ToArray();
-        var names = new TypeNames(files);
 
         // Without a compilation, an app's own PipelineBuilder reads like the Altinn one.
         bool TellsBuildersApart(ScannedCSharpFile file) =>

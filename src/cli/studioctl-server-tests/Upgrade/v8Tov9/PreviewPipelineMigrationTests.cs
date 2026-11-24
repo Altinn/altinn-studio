@@ -2752,6 +2752,142 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task SuccessHeldAsItsOwnType_IsReportedAtItsLine_AndPassedOnAsTheBase_IsRenamed(bool semantic)
+    {
+        var task = Write(
+            "logic/HeldTask.cs",
+            """
+            public class HeldTask : IServiceTask
+            {
+                public string Type => "held";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Done);
+
+                private Task<ServiceTaskResult> Done(StageContext context)
+                {
+                    var result = ServiceTaskResult.Success("reject");
+                    Console.WriteLine(ServiceTaskResult.Success().Action);
+                    return result.Action is null
+                        ? Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("accept"))
+                        : Task.FromResult<ServiceTaskResult>(result);
+                }
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        var file = Path.Combine("logic", "HeldTask.cs");
+        Assert.Equal(
+            [
+                $"{file}:14: ServiceTaskResult.Success returned the SuccessfulServiceTaskResult this code holds, so it "
+                    + "was left as it is. ServiceTaskResult.EndTask returns a ServiceTaskResult: keep what you read from "
+                    + "the result in a variable of its own, or match the result with is EndedServiceTaskResult.",
+                $"{file}:15: ServiceTaskResult.Success returned the SuccessfulServiceTaskResult this code holds, so it "
+                    + "was left as it is. ServiceTaskResult.EndTask returns a ServiceTaskResult: keep what you read from "
+                    + "the result in a variable of its own, or match the result with is EndedServiceTaskResult.",
+            ],
+            result.Todos
+        );
+        var migrated = await ReadMigrated(task);
+        Assert.Contains("var result = ServiceTaskResult.Success(\"reject\");", migrated);
+        Assert.Contains("Console.WriteLine(ServiceTaskResult.Success().Action);", migrated);
+        Assert.Contains("Task.FromResult<ServiceTaskResult>(ServiceTaskResult.EndTask(\"accept\"))", migrated);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MailboxIdInAPropertyPattern_OnTheForwardException_IsRenamed(bool semantic)
+    {
+        var relay = Write(
+            "logic/Relay.cs",
+            """
+            public sealed class Relay(IServiceTaskReplyForwarder forwarder)
+            {
+                public async Task<string> Forward(Guid id)
+                {
+                    try
+                    {
+                        await forwarder.ForwardReply(id, "archive", "{}", "key");
+                        return "ok";
+                    }
+                    catch (ServiceTaskReplyForwardException e) when (e is { MailboxId: var failed } and { Outcome: ServiceTaskReplyForwardOutcome.Unroutable })
+                    {
+                        return $"unroutable: {failed}";
+                    }
+                    catch (ServiceTaskReplyForwardException e)
+                    {
+                        return e switch
+                        {
+                            { MailboxId: var full, Outcome: ServiceTaskReplyForwardOutcome.MailboxFull } => $"full: {full}",
+                            _ => "failed",
+                        };
+                    }
+                }
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        AssertCompilesAgainstCurrent();
+        var migrated = await ReadMigrated(relay);
+        Assert.Contains("when (e is { ReplyAddressId: var failed } and {", migrated);
+        Assert.Contains(
+            "{ ReplyAddressId: var full, Outcome: ServiceTaskReplyForwardOutcome.TooManyReplies } =>",
+            migrated
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ForwardExceptionAndForwarder_TheUpgradeCannotPlaceWithoutACompilation_AreReported(bool semantic)
+    {
+        var relay = Write(
+            "logic/Relay.cs",
+            """
+            public static class Relay
+            {
+                public static IServiceTaskReplyForwarder Forwarder() => throw new NotImplementedException();
+
+                public static ServiceTaskReplyForwardException Failure() => throw new NotImplementedException();
+
+                public static Task Forward(Guid id) => Forwarder().ForwardReply(mailboxId: id, "archive", "{}", "key");
+
+                public static Guid Failed() => Failure() is { MailboxId: var id } ? id : Failure().MailboxId;
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        if (semantic)
+        {
+            Assert.Empty(result.Todos);
+            AssertCompilesAgainstCurrent();
+            var migrated = await ReadMigrated(relay);
+            Assert.Contains("Forwarder().ForwardReply(replyAddressId: id,", migrated);
+            Assert.Contains("Failure() is { ReplyAddressId: var id } ? id : Failure().ReplyAddressId;", migrated);
+            return;
+        }
+
+        var file = Path.Combine("logic", "Relay.cs");
+        Assert.Empty(Oks(result));
+        Assert.Equal(
+            [
+                $"{file}:12: if this calls IServiceTaskReplyForwarder.ForwardReply, its mailboxId: is replyAddressId: now.",
+                $"{file}:14: if this reads ServiceTaskReplyForwardException.MailboxId, it is ReplyAddressId now.",
+            ],
+            result.Todos
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
     {
         Write(
