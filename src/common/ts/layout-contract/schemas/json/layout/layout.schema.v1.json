@@ -4786,19 +4786,23 @@
             },
             "elements": {
               "title": "Elements",
-              "description": "Which elements to show in the instance information",
+              "description": "Which elements to show in the instance information. All elements are shown by default. Set an element to false to hide it.",
               "type": "object",
               "properties": {
                 "dateSent": {
+                  "default": true,
                   "type": "boolean"
                 },
                 "sender": {
+                  "default": true,
                   "type": "boolean"
                 },
                 "receiver": {
+                  "default": true,
                   "type": "boolean"
                 },
                 "referenceNumber": {
+                  "default": true,
                   "type": "boolean"
                 }
               },
