@@ -15,15 +15,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 - `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
 - Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
-- Build check `ALTINNAPP0704` reports a process task method named after an `IProcessTask` member that it does not implement, such as `DefineStart(PipelineBuilder.ServiceTask pipeline)`, which would never run.
+- Build check `ALTINNAPP0704` reports a process task method named after an `IProcessTask` member that it does not implement, such as `DefineStart(PipelineBuilder.ServiceTask pipeline)`, which would never run. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 
 ### Changed
 
 - Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
-- Breaking: A service task composes `Stage` and `ExternalStage` calls on `PipelineBuilder.ServiceTask` in `DefineExecute`, which returns `void`. Any step can end the task with `ServiceTaskResult.EndTask(action)`, and otherwise the task ends after its last stage. `Finally`, `HandleReplies`, `ConcludeOnReplies` and `ServiceTaskResult.Success` are removed, and `SuccessfulServiceTaskResult` is renamed `EndedServiceTaskResult`, which only `EndTask` creates. Rerun `studioctl app upgrade v9` to rewrite preview code.
-- Breaking: `ExternalStage(send, onReply, timeout, onTimeout)` replaces mailbox stages and handles. The send gets a `ReplyAddress`, reply handlers return `ServiceTaskReplyResult`, and the timeout defaults to 14 days. Without `onTimeout`, the task fails when the replies stop coming. A failed step no longer closes the reply address.
-- Breaking: `DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return `void`, and `Build()` is removed.
-- Breaking: `IServiceTaskReplyForwarder.ForwardReply` takes `replyAddressId`, `ServiceTaskReplyForwardException.MailboxId` is renamed `ReplyAddressId`, and `ServiceTaskReplyForwardOutcome.MailboxFull` is renamed `TooManyReplies`.
+- Breaking: A service task composes `Stage` and `ExternalStage` calls on `PipelineBuilder.ServiceTask` in `DefineExecute`, which returns `void`. Any step can end the task with `ServiceTaskResult.EndTask(action)`, and otherwise the task ends after its last stage. `Finally`, `HandleReplies`, `ConcludeOnReplies` and `ServiceTaskResult.Success` are removed, and `SuccessfulServiceTaskResult` is renamed `EndedServiceTaskResult`, which only `EndTask` creates. Rerun `studioctl app upgrade v9` to rewrite preview code. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `ExternalStage(send, onReply, timeout, onTimeout)` replaces mailbox stages and handles. The send gets a `ReplyAddress`, reply handlers return `ServiceTaskReplyResult`, and the timeout defaults to 14 days. Without `onTimeout`, the task fails when the replies stop coming. A failed step no longer closes the reply address. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return `void`, and `Build()` is removed. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `IServiceTaskReplyForwarder.ForwardReply` takes `replyAddressId`, `ServiceTaskReplyForwardException.MailboxId` is renamed `ReplyAddressId`, and `ServiceTaskReplyForwardOutcome.MailboxFull` is renamed `TooManyReplies`. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Each stage of a service task runs in a workflow of its own, listed as `Mailbox continue` after the first in the workflow engine and Studio's admin panel. A task no longer stalls when a redeploy adds a stage while it runs. ([#22101](https://github.com/Altinn/altinn-studio/pull/22101))
 - An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
@@ -36,7 +36,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Build checks `ALTINNAPP0702` and `ALTINNAPP0703`, since there are no mailbox handles left to check.
+- Build checks `ALTINNAPP0702` and `ALTINNAPP0703`, since there are no mailbox handles left to check. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 
 ## [9.0.0-preview.14] - 2026-11-20
 

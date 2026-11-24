@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- `studioctl app upgrade v9` writes service tasks and process tasks for the current v9 pipeline API:
+- `studioctl app upgrade v9` writes service tasks and process tasks for the current v9 pipeline API ([#22104](https://github.com/Altinn/altinn-studio/pull/22104)):
     - run again, it rewrites code written for an earlier v9 preview, such as `Finally` and `ConcludeOnReplies` to `Stage` and `ExternalStage`, and reports what it cannot rewrite
     - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds for v8 work takes `PipelineBuilder.Lifecycle`
 
