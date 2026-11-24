@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
 - `studioctl app upgrade v9` sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for apps whose eFormidling task, or Fiks Arkiv task with `markInstanceComplete` on, confirmed instances as complete in v8. The v9 tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
 
+### Changed
+
+- Localtest lets apps delete locked data, and change locked data of a data type with `taskIds`, as Altinn Storage does. A change outside the data type's tasks is still refused with `409 Conflict`. ([#22098](https://github.com/Altinn/altinn-studio/pull/22098))
+
 ### Fixed
 
 - `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
