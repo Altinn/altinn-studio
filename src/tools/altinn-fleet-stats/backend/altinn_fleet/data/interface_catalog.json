@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-14T12:56:53+00:00",
+  "generated_at": "2026-11-24T13:06:03+00:00",
   "source": {
-    "commit": "25aa88c304e7ea68465aa14a5ada9f7f0f2ba4e1",
-    "commit_date": "2026-09-14T11:42:09+02:00",
-    "lib_version": "9.0.0-preview.5",
+    "commit": "1d3f5c9b2bd14b5addecc98cfa17484cdc48c21f",
+    "commit_date": "2026-11-24T13:57:46+01:00",
+    "lib_version": "",
     "snapshots": [
       "src/App/backend/test/Altinn.App.Core.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt",
       "src/App/backend/test/Altinn.App.Api.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt",
@@ -63,11 +63,9 @@
       "members": [
         "IServiceCollection CompleteSetup();",
         "T WithFiksIOConfig(Action<FiksIOSettings> configureOptions);",
-        "T WithFiksIOConfig(string configSectionPath);",
-        "T WithMaskinportenConfig(Action<MaskinportenSettings> configureOptions);",
-        "T WithMaskinportenConfig(string configSectionPath);"
+        "T WithFiksIOConfig(string configSectionPath);"
       ],
-      "member_count": 5,
+      "member_count": 3,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Fiks",
@@ -109,7 +107,7 @@
       "assembly": "Altinn.App.Clients.Fiks",
       "base_interfaces": [],
       "members": [
-        "Task HandleMessage(FiksArkivReceivedMessage message, ServiceTaskContext context);"
+        "Task HandleMessage(FiksArkivReceivedMessage message, StageContext context);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -308,7 +306,7 @@
       "base_interfaces": [],
       "members": [
         "string Id { get; }",
-        "Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs);"
+        "Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -366,7 +364,7 @@
       "base_interfaces": [],
       "members": [
         "string Id { get; }",
-        "Task<DataList> GetDataListAsync(string? language, Dictionary<string, string> keyValuePairs);"
+        "Task<DataList> GetDataList(string? language, Dictionary<string, string> keyValuePairs);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -421,7 +419,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<EmailOrderResponse> Order(EmailNotification emailNotification, CancellationToken ct);"
+        "Task<EmailOrderResponse> Order(EmailNotification emailNotification, CancellationToken cancellationToken);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -463,7 +461,7 @@
       "base_interfaces": [],
       "members": [
         "string Id { get; }",
-        "Task<AppOptions> GetInstanceAppOptionsAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);"
+        "Task<AppOptions> GetInstanceAppOptions(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -509,7 +507,7 @@
       "base_interfaces": [],
       "members": [
         "string Id { get; }",
-        "Task<DataList> GetInstanceDataListAsync(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);"
+        "Task<DataList> GetInstanceDataList(InstanceIdentifier instanceIdentifier, string? language, Dictionary<string, string> keyValuePairs);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -609,7 +607,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task Cancel(Guid notificationOrderId, CancellationToken ct);"
+        "Task Cancel(Guid notificationOrderId, CancellationToken cancellationToken);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -627,7 +625,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken ct);"
+        "Task<NotificationOrderResponse> Order(NotificationOrderRequest request, CancellationToken cancellationToken);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -639,43 +637,6 @@
       "source_path": "src/App/backend/src/Altinn.App.Core/Features/INotificationOrderClient.cs"
     },
     {
-      "name": "IPdfFormatter",
-      "full_name": "Altinn.App.Core.Features.IPdfFormatter",
-      "namespace": "Altinn.App.Core.Features",
-      "assembly": "Altinn.App.Core",
-      "base_interfaces": [],
-      "members": [
-        "Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data);",
-        "Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data, Instance instance);"
-      ],
-      "member_count": 2,
-      "is_obsolete": true,
-      "obsolete_message": "This interface was used for the old PDF generator, and is used for backwards compatibility in the chromium based one. It will be removed in the future. Create a custom pdf layout instead if you need to customize the PDF layout.",
-      "area": "Features",
-      "group": "Features",
-      "summary": "Interface to customize PDF formatting.",
-      "implementable_by_apps": false,
-      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IPdfFormatter.cs"
-    },
-    {
-      "name": "IProcessEnd",
-      "full_name": "Altinn.App.Core.Features.IProcessEnd",
-      "namespace": "Altinn.App.Core.Features",
-      "assembly": "Altinn.App.Core",
-      "base_interfaces": [],
-      "members": [
-        "Task End(Instance instance, List<InstanceEvent>? events);"
-      ],
-      "member_count": 1,
-      "is_obsolete": false,
-      "obsolete_message": "",
-      "area": "Features",
-      "group": "Features",
-      "summary": "Custom logic to run when the entire process has ended. E.g. when we have arrived at an `endEvent` in the BPMN model",
-      "implementable_by_apps": true,
-      "source_path": "src/App/backend/src/Altinn.App.Core/Features/IProcessEnd.cs"
-    },
-    {
       "name": "IProcessExclusiveGateway",
       "full_name": "Altinn.App.Core.Features.IProcessExclusiveGateway",
       "namespace": "Altinn.App.Core.Features",
@@ -683,11 +644,9 @@
       "base_interfaces": [],
       "members": [
         "string GatewayId { get; }",
-        "\"ayInformation) instead\")]",
-        "Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, ProcessGatewayInformation processGatewayInformation);",
-        "Task<List<SequenceFlow>> FilterAsync(List<SequenceFlow> outgoingFlows, Instance instance, IInstanceDataAccessor dataAccessor, ProcessGatewayInformation processGatewayInformation);"
+        "Task<List<SequenceFlow>> Filter(List<SequenceFlow> outgoingFlows, Instance instance, IInstanceDataAccessor dataAccessor, ProcessGatewayInformation processGatewayInformation);"
       ],
-      "member_count": 4,
+      "member_count": 2,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Features",
@@ -703,7 +662,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken ct);"
+        "Task<SmsOrderResponse> Order(SmsNotification smsNotification, CancellationToken cancellationToken);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -821,8 +780,8 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<DelegationResponse> DelegateRights(DelegationRequest delegation, CancellationToken ct = default);",
-        "Task<DelegationResponse> RevokeRights(DelegationRequest delegation, CancellationToken ct = default);"
+        "Task<DelegationResponse> DelegateRights(DelegationRequest delegation, CancellationToken cancellationToken = default);",
+        "Task<DelegationResponse> RevokeRights(DelegationRequest delegation, CancellationToken cancellationToken = default);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -1252,8 +1211,8 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<DataList> GetDataListAsync(string dataListId, string? language, Dictionary<string, string> keyValuePairs);",
-        "Task<DataList> GetDataListAsync(InstanceIdentifier instanceIdentifier, string dataListId, string? language, Dictionary<string, string> keyValuePairs);"
+        "Task<DataList> GetDataList(string dataListId, string? language, Dictionary<string, string> keyValuePairs);",
+        "Task<DataList> GetDataList(InstanceIdentifier instanceIdentifier, string dataListId, string? language, Dictionary<string, string> keyValuePairs);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -1272,7 +1231,7 @@
       "base_interfaces": [],
       "members": [
         "string Id { get; }",
-        "Task<object?> GetExternalApiDataAsync(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams);"
+        "Task<object?> GetExternalApiData(InstanceIdentifier instanceIdentifier, Dictionary<string, string> queryParams);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -1384,7 +1343,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task NotifyInstanceOwnerOnInstantiation(Instance instance, Party party, InstantiationNotification instantiationNotification, CancellationToken ct);"
+        "Task NotifyInstanceOwnerOnInstantiation(Instance instance, Party party, InstantiationNotification instantiationNotification, CancellationToken cancellationToken);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -1438,7 +1397,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<List<AppOption>?> ReadOptionsFromFileAsync(string optionId);"
+        "Task<List<AppOption>?> ReadOptionsFromFile(string optionId);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -1456,8 +1415,8 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<AppOptions> GetOptionsAsync(string optionId, string? language, Dictionary<string, string> keyValuePairs);",
-        "Task<AppOptions?> GetOptionsAsync(InstanceIdentifier instanceIdentifier, string optionId, string? language, Dictionary<string, string> keyValuePairs);",
+        "Task<AppOptions> GetOptions(string optionId, string? language, Dictionary<string, string> keyValuePairs);",
+        "Task<AppOptions?> GetOptions(InstanceIdentifier instanceIdentifier, string optionId, string? language, Dictionary<string, string> keyValuePairs);",
         "bool IsInstanceAppOptionsProviderRegistered(string optionId);"
       ],
       "member_count": 3,
@@ -1476,8 +1435,8 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<AppOptions> GetAppOptionsAsync(string org, string codeListId, string version, string? language, CancellationToken cancellationToken);",
-        "Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponseAsync(string org, string codeListId, string? version, CancellationToken cancellationToken);",
+        "Task<AppOptions> GetAppOptions(string org, string codeListId, string version, string? language, CancellationToken cancellationToken);",
+        "Task<Altinn3LibraryCodeListResponse> GetCachedCodeListResponse(string org, string codeListId, string? version, CancellationToken cancellationToken);",
         "AppOptions MapAppOptions(Altinn3LibraryCodeListResponse libraryCodeListResponse, string? language);"
       ],
       "member_count": 3,
@@ -1496,7 +1455,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language);"
+        "Task<OrderDetails> CalculateOrderDetails(Instance instance, string? language, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -1517,9 +1476,9 @@
         "string PaymentProcessorId { get; }",
         "\"status\",",
         "\"paymentDetails\"})]",
-        "Task<ValueTuple<PaymentStatus, PaymentDetails>> GetPaymentStatus(Instance instance, string paymentId, decimal expectedTotalIncVat, string? language);",
-        "Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language);",
-        "Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation);"
+        "Task<ValueTuple<PaymentStatus, PaymentDetails>> GetPaymentStatus(Instance instance, string paymentId, decimal expectedTotalIncVat, string? language, CancellationToken cancellationToken = default);",
+        "Task<PaymentDetails> StartPayment(Instance instance, OrderDetails orderDetails, string? language, CancellationToken cancellationToken = default);",
+        "Task<bool> TerminatePayment(Instance instance, PaymentInformation paymentInformation, CancellationToken cancellationToken = default);"
       ],
       "member_count": 6,
       "is_obsolete": false,
@@ -1531,35 +1490,35 @@
       "source_path": "src/App/backend/src/Altinn.App.Core/Features/Payment/Processors/IPaymentProcessor.cs"
     },
     {
-      "name": "IOnProcessEndingHandler",
-      "full_name": "Altinn.App.Core.Features.Process.IOnProcessEndingHandler",
+      "name": "IOnProcessEndedHandler",
+      "full_name": "Altinn.App.Core.Features.Process.IOnProcessEndedHandler",
       "namespace": "Altinn.App.Core.Features.Process",
       "assembly": "Altinn.App.Core",
       "base_interfaces": [
         "IProcessStepConfigurable"
       ],
       "members": [
-        "Task<HookResult> Execute(OnProcessEndingContext context);"
+        "Task<HandlerResult> Execute(OnProcessEndedContext context);"
       ],
       "member_count": 1,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Features",
       "group": "Process",
-      "summary": "Hook interface for custom end process logic.",
+      "summary": "Hook interface for custom logic after the process has ended.",
       "implementable_by_apps": true,
-      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnProcessEndingHandler.cs"
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnProcessEndedHandler.cs"
     },
     {
-      "name": "IOnTaskAbandonHandler",
-      "full_name": "Altinn.App.Core.Features.Process.IOnTaskAbandonHandler",
+      "name": "IOnTaskAbandoningHandler",
+      "full_name": "Altinn.App.Core.Features.Process.IOnTaskAbandoningHandler",
       "namespace": "Altinn.App.Core.Features.Process",
       "assembly": "Altinn.App.Core",
       "base_interfaces": [
         "IProcessStepConfigurable"
       ],
       "members": [
-        "Task<HookResult> Execute(OnTaskAbandonContext context);",
+        "Task<HandlerResult> Execute(OnTaskAbandoningContext context);",
         "bool ShouldRunForTask(string taskId);"
       ],
       "member_count": 2,
@@ -1569,7 +1528,7 @@
       "group": "Process",
       "summary": "Hook interface for custom abandon task logic.",
       "implementable_by_apps": true,
-      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnTaskAbandonHandler.cs"
+      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnTaskAbandoningHandler.cs"
     },
     {
       "name": "IOnTaskEndingHandler",
@@ -1580,7 +1539,7 @@
         "IProcessStepConfigurable"
       ],
       "members": [
-        "Task<HookResult> Execute(OnTaskEndingContext context);",
+        "Task<HandlerResult> Execute(OnTaskEndingContext context);",
         "bool ShouldRunForTask(string taskId);"
       ],
       "member_count": 2,
@@ -1601,7 +1560,7 @@
         "IProcessStepConfigurable"
       ],
       "members": [
-        "Task<HookResult> Execute(OnTaskStartingContext context);",
+        "Task<HandlerResult> Execute(OnTaskStartingContext context);",
         "bool ShouldRunForTask(string taskId);"
       ],
       "member_count": 2,
@@ -1612,27 +1571,6 @@
       "summary": "Hook interface for custom start task logic.",
       "implementable_by_apps": true,
       "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IOnTaskStartingHandler.cs"
-    },
-    {
-      "name": "IPipelineServiceTask",
-      "full_name": "Altinn.App.Core.Features.Process.IPipelineServiceTask",
-      "namespace": "Altinn.App.Core.Features.Process",
-      "assembly": "Altinn.App.Core",
-      "base_interfaces": [
-        "IProcessStepConfigurable",
-        "IProcessTask"
-      ],
-      "members": [
-        "ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline);"
-      ],
-      "member_count": 1,
-      "is_obsolete": false,
-      "obsolete_message": "",
-      "area": "Features",
-      "group": "Process",
-      "summary": "A service task defined as a pipeline: ordered durable stages followed by the one conclusion, composed in Define. The conclusion is a final step for work that finishes by itself or by polling, or a reply terminal for work answered by a message into a mailbox a stage opened. A task that does one thing should implement IServiceTask instead — this interface specialized to just the concluding step.",
-      "implementable_by_apps": true,
-      "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IPipelineServiceTask.cs"
     },
     {
       "name": "IProcessStepConfigurable",
@@ -1648,7 +1586,7 @@
       "obsolete_message": "",
       "area": "Features",
       "group": "Process",
-      "summary": "Implemented by process handlers (service tasks and task/process lifecycle hooks) that want to override the workflow engine's default execution timeout and/or retry strategy for the step that runs them. This is the most specific tier in the resolution order: implementation override → command default → engine default.",
+      "summary": "Implemented by the task and process lifecycle hooks that want to override the workflow engine's default execution timeout and/or retry strategy for the step that runs them. This is the most specific tier in the resolution order: implementation override → command default → engine default. A service task has no such member: its steps take their options where its pipeline is composed, call by call.",
       "implementable_by_apps": false,
       "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IProcessStepConfigurable.cs"
     },
@@ -1658,19 +1596,17 @@
       "namespace": "Altinn.App.Core.Features.Process",
       "assembly": "Altinn.App.Core",
       "base_interfaces": [
-        "IPipelineServiceTask",
-        "IProcessStepConfigurable",
         "IProcessTask"
       ],
       "members": [
-        "Task<ServiceTaskResult> Execute(ServiceTaskContext context);"
+        "ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline);"
       ],
       "member_count": 1,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Features",
       "group": "Process",
-      "summary": "A service task that does one thing: a single unit of work executed (and on failure, retried) durably by the workflow engine when the process enters a BPMN service task. This is the shape almost every service task wants. A task with several consecutive units of work — dispatch then await, or a series of API calls — should implement IPipelineServiceTask instead and give each unit its own durable stage.",
+      "summary": "A service task: the work the workflow engine runs durably when the process enters a BPMN service task, composed as a pipeline in DefineExecute. A task that does one thing is a pipeline of just the conclusion — pipeline.Finally(Execute). A task with several consecutive units of work — dispatch then await, or a series of API calls — gives each unit its own durable stage ahead of the conclusion. The conclusion is a final step for work that finishes by itself or by polling, or a reply terminal for work answered by a message into a mailbox a stage opened.",
       "implementable_by_apps": true,
       "source_path": "src/App/backend/src/Altinn.App.Core/Features/Process/IServiceTask.cs"
     },
@@ -1776,16 +1712,19 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
+        "ApplicationMetadata ApplicationMetadata { get; }",
+        "string ProcessDefinition { get; }",
+        "string XacmlPolicy { get; }",
         "Task<string> GetApplicationBPMNProcess();",
         "Task<ApplicationMetadata> GetApplicationMetadata();",
         "Task<string> GetApplicationXACMLPolicy();"
       ],
-      "member_count": 3,
+      "member_count": 6,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Internal",
       "group": "App",
-      "summary": "Interface for fetching app metadata",
+      "summary": "The app's own configuration files, read from memory. The values follow the files on disk in Development, so read the property when the value is needed rather than keeping it in a service that lives for the whole app.",
       "implementable_by_apps": false,
       "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IAppMetadata.cs"
     },
@@ -1796,7 +1735,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "string? GetCalculationConfiguration(string dataTypeId);",
+        "CalculationConfig? GetCalculationConfig(string dataTypeId);",
         "string GetClassRefForLogicDataType(string dataType);",
         "Task<string?> GetFooter();",
         "GlobalPageSettings? GetGlobalUiSettings();",
@@ -1814,13 +1753,13 @@
         "string? GetLayoutSettingsStringForSet(string layoutSetId);",
         "string GetLayoutsForSet(string layoutSetId);",
         "string GetLayoutsInFolder(string folderId);",
-        "string GetModelJsonSchema(string modelId);",
-        "string? GetPrefillJson(string dataModelName = \"ServiceModel\");",
+        "string GetModelJsonSchema(string dataTypeId);",
+        "string? GetPrefillJson(string dataTypeId = \"ServiceModel\");",
         "byte[] GetText(string org, string app, string textResource);",
         "Task<TextResource?> GetTexts(string org, string app, string language);",
         "UiConfiguration? GetUiConfiguration();",
         "string? GetValidationConfiguration(string dataTypeId);",
-        "string? GetXsdSchema(string modelId);"
+        "string? GetXsdSchema(string dataTypeId);"
       ],
       "member_count": 25,
       "is_obsolete": false,
@@ -1838,7 +1777,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<Application?> GetApplication(string org, string app);"
+        "Task<Application?> GetApplication(string org, string app, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -1856,14 +1795,16 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<Dictionary<string, bool>> GetFrontendFeatures();"
+        "IReadOnlyDictionary<string, bool> GetDictionary();",
+        "Task<Dictionary<string, bool>> GetFrontendFeatures();",
+        "bool IsEnabled(string feature);"
       ],
-      "member_count": 1,
+      "member_count": 3,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Internal",
       "group": "App",
-      "summary": "Interface reporting features needed by frontend and their status to support multiple versions of the backend",
+      "summary": "The feature flags in the FeatureManagement section of the app configuration, which the frontend reads to support several versions of the backend and the backend reads for its own opt-in behavior.",
       "implementable_by_apps": false,
       "source_path": "src/App/backend/src/Altinn.App.Core/Internal/App/IFrontendFeatures.cs"
     },
@@ -1893,7 +1834,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<string> RefreshToken();"
+        "Task<string> RefreshToken(CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -1911,11 +1852,11 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null);",
-        "Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions);",
-        "Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers);",
-        "Task<List<Party>?> GetPartyList(int userId, StorageAuthenticationMethod? authenticationMethod = null);",
-        "Task<bool?> ValidateSelectedParty(int userId, int partyId, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null, CancellationToken cancellationToken = default);",
+        "Task<Dictionary<string, bool>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<string> actions, CancellationToken cancellationToken = default);",
+        "Task<List<string>> GetKeyRoleOrganizationParties(int userId, List<string> orgNumbers, CancellationToken cancellationToken = default);",
+        "Task<List<Party>?> GetPartyList(StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<bool?> ValidateSelectedParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 5,
       "is_obsolete": false,
@@ -1933,10 +1874,10 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null);",
-        "Task<List<UserAction>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<AltinnAction> actions);",
-        "Task<List<Party>?> GetPartyList(int userId);",
-        "Task<bool?> ValidateSelectedParty(int userId, int partyId);"
+        "Task<bool> AuthorizeAction(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier, ClaimsPrincipal user, string action, string? taskId = null, CancellationToken cancellationToken = default);",
+        "Task<List<UserAction>> AuthorizeActions(Instance instance, ClaimsPrincipal user, List<AltinnAction> actions, CancellationToken cancellationToken = default);",
+        "Task<List<Party>?> GetPartyList(CancellationToken cancellationToken = default);",
+        "Task<bool?> ValidateSelectedParty(int partyId, CancellationToken cancellationToken = default);"
       ],
       "member_count": 4,
       "is_obsolete": false,
@@ -2068,13 +2009,13 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<bool> DeleteById(InstanceIdentifier instanceIdentifier, Guid dataElementId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
-        "Task<T> GetById<T>(Instance instance, Guid dataElementId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<bool> DeleteById(InstanceIdentifier instanceIdentifier, Guid dataElementId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<T> GetById<T>(Instance instance, Guid dataElementId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "\"dataElementId\",",
         "\"model\"})]",
-        "Task<ValueTuple<Guid, T?>> GetByType<T>(Instance instance, string dataTypeId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
-        "Task<DataElement> InsertJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, object data, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
-        "Task<DataElement> UpdateJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, Guid dataElementId, object data, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+        "Task<ValueTuple<Guid, T?>> GetByType<T>(Instance instance, string dataTypeId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> InsertJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, object data, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<DataElement> UpdateJsonObject(InstanceIdentifier instanceIdentifier, string dataTypeId, Guid dataElementId, object data, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 7,
       "is_obsolete": false,
@@ -2096,6 +2037,7 @@
         "DataElement? DataElement { get; }",
         "DataType DataType { get; }",
         "ReadOnlySpan<char> AddIndexToPath(ReadOnlySpan<char> path, ReadOnlySpan<int> rowIndexes, Span<char> buffer);",
+        "bool AddRow(ReadOnlySpan<char> path, ExpressionValue value);",
         "T BackingData<T>()",
         "where T :  class;",
         "IFormDataWrapper Copy();",
@@ -2105,7 +2047,7 @@
         "void RemoveField(ReadOnlySpan<char> path, RowRemovalOption rowRemovalOption);",
         "bool Set(ReadOnlySpan<char> path, ExpressionValue value);"
       ],
-      "member_count": 12,
+      "member_count": 13,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Internal",
@@ -2121,7 +2063,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<string> AddEvent(string eventType, Instance instance, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<string> AddEvent(string eventType, Instance instance, StorageAuthenticationMethod? authenticationMethod = null, Guid? idempotencyKey = default, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -2158,33 +2100,33 @@
       "base_interfaces": [],
       "members": [
         "Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid);",
-        "Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate);",
-        "Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard);",
-        "Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> GetInstance(Instance instance);",
-        "Task<Instance> GetInstance(Instance instance, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> GetInstance(Instance instance, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);",
-        "Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams);",
-        "Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdateDataValue(Instance instance, string key, string? value);",
-        "Task<Instance> UpdateDataValue(Instance instance, string key, string? value, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateDataValue(Instance instance, string key, string? value, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues);",
         "Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues);",
-        "Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
-        "Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateDataValues(Instance instance, Dictionary<string, string?> dataValues, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<Instance> UpdateDataValues(int instanceOwnerPartyId, Guid instanceGuid, DataValues dataValues, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts);",
-        "Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdatePresentationTexts(int instanceOwnerPartyId, Guid instanceGuid, PresentationTexts presentationTexts, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdateProcess(Instance instance);",
-        "Task<Instance> UpdateProcess(Instance instance, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateProcess(Instance instance, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events);",
-        "Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus);",
-        "Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
+        "Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
         "Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus);",
-        "Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+        "Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 28,
       "is_obsolete": false,
@@ -2202,8 +2144,8 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to, StorageAuthenticationMethod? authenticationMethod = null);",
-        "Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -2239,9 +2181,9 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<Stream> GeneratePdf(Uri uri, CancellationToken ct);",
-        "Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct);",
-        "Task<Stream> GeneratePdf(Uri uri, string? footerContent, StorageAuthenticationMethod? authenticationMethod, CancellationToken ct);"
+        "Task<byte[]> GeneratePdf(Uri uri, CancellationToken cancellationToken);",
+        "Task<byte[]> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken);",
+        "Task<byte[]> GeneratePdf(Uri uri, string? footerContent, StorageAuthenticationMethod? authenticationMethod, CancellationToken cancellationToken);"
       ],
       "member_count": 3,
       "is_obsolete": false,
@@ -2259,17 +2201,15 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task GenerateAndStorePdf(IInstanceDataMutator instanceDataMutator, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
-        "Task<BinaryDataChange> GenerateAndStorePdf(IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey, List<string>? autoGeneratePdfForTaskIds = null, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);",
-        "Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct);",
-        "Task<Stream> GeneratePdf(Instance instance, string taskId, bool isPreview, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+        "Task<byte[]> GeneratePdf(Instance instance, string taskId, string language, List<string>? autoGeneratePdfForTaskIds = null, bool isPreview = false, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<byte[]> GenerateSubformPdf(Instance instance, string taskId, SubformPdfContext subformPdfContext, string language, bool isPreview = false, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
-      "member_count": 4,
+      "member_count": 2,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Internal",
       "group": "Pdf",
-      "summary": "Interface for handling generation and storing of PDF's",
+      "summary": "Generates PDFs of an instance with the PDF generator and returns them. The PDF generator opens the app and renders the instance as it is stored, so changes that are not saved yet are not in the PDF. The caller decides what to do with a PDF, such as adding it to the instance with a file name of its choice.",
       "implementable_by_apps": false,
       "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Pdf/IPdfService.cs"
     },
@@ -2300,7 +2240,7 @@
       "base_interfaces": [],
       "members": [
         "Stream GetProcessDefinition();",
-        "Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 2,
       "is_obsolete": false,
@@ -2318,7 +2258,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<bool> AuthorizeProcessNext(Instance instance, string? action = null);"
+        "Task<bool> AuthorizeProcessNext(Instance instance, string? action = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -2336,14 +2276,14 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<ProcessElement?> GetNextTask(Instance instance, string currentElement, string? action);"
+        "Task<ProcessElement?> GetNextTask(IInstanceDataAccessor dataAccessor, string currentElement, string? action);"
       ],
       "member_count": 1,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Internal",
       "group": "Process",
-      "summary": "Interface used to descipt the process navigator",
+      "summary": "Interface used to describe the process navigator",
       "implementable_by_apps": false,
       "source_path": "src/App/backend/src/Altinn.App.Core/Internal/Process/Interfaces/IProcessNavigator.cs"
     },
@@ -2410,11 +2350,12 @@
       "base_interfaces": [],
       "members": [
         "string Type { get; }",
-        "Task Abandon(ProcessTaskContext context);",
-        "Task End(ProcessTaskContext context);",
-        "Task Start(ProcessTaskContext context);"
+        "ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline);",
+        "ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline);",
+        "ProcessTaskPipeline DefineStart(PipelineBuilder pipeline);",
+        "IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context);"
       ],
-      "member_count": 4,
+      "member_count": 5,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Internal",
@@ -2449,9 +2390,9 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<UserProfile?> GetUserProfile(Guid userUuid);",
-        "Task<UserProfile?> GetUserProfile(int userId, StorageAuthenticationMethod? authenticationMethod = null);",
-        "Task<UserProfile?> GetUserProfile(string ssn, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<UserProfile?> GetUserProfile(Guid userUuid, CancellationToken cancellationToken = default);",
+        "Task<UserProfile?> GetUserProfile(int userId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<UserProfile?> GetUserProfile(string ssn, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 3,
       "is_obsolete": false,
@@ -2469,10 +2410,10 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null);",
-        "Task<int?> GetPartyIdByUrn(string urn);",
-        "Task<Guid?> GetPartyUuidByUrn(string urn);",
-        "Task<Party> LookupParty(PartyLookup partyLookup, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<Party?> GetParty(int partyId, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);",
+        "Task<int?> GetPartyIdByUrn(string urn, CancellationToken cancellationToken = default);",
+        "Task<Guid?> GetPartyUuidByUrn(string urn, CancellationToken cancellationToken = default);",
+        "Task<Party> LookupParty(PartyLookup partyLookup, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 4,
       "is_obsolete": false,
@@ -2490,7 +2431,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<Organization?> GetOrganization(string OrgNr, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task<Organization?> GetOrganization(string OrgNr, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -2508,7 +2449,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken ct = default);"
+        "Task<Person?> GetPerson(string nationalIdentityNumber, string lastName, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -2526,10 +2467,10 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task<byte[]> GetCertificateAsync(string certificateName);",
-        "Task<JsonWebKey> GetKeyAsync(string keyName);",
+        "Task<byte[]> GetCertificate(string certificateName);",
+        "Task<JsonWebKey> GetKey(string keyName);",
         "KeyVaultClient GetKeyVaultClient();",
-        "Task<string> GetSecretAsync(string secretName);"
+        "Task<string> GetSecret(string secretName);"
       ],
       "member_count": 4,
       "is_obsolete": false,
@@ -2547,7 +2488,7 @@
       "assembly": "Altinn.App.Core",
       "base_interfaces": [],
       "members": [
-        "Task SignDataElements(SignatureContext signatureContext, StorageAuthenticationMethod? authenticationMethod = null);"
+        "Task SignDataElements(SignatureContext signatureContext, StorageAuthenticationMethod? authenticationMethod = null, CancellationToken cancellationToken = default);"
       ],
       "member_count": 1,
       "is_obsolete": false,
@@ -2677,39 +2618,6 @@
     }
   ],
   "base_classes": {
-    "AltinnPartyClient": [
-      "IAltinnPartyClient"
-    ],
-    "AppMetadata": [
-      "IAppMetadata"
-    ],
-    "AppOptionsFileHandler": [
-      "IAppOptionsFileHandler"
-    ],
-    "AppOptionsService": [
-      "IAppOptionsService"
-    ],
-    "AppResourcesSI": [
-      "IAppResources"
-    ],
-    "ApplicationClient": [
-      "IApplicationClient"
-    ],
-    "ApplicationLanguage": [
-      "IApplicationLanguage"
-    ],
-    "AuthenticationClient": [
-      "IAuthenticationClient"
-    ],
-    "AuthorizationClient": [
-      "IAuthorizationClient"
-    ],
-    "AuthorizationService": [
-      "IAuthorizationService"
-    ],
-    "ConfirmationProcessTask": [
-      "IProcessTask"
-    ],
     "CorrespondenceAttachmentBuilder": [
       "ICorrespondenceAttachmentBuilder",
       "ICorrespondenceAttachmentBuilderData",
@@ -2737,83 +2645,17 @@
       "ICorrespondenceRequestBuilderResourceId",
       "ICorrespondenceRequestBuilderSendersReference"
     ],
-    "DataAnnotationValidator": [
-      "IFormDataValidator"
-    ],
-    "DataClient": [
-      "IDataClient"
-    ],
-    "DataListsService": [
-      "IDataListsService"
-    ],
-    "DataProcessTask": [
-      "IProcessTask"
-    ],
-    "DefaultAppEvents": [
-      "IAppEvents"
-    ],
-    "DefaultAppModel": [
-      "IAppModel"
-    ],
     "DefaultAppOptionsProvider": [
       "IAppOptionsProvider"
     ],
-    "DefaultDataElementValidator": [
-      "IDataElementValidator"
-    ],
-    "DefaultEFormidlingReceivers": [
-      "IEFormidlingReceivers"
-    ],
-    "DefaultTaskValidator": [
-      "ITaskValidator"
-    ],
-    "EventsClient": [
-      "IEventsClient"
-    ],
-    "ExpressionValidator": [
-      "IValidator"
-    ],
-    "ExpressionsExclusiveGateway": [
-      "IProcessExclusiveGateway"
-    ],
-    "ExternalApiService": [
-      "IExternalApiService"
-    ],
-    "FeedbackProcessTask": [
-      "IProcessTask"
-    ],
     "FiksIOSettings": [
       "IFiksIOAccountSettings"
-    ],
-    "FileAnalysisService": [
-      "IFileAnalysisService"
-    ],
-    "FileAnalyzerFactory": [
-      "IFileAnalyzerFactory"
-    ],
-    "FileValidationService": [
-      "IFileValidationService"
-    ],
-    "FileValidatorFactory": [
-      "IFileValidatorFactory"
-    ],
-    "FrontendFeatures": [
-      "IFrontendFeatures"
     ],
     "GenericDataProcessor": [
       "IDataProcessor"
     ],
     "GenericFormDataValidator": [
       "IFormDataValidator"
-    ],
-    "InstanceEventClient": [
-      "IInstanceEventClient"
-    ],
-    "JoinedAppOptionsProvider": [
-      "IAppOptionsProvider"
-    ],
-    "LayoutEvaluatorStateInitializer": [
-      "ILayoutEvaluatorStateInitializer"
     ],
     "LegacyIInstanceValidatorFormDataValidator": [
       "IValidator"
@@ -2827,77 +2669,8 @@
     "NullInstanceDataListProvider": [
       "IInstanceDataListProvider"
     ],
-    "NullInstantiationProcessor": [
-      "IInstantiationProcessor"
-    ],
-    "NullInstantiationValidator": [
-      "IInstantiationValidator"
-    ],
-    "NullPdfFormatter": [
-      "IPdfFormatter"
-    ],
-    "NullTypeProcessTask": [
-      "IProcessTask"
-    ],
-    "PdfService": [
-      "IPdfService"
-    ],
-    "PersonClient": [
-      "IPersonClient"
-    ],
-    "PrefillSI": [
-      "IPrefill"
-    ],
-    "ProcessClient": [
-      "IProcessClient"
-    ],
-    "ProcessNavigator": [
-      "IProcessNavigator"
-    ],
-    "ProcessReader": [
-      "IProcessReader"
-    ],
-    "ProcessTaskDataLocker": [
-      "IProcessTaskDataLocker"
-    ],
-    "ProfileClient": [
-      "IProfileClient"
-    ],
-    "ProfileClientCachingDecorator": [
-      "IProfileClient"
-    ],
-    "RegisterERClient": [
-      "IOrganizationClient"
-    ],
-    "RequiredLayoutValidator": [
-      "IValidator"
-    ],
-    "SecretsClient": [
-      "ISecretsClient"
-    ],
-    "SecretsLocalClient": [
-      "ISecretsClient"
-    ],
-    "SendOnProcessNotEnded": [
-      "ICancelInstantiationNotification"
-    ],
-    "SignClient": [
-      "ISignClient"
-    ],
     "UniqueSignatureAuthorizer": [
       "IUserActionAuthorizer"
-    ],
-    "UserActionAuthorizerProvider": [
-      "IUserActionAuthorizerProvider"
-    ],
-    "UserTokenProvider": [
-      "IUserTokenProvider"
-    ],
-    "ValidationService": [
-      "IValidationService"
-    ],
-    "ValidatorFactory": [
-      "IValidatorFactory"
     ]
   }
 }
