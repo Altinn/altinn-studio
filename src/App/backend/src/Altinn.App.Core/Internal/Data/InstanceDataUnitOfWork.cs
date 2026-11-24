@@ -126,6 +126,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _instanceGuid = Guid.Parse(splitId[1]);
         }
 
+        RemoveDeletedDataElements(instance);
         _instance = instance;
         _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(instance);
         _storageVersions = storageVersionMetadata;
@@ -1610,8 +1611,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
+        RemoveDeletedDataElements(Instance);
         _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(Instance);
     }
+
+    /// <summary>
+    /// Storage keeps data elements marked for delayed deletion for some days, and returns them to the service owner
+    /// but not to end users. The app must treat them as gone whichever identity read the instance.
+    /// </summary>
+    private static void RemoveDeletedDataElements(Instance instance) =>
+        instance.Data?.RemoveAll(dataElement => dataElement.DeleteStatus?.IsHardDeleted is true);
 
     private static StorageAuthenticationMethod ResolveAggregateAuthenticationMethod(
         IReadOnlyCollection<StorageAuthenticationMethod> methods,

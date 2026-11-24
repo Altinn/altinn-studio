@@ -2263,6 +2263,111 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task DataElementsMarkedAsDeleted_AreRemovedFromTheInstance_OnConstructionAndAfterSave()
+    {
+        const int instanceOwnerPartyId = 1337;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid dataElementId = Guid.NewGuid();
+        byte[] initialBytes = [1, 2, 3];
+        byte[] updatedBytes = [4, 5, 6];
+        DataElement NewDataElement(Guid id, bool deleted) =>
+            new()
+            {
+                Id = id.ToString(),
+                InstanceGuid = instanceGuid.ToString(),
+                DataType = "task-data",
+                ContentType = "application/json",
+                Filename = "task-data.json",
+                DeleteStatus = deleted
+                    ? new DeleteStatus { IsHardDeleted = true, HardDeleted = DateTime.UtcNow }
+                    : null,
+            };
+        DataElement dataElement = NewDataElement(dataElementId, deleted: false);
+        DataElement notDeletedWithStatus = NewDataElement(Guid.NewGuid(), deleted: false);
+        notDeletedWithStatus.DeleteStatus = new DeleteStatus { IsHardDeleted = false };
+        DataElement deletedBeforeConstruction = NewDataElement(Guid.NewGuid(), deleted: true);
+        DataElement deletedInStorageResponse = NewDataElement(Guid.NewGuid(), deleted: true);
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = "ttd/test-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [dataElement, deletedBeforeConstruction, notDeletedWithStatus],
+        };
+        var appMetadata = new ApplicationMetadata(instance.AppId)
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "task-data",
+                    TaskIds = ["Task_1"],
+                    AllowedContentTypes = ["application/json"],
+                },
+            ],
+        };
+        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
+        mutationClientMock
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new InstanceMutationWithStorageMetadata(
+                    new Instance
+                    {
+                        Id = instance.Id,
+                        AppId = instance.AppId,
+                        Org = instance.Org,
+                        InstanceOwner = instance.InstanceOwner,
+                        Process = instance.Process,
+                        Data = [dataElement, deletedInStorageResponse, notDeletedWithStatus],
+                    },
+                    new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 8)
+                )
+            );
+
+        var unitOfWork = new InstanceDataUnitOfWork(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClientMock.Object,
+            mutationClientMock.Object,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            appMetadata,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: "Task_1",
+            language: null
+        );
+
+        Assert.Equal([dataElement, notDeletedWithStatus], unitOfWork.Instance.Data);
+        Assert.Same(instance, unitOfWork.Instance);
+
+        unitOfWork.PreloadBinaryData(dataElement, initialBytes);
+        unitOfWork.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
+        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
+            "callback-step-id",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal([dataElement.Id, notDeletedWithStatus.Id], unitOfWork.Instance.Data.Select(element => element.Id));
+    }
+
+    [Fact]
     public async Task SaveWorkflowOwnedAggregate_CommitsStagedInstanceDeletion()
     {
         const int instanceOwnerPartyId = 1337;
