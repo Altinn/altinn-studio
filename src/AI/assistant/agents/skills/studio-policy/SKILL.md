@@ -172,7 +172,7 @@ To scope a rule to a task, add a third Match with `urn:altinn:task` to the AllOf
   rule Permit and drops conditions.
 - Studio's process editor adds a rule for each payment task, with no subjects and a `RuleId` that ends in the task ID.
   It removes the rule by that `RuleId` when the task is removed, so keep it. A rule with no subjects matches everyone,
-  so add the subjects that should pay to it.
+  so when the user says who should pay, add those subjects to it. Otherwise tell the user it has no subjects.
 - To remove an action, remove its whole `<xacml:AllOf>` from the actions AnyOf. Remove a subject the same way. Remove
   the rule when it has no action or no subject left.
 - When one subject in a rule needs other rights than the rest, remove its AllOf from that rule. Then add a new rule
@@ -215,7 +215,7 @@ task:
   that role.
 - Users get the action from the table above on every task they must complete.
 - When a rule names tasks with `urn:altinn:task`, it names the service tasks that follow them too. A rule without
-  `urn:altinn:task` applies in every task and needs nothing more.
+  `urn:altinn:task` or `urn:altinn:end-event` applies in every task and needs nothing more.
 - Tell the user which subjects got which rights, and in which tasks.
 
 ## Docs
