@@ -684,8 +684,8 @@ def _collect_source(ctx: LoopContext, result: ToolResult) -> None:
     if not isinstance(source, dict) or not source.get("title"):
         return
     sources: list[dict] = ctx.extras.setdefault("sources", [])
-    key = (source.get("title"), source.get("url"))
-    if any((s.get("title"), s.get("url")) == key for s in sources):
+    key = source.get("url") or source.get("title")
+    if any((s.get("url") or s.get("title")) == key for s in sources):
         return
     sources.append(source)
 
