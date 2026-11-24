@@ -14,41 +14,48 @@ using TestApp.Shared;
 namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailboxMulti;
 
 /// <summary>
-/// Two mailbox exchanges in one task, answered one after the other: "SendToArchive" opens the first,
-/// a <see cref="PipelineBuilder.HandleReplies"/> handler answers it <em>without</em>
-/// concluding the task, and the workflow that handler's conclusion starts opens the second
-/// ("SendToJournal") which <see cref="PipelineBuilder.ConcludeOnReplies"/> ends the task on.
+/// Two external stages in one task, one after the other: "SendToArchive" publishes the first reply address, and
+/// once its reply handler is done with the archive's replies, "SendToJournal" publishes the second, whose reply
+/// handler ends the task.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The archive answers twice (ack, then receipt) so the non-terminal handler exercises both of its
-/// verdicts — <see cref="StageExchangeResult.AwaitNextReply"/> onto a successor receiver, then
-/// <see cref="StageResult.Completed"/> onto the continuation. The journal answers once,
-/// concluding.
+/// The archive answers twice (ack, then receipt) so its reply handler returns both results that keep the task
+/// going: <see cref="ServiceTaskReplyResult.AwaitNextReply"/> onto a successor receiver, then
+/// <see cref="ServiceTaskReplyResult.Completed"/> onto the next item's workflow. The journal answers once, and its
+/// <see cref="ServiceTaskReplyResult.Completed"/>, from the last item, ends the task with no action.
 /// </para>
 /// <para>
-/// The send that opens the second exchange sits <strong>after</strong> the first handler on purpose: that
-/// is the placement decision 3 of the phase-2 plan leaves to the author, and it is what makes the second
-/// mailbox's deadline clock start at the continuation rather than at the transition. The sibling task in
-/// this scenario (<see cref="UpfrontExchangesServiceTask"/>) makes the same claim falsifiable from the
-/// other side by putting both sends up front.
+/// The journal's send rides the workflow the archive's completion starts, so its reply address is minted there and
+/// its deadline clock starts then, a whole exchange after the archive's.
+/// </para>
+/// <para>
+/// The timeout handlers are tripwires: on the happy path nothing may reach them, so each records that it ran, logs
+/// a marker the test asserts the absence of, and fails permanently, which alone would keep the process off its end
+/// event.
 /// </para>
 /// </remarks>
 public sealed class SequentialExchangesServiceTask : IServiceTask
 {
-    /// <summary>The <c>altinn:taskType</c> of Task_Sequential in this scenario's BPMN.</summary>
+    /// <summary>
+    /// The <c>altinn:taskType</c> of Task_Sequential in this scenario's BPMN.
+    /// </summary>
     public const string ServiceTaskType = "mailbox-sequential";
 
-    /// <summary>The recorder key of the stage that opens the first exchange. Exchanges are identified by
-    /// their opening item index on the wire; this label only names it in the scenario's records and logs.</summary>
+    /// <summary>
+    /// The recorder key of the first external stage. Steps are dispatched by item index; this label only names the
+    /// stage in the scenario's records and logs.
+    /// </summary>
     public const string ArchiveStageLabel = "SendToArchive";
 
-    /// <summary>The recorder key of the stage that opens the second exchange, composed after the first handler.</summary>
+    /// <summary>
+    /// The recorder key of the second external stage, which starts once the first is done with its replies.
+    /// </summary>
     public const string JournalStageLabel = "SendToJournal";
 
     /// <summary>
     /// Comfortably clear of the sum of the test's own waits, so a slow run fails on a test deadline that
-    /// blames the clock rather than tripping <c>onClosed</c> and blaming the app. Both exchanges get the
+    /// blames the clock rather than tripping <c>onTimeout</c> and blaming the app. Both external stages get the
     /// same budget, which is what makes the difference between their two deadlines equal to the time
     /// between their two mints — a comparison of two values stamped by the same clock.
     /// </summary>
@@ -56,91 +63,109 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
-            .Stage(SendToArchive, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle archive)
-            .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed)
-            .Stage(SendToJournal, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle journal)
-            .ConcludeOnReplies(journal, onMessage: HandleJournalMessage, onClosed: HandleJournalClosed);
+            .ExternalStage(SendToArchive, HandleArchiveReply, timeout: ExchangeTimeout, onTimeout: HandleArchiveTimeout)
+            .ExternalStage(
+                SendToJournal,
+                HandleJournalReply,
+                timeout: ExchangeTimeout,
+                onTimeout: HandleJournalTimeout
+            );
 
-    private Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskResult> SendToArchive(StageContext context, ReplyAddress replyAddress)
     {
         int run = MultiExchangeRecorder.NextRun(ArchiveStageLabel);
-        MultiExchangeRecorder.PublishAddress(ArchiveStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
+        MultiExchangeRecorder.PublishAddress(
+            ArchiveStageLabel,
+            ServiceTaskType,
+            replyAddress.Id,
+            replyAddress.Deadline
+        );
         SnapshotLogger.LogInfo($"Multi.SendToArchive.Run{run}.Published");
-        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 
-    private Task<ServiceTaskOpeningStageResult> SendToJournal(StageContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskResult> SendToJournal(StageContext context, ReplyAddress replyAddress)
     {
         int run = MultiExchangeRecorder.NextRun(JournalStageLabel);
-        MultiExchangeRecorder.PublishAddress(JournalStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
+        MultiExchangeRecorder.PublishAddress(
+            JournalStageLabel,
+            ServiceTaskType,
+            replyAddress.Id,
+            replyAddress.Deadline
+        );
         SnapshotLogger.LogInfo($"Multi.SendToJournal.Run{run}.Published");
-        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 
     /// <summary>
-    /// The non-terminal handler. <see cref="StageResult.Completed"/> here means "this exchange
-    /// is done, the pipeline carries on".
+    /// Not the last item, so <see cref="ServiceTaskReplyResult.Completed"/> here closes the archive's reply address
+    /// and starts the journal's external stage.
     /// </summary>
-    private Task<StageExchangeResult> HandleArchiveMessage(StageContext context, ServiceTaskReply reply)
+    private Task<ServiceTaskReplyResult> HandleArchiveReply(StageContext context, ServiceTaskReply reply)
     {
         MultiExchangeRecorder.RecordMessage(ArchiveStageLabel, reply);
         string kind = ReadKind(reply.Payload);
         switch (kind)
         {
             case "ack":
-                SnapshotLogger.LogInfo($"Multi.Archive.OnMessage.Position{reply.Position}.Ack.AwaitNextReply");
-                return Task.FromResult<StageExchangeResult>(StageExchangeResult.AwaitNextReply());
+                SnapshotLogger.LogInfo($"Multi.Archive.OnReply.Position{reply.Position}.Ack.AwaitNextReply");
+                return Task.FromResult(ServiceTaskReplyResult.AwaitNextReply());
 
             case "receipt":
-                SnapshotLogger.LogInfo($"Multi.Archive.OnMessage.Position{reply.Position}.Receipt.Completed");
-                return Task.FromResult<StageExchangeResult>(StageResult.Completed());
+                SnapshotLogger.LogInfo($"Multi.Archive.OnReply.Position{reply.Position}.Receipt.Completed");
+                return Task.FromResult(ServiceTaskReplyResult.Completed());
 
             default:
-                SnapshotLogger.LogError($"Multi.Archive.OnMessage.Position{reply.Position}.Tripwire");
-                return Task.FromResult<StageExchangeResult>(
-                    StageResult.FailedPermanent($"The archive sent a message this task cannot read: '{kind}'.")
+                SnapshotLogger.LogError($"Multi.Archive.OnReply.Position{reply.Position}.Tripwire");
+                return Task.FromResult(
+                    ServiceTaskReplyResult.FailedPermanent(
+                        $"The archive sent a message this task cannot read: '{kind}'."
+                    )
                 );
         }
     }
 
-    /// <summary>The terminal handler: the one that concludes the task and lets the process advance.</summary>
-    private Task<ServiceTaskExchangeResult> HandleJournalMessage(StageContext context, ServiceTaskReply reply)
+    /// <summary>
+    /// The last item, so <see cref="ServiceTaskReplyResult.Completed"/> here closes the journal's reply address and
+    /// ends the task with no action.
+    /// </summary>
+    private Task<ServiceTaskReplyResult> HandleJournalReply(StageContext context, ServiceTaskReply reply)
     {
         MultiExchangeRecorder.RecordMessage(JournalStageLabel, reply);
         string kind = ReadKind(reply.Payload);
         if (kind == "receipt")
         {
-            SnapshotLogger.LogInfo($"Multi.Journal.OnMessage.Position{reply.Position}.Receipt.Success");
-            return Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+            SnapshotLogger.LogInfo($"Multi.Journal.OnReply.Position{reply.Position}.Receipt.Completed");
+            return Task.FromResult(ServiceTaskReplyResult.Completed());
         }
 
-        SnapshotLogger.LogError($"Multi.Journal.OnMessage.Position{reply.Position}.Tripwire");
-        return Task.FromResult<ServiceTaskExchangeResult>(
-            ServiceTaskResult.FailedPermanent($"The journal sent a message this task cannot read: '{kind}'.")
-        );
-    }
-
-    private Task<StageResult> HandleArchiveClosed(StageContext context, MailboxClosedReason reason)
-    {
-        MultiExchangeRecorder.RecordClosed(ArchiveStageLabel, reason);
-        SnapshotLogger.LogError($"Multi.Archive.OnClosed.{reason}.Tripwire");
+        SnapshotLogger.LogError($"Multi.Journal.OnReply.Position{reply.Position}.Tripwire");
         return Task.FromResult(
-            StageResult.FailedPermanent($"The archive never answered before its mailbox closed ({reason}).")
+            ServiceTaskReplyResult.FailedPermanent($"The journal sent a message this task cannot read: '{kind}'.")
         );
     }
 
-    private Task<ServiceTaskResult> HandleJournalClosed(StageContext context, MailboxClosedReason reason)
+    private Task<ServiceTaskResult> HandleArchiveTimeout(StageContext context)
     {
-        MultiExchangeRecorder.RecordClosed(JournalStageLabel, reason);
-        SnapshotLogger.LogError($"Multi.Journal.OnClosed.{reason}.Tripwire");
-        return Task.FromResult<ServiceTaskResult>(
-            ServiceTaskResult.FailedPermanent($"The journal never answered before its mailbox closed ({reason}).")
+        MultiExchangeRecorder.RecordTimeout(ArchiveStageLabel);
+        SnapshotLogger.LogError("Multi.Archive.OnTimeout.Tripwire");
+        return Task.FromResult(
+            ServiceTaskResult.FailedPermanent("The archive never answered before its reply address closed.")
         );
     }
 
-    internal static string ReadKind(string payload)
+    private Task<ServiceTaskResult> HandleJournalTimeout(StageContext context)
+    {
+        MultiExchangeRecorder.RecordTimeout(JournalStageLabel);
+        SnapshotLogger.LogError("Multi.Journal.OnTimeout.Tripwire");
+        return Task.FromResult(
+            ServiceTaskResult.FailedPermanent("The journal never answered before its reply address closed.")
+        );
+    }
+
+    private static string ReadKind(string payload)
     {
         try
         {
@@ -157,163 +182,29 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 }
 
 /// <summary>
-/// The same two exchanges with <strong>both sends up front</strong> and neither handler concluding the
-/// task: <c>Stage(Alpha) → Stage(Beta) → HandleReplies(Alpha) → HandleReplies(Beta) → Stage(RecordOutcome)
-/// → Finally(...)</c>.
+/// One reply address as its send was handed it.
 /// </summary>
-/// <remarks>
-/// <para>
-/// This shape is here for the three things the sequential task above cannot show, each of which is only
-/// observable end to end:
-/// </para>
-/// <list type="bullet">
-/// <item>
-/// <description>
-/// <strong>A conclusion that closes one of two carried mailboxes.</strong> Because both sends run before
-/// either handler, the blob carries Alpha <em>and</em> Beta when Alpha's handler concludes — so "close
-/// only this exchange's mailbox" has something to get wrong. The sequential task drops each mailbox from
-/// the carry before the next is minted, so it never carries two.
-/// </description>
-/// </item>
-/// <item>
-/// <description>
-/// <strong>Two handlers back to back.</strong> Nothing is composed between them, so Alpha's conclusion
-/// enqueues Beta's first receiver directly, with no continuation between the two.
-/// </description>
-/// </item>
-/// <item>
-/// <description>
-/// <strong>A continuation that concludes the task itself.</strong> The pipeline ends in
-/// <see cref="PipelineBuilder.Finally"/> rather than an exchange, so the concluding step runs
-/// on a continuation workflow and the process advances from there — the path the plan expects to work
-/// with no controller change.
-/// </description>
-/// </item>
-/// </list>
-/// <para>
-/// It also makes the sequential task's deadline claim falsifiable: here the two mints are one engine hop
-/// apart — each send ends its own workflow, and the second rides the continuation the first enqueues —
-/// whereas there they are a whole exchange apart.
-/// </para>
-/// </remarks>
-public sealed class UpfrontExchangesServiceTask : IServiceTask
-{
-    /// <summary>The <c>altinn:taskType</c> of Task_Upfront in this scenario's BPMN.</summary>
-    public const string ServiceTaskType = "mailbox-upfront";
-
-    /// <summary>The stage that opens the first exchange.</summary>
-    public const string AlphaStageLabel = "SendAlpha";
-
-    /// <summary>The stage that opens the second exchange — before either is answered.</summary>
-    public const string BetaStageLabel = "SendBeta";
-
-    /// <summary>A plain stage after the last handler, so the conclusion is not what that handler starts.</summary>
-    public const string RecordStageLabel = "RecordOutcome";
-
-    /// <summary>Same budget as the sequential task's, for the same reason.</summary>
-    public static readonly TimeSpan ExchangeTimeout = TimeSpan.FromMinutes(20);
-
-    public string Type => ServiceTaskType;
-
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-        pipeline
-            .Stage(SendAlpha, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle alpha)
-            .Stage(SendBeta, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle beta)
-            .HandleReplies(alpha, onMessage: HandleAlphaMessage, onClosed: HandleAlphaClosed)
-            .HandleReplies(beta, onMessage: HandleBetaMessage, onClosed: HandleBetaClosed)
-            .Stage(RecordOutcome)
-            .Finally(ConfirmBoth);
-
-    private Task<ServiceTaskOpeningStageResult> SendAlpha(StageContext context, ServiceTaskMailbox mailbox)
-    {
-        int run = MultiExchangeRecorder.NextRun(AlphaStageLabel);
-        MultiExchangeRecorder.PublishAddress(AlphaStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
-        SnapshotLogger.LogInfo($"Multi.SendAlpha.Run{run}.Published");
-        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
-    }
-
-    private Task<ServiceTaskOpeningStageResult> SendBeta(StageContext context, ServiceTaskMailbox mailbox)
-    {
-        int run = MultiExchangeRecorder.NextRun(BetaStageLabel);
-        MultiExchangeRecorder.PublishAddress(BetaStageLabel, ServiceTaskType, mailbox.Id, mailbox.Deadline);
-        SnapshotLogger.LogInfo($"Multi.SendBeta.Run{run}.Published");
-        return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
-    }
-
-    private Task<StageResult> RecordOutcome(StageContext context)
-    {
-        int run = MultiExchangeRecorder.NextRun(RecordStageLabel);
-        SnapshotLogger.LogInfo($"Multi.RecordOutcome.Run{run}.Completed");
-        return Task.FromResult(StageResult.Completed());
-    }
-
-    /// <summary>The pipeline's conclusion, running on the continuation that RecordOutcome's completion started.</summary>
-    private Task<ServiceTaskResult> ConfirmBoth(StageContext context)
-    {
-        int run = MultiExchangeRecorder.NextRun("ConfirmBoth");
-        SnapshotLogger.LogInfo($"Multi.ConfirmBoth.Run{run}.Success");
-        return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-    }
-
-    private Task<StageExchangeResult> HandleAlphaMessage(StageContext context, ServiceTaskReply reply)
-    {
-        MultiExchangeRecorder.RecordMessage(AlphaStageLabel, reply);
-        return Conclude(AlphaStageLabel, reply);
-    }
-
-    private Task<StageExchangeResult> HandleBetaMessage(StageContext context, ServiceTaskReply reply)
-    {
-        MultiExchangeRecorder.RecordMessage(BetaStageLabel, reply);
-        return Conclude(BetaStageLabel, reply);
-    }
-
-    private static Task<StageExchangeResult> Conclude(string exchange, ServiceTaskReply reply)
-    {
-        string kind = SequentialExchangesServiceTask.ReadKind(reply.Payload);
-        if (kind == "receipt")
-        {
-            SnapshotLogger.LogInfo($"Multi.{exchange}.OnMessage.Position{reply.Position}.Receipt.Completed");
-            return Task.FromResult<StageExchangeResult>(StageResult.Completed());
-        }
-
-        SnapshotLogger.LogError($"Multi.{exchange}.OnMessage.Position{reply.Position}.Tripwire");
-        return Task.FromResult<StageExchangeResult>(
-            StageResult.FailedPermanent($"Exchange '{exchange}' got a message it cannot read: '{kind}'.")
-        );
-    }
-
-    private Task<StageResult> HandleAlphaClosed(StageContext context, MailboxClosedReason reason) =>
-        Closed(AlphaStageLabel, reason);
-
-    private Task<StageResult> HandleBetaClosed(StageContext context, MailboxClosedReason reason) =>
-        Closed(BetaStageLabel, reason);
-
-    private static Task<StageResult> Closed(string exchange, MailboxClosedReason reason)
-    {
-        MultiExchangeRecorder.RecordClosed(exchange, reason);
-        SnapshotLogger.LogError($"Multi.{exchange}.OnClosed.{reason}.Tripwire");
-        return Task.FromResult(StageResult.FailedPermanent($"Exchange '{exchange}' was never answered ({reason})."));
-    }
-}
-
-/// <summary>One mailbox as its declaring stage was handed it.</summary>
 public sealed record RecordedMailbox(Guid Id, DateTimeOffset Deadline, string ServiceTaskType);
 
-/// <summary>One message as the handler answering <paramref name="Exchange"/> was handed it.</summary>
+/// <summary>
+/// One reply as the reply handler of the stage named <paramref name="Exchange"/> was handed it.
+/// </summary>
 public sealed record RecordedMessage(string Exchange, string Payload, string IdempotencyKey, long Position);
 
-/// <summary>Everything the scenario has observed, as served by the state endpoint.</summary>
+/// <summary>
+/// Everything the scenario has observed, as served by the state endpoint. <paramref name="Timeouts"/> names the
+/// stages whose timeout handler ran.
+/// </summary>
 public sealed record MultiExchangeState(
     IReadOnlyDictionary<string, RecordedMailbox> Mailboxes,
     IReadOnlyList<RecordedMessage> Messages,
-    IReadOnlyList<string> Closures,
+    IReadOnlyList<string> Timeouts,
     IReadOnlyDictionary<string, int> Runs
 );
 
 /// <summary>
 /// What the scenario saw, surviving across callbacks (each callback resolves a fresh transient task
-/// instance). Keyed by the stage that opened each exchange, which is the exchange's identity everywhere
-/// else too. Reset between tests via the scenario endpoint.
+/// instance). Keyed by each external stage's label. Reset between tests via the scenario endpoint.
 /// </summary>
 internal static class MultiExchangeRecorder
 {
@@ -321,7 +212,7 @@ internal static class MultiExchangeRecorder
     private static readonly Dictionary<string, int> _runs = new(StringComparer.Ordinal);
     private static readonly Dictionary<string, RecordedMailbox> _mailboxes = new(StringComparer.Ordinal);
     private static readonly List<RecordedMessage> _messages = new();
-    private static readonly List<string> _closures = new();
+    private static readonly List<string> _timeouts = new();
 
     public static int NextRun(string stage)
     {
@@ -349,11 +240,11 @@ internal static class MultiExchangeRecorder
         }
     }
 
-    public static void RecordClosed(string exchange, MailboxClosedReason reason)
+    public static void RecordTimeout(string stage)
     {
         lock (_lock)
         {
-            _closures.Add($"{exchange}:{reason}");
+            _timeouts.Add(stage);
         }
     }
 
@@ -384,7 +275,7 @@ internal static class MultiExchangeRecorder
             return new MultiExchangeState(
                 new Dictionary<string, RecordedMailbox>(_mailboxes, StringComparer.Ordinal),
                 new List<RecordedMessage>(_messages),
-                new List<string>(_closures),
+                new List<string>(_timeouts),
                 new Dictionary<string, int>(_runs, StringComparer.Ordinal)
             );
         }
@@ -397,7 +288,7 @@ internal static class MultiExchangeRecorder
             _runs.Clear();
             _mailboxes.Clear();
             _messages.Clear();
-            _closures.Clear();
+            _timeouts.Clear();
         }
     }
 }
@@ -467,7 +358,6 @@ public static class ServiceRegistration
     public static void RegisterServices(IServiceCollection services)
     {
         services.AddTransient<IServiceTask, SequentialExchangesServiceTask>();
-        services.AddTransient<IServiceTask, UpfrontExchangesServiceTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEngineMailboxMultiEndpoints>();
     }
 }

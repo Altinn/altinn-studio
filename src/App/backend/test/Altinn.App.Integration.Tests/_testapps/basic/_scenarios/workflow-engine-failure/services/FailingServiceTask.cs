@@ -18,7 +18,7 @@ public sealed class FailingServiceTask : IServiceTask
 {
     public string Type => "failing-service";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     public Task<ServiceTaskResult> Execute(StageContext context)
     {
@@ -29,7 +29,7 @@ public sealed class FailingServiceTask : IServiceTask
             );
         }
 
-        return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        return Task.FromResult(ServiceTaskResult.Completed());
     }
 }
 

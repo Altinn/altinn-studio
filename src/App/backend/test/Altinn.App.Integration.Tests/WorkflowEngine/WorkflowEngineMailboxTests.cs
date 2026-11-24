@@ -11,18 +11,18 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 /// <summary>
-/// The first end-to-end pass through a mailbox exchange: a service task whose stage opens a mailbox,
-/// two messages forwarded into it from outside, and the task concluding on the second one — through a
+/// The first end-to-end pass through an external stage: a service task that sends with a reply address,
+/// two messages forwarded to it from outside, and the stage done with its replies on the second one — through a
 /// real engine, a real mint, real receive workflows and the real integrity envelope.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The unit tests own the pieces (mint outcomes, the relay's verdicts, the receipt-block guards); the
-/// composition they cannot span is this: every pipeline item really runs as its own workflow's last step,
-/// the mint really is its own engine step sitting immediately before its declaring stage in that stage's
-/// workflow, each item's completion really enqueues the next item's workflow, the stage before the handler
-/// really enqueues the first receiver, and a multi-message exchange really walks <c>AwaitNextReply</c> →
-/// successor receiver → conclusion → process continuation.
+/// The unit tests own the pieces (mint outcomes, the relay's decisions, the receipt guards); the
+/// composition they cannot span is this: every pipeline step really runs as its own workflow's last step,
+/// the mint really is its own engine step sitting immediately before the send in the send's workflow, each
+/// item's completion really enqueues the next item's workflow, the send really enqueues the first receiver, and
+/// a multi-message stage really walks <c>AwaitNextReply</c> → successor receiver → <c>Completed</c> → the close →
+/// the next item → process continuation.
 /// </para>
 /// <para>
 /// Deliberately assertion-based rather than snapshot-based: this suite auto-accepts new and changed
@@ -49,7 +49,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
     private static readonly TimeSpan _exchangeTimeout = TimeSpan.FromSeconds(90);
 
     [Fact]
-    public async Task MailboxExchange_TwoMessages_MintsItsOwnStepAndConcludesOnTheSecondMessage()
+    public async Task ExternalStage_TwoMessages_MintsItsOwnStepAndCarriesOnAfterTheSecondMessage()
     {
         await using var fixtureScope = await classFixture.Get(
             output,
@@ -71,7 +71,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
 
         await PatchValidFormData(fixture, token, instance);
 
-        // The task does not conclude here: its stages run, the first receiver is enqueued, and the
+        // The task does not end here: its first stages run, the first receiver is enqueued, and the
         // instance stays committed on Task_Service until a message answers, so the call is accepted.
         using var processNextResponse = await fixture.Instances.ProcessNext(token, instance);
         using var processState = await processNextResponse.Read<AppProcessState>();
@@ -93,11 +93,10 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.DoesNotContain("MintMailbox: 1", primaryOperationIds);
         Assert.DoesNotContain("ExecuteServiceTask: 1", primaryOperationIds);
 
-        // The mint hugs its declaring stage on both sides, which is why the scenario surrounds that stage with
-        // plain ones. Behind: the deadline clock starts at the mint, so it runs only once the stage before the
-        // send has completed. Ahead: the stage must never send without an address. Keyed on the primary
-        // workflow's last step, so a replay of that step continues onto the same workflow instead of forking
-        // the pipeline.
+        // The mint hugs the send on both sides. Behind: the deadline clock starts at the mint, so it runs only
+        // once the stage before the send has completed. Ahead: the send must never go without an address. Keyed
+        // on the primary workflow's last step, so a replay of that step continues onto the same workflow instead
+        // of forking the pipeline.
         EngineWorkflow sendWorkflow = await WaitForWorkflow(
             engineClient,
             ns,
@@ -110,18 +109,17 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         );
         Assert.Equal(primary.Steps[^1].DatabaseId.ToString(), sendWorkflow.IdempotencyKey);
 
-        // The stage composed after the send rides a workflow of its own, and that stage is what enqueues the
-        // exchange's first receiver.
-        EngineWorkflow recordWorkflow = await WaitForWorkflow(
+        // The send is what enqueues the stage's first receiver, keyed on the send's own step.
+        EngineWorkflow firstReceiver = await WaitForWorkflow(
             engineClient,
             ns,
             collectionKey,
-            $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
+            $"{MailboxReceiveOperationIdPrefix} Task_Service · 1"
         );
-        Assert.Equal(["ExecuteServiceTask: 2"], recordWorkflow.Steps.Select(s => s.OperationId).ToList());
-        Assert.Equal(sendWorkflow.Steps[^1].DatabaseId.ToString(), recordWorkflow.IdempotencyKey);
+        Assert.Equal(["ExecuteServiceTask: 1"], firstReceiver.Steps.Select(s => s.OperationId).ToList());
+        Assert.Equal(sendWorkflow.Steps[^1].DatabaseId.ToString(), firstReceiver.IdempotencyKey);
 
-        // ---- The address reached the declaring stage, once ----
+        // ---- The address reached the send, once ----
         ExchangeState afterSend = await WaitForExchangeState(fixture, state => state.MailboxId is not null);
         Guid mailboxId = afterSend.MailboxId!.Value;
         Assert.NotEqual(Guid.Empty, mailboxId);
@@ -132,7 +130,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         );
         Assert.Empty(afterSend.Messages);
 
-        // ---- Message 1: handled, exchange stays open ----
+        // ---- Message 1: handled, the stage waits for the next ----
         await ForwardReply(fixture, mailboxId, idempotencyKey: "archive-ack-1", payload: AckPayload);
         ExchangeState afterAck = await WaitForExchangeState(fixture, state => state.Messages.Count >= 1);
         RecordedMessage ack = afterAck.Messages[0];
@@ -140,7 +138,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal("archive-ack-1", ack.IdempotencyKey);
         Assert.Equal(0, ack.Position);
 
-        // ---- Message 2: concludes the task and advances the process ----
+        // ---- Message 2: the stage is done, the stage after it runs, and the task ends ----
         await ForwardReply(fixture, mailboxId, idempotencyKey: "archive-receipt-1", payload: ReceiptPayload);
         await WaitForProcessEnd(fixture, token, instance);
 
@@ -151,25 +149,25 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal("archive-receipt-1", receipt.IdempotencyKey);
         Assert.Equal(1, receipt.Position);
 
-        // The closure handler is the scenario's tripwire: reaching it would mean the engine dispatched
-        // to the wrong half of the exchange, and it concludes permanently failed on purpose.
-        Assert.Null(finalState.ClosedReason);
+        // The timeout handler is the scenario's tripwire: reaching it would mean the engine handed the stage
+        // the closed signal instead of a reply, and it fails permanently on purpose.
+        Assert.False(finalState.TimedOut);
 
-        // Neither stage ever ran twice - the conclusion lives on the receive workflows, not on a
-        // re-entry into the pipeline.
+        // No stage ever ran twice - the replies live on the receive workflows, not on a re-entry into the
+        // pipeline.
         Assert.Equal(1, Assert.Contains(PrepareStageLabel, finalState.Runs));
         Assert.Equal(1, Assert.Contains(SendStageLabel, finalState.Runs));
         Assert.Equal(1, Assert.Contains(RecordStageLabel, finalState.Runs));
 
-        // ---- Invariant 2, from the engine's own books: the conclusion closed the mailbox ----
-        // Neither ClosedReason nor the end event can see this: Conclude closes the mailbox and *then*
-        // enqueues the after-workflow, so a conclusion that skipped the close would still advance the process and
-        // still leave this app's onClosed unrun. Read after WaitForProcessEnd, so ordered after the close
-        // rather than racing it; the engine's retention period is 90 days, so the row is still there.
+        // ---- From the engine's own books: the reply handler's completion closed the mailbox ----
+        // Neither TimedOut nor the end event can see this: the relay closes the mailbox and *then* enqueues the
+        // next item, so a completion that skipped the close would still advance the process and still leave this
+        // app's onTimeout unrun. Read after WaitForProcessEnd, so ordered after the close rather than racing it;
+        // the engine's retention period is 90 days, so the row is still there.
         EngineMailbox mailbox = await GetMailbox(engineClient, ns, mailboxId);
         Assert.Equal("Disposed", mailbox.Status);
-        // "Request" and not "Deadline": the closure came from this task concluding, not from the engine's
-        // deadline sweep - the other half of the tripwire, in the engine's words rather than the app's.
+        // "Request" and not "Deadline": the closure came from this task, not from the engine's deadline sweep -
+        // the other half of the tripwire, in the engine's words rather than the app's.
         Assert.Equal("Request", mailbox.DisposedReason);
 
         // Two deliveries accepted, two receivers enqueued, nothing left unread - the two-messages/
@@ -179,7 +177,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal(2, mailbox.NextSeq);
         Assert.Equal(0, mailbox.UnpairedDeliveries);
 
-        // The declaration's Timeout reached the mint, and the mint keyed the mailbox on the executing
+        // The stage's timeout reached the mint, and the mint keyed the mailbox on the executing
         // step id under the instance's collection key - so a replayed attempt of that step is handed this
         // same mailbox instead of minting an orphan.
         Assert.Equal(TimeSpan.FromMinutes(20), mailbox.Timeout);
@@ -209,10 +207,23 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             {
                 Assert.Equal("Completed", receiver.OverallStatus);
                 EngineStep step = Assert.Single(receiver.Steps);
-                // The step names the handler it runs — this pipeline's conclusion, item 3.
-                Assert.Equal("ExecuteServiceTask: 3", step.OperationId);
+                // A receive step carries its stage's own index, the same as the send's: item 1.
+                Assert.Equal("ExecuteServiceTask: 1", step.OperationId);
             }
         );
+
+        // The stage after the external stage rides a workflow of its own, enqueued by the receive step that
+        // completed the stage, after the close.
+        EngineWorkflow secondReceiver = Assert.Single(
+            receivers,
+            receiver => receiver.OperationId == $"{MailboxReceiveOperationIdPrefix} Task_Service · after message 0"
+        );
+        EngineWorkflow recordWorkflow = Assert.Single(
+            workflows,
+            w => w.OperationId == $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
+        );
+        Assert.Equal(["ExecuteServiceTask: 2"], recordWorkflow.Steps.Select(s => s.OperationId).ToList());
+        Assert.Equal(secondReceiver.Steps[^1].DatabaseId.ToString(), recordWorkflow.IdempotencyKey);
 
         // ---- And the journey the log tells ----
         string logs = await fixture.GetSnapshotAppLogs();
@@ -220,16 +231,16 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             logs,
             "Mailbox.PrepareDocuments.Run1.Completed",
             "Mailbox.SendToArchive.Run1.Published",
-            "Mailbox.RecordDispatch.Run1.Completed",
             "Mailbox.Forward.archive-ack-1.Accepted",
-            "Mailbox.OnMessage.Position0.Ack.AwaitNextReply",
+            "Mailbox.OnReply.Position0.Ack.AwaitNextReply",
             "Mailbox.Forward.archive-receipt-1.Accepted",
-            "Mailbox.OnMessage.Position1.Receipt.Success"
+            "Mailbox.OnReply.Position1.Receipt.Completed",
+            "Mailbox.RecordDispatch.Run1.Completed"
         );
-        Assert.DoesNotContain("Mailbox.OnClosed.", logs);
+        Assert.DoesNotContain("Mailbox.OnTimeout.", logs);
         Assert.DoesNotContain("Tripwire", logs);
         Assert.DoesNotContain("Mailbox.SendToArchive.Run2", logs);
-        Assert.DoesNotContain("Mailbox.OnMessage.Position2", logs);
+        Assert.DoesNotContain("Mailbox.OnReply.Position2", logs);
     }
 
     private static async Task ResetScenario(AppFixture fixture)
@@ -397,7 +408,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         }
 
         Assert.Fail(
-            $"The exchange did not conclude: the process never reached EndEvent_1 within "
+            $"The task did not end: the process never reached EndEvent_1 within "
                 + $"{_exchangeTimeout.TotalSeconds:0}s (last seen task: {lastSeenTask}).\n"
                 + $"----- APP LOGS -----\n{await fixture.GetAppLogs()}"
         );
@@ -453,7 +464,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Guid? MailboxId,
         DateTimeOffset? Deadline,
         List<RecordedMessage> Messages,
-        string? ClosedReason,
+        bool TimedOut,
         Dictionary<string, int> Runs
     );
 
