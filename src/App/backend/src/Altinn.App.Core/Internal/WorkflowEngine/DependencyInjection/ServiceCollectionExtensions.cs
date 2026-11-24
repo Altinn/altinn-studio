@@ -28,7 +28,7 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineService, WorkflowEngineService>();
         services.AddTransient<MailboxRelay>();
 
-        // The inbound half of a mailbox exchange: whatever channel receives an external system's answer
+        // The inbound half of an external stage: whatever channel receives an external system's reply
         // hands it here, and it reaches the waiting service task's reply handler through the engine.
         services.AddTransient<IServiceTaskReplyForwarder, ServiceTaskReplyForwarder>();
 

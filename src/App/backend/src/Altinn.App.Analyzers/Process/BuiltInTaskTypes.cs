@@ -19,8 +19,8 @@ internal static class BuiltInTaskTypes
     );
 
     /// <summary>
-    /// Service task types that always conclude with <c>ServiceTaskResult.Success()</c> and no action. fiksArkiv is
-    /// not one: it concludes with the actions its settings configure.
+    /// Service task types whose stages only return <c>ServiceTaskResult.Completed()</c>, so the task always ends with
+    /// no action. fiksArkiv is not one: it ends the task with the actions its settings configure.
     /// </summary>
     internal static readonly ImmutableHashSet<string> ServiceTasksWithoutAction = ImmutableHashSet.Create(
         StringComparer.Ordinal,

@@ -52,7 +52,7 @@ internal sealed record WorkflowCallbackState
 
 /// <summary>
 /// One mailbox as it travels between the steps of a workflow: the id later steps address it by, and the
-/// deadline the declaring stage publishes alongside it.
+/// deadline the external stage's send publishes alongside it.
 /// </summary>
 internal sealed record CarriedMailbox
 {

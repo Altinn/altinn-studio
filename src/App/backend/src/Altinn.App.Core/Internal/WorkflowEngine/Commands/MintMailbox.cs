@@ -42,7 +42,7 @@ internal sealed class MintMailbox(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not ServiceTaskItem.ExternalStage declaring)
+            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not ServiceTaskItem.ExternalStage stage)
             {
                 return FailedWorkflowEngineCommandResult.Permanent(
                     $"Service task '{payload.ServiceTaskType}' composed an external stage at index "
@@ -68,7 +68,7 @@ internal sealed class MintMailbox(
                 new MailboxCreateRequest
                 {
                     IdempotencyKey = context.Payload.StepId.ToString(),
-                    Timeout = declaring.Timeout,
+                    Timeout = stage.Timeout,
                     CollectionKey = ProcessNextRequestFactory.CreateCollectionKey(context.InstanceId),
                 },
                 context.CancellationToken

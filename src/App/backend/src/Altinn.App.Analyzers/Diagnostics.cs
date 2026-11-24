@@ -383,9 +383,9 @@ public static class Diagnostics
                 + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
         );
 
-        // A gateway after a service task gets the action the service task concludes with
+        // A gateway after a service task gets the action the service task ends with
         // (ProcessNextContinuation), not the user's, and a failed service task can only be resumed, not left through
-        // process/next with an action. The types this rule names never conclude with one; fiksArkiv and an app's own
+        // process/next with an action. The types this rule names never end with one; fiksArkiv and an app's own
         // service task types may. '{1}' names the conditions that read the action, and '{3}' is the task's type.
         public static readonly DiagnosticDescriptor GatewayActionAfterServiceTask = Error(
             "ALTINNAPP1030",
