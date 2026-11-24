@@ -23,6 +23,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     private bool? _ignoreReservation;
     private bool? _isConfirmationNeeded;
     private bool? _isConfidential;
+    private bool? _allowForwarding;
     private List<Guid>? _existingAttachments;
     private Guid? _idempotentKey;
 
@@ -291,6 +292,13 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
+    public ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding)
+    {
+        _allowForwarding = allowForwarding;
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ICorrespondenceRequestBuilder WithIdempotentKey(Guid idempotentKey)
     {
         _idempotentKey = idempotentKey;
@@ -323,6 +331,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
             IdempotentKey = _idempotentKey,
             IsConfirmationNeeded = _isConfirmationNeeded,
             IsConfidential = _isConfidential,
+            AllowForwarding = _allowForwarding,
         };
     }
 }

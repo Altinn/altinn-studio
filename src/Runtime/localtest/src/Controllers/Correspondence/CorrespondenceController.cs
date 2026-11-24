@@ -256,6 +256,7 @@ public class CorrespondenceController(
                 IgnoreReservation = details?.IgnoreReservation,
                 IsConfirmationNeeded = details?.IsConfirmationNeeded ?? false,
                 IsConfidential = details?.IsConfidential ?? false,
+                AllowForwarding = details?.AllowForwarding ?? false,
             }
         );
     }

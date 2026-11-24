@@ -256,7 +256,8 @@ public class CorrespondenceResponseTests
                 "ignoreReservation": true,
                 "published": "2024-11-14T11:06:56.208705+00:00",
                 "isConfirmationNeeded": false,
-                "isConfidential": false
+                "isConfidential": false,
+                "allowForwarding": false
             }
             """;
 
@@ -387,6 +388,7 @@ public class CorrespondenceResponseTests
         parsedResponse.Published.Should().Be(DateTimeOffset.Parse("2024-11-14T11:06:56.208705+00:00"));
         parsedResponse.IsConfirmationNeeded.Should().BeFalse();
         parsedResponse.IsConfidential.Should().BeFalse();
+        parsedResponse.AllowForwarding.Should().BeFalse();
     }
 
     [Fact]

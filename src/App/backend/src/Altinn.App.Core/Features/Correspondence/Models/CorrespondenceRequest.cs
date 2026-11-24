@@ -81,6 +81,11 @@ public sealed record CorrespondenceRequest
     public bool? IsConfidential { get; init; }
 
     /// <summary>
+    /// Specifies whether the correspondence can be forwarded through email.
+    /// </summary>
+    public bool? AllowForwarding { get; init; }
+
+    /// <summary>
     /// Existing attachments that should be added to the correspondence.
     /// </summary>
     public IReadOnlyList<Guid>? ExistingAttachments { get; init; }
