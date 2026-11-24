@@ -74,11 +74,11 @@ class Role:
 
 
 async def access_packages(org: str, app: str) -> list[AccessPackage]:
-    return await _cached(_ACCESS_PACKAGES_PATH, org, app, parse_access_packages)
+    return await _cached(_ACCESS_PACKAGES_PATH, org, app, _parse_access_packages)
 
 
 async def roles(org: str, app: str) -> list[Role]:
-    return await _cached(_ROLES_PATH, org, app, parse_roles)
+    return await _cached(_ROLES_PATH, org, app, _parse_roles)
 
 
 async def _cached[T](path: str, org: str, app: str, parse: Callable[[Any], list[T]]) -> list[T]:
@@ -101,7 +101,7 @@ async def _fetch_json(url: str) -> Any:
         raise PolicyOptionsError(f"{url} gave no list: {exc}") from exc
 
 
-def parse_access_packages(data: Any) -> list[AccessPackage]:
+def _parse_access_packages(data: Any) -> list[AccessPackage]:
     packages = [
         AccessPackage(
             code=_split_urn(_required_text(package, "urn"), ACCESS_PACKAGE_ATTRIBUTE)[1],
@@ -121,7 +121,7 @@ def parse_access_packages(data: Any) -> list[AccessPackage]:
     return packages
 
 
-def parse_roles(data: Any) -> list[Role]:
+def _parse_roles(data: Any) -> list[Role]:
     parsed = []
     for role in _required_list(data, "roles"):
         # Studio's policy editor writes a role with its `legacyUrn`, or with its `urn` when it has none.

@@ -129,7 +129,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
         max_chars = part_chars(ctx)
         try:
             if args.kind == "access_packages":
-                content = describe_access_packages(
+                content = _describe_access_packages(
                     await policy_options.access_packages(org, app),
                     search=args.search,
                     group=args.group,
@@ -137,7 +137,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
                 )
                 source = _PACKAGES_SOURCE
             else:
-                content = describe_roles(
+                content = _describe_roles(
                     await policy_options.roles(org, app), kind=args.kind, search=args.search, max_chars=max_chars
                 )
                 source = _ROLES_SOURCE
@@ -149,17 +149,17 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
                 ),
                 is_error=True,
             )
-        except UnknownGroupError as exc:
+        except _UnknownGroupError as exc:
             return ToolResult(content=str(exc), is_error=True)
         # A copy, so that no session can change the dict that every session shares.
         return ToolResult(content=content, metadata={"source": dict(source)})
 
 
-class UnknownGroupError(Exception):
+class _UnknownGroupError(Exception):
     """The model asked for an access package group that does not exist."""
 
 
-def describe_access_packages(
+def _describe_access_packages(
     packages: list[AccessPackage], *, search: str | None, group: str | None, max_chars: int
 ) -> str:
     """The packages in one group or matching a search, or, with neither, the groups and areas to narrow by."""
@@ -168,7 +168,7 @@ def describe_access_packages(
         in_group = [package for package in packages if _fold(package.group) == _fold(group)]
         if not in_group:
             groups = list(_group_by(packages, attrgetter("group")))
-            raise UnknownGroupError(f"No group is called {group!r}. The groups are {_join(groups)}.")
+            raise _UnknownGroupError(f"No group is called {group!r}. The groups are {_join(groups)}.")
         packages = in_group
     elif not words:
         return _package_index(packages)
@@ -196,7 +196,7 @@ def describe_access_packages(
     return _tables(intro, ("Code", "Name", "Area", "Description"), sections, narrow=narrow, max_chars=max_chars)
 
 
-def describe_roles(all_roles: list[Role], *, kind: RoleKind, search: str | None, max_chars: int) -> str:
+def _describe_roles(all_roles: list[Role], *, kind: RoleKind, search: str | None, max_chars: int) -> str:
     """The roles Studio's policy editor offers, or the Altinn 2 roles a policy may still name."""
     role_list = _ROLE_LISTS[kind]
     words = _words(search)
