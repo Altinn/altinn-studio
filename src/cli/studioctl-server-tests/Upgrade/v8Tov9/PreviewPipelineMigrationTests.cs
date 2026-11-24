@@ -3056,6 +3056,69 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, "partial")]
+    [InlineData(false, "partial")]
+    [InlineData(true, "inherited")]
+    [InlineData(false, "inherited")]
+    public void StepMethod_ThatImplementsAnInterfaceNotOnItsOwnDeclaration_IsReportedOrStillCompiles(
+        bool semantic,
+        string how
+    )
+    {
+        // The interface reaches the step method's type through another part of a partial class, or through an
+        // interface that the type's own base list names. Rewriting the method alone breaks the implementation.
+        string declarations =
+            how == "partial"
+                ? """
+                    public interface IArchiveSteps
+                    {
+                        Task<StageResult> Archive(StageContext context);
+                    }
+
+                    public partial class ArchiveTask : IArchiveSteps { }
+
+                    public partial class ArchiveTask : IServiceTask
+                    """
+                : """
+                    public interface IArchiveSteps
+                    {
+                        Task<StageResult> Archive(StageContext context);
+                    }
+
+                    public interface IPatientArchiveSteps : IArchiveSteps { }
+
+                    public class ArchiveTask : IServiceTask, IPatientArchiveSteps
+                    """;
+        Write(
+            "logic/ArchiveTasks.cs",
+            declarations
+                + """
+
+                {
+                    public string Type => "archive";
+
+                    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                        pipeline.Stage(Archive).Finally(Done);
+
+                    public Task<StageResult> Archive(StageContext context) => Task.FromResult(StageResult.Completed());
+
+                    private Task<ServiceTaskResult> Done(StageContext context) =>
+                        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+                }
+                """
+        );
+
+        var result = Migrate(semantic);
+
+        bool reported = result.Todos.Any(static todo => todo.Contains("ArchiveTask.Archive", StringComparison.Ordinal));
+        if (!reported)
+        {
+            // Not reported, so the upgrade claims the app is done: it must then compile against the current API.
+            AssertCompilesAgainstCurrent();
+        }
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
