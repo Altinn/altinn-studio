@@ -162,7 +162,7 @@ public class ExecuteServiceTaskStageTests
         Assert.Null(continuing.Handover.Target);
     }
 
-    /// <summary>Three plain items in a row: each stage hands over to the next one's workflow.</summary>
+    /// <summary>Two stages and the conclusion in a row: each stage hands over to the next item's workflow.</summary>
     private sealed class TwoStageTask : IServiceTask
     {
         public string Type => "shipping";

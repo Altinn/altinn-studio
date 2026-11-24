@@ -36,8 +36,8 @@ these rules:
 - `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
   (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
   stage retries without the ones before it. The default composes no stages, so a task type with nothing to do at a
-  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people following the
-  task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
+  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people
+  following the task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
   A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs each item of its pipeline as the last step of a workflow of its own. The first item runs in the
   transition's workflow after the commit, and each item's step enqueues the next item's workflow before its own
@@ -246,9 +246,8 @@ delivers messages.
   same item index as the send, and the mailbox receipt in its callback tells the two apart. Every other item after
   the first runs in a continuation workflow.
 - A service task keeps at most one mailbox open: an external stage closes its mailbox before the next item starts.
-- Since each item enqueues the next item's workflow before its own settles, the collection has an active head while a
-  stage waits for replies, and reads and new requests see the task as running. One resume with cascade revives a
-  failed chain.
+- Reads and new requests see the task as running while a stage waits for replies, since the collection keeps an
+  active head (see [Workflows and steps](#workflows-and-steps)). One resume with cascade revives a failed chain.
 - Only the step that is done with the replies, or that ends the task, closes the mailbox, and it does so before it
   starts anything that follows. A failure closes nothing, so a resume runs the failed step against the same
   mailbox.

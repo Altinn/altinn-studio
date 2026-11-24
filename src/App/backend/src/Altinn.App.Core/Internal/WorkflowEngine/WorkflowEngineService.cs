@@ -725,14 +725,16 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
 
     /// <summary>
-    /// A workflow of a service task's pipeline item after the first: every step is a service task step, where a
-    /// transition's own workflows also hold its other steps.
+    /// A workflow of a service task's pipeline item after the first, named by the relay that enqueued it.
     /// </summary>
     private static bool IsServiceTaskSuccessor(WorkflowStatusResponse workflow) =>
-        workflow.Steps.Count > 0
-        && workflow.Steps.All(step =>
-            step.OperationId.StartsWith($"{ExecuteServiceTask.Key}:", StringComparison.Ordinal)
-            || step.OperationId.StartsWith($"{MintMailbox.Key}:", StringComparison.Ordinal)
+        workflow.OperationId.StartsWith(
+            ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix,
+            StringComparison.Ordinal
+        )
+        || workflow.OperationId.StartsWith(
+            ProcessNextRequestFactory.MailboxContinueOperationIdPrefix,
+            StringComparison.Ordinal
         );
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
