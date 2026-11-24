@@ -70,8 +70,8 @@ internal abstract record MailboxContinuation
 
     /// <summary>
     /// A stage completed: start what the pipeline composes after it — the receive leg of the exchange the
-    /// handler composed next answers, or otherwise the workflow of the item composed next. Which exchange that is belongs to the handler, not to this stage: on
-    /// up-front sends the stage that just sent opened a <em>later</em> exchange than the one the handler after
+    /// handler composed next answers, or otherwise the workflow of the item composed next. Which exchange that is
+    /// belongs to the handler, not to this stage: on up-front sends the stage that just sent opened a <em>later</em> exchange than the one the handler after
     /// it answers. Nothing is closed: no exchange of this task has been answered here, neither one this stage
     /// opened nor one an earlier stage did.
     /// </summary>

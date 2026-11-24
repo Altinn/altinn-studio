@@ -36,8 +36,8 @@ these rules:
 - `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
   (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
   stage retries without the ones before it. The default composes no stages, so a task type with nothing to do at a
-  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people following the
-  task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
+  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people
+  following the task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
   A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs each item of its pipeline as the last step of a workflow of its own. The first item runs in the
   transition's workflow after the commit, and each item's step enqueues the next item's workflow before its own
@@ -242,9 +242,8 @@ and delivers messages.
 - A stage that opens a mailbox shares its workflow only with the `MintMailbox` step before it. A reply handler runs
   alone in a receive workflow parked on the mailbox, because the engine hands a message only to a workflow's first
   step. Every other item after the first runs in a continuation workflow.
-- Since each item enqueues the next item's workflow before its own settles, the collection has an active head while an
-  exchange is open, and reads and new requests see the task as running. One resume with cascade revives a failed
-  chain.
+- Reads and new requests see the task as running while an exchange is open, since the collection keeps an active head
+  (see [Workflows and steps](#workflows-and-steps)). One resume with cascade revives a failed chain.
 - At most one execution concludes an exchange. It closes the exchange's mailboxes before it starts anything that
   follows.
 - Each hop re-signs with the app code current then. A message that waits past the expiry of the code that sealed it

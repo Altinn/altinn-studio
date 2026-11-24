@@ -974,7 +974,7 @@ public class WorkflowEngineServiceTests
     [Fact]
     public async Task ResumeAndWaitForWorkflow_LaterStageWorkflowThatDefersAfterResume_ReleasesEarlyAsParked()
     {
-        // Red team: every service task item after the first runs in a workflow of its own, so a failed later
+        // Every service task item after the first runs in a workflow of its own, so a failed later
         // stage (eFormidling's delivery poll, after SendShipment) is resumed in a workflow that holds no
         // CommitProcessState step. The transition committed in the primary workflow, which is older than the
         // resumed one and so outside the scoped chain. When the resumed stage defers, as a poll does, the
