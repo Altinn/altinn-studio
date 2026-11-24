@@ -18,11 +18,12 @@ CI runs the tests against a studioctl built from the checkout, kept apart from a
 make -C src/cli dev-install
 export STUDIOCTL_HOME="$PWD/src/cli/build/dev-home" STUDIOCTL_INTERNAL_DEV=true
 export PATH="$STUDIOCTL_HOME/bin:$PATH"
+studioctl env hosts add
 make -C src/App/backend ti
 ```
 
-Afterwards, with the same `STUDIOCTL_HOME`, `studioctl stop --all`, `studioctl env down` and `studioctl server down`
-clean up.
+If the run started localtest, clean up afterwards with the same `STUDIOCTL_HOME`: `studioctl stop --all`,
+`studioctl env down` and `studioctl server down`. Leave an environment you started yourself running.
 
 ## Architecture
 
