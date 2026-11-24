@@ -365,7 +365,7 @@ def build_catalog(repo_root: Path) -> dict:
     interfaces.sort(key=lambda r: (r["assembly"], r["namespace"], r["name"]))
 
     version = ""
-    changelog = lib_root / "CHANGELOG.md"
+    changelog = lib_root.parent / "CHANGELOG.md"
     if changelog.exists():
         for line in changelog.read_text(encoding="utf-8").splitlines():
             match = re.match(r"^## \[(?P<v>[^\]]+)\]", line)
