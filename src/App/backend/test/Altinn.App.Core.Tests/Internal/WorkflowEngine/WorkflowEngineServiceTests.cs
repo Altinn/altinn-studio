@@ -972,6 +972,92 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResumeAndWaitForWorkflow_LaterStageWorkflowThatDefersAfterResume_ReleasesEarlyAsParked()
+    {
+        // Red team: every service task item after the first runs in a workflow of its own, so a failed later
+        // stage (eFormidling's delivery poll, after SendShipment) is resumed in a workflow that holds no
+        // CommitProcessState step. The transition committed in the primary workflow, which is older than the
+        // resumed one and so outside the scoped chain. When the resumed stage defers, as a poll does, the
+        // chain is parked exactly as after a first process/next, and the wait must release at once rather
+        // than hold process/resume for its whole budget and report a timeout.
+        Guid primaryWorkflowId = Guid.NewGuid();
+        Guid stageWorkflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, stageWorkflowId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(stageWorkflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, stageWorkflowId, PersistentItemStatus.Waiting));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow.AddSeconds(-1),
+                    status: PersistentItemStatus.Completed,
+                    databaseId: primaryWorkflowId,
+                    steps:
+                    [
+                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                    ]
+                ),
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Waiting,
+                    operationId: $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} Task_1 · after 0",
+                    databaseId: stageWorkflowId,
+                    steps: [CreateStep($"{ExecuteServiceTask.Key}: 1", PersistentItemStatus.Waiting)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            new TimeSkippingTimeProvider()
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, stageWorkflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Null(result.WorkflowFailure);
+        Assert.True(result.Parked);
+        client.Verify(
+            c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()),
+            Times.Once,
+            "a parked chain releases on the first poll that observes it, without waiting"
+        );
+    }
+
+    [Fact]
     public void ExtractCallbackErrorDetail_WhenMessageEmbedsProblemDetails_ReturnsTheDetail()
     {
         // The engine wraps a failed app callback as "<prose>: {ProblemDetails json}"; the embedded
