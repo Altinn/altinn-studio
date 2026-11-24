@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
@@ -13,7 +14,7 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 /// exist. Most cases run both with a semantic model (the app compiled against the preview) and without, which is how
 /// the upgrade sees an app already on v9.
 /// </summary>
-public sealed class PreviewPipelineMigrationTests : IDisposable
+public sealed partial class PreviewPipelineMigrationTests : IDisposable
 {
     private readonly TempAppFolder _app = new();
 
@@ -175,58 +176,102 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
                 }
         """;
 
+    /// <summary>
+    /// The App library's current pipeline API, as its public API snapshot lists it, with bodies that only compile.
+    /// <see cref="PipelineNames_TheUpgradeWritesAndReplaces_MatchTheAppLibrarysPublicApi"/> checks the names the
+    /// upgrade writes against the snapshot itself.
+    /// </summary>
     private const string CurrentApi = """
                 public abstract record StageResult
                 {
+                    private protected StageResult() { }
+
                     public static StageResult Completed() => new CompletedStageResult();
+
+                    public static StageResult Defer(TimeSpan delay, string? reason = null) => new CompletedStageResult();
+
+                    public static StageResult FailedRetryable(string errorMessage) => new CompletedStageResult();
 
                     public static StageResult FailedPermanent(string errorMessage) => new CompletedStageResult();
                 }
 
-                public sealed record CompletedStageResult : StageResult;
+                internal sealed record CompletedStageResult : StageResult;
 
                 public abstract record ServiceTaskReplyResult
                 {
+                    private protected ServiceTaskReplyResult() { }
+
                     public static ServiceTaskReplyResult AwaitNextReply() => new ServiceTaskAwaitNextReplyResult();
 
-                    public static ServiceTaskReplyResult Completed() => new CompletedServiceTaskResult();
+                    public static ServiceTaskReplyResult Completed() => ServiceTaskResult.Completed();
 
-                    public static ServiceTaskReplyResult EndTask(string? action = null) => new EndedServiceTaskResult();
+                    public static ServiceTaskReplyResult EndTask(string? action = null) => ServiceTaskResult.EndTask(action);
 
-                    public static ServiceTaskReplyResult FailedPermanent(string errorMessage) => new FailedServiceTaskResult();
+                    public static ServiceTaskReplyResult Defer(TimeSpan delay, string? reason = null) =>
+                        ServiceTaskResult.Defer(delay, reason);
+
+                    public static ServiceTaskReplyResult FailedRetryable(string errorMessage) =>
+                        ServiceTaskResult.FailedRetryable(errorMessage);
+
+                    public static ServiceTaskReplyResult FailedPermanent(string errorMessage) =>
+                        ServiceTaskResult.FailedPermanent(errorMessage);
                 }
 
-                public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult;
+                public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult
+                {
+                    internal ServiceTaskAwaitNextReplyResult() { }
+                }
 
                 public abstract record ServiceTaskResult : ServiceTaskReplyResult
                 {
+                    private protected ServiceTaskResult() { }
+
                     public static new ServiceTaskResult Completed() => new CompletedServiceTaskResult();
 
                     public static new ServiceTaskResult EndTask(string? action = null) =>
                         new EndedServiceTaskResult { Action = action };
 
-                    public static new ServiceTaskResult FailedPermanent(string errorMessage) => new FailedServiceTaskResult();
+                    public static new ServiceTaskResult Defer(TimeSpan delay, string? reason = null) =>
+                        new DeferredServiceTaskResult { Delay = delay, Reason = reason };
 
-                    public static ServiceTaskResult Defer(TimeSpan delay, string? reason = null) =>
-                        new DeferredServiceTaskResult();
+                    public static new ServiceTaskResult FailedRetryable(string errorMessage) =>
+                        new FailedServiceTaskResult { ErrorMessage = errorMessage };
+
+                    public static new ServiceTaskResult FailedPermanent(string errorMessage) =>
+                        new FailedServiceTaskResult { ErrorMessage = errorMessage };
                 }
 
-                public sealed record CompletedServiceTaskResult : ServiceTaskResult;
+                public sealed record CompletedServiceTaskResult : ServiceTaskResult
+                {
+                    internal CompletedServiceTaskResult() { }
+                }
 
                 public sealed record EndedServiceTaskResult : ServiceTaskResult
                 {
+                    internal EndedServiceTaskResult() { }
+
                     public string? Action { get; init; }
                 }
 
-                public sealed record FailedServiceTaskResult : ServiceTaskResult;
+                public sealed record DeferredServiceTaskResult : ServiceTaskResult
+                {
+                    public required TimeSpan Delay { get; init; }
 
-                public sealed record DeferredServiceTaskResult : ServiceTaskResult;
+                    public string? Reason { get; init; }
+                }
+
+                public sealed record FailedServiceTaskResult : ServiceTaskResult
+                {
+                    internal FailedServiceTaskResult() { }
+
+                    public required string ErrorMessage { get; init; }
+                }
 
                 public sealed record ReplyAddress
                 {
-                    public Guid Id { get; init; }
+                    public required Guid Id { get; init; }
 
-                    public DateTimeOffset Deadline { get; init; }
+                    public required DateTimeOffset Deadline { get; init; }
                 }
 
                 public abstract class PipelineBuilder
@@ -263,16 +308,27 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
 
                 public enum ServiceTaskReplyForwardOutcome
                 {
-                    Unroutable,
-                    TooManyReplies,
+                    Unroutable = 0,
+                    Late = 1,
+                    PayloadTooLarge = 2,
+                    TooManyReplies = 3,
+                    Rejected = 4,
+                    EngineUnavailable = 5,
+                    SigningUnavailable = 6,
                 }
 
                 public sealed class ServiceTaskReplyForwardException(
                     ServiceTaskReplyForwardOutcome outcome,
                     Guid replyAddressId,
-                    string message
-                ) : Exception(message)
+                    string? idempotencyKey,
+                    string message,
+                    Exception? innerException = null
+                ) : Exception(message, innerException)
                 {
+                    public string? IdempotencyKey { get; } = idempotencyKey;
+
+                    public bool IsTransient => false;
+
                     public ServiceTaskReplyForwardOutcome Outcome { get; } = outcome;
 
                     public Guid ReplyAddressId { get; } = replyAddressId;
@@ -280,7 +336,13 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
 
                 public interface IServiceTaskReplyForwarder
                 {
-                    Task ForwardReply(Guid replyAddressId, string serviceTaskType, string payload, string idempotencyKey);
+                    Task ForwardReply(
+                        Guid replyAddressId,
+                        string serviceTaskType,
+                        string payload,
+                        string idempotencyKey,
+                        System.Threading.CancellationToken cancellationToken = default
+                    );
                 }
         """;
 
@@ -3229,4 +3291,136 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
         Assert.Empty(Migrate(semantic: true, _currentSdk.Value).Messages);
         Assert.Equal(once[0], await ReadMigrated(files[0]));
     }
+
+    /// <summary>
+    /// The names the upgrade writes are in the App library's public API, and the previews' names it renames or reports
+    /// are not, as the library's public API snapshot lists them.
+    /// </summary>
+    [Fact]
+    public void PipelineNames_TheUpgradeWritesAndReplaces_MatchTheAppLibrarysPublicApi()
+    {
+        var snapshot = Path.Combine(AppContext.BaseDirectory, "Upgrade", "v8Tov9", "TestData", "AppCorePublicApi.txt");
+        Assert.True(
+            File.Exists(snapshot),
+            "The App library's public API snapshot is copied next to the tests from src/App/backend/test, which this "
+                + "checkout does not have."
+        );
+        var types = PublicTypes(File.ReadAllText(snapshot));
+        var process = PipelineApi.Namespace + ".";
+        IReadOnlyList<string> Members(string type) =>
+            types.TryGetValue(process + type, out var members) ? members : throw new KeyNotFoundException(type);
+        bool HasMember(string type, string member) => Members(type).Any(line => MemberName(line) == member);
+        string Declaration(string type, string member) => Members(type).Single(line => MemberName(line) == member);
+
+        var serviceTask = PipelineApi.ServiceTaskBuilder;
+        var lifecycle = PipelineApi.LifecycleBuilder;
+        Assert.True(HasMember(serviceTask, PipelineApi.Stage));
+        Assert.True(HasMember(lifecycle, PipelineApi.Stage));
+        var externalStage = Declaration(serviceTask, PipelineApi.ExternalStage);
+        Assert.All(
+            [PipelineApi.Timeout, PipelineApi.OnTimeout, PipelineApi.Options],
+            parameter => Assert.Contains($" {parameter} = ", externalStage, StringComparison.Ordinal)
+        );
+        Assert.Contains(
+            $"{PipelineApi.DefineExecute}({process}{serviceTask} ",
+            Declaration("IServiceTask", PipelineApi.DefineExecute),
+            StringComparison.Ordinal
+        );
+        Assert.All(
+            [PipelineApi.StageResult, PipelineApi.ServiceTaskResult, PipelineApi.ServiceTaskReplyResult],
+            type => Assert.True(types.ContainsKey(process + type), type)
+        );
+
+        foreach (var (removed, now) in PreviewPipelineMigration.PreviewApi.RemovedBuilderMethods)
+        {
+            Assert.False(HasMember(PipelineApi.Builder, removed) || HasMember(serviceTask, removed), removed);
+            Assert.False(HasMember(lifecycle, removed), removed);
+            Assert.True(now is null || HasMember(serviceTask, now), now);
+        }
+
+        foreach (var removed in PreviewPipelineMigration.PreviewApi.RemovedTypes.Keys)
+        {
+            Assert.False(types.ContainsKey(process + removed), removed);
+        }
+
+        foreach (var (previewName, name) in PreviewPipelineMigration.PreviewApi.RenamedTypes)
+        {
+            Assert.False(types.ContainsKey(process + previewName), previewName);
+            Assert.True(types.ContainsKey(process + name), name);
+        }
+
+        foreach (var (type, member, renamed, _, _) in PreviewPipelineMigration.PreviewApi.RenamedMembers)
+        {
+            Assert.False(HasMember(type, member), $"{type}.{member}");
+            Assert.True(HasMember(type, renamed), $"{type}.{renamed}");
+        }
+
+        foreach (var (type, method, parameter, renamed) in PreviewPipelineMigration.PreviewApi.RenamedParameters)
+        {
+            var declaration = Declaration(type, method);
+            Assert.Contains($" {renamed},", declaration, StringComparison.Ordinal);
+            Assert.DoesNotContain($" {parameter}", declaration, StringComparison.Ordinal);
+        }
+
+        foreach (var created in PreviewPipelineMigration.PreviewApi.CreatedThrough.Keys)
+        {
+            var renamed = PreviewPipelineMigration.PreviewApi.RenamedTypes[created];
+            Assert.False(HasMember(renamed, renamed), $"{renamed} has a public constructor");
+        }
+    }
+
+    /// <summary>
+    /// The types a public API snapshot lists, by their full names, with the lines that declare their members.
+    /// </summary>
+    private static Dictionary<string, List<string>> PublicTypes(string snapshot)
+    {
+        var types = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var nesting = new List<string>();
+        var namespaceName = "";
+        foreach (var line in snapshot.ReplaceLineEndings("\n").Split('\n'))
+        {
+            if (line.StartsWith("namespace ", StringComparison.Ordinal))
+            {
+                namespaceName = line["namespace ".Length..];
+                nesting.Clear();
+                continue;
+            }
+
+            // A namespace's types are indented one level, their members and nested types one more.
+            var depth = (line.Length - line.TrimStart().Length) / 4;
+            if (depth == 0 || line.Trim() is "{" or "}" || line.TrimStart().StartsWith('['))
+            {
+                continue;
+            }
+
+            if (TypeDeclaration().Match(line) is { Success: true } type)
+            {
+                nesting.RemoveRange(depth - 1, nesting.Count - depth + 1);
+                nesting.Add(type.Groups["name"].Value);
+                types[$"{namespaceName}.{string.Join('.', nesting)}"] = [];
+            }
+            else if (depth > 1 && depth - 1 <= nesting.Count)
+            {
+                types[$"{namespaceName}.{string.Join('.', nesting.Take(depth - 1))}"].Add(line.Trim());
+            }
+        }
+
+        return types;
+    }
+
+    /// <summary>
+    /// The name a member's line in a public API snapshot declares: a method's or constructor's, a property's or an enum
+    /// member's.
+    /// </summary>
+    private static string? MemberName(string line) =>
+        MemberDeclaration().Match(line) is { Success: true } member ? member.Groups["name"].Value : null;
+
+    [GeneratedRegex(@"^\s*public (?:\w+ )*(?:class|interface|enum|struct) (?<name>\w+)", RegexOptions.CultureInvariant)]
+    private static partial Regex TypeDeclaration();
+
+    [GeneratedRegex(
+        @"(?<name>\w+)(?:<[^()]*>)?\(|(?<name>\w+) \{ (?:get|set|init)|^(?<name>\w+) = ",
+        RegexOptions.CultureInvariant
+    )]
+    private static partial Regex MemberDeclaration();
 }

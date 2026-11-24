@@ -9,6 +9,8 @@ on:
       # studioctl imports Go packages from devenv through a go.mod replace directive.
       - "src/Runtime/devenv/**"
       - "src/tools/releaser/**"
+      # studioctl's tests check the names its v9 upgrade writes against the App library's public API.
+      - "src/App/backend/test/Altinn.App.Core.Tests/PublicApiTests.PublicApi_ShouldNotChange_Unintentionally.verified.txt"
       - .github/workflows/cli-build-test.yaml
       - "!**/AGENTS.md"
       - "!**/README.md"
