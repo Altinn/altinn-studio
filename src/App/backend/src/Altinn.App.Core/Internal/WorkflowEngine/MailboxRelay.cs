@@ -63,13 +63,7 @@ internal sealed class MailboxRelay
         result switch
         {
             CompletedServiceTaskResult => CarryOn(serviceTaskType, stepId, carry, stageIndex, pipeline, closing: null),
-            EndedServiceTaskResult ended => EndTask(
-                ended.Action,
-                serviceTaskType,
-                stepId,
-                carry,
-                closing: carry.OpenMailbox?.Id
-            ),
+            EndedServiceTaskResult ended => EndTask(ended.Action, serviceTaskType, stepId, carry),
             _ => DeferOrFail(result, serviceTaskType),
         };
 
@@ -106,7 +100,7 @@ internal sealed class MailboxRelay
                 };
 
             case EndedServiceTaskResult ended:
-                return EndTask(ended.Action, serviceTaskType, stepId, carry, closing: mailbox.Id);
+                return EndTask(ended.Action, serviceTaskType, stepId, carry);
 
             default:
                 return DeferOrFail(result, serviceTaskType);
@@ -154,7 +148,7 @@ internal sealed class MailboxRelay
                 return CarryOn(serviceTaskType, stepId, carry, stageIndex, pipeline, closing: receipt.Id);
 
             case EndedServiceTaskResult ended:
-                return EndTask(ended.Action, serviceTaskType, stepId, carry, closing: receipt.Id);
+                return EndTask(ended.Action, serviceTaskType, stepId, carry);
 
             default:
                 return DeferOrFail(result, serviceTaskType);
@@ -177,7 +171,7 @@ internal sealed class MailboxRelay
     {
         if (pipeline.IsLast(itemIndex))
         {
-            return EndTask(action: null, serviceTaskType, stepId, carry, closing ?? carry.OpenMailbox?.Id);
+            return EndTask(action: null, serviceTaskType, stepId, carry);
         }
 
         if (StepIdMissing(stepId, serviceTaskType, "start the pipeline's next item") is { } noKey)
@@ -207,19 +201,20 @@ internal sealed class MailboxRelay
     }
 
     /// <summary>
-    /// Ends the task and moves the process on with <paramref name="action"/>. With a mailbox open, the relay closes
-    /// it before it enqueues the next transition; with none, the callback enqueues it directly, as for any step
-    /// that ends a task.
+    /// Ends the task and moves the process on with <paramref name="action"/>. With a mailbox open in
+    /// <paramref name="carry"/>, the relay closes it before it enqueues the next transition; with none, the callback
+    /// enqueues it directly, as for any step that ends a task.
     /// </summary>
     private static WorkflowEngineCommandResult EndTask(
         string? action,
         string serviceTaskType,
         Guid stepId,
-        WorkflowCallbackStateCarry carry,
-        Guid? closing
+        WorkflowCallbackStateCarry carry
     )
     {
-        if (closing is not { } mailboxId)
+        // The carry holds the task's one open mailbox, whichever step ends the task: the send's and the reply
+        // step's state carry the mailbox they publish or are parked on.
+        if (carry.OpenMailbox is not { } open)
         {
             return new SuccessfulWorkflowEngineCommandResult { ProcessNextContinuation = new(action) };
         }
@@ -235,7 +230,7 @@ internal sealed class MailboxRelay
         return new SuccessfulWorkflowEngineCommandResult
         {
             ProcessNextContinuation = new(action),
-            MailboxContinuation = new MailboxContinuation.Conclude(mailboxId),
+            MailboxContinuation = new MailboxContinuation.Conclude(open.Id),
         };
     }
 
