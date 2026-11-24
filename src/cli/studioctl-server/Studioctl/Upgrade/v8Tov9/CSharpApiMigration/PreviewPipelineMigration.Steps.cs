@@ -476,9 +476,7 @@ internal sealed partial class PreviewPipelineMigration
                 }
             }
 
-            var bases = ((method.Parent as TypeDeclarationSyntax)?.BaseList?.Types ?? default)
-                .Select(static type => SimpleName(type.Type) ?? (type.Type as GenericNameSyntax)?.Identifier.ValueText)
-                .ToHashSet(StringComparer.Ordinal);
+            var bases = ImplementedTypeNames(method.Parent as TypeDeclarationSyntax);
             foreach (var (_, other) in sameName)
             {
                 if (other.Parent is InterfaceDeclarationSyntax owner && bases.Contains(owner.Identifier.ValueText))
@@ -489,6 +487,55 @@ internal sealed partial class PreviewPipelineMigration
 
             return null;
         }
+
+        /// <summary>
+        /// The names a type's base lists reach: those of every partial part of it, and through them those of the
+        /// app's own types, so that an interface listed on another part, or inherited by a listed one, counts too.
+        /// Parts and types are matched by name alone, which can only report more.
+        /// </summary>
+        private HashSet<string> ImplementedTypeNames(TypeDeclarationSyntax? type)
+        {
+            var reached = new HashSet<string>(StringComparer.Ordinal);
+            if (type is null)
+            {
+                return reached;
+            }
+
+            var declarations = files
+                .SelectMany(static file => file.Root.DescendantNodes().OfType<TypeDeclarationSyntax>())
+                .ToList();
+            IEnumerable<TypeDeclarationSyntax> parts = type.Modifiers.Any(SyntaxKind.PartialKeyword)
+                ? declarations.Where(other =>
+                    other.Identifier.ValueText == type.Identifier.ValueText
+                    && other.Modifiers.Any(SyntaxKind.PartialKeyword)
+                )
+                : [type];
+            var pending = new Queue<string>(parts.SelectMany(BaseNames));
+            while (pending.TryDequeue(out var name))
+            {
+                if (!reached.Add(name))
+                {
+                    continue;
+                }
+
+                foreach (var declared in declarations.Where(other => other.Identifier.ValueText == name))
+                {
+                    foreach (var inherited in BaseNames(declared))
+                    {
+                        pending.Enqueue(inherited);
+                    }
+                }
+            }
+
+            return reached;
+        }
+
+        private static IEnumerable<string> BaseNames(TypeDeclarationSyntax type) =>
+            (type.BaseList?.Types ?? default)
+                .Select(static baseType =>
+                    SimpleName(baseType.Type) ?? (baseType.Type as GenericNameSyntax)?.Identifier.ValueText
+                )
+                .OfType<string>();
 
         private bool Changes(StepFunction target, StepRole role) =>
             role.CanChange
