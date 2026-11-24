@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,6 +80,17 @@ public class MailboxRelayTests
             string? Action,
             string? IdempotencyKey
         )> AfterWorkflows { get; } = [];
+
+        /// <summary>
+        /// What every enqueue throws once it is recorded, standing in for an engine that refused it.
+        /// </summary>
+        public Exception? EnqueueFailure { get; set; }
+
+        /// <summary>
+        /// The workflows the engine holds, in full; the list read leaves out their dependencies, as the engine's
+        /// list endpoint does.
+        /// </summary>
+        public List<WorkflowStatusResponse> EngineWorkflows { get; } = [];
     }
 
     private sealed class RecordingEngineClient(RelayRecorder recorder) : IWorkflowEngineClient
@@ -96,6 +109,11 @@ public class MailboxRelayTests
             // mailbox declaration.
             recorder.Calls.Add(request.Workflows[0].Mailbox is null ? "enqueue-continuation" : "enqueue-receiver");
             recorder.Enqueues.Add((ns, idempotencyKey, collectionKey, request));
+            if (recorder.EnqueueFailure is { } failure)
+            {
+                return Task.FromException<WorkflowEnqueueResponse.Accepted>(failure);
+            }
+
             return Task.FromResult(
                 new WorkflowEnqueueResponse.Accepted
                 {
@@ -126,7 +144,13 @@ public class MailboxRelayTests
             string ns,
             Guid workflowId,
             CancellationToken cancellationToken = default
-        ) => throw new NotSupportedException();
+        )
+        {
+            recorder.Calls.Add("get-workflow");
+            return Task.FromResult(
+                recorder.EngineWorkflows.FirstOrDefault(w => w.Namespace == ns && w.DatabaseId == workflowId)
+            );
+        }
 
         public Task<WorkflowCollectionDetailResponse?> GetCollection(
             string ns,
@@ -140,7 +164,15 @@ public class MailboxRelayTests
             Dictionary<string, string>? labels = null,
             IReadOnlyList<PersistentItemStatus>? statuses = null,
             CancellationToken cancellationToken = default
-        ) => throw new NotSupportedException();
+        )
+        {
+            recorder.Calls.Add("list-workflows");
+            return Task.FromResult<IReadOnlyList<WorkflowStatusResponse>>([
+                .. recorder
+                    .EngineWorkflows.Where(w => w.Namespace == ns && w.CollectionKey == collectionKey)
+                    .Select(w => w with { Dependencies = null }),
+            ]);
+        }
 
         public Task<CancelWorkflowResponse> CancelWorkflow(
             string ns,
@@ -1834,6 +1866,185 @@ public class MailboxRelayTests
             ["close-mailbox", "enqueue-continuation", "close-mailbox", "enqueue-continuation"],
             recorder.Calls
         );
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // A retried hop — the engine answers 409 when an earlier attempt's successor already holds the key.
+    // ---------------------------------------------------------------------------------------------
+
+    private static HttpRequestException Conflict() => new("Conflict", null, HttpStatusCode.Conflict);
+
+    /// <summary>A hop that enqueues the named successor, and the operation id the relay gives it.</summary>
+    private static (MailboxRelay Relay, MailboxContinuation Continuation, string OperationId) SuccessorHop(
+        string successor,
+        RelayRecorder recorder
+    ) =>
+        successor switch
+        {
+            "receiver" => (
+                CreateRelay(recorder),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, ArchivingReplyIndex, position: 2),
+                "Mailbox receive: Task_2 · after message 2"
+            ),
+            "continuation" => (
+                CreateRelay(recorder, new ArchiveThenJournalTask()),
+                Continuing(),
+                $"Mailbox continue: Task_2 · after {SegmentHandlerIndex}"
+            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(successor), successor, null),
+        };
+
+    /// <summary>
+    /// The successor an earlier attempt of the step enqueued, as the engine holds it: keyed on the step, named
+    /// as the relay names it, and depending on the workflow whose step ran the hop.
+    /// </summary>
+    private static WorkflowStatusResponse HeldSuccessor(Guid stepId, Guid parentWorkflowId, string operationId) =>
+        new()
+        {
+            DatabaseId = Guid.NewGuid(),
+            Namespace = "ttd/test-app",
+            CollectionKey = _instanceGuid.ToString(),
+            IdempotencyKey = stepId.ToString(),
+            OperationId = operationId,
+            CreatedAt = new DateTimeOffset(2026, 8, 19, 10, 0, 1, TimeSpan.Zero),
+            OverallStatus = PersistentItemStatus.Enqueued,
+            Role = WorkflowRole.Primary,
+            Dependencies = new Dictionary<Guid, PersistentItemStatus>
+            {
+                [parentWorkflowId] = PersistentItemStatus.Processing,
+            },
+            Steps = [],
+        };
+
+    /// <summary>
+    /// A retry signs its state again, so its enqueue can differ from the lost attempt's and get a 409 for the
+    /// same key. The successor that attempt enqueued stands, and the hop succeeds.
+    /// </summary>
+    [Theory]
+    [InlineData("receiver")]
+    [InlineData("continuation")]
+    public async Task RetriedHop_WhoseSuccessorTheEngineAlreadyHolds_AcceptsItOnAConflict(string successor)
+    {
+        var stepId = Guid.NewGuid();
+        var parentWorkflowId = Guid.NewGuid();
+        var recorder = new RelayRecorder { EnqueueFailure = Conflict() };
+        (MailboxRelay relay, MailboxContinuation continuation, string operationId) = SuccessorHop(successor, recorder);
+        WorkflowStatusResponse held = HeldSuccessor(stepId, parentWorkflowId, operationId);
+        // An abandoned row keeps its key after the key becomes reusable, and is no successor.
+        recorder.EngineWorkflows.AddRange([
+            held,
+            held with
+            {
+                DatabaseId = Guid.NewGuid(),
+                OverallStatus = PersistentItemStatus.Abandoned,
+            },
+        ]);
+
+        await relay.Continue(continuation, CreateRequest(stepId, parentWorkflowId), CancellationToken.None);
+
+        Assert.Single(recorder.Enqueues);
+        Assert.Empty(recorder.AfterWorkflows);
+    }
+
+    public static TheoryData<string, string> UnrecoverableConflicts
+    {
+        get
+        {
+            var data = new TheoryData<string, string>();
+            foreach (string successor in new[] { "receiver", "continuation" })
+            {
+                foreach (
+                    string scenario in new[]
+                    {
+                        "none",
+                        "two",
+                        "abandoned",
+                        "auxiliary",
+                        "other-operation",
+                        "other-key",
+                        "detail-without-parent",
+                    }
+                )
+                {
+                    data.Add(successor, scenario);
+                }
+            }
+
+            return data;
+        }
+    }
+
+    /// <summary>
+    /// Only the one successor this hop would have enqueued stands in for it. Anything less certain leaves the
+    /// conflict to fail the step.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(UnrecoverableConflicts))]
+    public async Task RetriedHop_OnAConflict_FailsUnlessExactlyOneHeldSuccessorMatches(
+        string successor,
+        string scenario
+    )
+    {
+        var stepId = Guid.NewGuid();
+        var parentWorkflowId = Guid.NewGuid();
+        HttpRequestException conflict = Conflict();
+        var recorder = new RelayRecorder { EnqueueFailure = conflict };
+        (MailboxRelay relay, MailboxContinuation continuation, string operationId) = SuccessorHop(successor, recorder);
+        WorkflowStatusResponse held = HeldSuccessor(stepId, parentWorkflowId, operationId);
+        recorder.EngineWorkflows.AddRange(
+            scenario switch
+            {
+                "none" => [],
+                "two" => [held, held with { DatabaseId = Guid.NewGuid() }],
+                "abandoned" => [held with { OverallStatus = PersistentItemStatus.Abandoned }],
+                "auxiliary" => [held with { Role = WorkflowRole.Auxiliary }],
+                "other-operation" => [held with { OperationId = "Mailbox receive: Task_2 · 0" }],
+                "other-key" => [held with { IdempotencyKey = Guid.NewGuid().ToString() }],
+                "detail-without-parent" =>
+                [
+                    held with
+                    {
+                        Dependencies = new Dictionary<Guid, PersistentItemStatus>
+                        {
+                            [Guid.NewGuid()] = PersistentItemStatus.Completed,
+                        },
+                    },
+                ],
+                _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, null),
+            }
+        );
+
+        HttpRequestException thrown = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            relay.Continue(continuation, CreateRequest(stepId, parentWorkflowId), CancellationToken.None)
+        );
+
+        Assert.Same(conflict, thrown);
+        // Refused from what the engine holds: a relay that never looks would pass the assertion above.
+        Assert.Contains("list-workflows", recorder.Calls);
+        Assert.Single(recorder.Enqueues);
+    }
+
+    /// <summary>
+    /// Only a conflict means the key is taken. Any other refusal fails the hop, even when the engine holds a
+    /// matching successor.
+    /// </summary>
+    [Theory]
+    [InlineData("receiver")]
+    [InlineData("continuation")]
+    public async Task HopEnqueue_RefusedWithoutAConflict_FailsTheHop(string successor)
+    {
+        var stepId = Guid.NewGuid();
+        var parentWorkflowId = Guid.NewGuid();
+        var refusal = new HttpRequestException("Bad request", null, HttpStatusCode.BadRequest);
+        var recorder = new RelayRecorder { EnqueueFailure = refusal };
+        (MailboxRelay relay, MailboxContinuation continuation, string operationId) = SuccessorHop(successor, recorder);
+        recorder.EngineWorkflows.Add(HeldSuccessor(stepId, parentWorkflowId, operationId));
+
+        HttpRequestException thrown = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            relay.Continue(continuation, CreateRequest(stepId, parentWorkflowId), CancellationToken.None)
+        );
+
+        Assert.Same(refusal, thrown);
     }
 
     // ---------------------------------------------------------------------------------------------
