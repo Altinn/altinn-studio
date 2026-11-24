@@ -27,7 +27,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 - Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
-- A service task that waits for replies no longer fails when the workflow engine retries a step that had already started what comes next, such as after the `WorkflowEngineCallback` app code rotated.
+- A service task that waits for replies no longer fails when the workflow engine retries a step that had already started what comes next, such as after the `WorkflowEngineCallback` app code rotated. ([#22097](https://github.com/Altinn/altinn-studio/pull/22097))
 
 ## [9.0.0-preview.14] - 2026-11-20
 
