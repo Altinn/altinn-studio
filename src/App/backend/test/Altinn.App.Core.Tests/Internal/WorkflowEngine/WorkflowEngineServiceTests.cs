@@ -1058,6 +1058,83 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResumeAndWaitForWorkflow_LaterStageWorkflowThatFailsAgain_ReportsTheCommittedProcess()
+    {
+        // A resumed later stage that fails again reports its failure together with the process state, which its
+        // transition committed in an older workflow.
+        Guid primaryWorkflowId = Guid.NewGuid();
+        Guid stageWorkflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, stageWorkflowId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(stageWorkflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, stageWorkflowId, PersistentItemStatus.Failed));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow.AddSeconds(-1),
+                    status: PersistentItemStatus.Completed,
+                    databaseId: primaryWorkflowId,
+                    steps:
+                    [
+                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                    ]
+                ),
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Failed,
+                    operationId: $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} Task_1 · after 0",
+                    databaseId: stageWorkflowId,
+                    steps: [CreateStep($"{ExecuteServiceTask.Key}: 1", PersistentItemStatus.Failed)]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            new TimeSkippingTimeProvider()
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, stageWorkflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.True(result.ProcessStateCommitted);
+    }
+
+    [Fact]
     public void ExtractCallbackErrorDetail_WhenMessageEmbedsProblemDetails_ReturnsTheDetail()
     {
         // The engine wraps a failed app callback as "<prose>: {ProblemDetails json}"; the embedded
