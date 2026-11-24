@@ -711,11 +711,28 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return ExtractTargetTask(workflow?.Labels);
     }
 
+    /// <summary>
+    /// Whether the transition the chain belongs to has committed its process state: a completed
+    /// <see cref="CommitProcessState"/> step, or a workflow a service task step enqueued, which only runs after the
+    /// commit. A resumed later item's chain holds only the latter, since its transition committed in an older workflow.
+    /// </summary>
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>
-            workflow.Steps.Any(step =>
+            IsServiceTaskSuccessor(workflow)
+            || workflow.Steps.Any(step =>
                 step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
             )
+        );
+
+    /// <summary>
+    /// A workflow of a service task's pipeline item after the first: every step is a service task step, where a
+    /// transition's own workflows also hold its other steps.
+    /// </summary>
+    private static bool IsServiceTaskSuccessor(WorkflowStatusResponse workflow) =>
+        workflow.Steps.Count > 0
+        && workflow.Steps.All(step =>
+            step.OperationId.StartsWith($"{ExecuteServiceTask.Key}:", StringComparison.Ordinal)
+            || step.OperationId.StartsWith($"{MintMailbox.Key}:", StringComparison.Ordinal)
         );
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
