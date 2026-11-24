@@ -15,10 +15,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 - `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
 - Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- Build check `ALTINNAPP0704` reports a process task method named after an `IProcessTask` member that it does not implement, such as `DefineStart(PipelineBuilder.ServiceTask pipeline)`, which would never run.
 
 ### Changed
 
 - Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- Breaking: A service task composes `Stage` and `ExternalStage` calls on `PipelineBuilder.ServiceTask` in `DefineExecute`, which returns `void`. Any step can end the task with `ServiceTaskResult.EndTask(action)`, and otherwise the task ends after its last stage. `Finally`, `HandleReplies`, `ConcludeOnReplies` and `ServiceTaskResult.Success` are removed. Rerun `studioctl app upgrade v9` to rewrite preview code.
+- Breaking: `ExternalStage(send, onReply, timeout, onTimeout)` replaces mailbox stages and handles. The send gets a `ReplyAddress`, reply handlers return `ServiceTaskReplyResult`, and the timeout defaults to 14 days. Without `onTimeout`, the task fails when the replies stop coming. A failed step no longer closes the reply address.
+- Breaking: `DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return `void`, and `Build()` is removed.
+- Breaking: `IServiceTaskReplyForwarder.ForwardReply` takes `replyAddressId`, `ServiceTaskReplyForwardException.MailboxId` is renamed `ReplyAddressId`, and `ServiceTaskReplyForwardOutcome.MailboxFull` is renamed `TooManyReplies`.
 - Each stage of a service task runs in a workflow of its own, listed as `Mailbox continue` after the first in the workflow engine and Studio's admin panel. A task no longer stalls when a redeploy adds a stage while it runs. ([#22101](https://github.com/Altinn/altinn-studio/pull/22101))
 - An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 
@@ -28,6 +33,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 - Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
 - A service task that waits for replies no longer fails when the workflow engine retries a step that had already started what comes next, such as after the `WorkflowEngineCallback` app code rotated. ([#22097](https://github.com/Altinn/altinn-studio/pull/22097))
+
+### Removed
+
+- Build checks `ALTINNAPP0702` and `ALTINNAPP0703`, since there are no mailbox handles left to check.
 
 ## [9.0.0-preview.14] - 2026-11-20
 
