@@ -20,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- A form can change data of a data type with `taskIds` in the tasks it lists, whether or not the data element is locked, as Storage allows. Changes a data processor makes when that data is read are saved there too. Data of a data type without `taskIds` is still read-only while it is locked. ([#22099](https://github.com/Altinn/altinn-studio/pull/22099))
 
 ### Fixed
 

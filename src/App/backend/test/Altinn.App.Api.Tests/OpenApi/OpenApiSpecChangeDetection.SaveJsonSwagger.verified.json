@@ -9382,7 +9382,8 @@
       "DataModelInfo": {
         "required": [
           "initialData",
-          "schema"
+          "schema",
+          "writable"
         ],
         "type": "object",
         "properties": {
@@ -9391,6 +9392,9 @@
           "dataElementId": {
             "type": "string",
             "nullable": true
+          },
+          "writable": {
+            "type": "boolean"
           },
           "expressionValidationConfig": {},
           "calculationConfig": {

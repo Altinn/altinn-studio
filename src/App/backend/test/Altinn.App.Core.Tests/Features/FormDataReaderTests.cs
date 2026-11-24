@@ -89,9 +89,10 @@ public class FormDataReaderTests
             // Storage refuses a change outside the data type's tasks.
             { ["Task_1"], "Task_2", false, false },
             { ["Task_1"], null, false, false },
-            // Storage refuses every change to a locked element.
+            // Storage refuses a change to a locked element, unless its data type is bound to tasks.
             { null, "Task_2", true, false },
-            { ["Task_1"], "Task_1", true, false },
+            { [], "Task_2", true, false },
+            { ["Task_1"], "Task_1", true, true },
         };
 
     [Theory]
