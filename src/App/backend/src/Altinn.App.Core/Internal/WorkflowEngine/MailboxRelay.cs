@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
@@ -583,13 +584,7 @@ internal sealed class MailboxRelay
             Workflows = [receiveWorkflow],
         };
 
-        await _workflowEngineClient.EnqueueWorkflows(
-            ns: GetNamespace(request.AppId),
-            idempotencyKey: request.Payload.StepId.ToString(),
-            collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
-            request: enqueueRequest,
-            cancellationToken: cancellationToken
-        );
+        await EnqueueSuccessor(enqueueRequest, request, cancellationToken);
     }
 
     /// <summary>
@@ -646,13 +641,52 @@ internal sealed class MailboxRelay
             Workflows = [continuationWorkflow],
         };
 
-        await _workflowEngineClient.EnqueueWorkflows(
-            ns: GetNamespace(request.AppId),
-            idempotencyKey: request.Payload.StepId.ToString(),
-            collectionKey: ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId),
-            request: enqueueRequest,
-            cancellationToken: cancellationToken
-        );
+        await EnqueueSuccessor(enqueueRequest, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Enqueues a receiver's or a continuation's one workflow under the executing step's key. When a retried
+    /// hop gets a 409, the successor an earlier attempt enqueued stands in for it, if exactly one matches.
+    /// </summary>
+    private async Task EnqueueSuccessor(
+        WorkflowEnqueueRequest enqueueRequest,
+        MailboxRelayRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        string ns = GetNamespace(request.AppId);
+        string idempotencyKey = request.Payload.StepId.ToString();
+        string collectionKey = ProcessNextRequestFactory.CreateCollectionKey(request.InstanceId);
+        try
+        {
+            await _workflowEngineClient.EnqueueWorkflows(
+                ns,
+                idempotencyKey,
+                collectionKey,
+                enqueueRequest,
+                cancellationToken
+            );
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            // A retry publishes its state again, and a Storage replay or a rotated signing key can change its
+            // bytes, so the engine refuses the key the lost attempt's successor holds. That successor depends on
+            // the workflow running this step, and its operation id names which successor it is.
+            string operationId = enqueueRequest.Workflows[0].OperationId;
+            Guid? accepted = await WorkflowEngineService.FindAcceptedDependent(
+                _workflowEngineClient,
+                ns,
+                collectionKey,
+                idempotencyKey,
+                request.Payload.WorkflowId,
+                workflow => workflow.OperationId == operationId,
+                cancellationToken
+            );
+            if (accepted is null)
+            {
+                throw;
+            }
+        }
     }
 
     /// <summary>

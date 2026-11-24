@@ -353,49 +353,74 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             // continuation is authoritative if the acknowledgment was lost. Storage replay can
             // refresh incidental instance metadata, and state signing keys can rotate, so even a
             // deterministic transition may carry different state bytes on reconstruction.
-            var workflows = await _workflowEngineClient.ListWorkflows(
-                bundle.Namespace,
-                collectionKey,
-                cancellationToken: cancellationToken
-            );
             string? sourceTask = bundle.Request.Labels?.GetValueOrDefault(
                 ProcessNextRequestFactory.ProcessNextSourceTaskLabel
             );
             string? sourceFlow = bundle.Request.Labels?.GetValueOrDefault(
                 ProcessNextRequestFactory.ProcessNextSourceFlowLabel
             );
-            bool MatchesContinuation(WorkflowStatusResponse workflow) =>
-                workflow.Namespace == bundle.Namespace
-                && workflow.CollectionKey == collectionKey
-                && workflow.IdempotencyKey == bundle.IdempotencyKey
-                && workflow.OverallStatus != PersistentItemStatus.Abandoned
-                && !IsAuxiliaryWorkflow(workflow)
-                && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceTaskLabel)
-                    == sourceTask
-                && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceFlowLabel)
-                    == sourceFlow;
-
-            var candidates = workflows.Where(MatchesContinuation).ToArray();
-            if (candidates.Length == 1)
+            Guid? accepted = await FindAcceptedDependent(
+                _workflowEngineClient,
+                bundle.Namespace,
+                collectionKey,
+                bundle.IdempotencyKey,
+                dependsOnWorkflowId,
+                workflow =>
+                    workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceTaskLabel)
+                        == sourceTask
+                    && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceFlowLabel)
+                        == sourceFlow,
+                cancellationToken
+            );
+            if (accepted is { } acceptedWorkflowId)
             {
-                // List responses omit dependencies. Read the detail to verify the parent and
-                // recheck eligibility in case the candidate was abandoned after the list read.
-                var accepted = await _workflowEngineClient.GetWorkflow(
-                    bundle.Namespace,
-                    candidates[0].DatabaseId,
-                    cancellationToken
-                );
-                if (
-                    accepted is not null
-                    && MatchesContinuation(accepted)
-                    && accepted.Dependencies?.ContainsKey(dependsOnWorkflowId) == true
-                )
-                {
-                    return accepted.DatabaseId;
-                }
+                return acceptedWorkflowId;
             }
+
             throw;
         }
+    }
+
+    /// <summary>
+    /// After a 409 on an enqueue, finds the workflow an earlier attempt with the same key created: the one
+    /// primary, unabandoned workflow under that key that <paramref name="isSameWorkflow"/> accepts and that
+    /// depends on <paramref name="parentWorkflowId"/>. Null when there is none, or more than one.
+    /// </summary>
+    internal static async Task<Guid?> FindAcceptedDependent(
+        IWorkflowEngineClient client,
+        string ns,
+        string collectionKey,
+        string idempotencyKey,
+        Guid parentWorkflowId,
+        Func<WorkflowStatusResponse, bool> isSameWorkflow,
+        CancellationToken cancellationToken
+    )
+    {
+        IReadOnlyList<WorkflowStatusResponse> workflows = await client.ListWorkflows(
+            ns,
+            collectionKey,
+            cancellationToken: cancellationToken
+        );
+        bool Matches(WorkflowStatusResponse workflow) =>
+            workflow.Namespace == ns
+            && workflow.CollectionKey == collectionKey
+            && workflow.IdempotencyKey == idempotencyKey
+            && workflow.OverallStatus != PersistentItemStatus.Abandoned
+            && !IsAuxiliaryWorkflow(workflow)
+            && isSameWorkflow(workflow);
+
+        WorkflowStatusResponse[] candidates = workflows.Where(Matches).ToArray();
+        if (candidates.Length != 1)
+        {
+            return null;
+        }
+
+        // List responses omit dependencies. Read the detail to verify the parent and
+        // recheck eligibility in case the candidate was abandoned after the list read.
+        WorkflowStatusResponse? accepted = await client.GetWorkflow(ns, candidates[0].DatabaseId, cancellationToken);
+        return accepted is not null && Matches(accepted) && accepted.Dependencies?.ContainsKey(parentWorkflowId) == true
+            ? accepted.DatabaseId
+            : null;
     }
 
     private Task<WorkflowEnqueueEnvelope> CreateWorkflowEnqueueEnvelope(
