@@ -164,7 +164,7 @@ internal sealed class MailboxRelay
     /// <summary>
     /// The item at <paramref name="itemIndex"/> is done: start the next item's workflow, closing
     /// <paramref name="closing"/> first when the item is an external stage done with its replies, or end the task
-    /// with no action after the last item.
+    /// with no action after the last item, as <see cref="EndTask"/> does.
     /// </summary>
     private static WorkflowEngineCommandResult CarryOn(
         string serviceTaskType,
@@ -177,7 +177,7 @@ internal sealed class MailboxRelay
     {
         if (pipeline.IsLast(itemIndex))
         {
-            return EndTask(action: null, serviceTaskType, stepId, carry, closing);
+            return EndTask(action: null, serviceTaskType, stepId, carry, closing ?? carry.OpenMailbox?.Id);
         }
 
         if (StepIdMissing(stepId, serviceTaskType, "start the pipeline's next item") is { } noKey)
