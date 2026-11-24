@@ -27,9 +27,9 @@ public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         .Stage(NotifyCaseWorker);
 ```
 
-The items run in composition order. Every call appends to the builder and returns it, and the runtime reads what
-was composed when `DefineExecute` returns. Any step can end the task with `ServiceTaskResult.EndTask(action)`, and
-otherwise the task ends once the last item completes.
+Each `Stage` or `ExternalStage` call adds an item to the pipeline, and the items run in composition order. Every call
+appends to the builder and returns it, and the runtime reads what was composed when `DefineExecute` returns. Any step
+can end the task with `ServiceTaskResult.EndTask(action)`, and otherwise the task ends once the last item completes.
 
 `DefineExecute` runs when a transition is enqueued, on every callback, and at app startup. It must be cheap,
 deterministic and side-effect free. The work happens inside the stages when the engine runs them.
@@ -103,8 +103,8 @@ yourself, is the durable guard for send-then-poll work: give the send its own st
   side effect: an attempt that sends and then crashes re-runs with all of those unchanged.
 - Stages share state through `StageContext.InstanceDataMutator` and nothing else: a completed
   stage's data changes are saved into the workflow state and visible to every stage after it.
-- A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
-  that must _record_ something records it and returns success.
+- A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A stage
+  that must _record_ something records it and returns `Completed()` or `EndTask`.
 - A stage also runs again when its save committed but the app's answer never reached the engine. The retry
   starts from the state the first attempt received, and Storage discards the retry's save because the step
   id is the same. The stages after it see what the first attempt saved. Work outside Storage runs a second
@@ -114,12 +114,12 @@ yourself, is the durable guard for send-then-poll work: give the send its own st
 
 A service task's stage, an external stage's send and its `onTimeout` return a `ServiceTaskResult`:
 
-| Result                                          | Effect                                                                                                                             |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `Completed()`                                   | The step is done and its data changes are saved. The next item runs, or, after the last item, the task ends with the default flow. |
-| `EndTask(action?)`                              | The task ends now. Later items never run, and the action, when given, picks the next flow, such as `reject`.                       |
-| `Defer(delay, reason?)`                         | The step runs again after the delay. See [Waiting](#waiting-defer-and-wait-budgets).                                               |
-| `FailedRetryable(msg)` / `FailedPermanent(msg)` | The step fails, retried with backoff or at once for good. Nothing is saved.                                                        |
+| Result                                          | Effect                                                                                                                                                                                 |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Completed()`                                   | The step is done and its data changes are saved. The next item runs, or, after the last item, the task ends with the default flow. From a send, the stage waits for its replies first. |
+| `EndTask(action?)`                              | The task ends now. Later items never run, and the action, when given, picks the next flow, such as `reject`.                                                                           |
+| `Defer(delay, reason?)`                         | The step runs again after the delay. See [Waiting](#waiting-defer-and-wait-budgets).                                                                                                   |
+| `FailedRetryable(msg)` / `FailedPermanent(msg)` | The step fails, retried with backoff or at once for good. Nothing is saved.                                                                                                            |
 
 An external stage's reply handler returns a `ServiceTaskReplyResult`, which is the same vocabulary plus
 `AwaitNextReply()`. `ServiceTaskResult` derives from it, so a reply handler can return either. Each factory returns
@@ -194,15 +194,16 @@ address. The workflow engine calls a reply address a _mailbox_, so its logs, adm
   `EndTask` close the address first, so no later reply can land after the stage is done.
 - **The timeout.** `timeout` runs from when the address opens, defaults to 14 days, and may be at most 21 days, the
   workflow engine's default `MaxMailboxTimeout`. An engine configured with a lower cap refuses to open the address,
-  which app startup cannot check, and the send's step fails. When the address closes before a reply handler is
-  done, because the timeout ran out or an operator closed it, `onTimeout` runs. `Completed()` from it carries on
-  without the replies. Without `onTimeout`, the task fails, naming the stage and its timeout.
+  which app startup cannot check, and the step that opens it fails before the send runs. When the address closes
+  before a reply handler is done, because the timeout ran out or an operator closed it, `onTimeout` runs.
+  `Completed()` from it carries on without the replies. Without `onTimeout`, the task fails, naming the stage and its
+  timeout.
 - **Failures.** `FailedRetryable` runs the step again with the same reply. A failure never closes the address: after
   a fix, a resume runs the failed step again with the same address, and replies that arrived meanwhile wait.
   Prefer `FailedPermanent` for app-level failures, such as refused credentials, that a fix and a resume can
   recover from.
-- **Several exchanges.** A task that talks to two systems composes two external stages. The second one's address
-  opens only once the first is done with its replies, so its timeout is not spent while the first one waits.
+- **Several external systems.** A task that talks to two systems composes two external stages. The second one's
+  address opens only once the first is done with its replies, so its timeout is not spent while the first one waits.
 
 Whether the app expects one reply or several is its expectation of the external system, not something the runtime
 records. A protocol with one answer returns `Completed()` on it. The reply address id is unguessable but **not a
