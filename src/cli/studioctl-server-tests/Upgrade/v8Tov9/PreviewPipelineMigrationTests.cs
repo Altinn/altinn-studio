@@ -2719,6 +2719,39 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public void SuccessHeldAsItsOwnType_IsReportedOrStillCompiles(bool semantic)
+    {
+        Write(
+            "logic/HeldTask.cs",
+            """
+            public class HeldTask : IServiceTask
+            {
+                public string Type => "held";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Done);
+
+                private Task<ServiceTaskResult> Done(StageContext context)
+                {
+                    var result = ServiceTaskResult.Success("reject");
+                    Console.WriteLine($"Ending the task with {result.Action}.");
+                    return Task.FromResult<ServiceTaskResult>(result);
+                }
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        var errors = SemanticScannerFactory.CompileErrors(AppFolder, _currentSdk.Value);
+        Assert.True(
+            errors.Count == 0 || result.Todos.Count > 0,
+            "Reported done without a to-do, but the migrated app does not compile:\n" + string.Join("\n", errors)
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
     {
         Write(
