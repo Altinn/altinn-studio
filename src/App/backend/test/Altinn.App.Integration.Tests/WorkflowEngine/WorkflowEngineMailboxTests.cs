@@ -111,12 +111,14 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         Assert.Equal(primary.Steps[^1].DatabaseId.ToString(), sendWorkflow.IdempotencyKey);
 
         // The stage composed after the send rides a workflow of its own, and that stage is what enqueues the
-        // exchange's first receiver.
+        // exchange's first receiver. Waited for until it completes, so the first reply is forwarded after it, as
+        // the log assertion below expects.
         EngineWorkflow recordWorkflow = await WaitForWorkflow(
             engineClient,
             ns,
             collectionKey,
-            $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
+            $"{MailboxContinueOperationIdPrefix} Task_Service · after 1",
+            completed: true
         );
         Assert.Equal(["ExecuteServiceTask: 2"], recordWorkflow.Steps.Select(s => s.OperationId).ToList());
         Assert.Equal(sendWorkflow.Steps[^1].DatabaseId.ToString(), recordWorkflow.IdempotencyKey);
@@ -322,12 +324,13 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         throw new UnreachableException();
     }
 
-    /// <summary>The one workflow with this exact OperationId, once it exists.</summary>
+    /// <summary>The one workflow with this exact OperationId, once it exists, or once it has completed.</summary>
     private static async Task<EngineWorkflow> WaitForWorkflow(
         HttpClient engineClient,
         string ns,
         string collectionKey,
-        string operationId
+        string operationId,
+        bool completed = false
     )
     {
         DateTimeOffset deadline = DateTimeOffset.UtcNow + _exchangeTimeout;
@@ -335,7 +338,10 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         while (DateTimeOffset.UtcNow < deadline)
         {
             List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
-            if (workflows.SingleOrDefault(w => w.OperationId == operationId) is { } found)
+            if (
+                workflows.SingleOrDefault(w => w.OperationId == operationId) is { } found
+                && (!completed || found.OverallStatus == "Completed")
+            )
                 return found;
 
             seen = string.Join(", ", workflows.Select(w => $"{w.OperationId}: {w.OverallStatus}"));
