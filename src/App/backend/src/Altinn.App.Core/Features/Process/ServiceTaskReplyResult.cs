@@ -30,7 +30,7 @@ public abstract record ServiceTaskReplyResult
     /// Done with the replies: the reply address closes and the next item runs, or, after the last item, the task
     /// ends with the default flow.
     /// </summary>
-    public static ServiceTaskReplyResult Completed() => CompletedServiceTaskResult.Instance;
+    public static ServiceTaskReplyResult Completed() => ServiceTaskResult.Completed();
 
     /// <summary>
     /// Ends the task now: the reply address closes, later items never run, and the process moves on.
@@ -38,8 +38,7 @@ public abstract record ServiceTaskReplyResult
     /// <param name="action">
     /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
     /// </param>
-    public static ServiceTaskReplyResult EndTask(string? action = null) =>
-        new EndedServiceTaskResult { Action = action };
+    public static ServiceTaskReplyResult EndTask(string? action = null) => ServiceTaskResult.EndTask(action);
 
     /// <summary>
     /// The handler ran without error, but cannot answer this reply yet: run it again with the same reply after

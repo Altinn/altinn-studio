@@ -148,21 +148,12 @@ public class ExecuteServiceTaskTests
     }
 
     [Theory]
-    [InlineData(false, null)]
-    [InlineData(false, "reject")]
-    [InlineData(true, null)]
-    [InlineData(true, "reject")]
-    public async Task Execute_WhenServiceTaskEndsTheTask_ReturnsProcessContinuationWithTheAction(
-        bool constructDirectly,
-        string? action
-    )
+    [InlineData(null)]
+    [InlineData("reject")]
+    public async Task Execute_WhenServiceTaskEndsTheTask_ReturnsProcessContinuationWithTheAction(string? action)
     {
         // Arrange
-        var serviceTask = new FakeServiceTask(_ =>
-            Task.FromResult(
-                constructDirectly ? new EndedServiceTaskResult { Action = action } : ServiceTaskResult.EndTask(action)
-            )
-        );
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult(ServiceTaskResult.EndTask(action)));
         var command = CreateCommand(serviceTask);
         var context = CreateContext(CreateInstance(), "myServiceTask");
 

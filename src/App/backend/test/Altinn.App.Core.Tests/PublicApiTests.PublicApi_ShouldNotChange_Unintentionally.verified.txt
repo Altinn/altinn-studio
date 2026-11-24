@@ -2151,7 +2151,6 @@ namespace Altinn.App.Core.Features.Process
     }
     public sealed class EndedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.EndedServiceTaskResult>
     {
-        public EndedServiceTaskResult() { }
         public string? Action { get; init; }
     }
     public sealed class FailedHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHandlerResult>

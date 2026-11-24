@@ -81,6 +81,8 @@ public sealed record CompletedServiceTaskResult : ServiceTaskResult
 /// </summary>
 public sealed record EndedServiceTaskResult : ServiceTaskResult
 {
+    internal EndedServiceTaskResult() { }
+
     /// <summary>
     /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
     /// </summary>
