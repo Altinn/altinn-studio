@@ -49,10 +49,10 @@ from agents.core import (
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.git import git_ops, repo_manager
-from agents.services.llm.recent_turns import truncate_to_history_limit
 from shared.config.base_config import get_config
 from shared.utils.langfuse_utils import get_current_trace_id
 from shared.utils.logging_utils import get_logger
+from shared.utils.recent_turns import HISTORY_MAX_TURNS, truncate_to_history_limit
 from shared.utils.spotlight import defang_delimiter
 
 log = get_logger(__name__)
@@ -151,9 +151,6 @@ def _phase_for_tool(name: str) -> str:
 _DEFAULT_MAX_TURNS = int(os.getenv("AGENTIC_LOOP_MAX_TURNS", "40"))
 
 
-_HISTORY_MAX_MESSAGES = 12
-
-
 CURRENT_REQUEST_TAG = "current_request"
 
 _CURRENT_REQUEST_NOTICE = (
@@ -171,7 +168,7 @@ def _history_messages(state: AgentState) -> list:
     works whichever mode produced the earlier exchange.
     """
     messages: list = []
-    for entry in state.conversation_history[-_HISTORY_MAX_MESSAGES:]:
+    for entry in state.conversation_history[-HISTORY_MAX_TURNS:]:
         content = (entry.content or "").strip()
         if not content:
             continue

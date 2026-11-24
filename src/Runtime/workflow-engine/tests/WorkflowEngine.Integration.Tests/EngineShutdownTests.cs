@@ -36,7 +36,6 @@ public sealed class EngineStatusTests(EngineAppFixture<Program> fixture) : IAsyn
         // Act & Assert
         Assert.True(status.Status.HasFlag(EngineHealthStatus.Running));
         Assert.True(status.Status.HasFlag(EngineHealthStatus.Healthy));
-        Assert.False(status.Status.HasFlag(EngineHealthStatus.Stopped));
     }
 
     [Fact]

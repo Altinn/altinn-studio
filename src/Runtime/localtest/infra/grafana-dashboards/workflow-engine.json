@@ -63,7 +63,7 @@
         "name": "Deploys (first start of version)",
         "tagKeys": "deployment.environment.name,service.version",
         "target": {
-          "expr": "((min by (\"deployment.environment.name\", \"service.version\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[90d] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
+          "expr": "((min by (\"deployment.environment.name\", \"service.version\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"deployment.environment.name\"=~\"$env\"}[90d] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
           "format": "time_series",
           "instant": true,
           "range": false,
@@ -123,7 +123,7 @@
         "name": "Process starts",
         "tagKeys": "deployment.environment.name,service.version",
         "target": {
-          "expr": "((min by (\"deployment.environment.name\", \"service.version\", \"service.name\", \"service.instance.id\", \"k8s.pod.uid\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[1m${__range_ms}ms] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
+          "expr": "((min by (\"deployment.environment.name\", \"service.version\", \"service.name\", \"service.instance.id\", \"k8s.pod.uid\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"deployment.environment.name\"=~\"$env\"}[1m${__range_ms}ms] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
           "format": "time_series",
           "instant": true,
           "range": false,
@@ -135,7 +135,7 @@
       }
     ]
   },
-  "description": "The workflow engine's altinn.workflow_engine.* OpenTelemetry metrics: health, workflow lifecycle, latency, resources, mailboxes and throttling.",
+  "description": "The workflow engine's altinn.workflow_engine.* OpenTelemetry metrics: health, where to look (health and failed workflows by service owner and app, with the failed workflows' traces), workflow lifecycle, latency, resources, mailboxes and throttling.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -159,7 +159,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Engine self-assessed health, the worst across the selected processes: 0=Healthy, 1=Degraded, 2=Unhealthy. No data means no engine process is reporting; see Processes reporting.",
+      "description": "Engine self-assessed health, the worst across the selected processes: 0=Healthy, 1=Degraded, 2=Unhealthy. No data means no engine process is reporting; see Processes reporting. Service owners, under Where to look, shows which engine and why.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -237,7 +237,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "max({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "max({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -290,7 +290,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "count by (\"deployment.environment.name\", \"service.name\") (group by (\"deployment.environment.name\", \"service.name\", \"service.instance.id\") (present_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[1m])))",
+          "expr": "count by (\"deployment.environment.name\", \"service.name\") (group by (\"deployment.environment.name\", \"service.name\", \"service.instance.id\") (present_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"deployment.environment.name\"=~\"$env\"}[1m])))",
           "instant": true,
           "legendFormat": "{{deployment.environment.name}} · {{service.name}}",
           "range": false,
@@ -305,7 +305,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "All failure signals: errors broken down by subsystem, workflow failures by reason, plus step/DB failures and the consecutive maintenance failure count of the worst instance (right axis).",
+      "description": "All failure signals: errors broken down by subsystem, workflow failures by reason, plus step/DB failures and the consecutive maintenance failure count of the worst instance (right axis). Select an execution or wait_expired workflow failure series for the traces of those failed workflows; the other reasons have none.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -390,6 +390,23 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Workflow Failures \\((execution|wait_expired)\\)$"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Traces of these failed workflows",
+                    "url": "/explore?schemaVersion=1&orgId=1&panes=%7B%22a%22%3A%7B%22datasource%22%3A%22altinn-studio-traces%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22altinn-studio-traces%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22tableType%22%3A%22traces%22%2C%22limit%22%3A50%2C%22query%22%3A%22%7Bresource.service.name%3D~%5C%22${service:regex}%5C%22%20%26%26%20resource.deployment.environment.name%3D~%5C%22${env:regex}%5C%22%20%26%26%20name%3D%5C%22WorkflowHandler.Handle%5C%22%20%26%26%20status%3Derror%20%26%26%20span.altinn.service_owner%3D~%5C%22${service_owner:regex}%5C%22%20%26%26%20span.error.type%3D%5C%22${__field.labels[\"altinn.workflow_engine.reason\"]}%5C%22%7D%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D"
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -418,7 +435,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.operation\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.operation\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Errors ({{altinn.workflow_engine.operation}})",
           "refId": "A"
         },
@@ -427,7 +444,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Workflow Failures ({{altinn.workflow_engine.reason}})",
           "refId": "B"
         },
@@ -436,7 +453,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Step Failures",
           "refId": "C"
         },
@@ -445,7 +462,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "DB Failures",
           "refId": "D"
         },
@@ -454,7 +471,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "max({\"altinn.workflow_engine.maintenance.consecutive_failures\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "max({\"altinn.workflow_engine.maintenance.consecutive_failures\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Maintenance failures",
           "refId": "E"
         }
@@ -513,7 +530,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Active",
           "refId": "A"
         }
@@ -572,7 +589,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.scheduled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.scheduled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Scheduled",
           "refId": "A"
         }
@@ -635,7 +652,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Failed",
           "refId": "A"
         }
@@ -707,7 +724,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) / (sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) + sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))) * 100",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) / (sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) + sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))) * 100",
           "legendFormat": "Queue",
           "refId": "A"
         }
@@ -768,7 +785,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Throughput",
           "refId": "A"
         }
@@ -838,7 +855,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "((sum(increase_pure({\"altinn.workflow_engine.step.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or vector(0)) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.workflow_engine.reason\"=\"shutdown\"}[$__rate_interval])) or vector(0))) / ($__rate_interval_ms / 1000)",
+          "expr": "((sum(increase_pure({\"altinn.workflow_engine.step.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) or vector(0)) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"altinn.workflow_engine.reason\"=\"shutdown\"}[$__rate_interval])) or vector(0))) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Retries",
           "refId": "A"
         }
@@ -910,7 +927,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) * 0) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.canceled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) * 0)) * 100",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) or sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) * 0) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.canceled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) or sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) * 0)) * 100",
           "legendFormat": "Success %",
           "refId": "A"
         }
@@ -980,7 +997,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P95",
           "refId": "A"
         }
@@ -989,12 +1006,1480 @@
       "type": "stat"
     },
     {
+      "type": "row",
+      "title": "Where to look",
       "collapsed": false,
+      "panels": [],
+      "id": 111,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 9
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "One row per service owner's engine, the worst health in the time range first, then the most failed workflows. Health and Why are the engine's own assessment at the end of the time range; Worst health is the worst it reported in the range. Why lists the conditions that make it degraded or unhealthy: queue_full (active workflows reached the backpressure threshold, so new work is refused with 429) and database_unavailable. Processes counts the engine processes reporting. Breakers counts the namespace circuit breakers tripped. Active, Waiting and Queue fill are counted in the engine's database, so while Why says database_unavailable they are the last values read before the outage. Failed workflows and Errors are counted over the time range. Select a service owner to show only that service owner on the whole dashboard.",
+      "type": "table",
+      "title": "Service owners",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max by (\"deployment.environment.name\", \"altinn.service_owner\") ({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max by (\"deployment.environment.name\", \"altinn.service_owner\") (max_over_time({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range]))",
+          "refId": "B",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"altinn.workflow_engine.reason\") ({\"altinn.workflow_engine.health.reason\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) > 0) or (label_set(max by (\"deployment.environment.name\", \"altinn.service_owner\") ({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}), \"altinn.workflow_engine.reason\", \"none\") unless on (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"altinn.workflow_engine.reason\") ({\"altinn.workflow_engine.health.reason\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) > 0))",
+          "refId": "C",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "count by (\"deployment.environment.name\", \"altinn.service_owner\") ({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
+          "refId": "D",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
+          "refId": "E",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.waiting\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
+          "refId": "F",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) / (sum by (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) + sum by (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))) * 100",
+          "refId": "G",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"deployment.environment.name\", \"altinn.service_owner\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range])) or (max by (\"deployment.environment.name\", \"altinn.service_owner\") (max_over_time({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range])) * 0)",
+          "refId": "H",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"deployment.environment.name\", \"altinn.service_owner\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range])) or (max by (\"deployment.environment.name\", \"altinn.service_owner\") (max_over_time({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range])) * 0)",
+          "refId": "J",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.throttle.breaker.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
+          "refId": "K",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "deployment.environment.name": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "altinn.service_owner": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "altinn.workflow_engine.reason": {
+                "aggregations": [
+                  "uniqueValues"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #A": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #B": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #D": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #E": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #F": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #G": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #H": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #J": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              },
+              "Value #K": {
+                "aggregations": [
+                  "max"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "deployment.environment.name": "environment",
+              "altinn.service_owner": "service_owner",
+              "altinn.workflow_engine.reason (uniqueValues)": "why",
+              "Value #A (max)": "health",
+              "Value #B (max)": "worst_health",
+              "Value #D (max)": "processes",
+              "Value #E (max)": "active",
+              "Value #F (max)": "waiting",
+              "Value #G (max)": "queue_fill",
+              "Value #H (max)": "failed_workflows",
+              "Value #J (max)": "errors",
+              "Value #K (max)": "breakers"
+            },
+            "indexByName": {
+              "altinn.service_owner": 0,
+              "deployment.environment.name": 1,
+              "Value #A (max)": 2,
+              "altinn.workflow_engine.reason (uniqueValues)": 3,
+              "Value #B (max)": 4,
+              "Value #D (max)": 5,
+              "Value #E (max)": 6,
+              "Value #F (max)": 7,
+              "Value #G (max)": 8,
+              "Value #H (max)": 9,
+              "Value #J (max)": 10,
+              "Value #K (max)": 11
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "rank_health",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "worst_health"
+                }
+              },
+              "operator": "*",
+              "right": {
+                "fixed": "1000000000000"
+              }
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "alias": "rank",
+            "replaceFields": false,
+            "binary": {
+              "left": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "rank_health"
+                }
+              },
+              "operator": "+",
+              "right": {
+                "matcher": {
+                  "id": "byName",
+                  "options": "failed_workflows"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "rank",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "rank_health": true,
+              "rank": true
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "minWidth": 80
+          },
+          "decimals": 0,
+          "unit": "short",
+          "noValue": "No data"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_owner"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service owner"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show only ${__data.fields[\"altinn.service_owner\"]} in ${__data.fields[\"deployment.environment.name\"]}",
+                    "url": "/d/${__dashboard.uid}?${__url_time_range}&var-env=${__data.fields[\"deployment.environment.name\"]}&var-service_owner=${__data.fields[\"altinn.service_owner\"]}&${service:queryparam}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "health"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Health"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Healthy"
+                      },
+                      "1": {
+                        "color": "orange",
+                        "index": 1,
+                        "text": "Degraded"
+                      },
+                      "2": {
+                        "color": "red",
+                        "index": 2,
+                        "text": "Unhealthy"
+                      }
+                    }
+                  },
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "No data",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "worst_health"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Worst health"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Healthy"
+                      },
+                      "1": {
+                        "color": "orange",
+                        "index": 1,
+                        "text": "Degraded"
+                      },
+                      "2": {
+                        "color": "red",
+                        "index": 2,
+                        "text": "Unhealthy"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 2
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "noValue",
+                "value": "No data"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "why"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Why"
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "none": {
+                        "index": 0,
+                        "text": "-"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "processes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Processes"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Active"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "waiting"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Waiting"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "queue_fill"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Queue fill"
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 80
+                    },
+                    {
+                      "color": "red",
+                      "value": 100
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed_workflows"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Failed workflows"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "errors"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Errors"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "breakers"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Breakers"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 112,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "The engine health over the time range of each service owner that was degraded or unhealthy in it, the worst of its processes, and below it each condition that made an engine degraded or unhealthy, while it held. Service owners that stayed healthy are left out, so the panel stays readable with many service owners; when none was unhealthy, one row shows all of them as healthy.",
+      "type": "state-timeline",
+      "title": "Service owners that were not healthy",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max by (\"deployment.environment.name\", \"altinn.service_owner\") (max_over_time({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) or {\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) and on (\"deployment.environment.name\", \"altinn.service_owner\") (max by (\"deployment.environment.name\", \"altinn.service_owner\") (max_over_time({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range] @ end())) > 0)",
+          "refId": "A",
+          "legendFormat": "{{altinn.service_owner}} · {{deployment.environment.name}}",
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max by (\"deployment.environment.name\", \"altinn.service_owner\", \"altinn.workflow_engine.reason\") (max_over_time({\"altinn.workflow_engine.health.reason\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) or {\"altinn.workflow_engine.health.reason\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) > 0",
+          "refId": "B",
+          "legendFormat": "{{altinn.service_owner}} · {{deployment.environment.name}}: {{altinn.workflow_engine.reason}}",
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) * 0 unless on () (max by (\"deployment.environment.name\", \"altinn.service_owner\") (max_over_time({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range] @ end())) > 0)",
+          "refId": "C",
+          "legendFormat": "All reporting service owners",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "Healthy"
+                },
+                "1": {
+                  "color": "orange",
+                  "index": 1,
+                  "text": "Degraded"
+                },
+                "2": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "Unhealthy"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "color": "orange",
+                        "index": 0,
+                        "text": "Holds"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "alignValue": "left",
+        "mergeValues": true,
+        "rowHeight": 0.8,
+        "showValue": "auto",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "id": 113,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Workflows that ended failed in the time range, by app and reason: execution (a step failed), wait_expired (a step's wait budget ran out), dependency_failed, poisoned and manual (failed through the fail endpoint). App and service owner come from the workflow's namespace. Select Traces for the failed workflows' traces, which only execution and wait_expired failures have.",
+      "type": "table",
+      "title": "Failed workflows by app",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "label_replace(label_replace(label_replace(sum by (\"deployment.environment.name\", \"altinn.workflow_engine.namespace\", \"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__range])) > 0, \"owner\", \"$1\", \"altinn.workflow_engine.namespace\", \"([^/%]+)(/|%2[fF]).+\"), \"app\", \"$2\", \"altinn.workflow_engine.namespace\", \"([^/%]+)(?:/|%2[fF])(.+)\"), \"traces\", \"Traces\", \"altinn.workflow_engine.reason\", \"execution|wait_expired\")",
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "altinn.workflow_engine.namespace": true
+            },
+            "indexByName": {
+              "deployment.environment.name": 0,
+              "owner": 1,
+              "app": 2,
+              "altinn.workflow_engine.reason": 3,
+              "Value": 4,
+              "traces": 5
+            },
+            "renameByName": {
+              "deployment.environment.name": "environment",
+              "altinn.workflow_engine.reason": "reason",
+              "Value": "failed"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "failed",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "decimals": 0,
+          "unit": "short",
+          "noValue": "No failed workflows in the time range"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "environment"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "owner"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service owner"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "app"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "App"
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reason"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Reason"
+              },
+              {
+                "id": "custom.width",
+                "value": 115
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Failed"
+              },
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "traces"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Traces"
+              },
+              {
+                "id": "custom.width",
+                "value": 75
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Traces of these failed workflows",
+                    "url": "/explore?schemaVersion=1&orgId=1&panes=%7B%22a%22%3A%7B%22datasource%22%3A%22altinn-studio-traces%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22altinn-studio-traces%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22tableType%22%3A%22traces%22%2C%22limit%22%3A50%2C%22query%22%3A%22%7Bresource.service.name%3D~%5C%22${service:regex}%5C%22%20%26%26%20resource.deployment.environment.name%3D~%5C%22${env:regex}%5C%22%20%26%26%20name%3D%5C%22WorkflowHandler.Handle%5C%22%20%26%26%20status%3Derror%20%26%26%20span.altinn.service_owner%3D%5C%22${__data.fields.owner}%5C%22%20%26%26%20span.altinn.app%3D%5C%22${__data.fields.app}%5C%22%20%26%26%20span.error.type%3D%5C%22${__data.fields[\"altinn.workflow_engine.reason\"]}%5C%22%7D%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 114,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      }
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "altinn-studio-traces-logsql"
+      },
+      "description": "The latest 200 workflows in the time range that failed while the engine ran them, one per row, from the workflow's trace: execution (a step failed) and wait_expired (a step's wait budget ran out). Step and Error are the failing step's operation and its error. Failures the engine records without running the workflow, dependency_failed, poisoned and manual, have no such trace; Failed workflows by app counts them. Select a trace to open it.",
+      "type": "table",
+      "title": "Recent failed workflows",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "altinn-studio-traces-logsql"
+          },
+          "refId": "A",
+          "expr": "{resource_attr:service.name=~\"${service:regex}\"} \"resource_attr:deployment.environment.name\":~\"^(${env:regex})$\" (name:=\"WorkflowHandler.Handle\" or name:=\"WorkflowHandler.ProcessStep\") | stats by (trace_id) max(end_time_unix_nano) if (name:=\"WorkflowHandler.Handle\") failed_at, max(\"span_attr:error.type\") if (name:=\"WorkflowHandler.Handle\" status_code:2) reason, max(\"resource_attr:deployment.environment.name\") env, max(\"span_attr:altinn.service_owner\") if (name:=\"WorkflowHandler.Handle\") service_owner, max(\"span_attr:altinn.app\") if (name:=\"WorkflowHandler.Handle\") app, max(\"span_attr:altinn.instance.guid\") if (name:=\"WorkflowHandler.Handle\") instance, max(\"span_attr:altinn.workflow_engine.step.command.type\") if (name:=\"WorkflowHandler.ProcessStep\" status_code:2) command, max(\"span_attr:altinn.workflow_engine.step.operation_id\") if (name:=\"WorkflowHandler.ProcessStep\" status_code:2) step, max(status_message) if (name:=\"WorkflowHandler.ProcessStep\" status_code:2) error | filter reason:~\"^(execution|wait_expired)$\" service_owner:~\"^(${service_owner:regex})$\" | sort by (failed_at desc) limit 200 | math failed_at / 1e6 as failed_at_ms | fields failed_at_ms, env, service_owner, app, instance, reason, step, error, trace_id | rename trace_id as trace",
+          "queryType": "instant",
+          "maxLines": 200
+        }
+      ],
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels",
+            "format": "json",
+            "replace": false,
+            "keepTime": false
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "failed_at_ms",
+                "destinationType": "number"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "failed_at_ms": 0,
+              "env": 1,
+              "service_owner": 2,
+              "app": 3,
+              "instance": 4,
+              "reason": 5,
+              "step": 6,
+              "error": 7,
+              "trace": 8
+            },
+            "renameByName": {},
+            "includeByName": {
+              "failed_at_ms": true,
+              "env": true,
+              "service_owner": true,
+              "app": true,
+              "instance": true,
+              "reason": true,
+              "step": true,
+              "error": true,
+              "trace": true
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true,
+            "filterable": true
+          },
+          "displayName": "",
+          "noValue": "No failed workflows in the time range",
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": ""
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "failed_at_ms"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Failed at"
+              },
+              {
+                "id": "custom.width",
+                "value": 185
+              },
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "env"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Environment"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_owner"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service owner"
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "app"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "App"
+              },
+              {
+                "id": "custom.width",
+                "value": 160
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "instance"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Instance"
+              },
+              {
+                "id": "custom.width",
+                "value": 300
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reason"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Reason"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "step"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Step"
+              },
+              {
+                "id": "custom.width",
+                "value": 140
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Error"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "studio_env"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "trace"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Trace"
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View trace",
+                    "url": "",
+                    "internal": {
+                      "datasourceUid": "altinn-studio-traces",
+                      "datasourceName": "altinn-studio-traces",
+                      "query": {
+                        "queryType": "traceql",
+                        "query": "${__value.raw}"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 115,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
       },
       "id": 10,
       "panels": [],
@@ -1098,7 +2583,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 10
+        "y": 37
       },
       "id": 11,
       "options": {
@@ -1122,7 +2607,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.request.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.request.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Received",
           "refId": "A"
         },
@@ -1131,7 +2616,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.request.accepted\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.request.accepted\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Accepted",
           "refId": "B"
         },
@@ -1140,7 +2625,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.query.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.query.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Queries",
           "refId": "C"
         }
@@ -1153,7 +2638,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Rate of workflow lifecycle events. Failed/Canceled/Requeued broken down by reason — failed: execution / dependency_failed / poisoned / wait_expired (a step's wait budget ran out) / manual (a caller failed a parked workflow through the fail endpoint); canceled: before_processing / during_processing; requeued: step_retry / shutdown.",
+      "description": "Rate of workflow lifecycle events. Failed/Canceled/Requeued broken down by reason — failed: execution / dependency_failed / poisoned / wait_expired (a step's wait budget ran out) / manual (a caller failed a parked workflow through the fail endpoint); canceled: before_processing / during_processing; requeued: step_retry / shutdown. Select an execution or wait_expired workflow failure series for the traces of those failed workflows; the other reasons have none.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1268,6 +2753,23 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Failed \\((execution|wait_expired)\\)$"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Traces of these failed workflows",
+                    "url": "/explore?schemaVersion=1&orgId=1&panes=%7B%22a%22%3A%7B%22datasource%22%3A%22altinn-studio-traces%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22altinn-studio-traces%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22tableType%22%3A%22traces%22%2C%22limit%22%3A50%2C%22query%22%3A%22%7Bresource.service.name%3D~%5C%22${service:regex}%5C%22%20%26%26%20resource.deployment.environment.name%3D~%5C%22${env:regex}%5C%22%20%26%26%20name%3D%5C%22WorkflowHandler.Handle%5C%22%20%26%26%20status%3Derror%20%26%26%20span.altinn.service_owner%3D~%5C%22${service_owner:regex}%5C%22%20%26%26%20span.error.type%3D%5C%22${__field.labels[\"altinn.workflow_engine.reason\"]}%5C%22%7D%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D%7D"
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -1275,7 +2777,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 10
+        "y": 37
       },
       "id": 12,
       "options": {
@@ -1299,7 +2801,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Succeeded",
           "refId": "A"
         },
@@ -1308,7 +2810,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Failed ({{altinn.workflow_engine.reason}})",
           "refId": "B"
         },
@@ -1317,7 +2819,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.canceled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.canceled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Canceled ({{altinn.workflow_engine.reason}})",
           "refId": "C"
         },
@@ -1326,7 +2828,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Requeued ({{altinn.workflow_engine.reason}})",
           "refId": "D"
         },
@@ -1335,7 +2837,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.resumed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.resumed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Resumed",
           "refId": "E"
         }
@@ -1348,7 +2850,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Current workflow counts by state (gauge values over time). Finished = all terminal (success + failed + canceled + dep-failed). Every replica reports the same database-wide counts, so replicas are combined with max() and only separate services, each with its own database, are added up.",
+      "description": "Current workflow counts by state (gauge values over time). Finished = all terminal (success + failed + canceled + dep-failed). Every replica reports the same database-wide counts, so replicas are combined with max() and only separate engines, each with its own database, are added up: one per service owner and service.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1469,7 +2971,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 10
+        "y": 37
       },
       "id": 13,
       "options": {
@@ -1492,7 +2994,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Active",
           "refId": "A"
         },
@@ -1501,7 +3003,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.scheduled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.scheduled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Scheduled",
           "refId": "B"
         },
@@ -1510,7 +3012,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Failed",
           "refId": "C"
         },
@@ -1519,7 +3021,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.successful\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.successful\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Successful",
           "refId": "D"
         },
@@ -1528,7 +3030,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.finished\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.finished\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Finished",
           "refId": "E"
         }
@@ -1542,7 +3044,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 45
       },
       "id": 80,
       "panels": [],
@@ -1646,7 +3148,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 19
+        "y": 46
       },
       "id": 81,
       "options": {
@@ -1670,7 +3172,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.deferred\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.deferred\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Workflow attempts parked",
           "refId": "A"
         },
@@ -1679,7 +3181,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.deferred\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.deferred\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Step deferrals",
           "refId": "B"
         },
@@ -1688,7 +3190,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.workflow_engine.reason\"=\"wait_expired\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"altinn.workflow_engine.reason\"=\"wait_expired\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Wait budget expired",
           "refId": "C"
         }
@@ -1763,7 +3265,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 19
+        "y": 46
       },
       "id": 82,
       "options": {
@@ -1787,7 +3289,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.waiting\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.workflow.waiting\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Waiting",
           "refId": "A"
         }
@@ -1892,7 +3394,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 19
+        "y": 46
       },
       "id": 83,
       "options": {
@@ -1916,7 +3418,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -1925,7 +3427,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P95",
           "refId": "B"
         },
@@ -1934,7 +3436,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -1948,7 +3450,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 54
       },
       "id": 90,
       "panels": [],
@@ -1988,7 +3490,7 @@
         "h": 8,
         "w": 5,
         "x": 0,
-        "y": 28
+        "y": 55
       },
       "id": 91,
       "options": {
@@ -2013,7 +3515,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.throttle.breaker.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) or vector(0)",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.throttle.breaker.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) or vector(0)",
           "legendFormat": "Tripped",
           "refId": "A"
         }
@@ -2133,7 +3635,7 @@
         "h": 8,
         "w": 10,
         "x": 5,
-        "y": 28
+        "y": 55
       },
       "id": 92,
       "options": {
@@ -2157,7 +3659,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Tripped — {{altinn.workflow_engine.namespace}}",
           "refId": "A"
         },
@@ -2166,7 +3668,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.extended\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.extended\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Extended — {{altinn.workflow_engine.namespace}}",
           "refId": "B"
         },
@@ -2175,7 +3677,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.cleared\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.cleared\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Cleared — {{altinn.workflow_engine.namespace}}",
           "refId": "C"
         },
@@ -2184,7 +3686,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.handler_parked\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.handler_parked\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Handler parked — {{altinn.workflow_engine.namespace}}",
           "refId": "D"
         }
@@ -2243,7 +3745,7 @@
         "h": 8,
         "w": 9,
         "x": 15,
-        "y": 28
+        "y": 55
       },
       "id": 93,
       "options": {
@@ -2267,7 +3769,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.released\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.released\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "{{altinn.workflow_engine.namespace}}",
           "refId": "A"
         }
@@ -2281,7 +3783,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 63
       },
       "id": 20,
       "panels": [],
@@ -2385,7 +3887,7 @@
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 37
+        "y": 64
       },
       "id": 21,
       "options": {
@@ -2408,7 +3910,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -2417,7 +3919,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P95",
           "refId": "B"
         },
@@ -2426,7 +3928,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -2516,7 +4018,7 @@
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 37
+        "y": 64
       },
       "id": 22,
       "options": {
@@ -2540,7 +4042,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.queue.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.queue.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -2549,7 +4051,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Execution",
           "refId": "B"
         }
@@ -2654,7 +4156,7 @@
         "h": 8,
         "w": 6,
         "x": 12,
-        "y": 37
+        "y": 64
       },
       "id": 23,
       "options": {
@@ -2677,7 +4179,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -2686,7 +4188,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P95",
           "refId": "B"
         },
@@ -2695,7 +4197,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -2785,7 +4287,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 37
+        "y": 64
       },
       "id": 53,
       "options": {
@@ -2809,7 +4311,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.queue.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.queue.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -2818,7 +4320,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Execution",
           "refId": "B"
         }
@@ -2832,7 +4334,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 45
+        "y": 72
       },
       "id": 30,
       "panels": [],
@@ -2935,7 +4437,7 @@
         "h": 7,
         "w": 6,
         "x": 0,
-        "y": 46
+        "y": 73
       },
       "id": 31,
       "options": {
@@ -2958,7 +4460,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"altinn.workflow_engine.slot.worker.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum({\"altinn.workflow_engine.slot.worker.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Used",
           "refId": "A"
         },
@@ -2967,7 +4469,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"altinn.workflow_engine.slot.worker.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) + sum({\"altinn.workflow_engine.slot.worker.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum({\"altinn.workflow_engine.slot.worker.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) + sum({\"altinn.workflow_engine.slot.worker.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Available",
           "refId": "B"
         }
@@ -3071,7 +4573,7 @@
         "h": 7,
         "w": 6,
         "x": 6,
-        "y": 46
+        "y": 73
       },
       "id": 32,
       "options": {
@@ -3094,7 +4596,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"altinn.workflow_engine.slot.db.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum({\"altinn.workflow_engine.slot.db.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Used",
           "refId": "A"
         },
@@ -3103,7 +4605,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"altinn.workflow_engine.slot.db.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) + sum({\"altinn.workflow_engine.slot.db.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum({\"altinn.workflow_engine.slot.db.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) + sum({\"altinn.workflow_engine.slot.db.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Available",
           "refId": "B"
         }
@@ -3207,7 +4709,7 @@
         "h": 7,
         "w": 6,
         "x": 12,
-        "y": 46
+        "y": 73
       },
       "id": 33,
       "options": {
@@ -3230,7 +4732,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"altinn.workflow_engine.slot.http.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum({\"altinn.workflow_engine.slot.http.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Used",
           "refId": "A"
         },
@@ -3239,7 +4741,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"altinn.workflow_engine.slot.http.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) + sum({\"altinn.workflow_engine.slot.http.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum({\"altinn.workflow_engine.slot.http.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) + sum({\"altinn.workflow_engine.slot.http.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "Available",
           "refId": "B"
         }
@@ -3343,7 +4845,7 @@
         "h": 7,
         "w": 6,
         "x": 18,
-        "y": 46
+        "y": 73
       },
       "id": 34,
       "options": {
@@ -3366,7 +4868,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Used",
           "refId": "A"
         },
@@ -3375,7 +4877,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) + sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) + sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}))",
           "legendFormat": "Available",
           "refId": "B"
         }
@@ -3389,7 +4891,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 80
       },
       "id": 40,
       "panels": [],
@@ -3463,7 +4965,7 @@
         "h": 9,
         "w": 6,
         "x": 0,
-        "y": 54
+        "y": 81
       },
       "id": 41,
       "options": {
@@ -3487,7 +4989,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.main_loop.iterations\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 60000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.main_loop.iterations\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 60000)",
           "legendFormat": "Iterations",
           "refId": "A"
         }
@@ -3621,7 +5123,7 @@
         "h": 9,
         "w": 6,
         "x": 6,
-        "y": 54
+        "y": 81
       },
       "id": 42,
       "options": {
@@ -3646,7 +5148,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Queue Wait",
           "refId": "A"
         },
@@ -3655,7 +5157,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Active Work",
           "refId": "B"
         },
@@ -3664,7 +5166,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Total (unstacked)",
           "refId": "C"
         }
@@ -3769,7 +5271,7 @@
         "h": 9,
         "w": 6,
         "x": 12,
-        "y": 54
+        "y": 81
       },
       "id": 43,
       "options": {
@@ -3793,7 +5295,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Success",
           "refId": "A"
         },
@@ -3802,7 +5304,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Retried",
           "refId": "B"
         },
@@ -3811,7 +5313,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Failed",
           "refId": "C"
         }
@@ -3930,7 +5432,7 @@
         "h": 9,
         "w": 6,
         "x": 18,
-        "y": 54
+        "y": 81
       },
       "id": 65,
       "options": {
@@ -3954,7 +5456,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "(sum(increase_pure({\"altinn.workflow_engine.update_buffer.deduplicated\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) + sum(increase_pure({\"altinn.workflow_engine.update_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval]))) / ($__rate_interval_ms / 1000)",
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.update_buffer.deduplicated\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) + sum(increase_pure({\"altinn.workflow_engine.update_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval]))) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Submitted",
           "refId": "A"
         },
@@ -3963,7 +5465,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.update_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.update_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Flushed to DB",
           "refId": "B"
         },
@@ -3972,7 +5474,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.update_buffer.deduplicated\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.update_buffer.deduplicated\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Deduplicated",
           "refId": "C"
         }
@@ -3986,7 +5488,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 63
+        "y": 90
       },
       "id": 100,
       "panels": [],
@@ -4026,7 +5528,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 64
+        "y": 91
       },
       "id": 101,
       "options": {
@@ -4051,7 +5553,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.rendezvous.violations\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[1h])) or vector(0)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.rendezvous.violations\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[1h])) or vector(0)",
           "legendFormat": "Last 1h",
           "refId": "A"
         }
@@ -4092,7 +5594,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 64
+        "y": 91
       },
       "id": 102,
       "options": {
@@ -4117,7 +5619,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.mailbox.open.overdue\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) or vector(0)",
+          "expr": "sum(max by (\"deployment.environment.name\", \"altinn.service_owner\", \"service.name\") ({\"altinn.workflow_engine.mailbox.open.overdue\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})) or vector(0)",
           "legendFormat": "Overdue",
           "refId": "A"
         }
@@ -4158,7 +5660,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 64
+        "y": 91
       },
       "id": 103,
       "options": {
@@ -4183,7 +5685,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.delivery.unpaired\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[1h])) or vector(0)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.delivery.unpaired\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[1h])) or vector(0)",
           "legendFormat": "Last 1h",
           "refId": "A"
         }
@@ -4288,7 +5790,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 69
+        "y": 96
       },
       "id": 104,
       "options": {
@@ -4312,7 +5814,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Minted",
           "refId": "A"
         },
@@ -4321,7 +5823,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.mailbox.closed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.mailbox.closed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Closed ({{altinn.workflow_engine.reason}})",
           "refId": "B"
         }
@@ -4486,7 +5988,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 69
+        "y": 96
       },
       "id": 105,
       "options": {
@@ -4510,7 +6012,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.mailbox.delivery.outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.delivery.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.delivery.outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.delivery.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "{{altinn.workflow_engine.mailbox.delivery.outcome}}",
           "refId": "A"
         }
@@ -4645,7 +6147,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 69
+        "y": 96
       },
       "id": 106,
       "options": {
@@ -4669,7 +6171,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.enqueue_outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.enqueue_outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Created ({{altinn.workflow_engine.mailbox.receiver.enqueue_outcome}})",
           "refId": "A"
         },
@@ -4678,7 +6180,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.release_cause\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.released\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.release_cause\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.released\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Released ({{altinn.workflow_engine.mailbox.receiver.release_cause}})",
           "refId": "B"
         }
@@ -4783,7 +6285,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 77
+        "y": 104
       },
       "id": 107,
       "options": {
@@ -4807,7 +6309,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         },
@@ -4816,7 +6318,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P95",
           "refId": "B"
         },
@@ -4825,7 +6327,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -4891,7 +6393,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 77
+        "y": 104
       },
       "id": 108,
       "options": {
@@ -4915,7 +6417,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.mailbox.operation\") (increase_pure({\"altinn.workflow_engine.mailbox_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / sum by (\"altinn.workflow_engine.mailbox.operation\") (increase_pure({\"altinn.workflow_engine.mailbox_buffer.batches\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval]))",
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.operation\") (increase_pure({\"altinn.workflow_engine.mailbox_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / sum by (\"altinn.workflow_engine.mailbox.operation\") (increase_pure({\"altinn.workflow_engine.mailbox_buffer.batches\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval]))",
           "legendFormat": "{{altinn.workflow_engine.mailbox.operation}}",
           "refId": "A"
         }
@@ -4974,7 +6476,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 77
+        "y": 104
       },
       "id": 109,
       "options": {
@@ -4998,7 +6500,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.mailbox.operation\") ({\"altinn.workflow_engine.mailbox_buffer.depth\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.operation\") ({\"altinn.workflow_engine.mailbox_buffer.depth\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"})",
           "legendFormat": "{{altinn.workflow_engine.mailbox.operation}}",
           "refId": "A"
         }
@@ -5012,7 +6514,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 86
+        "y": 113
       },
       "id": 50,
       "panels": [],
@@ -5131,7 +6633,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 87
+        "y": 114
       },
       "id": 51,
       "options": {
@@ -5155,7 +6657,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.request.accepted\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.request.accepted\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Accepted",
           "refId": "A"
         },
@@ -5164,7 +6666,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Succeeded",
           "refId": "B"
         },
@@ -5173,7 +6675,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Requeued",
           "refId": "C"
         },
@@ -5182,7 +6684,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Failed",
           "refId": "D"
         }
@@ -5272,7 +6774,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 87
+        "y": 114
       },
       "id": 52,
       "options": {
@@ -5297,7 +6799,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.operation\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum by (\"altinn.workflow_engine.operation\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Errors ({{altinn.workflow_engine.operation}})",
           "refId": "A"
         },
@@ -5306,7 +6808,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.reclaimed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.reclaimed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Reclaimed",
           "refId": "B"
         }
@@ -5320,7 +6822,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 95
+        "y": 122
       },
       "id": 60,
       "panels": [],
@@ -5408,7 +6910,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 96
+        "y": 123
       },
       "id": 61,
       "options": {
@@ -5432,7 +6934,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"db.client.connection.state\") ({\"db.client.connection.count\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "expr": "sum by (\"db.client.connection.state\") ({\"db.client.connection.count\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
           "legendFormat": "{{db.client.connection.state}}",
           "refId": "A"
         }
@@ -5491,7 +6993,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 96
+        "y": 123
       },
       "id": 62,
       "options": {
@@ -5515,7 +7017,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"db.client.connection.npgsql.create_time_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"db.client.connection.npgsql.create_time_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Connection Create P95",
           "refId": "A"
         },
@@ -5524,7 +7026,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.95, sum(increase_pure({\"db.client.operation.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"db.client.operation.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Command Duration P95",
           "refId": "B"
         },
@@ -5533,7 +7035,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "histogram_quantile(0.50, sum(increase_pure({\"db.client.operation.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"db.client.operation.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) by (le))",
           "legendFormat": "Command Duration P50",
           "refId": "C"
         }
@@ -5659,7 +7161,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 96
+        "y": 123
       },
       "id": 63,
       "options": {
@@ -5683,7 +7185,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"db.client.operation.npgsql.executing\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "expr": "sum({\"db.client.operation.npgsql.executing\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
           "legendFormat": "Executing",
           "refId": "A"
         },
@@ -5692,7 +7194,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"db.client.connection.max\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "expr": "sum({\"db.client.connection.max\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
           "legendFormat": "Pool Limit",
           "refId": "B"
         },
@@ -5701,7 +7203,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum({\"db.client.connection.count\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "expr": "sum({\"db.client.connection.count\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
           "legendFormat": "Total Connections",
           "refId": "C"
         }
@@ -5715,7 +7217,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 104
+        "y": 131
       },
       "id": 70,
       "panels": [],
@@ -5755,7 +7257,7 @@
         "h": 5,
         "w": 8,
         "x": 0,
-        "y": 105
+        "y": 132
       },
       "id": 71,
       "options": {
@@ -5780,7 +7282,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "(sum(increase_pure({\"altinn.workflow_engine.workflow.execution.lease_lost\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) * 0) / ($__rate_interval_ms / 1000)",
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.workflow.execution.lease_lost\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) * 0) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Lease Lost",
           "refId": "A"
         }
@@ -5821,7 +7323,7 @@
         "h": 5,
         "w": 8,
         "x": 8,
-        "y": 105
+        "y": 132
       },
       "id": 72,
       "options": {
@@ -5846,7 +7348,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "(sum(increase_pure({\"altinn.workflow_engine.workflow.fetch.race_dropped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) * 0) / ($__rate_interval_ms / 1000)",
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.workflow.fetch.race_dropped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) * 0) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Fetch Race Dropped",
           "refId": "A"
         }
@@ -5887,7 +7389,7 @@
         "h": 5,
         "w": 8,
         "x": 16,
-        "y": 105
+        "y": 132
       },
       "id": 73,
       "options": {
@@ -5912,7 +7414,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "(sum(increase_pure({\"altinn.workflow_engine.update_buffer.dropped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) * 0) / ($__rate_interval_ms / 1000)",
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.update_buffer.dropped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}) * 0) / ($__rate_interval_ms / 1000)",
           "legendFormat": "Update Buffer Dropped",
           "refId": "A"
         }
@@ -6002,7 +7504,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 110
+        "y": 137
       },
       "id": 74,
       "options": {
@@ -6026,7 +7528,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.nudged\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.nudged\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Nudged",
           "refId": "A"
         },
@@ -6035,7 +7537,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.abandoned\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.abandoned\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Abandoned",
           "refId": "B"
         }
@@ -6110,7 +7612,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 110
+        "y": 137
       },
       "id": 75,
       "options": {
@@ -6134,7 +7636,7 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.dependency_recovered\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.dependency_recovered\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.service_owner\"=~\"$service_owner\"}[5m]))",
           "legendFormat": "Dependency recovered",
           "refId": "A"
         }
@@ -6191,7 +7693,39 @@
           "type": "prometheus",
           "uid": "altinn-studio-metrics"
         },
-        "definition": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\"}, \"service.name\")",
+        "definition": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\"}, \"altinn.service_owner\")",
+        "description": "Service owners whose engines to show (altinn.service_owner). Each service owner's cluster runs its own engine, with its own database.",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service owner",
+        "multi": true,
+        "name": "service_owner",
+        "options": [],
+        "query": {
+          "query": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\"}, \"altinn.service_owner\")",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query",
+        "allValue": ".*"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "definition": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"altinn.service_owner\"=~\"$service_owner\"}, \"service.name\")",
         "description": "The engine services to show. All is every engine service reporting in the environment rather than any service, so the Npgsql panels leave out other services' connection pools.",
         "hide": 0,
         "includeAll": true,
@@ -6200,7 +7734,7 @@
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\"}, \"service.name\")",
+          "query": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"altinn.service_owner\"=~\"$service_owner\"}, \"service.name\")",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 2,

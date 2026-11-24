@@ -3,6 +3,7 @@ using System.Net;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Xunit.Abstractions;
 
@@ -13,7 +14,9 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// the concluding step defers while the integrasjonspunkt has nothing to report, and the process
 /// advances only when delivery is confirmed. The classification, the backoff ladder and the
 /// pipeline's expansion are unit-tested in isolation — what this adds is that the send survives two
-/// real parks without being repeated, which is the whole reason the send has its own stage.
+/// real parks without being repeated, which is the whole reason the send has its own stage. The scenario
+/// also sets <c>onProcessEnd.confirm</c> and grants <c>complete</c> only at the end event, so the confirmation
+/// passes Storage only after the process has ended.
 /// </summary>
 [Trait("Category", "Integration")]
 [Collection(WorkflowEngineTestCollection.Name)]
@@ -110,9 +113,9 @@ public class WorkflowEngineEFormidlingTests(ITestOutputHelper output, AppFixture
         Assert.NotNull(settled.DataValues);
         Assert.Equal("levert", settled.DataValues[EformidlingConstants.ShipmentStatusDataValueKey]);
 
-        // The service owner has what it needed from this instance.
+        // The scenario's onProcessEnd.confirm confirms it for the service owner.
         Assert.NotNull(settled.CompleteConfirmations);
-        Assert.NotEmpty(settled.CompleteConfirmations);
+        Assert.Equal("ttd", Assert.Single(settled.CompleteConfirmations).StakeholderId);
     }
 
     private static async Task<Instance> WaitForProcessEnd(
@@ -129,7 +132,8 @@ public class WorkflowEngineEFormidlingTests(ITestOutputHelper output, AppFixture
         {
             using var refreshedResponse = await fixture.Instances.Get(token, instance);
             using var refreshed = await refreshedResponse.Read<Instance>();
-            if (refreshed.Data.Model?.Process?.EndEvent == "EndEvent_1")
+            // The confirmation is saved after the end event, before the release to idle.
+            if (refreshed.Data.Model?.Process is { EndEvent: "EndEvent_1", Status: null or ProcessStatus.Idle })
             {
                 return refreshed.Data.Model;
             }
@@ -140,7 +144,7 @@ public class WorkflowEngineEFormidlingTests(ITestOutputHelper output, AppFixture
 
         string logs = await fixture.GetSnapshotAppLogs();
         Assert.Fail(
-            $"Process did not reach EndEvent_1 within the deadline (last seen task: {lastSeenTask}).\n"
+            $"Process did not reach EndEvent_1 and idle within the deadline (last seen task: {lastSeenTask}).\n"
                 + $"----- SNAPSHOT LOGS -----\n{logs}"
         );
         throw new UnreachableException();

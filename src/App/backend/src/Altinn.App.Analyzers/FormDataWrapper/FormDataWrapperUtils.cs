@@ -169,6 +169,7 @@ public static class FormDataWrapperUtils
             );
         }
 
+        var canBeCreated = CanBeCreated(namedTypeSymbol, compilation);
         var nodeProperties = new List<ModelPathNode>();
         foreach (var property in GetPropertiesIncludingInherited(namedTypeSymbol, compilation))
         {
@@ -190,6 +191,11 @@ public static class FormDataWrapperUtils
             var cSharpName = property.Name;
             var jsonName = SourceReaderUtils.GetJsonName(property) ?? cSharpName;
 
+            var isNonNullableValueType =
+                propertyTypeInfo.PropertyCollectionType is null
+                && propertyTypeInfo.PropertyType.IsValueType
+                && !propertyTypeInfo.IsNullable;
+
             var subProperties = GetNodeProperties(
                 propertyTypeInfo.PropertyType,
                 compilation,
@@ -207,11 +213,91 @@ public static class FormDataWrapperUtils
                     subProperties,
                     propertyTypeInfo.PropertyCollectionTypeString,
                     propertyTypeInfo.IsNullableCollection,
-                    propertyTypeInfo.IsIndexableCollection
+                    propertyTypeInfo.IsIndexableCollection,
+                    isNonNullableValueType,
+                    hasInitialValue: isNonNullableValueType
+                        && canBeCreated
+                        && MayHaveInitialValue(property, namedTypeSymbol)
                 )
             );
         }
         return nodeProperties.ToArray();
+    }
+
+    /// <summary>
+    /// Generated code can write <c>new T()</c>: a class that is not abstract, has a parameterless constructor it can
+    /// access, and no required members
+    /// </summary>
+    private static bool CanBeCreated(ITypeSymbol typeSymbol, Compilation compilation)
+    {
+        if (typeSymbol is not INamedTypeSymbol { TypeKind: TypeKind.Class, IsAbstract: false } namedTypeSymbol)
+        {
+            return false;
+        }
+        if (
+            !namedTypeSymbol.InstanceConstructors.Any(constructor =>
+                constructor.Parameters.Length == 0
+                && compilation.IsSymbolAccessibleWithin(constructor, compilation.Assembly)
+            )
+        )
+        {
+            return false;
+        }
+        for (INamedTypeSymbol? type = namedTypeSymbol; type is not null; type = type.BaseType)
+        {
+            if (
+                type.GetMembers()
+                    .Any(member => member is IPropertySymbol { IsRequired: true } or IFieldSymbol { IsRequired: true })
+            )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// A new object of the type may give the property another value than default: the property has an initializer
+    /// or accessors with a body, or the type or a base class declares a constructor. Code that is not in the
+    /// compilation could do anything, so it may too.
+    /// </summary>
+    private static bool MayHaveInitialValue(IPropertySymbol property, INamedTypeSymbol typeSymbol)
+    {
+        for (
+            INamedTypeSymbol? type = typeSymbol;
+            type is not null && type.SpecialType != SpecialType.System_Object;
+            type = type.BaseType
+        )
+        {
+            if (
+                type.DeclaringSyntaxReferences.IsEmpty
+                || type.InstanceConstructors.Any(constructor => !constructor.IsImplicitlyDeclared)
+            )
+            {
+                return true;
+            }
+        }
+
+        if (property.DeclaringSyntaxReferences.IsEmpty)
+        {
+            return true;
+        }
+        foreach (var reference in property.DeclaringSyntaxReferences)
+        {
+            if (
+                reference.GetSyntax() is not PropertyDeclarationSyntax declaration
+                || declaration.Initializer is not null
+                || declaration.ExpressionBody is not null
+                || declaration.AccessorList is null
+                || declaration.AccessorList.Accessors.Any(accessor =>
+                    accessor.Body is not null || accessor.ExpressionBody is not null
+                )
+            )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

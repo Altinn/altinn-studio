@@ -86,6 +86,26 @@ describe('Datepicker', () => {
     expect(screen.getByRole('grid')).toBeInTheDocument();
   });
 
+  describe('in a time zone behind UTC', () => {
+    const originalTimeZone = process.env.TZ;
+    beforeEach(() => {
+      process.env.TZ = 'America/New_York';
+    });
+    afterEach(() => {
+      process.env.TZ = originalTimeZone;
+    });
+
+    it('selects the stored date in the calendar, not the day before', async () => {
+      const user = userEvent.setup();
+      render({ value: '2025-03-15', format: 'dd.MM.yyyy' });
+
+      await user.click(screen.getByRole('button', { name: 'Open date picker' }));
+
+      expect(screen.getByRole('textbox')).toHaveValue('15.03.2025');
+      expect(screen.getByRole('gridcell', { selected: true })).toHaveTextContent('15');
+    });
+  });
+
   it('keeps month/year selection and date limits available after lazy opening', async () => {
     const user = userEvent.setup();
     render({ value: '2025-03-15', minDate: '2025-03-10', maxDate: '2026-04-20' });

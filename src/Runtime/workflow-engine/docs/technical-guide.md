@@ -673,7 +673,9 @@ which workflow.
 
 The one exception is `altinn.workflow_engine.namespace`, which is unbounded across the fleet. It is on the throttle
 counters, as the [failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
-records, and on the errors counter's `workflow_handling` errors. Both count rare events.
+records, on the errors counter's `workflow_handling` errors, and on the step and workflow failure counters, so the
+dashboard shows which app fails. All of them count rare events: an app gets a series only once it has failed in the
+process's lifetime. Its value is the namespace as the engine stores it, `{org}/{app}` for the Altinn apps.
 
 ### Alerting on terminal failures
 
@@ -779,7 +781,8 @@ to its section here. This section adds the behavior a caller needs that the sche
 
 The workflow, collection, mailbox and namespace throttle routes start with `/api/v1/{namespace}`. The namespace is a
 string the caller chooses and the engine treats as opaque. The Altinn apps use `{org}/{app}`. It is one path segment,
-so its slash is percent-encoded: `ttd/my-app` is `ttd%2Fmy-app`.
+so its slash is percent-encoded: `ttd/my-app` is `ttd%2Fmy-app`. The engine decodes the slash and lowercases the
+namespace, so it stores, returns and reports `ttd/my-app`.
 
 Across the API, `202 Accepted` means this call made the state change, and `200 OK` means the change had already
 happened. `404 Not Found` means the namespace has no such resource. Refusals carry problem details.
@@ -837,6 +840,8 @@ and lists the requested keys with no collection in `unmatchedKeys`, since retent
 `GET /api/v1/{namespace}/collections/{key}` returns one collection with the status of each head, and each head's
 `failedAttempts`, `firstFailedAt` and `waitingReason` as [retry](#retry--error-handling) and
 [deferral](#deferral-durable-yield) describe. `404 Not Found` means the namespace has no collection with that key.
+A slash in the key is percent-encoded like the namespace's, and the engine decodes it. A key that holds a literal `%2F`
+cannot be read here: ASP.NET Core turns `%252F` into `%2F` before the engine sees it.
 
 It is a frontier view by contract: auxiliary workflows never appear in it, and it carries no `workflowCounts` rollup,
 since it sits on the app's hot path. Read health from [list collections](#list-collections), and a collection's
@@ -905,9 +910,17 @@ status, and `/api/v1/health/live` answers `200` while the process runs. The vers
 `/health/live` redirect to them with `301`. Never point a probe at those: a probe counts a `3xx` as a pass, and the
 redirect never runs the readiness check.
 
-The engine is degraded while it is disabled, its queue is full or the database is unavailable, and unhealthy when it
-is stopped or reports itself unhealthy (`Engine.HealthLevel`). The response includes worker, connection and queue counts. Probes are left out of
-the HTTP request metrics and the traces.
+The Engine check is degraded while the engine's queue is full or the database is unavailable
+(`HealthStatusExtensions.ToHealthLevel`), and healthy otherwise. The response includes worker, connection and queue
+counts. Probes are left out of the HTTP request metrics and the traces.
+
+The gauge `altinn.workflow_engine.health.status` reports the Engine check's level: 0 healthy, 1 degraded. The endpoints
+can still answer Unhealthy through the Database check: in a database outage the gauge reads 1 while `/api/v1/health`
+answers Unhealthy. The engine notices an outage when its own fetch of work fails: at once if the database refuses
+connections, and only after the fetch times out if it stops answering. `altinn.workflow_engine.health.reason` says why
+the engine is degraded, with one series for `queue_full` and one for `database_unavailable`, at 1 while it holds and 0
+otherwise. Both gauges read the engine's status when the metrics are exported, not in the metrics collector's pass: in
+a database outage the pass's first database read fails, or is held until it times out, and nothing retries it.
 
 ## Configuration
 
@@ -960,7 +973,16 @@ runs a step by calling back to the app.
 - **Execution**: an HTTP POST to `AppCommandSettings.CommandEndpoint`, a URL template whose placeholders the command
   fills from the workflow context. The callback carries `executionReferenceTime`: the workflow's `startAt`, or else the
   step's creation time.
-- **Classification**: 2xx is success, 408, 418, 429 and 5xx are retryable, and any other 4xx is critical.
+- **Classification**: 2xx is success, 408, 418, 429 and 5xx are retryable, and any other 4xx is critical, except a
+  404 without the `nonRetryable` marker.
+- **Unmarked 404**: the app sets `nonRetryable: true` in the problem details of its permanent failures, including
+  the 404 for a command key it does not have, so a 404 without it means no callback route matched. That is a pod on
+  an app version without callbacks, during a rolling deploy or after a rollback, or Localtest answering for an app
+  that is restarting. The command retries it, so a rolling deploy heals once the callbacks reach the new version. An
+  empty, HTML or invalid JSON body counts as unmarked. The cost is that a wrong `CommandEndpoint` is retried for the
+  step's retry budget, a day by default, where it used to fail at once. The command logs each unmarked 404 as a
+  warning with the host it called. The retry strategy's `NonRetryableHttpStatusCodes` plays no part here: only
+  `WebhookCommand` reads it.
 - **State**: the command reads `state` from the response body and returns it as the step's output. The next step's
   callback receives it as `state`.
 - **Validation**: the engine validates every context field at enqueue, so an invalid request never enters the queue.

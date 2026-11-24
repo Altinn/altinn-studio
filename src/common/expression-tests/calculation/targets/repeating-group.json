@@ -1,0 +1,35 @@
+{
+  "name": "A field in a repeating group without an index is calculated for every row, relative to that row",
+  "dataModel": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 5
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows.total",
+      "expression": ["dataModel", "rows.decimal"]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 2,
+        "total": 2
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 5,
+        "total": 5
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 """Langfuse tracking utilities"""
 
 from contextlib import contextmanager
+from typing import Literal
 
 from langfuse import Langfuse, get_client
 from opentelemetry import context as otel_context
@@ -241,17 +242,18 @@ def _has_active_trace() -> bool:
 
 
 @contextmanager
-def trace_span(name: str, **kwargs):
+def trace_span(name: str, as_type: Literal["span", "guardrail"] = "span", **kwargs):
     """
     Creates a Langfuse span only when an active parent trace exists.
     Falls back to a no-op when called outside a traced workflow,
     preventing orphan spans with null input / undefined output.
+    A guardrail is a span for a check that is not a language model.
     """
     if not is_langfuse_enabled() or not _has_active_trace():
         yield _NoopSpan()
         return
 
-    with get_client().start_as_current_observation(as_type="span", name=name, **kwargs) as span:
+    with get_client().start_as_current_observation(as_type=as_type, name=name, **kwargs) as span:
         yield span
 
 

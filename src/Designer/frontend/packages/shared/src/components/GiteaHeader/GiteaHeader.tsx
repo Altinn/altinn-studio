@@ -12,6 +12,11 @@ type GiteaHeaderProps = {
   rightContent?: ReactNode;
   hasRepoError?: boolean;
   onPullSuccess?: () => void;
+  /**
+   * Runs when the user opens "share changes", before the changed files are listed, so files it changes
+   * are listed and shared too. It should handle its own errors; sharing goes on if it fails.
+   */
+  onBeforeShare?: () => Promise<void>;
   owner: string;
   repoName: string;
 };
@@ -24,6 +29,7 @@ export const GiteaHeader = ({
   leftComponent,
   hasRepoError,
   onPullSuccess,
+  onBeforeShare,
   owner,
   repoName,
 }: GiteaHeaderProps): ReactElement => {
@@ -33,7 +39,9 @@ export const GiteaHeader = ({
         <div className={classes.leftContentWrapper}>{leftComponent}</div>
         <div className={`${classes.rightContentWrapper} ${rightContentClassName}`}>
           {rightContent}
-          {!hasRepoError && <VersionControlButtons onPullSuccess={onPullSuccess} />}
+          {!hasRepoError && (
+            <VersionControlButtons onPullSuccess={onPullSuccess} onBeforeShare={onBeforeShare} />
+          )}
           <ThreeDotsMenu isClonePossible={!menuOnlyHasRepository && hasCloneModal} />
         </div>
       </div>

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { HttpError } from 'app-shared/utils/networking';
 import { workflowCounts } from 'admin/testing/workflowCounts';
 import {
   deriveWorkflowHealth,
@@ -9,6 +8,7 @@ import {
   mergeWorkflowHealth,
   WorkflowHealth,
 } from './workflowHealth';
+import { createHttpErrorMock } from 'app-shared/mocks/httpErrorMock';
 
 const guid = '3a0e0f6e-4b1d-4a2a-9d31-6f8e2b7c1d55';
 const otherGuid = '8b1d4f2c-9e77-4a55-b0aa-1c2d3e4f5061';
@@ -122,7 +122,7 @@ describe('extractInstanceGuid', () => {
 
 describe('isEngineUnavailableError', () => {
   const problemError = (type: string, status = 502) => {
-    return new HttpError({ status, data: { type } });
+    return createHttpErrorMock(status, { type });
   };
 
   it('recognizes the gateway problem for an unreachable engine', () => {
@@ -152,18 +152,18 @@ describe('isEngineUnavailableError', () => {
   it.each([502, 503, 504])(
     'recognizes a %i with no problem type, which is what an ingress answers with',
     (status) => {
-      const error = new HttpError({ status, data: '<html>502 Bad Gateway</html>' });
+      const error = createHttpErrorMock(status, '<html>502 Bad Gateway</html>');
       expect(isEngineUnavailableError(error)).toBe(true);
     },
   );
 
   it('does not treat other server errors as an unreachable engine', () => {
-    const error = new HttpError({ status: 500, data: '' });
+    const error = createHttpErrorMock(500, '');
     expect(isEngineUnavailableError(error)).toBe(false);
   });
 
   it('recognizes a status-only response with no body at all', () => {
-    const error = new HttpError({ status: 502, data: undefined });
+    const error = createHttpErrorMock(502);
     expect(isEngineUnavailableError(error)).toBe(true);
   });
 });
@@ -306,14 +306,11 @@ describe('mergeWorkflowHealth', () => {
 });
 
 const unavailableError = () =>
-  new HttpError({
-    status: 502,
-    data: { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' },
-  });
+  createHttpErrorMock(502, { type: 'urn:altinn:studio:gateway:workflow-engine-unavailable' });
 
 describe('isShownInPlaceError', () => {
   const statusError = (status: number) => {
-    return new HttpError({ status, data: {} });
+    return createHttpErrorMock(status, {});
   };
 
   it('covers missing rights and an unreachable engine, which the views explain themselves', () => {

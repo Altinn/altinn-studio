@@ -22,6 +22,7 @@ import { useAllNavigationParams } from 'src/hooks/navigation';
 import { objectOrArrayShallowEqual } from 'src/hooks/useShallowMemo';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import { useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
+import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type {
   ExpressionDependency,
   ExpressionSubscriptionOwner,
@@ -72,6 +73,8 @@ export interface ExpressionDataSources {
     defaultDataType: () => string | undefined;
     hasDataType: (dataType: string) => boolean;
     read: (reference: IDataModelReference) => unknown;
+    /** The schema of a data type, which the dataModel function uses to give objects every property they have */
+    getSchemaLookupTool?: (dataType: string) => SchemaLookupTool | undefined;
   };
   layout: {
     getLookups: () => LayoutLookups | undefined;
@@ -175,7 +178,7 @@ export function useExpressionDataSources(
     throw new Error('Use the expressionDataSourcesBase hook instead');
   }
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
   const runtime = useExpressionDataSourcesRuntime(overrides, 'runtime');
 
@@ -202,7 +205,7 @@ export function useExpressionDataSourcesForStoreSelector(
     throw new Error('Use the expressionDataSourcesBase hook instead');
   }
   const displayValueLookups = useMemo(() => collectDisplayValueLookups(toEvaluate), [toEvaluate]);
-  // eslint-disable-next-line react-compiler/react-compiler,react-hooks/rules-of-hooks
+  // eslint-disable-next-line react-hooks/hooks,react-hooks/rules-of-hooks
   const displayValues = displayValueLookups.length > 0 ? useDisplayDataFor(displayValueLookups) : emptyDisplayValues;
   const runtime = useExpressionDataSourcesRuntime(overrides, 'storeSelector');
 
@@ -381,6 +384,7 @@ function makeExpressionDataSourcesRuntime({
         observer.track({ type: 'formData', reference });
         return readFormDataFromStore(getInputs().store, reference);
       },
+      getSchemaLookupTool: (dataType) => getSchemaLookupToolFromStore(getInputs().store, dataType),
     },
     layout: {
       getLookups: () => {
@@ -512,6 +516,14 @@ function getReadableDataTypesFromStore(store: SnapshotInputs['store']) {
     return [];
   }
   return Object.keys(store.getState().bootstrap.dataModels);
+}
+
+/** Read the schema lookup tool of a data type directly from the current FormStore snapshot. */
+function getSchemaLookupToolFromStore(store: SnapshotInputs['store'], dataType: string) {
+  if (store === ContextNotProvided) {
+    return undefined;
+  }
+  return store.getState().bootstrap.dataModels[dataType]?.schemaResult.lookupTool;
 }
 
 /** Read layout lookups directly from the current FormStore snapshot. */

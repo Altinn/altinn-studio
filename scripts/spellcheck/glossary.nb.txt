@@ -108,6 +108,7 @@ handlingstype
 headerne
 hjemmelserklæring
 hovedflyten
+infoboks
 infoside
 innboks
 innboksen
@@ -258,6 +259,7 @@ tjenerport
 transportløyvegarantister
 tredjepartsapplikasjon
 tredjepartsbiblioteker
+tusenskille
 tvangsslett
 uarkiverte
 ukategoriserte
@@ -285,7 +287,9 @@ valideringsmelding
 valideringsmeldinger
 valideringsregel
 valideringstyper
+vedleggsfeltene
 vedleggstype
+vedleggstypene
 vedlikeholderen
 velferdsstøtte
 vergehaver
@@ -297,6 +301,7 @@ vertsnavn
 virksomhetsbruker
 visningsmodus
 visningsnavn
+visningsregelen
 visningstype
 visningsverdi
 

@@ -69,6 +69,7 @@ const backButtonTextKeys: Record<PageWithSettingsButton, TranslationKey> = {
   [RoutePaths.ProcessEditor]: 'sync_header.settings_back_to_process-editor',
   [RoutePaths.ContentLibrary]: 'sync_header.settings_back_to_content-library',
   [RoutePaths.AiAssistant]: 'sync_header.settings_back_to_ai-assistant',
+  [RoutePaths.AppBuilder]: 'sync_header.settings_back_to_app-builder',
 };
 
 function getButtonTextKey(isSettingsPage: boolean, from?: string): string {
