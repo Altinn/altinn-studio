@@ -214,6 +214,8 @@ task:
 - Every package and role code you added is in the current list, and a policy can use it, unless the user asked for
   that role.
 - Users get the action from the table above on every task they must complete.
+- When a rule names tasks with `urn:altinn:task`, it names the service tasks that follow them too. A rule without
+  `urn:altinn:task` applies in every task and needs nothing more.
 - Tell the user which subjects got which rights, and in which tasks.
 
 ## Docs
