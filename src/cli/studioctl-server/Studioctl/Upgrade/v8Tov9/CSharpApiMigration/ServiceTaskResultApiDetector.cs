@@ -8,7 +8,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <c>UsingNamespaceMigration</c> step); what cannot be auto-migrated is the result construction: the
 /// v8 <c>ServiceTaskErrorHandling</c> record and <c>ServiceTaskErrorStrategy</c> enum are removed, and
 /// the <c>Failed(...)</c>/<c>FailedAbortProcessNext()</c>/<c>FailedContinueProcessNext(...)</c>
-/// factories are replaced by <c>FailedRetryable</c>/<c>FailedPermanent</c>/<c>Success</c>.
+/// factories are replaced by <c>FailedRetryable</c>/<c>FailedPermanent</c>/<c>EndTask</c>.
 /// Choosing between retryable failure, permanent failure and success depends on the app's intent,
 /// so this reports the call sites rather than transforming them.
 /// </summary>
@@ -42,8 +42,8 @@ internal sealed class ServiceTaskResultApiDetector
         + "ServiceTaskErrorStrategy enum are removed, along with the Failed(...)/FailedAbortProcessNext()/"
         + "FailedContinueProcessNext(...) factories. Rebuild the result using "
         + "ServiceTaskResult.FailedRetryable(message) (transient failure the engine should retry), "
-        + "FailedPermanent(message) (give up), or Success(action) (succeed and advance the process). "
-        + "For an external outcome that has not arrived yet, use a pipeline with Defer or a mailbox reply handler. "
+        + "FailedPermanent(message) (give up), or EndTask(action) (succeed and advance the process). "
+        + "For an external outcome that has not arrived yet, use a stage that returns Defer, or an ExternalStage. "
         + "Call sites found:";
 
     private readonly CSharpSourceScanner _scanner;
