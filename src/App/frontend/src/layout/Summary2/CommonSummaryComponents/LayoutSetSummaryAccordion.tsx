@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { AccordionItem, Flex } from '@app/form-component';
 
 import { Lang } from 'src/features/language/Lang';

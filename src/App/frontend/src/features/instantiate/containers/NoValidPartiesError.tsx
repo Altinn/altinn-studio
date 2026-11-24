@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';

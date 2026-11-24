@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';

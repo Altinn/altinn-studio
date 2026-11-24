@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { act, waitFor } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 

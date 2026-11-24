@@ -1,5 +1,5 @@
-import React from 'react';
 import { Link, MemoryRouter, Route, Routes } from 'react-router';
+import type { PropsWithChildren } from 'react';
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -28,7 +28,7 @@ interface TestComponentProps {
   isLoading?: boolean;
 }
 
-function LoadingWrapper({ isLoading, children }: React.PropsWithChildren<{ isLoading: boolean }>) {
+function LoadingWrapper({ isLoading, children }: PropsWithChildren<{ isLoading: boolean }>) {
   if (!isLoading) {
     return children;
   }

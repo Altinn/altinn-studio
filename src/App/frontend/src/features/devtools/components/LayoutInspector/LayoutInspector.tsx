@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 
 import { Button } from '@app/form-component';
 import { Alert } from '@digdir/designsystemet-react';
@@ -47,7 +48,7 @@ export const LayoutInspector = () => {
     setPropertiesHaveChanged(false);
   }, [selectedComponent, currentLayout]);
 
-  function handleChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+  function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
     setComponentProperties(event.target.value);
     !propertiesHaveChanged && setPropertiesHaveChanged(true);
   }

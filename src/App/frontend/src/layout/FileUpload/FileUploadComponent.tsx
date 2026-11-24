@@ -1,6 +1,7 @@
-import React from 'react';
+import { useState } from 'react';
 import { useNavigation } from 'react-router';
 import { toast } from 'react-toastify';
+import type { JSX } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
 import {
@@ -36,7 +37,7 @@ import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/ho
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): React.JSX.Element {
+export function FileUploadComponent({ baseComponentId }: PropsFromGenericComponent<'FileUpload'>): JSX.Element {
   const config = useComponentConfig<'FileUpload'>(baseComponentId, 'FileUpload');
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'FileUpload');
   const componentId = useIndexedId(baseComponentId);
@@ -56,7 +57,7 @@ export function FileUploadComponent({ baseComponentId }: PropsFromGenericCompone
 
   const isSubformPage = useIsSubformPage();
 
-  const [showFileUpload, setShowFileUpload] = React.useState(false);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const mobileView = useIsMobileOrTablet();
   const attachments = AttachmentReadModel.useAttachmentsFor(baseComponentId);
   const addRejectedAttachments = AttachmentUpload.useAddRejectedAttachments();

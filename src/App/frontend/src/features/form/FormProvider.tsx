@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { isHttpError } from '@studio/http-client';
@@ -63,7 +63,7 @@ interface FormProviderProps {
 /**
  * This helper-context provider is used to provide all the contexts needed for forms to work
  */
-export function FormProvider({ children, readOnly = false, ...props }: React.PropsWithChildren<FormProviderProps>) {
+export function FormProvider({ children, readOnly = false, ...props }: PropsWithChildren<FormProviderProps>) {
   const parentFromContext = FormStore.raw.useLaxStore();
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
@@ -152,7 +152,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
 
 function LayoutRevisionBoundary({ children }: PropsWithChildren) {
   const layoutRevision = useLayoutRevisionKey();
-  return <React.Fragment key={layoutRevision}>{children}</React.Fragment>;
+  return <Fragment key={layoutRevision}>{children}</Fragment>;
 }
 
 const layoutRevisionKeys = new WeakMap<object, number>();

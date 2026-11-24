@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 
 import { useCurrentInstance, useOptimisticallyUpdateInstance } from 'src/core/queries/instance';

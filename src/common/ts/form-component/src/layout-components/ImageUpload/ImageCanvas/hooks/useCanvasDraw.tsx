@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type React from 'react';
+import type { RefObject } from 'react';
 
 import {
   cropAreaPlacement,
@@ -10,8 +10,8 @@ import {
 } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 type UseCanvasDrawProps = {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  imageRef: React.RefObject<HTMLImageElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
+  imageRef: RefObject<HTMLImageElement | null>;
   zoom: number;
   position: Position;
   cropArea: CropInternal;

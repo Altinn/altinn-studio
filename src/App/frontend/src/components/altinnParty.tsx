@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import type { KeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
@@ -41,16 +42,16 @@ export function AltinnParty({
 }: IAltinnPartyProps) {
   const { langAsString } = useLanguage();
 
-  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(initiallyExpanded);
+  const [subUnitsExpanded, setSubUnitsExpanded] = useState<boolean>(initiallyExpanded);
   const isOrg = party.partyTypeName === PartyType.Organization;
   const selectionState = getSelectionState(party, pendingPartyId);
 
-  function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+  function onClickParty(selectedParty: IParty, event: ReactMouseEvent<HTMLDivElement, MouseEvent>) {
     event.stopPropagation();
     onSelectParty(selectedParty);
   }
 
-  function onKeyPressParty(selectedParty: IParty, event: React.KeyboardEvent) {
+  function onKeyPressParty(selectedParty: IParty, event: KeyboardEvent) {
     event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {
       onSelectParty(selectedParty);
@@ -177,8 +178,8 @@ interface ISubUnitProps {
   party: IParty;
   pendingPartyId: number | undefined;
   tabbable: boolean;
-  onClick: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-  onKeyPress: (event: React.KeyboardEvent) => void;
+  onClick: (event: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onKeyPress: (event: KeyboardEvent) => void;
 }
 
 function SubUnit({ party, pendingPartyId, tabbable, onClick, onKeyPress }: ISubUnitProps) {

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { act, renderHook as rtlRenderHook, waitFor } from '@testing-library/react';
 import type { RenderHookOptions } from '@testing-library/react';

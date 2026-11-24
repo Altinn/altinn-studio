@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ComponentProps } from 'react';
 import type { MonthCaptionProps } from 'react-day-picker';
 
 import { fn } from 'storybook/test';
@@ -23,7 +24,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: React.ComponentProps<typeof DatePickerControl>) => {
+const Wrapper = (args: ComponentProps<typeof DatePickerControl>) => {
   const [value, setValue] = useState(args.value);
   const handleValueChange = (newValue: string) => {
     args.onValueChange(newValue);

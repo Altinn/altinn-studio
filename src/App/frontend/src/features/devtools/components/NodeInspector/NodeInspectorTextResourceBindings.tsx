@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';

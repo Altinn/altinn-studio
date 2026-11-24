@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import type { FC, ReactNode } from 'react';
 
 import type { HttpError } from '@studio/http-client';
 
@@ -26,7 +26,7 @@ export const PaymentContext = createContext<PaymentContextProps | undefined>(und
 // Module-level tracking to prevent duplicate payment calls across component remounts
 const paymentInitiatedForInstance = new Map<string, boolean>();
 
-export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) => {
+export const PaymentProvider: FC<PaymentContextProvider> = ({ children }) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const {

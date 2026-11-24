@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { screen } from '@testing-library/dom';
 import { act, render as renderRtl } from '@testing-library/react';
@@ -13,7 +13,7 @@ let queryTest: ReturnType<typeof createQueryTestWrapper>;
 
 const randomUUID = () => '00000000-0000-4000-8000-000000000000';
 
-function render(ui: React.ReactNode) {
+function render(ui: ReactNode) {
   return act(async () => renderRtl(ui, { wrapper: queryTest.wrapper }));
 }
 

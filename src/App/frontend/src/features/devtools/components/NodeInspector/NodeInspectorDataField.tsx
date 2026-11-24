@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
@@ -24,7 +25,7 @@ interface NodeInspectorDataFieldParams {
   value: unknown;
 }
 
-interface ValueProps extends React.PropsWithChildren {
+interface ValueProps extends PropsWithChildren {
   property: string;
   className?: string;
   collapsible?: boolean;
@@ -33,7 +34,7 @@ interface ValueProps extends React.PropsWithChildren {
 }
 
 export function Value({ children, className, property, collapsible, wasExpression, exprText }: ValueProps) {
-  const [collapsed, setCollapsed] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const extraClasses = { [classes.collapsed]: collapsed, [classes.collapsible]: collapsible };
   const context = useNodeInspectorContext();
   const setExpression = useDevToolsStore((state) => state.actions.exprPlaygroundSetExpression);

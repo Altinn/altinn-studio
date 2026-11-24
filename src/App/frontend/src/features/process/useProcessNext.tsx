@@ -1,4 +1,3 @@
-import React from 'react';
 import { toast } from 'react-toastify';
 
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';

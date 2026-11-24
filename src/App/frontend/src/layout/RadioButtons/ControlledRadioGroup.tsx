@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ConditionalWrapper } from '@app/form-component';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Fieldset, useRadioGroup } from '@digdir/designsystemet-react';

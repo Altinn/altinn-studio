@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { act, render as rtlRender, renderHook, screen } from '@testing-library/react';
 
@@ -12,7 +12,7 @@ import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { createQueryTestWrapper } from 'src/test/queryTestUtils';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-vi.mock('src/core/loading/Loader', () => ({ Loader: ({ overlay }: { overlay?: React.ReactNode }) => overlay }));
+vi.mock('src/core/loading/Loader', () => ({ Loader: ({ overlay }: { overlay?: ReactNode }) => overlay }));
 vi.mock('src/features/language/Lang', () => ({ Lang: ({ id }: { id: string }) => id }));
 
 let onServiceTaskPage = false;
@@ -34,7 +34,7 @@ async function setWorkflow(workflow: IProcessWorkflow | undefined) {
     await vi.advanceTimersByTimeAsync(0);
   });
 }
-function render(ui: React.ReactNode) {
+function render(ui: ReactNode) {
   return rtlRender(ui, { wrapper: queryTest.wrapper });
 }
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactElement } from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -100,7 +100,7 @@ const mockSchema: JSONSchema7 = {
 };
 
 type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLayout>[0], 'renderer'>>;
-type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
+type RenderProps = MinimalRenderProps & { renderer: ReactElement };
 async function statelessRender(props: RenderProps) {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
     onEntry: {

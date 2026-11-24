@@ -1,5 +1,4 @@
-import React from 'react';
-import type { HtmlHTMLAttributes } from 'react';
+import type { HtmlHTMLAttributes, ReactNode } from 'react';
 
 import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
@@ -11,13 +10,13 @@ import classes from 'src/components/form/caption/Caption.module.css';
 import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 
 type HelpTextProps = {
-  text?: React.ReactNode;
+  text?: ReactNode;
   accessibleTitle?: string;
 };
 
 export type CaptionProps = {
-  title: React.ReactNode;
-  description?: React.ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
   helpText?: HelpTextProps;
   required?: boolean;
   labelSettings?: ILabelSettings;

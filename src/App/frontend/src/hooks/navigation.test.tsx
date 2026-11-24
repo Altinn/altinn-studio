@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 

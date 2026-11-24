@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useIsLgUp } from '@app/form-component';
 
 import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';

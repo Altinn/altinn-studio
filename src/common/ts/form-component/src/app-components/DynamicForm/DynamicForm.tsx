@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
 import { DatePickerControl, getDateFormat } from '@app/form-component/app-components/Datepicker';
@@ -85,7 +86,7 @@ interface FieldRendererProps {
   handleChange: (key: string, value: FormDataValue) => void;
   schema: JSONSchema7;
   component?: Component;
-  renderFields?: (currentSchema: JSONSchema7) => React.ReactNode | null;
+  renderFields?: (currentSchema: JSONSchema7) => ReactNode | null;
   locale?: string;
   DropdownCaption: typeof MonthCaption;
   buttonAriaLabel: string;

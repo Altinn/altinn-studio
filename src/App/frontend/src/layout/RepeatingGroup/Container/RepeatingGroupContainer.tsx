@@ -1,5 +1,5 @@
-import React, { forwardRef, useEffect } from 'react';
-import type { JSX } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
+import type { CSSProperties, ForwardedRef, JSX } from 'react';
 
 import { Button, ConditionalWrapper, Fieldset, Flex, FullWidthWrapper } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -28,7 +28,7 @@ import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/ho
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 
-export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
+export const RepeatingGroupContainer = forwardRef((_, ref: ForwardedRef<HTMLDivElement>): JSX.Element | null => {
   const baseComponentId = useRepeatingGroupComponentId();
   const mode = useComponentConfig(baseComponentId, 'RepeatingGroup').edit?.mode;
 
@@ -69,10 +69,10 @@ function RowDeletionAnnouncement() {
   const { langAsString } = useLanguage();
   const deletedRowsCount = useRepeatingGroupSelector((state) => state.deletedRowsCount);
   const { numVisibleRows } = useRepeatingGroupRowState();
-  const [message, setMessage] = React.useState('');
+  const [message, setMessage] = useState('');
 
   // Only announce when the count actually increases.
-  const lastAnnouncedCount = React.useRef(deletedRowsCount);
+  const lastAnnouncedCount = useRef(deletedRowsCount);
 
   useEffect(() => {
     if (deletedRowsCount <= lastAnnouncedCount.current) {
@@ -195,7 +195,7 @@ function ModeShowAll() {
   );
 }
 
-export const alignStyle = (align: ButtonPosition): React.CSSProperties => {
+export const alignStyle = (align: ButtonPosition): CSSProperties => {
   switch (align) {
     case 'right':
       return { marginLeft: 'auto' };

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

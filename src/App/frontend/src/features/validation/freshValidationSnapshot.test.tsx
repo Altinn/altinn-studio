@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { renderHook as rtlRenderHook } from '@testing-library/react';
 import type { RenderHookOptions } from '@testing-library/react';
 

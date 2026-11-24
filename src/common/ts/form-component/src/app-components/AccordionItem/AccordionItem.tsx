@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { Details } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -6,8 +7,8 @@ import cn from 'classnames';
 import classes from './AccordionItem.module.css';
 
 export type AccordionItemProps = {
-  title: React.ReactNode;
-  children: React.ReactNode;
+  title: ReactNode;
+  children: ReactNode;
   className?: string;
   open?: boolean;
   defaultOpen?: boolean;
@@ -22,7 +23,7 @@ export function AccordionItem({
   defaultOpen = false,
   onToggle,
 }: AccordionItemProps) {
-  const [isOpen, setOpen] = React.useState(defaultOpen);
+  const [isOpen, setOpen] = useState(defaultOpen);
 
   const isControlled = open !== undefined;
   const currentOpen = isControlled ? open : isOpen;

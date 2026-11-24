@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { useIsMobile } from '@app/form-component';
 import { Dropdown, RovingFocusItem, RovingFocusRoot } from '@digdir/designsystemet-react';
