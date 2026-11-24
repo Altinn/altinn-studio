@@ -21,7 +21,7 @@ internal sealed class ProcessTaskStart1 : IProcessTask
         _httpContext = httpContextAccessor?.HttpContext ?? throw new Exception();
     }
 
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(Start).Build();
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(Start);
 
     private Task<StageResult> Start(StageContext context)
     {
@@ -39,7 +39,7 @@ internal sealed class ProcessTaskStart2(IHttpContextAccessor httpContextAccessor
     private HttpContext _httpContext3 { get; } = httpContextAccessor?.HttpContext ?? throw new Exception();
     public string Type => "data";
 
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(Start).Build();
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(Start);
 
     private Task<StageResult> Start(StageContext context)
     {
