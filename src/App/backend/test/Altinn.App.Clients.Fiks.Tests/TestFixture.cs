@@ -28,7 +28,6 @@ using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
-using Altinn.Common.AccessTokenClient.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,7 +66,6 @@ internal sealed record TestFixture(
     Mock<IProcessReader> ProcessReaderMock,
     Mock<IHttpClientFactory> HttpClientFactoryMock,
     Mock<HttpMessageHandler> HttpMessageHandlerMock,
-    Mock<IAccessTokenGenerator> AccessTokenGeneratorMock,
     Mock<ITranslationService> TranslationServiceMock,
     Mock<IFiksIOClientFactory> FiksIOClientFactoryMock
 ) : IAsyncDisposable
@@ -87,8 +85,6 @@ internal sealed record TestFixture(
         App.Services.GetRequiredService<IFiksArkivPayloadGenerator>();
     public IFiksArkivConfigResolver FiksArkivConfigResolver =>
         App.Services.GetRequiredService<IFiksArkivConfigResolver>();
-    public IFiksArkivInstanceClient FiksArkivInstanceClient =>
-        App.Services.GetRequiredService<IFiksArkivInstanceClient>();
     public IServiceTask FiksArkivServiceTask =>
         AppImplementationFactory.GetServiceTasks().First(x => x.Type == AltinnTaskTypes.FiksArkiv);
 
@@ -99,7 +95,6 @@ internal sealed record TestFixture(
     public IFiksIOClientFactory FiksIOClientFactory => App.Services.GetRequiredService<IFiksIOClientFactory>();
     public IProcessReader ProcessReader => App.Services.GetRequiredService<IProcessReader>();
     public IHttpClientFactory HttpClientFactory => App.Services.GetRequiredService<IHttpClientFactory>();
-    public IAccessTokenGenerator AccessTokenGenerator => App.Services.GetRequiredService<IAccessTokenGenerator>();
     public IAppMetadata AppMetadata => App.Services.GetRequiredService<IAppMetadata>();
     public AppImplementationFactory AppImplementationFactory =>
         App.Services.GetRequiredService<AppImplementationFactory>();
@@ -155,7 +150,6 @@ internal sealed record TestFixture(
         var processReaderMock = new Mock<IProcessReader>();
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
         var httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-        var accessTokenGeneratorMock = new Mock<IAccessTokenGenerator>();
         var loggerFactoryMock = new Mock<ILoggerFactory>();
         var translationServiceMock = new Mock<ITranslationService>();
         var fiksIOClientFactoryMock = new Mock<IFiksIOClientFactory>();
@@ -186,9 +180,6 @@ internal sealed record TestFixture(
         hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(hostEnvironment);
         loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(Mock.Of<ILogger>());
         appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/unit-testing"));
-        maskinportenClientMock
-            .Setup(x => x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(JwtToken.Parse(TestHelpers.DummyToken));
 
         builder.Services.AddSingleton(hostEnvironmentMock.Object);
         builder.Services.AddSingleton(appMetadataMock.Object);
@@ -207,14 +198,12 @@ internal sealed record TestFixture(
         builder.Services.AddSingleton(appModelMock.Object);
         builder.Services.AddSingleton(processReaderMock.Object);
         builder.Services.AddSingleton(httpClientFactoryMock.Object);
-        builder.Services.AddSingleton(accessTokenGeneratorMock.Object);
         builder.Services.AddSingleton(translationServiceMock.Object);
 
         if (mockFiksIOClientFactory)
             builder.Services.AddSingleton(fiksIOClientFactoryMock.Object);
 
         // Non-mockable services
-        builder.Services.AddTransient<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
         builder.Services.AddSingleton<ModelSerializationService>();
         builder.Services.AddAppImplementationFactory();
         builder.Services.AddRuntimeEnvironment();
@@ -239,7 +228,6 @@ internal sealed record TestFixture(
             processReaderMock,
             httpClientFactoryMock,
             httpMessageHandlerMock,
-            accessTokenGeneratorMock,
             translationServiceMock,
             mockFiksIOClientFactory ? fiksIOClientFactoryMock : null!
         );

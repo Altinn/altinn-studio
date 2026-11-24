@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { useIsMobile } from '@app/form-component';
+import { BaseTable, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { GridCell, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
@@ -71,14 +70,17 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
       className={cn(classes.summaryWrapper)}
       data-testid='summary-repeating-group-component'
     >
-      <Table className={cn({ [tableClasses.mobileTable]: isSmall })}>
+      <BaseTable
+        stackedRows={isSmall ? 'framed' : undefined}
+        className={cn({ [tableClasses.mobileTable]: isSmall })}
+      >
         <Caption
           {...captionProps}
           title={<Lang id={title} />}
         />
-        <Table.Body>
+        <BaseTable.Body>
           {renderExtraRows(rowsBefore, 'before', showEditColumn)}
-          <Table.Row>
+          <BaseTable.Row>
             <DataModelLocationProvider
               groupBinding={dataModelBindings.group}
               rowIndex={0} // Force the header row to show texts as if it is in the first row
@@ -92,13 +94,13 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
               ))}
             </DataModelLocationProvider>
             {showEditColumn && (
-              <Table.HeaderCell className={tableClasses.narrowLastColumn}>
+              <BaseTable.HeaderCell className={tableClasses.narrowLastColumn}>
                 <span className={utilClasses.visuallyHidden}>
                   <Lang id='general.edit' />
                 </span>
-              </Table.HeaderCell>
+              </BaseTable.HeaderCell>
             )}
-          </Table.Row>
+          </BaseTable.Row>
           {rows.map((row, index) => (
             <DataModelLocationProvider
               groupBinding={dataModelBindings.group}
@@ -116,8 +118,8 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
             </DataModelLocationProvider>
           ))}
           {renderExtraRows(rowsAfter, 'after', showEditColumn)}
-        </Table.Body>
-      </Table>
+        </BaseTable.Body>
+      </BaseTable>
       <ValidationMessageList
         validations={errors}
         size='sm'
@@ -139,21 +141,21 @@ function renderExtraRows(rows: GridRowLayout[], keyPrefix: 'before' | 'after', s
       />
     ));
     return (
-      <Table.Row key={`row-${keyPrefix}-${rowIdx}`}>
+      <BaseTable.Row key={`row-${keyPrefix}-${rowIdx}`}>
         {cells}
         {showEditColumn &&
           (row.header ? (
-            <Table.HeaderCell className={tableClasses.narrowLastColumn} />
+            <BaseTable.HeaderCell className={tableClasses.narrowLastColumn} />
           ) : (
-            <Table.Cell className={tableClasses.narrowLastColumn} />
+            <BaseTable.Cell className={tableClasses.narrowLastColumn} />
           ))}
-      </Table.Row>
+      </BaseTable.Row>
     );
   });
 }
 
 function ExtraRowCell({ cell, isHeader, colSpan }: { cell: GridCell; isHeader: boolean; colSpan: number }) {
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
   const columnStyles = cell ? getColumnStyles(cell) : undefined;
 
   return (
@@ -183,8 +185,8 @@ function HeaderCell({
   const labelProps = useSummaryLabelProps(baseComponentId);
 
   return (
-    <Table.HeaderCell
-      className={repeatingGroupClasses.tableCellFormatting}
+    <BaseTable.HeaderCell
+      columnWidth
       style={style}
     >
       <LabelContent
@@ -197,7 +199,7 @@ function HeaderCell({
         }
         helpTitle={title}
       />
-    </Table.HeaderCell>
+    </BaseTable.HeaderCell>
   );
 }
 
@@ -239,12 +241,12 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns,
   }
 
   return (
-    <Table.Row>
+    <BaseTable.Row>
       {columns.map((id) =>
         layoutLookups.getComponent(id).type === 'Custom' ? (
-          <Table.Cell key={id}>
+          <BaseTable.Cell key={id}>
             <ComponentSummary targetBaseComponentId={id} />
-          </Table.Cell>
+          </BaseTable.Cell>
         ) : (
           <DataCell
             key={id}
@@ -255,7 +257,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns,
         ),
       )}
       {!pdfModeActive && (
-        <Table.Cell
+        <BaseTable.Cell
           align='right'
           className={tableClasses.buttonCell}
         >
@@ -264,9 +266,9 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns,
             ids={editableIds}
             fallback={editButton !== false ? baseComponentId : undefined}
           />
-        </Table.Cell>
+        </BaseTable.Cell>
       )}
-    </Table.Row>
+    </BaseTable.Row>
   );
 }
 
@@ -283,7 +285,7 @@ function DataCell(props: DataCellProps) {
 
 function HiddenDataCell() {
   useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
-  return <Table.Cell />;
+  return <BaseTable.Cell />;
 }
 
 function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
@@ -304,9 +306,10 @@ function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellPr
   );
 
   return (
-    <Table.Cell
+    <BaseTable.Cell
       data-header-title={headerTitle}
-      className={cn(tableClasses.dataCell, repeatingGroupClasses.tableCellFormatting)}
+      columnWidth
+      className={tableClasses.dataCell}
     >
       <span
         className={cn(
@@ -323,6 +326,6 @@ function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellPr
         size='sm'
         className={cn(classes.errorMessage, tableClasses.cellValidationMessage)}
       />
-    </Table.Cell>
+    </BaseTable.Cell>
   );
 }

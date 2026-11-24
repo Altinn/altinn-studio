@@ -7,6 +7,7 @@ using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.CalculationExpressions;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
 
@@ -219,6 +220,11 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckRemovedCSharpApis(scanner, projectFile));
 
+        // Before every step that reads the process (the Maskinporten scopes, the PDF, eFormidling and Fiks Arkiv
+        // migrations, the feedback task check), so they see these tasks as the service tasks they are in v9.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskElements(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckMaskinportenSettingsSection(scanner, projectFolder));
 
@@ -256,6 +262,10 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOptionalIndicatorSettings(projectFolder));
+
+        // Normalize existing v8 calculations before merging generated rules into the v9 list.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateCalculationLists(projectFolder));
 
         var dataProcessorOutcome = await GenerateDataProcessors(projectFolder);
         returnCode = CombineExitCodes(returnCode, dataProcessorOutcome.ExitCode);
@@ -302,7 +312,7 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder, scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceOwnerPolicy(projectFolder));
@@ -315,6 +325,14 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
+
+        // After the eFormidling migration, which can add an eFormidling task, and before the Fiks Arkiv settings
+        // step removes MarkInstanceComplete, which it reads.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateOnProcessEndConfirm(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await WarnCustomTaskTypes(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateFiksArkivSettings(projectFolder));
@@ -1667,7 +1685,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static async Task<RuleMigrationOutcome> GenerateDataProcessors(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Data processors");
+        UpgradeConsole.BeginStep("Calculations and data processors");
         try
         {
             var uiPath = Path.Combine(projectFolder, "App", "ui");
@@ -1681,7 +1699,46 @@ internal static class V8Tov9Upgrade
                 }
             }
 
+            var expressions = CalculationMigration.Migrate(projectFolder);
+            var expressionCount = expressions.ConvertedRules.Values.Sum(rules => rules.Count);
+            if (expressionCount > 0)
+                UpgradeConsole.Ok($"Converted {expressionCount} calculation(s) to data model expressions");
+            foreach (var reason in expressions.FallbackReasons)
+                UpgradeConsole.WriteLine($"[Expression conversion skipped] {reason}");
+
             var layoutSetDirectories = Directory.GetDirectories(uiPath);
+            var collidingProcessorNames = layoutSetDirectories
+                .Where(directory =>
+                {
+                    var layout = Path.GetFileName(directory);
+                    var existingProcessor = File.Exists(
+                        Path.Combine(
+                            projectFolder,
+                            "App",
+                            "logic",
+                            "ConvertedLegacyRules",
+                            CSharpCodeGenerator.ProcessorClassName(layout) + ".cs"
+                        )
+                    );
+                    var configPath = Path.Combine(directory, "RuleConfiguration.json");
+                    if (!File.Exists(configPath))
+                        return existingProcessor;
+                    var config = new RuleConfigurationParser(configPath);
+                    config.Parse();
+                    expressions.ConvertedRules.TryGetValue(layout, out var converted);
+                    expressions.ManualRules.TryGetValue(layout, out var manual);
+                    return config
+                            .GetDataProcessingRules()
+                            .Keys.Any(id => converted?.Contains(id) != true && manual?.Contains(id) != true)
+                        || existingProcessor;
+                })
+                .GroupBy(
+                    directory => CSharpCodeGenerator.ProcessorClassName(Path.GetFileName(directory)),
+                    StringComparer.OrdinalIgnoreCase
+                )
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var totalProcessed = 0;
             var generationFailed = false;
             var messages = new List<UpgradeMessage>();
@@ -1704,6 +1761,24 @@ internal static class V8Tov9Upgrade
 
                 if (dataProcessingRules.Count == 0)
                 {
+                    continue;
+                }
+
+                if (expressions.ConvertedRules.TryGetValue(layoutSetName, out var converted))
+                    dataProcessingRules = dataProcessingRules
+                        .Where(rule => !converted.Contains(rule.Key))
+                        .ToDictionary();
+                if (expressions.ManualRules.TryGetValue(layoutSetName, out var manual))
+                {
+                    layoutSetsToKeep.Add(layoutSetName);
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': {manual.Count} calculation(s) conflict with existing expressions. Resolve the conflict before migrating these rules."
+                    );
+                    dataProcessingRules = dataProcessingRules.Where(rule => !manual.Contains(rule.Key)).ToDictionary();
+                }
+                if (dataProcessingRules.Count == 0)
+                {
+                    totalProcessed++;
                     continue;
                 }
 
@@ -1742,6 +1817,14 @@ internal static class V8Tov9Upgrade
                 var typeResolverLoaded = typeResolver.LoadDataModelType(dataModelInfo);
 
                 // Generate C# code
+                if (collidingProcessorNames.Contains(CSharpCodeGenerator.ProcessorClassName(layoutSetName)))
+                {
+                    messages.Todo(
+                        $"Layout set '{layoutSetName}': generated processor name collides with another layout set. Keep its calculation rules for manual conversion."
+                    );
+                    layoutSetsToKeep.Add(layoutSetName);
+                    continue;
+                }
                 var generator = new CSharpCodeGenerator(
                     layoutSetName,
                     dataModelInfo,
@@ -1783,7 +1866,7 @@ internal static class V8Tov9Upgrade
                     layoutSetsToKeep.Add(layoutSetName);
                     messages.Todo(
                         $"Layout set '{layoutSetName}': register {generationResult.ClassName} as an "
-                            + "IDataWriteProcessor in Program.cs."
+                            + "IDataProcessor before the app's existing data processors in Program.cs."
                     );
                 }
 
@@ -2024,14 +2107,36 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Changes the bpmn:task elements that carry a built-in service task type into the bpmn:serviceTask elements
+    /// v9 requires for them.
+    /// </summary>
+    static async Task<int> MigrateServiceTaskElements(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Service task elements");
+        try
+        {
+            var result = await ServiceTaskElementMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No built-in service task type on a bpmn:task element",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error changing service task elements", ex);
+        }
+    }
+
+    /// <summary>
     /// Job 8: Migrate the deprecated enablePdfCreation flag to 'pdf' service tasks
     /// </summary>
-    static async Task<int> MigratePdfServiceTasks(string projectFolder)
+    static async Task<int> MigratePdfServiceTasks(string projectFolder, CSharpSourceScanner scanner)
     {
         UpgradeConsole.BeginStep("PDF service tasks");
         try
         {
-            var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder);
+            var migrator = new PdfServiceTaskMigration.PdfServiceTaskMigrator(projectFolder, scanner.PristineView);
             var result = await migrator.Migrate();
             // Phrased as an end state, not an action: this migrator reports no warnings both when it
             // migrated cleanly and when there was nothing to migrate, and MigrationResult cannot tell the
@@ -2132,6 +2237,28 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Names the custom task types in the process, whose type strings instances started under v8 rely on. Advisory
+    /// only.
+    /// </summary>
+    static async Task<int> WarnCustomTaskTypes(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Custom task types");
+        try
+        {
+            var result = await ProcessAdvisories.CustomTaskTypeAdvisor.Analyze(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No custom task types in the process",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking for custom task types", ex);
+        }
+    }
+
     private static async Task<int> CheckNavigationValidation(string projectFolder)
     {
         UpgradeConsole.BeginStep("Navigation validation");
@@ -2151,9 +2278,32 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 13: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
-    /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
-    /// not followed by the exclusive gateway the v9 app requires at startup.
+    /// Set onProcessEnd.confirm in applicationmetadata.json for an app whose eFormidling or Fiks Arkiv task
+    /// confirmed its instances as complete in v8; the v9 tasks never do.
+    /// </summary>
+    static async Task<int> MigrateOnProcessEndConfirm(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Confirmation at process end");
+        try
+        {
+            var result = await OnProcessEndConfirmMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No eFormidling or Fiks Arkiv task confirmed instances in v8",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error setting onProcessEnd.confirm", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 13: remove the Fiks Arkiv moveToNextTask and markInstanceComplete settings v9 no longer has (a
+    /// concluded Fiks Arkiv task always moves the process on, and never confirms the instance), say what
+    /// changes where moveToNextTask was false, and point out a Fiks Arkiv task not followed by the exclusive
+    /// gateway the v9 app requires at startup.
     /// </summary>
     static async Task<int> MigrateFiksArkivSettings(string projectFolder)
     {
@@ -2216,6 +2366,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error adding content types for generated files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 16: convert calculations keyed by field in models/*.calculation.json to the list v9 reads. A file whose
+    /// conversion would not load in v9 is left as written and reported as a to-do.
+    /// </summary>
+    static async Task<int> MigrateCalculationLists(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Calculations");
+        try
+        {
+            var result = await CalculationListMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No calculations keyed by field",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error converting calculations to a list", ex);
         }
     }
 

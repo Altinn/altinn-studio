@@ -81,4 +81,9 @@ internal sealed record ProcessEndContext
     /// Whether to register events with the events component.
     /// </summary>
     public bool RegisterEvents { get; init; }
+
+    /// <summary>
+    /// Whether to confirm the instance as complete for the service owner (<c>onProcessEnd.confirm</c>).
+    /// </summary>
+    public bool ConfirmComplete { get; init; }
 }

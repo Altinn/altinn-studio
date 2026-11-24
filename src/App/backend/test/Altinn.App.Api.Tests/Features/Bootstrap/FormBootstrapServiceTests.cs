@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -199,8 +200,12 @@ public class FormBootstrapServiceTests
     {
         SetupMocks(CreateAppMetadata("model"));
         _appResources
-            .Setup(x => x.GetCalculationConfiguration("model"))
-            .Returns("""{ "calculations": { "value": { "expression": ["multiply", 4, 2] } } }""");
+            .Setup(x => x.GetCalculationConfig("model"))
+            .Returns(
+                ParseCalculationConfig(
+                    """{ "calculations": [{ "field": "value", "expression": ["multiply", 4, 2] }] }"""
+                )
+            );
 
         var result = await CreateService()
             .GetInstanceFormBootstrap(CreateTestInstance("Task_1", locked: locked), "Task_1", null, isPdf, "nb");
@@ -208,21 +213,25 @@ public class FormBootstrapServiceTests
         Assert.Equal(included, result.DataModels["model"].CalculationConfig is not null);
         if (included)
         {
-            var config = Assert.IsType<JsonElement>(result.DataModels["model"].CalculationConfig);
-            Assert.Equal(
-                "multiply",
-                config.GetProperty("calculations").GetProperty("value").GetProperty("expression")[0].GetString()
+            // The frontend gets the calculations in the same list format as calculation.json
+            using var config = JsonDocument.Parse(
+                JsonSerializer.Serialize(result.DataModels["model"].CalculationConfig)
             );
+            var calculation = Assert.Single(config.RootElement.GetProperty("calculations").EnumerateArray());
+            Assert.Equal("value", calculation.GetProperty("field").GetString());
+            Assert.Equal("multiply", calculation.GetProperty("expression")[0].GetString());
         }
     }
 
     [Theory]
     [InlineData(null)]
-    [InlineData("{ \"calculations\": { \"value\": { \"expression\": true } } }")]
+    [InlineData("{ \"calculations\": [{ \"field\": \"value\", \"expression\": true }] }")]
     public async Task GetStatelessFormBootstrap_CalculationConfig(string? configuration)
     {
         SetupStatelessMocks(CreateAppMetadata("model"));
-        _appResources.Setup(x => x.GetCalculationConfiguration("model")).Returns(configuration);
+        _appResources
+            .Setup(x => x.GetCalculationConfig("model"))
+            .Returns(configuration is null ? null : ParseCalculationConfig(configuration));
 
         var result = await CreateService().GetStatelessFormBootstrap("stateless", "nb", ["model"]);
 
@@ -243,11 +252,19 @@ public class FormBootstrapServiceTests
             SetupMocks(CreateAppMetadata("model", "submodel"));
         }
         _appResources
-            .Setup(x => x.GetCalculationConfiguration("model"))
-            .Returns("""{ "calculations": { "value": { "expression": ["dataModel", "value", "submodel"] } } }""");
+            .Setup(x => x.GetCalculationConfig("model"))
+            .Returns(
+                ParseCalculationConfig(
+                    """{ "calculations": [{ "field": "value", "expression": ["dataModel", "value", "submodel"] }] }"""
+                )
+            );
         _appResources
-            .Setup(x => x.GetCalculationConfiguration("submodel"))
-            .Returns("""{ "calculations": { "value": { "expression": ["dataModel", "value", "model"] } } }""");
+            .Setup(x => x.GetCalculationConfig("submodel"))
+            .Returns(
+                ParseCalculationConfig(
+                    """{ "calculations": [{ "field": "value", "expression": ["dataModel", "value", "model"] }] }"""
+                )
+            );
 
         var service = CreateService();
         var result = stateless
@@ -1014,6 +1031,52 @@ public class FormBootstrapServiceTests
         );
     }
 
+    [Theory]
+    // The data values are saved even when the element is locked, as they are not part of it.
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetInstanceFormBootstrap_PersistsReadHookInstanceChanges_WithoutAFormDataChange(bool locked)
+    {
+        var instance = CreateTestInstance("Task_1", locked: locked);
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook(hookInstance => hookInstance.DataValues = new() { ["read"] = "yes" });
+        StorageInstanceMutationRequest? request = null;
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest committed,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
+                    CancellationToken _
+                ) => request = committed
+            )
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = CreateService();
+
+        await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.NotNull(request);
+        Assert.Equal(new Dictionary<string, string?> { ["read"] = "yes" }, request.DataValues);
+        Assert.Empty(request.UpdateDataElements);
+    }
+
     [Fact]
     public async Task GetInstanceFormBootstrap_WhenAcquireWinsReadHookPersistenceRace_IgnoresTypedStatusConflict()
     {
@@ -1170,7 +1233,7 @@ public class FormBootstrapServiceTests
         );
     }
 
-    private void SetupMutatingReadHook()
+    private void SetupMutatingReadHook(Action<Instance>? changeInstance = null)
     {
         _formDataReader
             .Setup(x =>
@@ -1186,7 +1249,7 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync(
                 (
-                    Instance _,
+                    Instance instance,
                     DataElement _,
                     object appModel,
                     bool _,
@@ -1195,7 +1258,14 @@ public class FormBootstrapServiceTests
                     CancellationToken _
                 ) =>
                 {
-                    ((DummyModel)appModel).Name = "changed";
+                    if (changeInstance is null)
+                    {
+                        ((DummyModel)appModel).Name = "changed";
+                    }
+                    else
+                    {
+                        changeInstance(instance);
+                    }
                     return appModel;
                 }
             );
@@ -1264,6 +1334,10 @@ public class FormBootstrapServiceTests
             Data = data,
         };
     }
+
+    private static CalculationConfig ParseCalculationConfig(string json) =>
+        JsonSerializer.Deserialize<CalculationConfig>(json)
+        ?? throw new InvalidOperationException("The calculation configuration is null");
 
     private static ApplicationMetadata CreateAppMetadata(params string[] dataTypes) =>
         CreateAppMetadata(typeof(DummyModel), dataTypes);

@@ -1,0 +1,28 @@
+{
+  "name": "A null row is skipped",
+  "dataModel": {
+    "rows": [
+      null,
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 1
+      }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows.total",
+      "expression": 4
+    }
+  ],
+  "expects": {
+    "rows": [
+      null,
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 1,
+        "total": 4
+      }
+    ]
+  }
+}

@@ -10,6 +10,7 @@ export interface CompNavigationButtonsExternal extends ComponentBase {
   };
   showBackButton?: boolean;
   validateOnNext?: PageValidation;
+  validateOnBackToSummary?: PageValidation;
   validateOnPrevious?: PageValidation;
   dataModelBindings?: undefined;
 }
@@ -42,4 +43,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 2b5f5ad7f7b43ea1c7f4575fb39ca519052ffccca196ae870ba08d12631ea38e
+// Source hash: 8e3923799e9e1a95aad8976c4be4d328236712c17907945bd7f2ade061f4fc57

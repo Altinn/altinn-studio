@@ -769,7 +769,7 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public DataModelInfo() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("calculationConfig")]
-        public object? CalculationConfig { get; init; }
+        public Altinn.App.Core.Models.Calculation.CalculationConfig? CalculationConfig { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
         public string? DataElementId { get; init; }
@@ -1492,6 +1492,7 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Features.IInstanceDataAccessor GetCleanAccessor(Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption = 1);
         Altinn.Platform.Storage.Interface.Models.DataElement GetDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper> GetFormDataWrapper(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         void OverrideAuthenticationMethod(Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.StorageAuthenticationMethod method);
     }
     public static class IInstanceDataAccessorExtensions
@@ -1543,6 +1544,10 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
+    }
+    public static class IInstanceDataMutatorExtensions
+    {
+        public static System.Threading.Tasks.Task ReplaceFormData(this Altinn.App.Core.Features.IInstanceDataMutator dataMutator, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model) { }
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -2893,7 +2898,7 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppResources
     {
-        string? GetCalculationConfiguration(string dataTypeId);
+        Altinn.App.Core.Models.Calculation.CalculationConfig? GetCalculationConfig(string dataTypeId);
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
@@ -3087,6 +3092,7 @@ namespace Altinn.App.Core.Internal.Data
         Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
         Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
         System.ReadOnlySpan<char> AddIndexToPath(System.ReadOnlySpan<char> path, System.ReadOnlySpan<int> rowIndexes, System.Span<char> buffer);
+        bool AddRow(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
         T BackingData<T>()
             where T :  class;
         Altinn.App.Core.Internal.Data.IFormDataWrapper Copy();
@@ -3094,6 +3100,7 @@ namespace Altinn.App.Core.Internal.Data
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
+        void ReplaceBackingData(object dataModel);
         bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
     }
 }
@@ -3118,7 +3125,7 @@ namespace Altinn.App.Core.Internal.Expressions
         public ExpressionEvaluatorTypeErrorException(string msg) { }
         public ExpressionEvaluatorTypeErrorException(string msg, System.Exception innerException) { }
     }
-    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    [System.Diagnostics.DebuggerDisplay("{ToStringForText(),nq}")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.Expressions.ExpressionTypeUnionConverter))]
     public readonly struct ExpressionValue : System.IEquatable<Altinn.App.Core.Internal.Expressions.ExpressionValue>
     {
@@ -4011,6 +4018,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Logo? Logo { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="onEntry")]
         public new Altinn.App.Core.Models.OnEntry? OnEntry { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="onProcessEnd")]
+        public Altinn.App.Core.Models.OnProcessEnd? OnProcessEnd { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="promptForParty")]
         public string? PromptForParty { get; set; }
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -4100,6 +4109,7 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.BinaryDataChange> BinaryDataChanges { get; }
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.FormDataChange> FormDataChanges { get; }
     }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.DataElementIdentifier.DataElementIdentifierConverter))]
     public readonly struct DataElementIdentifier : System.IEquatable<Altinn.App.Core.Models.DataElementIdentifier>
     {
         public DataElementIdentifier(Altinn.Platform.Storage.Interface.Models.DataElement dataElement) { }
@@ -4163,6 +4173,8 @@ namespace Altinn.App.Core.Models
         public bool ShowProgress { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("taskNavigation")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("validateOnBackToSummary")]
+        public Altinn.App.Core.Models.PageValidation? ValidateOnBackToSummary { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("validationOnNavigation")]
         public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
@@ -4321,6 +4333,12 @@ namespace Altinn.App.Core.Models
         [Newtonsoft.Json.JsonProperty(PropertyName="instanceSelection")]
         public Altinn.App.Core.Models.InstanceSelection? InstanceSelection { get; set; }
     }
+    public class OnProcessEnd
+    {
+        public OnProcessEnd() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="confirm")]
+        public bool Confirm { get; set; }
+    }
     public readonly struct OrganizationNumber : System.IEquatable<Altinn.App.Core.Models.OrganizationNumber>
     {
         public bool Equals(Altinn.App.Core.Models.OrganizationNumber other) { }
@@ -4426,6 +4444,7 @@ namespace Altinn.App.Core.Models
         public bool? ShowLanguageSelector { get; set; }
         public bool? ShowProgress { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        public Altinn.App.Core.Models.PageValidation? ValidateOnBackToSummary { get; set; }
         public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
     public class QueryResponse<T>
@@ -4498,6 +4517,25 @@ namespace Altinn.App.Core.Models
         All = 6,
         [System.Text.Json.Serialization.JsonStringEnumMemberName("Invalid")]
         Invalid = 7,
+    }
+}
+namespace Altinn.App.Core.Models.Calculation
+{
+    public class CalculationConfig : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public const string Schema = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calc" +
+            "ulation.schema.v1.json";
+        public CalculationConfig() { }
+        [System.Text.Json.Serialization.JsonPropertyName("calculations")]
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.Calculation.CalculationItem> Calculations { get; init; }
+    }
+    public class CalculationItem : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public CalculationItem() { }
+        [System.Text.Json.Serialization.JsonPropertyName("expression")]
+        public required Altinn.App.Core.Models.Expressions.Expression Expression { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("field")]
+        public required string Field { get; init; }
     }
 }
 namespace Altinn.App.Core.Models.Expressions

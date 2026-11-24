@@ -394,6 +394,22 @@ public static class Diagnostics
                 + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
         );
 
+        // A gateway after a service task gets the action the service task concludes with
+        // (ProcessNextContinuation), not the user's, and a failed service task can only be resumed, not left through
+        // process/next with an action. The types this rule names never conclude with one; fiksArkiv and an app's own
+        // service task types may. '{1}' names the conditions that read the action, and '{3}' is the task's type.
+        public static readonly DiagnosticDescriptor GatewayActionAfterServiceTask = Error(
+            "ALTINNAPP1030",
+            Category.Process,
+            "Exclusive gateway routes on gatewayAction right after a service task that returns no action",
+            "Exclusive gateway '{0}' reads [\"gatewayAction\"] in {1}, but directly follows service task '{2}'. A "
+                + "gateway after a service task sees the action the service task returns, and a '{3}' task returns "
+                + "none, so [\"gatewayAction\"] is always null there: not the action of the task before, and not "
+                + "'reject', since a failed service task can only be retried. Move service task '{2}' after the "
+                + "gateway, onto the branch that needs it, or remove the gateway if it only takes the user back from "
+                + "a failed service task."
+        );
+
         // The app never evaluates the default's condition, and also fails to start on one, so a condition that
         // seems to work in a test does not decide anything.
         public static readonly DiagnosticDescriptor GatewayDefaultHasCondition = Error(

@@ -72,7 +72,7 @@ namespace LocalTest.Controllers.Authentication
             List<Claim> claims = new List<Claim>
             {
                 new Claim("urn:altinn:org", org, ClaimValueTypes.String),
-                new Claim("urn:altinn:orgNumber", orgNumber.ToString(), ClaimValueTypes.Integer32),
+                new Claim("urn:altinn:orgNumber", orgNumber.ToString(), ClaimValueTypes.String),
                 new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "fake-local-maskinporten", ClaimValueTypes.String),
                 new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32),
                 new Claim("urn:altinn:scope", scope, ClaimValueTypes.String)

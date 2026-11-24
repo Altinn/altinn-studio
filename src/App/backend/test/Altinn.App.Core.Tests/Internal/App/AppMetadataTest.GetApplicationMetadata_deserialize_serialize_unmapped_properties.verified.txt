@@ -9,6 +9,7 @@
   "AltinnNugetVersion": "--AltinnNugetVersion--",
   "PromptForParty": null,
   "ExternalApiIds": [],
+  "OnProcessEnd": null,
   "VersionId": null,
   "Org": "tdd",
   "Title": {

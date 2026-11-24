@@ -1,6 +1,7 @@
 export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
   AiAssistant = 'aiAssistant',
+  AppBuilder = 'appBuilder',
   AppTemplateV9 = 'appTemplateV9',
   BrokerFileTransfer = 'brokerFileTransfer',
   ComponentConfigBeta = 'componentConfigBeta',

@@ -42,13 +42,39 @@ internal sealed class TaskUiSettings
     /// when neither names one. A file that is not valid JSON is passed to <paramref name="reportUnreadable"/> and
     /// skipped.
     /// </summary>
-    public string? FindDataTypeForTask(string taskId, Action<string> reportUnreadable)
+    public string? FindDataTypeForTask(string taskId, Action<string> reportUnreadable) =>
+        FindDataType(
+            taskId,
+            $"task '{taskId}'",
+            layoutSetsFile => FindLayoutSetForTask(layoutSetsFile, taskId)?.DataType,
+            reportUnreadable
+        );
+
+    /// <summary>
+    /// The data model of the layout set <paramref name="layoutSetId"/>, as <see cref="FindDataTypeForTask"/> finds
+    /// a task's: <c>defaultDataType</c> in the folder the layout-set migration named after the layout set, or else
+    /// its <c>dataType</c> in layout-sets.json.
+    /// </summary>
+    public string? FindDataTypeForLayoutSet(string layoutSetId, Action<string> reportUnreadable) =>
+        FindDataType(
+            layoutSetId,
+            $"layout set '{layoutSetId}'",
+            layoutSetsFile => FindLayoutSet(layoutSetsFile, set => StringValue(set, "id") == layoutSetId)?.DataType,
+            reportUnreadable
+        );
+
+    private string? FindDataType(
+        string folderName,
+        string owner,
+        Func<string, string?> fromLayoutSets,
+        Action<string> reportUnreadable
+    )
     {
         if (UiFolder is not { } uiFolder)
             return null;
 
-        var settingsFile = Path.Combine(uiFolder, taskId, SettingsFileName);
-        if (IsPlainFolderName(taskId) && File.Exists(settingsFile))
+        var settingsFile = Path.Combine(uiFolder, folderName, SettingsFileName);
+        if (IsPlainFolderName(folderName) && File.Exists(settingsFile))
         {
             try
             {
@@ -64,7 +90,7 @@ internal sealed class TaskUiSettings
             }
             catch (JsonException ex)
             {
-                reportUnreadable(Unreadable(settingsFile, taskId, ex));
+                reportUnreadable(Unreadable(settingsFile, owner, ex));
             }
         }
 
@@ -74,11 +100,11 @@ internal sealed class TaskUiSettings
 
         try
         {
-            return FindLayoutSetForTask(layoutSetsFile, taskId)?.DataType;
+            return fromLayoutSets(layoutSetsFile);
         }
         catch (JsonException ex)
         {
-            reportUnreadable(Unreadable(layoutSetsFile, taskId, ex));
+            reportUnreadable(Unreadable(layoutSetsFile, owner, ex));
             return null;
         }
     }
@@ -91,7 +117,17 @@ internal sealed class TaskUiSettings
     /// The id and data model of the first layout set whose <c>tasks</c> include <paramref name="taskId"/>, which is
     /// the set the v8 frontend rendered the task with; null when no set does.
     /// </summary>
-    public static (string? Id, string? DataType)? FindLayoutSetForTask(string layoutSetsFile, string taskId)
+    public static (string? Id, string? DataType)? FindLayoutSetForTask(string layoutSetsFile, string taskId) =>
+        FindLayoutSet(
+            layoutSetsFile,
+            set =>
+                set.TryGetProperty("tasks", out var tasks)
+                && tasks.ValueKind == JsonValueKind.Array
+                && tasks.EnumerateArray().Any(t => t.ValueKind == JsonValueKind.String && t.GetString() == taskId)
+        );
+
+    /// <summary>The id and data model of the first layout set that <paramref name="matches"/>.</summary>
+    private static (string? Id, string? DataType)? FindLayoutSet(string layoutSetsFile, Func<JsonElement, bool> matches)
     {
         using var layoutSets = JsonDocument.Parse(File.ReadAllText(layoutSetsFile), JsonOptions);
         if (
@@ -105,31 +141,28 @@ internal sealed class TaskUiSettings
 
         foreach (var set in sets.EnumerateArray())
         {
-            if (
-                set.ValueKind == JsonValueKind.Object
-                && set.TryGetProperty("id", out var id)
-                && id.ValueKind == JsonValueKind.String
-                && set.TryGetProperty("tasks", out var tasks)
-                && tasks.ValueKind == JsonValueKind.Array
-                && tasks.EnumerateArray().Any(t => t.ValueKind == JsonValueKind.String && t.GetString() == taskId)
-            )
+            if (set.ValueKind == JsonValueKind.Object && StringValue(set, "id") is { } id && matches(set))
             {
                 var dataType = set.TryGetProperty("dataType", out var dataTypeValue)
                     ? NonBlankString(dataTypeValue)
                     : null;
-                return (id.GetString(), dataType);
+                return (id, dataType);
             }
         }
 
         return null;
     }
 
+    private static string? StringValue(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String
+            ? value.GetString()
+            : null;
+
     private static string? NonBlankString(JsonElement value) =>
         value.ValueKind == JsonValueKind.String && value.GetString() is { } text && !string.IsNullOrWhiteSpace(text)
             ? text
             : null;
 
-    private string Unreadable(string file, string taskId, JsonException ex) =>
-        $"{DisplayPath(file)} is not valid JSON ({ex.Message}), so the data model of task '{taskId}' was not read "
-        + "from it.";
+    private string Unreadable(string file, string owner, JsonException ex) =>
+        $"{DisplayPath(file)} is not valid JSON ({ex.Message}), so the data model of {owner} was not read from it.";
 }

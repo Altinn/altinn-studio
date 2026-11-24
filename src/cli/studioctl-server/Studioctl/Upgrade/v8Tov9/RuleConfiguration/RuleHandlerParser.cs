@@ -12,7 +12,7 @@ internal sealed class RuleHandlerParser
     private readonly string _ruleHandlerPath;
     private readonly Dictionary<string, JavaScriptFunction> _conditionalFunctions = new();
     private readonly Dictionary<string, JavaScriptFunction> _dataProcessingFunctions = new();
-    private readonly Dictionary<string, object> _globalConstants = new();
+    private readonly Dictionary<string, object?> _globalConstants = new();
 
     public RuleHandlerParser(string ruleHandlerPath)
     {
@@ -24,6 +24,9 @@ internal sealed class RuleHandlerParser
     /// </summary>
     public void Parse()
     {
+        _conditionalFunctions.Clear();
+        _dataProcessingFunctions.Clear();
+        _globalConstants.Clear();
         if (!File.Exists(_ruleHandlerPath))
         {
             // It's okay if the file doesn't exist - some layout sets may not have it
@@ -42,6 +45,16 @@ internal sealed class RuleHandlerParser
 
             ExtractFunctionsFromObject(program, "conditionalRuleHandlerObject", _conditionalFunctions);
             ExtractFunctionsFromObject(program, "ruleHandlerObject", _dataProcessingFunctions);
+            var assigned = AssignedNames(program).ToHashSet(StringComparer.Ordinal);
+            RemoveReassigned("conditionalRuleHandlerObject", _conditionalFunctions);
+            RemoveReassigned("ruleHandlerObject", _dataProcessingFunctions);
+
+            void RemoveReassigned(string owner, Dictionary<string, JavaScriptFunction> functions)
+            {
+                foreach (var key in functions.Keys.ToArray())
+                    if (assigned.Contains(owner) || assigned.Contains(owner + "." + key))
+                        functions.Remove(key);
+            }
         }
         catch (Exception ex)
         {
@@ -70,7 +83,7 @@ internal sealed class RuleHandlerParser
     /// <summary>
     /// Get all global constants extracted from the file
     /// </summary>
-    public IReadOnlyDictionary<string, object> GetGlobalConstants()
+    public IReadOnlyDictionary<string, object?> GetGlobalConstants()
     {
         return _globalConstants;
     }
@@ -204,6 +217,7 @@ internal sealed class RuleHandlerParser
     /// </summary>
     private void ExtractGlobalConstants(Script program)
     {
+        var assignedNames = AssignedNames(program).ToHashSet(StringComparer.Ordinal);
         foreach (var statement in program.Body)
         {
             if (statement is VariableDeclaration varDecl)
@@ -211,7 +225,11 @@ internal sealed class RuleHandlerParser
                 foreach (var declarator in varDecl.Declarations)
                 {
                     // Only extract simple constant assignments: var NAME = value;
-                    if (declarator.Id is Identifier identifier && declarator.Init is Literal literal)
+                    if (
+                        declarator.Id is Identifier identifier
+                        && declarator.Init is Literal literal
+                        && !assignedNames.Contains(identifier.Name)
+                    )
                     {
                         var constantName = identifier.Name;
                         var constantValue = literal.Value;
@@ -219,10 +237,121 @@ internal sealed class RuleHandlerParser
                         // Only store simple literal values (numbers, strings, booleans, null)
                         if (constantValue is int or long or double or float or string or bool || constantValue == null)
                         {
-                            _globalConstants[constantName] = constantValue ?? "null";
+                            _globalConstants[constantName] = constantValue;
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private static IEnumerable<string> AssignedNames(Node node, HashSet<string>? shadowed = null)
+    {
+        shadowed ??= new(StringComparer.Ordinal);
+        if (node is IFunction function)
+        {
+            shadowed = new(shadowed, StringComparer.Ordinal);
+            shadowed.UnionWith(function.Params.SelectMany(AssignmentNames));
+            shadowed.UnionWith(HoistedNames(function.Body));
+        }
+        if (node is BlockStatement block)
+        {
+            shadowed = new(shadowed, StringComparer.Ordinal);
+            shadowed.UnionWith(
+                block
+                    .Body.OfType<VariableDeclaration>()
+                    .Where(declaration => declaration.Kind.ToString() != "Var")
+                    .SelectMany(declaration =>
+                        declaration.Declarations.SelectMany(binding => AssignmentNames(binding.Id))
+                    )
+            );
+        }
+        if (node is CatchClause { Param: { } binding })
+        {
+            shadowed = new(shadowed, StringComparer.Ordinal);
+            shadowed.UnionWith(AssignmentNames(binding));
+        }
+        if (node is AssignmentExpression assignment)
+        {
+            foreach (var name in AssignmentNames(assignment.Left))
+                if (!shadowed.Contains(name))
+                    yield return name;
+            foreach (var member in AssignedMembers(assignment.Left))
+                if (member.Object is Identifier owner && !shadowed.Contains(owner.Name))
+                    yield return member switch
+                    {
+                        { Computed: false, Property: Identifier property } => owner.Name + "." + property.Name,
+                        { Computed: true, Property: StringLiteral property } => owner.Name + "." + property.Value,
+                        _ => owner.Name,
+                    };
+        }
+        if (node is UpdateExpression { Argument: Identifier identifier } && !shadowed.Contains(identifier.Name))
+            yield return identifier.Name;
+        foreach (var child in node.ChildNodes)
+        {
+            foreach (var name in AssignedNames(child, shadowed))
+                yield return name;
+        }
+    }
+
+    private static IEnumerable<MemberExpression> AssignedMembers(Node node)
+    {
+        if (node is MemberExpression member)
+            yield return member;
+        else if (node is Property property)
+        {
+            foreach (var target in AssignedMembers(property.Value))
+                yield return target;
+        }
+        else if (node is AssignmentPattern assignment)
+        {
+            foreach (var target in AssignedMembers(assignment.Left))
+                yield return target;
+        }
+        else
+        {
+            foreach (var child in node.ChildNodes)
+            {
+                foreach (var target in AssignedMembers(child))
+                    yield return target;
+            }
+        }
+    }
+
+    private static IEnumerable<string> HoistedNames(Node node)
+    {
+        if (node is IFunction)
+            yield break;
+        if (node is VariableDeclaration declaration && declaration.Kind.ToString() == "Var")
+            foreach (var name in declaration.Declarations.SelectMany(binding => AssignmentNames(binding.Id)))
+                yield return name;
+        foreach (var child in node.ChildNodes)
+        {
+            foreach (var name in HoistedNames(child))
+                yield return name;
+        }
+    }
+
+    private static IEnumerable<string> AssignmentNames(Node node)
+    {
+        if (node is Identifier identifier)
+            yield return identifier.Name;
+        else if (node is Property property)
+        {
+            foreach (var name in AssignmentNames(property.Value))
+                yield return name;
+        }
+        else if (node is AssignmentPattern assignment)
+        {
+            foreach (var name in AssignmentNames(assignment.Left))
+                yield return name;
+        }
+        else if (node is not MemberExpression)
+        {
+            foreach (var child in node.ChildNodes)
+            {
+                foreach (var name in AssignmentNames(child))
+                    yield return name;
             }
         }
     }

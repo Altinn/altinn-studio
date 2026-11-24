@@ -193,7 +193,6 @@ internal static class DashboardEndpoints
                                         running = status.HasFlag(EngineHealthStatus.Running),
                                         healthy = status.HasFlag(EngineHealthStatus.Healthy),
                                         idle = activeWorkers == 0,
-                                        disabled = status.HasFlag(EngineHealthStatus.Disabled),
                                         queueFull = status.HasFlag(EngineHealthStatus.QueueFull),
                                     },
                                     capacity = new

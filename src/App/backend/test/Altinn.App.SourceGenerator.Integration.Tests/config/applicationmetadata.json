@@ -24,6 +24,12 @@
             "appLogic": {
                 "classRef": "Altinn.App.SourceGenerator.Integration.Tests.Models.Complaint"
             }
+        },
+        {
+            "id": "calculation",
+            "appLogic": {
+                "classRef": "Altinn.App.SourceGenerator.Integration.Tests.Models.CalculationTestModel"
+            }
         }
     ],
     "partyTypesAllowed": {}

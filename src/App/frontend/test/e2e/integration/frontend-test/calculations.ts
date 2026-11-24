@@ -3,6 +3,14 @@ import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-
 
 const appFrontend = new AppFrontend();
 
+const emptyAnnualWork = 'Enter positive persons and annual work to calculate a result.';
+const allocationWarning = 'The completed allocation must add up to 100 percent.';
+
+function setNumber(name: string, value: string) {
+  cy.findByRole('textbox', { name }).numberFormatReplace(value);
+  cy.findByRole('textbox', { name }).blur();
+}
+
 function assertChanges(row: string, total: string = row) {
   cy.findByLabelText(/^Calculated change/).should('have.text', row);
   cy.findByLabelText(/^Total change/).should('have.text', total);
@@ -15,7 +23,7 @@ function saveAndReturn() {
 }
 
 describe('Expression calculations stored in the data model', () => {
-  it('shows calculations before saving, persists them, and handles empty, negative and normalized inputs', () => {
+  it('shows calculations before saving, saves them in both ends, and handles empty, negative and normalized inputs', () => {
     // Defer saving until navigation so the displayed results prove that calculations run in the frontend.
     interceptAltinnAppGlobalData((data) => {
       data.ui.settings!.autoSaveBehavior = 'onChangePage';
@@ -29,7 +37,32 @@ describe('Expression calculations stored in the data model', () => {
     cy.get(appFrontend.group.row(0).newValue).numberFormatReplace('40');
     assertChanges('NOK 30');
 
+    // The frontend has calculated the list, the object and the rows, and nothing is saved yet.
+    cy.window().should((win) => {
+      const formData = win.CypressState?.formData?.['nested-group'] as Record<string, unknown> | undefined;
+      expect(formData?.ChangeList).to.deep.equal([30]);
+      expect(formData?.ChangeSummary).to.deep.equal({ Total: 30, Rows: 1 });
+      expect(formData?.ChangeRows).to.have.length(1);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].Change', 30);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].altinnRowId').that.is.a('string');
+    });
+
+    // The save returns the rows with the ids the backend stored. The frontend keeps them when it calculates again,
+    // so nothing is left to save: the next page changes do not save again.
+    cy.intercept({ method: 'PATCH', url: '**/data?*' }).as('save');
     cy.gotoNavPage('Kjæledyr');
+    cy.wait('@save');
+    cy.gotoNavPage('repeating');
+    cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 1);
+    cy.gotoNavPage('Kjæledyr');
+    cy.get(appFrontend.pets.decisionPanel.manualButton).should('be.visible');
+    cy.get('@save.all').should('have.length', 1);
+    cy.window().should((win) => {
+      const formData = win.CypressState?.formData?.['nested-group'] as Record<string, unknown> | undefined;
+      expect(formData?.ChangeRows).to.have.length(1);
+      expect(formData?.ChangeRows).to.have.nested.property('[0].altinnRowId').that.is.a('string');
+    });
+
     cy.reload();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.row(0).editBtn).click();
@@ -69,5 +102,66 @@ describe('Expression calculations stored in the data model', () => {
     cy.findByRole('button', { name: 'Se innhold NOK 1' }).click();
     assertChanges('NOK 4', 'NOK 234');
     cy.gotoNavPage('Kjæledyr');
+  });
+
+  it('updates dependent calculations and warnings, and allows saving after clearing a result', () => {
+    cy.goto('group');
+    cy.findByRole('checkbox', { name: 'Show calculation examples' }).check();
+    cy.gotoNavPage('calculations');
+
+    cy.findByRole('checkbox', { name: 'Feed' }).check();
+    cy.findByRole('checkbox', { name: 'Compost' }).check();
+    setNumber('Feed allocation', '60');
+    cy.findByLabelText(/^Remaining allocation/).should('have.text', '40');
+    cy.findByText(allocationWarning).should('not.exist');
+
+    setNumber('Compost allocation', '20');
+    cy.findByLabelText(/^Remaining allocation/).should('have.text', '20');
+    cy.findByText(allocationWarning).should('be.visible');
+
+    setNumber('Compost allocation', '40');
+    cy.findByLabelText(/^Remaining allocation/).should('have.text', '0');
+    cy.findByText(allocationWarning).should('not.exist');
+
+    setNumber('Compost allocation', '0');
+    cy.findByLabelText(/^Remaining allocation/).should('have.text', '40');
+    cy.findByText(allocationWarning).should('be.visible');
+    setNumber('Compost allocation', '');
+    // The remainder stays the same, but blank is different from an explicitly entered zero.
+    cy.findByText(allocationWarning).should('not.exist');
+    cy.findByLabelText(/^Remaining allocation/).should('have.text', '40');
+
+    cy.findByRole('checkbox', { name: 'Compost' }).uncheck();
+    cy.findByText(allocationWarning).should('be.visible');
+    setNumber('Feed allocation', '100');
+    cy.findByLabelText(/^Remaining allocation/).should('have.text', '0');
+    cy.findByText(allocationWarning).should('not.exist');
+
+    cy.findByRole('radio', { name: 'Yes, calculate annual work' }).check();
+    cy.findByText(emptyAnnualWork).should('be.visible');
+
+    setNumber('Number of persons', '2');
+    setNumber('Annual work', '0.38');
+    cy.findByLabelText(/^Calculated annual work/).should('have.text', '0.38');
+    cy.gotoNavPage('summary');
+    cy.reload();
+    cy.gotoNavPage('calculations');
+    cy.findByLabelText(/^Calculated annual work/).should('have.text', '0.38');
+
+    setNumber('Annual work', '');
+    cy.findByText(emptyAnnualWork).should('be.visible');
+
+    setNumber('Annual work', '2.35');
+    cy.findByLabelText(/^Calculated annual work/).should('have.text', '2.35');
+    cy.gotoNavPage('summary');
+    cy.reload();
+    cy.gotoNavPage('calculations');
+    cy.findByLabelText(/^Calculated annual work/).should('have.text', '2.35');
+
+    setNumber('Annual work', '');
+    cy.findByText(emptyAnnualWork).should('be.visible');
+    // A null result must let saving finish so the user can continue to the next page.
+    cy.findByRole('button', { name: 'Neste' }).click();
+    cy.findByRole('button', { name: /^\d+\. summary$/ }).should('have.attr', 'aria-current', 'page');
   });
 });

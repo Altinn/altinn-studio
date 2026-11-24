@@ -4,7 +4,7 @@
  * override endpoints POST /api/v1/{ns}/throttle/trip|clear with a two-click confirm. The
  * section is hidden entirely while no breaker state exists — the common case. */
 
-import { esc, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
+import { esc, escAttr, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
 
 /**
  * @typedef {Object} NamespaceThrottle
@@ -21,7 +21,6 @@ import { esc, escJsArg, fmtAgo, fmtDuration } from '../core/helpers.js';
 
 const POLL_INTERVAL_MS = 10000;
 const CONFIRM_REVERT_MS = 3000;
-
 
 /** Starts the poll loop. Called once from app.js init(). */
 export const initThrottles = () => {
@@ -79,8 +78,8 @@ const renderThrottles = (throttles) => {
 
             return `
         <div class="throttle-row">
-            <span class="throttle-state ${esc(t.state)}" title="Breaker state">${esc(t.state)}</span>
-            <span class="throttle-ns" title="${esc(t.namespace)}">${esc(t.namespace)}</span>
+            <span class="throttle-state ${escAttr(t.state)}" title="Breaker state">${esc(t.state)}</span>
+            <span class="throttle-ns" title="${escAttr(t.namespace)}">${esc(t.namespace)}</span>
             <span class="throttle-meta" title="When the breaker last tripped">tripped ${fmtAgo(t.trippedAt) || '—'}</span>
             <span class="throttle-meta" title="Current throttle window">window ${fmtDuration(t.currentWindow) || t.currentWindow}</span>
             <span class="throttle-meta" title="Canaries probing on the normal retry schedule">${t.canaryCount} ${t.canaryCount === 1 ? 'canary' : 'canaries'}</span>
@@ -119,7 +118,9 @@ const throttleAction = async (action, ns, btn) => {
     btn.disabled = true;
     btn.textContent = '...';
     try {
-        const res = await fetch(`/api/v1/${encodeURIComponent(ns)}/throttle/${action}`, { method: 'POST' });
+        const res = await fetch(`/api/v1/${encodeURIComponent(ns)}/throttle/${action}`, {
+            method: 'POST',
+        });
         if (res.ok) {
             await loadThrottles();
         } else {

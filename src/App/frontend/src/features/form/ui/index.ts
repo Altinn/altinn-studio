@@ -13,6 +13,7 @@ export const defaultGlobalUiSettings: GlobalPageSettings = {
   taskNavigation: [],
   navigationTitle: 'navigation.form_pages',
   validationOnNavigation: undefined,
+  validateOnBackToSummary: undefined,
   hideAppNameInPdf: false,
 };
 
