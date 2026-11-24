@@ -14,6 +14,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
 - `studioctl app upgrade v9` sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for apps whose eFormidling task, or Fiks Arkiv task with `markInstanceComplete` on, confirmed instances as complete in v8. The v9 tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
 
+### Changed
+
+- `studioctl app upgrade v9` writes service tasks and process tasks for the current v9 pipeline API:
+    - run again, it rewrites code written for an earlier v9 preview, such as `Finally` and `ConcludeOnReplies` to `Stage` and `ExternalStage`, and reports what it cannot rewrite
+    - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds for v8 work takes `PipelineBuilder.Lifecycle`
+
 ### Fixed
 
 - `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))

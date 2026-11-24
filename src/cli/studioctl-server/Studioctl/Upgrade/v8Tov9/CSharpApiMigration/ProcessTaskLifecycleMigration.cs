@@ -520,7 +520,7 @@ internal sealed class ProcessTaskLifecycleMigration
     /// silently undone: app startup composes every task's lifecycle pipelines and refuses to start when one throws,
     /// naming the task and the phase. Its comment says how to port the work, for the developer or an assistant doing
     /// the port. The type references are emitted qualified for the final pass against the upgraded project to
-    /// simplify.
+    /// simplify. <see cref="PreviewPipelineMigration"/> writes it too, in place of an earlier preview's stub.
     /// </summary>
     internal static MemberDeclarationSyntax Definition(string phase, string callName, MethodDeclarationSyntax method)
     {
