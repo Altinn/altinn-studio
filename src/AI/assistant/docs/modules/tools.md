@@ -22,7 +22,7 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 
 The loop cuts every tool result at a fixed size, and the model cannot get the cut text back. So `read_file`, `web_fetch` and `skill` return long text in parts. Each part ends with a note that tells the model which lines it has not read, and how to read them. `write_file` refuses to replace a file that the model has read only part of. [`text_parts.py`](../../agents/core/tools/utils/text_parts.py) explains why.
 
-`web_fetch` lists a page as one source in the chat, with its browser URL and its title in the docs index, whether the model read it as Markdown or as HTML. The docs index is not a source.
+`web_fetch` lists each page in the chat with its browser URL, also when the model read it as Markdown. The title comes from the docs index if the model searched it in the session. The index itself is not a source.
 
 There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` gets the files from the Designer API at `DESIGNER_BASE_URL`. The model must read a file that this tool wrote again before it changes the file. `altinn_policy_subjects` gets the lists of Studio's policy editor from the same API, without an API key.
 
