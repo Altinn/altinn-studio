@@ -10,3 +10,10 @@ without reloading a prebuilt App frontend.
 
 Keep business logic out of this package. Code that does not depend on React stays in the App frontend or moves to
 `form-engine`, so that leaving React would mean rewriting only this package.
+
+## Stories of components that take input
+
+When a component takes input, set its stories' `render` with
+[`renderWithImmediateArgs`](.storybook/renderWithImmediateArgs.tsx). What the user enters then shows in Controls, and
+what they set in Controls shows in the component.
+[TextAreaLayout](src/layout-components/TextArea/TextAreaLayout.stories.tsx) shows how.

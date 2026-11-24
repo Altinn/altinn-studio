@@ -13,7 +13,8 @@
     "noEmit": true,
     "paths": {
       "@app/form-component/*": ["./src/*"],
-      "@app/language/*": ["../language/src/*"]
+      "@app/language/*": ["../language/src/*"],
+      "@app/storybook/*": ["./.storybook/*"]
     },
     "plugins": [
       {

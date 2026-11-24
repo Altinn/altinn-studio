@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TextArea } from './TextArea';
+import type { TextAreaWithLabelProps } from './TextArea';
+
+const Wrapper = ({ args, updateArgs }: StoryArgsProps<TextAreaWithLabelProps>) => (
+  <TextArea {...args} onChange={(value) => updateArgs({ value })} />
+);
 
 const meta = {
   title: 'AppComponents/TextArea',
@@ -10,23 +15,18 @@ const meta = {
   args: {
     onChange: () => {},
   },
+  render: renderWithImmediateArgs(Wrapper),
 } satisfies Meta<typeof TextArea>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: React.ComponentProps<typeof TextArea>) => {
-  const [value, setValue] = useState(args.value);
-  return <TextArea {...args} value={value} onChange={setValue} />;
-};
-
 export const Default: Story = {
   args: {
     id: 'textarea-default',
     value: 'Some text content',
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const WithCharacterLimit: Story = {
@@ -39,7 +39,6 @@ export const WithCharacterLimit: Story = {
       over: '%d characters too many',
     },
   },
-  render: (args) => <Wrapper {...args} />,
 };
 
 export const ReadOnly: Story = {
@@ -48,5 +47,4 @@ export const ReadOnly: Story = {
     value: 'This text cannot be edited',
     readOnly: true,
   },
-  render: (args) => <Wrapper {...args} />,
 };

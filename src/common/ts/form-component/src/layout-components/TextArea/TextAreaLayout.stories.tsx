@@ -1,8 +1,8 @@
-import { useState } from 'react';
-
 import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
+import { renderWithImmediateArgs } from '@app/storybook/renderWithImmediateArgs';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
+import type { StoryArgsProps } from '@app/storybook/renderWithImmediateArgs';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TextAreaLayout } from './TextAreaLayout';
@@ -32,15 +32,13 @@ export const TEXT_AREA_PROP_CATEGORIES = {
   validationMessages: 'runtime',
 } satisfies PropCategories<TextAreaLayoutProps>;
 
-function StatefulTextAreaLayout({ value: initialValue, onChange, ...args }: TextAreaLayoutProps) {
-  const [value, setValue] = useState(initialValue);
+function StatefulTextAreaLayout({ args, updateArgs }: StoryArgsProps<TextAreaLayoutProps>) {
   return (
     <TextAreaLayout
       {...args}
-      value={value}
       onChange={(newValue) => {
-        onChange?.(newValue);
-        setValue(newValue);
+        args.onChange?.(newValue);
+        updateArgs({ value: newValue });
       }}
     />
   );
@@ -58,7 +56,7 @@ const meta = {
     onChange: fn(),
     onBlur: fn(),
   },
-  render: (args) => <StatefulTextAreaLayout {...args} />,
+  render: renderWithImmediateArgs(StatefulTextAreaLayout),
 } satisfies Meta<typeof TextAreaLayout>;
 
 export default meta;
