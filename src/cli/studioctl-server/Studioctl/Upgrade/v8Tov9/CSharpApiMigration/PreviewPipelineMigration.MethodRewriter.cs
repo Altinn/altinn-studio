@@ -293,18 +293,18 @@ internal sealed partial class PreviewPipelineMigration
                 Carried(null, plan.Work),
                 Carried(null, plan.OnMessage),
                 (
-                    "timeout",
+                    PipelineApi.Timeout,
                     Kept(Visit(plan.Timeout), plan.Timeout).WithoutTrivia(),
                     [
                         .. plan.Mailbox.GetLeadingTrivia().Where(IsComment),
                         .. plan.Timeout.GetLeadingTrivia().Concat(plan.Timeout.GetTrailingTrivia()).Where(IsComment),
                     ]
                 ),
-                Carried("onTimeout", plan.OnClosed),
+                Carried(PipelineApi.OnTimeout, plan.OnClosed),
             };
             if (plan.Options is { } options)
             {
-                arguments.Add(Carried("options", options));
+                arguments.Add(Carried(PipelineApi.Options, options));
             }
 
             var lines = new[] { plan.Send.ArgumentList, plan.Handler.ArgumentList }.FirstOrDefault(OnOwnLines);
@@ -371,7 +371,7 @@ internal sealed partial class PreviewPipelineMigration
             return SyntaxFactory.InvocationExpression(
                 access
                     .WithExpression(Kept(Visit(access.Expression), access.Expression))
-                    .WithName(SyntaxFactory.IdentifierName("ExternalStage").WithTriviaFrom(access.Name)),
+                    .WithName(SyntaxFactory.IdentifierName(PipelineApi.ExternalStage).WithTriviaFrom(access.Name)),
                 argumentList
             );
         }

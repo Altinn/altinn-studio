@@ -104,7 +104,7 @@ internal sealed partial class PreviewPipelineMigration
             // The builder's own methods win over an extension method.
             if (
                 invocation.Expression is MemberAccessExpressionSyntax { Expression: var receiver, Name: var name }
-                && !_previewMethods.ContainsKey(name.Identifier.ValueText)
+                && !PreviewApi.IsBuilderMethod(name.Identifier.ValueText)
                 && receiver is not ThisExpressionSyntax and not BaseExpressionSyntax
                 && IsBuilderExpression(receiver, caller, this)
             )

@@ -1226,7 +1226,13 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
             todo => Assert.Contains("BaseTask.DefineExecute has Finally at line 18 on something", todo),
             todo => Assert.Contains("ExtensionTask.DefineExecute has Finally at line 25 on something", todo),
             todo => Assert.Contains("SavedTask.DefineExecute has Finally at line 34 on something", todo),
-            todo => Assert.Contains("UnplacedTasks.cs:30: this PipelineBuilder is not a parameter or local", todo)
+            todo =>
+                Assert.EndsWith(
+                    "UnplacedTasks.cs:30: this PipelineBuilder is not a parameter or local of a method that composes a "
+                        + "pipeline, so it cannot be given a variant. Use PipelineBuilder.ServiceTask for a service task's "
+                        + "or PipelineBuilder.Lifecycle for DefineStart, DefineEnd and DefineAbandon.",
+                    todo
+                )
         );
     }
 
@@ -2642,10 +2648,11 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
         Assert.Empty(result.Todos);
         Assert.Equal(
             Path.Combine("logic", "ReplyEndpoint.cs")
-                + ": ServiceTaskMailbox is ReplyAddress, ServiceTaskReplyForwardException.MailboxId is ReplyAddressId, "
-                + "ServiceTaskReplyForwardOutcome.MailboxFull is TooManyReplies, ServiceTaskResult.Success is EndTask, "
-                + "StageAwaitNextReplyResult is ServiceTaskAwaitNextReplyResult, SuccessfulServiceTaskResult is "
-                + "EndedServiceTaskResult, the reply forwarder's mailboxId is replyAddressId, as the current API names them.",
+                + ": ForwardReply's mailboxId is replyAddressId, ServiceTaskMailbox is ReplyAddress, "
+                + "ServiceTaskReplyForwardException.MailboxId is ReplyAddressId, ServiceTaskReplyForwardOutcome.MailboxFull "
+                + "is TooManyReplies, ServiceTaskResult.Success is EndTask, StageAwaitNextReplyResult is "
+                + "ServiceTaskAwaitNextReplyResult, SuccessfulServiceTaskResult is EndedServiceTaskResult, as the current "
+                + "API names them.",
             Assert.Single(Oks(result))
         );
         AssertCompilesAgainstCurrent();
@@ -2993,6 +3000,59 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
                     + "the result itself where it returned Conclude(result).",
                 $"{file}:17: ServiceTaskPipeline was removed. DefineExecute returns nothing, and a method that composes "
                     + "part of it returns PipelineBuilder.ServiceTask.",
+            ],
+            result.Todos
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RenamedApiInDisabledCode_IsReported_AndTheMethodItIsInLeftAsItIs(bool semantic)
+    {
+        var task = Write(
+            "logic/DisabledTask.cs",
+            """
+            public class DisabledTask : IServiceTask
+            {
+                public string Type => "disabled";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
+                {
+            #if NEVER
+                    Console.WriteLine(ServiceTaskResult.Success());
+            #endif
+                    return pipeline.Finally(Done);
+                }
+
+                private Task<ServiceTaskResult> Done(StageContext context) =>
+                    Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedPermanent("No."));
+            #if NEVER
+                private static Task<ServiceTaskResult> Publish(ServiceTaskMailbox mailbox) =>
+                    Task.FromResult<ServiceTaskResult>(ServiceTaskResult . Success());
+            #endif
+            }
+            """
+        );
+        var original = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+
+        var result = Migrate(semantic);
+
+        var file = Path.Combine("logic", "DisabledTask.cs");
+        Assert.Empty(Oks(result));
+        Assert.Equal(original, await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken));
+        Assert.Equal(
+            [
+                $"{file}:10: DisabledTask.DefineExecute has code disabled by a preprocessor directive at line 13 that "
+                    + "names the previews' pipeline API, so it was left as it is. Make it take a "
+                    + "PipelineBuilder.ServiceTask and compose a stage with Stage and a send with its reply handler with "
+                    + "ExternalStage, as in public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => "
+                    + "pipeline.ExternalStage(Send, OnReply, timeout: TimeSpan.FromDays(7), onTimeout: OnTimeout)"
+                    + ".Stage(Archive);",
+                $"{file}:21: ServiceTaskMailbox is ReplyAddress now. Rename it in this code, which a preprocessor "
+                    + "directive disables.",
+                $"{file}:22: ServiceTaskResult.Success is EndTask now. Rename it in this code, which a preprocessor "
+                    + "directive disables.",
             ],
             result.Todos
         );

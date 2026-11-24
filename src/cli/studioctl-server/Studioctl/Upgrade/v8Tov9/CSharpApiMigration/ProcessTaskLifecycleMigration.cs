@@ -35,10 +35,7 @@ internal sealed class ProcessTaskLifecycleMigration
 {
     private const string InterfaceNamespace = "Altinn.App.Core.Internal.Process.ProcessTasks";
     private const string InterfaceName = "IProcessTask";
-    private const string BuilderNamespace = "Altinn.App.Core.Features.Process";
-    private const string BuilderName = "PipelineBuilder";
-    private const string BuilderTypeName = BuilderNamespace + "." + BuilderName;
-    private const string LifecycleName = "Lifecycle";
+    private const string BuilderTypeName = PipelineApi.Namespace + "." + PipelineApi.Builder;
     private const string NotImplementedTypeName = "System.NotImplementedException";
 
     private static readonly string[] _phases = ["Start", "End", "Abandon"];
@@ -533,7 +530,7 @@ internal sealed class ProcessTaskLifecycleMigration
         };
         var text = $$"""
 
-            {{indent}}public void Define{{phase}}(global::{{BuilderTypeName}}.{{LifecycleName}} pipeline)
+            {{indent}}public void Define{{phase}}(global::{{BuilderTypeName}}.{{PipelineApi.LifecycleVariant}} pipeline)
             {{indent}}{
             {{indent}}    #error Port {{callName}} to stages in Define{{phase}} as the comment below says, then remove this line.
             {{indent}}    // v9 no longer calls {{callName}}(string taskId, Instance instance). It runs the stages this method
@@ -625,7 +622,7 @@ internal sealed class ProcessTaskLifecycleMigration
 
     private static string NotAnImplementation(ScannedCSharpFile file, MethodDeclarationSyntax method, string phase) =>
         $"{Location(file, method)}: {MemberName(method)}(string taskId, Instance instance) is no longer part of "
-        + $"{InterfaceName}, and the type's Define{phase}({BuilderName}.{LifecycleName}) cannot take its place: v9 "
+        + $"{InterfaceName}, and the type's Define{phase}({PipelineApi.LifecycleBuilder}) cannot take its place: v9 "
         + "calls only a public void instance method of that signature, or an explicit implementation. Make it one, and "
         + $"run the {phase} work from it.";
 
@@ -633,8 +630,13 @@ internal sealed class ProcessTaskLifecycleMigration
     /// Whether the type is the v9 lifecycle builder, <c>PipelineBuilder.Lifecycle</c>.
     /// </summary>
     private static bool IsLifecycleBuilder(ITypeSymbol type) =>
-        type is INamedTypeSymbol { Name: LifecycleName, ContainingType: { Name: BuilderName } builder }
-        && builder.ContainingNamespace.ToDisplayString() == BuilderNamespace;
+        type
+            is INamedTypeSymbol
+            {
+                Name: PipelineApi.LifecycleVariant,
+                ContainingType: { Name: PipelineApi.Builder } builder
+            }
+        && builder.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace;
 
     /// <summary>
     /// Whether a written type names the v9 lifecycle builder: <c>PipelineBuilder.Lifecycle</c>, qualified with its
@@ -643,8 +645,8 @@ internal sealed class ProcessTaskLifecycleMigration
     private static bool IsLifecycleBuilder(TypeSyntax? type) =>
         type switch
         {
-            QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == LifecycleName
-                && SimpleName(qualified.Left) == BuilderName,
+            QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == PipelineApi.LifecycleVariant
+                && SimpleName(qualified.Left) == PipelineApi.Builder,
             NullableTypeSyntax nullable => IsLifecycleBuilder(nullable.ElementType),
             _ => false,
         };

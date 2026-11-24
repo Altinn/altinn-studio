@@ -25,8 +25,8 @@ internal sealed partial class PreviewPipelineMigration
         /// </summary>
         public static readonly StepRole Stage = new(
             "stage",
-            "Task<ServiceTaskResult>",
-            Map(("StageResult", "ServiceTaskResult")),
+            $"Task<{PipelineApi.ServiceTaskResult}>",
+            Map((PipelineApi.StageResult, PipelineApi.ServiceTaskResult)),
             false,
             false,
             1
@@ -35,12 +35,19 @@ internal sealed partial class PreviewPipelineMigration
         /// <summary>
         /// <c>Finally</c>'s work, which already returned <c>ServiceTaskResult</c>.
         /// </summary>
-        public static readonly StepRole Final = new("stage", "Task<ServiceTaskResult>", Map(), false, false, 1);
+        public static readonly StepRole Final = new(
+            "stage",
+            $"Task<{PipelineApi.ServiceTaskResult}>",
+            Map(),
+            false,
+            false,
+            1
+        );
 
         public static readonly StepRole Send = new(
             "send",
-            "Task<ServiceTaskResult>",
-            Map(("ServiceTaskOpeningStageResult", "ServiceTaskResult")),
+            $"Task<{PipelineApi.ServiceTaskResult}>",
+            Map((PreviewApi.ServiceTaskOpeningStageResult, PipelineApi.ServiceTaskResult)),
             true,
             false,
             2
@@ -51,8 +58,11 @@ internal sealed partial class PreviewPipelineMigration
         /// </summary>
         public static readonly StepRole CarryOnReply = new(
             "reply handler",
-            "Task<ServiceTaskReplyResult>",
-            Map(("StageExchangeResult", "ServiceTaskReplyResult"), ("StageResult", "ServiceTaskReplyResult")),
+            $"Task<{PipelineApi.ServiceTaskReplyResult}>",
+            Map(
+                (PreviewApi.StageExchangeResult, PipelineApi.ServiceTaskReplyResult),
+                (PipelineApi.StageResult, PipelineApi.ServiceTaskReplyResult)
+            ),
             false,
             false,
             2
@@ -63,25 +73,25 @@ internal sealed partial class PreviewPipelineMigration
         /// </summary>
         public static readonly StepRole ConcludingReply = new(
             "reply handler",
-            "Task<ServiceTaskReplyResult>",
-            Map(("ServiceTaskExchangeResult", "ServiceTaskReplyResult")),
+            $"Task<{PipelineApi.ServiceTaskReplyResult}>",
+            Map((PreviewApi.ServiceTaskExchangeResult, PipelineApi.ServiceTaskReplyResult)),
             false,
             false,
             2
         );
 
         public static readonly StepRole CarryOnTimeout = new(
-            "onTimeout",
-            "Task<ServiceTaskResult>",
-            Map(("StageResult", "ServiceTaskResult")),
+            PipelineApi.OnTimeout,
+            $"Task<{PipelineApi.ServiceTaskResult}>",
+            Map((PipelineApi.StageResult, PipelineApi.ServiceTaskResult)),
             false,
             true,
             2
         );
 
         public static readonly StepRole ConcludingTimeout = new(
-            "onTimeout",
-            "Task<ServiceTaskResult>",
+            PipelineApi.OnTimeout,
+            $"Task<{PipelineApi.ServiceTaskResult}>",
             Map(),
             false,
             true,
@@ -668,7 +678,7 @@ internal sealed partial class PreviewPipelineMigration
                         },
                         ArgumentList.Arguments: [{ RefKindKeyword.RawKind: (int)SyntaxKind.None } result],
                     }
-                && NamesAltinnType(receiver, "ServiceTaskOpeningStageResult", names, model)
+                && NamesAltinnType(receiver, PreviewApi.ServiceTaskOpeningStageResult, names, model)
             )
             {
                 return (Visit(result.Expression) ?? result.Expression).WithTriviaFrom(node);

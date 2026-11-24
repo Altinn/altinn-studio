@@ -7,27 +7,16 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 internal sealed partial class PreviewPipelineMigration
 {
-    private const string ForwardExceptionName = "ServiceTaskReplyForwardException";
-    private const string ForwarderName = "IServiceTaskReplyForwarder";
-
-    /// <summary>
-    /// The previews' types that were renamed, and their names now.
-    /// </summary>
-    private static readonly Dictionary<string, string> _typeRenames = new(StringComparer.Ordinal)
-    {
-        ["ServiceTaskMailbox"] = "ReplyAddress",
-        ["SuccessfulServiceTaskResult"] = "EndedServiceTaskResult",
-        ["StageAwaitNextReplyResult"] = "ServiceTaskAwaitNextReplyResult",
-    };
-
     /// <summary>
     /// A member of the previews that was renamed.
     /// </summary>
-    /// <param name="OnInstance">Whether it is read on an instance of the type, rather than through the type's name.</param>
+    /// <param name="OnInstance">
+    /// Whether it is read on an instance of the type, rather than through the type's name.
+    /// </param>
     /// <param name="Returned">
     /// The type the member returned in the previews where the renamed one returns its base, or <c>null</c>.
     /// </param>
-    private sealed record MemberRename(
+    internal sealed record MemberRename(
         string Type,
         string Member,
         string Renamed,
@@ -35,32 +24,144 @@ internal sealed partial class PreviewPipelineMigration
         string? Returned = null
     );
 
-    private static readonly MemberRename[] _memberRenames =
-    [
-        new("ServiceTaskResult", "Success", "EndTask", Returned: "SuccessfulServiceTaskResult"),
-        new("ServiceTaskReplyForwardOutcome", "MailboxFull", "TooManyReplies"),
-        new(ForwardExceptionName, "MailboxId", "ReplyAddressId", OnInstance: true),
-    ];
+    /// <summary>
+    /// A parameter of the previews that was renamed, which a call can name.
+    /// </summary>
+    /// <param name="Method">The method, or the type's name for its constructor.</param>
+    internal sealed record ParameterRename(string Type, string Method, string Parameter, string Renamed);
 
     /// <summary>
-    /// The previews' types that the current API removed, and what to write instead.
+    /// The previews' pipeline API that the current one renamed or removed, each name once. The patterns that find it
+    /// in code a directive disables are built from it, and a test checks it against the App library's public API.
     /// </summary>
-    private static readonly Dictionary<string, string> _removedTypes = new(StringComparer.Ordinal)
+    internal static class PreviewApi
     {
-        ["MailboxHandle"] =
-            "Compose the send and its reply handler as one ExternalStage(send, onReply, timeout: ..., onTimeout: ...)",
-        ["MailboxOptions"] = "Give ExternalStage the timeout as timeout:",
-        ["MailboxClosedReason"] = "onTimeout takes only the StageContext, and runs when the timeout passes",
-        ["StageExchangeResult"] = "A reply handler returns ServiceTaskReplyResult",
-        ["ServiceTaskExchangeResult"] = "A reply handler returns ServiceTaskReplyResult",
-        ["ServiceTaskOpeningStageResult"] =
-            "A send returns ServiceTaskResult, and returns the result itself where it returned Conclude(result)",
-        [ServiceTaskPipelineName] =
-            "DefineExecute returns nothing, and a method that composes part of it returns PipelineBuilder.ServiceTask",
-        [ProcessTaskPipelineName] =
-            "DefineStart, DefineEnd and DefineAbandon return nothing, and a method that composes part of one returns "
-            + "PipelineBuilder.Lifecycle",
-    };
+        public const string Finally = "Finally";
+
+        public const string HandleReplies = "HandleReplies";
+
+        public const string ConcludeOnReplies = "ConcludeOnReplies";
+
+        public const string Build = "Build";
+
+        public const string ServiceTaskPipeline = "ServiceTaskPipeline";
+
+        public const string ProcessTaskPipeline = "ProcessTaskPipeline";
+
+        public const string MailboxOptions = "MailboxOptions";
+
+        public const string StageExchangeResult = "StageExchangeResult";
+
+        public const string ServiceTaskExchangeResult = "ServiceTaskExchangeResult";
+
+        public const string ServiceTaskOpeningStageResult = "ServiceTaskOpeningStageResult";
+
+        public const string ForwardException = "ServiceTaskReplyForwardException";
+
+        public const string Forwarder = "IServiceTaskReplyForwarder";
+
+        /// <summary>
+        /// The previews' builder methods that the current builders lack, and the builder method that does the work of
+        /// each now, or <c>null</c> for <c>Build</c>, which nothing replaces.
+        /// </summary>
+        public static readonly Dictionary<string, string?> RemovedBuilderMethods = new(StringComparer.Ordinal)
+        {
+            [Finally] = PipelineApi.Stage,
+            [HandleReplies] = PipelineApi.ExternalStage,
+            [ConcludeOnReplies] = PipelineApi.ExternalStage,
+            [Build] = null,
+        };
+
+        /// <summary>
+        /// The previews' types that were renamed, and their names now.
+        /// </summary>
+        public static readonly Dictionary<string, string> RenamedTypes = new(StringComparer.Ordinal)
+        {
+            ["ServiceTaskMailbox"] = "ReplyAddress",
+            ["SuccessfulServiceTaskResult"] = "EndedServiceTaskResult",
+            ["StageAwaitNextReplyResult"] = "ServiceTaskAwaitNextReplyResult",
+        };
+
+        public static readonly MemberRename[] RenamedMembers =
+        [
+            new(PipelineApi.ServiceTaskResult, "Success", "EndTask", Returned: "SuccessfulServiceTaskResult"),
+            new("ServiceTaskReplyForwardOutcome", "MailboxFull", "TooManyReplies"),
+            new(ForwardException, "MailboxId", "ReplyAddressId", OnInstance: true),
+        ];
+
+        public static readonly ParameterRename[] RenamedParameters =
+        [
+            new(Forwarder, "ForwardReply", "mailboxId", "replyAddressId"),
+            new(ForwardException, ForwardException, "mailboxId", "replyAddressId"),
+        ];
+
+        /// <summary>
+        /// The previews' types that the current API removed, and what to write instead.
+        /// </summary>
+        public static readonly Dictionary<string, string> RemovedTypes = new(StringComparer.Ordinal)
+        {
+            ["MailboxHandle"] =
+                "Compose the send and its reply handler as one ExternalStage(send, onReply, timeout: ..., onTimeout: ...)",
+            [MailboxOptions] = "Give ExternalStage the timeout as timeout:",
+            ["MailboxClosedReason"] = "onTimeout takes only the StageContext, and runs when the timeout passes",
+            [StageExchangeResult] = "A reply handler returns ServiceTaskReplyResult",
+            [ServiceTaskExchangeResult] = "A reply handler returns ServiceTaskReplyResult",
+            [ServiceTaskOpeningStageResult] =
+                "A send returns ServiceTaskResult, and returns the result itself where it returned Conclude(result)",
+            [ServiceTaskPipeline] =
+                "DefineExecute returns nothing, and a method that composes part of it returns PipelineBuilder.ServiceTask",
+            [ProcessTaskPipeline] =
+                "DefineStart, DefineEnd and DefineAbandon return nothing, and a method that composes part of one "
+                + "returns PipelineBuilder.Lifecycle",
+        };
+
+        private static readonly string _types = Words(RemovedTypes.Keys.Concat(RenamedTypes.Keys));
+
+        private static readonly string _members = Words(
+            RenamedMembers.Where(static m => !m.OnInstance).Select(static m => $@"{m.Type}\s*\.\s*{m.Member}")
+        );
+
+        /// <summary>
+        /// A renamed member called through its type's name, or a renamed or removed type.
+        /// </summary>
+        public static readonly Regex MemberOrType = new($"{_members}|{_types}", RegexOptions.CultureInvariant);
+
+        /// <summary>
+        /// Any name above as code writes it, or <c>PipelineBuilder</c> without a variant.
+        /// </summary>
+        public static readonly Regex AnyName = new(
+            $@"\b(?:{string.Join('|', RemovedBuilderMethods.Keys)})\s*\(|"
+                + $@"\b{PipelineApi.Builder}\b"
+                + $@"(?!\s*\.\s*(?:{PipelineApi.ServiceTaskVariant}|{PipelineApi.LifecycleVariant})\b)|"
+                + $"{_members}|{_types}",
+            RegexOptions.CultureInvariant
+        );
+
+        /// <summary>
+        /// What became of a name <see cref="MemberOrType"/> matched, for a to-do.
+        /// </summary>
+        public static string WhatBecameOf(string match)
+        {
+            var name = Regex.Replace(match, @"\s", "", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+            if (RemovedTypes.TryGetValue(name, out var instead))
+            {
+                return $"{name} was removed. {instead}.";
+            }
+
+            var renamed = RenamedTypes.TryGetValue(name, out var type)
+                ? type
+                : RenamedMembers.First(member => $"{member.Type}.{member.Member}" == name).Renamed;
+            return $"{name} is {renamed} now. Rename it in this code, which a preprocessor directive disables.";
+        }
+
+        /// <summary>
+        /// Whether the name is a method of the previews' builder.
+        /// </summary>
+        public static bool IsBuilderMethod(string name) =>
+            name == PipelineApi.Stage || RemovedBuilderMethods.ContainsKey(name);
+
+        private static string Words(IEnumerable<string> names) => $@"\b(?:{string.Join('|', names)})\b";
+    }
 
     /// <summary>
     /// Which names the app declares as its own types, so that without a compilation a name is taken for the Altinn
@@ -95,7 +196,7 @@ internal sealed partial class PreviewPipelineMigration
                 {
                     return symbol is INamedTypeSymbol type
                         && CSharpSemanticQueries.IsAltinnAppSymbol(type)
-                        && type.ContainingNamespace.ToDisplayString() == BuilderNamespace;
+                        && type.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace;
                 }
             }
 
@@ -150,7 +251,7 @@ internal sealed partial class PreviewPipelineMigration
                 .OfType<InvocationExpressionSyntax>()
                 .Where(call =>
                     call.Expression is MemberAccessExpressionSyntax access
-                    && _memberRenames.Any(rename =>
+                    && PreviewApi.RenamedMembers.Any(rename =>
                         rename is { OnInstance: false, Returned: { } returned }
                         && rename.Member == access.Name.Identifier.ValueText
                         && NamesAltinnType(access.Expression, rename.Type, names, file.SemanticModel)
@@ -182,7 +283,7 @@ internal sealed partial class PreviewPipelineMigration
                 $"{file.RelativePath}:{file.GetLine(call)}: {rename.Type}.{rename.Member} returned the "
                     + $"{returned} this code holds, so it was left as it is. {rename.Type}.{rename.Renamed} returns a "
                     + $"{rename.Type}: keep what you read from the result in a variable of its own, or match the "
-                    + $"result with is {_typeRenames.GetValueOrDefault(returned, returned)}."
+                    + $"result with is {PreviewApi.RenamedTypes.GetValueOrDefault(returned, returned)}."
             );
         }
 
@@ -216,7 +317,7 @@ internal sealed partial class PreviewPipelineMigration
         public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
         {
             if (
-                _typeRenames.TryGetValue(node.Identifier.ValueText, out var renamed)
+                PreviewApi.RenamedTypes.TryGetValue(node.Identifier.ValueText, out var renamed)
                 && IsTypeReference(node)
                 && names.IsAltinn(node, model)
             )
@@ -232,7 +333,7 @@ internal sealed partial class PreviewPipelineMigration
         {
             var visited = (MemberAccessExpressionSyntax?)base.VisitMemberAccessExpression(node) ?? node;
             var member = node.Name.Identifier.ValueText;
-            foreach (var rename in _memberRenames.Where(rename => rename.Member == member))
+            foreach (var rename in PreviewApi.RenamedMembers.Where(rename => rename.Member == member))
             {
                 var matches = rename.OnInstance
                     ? IsOfAltinnType(node.Expression, rename.Type, names, model) == true
@@ -268,7 +369,7 @@ internal sealed partial class PreviewPipelineMigration
                 return visited;
             }
 
-            foreach (var (type, from, to, _, _) in _memberRenames)
+            foreach (var (type, from, to, _, _) in PreviewApi.RenamedMembers)
             {
                 if (member.Identifier.ValueText == from && NamesAltinnType(node.Container, type, names, model))
                 {
@@ -286,14 +387,16 @@ internal sealed partial class PreviewPipelineMigration
         {
             var visited = (ArgumentSyntax?)base.VisitArgument(node) ?? node;
             if (
-                node.NameColon is { Name.Identifier.ValueText: "mailboxId" } nameColon
-                && node.Parent?.Parent is { } call
-                && TakesReplyAddressId(call, names, model) == true
+                node is { NameColon: { } nameColon, Parent.Parent: { } call }
+                && PreviewApi.RenamedParameters.FirstOrDefault(rename =>
+                    rename.Parameter == nameColon.Name.Identifier.ValueText && Calls(call, rename, names, model) == true
+                )
+                    is { } renamed
             )
             {
-                Renamed.Add("the reply forwarder's mailboxId is replyAddressId");
+                Renamed.Add($"{renamed.Method}'s {renamed.Parameter} is {renamed.Renamed}");
                 return visited.WithNameColon(
-                    nameColon.WithName(SyntaxFactory.IdentifierName("replyAddressId").WithTriviaFrom(nameColon.Name))
+                    nameColon.WithName(SyntaxFactory.IdentifierName(renamed.Renamed).WithTriviaFrom(nameColon.Name))
                 );
             }
 
@@ -304,13 +407,18 @@ internal sealed partial class PreviewPipelineMigration
         {
             var visited = (SubpatternSyntax?)base.VisitSubpattern(node) ?? node;
             if (
-                node.NameColon is { Name.Identifier.ValueText: "MailboxId" } nameColon
-                && MatchesForwardException(node, names, model) == true
+                node.NameColon is { } nameColon
+                && PreviewApi.RenamedMembers.FirstOrDefault(rename =>
+                    rename.OnInstance
+                    && rename.Member == nameColon.Name.Identifier.ValueText
+                    && Matches(node, rename.Type, names, model) == true
+                )
+                    is { } renamed
             )
             {
-                Renamed.Add($"{ForwardExceptionName}.MailboxId is ReplyAddressId");
+                Renamed.Add($"{renamed.Type}.{renamed.Member} is {renamed.Renamed}");
                 return visited.WithNameColon(
-                    nameColon.WithName(SyntaxFactory.IdentifierName("ReplyAddressId").WithTriviaFrom(nameColon.Name))
+                    nameColon.WithName(SyntaxFactory.IdentifierName(renamed.Renamed).WithTriviaFrom(nameColon.Name))
                 );
             }
 
@@ -319,16 +427,15 @@ internal sealed partial class PreviewPipelineMigration
     }
 
     /// <summary>
-    /// Whether the call is the Altinn reply forwarder's <c>ForwardReply</c> or the forward exception's constructor,
-    /// which named <c>replyAddressId</c> <c>mailboxId</c> in the previews: by the method the semantic model binds it
-    /// to, and otherwise by the type its receiver is declared with. A call without a receiver is the app's own.
-    /// <c>null</c> when the upgrade cannot tell.
+    /// Whether the call is to the method or constructor whose parameter <paramref name="rename"/> renames: by the
+    /// method the semantic model binds it to, and otherwise by the type the call creates or its receiver is declared
+    /// with. A call without a receiver is to the app's own method. <c>null</c> when the upgrade cannot tell.
     /// </summary>
-    private static bool? TakesReplyAddressId(SyntaxNode call, TypeNames names, SemanticModel? model)
+    private static bool? Calls(SyntaxNode call, ParameterRename rename, TypeNames names, SemanticModel? model)
     {
         if (call is ObjectCreationExpressionSyntax creation)
         {
-            return NamesAltinnType(creation.Type, ForwardExceptionName, names, model);
+            return rename.Method == rename.Type && NamesAltinnType(creation.Type, rename.Type, names, model);
         }
 
         if (call is not InvocationExpressionSyntax invocation)
@@ -337,7 +444,7 @@ internal sealed partial class PreviewPipelineMigration
         }
 
         var receiver = DeclaredTypeReceiverClassifier.ReceiverOf(invocation, out var name);
-        if ((name ?? invocation.Expression as SimpleNameSyntax)?.Identifier.ValueText != "ForwardReply")
+        if ((name ?? invocation.Expression as SimpleNameSyntax)?.Identifier.ValueText != rename.Method)
         {
             return false;
         }
@@ -348,19 +455,19 @@ internal sealed partial class PreviewPipelineMigration
             var methods = (info.Symbol is { } bound ? [bound] : info.CandidateSymbols).OfType<IMethodSymbol>().ToList();
             if (methods.Count > 0)
             {
-                return methods.All(static method => IsAltinnType(method.ContainingType, ForwarderName));
+                return methods.All(method => IsAltinnType(method.ContainingType, rename.Type));
             }
         }
 
-        return receiver is null ? false : IsOfAltinnType(receiver, ForwarderName, names, model);
+        return receiver is null ? false : IsOfAltinnType(receiver, rename.Type, names, model);
     }
 
     /// <summary>
-    /// Whether a property pattern's <c>MailboxId</c> is the forward exception's: by the property the semantic model
-    /// binds it to, otherwise by the type the pattern names or the type of what it matches. <c>null</c> when the
-    /// upgrade cannot tell.
+    /// Whether a property pattern's member is one of the type <paramref name="typeName"/>: by the property the
+    /// semantic model binds it to, otherwise by the type the pattern names or the type of what it matches. <c>null</c>
+    /// when the upgrade cannot tell.
     /// </summary>
-    private static bool? MatchesForwardException(SubpatternSyntax subpattern, TypeNames names, SemanticModel? model)
+    private static bool? Matches(SubpatternSyntax subpattern, string typeName, TypeNames names, SemanticModel? model)
     {
         if (subpattern is not { NameColon.Name: var name, Parent.Parent: RecursivePatternSyntax pattern })
         {
@@ -373,15 +480,15 @@ internal sealed partial class PreviewPipelineMigration
             && model.GetSymbolInfo(name).Symbol is IPropertySymbol property
         )
         {
-            return IsAltinnType(property.ContainingType, ForwardExceptionName);
+            return IsAltinnType(property.ContainingType, typeName);
         }
 
         if (pattern.Type is { } type)
         {
-            return NamesAltinnType(type, ForwardExceptionName, names, model);
+            return NamesAltinnType(type, typeName, names, model);
         }
 
-        return PatternInput(pattern) is { } input ? IsOfAltinnType(input, ForwardExceptionName, names, model) : null;
+        return PatternInput(pattern) is { } input ? IsOfAltinnType(input, typeName, names, model) : null;
     }
 
     /// <summary>
@@ -464,7 +571,7 @@ internal sealed partial class PreviewPipelineMigration
         type is INamedTypeSymbol named
         && named.Name == typeName
         && CSharpSemanticQueries.IsAltinnAppSymbol(named)
-        && named.ContainingNamespace.ToDisplayString() == BuilderNamespace;
+        && named.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace;
 
     private static TypeSyntax Unnullable(TypeSyntax type) =>
         type is NullableTypeSyntax nullable ? nullable.ElementType : type;
@@ -636,13 +743,15 @@ internal sealed partial class PreviewPipelineMigration
                     Container: var container,
                     Member: NameMemberCrefSyntax { Name: SimpleNameSyntax member }
                 }
-                    when _previewMethods.TryGetValue(member.Identifier.ValueText, out var name)
-                        && IsBuilderContainer(container, file.SemanticModel) => name,
+                    when PreviewApi.IsBuilderMethod(member.Identifier.ValueText)
+                        && IsBuilderContainer(container, file.SemanticModel) =>
+                    PreviewApi.RemovedBuilderMethods.GetValueOrDefault(member.Identifier.ValueText)
+                        ?? member.Identifier.ValueText,
                 var cref
                     when cref.DescendantNodesAndSelf()
                         .OfType<IdentifierNameSyntax>()
                         .Any(identifier =>
-                            _removedTypes.ContainsKey(identifier.Identifier.ValueText)
+                            PreviewApi.RemovedTypes.ContainsKey(identifier.Identifier.ValueText)
                             && names.IsAltinn(identifier, file.SemanticModel)
                         ) => cref.ToString(),
                 _ => null,
@@ -699,26 +808,28 @@ internal sealed partial class PreviewPipelineMigration
             : IsBuilder(container, null);
 
     /// <summary>
-    /// Reports what still names the previews' API with its file and line: a removed type, code disabled by a
-    /// directive that names one, and a <c>MailboxId</c> read or a <c>mailboxId:</c> passed where the upgrade cannot
-    /// tell whether it is the forward exception's or the reply forwarder's. A method reported as a whole is skipped,
-    /// since its to-do covers it.
+    /// Reports what still names the previews' API with its file and line: a removed type, a renamed or removed type
+    /// or a renamed member in code a directive disables, and a renamed member read or parameter named where the
+    /// upgrade cannot tell whether it is the App library's. A method reported as a whole is skipped, since its to-do
+    /// covers it.
     /// </summary>
     private static void ReportLeftovers(ScannedCSharpFile file, TypeNames names, List<UpgradeMessage> messages)
     {
-        var found = new SortedSet<(int Line, string Name)>();
+        var model = file.SemanticModel;
+        var found = new SortedSet<(int Line, string Todo)>();
         bool Visible(SyntaxNode node) => !node.HasAnnotation(_leftAsItIs);
-        var identifiers = file.Root.DescendantNodes(Visible).OfType<IdentifierNameSyntax>().ToList();
+        var nodes = file.Root.DescendantNodes(Visible).ToList();
+        var identifiers = nodes.OfType<IdentifierNameSyntax>().ToList();
         foreach (var identifier in identifiers)
         {
             var name = identifier.Identifier.ValueText;
             if (
-                _removedTypes.ContainsKey(name)
+                PreviewApi.RemovedTypes.ContainsKey(name)
                 && IsTypeReference(identifier)
-                && names.IsAltinn(identifier, file.SemanticModel)
+                && names.IsAltinn(identifier, model)
             )
             {
-                found.Add((file.GetLine(identifier), name));
+                found.Add((file.GetLine(identifier), PreviewApi.WhatBecameOf(name)));
             }
         }
 
@@ -728,80 +839,77 @@ internal sealed partial class PreviewPipelineMigration
                 .Where(static t => t.IsKind(SyntaxKind.DisabledTextTrivia))
         )
         {
-            foreach (Match match in RemovedTypeName().Matches(disabled.ToString()))
+            foreach (Match match in PreviewApi.MemberOrType.Matches(disabled.ToString()))
             {
                 var line = disabled.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                found.Add((line + disabled.ToString()[..match.Index].Count(static c => c == '\n'), match.Value));
+                found.Add(
+                    (
+                        line + disabled.ToString()[..match.Index].Count(static c => c == '\n'),
+                        PreviewApi.WhatBecameOf(match.Value)
+                    )
+                );
             }
         }
 
-        foreach (var (line, name) in found)
+        bool Named(string typeName) => identifiers.Any(identifier => identifier.Identifier.ValueText == typeName);
+        foreach (var rename in PreviewApi.RenamedMembers.Where(static rename => rename.OnInstance))
         {
-            messages.Todo($"{file.RelativePath}:{line}: {name} was removed. {_removedTypes[name]}.");
-        }
+            if (!Named(rename.Type))
+            {
+                continue;
+            }
 
-        var model = file.SemanticModel;
-        var nodes = file.Root.DescendantNodes(Visible).ToList();
-        var uncertain = new SortedSet<(int Line, string Todo)>();
-        if (identifiers.Any(static identifier => identifier.Identifier.ValueText == ForwardExceptionName))
-        {
             foreach (var node in nodes)
             {
-                var readsMailboxId = node switch
+                var reads = node switch
                 {
-                    MemberAccessExpressionSyntax { Name.Identifier.ValueText: "MailboxId" } access => IsOfAltinnType(
-                        access.Expression,
-                        ForwardExceptionName,
-                        names,
-                        model
-                    ),
-                    SubpatternSyntax { NameColon.Name.Identifier.ValueText: "MailboxId" } subpattern =>
-                        MatchesForwardException(subpattern, names, model),
+                    MemberAccessExpressionSyntax access when access.Name.Identifier.ValueText == rename.Member =>
+                        IsOfAltinnType(access.Expression, rename.Type, names, model),
+                    SubpatternSyntax { NameColon.Name.Identifier.ValueText: var member } subpattern
+                        when member == rename.Member => Matches(subpattern, rename.Type, names, model),
                     _ => false,
                 };
-                if (readsMailboxId != false)
+                if (reads != false)
                 {
-                    uncertain.Add(
+                    found.Add(
                         (
                             file.GetLine(node),
-                            $"if this reads {ForwardExceptionName}.MailboxId, it is ReplyAddressId now."
+                            $"if this reads {rename.Type}.{rename.Member}, it is {rename.Renamed} now."
                         )
                     );
                 }
             }
         }
 
-        if (identifiers.Any(static identifier => identifier.Identifier.ValueText == ForwarderName))
+        foreach (var rename in PreviewApi.RenamedParameters)
         {
+            if (!Named(rename.Type))
+            {
+                continue;
+            }
+
             foreach (var argument in nodes.OfType<ArgumentSyntax>())
             {
                 if (
-                    argument is { NameColon.Name.Identifier.ValueText: "mailboxId", Parent.Parent: { } call }
-                    && TakesReplyAddressId(call, names, model) != false
+                    argument is { NameColon.Name.Identifier.ValueText: var parameter, Parent.Parent: { } call }
+                    && parameter == rename.Parameter
+                    && Calls(call, rename, names, model) != false
                 )
                 {
-                    uncertain.Add(
+                    found.Add(
                         (
                             file.GetLine(argument),
-                            $"if this calls {ForwarderName}.ForwardReply, its mailboxId: is replyAddressId: now."
+                            $"if this calls {rename.Type}.{rename.Method}, its {rename.Parameter}: is "
+                                + $"{rename.Renamed}: now."
                         )
                     );
                 }
             }
         }
 
-        foreach (var (line, todo) in uncertain)
+        foreach (var (line, todo) in found)
         {
             messages.Todo($"{file.RelativePath}:{line}: {todo}");
         }
     }
-
-    /// <summary>
-    /// A type the current API removed, in code a directive disables.
-    /// </summary>
-    [GeneratedRegex(
-        @"\b(?:MailboxHandle|MailboxOptions|MailboxClosedReason|StageExchangeResult|ServiceTaskExchangeResult|ServiceTaskOpeningStageResult|ServiceTaskPipeline|ProcessTaskPipeline)\b",
-        RegexOptions.CultureInvariant
-    )]
-    private static partial Regex RemovedTypeName();
 }

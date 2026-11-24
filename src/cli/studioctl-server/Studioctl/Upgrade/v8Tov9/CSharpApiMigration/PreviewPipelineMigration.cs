@@ -31,42 +31,15 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </remarks>
 internal sealed partial class PreviewPipelineMigration
 {
-    private const string BuilderNamespace = "Altinn.App.Core.Features.Process";
-    private const string BuilderName = "PipelineBuilder";
-    private const string ServiceTaskVariant = "ServiceTask";
-    private const string LifecycleVariant = "Lifecycle";
-    private const string ServiceTaskPipelineName = "ServiceTaskPipeline";
-    private const string ProcessTaskPipelineName = "ProcessTaskPipeline";
-    private const string ExecuteName = "DefineExecute";
-
     private static readonly string[] _phases = ["Start", "End", "Abandon"];
 
     /// <summary>
-    /// The calls that continue a chain on the previews' builder and return the builder.
+    /// The previews' builder methods that return the builder, so that a chain continues after them.
     /// </summary>
-    private static readonly HashSet<string> _chainingCalls = new(StringComparer.Ordinal) { "Stage", "HandleReplies" };
-
-    /// <summary>
-    /// The previews' builder methods that the current builders do not have.
-    /// </summary>
-    private static readonly HashSet<string> _removedCalls = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> _chainingCalls = new(StringComparer.Ordinal)
     {
-        "Finally",
-        "HandleReplies",
-        "ConcludeOnReplies",
-        "Build",
-    };
-
-    /// <summary>
-    /// The previews' builder methods, and the current method that does their work, for doc comments.
-    /// </summary>
-    private static readonly Dictionary<string, string> _previewMethods = new(StringComparer.Ordinal)
-    {
-        ["Stage"] = "Stage",
-        ["Finally"] = "Stage",
-        ["HandleReplies"] = "ExternalStage",
-        ["ConcludeOnReplies"] = "ExternalStage",
-        ["Build"] = "Build",
+        PipelineApi.Stage,
+        PreviewApi.HandleReplies,
     };
 
     /// <summary>
@@ -156,7 +129,7 @@ internal sealed partial class PreviewPipelineMigration
 
         // Without a compilation, an app's own PipelineBuilder reads like the Altinn one.
         bool TellsBuildersApart(ScannedCSharpFile file) =>
-            file.SemanticModel is not null || !names.AppDeclares(BuilderName);
+            file.SemanticModel is not null || !names.AppDeclares(PipelineApi.Builder);
 
         // Detect everything before rewriting anything: an update refreshes the semantic models.
         var methods = new List<PipelineMethod>();
@@ -173,11 +146,11 @@ internal sealed partial class PreviewPipelineMigration
             if (found.Count > 0 && !TellsBuildersApart(file))
             {
                 messages.Todo(
-                    $"{file.RelativePath}: the app declares its own {BuilderName}, which cannot be told apart from "
-                        + "the Altinn one without a compilation of the app. If this file composes Altinn pipelines, "
-                        + $"make {ExecuteName} a void method that takes a {BuilderName}.{ServiceTaskVariant} and "
-                        + "composes Stage and ExternalStage, and DefineStart, DefineEnd and DefineAbandon void "
-                        + $"methods that take a {BuilderName}.{LifecycleVariant}, without Build()."
+                    $"{file.RelativePath}: the app declares its own {PipelineApi.Builder}, which cannot be told apart "
+                        + "from the Altinn one without a compilation of the app. If this file composes Altinn pipelines, "
+                        + $"make {PipelineApi.DefineExecute} a void method that takes a {PipelineApi.ServiceTaskBuilder} "
+                        + "and composes Stage and ExternalStage, and DefineStart, DefineEnd and DefineAbandon void "
+                        + $"methods that take a {PipelineApi.LifecycleBuilder}, without Build()."
                 );
                 reported.UnionWith(found);
                 leftAsItIs.AddRange(found.Select(method => (file, (SyntaxNode)method)));
@@ -287,7 +260,7 @@ internal sealed partial class PreviewPipelineMigration
         }
 
         var name = method.Identifier.ValueText;
-        if (name == ExecuteName && SimpleName(method.ReturnType) == ServiceTaskPipelineName)
+        if (name == PipelineApi.DefineExecute && SimpleName(method.ReturnType) == PreviewApi.ServiceTaskPipeline)
         {
             return Role.Execute;
         }
@@ -295,7 +268,7 @@ internal sealed partial class PreviewPipelineMigration
         return
             name.StartsWith("Define", StringComparison.Ordinal)
             && _phases.Contains(name["Define".Length..], StringComparer.Ordinal)
-            && SimpleName(method.ReturnType) == ProcessTaskPipelineName
+            && SimpleName(method.ReturnType) == PreviewApi.ProcessTaskPipeline
             ? Role.Phase
             : Role.Helper;
     }
@@ -349,7 +322,7 @@ internal sealed partial class PreviewPipelineMigration
     {
         foreach (var method in methods.Where(static method => method.Role != Role.Helper))
         {
-            var variant = method.Role == Role.Execute ? ServiceTaskVariant : LifecycleVariant;
+            var variant = method.Role == Role.Execute ? PipelineApi.ServiceTaskVariant : PipelineApi.LifecycleVariant;
             method.Variants.Add(variant);
             foreach (var invocation in method.Method.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
@@ -377,13 +350,16 @@ internal sealed partial class PreviewPipelineMigration
         {
             foreach (var (name, invocation) in BuilderCalls(method, helpers))
             {
-                if (name is "Finally" or "HandleReplies" or "ConcludeOnReplies" || HasOutArgument(invocation))
+                if (
+                    name is PreviewApi.Finally or PreviewApi.HandleReplies or PreviewApi.ConcludeOnReplies
+                    || HasOutArgument(invocation)
+                )
                 {
-                    method.Variants.Add(ServiceTaskVariant);
+                    method.Variants.Add(PipelineApi.ServiceTaskVariant);
                 }
-                else if (name == "Build")
+                else if (name == PreviewApi.Build)
                 {
-                    method.Variants.Add(LifecycleVariant);
+                    method.Variants.Add(PipelineApi.LifecycleVariant);
                 }
             }
         }
@@ -403,14 +379,14 @@ internal sealed partial class PreviewPipelineMigration
         if (method.Variants.Count != 1)
         {
             messages.Todo(
-                $"{location} takes or returns a {BuilderName}, and "
+                $"{location} takes or returns a {PipelineApi.Builder}, and "
                     + (
                         method.Variants.Count == 0
                             ? "nothing shows whether it composes a service task or a lifecycle phase"
                             : "it composes both a service task and a lifecycle phase"
                     )
-                    + $". Give it {BuilderName}.{ServiceTaskVariant} for {ExecuteName} or "
-                    + $"{BuilderName}.{LifecycleVariant} for DefineStart, DefineEnd and DefineAbandon, one copy for "
+                    + $". Give it {PipelineApi.ServiceTaskBuilder} for {PipelineApi.DefineExecute} or "
+                    + $"{PipelineApi.LifecycleBuilder} for DefineStart, DefineEnd and DefineAbandon, one copy for "
                     + "each when both use it, and compose a service task's with Stage and ExternalStage."
             );
             return null;
@@ -438,7 +414,7 @@ internal sealed partial class PreviewPipelineMigration
 
         var unsupported = new List<string>();
         var stepArguments = new List<(ArgumentSyntax Argument, StepRole Role)>();
-        if (variant == ServiceTaskVariant)
+        if (variant == PipelineApi.ServiceTaskVariant)
         {
             PlanServiceTask(method, helpers, rewriter, stepArguments, unsupported);
         }
@@ -454,11 +430,11 @@ internal sealed partial class PreviewPipelineMigration
             messages.Todo(
                 $"{location} has {string.Join("; ", unsupported)}, so it was left as it is. "
                     + (
-                        variant == LifecycleVariant
-                            ? $"Make it take a {BuilderName}.{LifecycleVariant} and compose its stages with Stage, "
+                        variant == PipelineApi.LifecycleVariant
+                            ? $"Make it take a {PipelineApi.LifecycleBuilder} and compose its stages with Stage, "
                                 + "returning nothing, as in public void DefineEnd(PipelineBuilder.Lifecycle pipeline) "
                                 + "=> pipeline.Stage(First).Stage(Second);"
-                            : $"Make it take a {BuilderName}.{ServiceTaskVariant} and compose a stage with Stage and "
+                            : $"Make it take a {PipelineApi.ServiceTaskBuilder} and compose a stage with Stage and "
                                 + "a send with its reply handler with ExternalStage, as in public void "
                                 + "DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.ExternalStage(Send, "
                                 + "OnReply, timeout: TimeSpan.FromDays(7), onTimeout: OnTimeout).Stage(Archive);"
@@ -475,9 +451,10 @@ internal sealed partial class PreviewPipelineMigration
             method.Role switch
             {
                 Role.Execute =>
-                    $"{location} takes a {BuilderName}.{ServiceTaskVariant} and returns nothing{renamed}{merged}.",
-                Role.Phase => $"{location} takes a {BuilderName}.{LifecycleVariant} and returns nothing.",
-                _ => $"{location} takes a {BuilderName}.{variant}, as the pipelines it is part of{renamed}{merged}.",
+                    $"{location} takes a {PipelineApi.ServiceTaskBuilder} and returns nothing{renamed}{merged}.",
+                Role.Phase => $"{location} takes a {PipelineApi.LifecycleBuilder} and returns nothing.",
+                _ => $"{location} takes a {PipelineApi.Builder}.{variant}, as the pipelines it is part of"
+                    + $"{renamed}{merged}.",
             }
         );
         return rewriter;
@@ -495,7 +472,7 @@ internal sealed partial class PreviewPipelineMigration
         List<string> unsupported
     )
     {
-        if (method.Role == Role.Helper && SimpleName(method.Method.ReturnType) == ServiceTaskPipelineName)
+        if (method.Role == Role.Helper && SimpleName(method.Method.ReturnType) == PreviewApi.ServiceTaskPipeline)
         {
             rewriter.Replace[method.Method.ReturnType] = ServiceTaskBuilderType(method);
         }
@@ -506,20 +483,20 @@ internal sealed partial class PreviewPipelineMigration
         {
             switch (name)
             {
-                case "Finally":
-                    rewriter.Renames[invocation] = "Stage";
+                case PreviewApi.Finally:
+                    rewriter.Renames[invocation] = PipelineApi.Stage;
                     AddStep(stepArguments, Argument(invocation, "work", 0), StepRole.Final);
                     break;
-                case "Stage" when HasOutArgument(invocation):
+                case PipelineApi.Stage when HasOutArgument(invocation):
                     sends.Add(invocation);
                     break;
-                case "Stage":
+                case PipelineApi.Stage:
                     AddStep(stepArguments, Argument(invocation, "work", 0), StepRole.Stage);
                     break;
-                case "HandleReplies" or "ConcludeOnReplies":
+                case PreviewApi.HandleReplies or PreviewApi.ConcludeOnReplies:
                     handlers.Add(invocation);
                     break;
-                case "Build":
+                case PreviewApi.Build:
                     unsupported.Add($"Build() at line {CallLine(method.File, invocation)}");
                     break;
             }
@@ -558,11 +535,11 @@ internal sealed partial class PreviewPipelineMigration
         var builds = new List<InvocationExpressionSyntax>();
         foreach (var (name, invocation) in BuilderCalls(method, helpers))
         {
-            if (name == "Build")
+            if (name == PreviewApi.Build)
             {
                 builds.Add(invocation);
             }
-            else if (name != "Stage" || HasOutArgument(invocation))
+            else if (name != PipelineApi.Stage || HasOutArgument(invocation))
             {
                 unsupported.Add($"{name} at line {CallLine(method.File, invocation)}");
             }
@@ -570,7 +547,7 @@ internal sealed partial class PreviewPipelineMigration
 
         if (
             method.Role == Role.Helper
-            && (builds.Count > 0 || SimpleName(method.Method.ReturnType) == ProcessTaskPipelineName)
+            && (builds.Count > 0 || SimpleName(method.Method.ReturnType) == PreviewApi.ProcessTaskPipeline)
         )
         {
             unsupported.Add("Build(), which its callers return");
@@ -591,8 +568,8 @@ internal sealed partial class PreviewPipelineMigration
             .OfType<NameSyntax>()
             .FirstOrDefault(type => IsBuilder(type, method.Model));
         return SyntaxFactory.QualifiedName(
-            builder?.WithoutTrivia() ?? SyntaxFactory.IdentifierName(BuilderName),
-            SyntaxFactory.IdentifierName(ServiceTaskVariant)
+            builder?.WithoutTrivia() ?? SyntaxFactory.IdentifierName(PipelineApi.Builder),
+            SyntaxFactory.IdentifierName(PipelineApi.ServiceTaskVariant)
         );
     }
 
@@ -619,7 +596,7 @@ internal sealed partial class PreviewPipelineMigration
             if (
                 receiver is not null
                 && name is not null
-                && _removedCalls.Contains(name)
+                && PreviewApi.RemovedBuilderMethods.ContainsKey(name)
                 && !builderCalls.Contains(invocation)
                 && !IsNotBuilder(receiver, method, helpers)
             )
@@ -633,7 +610,7 @@ internal sealed partial class PreviewPipelineMigration
         {
             var name = access.Name.Identifier.ValueText;
             if (
-                _removedCalls.Contains(name)
+                PreviewApi.RemovedBuilderMethods.ContainsKey(name)
                 && !(access.Parent is InvocationExpressionSyntax call && call.Expression == access)
                 && !IsNotBuilder(access.Expression, method, helpers)
             )
@@ -644,7 +621,7 @@ internal sealed partial class PreviewPipelineMigration
 
         foreach (var type in BuilderReferences(method.Method, method.Model).Where(t => !rewriter.Retype.Contains(t)))
         {
-            yield return $"a {BuilderName} it cannot give a variant at line {Line(method.File, type)}";
+            yield return $"a {PipelineApi.Builder} it cannot give a variant at line {Line(method.File, type)}";
         }
 
         foreach (
@@ -652,7 +629,7 @@ internal sealed partial class PreviewPipelineMigration
                 .Method.DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(name =>
-                    name.Identifier.ValueText is ServiceTaskPipelineName or ProcessTaskPipelineName
+                    name.Identifier.ValueText is PreviewApi.ServiceTaskPipeline or PreviewApi.ProcessTaskPipeline
                     && IsTypeReference(name)
                     && !IsReturnTypeLost(name, method, rewriter)
                 )
@@ -667,7 +644,7 @@ internal sealed partial class PreviewPipelineMigration
                 .Where(trivia =>
                     trivia.IsKind(SyntaxKind.DisabledTextTrivia)
                     && trivia.SpanStart >= method.Method.SpanStart
-                    && OldApiName().IsMatch(trivia.ToString())
+                    && PreviewApi.AnyName.IsMatch(trivia.ToString())
                 )
         )
         {
@@ -711,7 +688,7 @@ internal sealed partial class PreviewPipelineMigration
                 {
                     IdentifierNameSyntax identifier => identifier.Identifier.ValueText is var name
                         && (
-                            name == BuilderName
+                            name == PipelineApi.Builder
                             || method.Builders.Contains(name)
                             || helpers.BuilderMembers.Contains(name)
                         ),
@@ -734,7 +711,7 @@ internal sealed partial class PreviewPipelineMigration
 
     private static NameSyntax? BuilderReference(IdentifierNameSyntax identifier, SemanticModel? model)
     {
-        if (identifier.Identifier.ValueText != BuilderName)
+        if (identifier.Identifier.ValueText != PipelineApi.Builder)
         {
             return null;
         }
@@ -875,7 +852,7 @@ internal sealed partial class PreviewPipelineMigration
                     {
                         Expression: MemberAccessExpressionSyntax
                         {
-                            Name.Identifier.ValueText: "Build",
+                            Name.Identifier.ValueText: PreviewApi.Build,
                             Expression: var chain,
                         },
                         ArgumentList.Arguments.Count: 0,
@@ -893,13 +870,13 @@ internal sealed partial class PreviewPipelineMigration
             {
                 Expression: MemberAccessExpressionSyntax
                 {
-                    Name.Identifier.ValueText: "Finally" or "ConcludeOnReplies"
+                    Name.Identifier.ValueText: PreviewApi.Finally or PreviewApi.ConcludeOnReplies
                 },
             } => expression,
             InvocationExpressionSyntax invocation
                 when helpers.Resolve(invocation, method) is { Count: > 0 } targets
                     && targets.All(static target =>
-                        SimpleName(target.Method.ReturnType) == ServiceTaskPipelineName
+                        SimpleName(target.Method.ReturnType) == PreviewApi.ServiceTaskPipeline
                         || IsBuilder(target.Method.ReturnType, target.Model)
                     ) => expression,
             _ => null,
@@ -922,20 +899,23 @@ internal sealed partial class PreviewPipelineMigration
         {
             messages.Todo(
                 $"{location} has no statements, so it returns no pipeline. Make it public void "
-                    + $"Define{phase}({BuilderName}.{LifecycleVariant} pipeline) and compose its stages on pipeline."
+                    + $"Define{phase}({PipelineApi.LifecycleBuilder} pipeline) and compose its stages on pipeline."
             );
             return null;
         }
 
         var callName = match.Groups["call"].Value;
         messages.Ok(
-            $"{location} was a port stub from an earlier upgrade. It takes a {BuilderName}.{LifecycleVariant} now, "
+            $"{location} was a port stub from an earlier upgrade. It takes a {PipelineApi.LifecycleBuilder} now, "
                 + $"and still stops the build until {callName} is ported to stages."
         );
         var stub = ProcessTaskLifecycleMigration
             .Definition(phase, callName, method.Method)
             .WithTriviaFrom(method.Method);
-        return new MethodRewriter(LifecycleVariant, returnsVoid: true, returnsChain: false) { Replacement = stub };
+        return new MethodRewriter(PipelineApi.LifecycleVariant, returnsVoid: true, returnsChain: false)
+        {
+            Replacement = stub,
+        };
     }
 
     /// <summary>
@@ -1016,8 +996,8 @@ internal sealed partial class PreviewPipelineMigration
 
         return type switch
         {
-            IdentifierNameSyntax identifier => identifier.Identifier.ValueText == BuilderName,
-            QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == BuilderName
+            IdentifierNameSyntax identifier => identifier.Identifier.ValueText == PipelineApi.Builder,
+            QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == PipelineApi.Builder
                 && IsBuilderNamespace(qualified.Left),
             NullableTypeSyntax nullable => IsBuilder(nullable.ElementType, model),
             _ => false,
@@ -1028,15 +1008,15 @@ internal sealed partial class PreviewPipelineMigration
     /// The previews' builder: the Altinn <c>PipelineBuilder</c> that is not the variants' abstract base.
     /// </summary>
     private static bool IsBuilderSymbol(ITypeSymbol type) =>
-        type is INamedTypeSymbol { Name: BuilderName, ContainingType: null, IsAbstract: false } named
-        && named.ContainingNamespace.ToDisplayString() == BuilderNamespace
+        type is INamedTypeSymbol { Name: PipelineApi.Builder, ContainingType: null, IsAbstract: false } named
+        && named.ContainingNamespace.ToDisplayString() == PipelineApi.Namespace
         && CSharpSemanticQueries.IsAltinnAppSymbol(named);
 
     /// <summary>
     /// Whether the expression or name is the builder's namespace, with or without <c>global::</c>.
     /// </summary>
     private static bool IsBuilderNamespace(SyntaxNode node) =>
-        node.WithoutTrivia().ToString().Replace("global::", "", StringComparison.Ordinal) == BuilderNamespace;
+        node.WithoutTrivia().ToString().Replace("global::", "", StringComparison.Ordinal) == PipelineApi.Namespace;
 
     /// <summary>
     /// The type a declaration in a method writes: a return type, parameter, local or <c>out</c> variable.
@@ -1081,10 +1061,10 @@ internal sealed partial class PreviewPipelineMigration
         foreach (var line in lines)
         {
             messages.Todo(
-                $"{file.RelativePath}:{Line(file, line)}: this {BuilderName} is not a parameter or local of a method that composes "
-                    + $"a pipeline, so it cannot be given a variant. Use {BuilderName}.{ServiceTaskVariant} for a "
-                    + $"service task's or {BuilderName}.{LifecycleVariant} for DefineStart, DefineEnd and "
-                    + "DefineAbandon."
+                $"{file.RelativePath}:{Line(file, line)}: this {PipelineApi.Builder} is not a parameter or local of a "
+                    + "method that composes a pipeline, so it cannot be given a variant. "
+                    + $"Use {PipelineApi.ServiceTaskBuilder} for a service task's or {PipelineApi.LifecycleBuilder} for "
+                    + "DefineStart, DefineEnd and DefineAbandon."
             );
         }
     }
@@ -1272,16 +1252,6 @@ internal sealed partial class PreviewPipelineMigration
             (LocalFunctionStatementSyntax local, _) => local.Identifier.Text,
             _ => function.ToString(),
         };
-
-    /// <summary>
-    /// A call of the previews' API that the current builders do not have, <c>PipelineBuilder</c> without a variant,
-    /// or a type the current API removed.
-    /// </summary>
-    [GeneratedRegex(
-        @"\b(?:Finally|HandleReplies|ConcludeOnReplies|Build)\s*\(|\bPipelineBuilder\b(?!\s*\.\s*(?:ServiceTask|Lifecycle)\b)|\b(?:MailboxHandle|MailboxOptions|MailboxClosedReason|StageExchangeResult|ServiceTaskExchangeResult|ServiceTaskOpeningStageResult|ServiceTaskMailbox|ServiceTaskPipeline|ProcessTaskPipeline)\b",
-        RegexOptions.CultureInvariant
-    )]
-    private static partial Regex OldApiName();
 
     /// <summary>
     /// A line marker that <see cref="Line(ScannedCSharpFile, int)"/> writes.

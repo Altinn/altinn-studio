@@ -190,7 +190,7 @@ internal sealed partial class PreviewPipelineMigration
                 }
             }
 
-            var concludes = handlerName == "ConcludeOnReplies";
+            var concludes = handlerName == PreviewApi.ConcludeOnReplies;
             stepArguments.Add((work, StepRole.Send));
             stepArguments.Add((onMessage, concludes ? StepRole.ConcludingReply : StepRole.CarryOnReply));
             stepArguments.Add((onClosed, concludes ? StepRole.ConcludingTimeout : StepRole.CarryOnTimeout));
@@ -296,7 +296,7 @@ internal sealed partial class PreviewPipelineMigration
             {
                 ArgumentList: null or { Arguments.Count: 0 },
                 Initializer: { } initializer,
-            } creation when SimpleName(creation.Type) == "MailboxOptions" => AssignedTimeout(initializer),
+            } creation when SimpleName(creation.Type) == PreviewApi.MailboxOptions => AssignedTimeout(initializer),
             ImplicitObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer: { } initializer } =>
                 AssignedTimeout(initializer),
             _ => null,
