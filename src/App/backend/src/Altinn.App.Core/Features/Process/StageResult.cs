@@ -1,17 +1,14 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The result of one pipeline stage of an <see cref="IServiceTask"/>. Deliberately missing compared
-/// to <see cref="ServiceTaskResult"/>: a plain stage cannot conclude the task or advance the process — that
-/// is reserved for the pipeline's conclusion and for a mailbox-opening stage's
-/// <see cref="ServiceTaskOpeningStageResult.Conclude"/>. A subtype of
-/// <see cref="StageExchangeResult"/>, so every one of these answers is also a valid answer from a
-/// reply handler that leaves the task unconcluded — the reverse does not hold.
+/// The result of a stage a task runs when it starts, ends or is abandoned, composed with
+/// <see cref="PipelineBuilder.Lifecycle"/>. Unrelated to <see cref="ServiceTaskResult"/> on purpose: these stages run
+/// inside a transition, so none of them can end a service task.
 /// </summary>
-public abstract record StageResult : StageExchangeResult
+public abstract record StageResult
 {
     /// <summary>
-    /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own
+    /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskReplyResult"/>'s own
     /// constructor gives — read that constructor's remarks before changing this one's accessibility.
     /// </summary>
     private protected StageResult() { }
@@ -26,8 +23,7 @@ public abstract record StageResult : StageExchangeResult
 
     /// <summary>
     /// The stage ran without error, but the outcome it awaits has not arrived yet: run this stage
-    /// again after <paramref name="delay"/>. Semantics are identical to
-    /// <see cref="ServiceTaskResult.Defer"/> — stateless, no error recorded, retry counter reset, bounded by
+    /// again after <paramref name="delay"/>. Stateless, no error recorded, retry counter reset, bounded by
     /// the stage's <see cref="ProcessStepOptions.WaitBudget"/>.
     /// </summary>
     /// <param name="delay">How long to wait before this stage runs again — this re-check only.</param>

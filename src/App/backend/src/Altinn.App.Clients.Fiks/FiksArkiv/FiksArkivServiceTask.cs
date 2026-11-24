@@ -18,8 +18,8 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
 /// <summary>Archives the instance in a Fiks Arkiv endpoint and waits for the answer.</summary>
 /// <remarks>
-/// The exchange is asynchronous and multi-message, so the task opens a <em>mailbox</em> rather than polling;
-/// each delivered message runs the reply handler as its own durable unit of work.
+/// The archive answers asynchronously and more than once, so the task waits on a <em>reply address</em> rather than
+/// polling; each delivered message runs the reply handler as its own durable unit of work.
 /// The app's <see cref="IFiksArkivMessageHandler"/>, when one is registered, is called from here —
 /// it must not move the process.
 /// </remarks>
@@ -31,9 +31,8 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     private readonly FiksArkivSettings _fiksArkivSettings;
 
     /// <summary>
-    /// How long the exchange may stay open. Seven days covers a holiday weekend plus working days either side,
-    /// and sits inside the engine's <c>MaxMailboxTimeout</c> (21 days), which app startup cannot check. See
-    /// <see cref="MailboxOptions.Timeout"/> for the callback-credential constraint.
+    /// How long the reply address accepts the archive's answers. Seven days covers a holiday weekend plus working
+    /// days either side.
     /// </summary>
     internal static readonly TimeSpan ArchiveReplyTimeout = TimeSpan.FromDays(7);
 
@@ -54,20 +53,21 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
     /// <inheritdoc />
     /// <remarks>
-    /// The send is its own durable stage so the record is handed to Fiks IO once per pass, however many
-    /// messages come back, and it is the stage that opens the mailbox because the send is what publishes the
-    /// address. The archive answers more than once — an acknowledgement, then a receipt — so the exchange is a
-    /// multi-message one.
+    /// One external stage: the send hands the record to Fiks IO once per pass, however many messages come back,
+    /// and the archive answers more than once — an acknowledgement, then a receipt.
     /// </remarks>
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-        pipeline
-            .Stage(SendToArchive, new MailboxOptions { Timeout = ArchiveReplyTimeout }, out MailboxHandle archive)
-            .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+        pipeline.ExternalStage(
+            SendToArchive,
+            HandleArchiveReply,
+            timeout: ArchiveReplyTimeout,
+            onTimeout: HandleArchiveTimeout
+        );
 
-    private async Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
+    private async Task<ServiceTaskResult> SendToArchive(StageContext context, ReplyAddress replyAddress)
     {
         // Two identities: klientMeldingId is the idempotency key (StepId, stable across retries);
-        // klientKorrelasjonsId is echoed on every reply, so it must be the mailbox. Swapping them fails
+        // klientKorrelasjonsId is echoed on every reply, so it must be the reply address. Swapping them fails
         // silently — the send succeeds and no answer is routable.
         Guid sendersReference = context.StepId;
         if (sendersReference == Guid.Empty)
@@ -75,10 +75,8 @@ internal sealed class FiksArkivServiceTask : IServiceTask
             const string errorMessage =
                 "The workflow engine did not supply a step id, so there is no retry-stable Fiks client message ID to send with.";
             _logger.LogError("FiksArkivServiceTask cannot send to the archive: {ErrorMessage}", errorMessage);
-            return ServiceTaskOpeningStageResult.FailedPermanent(errorMessage);
+            return ServiceTaskResult.FailedPermanent(errorMessage);
         }
-
-        Guid replyAddress = mailbox.Id;
 
         try
         {
@@ -95,7 +93,7 @@ internal sealed class FiksArkivServiceTask : IServiceTask
                 taskId,
                 FiksArkivConstants.MessageTypes.CreateArchiveRecord,
                 sendersReference,
-                replyAddress,
+                replyAddress.Id,
                 context.ExecutionReferenceTime,
                 context.InstanceDataMutator,
                 context.CancellationToken
@@ -107,14 +105,14 @@ internal sealed class FiksArkivServiceTask : IServiceTask
                 response
             );
 
-            return ServiceTaskOpeningStageResult.Completed();
+            return ServiceTaskResult.Completed();
         }
         catch (OperationCanceledException e) when (context.CancellationToken.IsCancellationRequested)
         {
-            // Never a conclusion: it is not known whether the shipment left, so the exchange must stay
-            // open for the answer a departed shipment would get.
+            // Never the end of the task: it is not known whether the shipment left, so the reply address must
+            // stay open for the answer a departed shipment would get.
             _logger.LogWarning(e, "Sending to Fiks Arkiv was cut off before it finished: {ErrorMessage}", e.Message);
-            return ServiceTaskOpeningStageResult.FailedRetryable(
+            return ServiceTaskResult.FailedRetryable(
                 "Sending the archive record was cut off at this attempt's execution deadline before Fiks IO "
                     + $"answered, so it is not known whether the shipment left: {e.Message}"
             );
@@ -122,12 +120,11 @@ internal sealed class FiksArkivServiceTask : IServiceTask
         catch (Exception e) when (FiksIOSendFailure.IsCredentialsRefused(e))
         {
             // Deterministic but app-level: no citizen action helps, so errorHandling is not consulted. A
-            // plain stage failure rather than a conclusion, deliberately — concluding would close the
-            // mailbox, and an operator who fixes the credentials and resumes would then re-run a send whose
-            // answers can never be delivered. Left open, the mailbox waits out its own deadline and the
-            // resumed send's exchange completes normally.
+            // failure rather than the end of the task, deliberately: the reply address stays open, so an operator
+            // who fixes the credentials and resumes re-runs the send with the same address, and its answers
+            // arrive as usual.
             _logger.LogError(e, "The archive record can not be sent: {ErrorMessage}", e.Message);
-            return ServiceTaskOpeningStageResult.FailedPermanent(
+            return ServiceTaskResult.FailedPermanent(
                 "The archive record can not be sent: Fiks IO refused the app's integration credentials. "
                     + $"Retrying cannot succeed; fix the credentials and resume the workflow. {e.Message}"
             );
@@ -136,41 +133,34 @@ internal sealed class FiksArkivServiceTask : IServiceTask
         {
             // Deterministic and case-level — the recipient account comes from the instance's own data, so
             // this send fails identically every time and the archiving cannot succeed: the same verdict an
-            // archive rejection gets, concluded down the same errorHandling path.
+            // archive rejection gets, ending the task down the same errorHandling path.
             _logger.LogError(e, "The archive record can not be sent: {ErrorMessage}", e.Message);
 
-            return ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success(action: ErrorAction()));
+            return ServiceTaskResult.EndTask(action: ErrorAction());
         }
         catch (Exception e)
         {
             // Transient or unknown: retried, and a retry budget that runs out fails the task — never the
             // errorHandling path, which is reserved for an archiving that cannot succeed.
             _logger.LogError(e, "Error occurred while sending to Fiks Arkiv: {ErrorMessage}", e.Message);
-            return ServiceTaskOpeningStageResult.FailedRetryable(e.Message);
+            return ServiceTaskResult.FailedRetryable(e.Message);
         }
     }
 
     /// <summary>
-    /// The exchange ended without the archive confirming the record. Both closure reasons are the same
-    /// outcome for this task; only the wording differs.
+    /// The reply address closed without the archive confirming the record: its timeout ran out, or an operator
+    /// closed it.
     /// </summary>
-    private Task<ServiceTaskResult> HandleArchiveClosed(StageContext context, MailboxClosedReason reason)
-    {
-        string cause =
-            reason == MailboxClosedReason.Deadline
-                ? $"the exchange stayed open for {ArchiveReplyTimeout.TotalDays:0} days without a receipt arriving"
-                : "the exchange was closed before a receipt arrived";
-
-        return Task.FromResult<ServiceTaskResult>(
+    private Task<ServiceTaskResult> HandleArchiveTimeout(StageContext context) =>
+        Task.FromResult(
             ServiceTaskResult.FailedPermanent(
-                "The archive never confirmed the record. The archive record was handed to Fiks IO and "
-                    + $"{cause}. The record may still be archived — the messages the exchange did receive show "
-                    + "whether the archive acknowledged it — so manual follow-up is required."
+                "The archive never confirmed the record. The archive record was handed to Fiks IO, and the reply "
+                    + "address closed before a receipt arrived. The record may still be archived — the messages "
+                    + "that did arrive show whether the archive acknowledged it — so manual follow-up is required."
             )
         );
-    }
 
-    private async Task<ServiceTaskExchangeResult> HandleArchiveMessage(StageContext context, ServiceTaskReply reply)
+    private async Task<ServiceTaskReplyResult> HandleArchiveReply(StageContext context, ServiceTaskReply reply)
     {
         if (ReadForwardedMessage(reply) is not { } message)
         {
@@ -212,14 +202,14 @@ internal sealed class FiksArkivServiceTask : IServiceTask
         else
         {
             _logger.LogWarning(
-                "Fiks Arkiv message {MessageType}:{MessageId} is not a type this task models, so it cannot conclude "
+                "Fiks Arkiv message {MessageType}:{MessageId} is not a type this task models, so it cannot end "
                     + "the archiving. Awaiting the receipt.",
                 message.MessageType,
                 message.MessageId
             );
         }
 
-        return ServiceTaskExchangeResult.AwaitNextReply();
+        return ServiceTaskReplyResult.AwaitNextReply();
     }
 
     /// <summary>
@@ -266,10 +256,10 @@ internal sealed class FiksArkivServiceTask : IServiceTask
                 : (IEnumerable<string>)["Message contains no content."]
         );
 
-        // The archive will not answer differently if asked again, so the archiving concludes down the
-        // errorHandling path: the process moves on with the configured action, `reject` by default, and the
-        // exclusive gateway the startup check requires after the task is what routes it.
-        return ServiceTaskResult.Success(action: ErrorAction());
+        // The archive will not answer differently if asked again, so the task ends down the errorHandling path:
+        // the process moves on with the configured action, `reject` by default, and the exclusive gateway the
+        // startup check requires after the task is what routes it.
+        return ServiceTaskResult.EndTask(action: ErrorAction());
     }
 
     /// <summary>
@@ -301,7 +291,7 @@ internal sealed class FiksArkivServiceTask : IServiceTask
 
         SaveArchiveReceipt(context, receipt);
 
-        return ServiceTaskResult.Success(action: _fiksArkivSettings.SuccessHandling?.GetActionOrDefault());
+        return ServiceTaskResult.EndTask(action: _fiksArkivSettings.SuccessHandling?.GetActionOrDefault());
     }
 
     /// <summary>

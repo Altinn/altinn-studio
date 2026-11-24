@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 /// <remarks>
 /// Two stages, because sending and waiting have different durability needs: the engine records the
 /// send stage's completion, so the shipment is dispatched exactly once per pass through the task no
-/// matter how often the wait re-checks, and the concluding step polls until the outcome arrives.
+/// matter how often the wait re-checks, and the second stage polls until the outcome arrives.
 /// </remarks>
 internal sealed class EFormidlingServiceTask : IServiceTask
 {
@@ -95,23 +95,23 @@ internal sealed class EFormidlingServiceTask : IServiceTask
     /// The pipeline's shape is fixed at enqueue time — a workflow enqueued against it dispatches by item
     /// index, so stages must not be inserted, reordered or removed while workflows are in flight.
     /// <para>
-    /// The wait budget sits on the conclusion, because only the poll waits. It outlasts the shipment's own
+    /// The wait budget sits on the polling stage, because only the poll waits. It outlasts the shipment's own
     /// two-hour lifetime plus the
     /// integrasjonspunkt's 30-second expiry sweep and one poll interval, so a shipment that dies of old
     /// age fails with its verdict rather than ours.
     /// </para>
     /// </remarks>
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(SendShipment)
-            .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
+            .Stage(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
 
     /// <summary>
     /// Dispatches the shipment to the integrasjonspunkt. Completing this stage is what makes the
     /// send happen once per pass through the task: the engine records it durably, so neither a
     /// failure further along the pipeline nor any number of delivery re-checks brings it back.
     /// </summary>
-    private async Task<StageResult> SendShipment(StageContext context)
+    private async Task<ServiceTaskResult> SendShipment(StageContext context)
     {
         string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
         Instance instance = context.InstanceDataMutator.Instance;
@@ -123,7 +123,7 @@ internal sealed class EFormidlingServiceTask : IServiceTask
                 "EFormidling is disabled for task {TaskId}. No eFormidling shipment will be sent, but the service task will be completed.",
                 LogSanitizer.Sanitize(taskId)
             );
-            return StageResult.Completed();
+            return ServiceTaskResult.Completed();
         }
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
@@ -150,7 +150,7 @@ internal sealed class EFormidlingServiceTask : IServiceTask
         instance.DataValues?.TryGetValue(EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey, out shipmentOwner);
         if (shipmentOwner is not null && shipmentOwner != context.WorkflowId.ToString())
         {
-            return StageResult.FailedPermanent(
+            return ServiceTaskResult.FailedPermanent(
                 $"An eFormidling shipment for this instance was already sent by an earlier pass through the "
                     + $"process (workflow {shipmentOwner}). eFormidling message ids are bound to the instance id, "
                     + "so the shipment cannot be sent again automatically. Manual follow-up is required."
@@ -171,11 +171,11 @@ internal sealed class EFormidlingServiceTask : IServiceTask
         }
         catch (EformidlingDeliveryException e)
         {
-            return StageResult.FailedPermanent(e.Message);
+            return ServiceTaskResult.FailedPermanent(e.Message);
         }
         catch (PlatformHttpException e) when (IsRejection(e))
         {
-            return StageResult.FailedPermanent(
+            return ServiceTaskResult.FailedPermanent(
                 DescribeRejection(
                     e,
                     "Repeating the request would get the same answer, so the shipment was not retried. "
@@ -196,12 +196,12 @@ internal sealed class EFormidlingServiceTask : IServiceTask
             context.WorkflowId.ToString()
         );
 
-        return StageResult.Completed();
+        return ServiceTaskResult.Completed();
     }
 
     /// <summary>
-    /// Waits for the integrasjonspunkt to confirm delivery, deferring between checks, and concludes
-    /// the task once the shipment has arrived (or provably never will).
+    /// Waits for the integrasjonspunkt to confirm delivery, deferring between checks, and completes
+    /// once the shipment has arrived, or fails once it provably never will.
     /// </summary>
     private async Task<ServiceTaskResult> AwaitDelivery(StageContext context)
     {
@@ -212,7 +212,7 @@ internal sealed class EFormidlingServiceTask : IServiceTask
         if (configuration.Disabled)
         {
             // Nothing was sent, so there is nothing to wait for.
-            return ServiceTaskResult.Success();
+            return ServiceTaskResult.Completed();
         }
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
@@ -246,7 +246,7 @@ internal sealed class EFormidlingServiceTask : IServiceTask
                     LogSanitizer.Sanitize(taskId),
                     LogSanitizer.Sanitize(status.Status)
                 );
-                return ServiceTaskResult.Success();
+                return ServiceTaskResult.Completed();
 
             case EFormidlingDeliveryState.Failed:
                 RecordShipmentStatus(context, status);
@@ -379,7 +379,7 @@ internal sealed class EFormidlingServiceTask : IServiceTask
     /// <remarks>
     /// The value is staged on the unit of work, so it only reaches Storage when the callback concludes
     /// successfully — the controller saves in the successful-result branch alone. The two failing
-    /// conclusions in <see cref="AwaitDelivery"/> (a reported delivery failure, and the final check
+    /// results in <see cref="AwaitDelivery"/> (a reported delivery failure, and the final check
     /// giving up) stage a status that is then dropped, so a failed shipment leaves no status on the
     /// instance. Writing it straight to Storage instead is not the fix: that bumps the instance
     /// version behind the unit of work's back and breaks the next callback's version fence. Making

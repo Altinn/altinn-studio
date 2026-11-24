@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Clients.Fiks.FiksArkiv.Models;
 
 /// <summary>
-/// A received Fiks Arkiv message reduced to what later processing needs — the body the subscriber delivers
-/// into the mailbox (decryption needs the live connection, so it happens at receipt). The reply handler
+/// A received Fiks Arkiv message reduced to what later processing needs — the body the subscriber forwards to
+/// the reply address (decryption needs the live connection, so it happens at receipt). The reply handler
 /// reads it back and builds the <see cref="FiksArkivReceivedMessage"/> it acts on.
 /// </summary>
 internal sealed record StoredFiksArkivMessage
@@ -25,7 +25,7 @@ internal sealed record StoredFiksArkivMessage
     [JsonPropertyName("inReplyToMessage")]
     public Guid? InReplyToMessage { get; init; }
 
-    /// <summary>The echoed reply address — the mailbox this message was delivered into.</summary>
+    /// <summary>The echoed reply address this message was delivered to.</summary>
     [JsonPropertyName("correlationId")]
     public string? CorrelationId { get; init; }
 

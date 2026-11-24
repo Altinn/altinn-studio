@@ -4,8 +4,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 /// <summary>
 /// Why a mailbox was closed. Public because it appears on
-/// <see cref="Models.AppCommand.AppCallbackMailbox"/>, which the callback controller model-binds; app code reads
-/// the app-facing <see cref="Features.Process.MailboxClosedReason"/> instead.
+/// <see cref="Models.AppCommand.AppCallbackMailbox"/>, which the callback controller model-binds. App code is not
+/// told the reason: an external stage's <c>onTimeout</c> runs for either.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<MailboxDisposedReason>))]
 public enum MailboxDisposedReason

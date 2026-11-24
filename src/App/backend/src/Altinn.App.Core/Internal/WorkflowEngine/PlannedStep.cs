@@ -26,9 +26,9 @@ internal sealed record PlannedStep
     public CommandRequestPayload? Payload { get; init; }
 
     /// <summary>
-    /// The options declared for this step: by the pipeline item it runs — a lifecycle stage, or a service task stage,
-    /// reply handler or conclusion — or by the app handler a hook step runs. Null for a step whose options come from
-    /// the defaults. A mailbox mint carries none, so it does not inherit the options of the stage it precedes.
+    /// The options declared for this step: by the pipeline item it runs — a lifecycle stage, or a service task stage or
+    /// external stage — or by the app handler a hook step runs. Null for a step whose options come from the defaults.
+    /// A mailbox mint carries none, so it does not inherit the options of the send it precedes.
     /// </summary>
     public ProcessStepOptions? DeclaredOptions { get; init; }
 

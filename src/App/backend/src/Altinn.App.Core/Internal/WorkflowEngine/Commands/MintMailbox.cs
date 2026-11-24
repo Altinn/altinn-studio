@@ -8,17 +8,17 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for the MintMailbox command: the service task type and the item index of the stage whose
-/// mailbox this step opens — the exchange's identity, fixed at enqueue time and never re-derived.
+/// Request payload for the MintMailbox command: the service task type and the item index of the external stage
+/// whose mailbox this step opens, fixed at enqueue time and never re-derived.
 /// </summary>
 internal sealed record MintMailboxPayload(string ServiceTaskType, int StageIndex) : CommandRequestPayload;
 
 /// <summary>
-/// Opens the mailbox a service-task stage sends its reply address in, as its own engine step immediately
-/// before that stage. A step of its own because the mint's outcome is durable and the stage's is not: a stage
-/// that fails or defers re-runs against the mailbox this step published, and this step never runs again. Its
+/// Opens the mailbox an external stage's send publishes as its reply address, as its own engine step immediately
+/// before the send. A step of its own because the mint's outcome is durable and the send's is not: a send that
+/// fails or defers re-runs against the mailbox this step published, and this step never runs again. Its
 /// position is load-bearing in both directions — the deadline clock starts here, so nothing may mint before
-/// the stages that precede the send, and the stage must never send without an address.
+/// the stages that precede the send, and the send must never go without an address.
 /// </summary>
 internal sealed class MintMailbox(
     AppImplementationFactory appImplementationFactory,
@@ -42,14 +42,13 @@ internal sealed class MintMailbox(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not PipelineStage.MailboxOpening declaring)
+            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not ServiceTaskItem.ExternalStage declaring)
             {
                 return FailedWorkflowEngineCommandResult.Permanent(
-                    $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "
-                        + $"{payload.StageIndex} when this workflow was enqueued, but its pipeline now composes no "
-                        + "mailbox-opening stage at that index — stages were inserted, reordered or removed since "
-                        + "it was enqueued. Resume the workflow on the code that enqueued it, or abandon it "
-                        + "deliberately.",
+                    $"Service task '{payload.ServiceTaskType}' composed an external stage at index "
+                        + $"{payload.StageIndex} when this workflow was enqueued, but its pipeline now composes none "
+                        + "at that index — stages were inserted, reordered or removed since it was enqueued. Resume "
+                        + "the workflow on the code that enqueued it, or abandon it deliberately.",
                     "MailboxDeclarationNotFound"
                 );
             }
@@ -57,7 +56,7 @@ internal sealed class MintMailbox(
             if (context.Payload.StepId == Guid.Empty)
             {
                 return FailedWorkflowEngineCommandResult.Permanent(
-                    $"The stage at index {payload.StageIndex} opens a mailbox, but the workflow engine supplied no "
+                    $"The external stage at index {payload.StageIndex} opens a mailbox, but the workflow engine supplied no "
                         + "step id to key it on. A mailbox keyed on an empty id would be shared by every task in "
                         + "this application. Upgrade the workflow engine to a version that sends stepId.",
                     "MailboxStepIdMissing"
@@ -69,7 +68,7 @@ internal sealed class MintMailbox(
                 new MailboxCreateRequest
                 {
                     IdempotencyKey = context.Payload.StepId.ToString(),
-                    Timeout = declaring.Declaration.Timeout,
+                    Timeout = declaring.Timeout,
                     CollectionKey = ProcessNextRequestFactory.CreateCollectionKey(context.InstanceId),
                 },
                 context.CancellationToken
@@ -78,21 +77,21 @@ internal sealed class MintMailbox(
             switch (result)
             {
                 case MailboxMintResult.Minted minted:
-                    // The address must outlive this step: the declaring stage and the receiver-enqueue step
-                    // read it from here, and neither can re-derive this mint's key.
+                    // The address must outlive this step: the send reads it from here and hands it to the first
+                    // receiver, and neither can re-derive this mint's key.
                     context.StateCarry.RecordMailbox(payload.StageIndex, minted.Mailbox.Id, minted.Mailbox.Deadline);
                     return new SuccessfulWorkflowEngineCommandResult();
 
                 case MailboxMintResult.Rejected rejected:
                     return FailedWorkflowEngineCommandResult.Permanent(
-                        $"The workflow engine refused the mailbox opened by the stage at index "
+                        $"The workflow engine refused the mailbox of the external stage at index "
                             + $"{payload.StageIndex}: {rejected.Detail}",
                         "MailboxRejected"
                     );
 
                 case MailboxMintResult.AtCapacity atCapacity:
                     return FailedWorkflowEngineCommandResult.Retryable(
-                        $"The workflow engine could not open the mailbox for the stage at index "
+                        $"The workflow engine could not open the mailbox for the external stage at index "
                             + $"{payload.StageIndex} yet: {atCapacity.Detail}",
                         "MailboxAtCapacity"
                     );
@@ -103,7 +102,7 @@ internal sealed class MintMailbox(
         }
         catch (Exception ex)
         {
-            // Safe to retry: the stage after this one has not run, so nothing has been sent twice.
+            // Safe to retry: the send after this step has not run, so nothing has been sent twice.
             return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }

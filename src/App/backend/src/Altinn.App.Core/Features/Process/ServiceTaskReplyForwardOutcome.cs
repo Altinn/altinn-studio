@@ -1,20 +1,20 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Why a message could not be delivered into the mailbox waiting for it. The distinction that matters
+/// Why a message could not be delivered to the reply address it was forwarded to. The distinction that matters
 /// most is whether forwarding the same message again could ever succeed — see
 /// <see cref="ServiceTaskReplyForwardException.IsTransient"/>.
 /// </summary>
 public enum ServiceTaskReplyForwardOutcome
 {
     /// <summary>
-    /// No mailbox of this app has that address — never opened here, purged long after its exchange, or an
-    /// answer to a request some other system sent.
+    /// This app has no such reply address — never opened here, purged long after it closed, or an answer to a
+    /// request some other system sent.
     /// </summary>
     Unroutable,
 
     /// <summary>
-    /// Too late: the mailbox has closed and nothing will process the message. Never means "too early" — an
+    /// Too late: the reply address has closed and nothing will process the message. Never means "too early" — an
     /// early message is accepted and waits at its position.
     /// </summary>
     Late,
@@ -23,10 +23,10 @@ public enum ServiceTaskReplyForwardOutcome
     PayloadTooLarge,
 
     /// <summary>
-    /// The exchange has taken all the messages the engine allows — usually a sender looping. The room never
+    /// The reply address has taken all the messages the engine allows — usually a sender looping. The room never
     /// comes back.
     /// </summary>
-    MailboxFull,
+    TooManyReplies,
 
     /// <summary>The submission itself was wrong (e.g. an over-long idempotency key): a code fix, not a retry.</summary>
     Rejected,

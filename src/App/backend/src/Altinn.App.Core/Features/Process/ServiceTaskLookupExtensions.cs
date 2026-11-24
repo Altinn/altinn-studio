@@ -25,20 +25,24 @@ internal static class ServiceTaskLookupExtensions
         where T : class, IProcessTask => tasks.LastOrDefault(task => task.Type == altinnTaskType);
 
     /// <summary>
-    /// The task's composed pipeline. Throws when <c>DefineExecute</c> returns null, which no honest implementation
-    /// does (the builder is the only source of a pipeline) but an unstubbed mock does.
+    /// The pipeline the task composes, on a fresh builder. Throws when it composes no step, which app startup
+    /// reports for the task.
     /// </summary>
     public static ServiceTaskPipeline ResolvePipeline(this IServiceTask task)
     {
-        // Fresh per call, so the mailbox handle it issues cannot be answered from another task's DefineExecute.
-        var builder = new PipelineBuilder();
+        var builder = new PipelineBuilder.ServiceTask();
+        task.DefineExecute(builder);
+        ServiceTaskPipeline pipeline = builder.ToPipeline();
 
-        ServiceTaskPipeline pipeline =
-            task.DefineExecute(builder)
-            ?? throw new InvalidOperationException(
-                $"{task.GetType().Name}.{nameof(IServiceTask.DefineExecute)} returned null — a service task must "
-                    + "return the pipeline composed from the supplied builder."
+        if (pipeline.Items.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"{task.GetType().Name}.{nameof(IServiceTask.DefineExecute)} composes no step, so the "
+                    + $"'{task.Type}' service task would have nothing to run. Compose at least one "
+                    + $"{nameof(PipelineBuilder.ServiceTask.Stage)} or {nameof(PipelineBuilder.ServiceTask.ExternalStage)} "
+                    + "on the builder it is handed."
             );
+        }
 
         return pipeline;
     }

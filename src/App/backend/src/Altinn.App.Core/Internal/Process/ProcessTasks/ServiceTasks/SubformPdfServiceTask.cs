@@ -69,7 +69,7 @@ internal sealed class SubformPdfServiceTask(
         return [];
     }
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     /// <summary>
     /// The data type of the subform's entries: the <c>defaultDataType</c> of the subform's UI folder, which the
@@ -182,7 +182,7 @@ internal sealed class SubformPdfServiceTask(
 
         logger.LogDebug("Successfully called PdfService for Subform PDF Service Task {TaskId}.", taskId);
 
-        return new SuccessfulServiceTaskResult();
+        return ServiceTaskResult.Completed();
     }
 
     private ValidAltinnSubformPdfConfiguration GetValidAltinnSubformPdfConfiguration(string taskId)

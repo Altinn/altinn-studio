@@ -343,23 +343,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 );
 
             case FailedWorkflowEngineCommandResult failed:
-                // A permanent failure still concludes the exchange — the mailbox must stop accepting messages.
-                // Before the response, so a retried step repeats it.
-                if (failed.MailboxContinuation is { } failedContinuation)
-                {
-                    await RunMailboxRelay(
-                        failedContinuation,
-                        appId,
-                        instanceId,
-                        payload,
-                        instanceDataUnitOfWork,
-                        state: null,
-                        autoAdvanceProcess: false,
-                        autoAdvanceAction: null,
-                        cancellationToken
-                    );
-                }
-
                 if (failed.Exception is DataElementContentConflictException contentConflict)
                 {
                     activity?.SetStatus(ActivityStatusCode.Error, "Data element content conflict");
@@ -524,7 +507,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         InstanceIdentifier instanceId,
         AppCallbackPayload payload,
         InstanceDataUnitOfWork unitOfWork,
-        string? state,
+        string state,
         bool autoAdvanceProcess,
         string? autoAdvanceAction,
         CancellationToken cancellationToken

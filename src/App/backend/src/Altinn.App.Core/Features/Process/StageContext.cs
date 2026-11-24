@@ -1,9 +1,8 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// This class represents the parameters for executing a service task — a pipeline stage, the concluding
-/// step (an <see cref="IServiceTask"/>'s <c>Execute</c>), or one execution of a reply terminal's
-/// <c>onMessage</c>/<c>onClosed</c> handler.
+/// The parameters for one step of a pipeline — a stage, an external stage's send, or one execution of its
+/// <c>onReply</c> or <c>onTimeout</c> handler.
 /// </summary>
 public sealed record StageContext
 {
@@ -11,8 +10,8 @@ public sealed record StageContext
     /// An instance data mutator that can be used to read and modify the instance data during the service task execution.
     /// </summary>
     /// <remarks>
-    /// Changes are saved when execution completes (a stage's <c>Completed</c>, or the task's
-    /// concluding result) — and in a pipeline, saved changes are visible to every later stage. A
+    /// Changes are saved when the step completes or ends the task — and in a pipeline, saved changes are visible to
+    /// every later stage. A
     /// <em>deferring</em> attempt is stateless: nothing is saved, and data changes made before a
     /// deferral are rejected (see <see cref="ServiceTaskResult.Defer"/>). Keep in mind that data
     /// elements from previous tasks are locked.

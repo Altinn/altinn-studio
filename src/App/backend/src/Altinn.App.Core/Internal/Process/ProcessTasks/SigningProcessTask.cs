@@ -134,12 +134,11 @@ internal sealed class SigningProcessTask : IProcessTask
     /// without runtime delegated signing has the same steps, which do nothing; the stages must not depend on the
     /// task's configuration, since a step is dispatched by its position.
     /// </summary>
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+    public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
         pipeline
             .Stage(ResolveSignees, _perSigneeCallsStepOptions)
             .Stage(DelegateSigneeRights, _perSigneeCallsStepOptions)
-            .Stage(NotifySignees, _perSigneeCallsStepOptions)
-            .Build();
+            .Stage(NotifySignees, _perSigneeCallsStepOptions);
 
     /// <summary>
     /// A stage that makes one platform call per signee gets more time than the engine's default.
@@ -202,16 +201,16 @@ internal sealed class SigningProcessTask : IProcessTask
     /// order: the PDF is persisted only once the revocation has run, so a signee cannot read it on the rights the
     /// task gave them, and a retry of the PDF stage does not repeat the revocation's per-signee platform calls.
     /// </summary>
-    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
-        pipeline.Stage(RevokeSigneeRights, _perSigneeCallsStepOptions).Stage(StoreSigningPdf).Build();
+    public void DefineEnd(PipelineBuilder.Lifecycle pipeline) =>
+        pipeline.Stage(RevokeSigneeRights, _perSigneeCallsStepOptions).Stage(StoreSigningPdf);
 
     /// <summary>
     /// Abandoning the task revokes the rights runtime delegated signing gave the signees and removes the signee state
     /// and the signatures. One stage: the revocation reads the signee state the removal takes away, and a retry does
     /// both again without harm.
     /// </summary>
-    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
-        pipeline.Stage(AbortRuntimeDelegatedSigning, _perSigneeCallsStepOptions).Build();
+    public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) =>
+        pipeline.Stage(AbortRuntimeDelegatedSigning, _perSigneeCallsStepOptions);
 
     private async Task<StageResult> StoreSigningPdf(StageContext context)
     {

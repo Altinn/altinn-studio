@@ -101,9 +101,9 @@ internal sealed class ProcessNextRequestFactory
     internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
     /// <summary>
-    /// OperationId prefix for the workflow of a service task's pipeline item after the first, unless the item
-    /// is a reply handler — enqueued by <see cref="MailboxRelay"/>, never by this factory. A naming convention
-    /// for ops and logs; nothing identifies a continuation by it.
+    /// OperationId prefix for the workflow of a service task's pipeline item after the first — enqueued by
+    /// <see cref="MailboxRelay"/>, never by this factory. A naming convention for ops and logs; nothing identifies a
+    /// continuation by it.
     /// </summary>
     internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 
@@ -583,8 +583,7 @@ internal sealed class ProcessNextRequestFactory
     /// <summary>
     /// The service task and its composed pipeline, or null when this is not a service task (or names a
     /// type no implementation is registered for). Read at enqueue time: this is the moment the pipeline's
-    /// shape is fixed for the workflow's lifetime — callback dispatch is by item index, and whether the
-    /// transition ends with a concluding step or with a receive workflow is decided here.
+    /// shape is fixed for the transition's workflow — callback dispatch is by item index.
     /// </summary>
     private ResolvedServiceTask? ResolveServiceTask(string? serviceTaskType) =>
         serviceTaskType is not null
@@ -603,9 +602,9 @@ internal sealed class ProcessNextRequestFactory
             ? task.ResolvePipeline(phase)
             : _unresolvedTaskPipeline;
 
-    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder()
+    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder.Lifecycle()
         .Stage(_ => Task.FromResult(StageResult.Completed()))
-        .Build();
+        .ToPipeline();
 
     /// <summary>
     /// The <typeparamref name="THandler"/> that runs for the task, which plans the task's hook step with the
