@@ -18,7 +18,7 @@ CI runs the tests against a studioctl built from the checkout, kept apart from a
 make -C src/cli dev-install
 export STUDIOCTL_HOME="$PWD/src/cli/build/dev-home" STUDIOCTL_INTERNAL_DEV=true
 export PATH="$STUDIOCTL_HOME/bin:$PATH"
-studioctl env hosts add
+sudo --preserve-env=STUDIOCTL_HOME,STUDIOCTL_INTERNAL_DEV "$(command -v studioctl)" env hosts add
 make -C src/App/backend ti
 ```
 
