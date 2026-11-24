@@ -224,9 +224,7 @@ export const applyFilter = () => {
                         // cardLabels is lowercased, so lowercase the key to match
                         // mixed-case keys (e.g. partyId, processNextInstanceGuid).
                         const k = key.toLowerCase();
-                        const hasMatch = [...values].some((v) =>
-                            cardLabels.includes(`${k}:${v}`),
-                        );
+                        const hasMatch = [...values].some((v) => cardLabels.includes(`${k}:${v}`));
                         if (!hasMatch) {
                             labelHidden = true;
                             break;
