@@ -130,16 +130,17 @@ def _parse_roles(data: Any) -> list[Role]:
         # Studio's policy editor writes a role with its `legacyUrn`, or with its `urn` when it has none.
         attribute, code = _split_urn(role.get("legacyUrn") or _required_text(role, "urn"))
         provider = role.get("provider")
-        if not isinstance(provider, dict) or not provider.get("code"):
+        if not isinstance(provider, dict):
             raise PolicyOptionsError(f"the role {role.get('urn')!r} has no provider")
+        provider_code = _required_text(provider, "code")
         parsed.append(
             Role(
                 code=code,
                 attribute=attribute,
                 name=_required_text(role, "name"),
                 description=_squash(role.get("description")),
-                provider_code=provider["code"],
-                provider_name=str(provider.get("name") or provider["code"]),
+                provider_code=provider_code,
+                provider_name=str(provider.get("name") or provider_code),
             )
         )
     if not parsed:

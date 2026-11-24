@@ -360,11 +360,12 @@ class TestDesigner:
         ("change", "error"),
         [
             (lambda role: role.update(provider=None), "no provider"),
+            (lambda role: role["provider"].update(code=["sys-ccr"]), "no 'code'"),
             (lambda role: role.update(legacyUrn="dagl"), "unexpected URN"),
             (lambda role: role.update(legacyUrn="urn:altinn:rolecode:"), "unexpected URN"),
             (lambda role: role.update(legacyUrn=5), "unexpected URN"),
         ],
-        ids=["no-provider", "bare-code", "urn-without-code", "not-text"],
+        ids=["no-provider", "provider-code-not-text", "bare-code", "urn-without-code", "not-text"],
     )
     async def test_a_role_list_that_changed_shape_is_an_error(self, serve, run, change, error):
         roles = _recorded("subjectoptions")
