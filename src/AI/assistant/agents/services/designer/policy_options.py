@@ -1,16 +1,4 @@
-"""Read the access packages and roles that Studio's policy editor offers, from Designer.
-
-Designer reads the editor's lists from Altinn Access Management in the environment that its `PlatformSettings` name,
-and keeps only the roles a policy can use. Reading the lists from Designer gives the assistant the same lists as the
-editor. Access Management changes them without a release of this service, so they are read when a tool needs them and
-kept for an hour.
-
-The requests carry no API key. Designer refuses an API key on an action without `[AllowApiKey]`, and these two actions
-answer without one. Designer ignores the org and the app in their path, so one copy of each list serves every app.
-
-The parsers fail on a response they cannot read, rather than return a partial list that would make the model pick a
-package or role that does not exist.
-"""
+"""Read the access packages and roles that Studio's policy editor offers, from Designer."""
 
 from __future__ import annotations
 
