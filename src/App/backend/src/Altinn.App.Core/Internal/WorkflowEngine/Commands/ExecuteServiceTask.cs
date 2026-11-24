@@ -11,8 +11,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// <summary>
 /// Request payload for the ExecuteServiceTask command: the service task type, and the one pipeline item this
 /// engine step runs, named by its position in <see cref="ServiceTaskPipeline.Items"/>. That item is the whole
-/// payload — a step says what it runs, never what runs after it, which every last step of a workflow derives
-/// from the pipeline it resolves when it runs.
+/// payload — a step says what it runs, never what runs after it, which the step derives from the pipeline it
+/// resolves when it runs.
 /// </summary>
 /// <remarks>
 /// <see cref="ItemIndex"/> is semantically required but nullable: deserialization runs outside any handler, so
@@ -140,8 +140,7 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// One pipeline stage, dispatched on the stage's own shape. The resolved <paramref name="pipeline"/>
-    /// travels with both shapes: a stage that is its workflow's last step plans what follows it, and whether
-    /// it is that step is itself read off the pipeline.
+    /// travels with both shapes: every stage is its workflow's last step and plans what follows it.
     /// </summary>
     private static async Task<WorkflowEngineCommandResult> ExecuteStage(
         WorkflowEngineCommandContext context,
@@ -301,7 +300,7 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// The exchange answered by a handler the pipeline <em>carries on past</em>: the verdict is the stage
-    /// vocabulary, so the exchange's conclusion starts the pipeline's next segment.
+    /// vocabulary, so the exchange's conclusion starts the next item's workflow.
     /// </summary>
     private Task<WorkflowEngineCommandResult> ExecuteSegmentReply(
         WorkflowEngineCommandContext context,
@@ -333,7 +332,7 @@ internal sealed class ExecuteServiceTask(
             );
     }
 
-    /// <summary>The step that concludes the pipeline — the last step of its final segment.</summary>
+    /// <summary>The step that concludes the pipeline, alone in its workflow.</summary>
     private static async Task<WorkflowEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.Final final,
         IServiceTask serviceTask,
@@ -419,19 +418,15 @@ internal sealed class ExecuteServiceTask(
     ) =>
         result switch
         {
-            // A completed stage never advances the process — the pipeline just moves on to its next step. Which
-            // is a later step of this same workflow, and nothing to do, unless a reply handler is composed
-            // next: a handler is alone in its workflow, so this stage is its own workflow's last step and
-            // completing it is what starts that handler's receive workflow.
-            CompletedStageResult when WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
-                MailboxRelay.DecideStageEnd(
-                    task.Type,
-                    context.Payload.StepId,
-                    context.StateCarry,
-                    stageIndex,
-                    pipeline
-                ),
-            CompletedStageResult => new SuccessfulWorkflowEngineCommandResult(),
+            // A completed stage never advances the process. It is its workflow's last step, so completing it
+            // starts the workflow of the item the pipeline composes next.
+            CompletedStageResult => MailboxRelay.DecideStageEnd(
+                task.Type,
+                context.Payload.StepId,
+                context.StateCarry,
+                stageIndex,
+                pipeline
+            ),
             DeferredStageResult deferred => new DeferredWorkflowEngineCommandResult
             {
                 Delay = deferred.Delay,
@@ -451,12 +446,11 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// The mailbox-opening stage's widened vocabulary: the stage members map exactly as
-    /// <see cref="MapStageResult"/> maps them, except that such a stage is <em>always</em> its workflow's last
-    /// step, so completing it always starts what the pipeline composes after it — which, when that is a reply
-    /// handler, is a receive workflow parked on the exchange <em>that handler</em> answers, not necessarily the
-    /// one this stage opened; and a conclusion is handed to the relay to close every carried mailbox before
-    /// anything downstream starts. The conclusion is honorable wherever the stage sits, precisely because no
-    /// later step of this workflow exists for it to have to cancel.
+    /// <see cref="MapStageResult"/> maps them, so completing the stage starts what the pipeline composes after
+    /// it — which, when that is a reply handler, is a receive workflow parked on the exchange <em>that
+    /// handler</em> answers, not necessarily the one this stage opened; and a conclusion is handed to the relay
+    /// to close every carried mailbox before anything downstream starts. The conclusion is honorable wherever
+    /// the stage sits, because no later step of this workflow exists for it to have to cancel.
     /// </summary>
     private static WorkflowEngineCommandResult MapOpeningStageResult(
         ServiceTaskOpeningStageResult result,

@@ -11,14 +11,13 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// One planned pipeline segment — one workflow's whole step run. A non-null
-/// <see cref="ReceiveOpeningIndex"/> makes the plan a <em>receive</em> workflow: its one step is the reply
-/// handler answering the exchange the stage at that index opened, so the workflow must be parked on that
-/// exchange's mailbox. With it null the plan is an ordinary continuation, with no mailbox of its own.
-/// Nothing here says what runs after the segment: each workflow's last step derives that when it runs, from
-/// the pipeline it resolved.
+/// The steps of one pipeline item's workflow. A non-null <see cref="ReceiveOpeningIndex"/> makes the plan a
+/// <em>receive</em> workflow: its one step is the reply handler answering the exchange the stage at that index
+/// opened, so the workflow must be parked on that exchange's mailbox. With it null the plan is an ordinary
+/// continuation, with no mailbox of its own. Nothing here says what runs after the item: its step derives that
+/// when it runs, from the pipeline it resolved.
 /// </summary>
-/// <param name="Steps">The segment's steps, in execution order, with options unresolved.</param>
+/// <param name="Steps">The workflow's steps, in execution order, with options unresolved.</param>
 /// <param name="ReceiveOpeningIndex">
 /// The stage whose exchange this plan's single handler step answers, or null when the plan is not a receive
 /// workflow. An index rather than a mailbox id: the id lives in the workflow state carry, and is resolved
@@ -87,9 +86,9 @@ internal sealed class WorkflowStepSet
         {
             group.ServiceTaskFollowsCommit = true;
 
-            // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
-            // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
-            // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
+            // The primary workflow carries the first item only, so it ends on that item's step: a stage whose
+            // completion starts the next item's workflow, or the pipeline's conclusion. Item 0 is never a reply
+            // handler, since a handler answers a stage composed before it.
             ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
             group.AddPrimaryPostCommitSteps(segment.Steps);
         }
@@ -245,22 +244,15 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Plans one pipeline segment — one workflow's whole step run — walking the items in composition order
-    /// from the one after <paramref name="afterItemIndex"/> (from the first item when it is null, which is the
-    /// run the transition's primary workflow carries). A <strong>plain stage</strong> becomes one
-    /// <c>ExecuteServiceTask</c> step and the walk carries on. A <strong>mailbox-opening stage</strong> becomes a
-    /// <c>MintMailbox</c> step plus its own and ends the run: its work may conclude the whole task, which a
-    /// step's verdict can only do while no later step of that workflow exists to run past it. A
-    /// <strong>reply handler</strong> is alone in its workflow — as the run's only step when the walk starts on
-    /// it, and otherwise ending the run before itself. The <strong>conclusion's</strong> step ends the run with
-    /// nothing after it. Segments are therefore the items split at each reply handler and at each opening stage:
-    /// segment 0 rides the transition's primary workflow, and every later segment rides the workflow its
-    /// predecessor's last step enqueues — which that step derives from the pipeline when it runs, since nothing
-    /// planned here is carried in a payload. Options are left unresolved.
+    /// Plans the workflow of the pipeline item after <paramref name="afterItemIndex"/>, or of the first item
+    /// when it is null, which the transition's primary workflow carries. Every item gets a workflow of its own
+    /// and is that workflow's last step, so the item's own verdict always decides what follows it: a completed
+    /// stage or concluded exchange enqueues the next item's workflow, derived from the pipeline when it runs,
+    /// and the conclusion advances the process. A <strong>mailbox-opening stage</strong> is preceded by its
+    /// <c>MintMailbox</c> step. Options are left unresolved.
     /// </summary>
     /// <returns>
-    /// The plan, with no steps only when <paramref name="afterItemIndex"/> is the pipeline's last item: every
-    /// item either ends the run or is followed by another, and the list always ends with a conclusion. The
+    /// The plan, with no steps only when <paramref name="afterItemIndex"/> is the pipeline's last item. The
     /// deciding hop refuses an empty plan rather than enqueue a workflow with no steps.
     /// </returns>
     internal static ServiceTaskSegmentPlan PlanSegment(
@@ -269,100 +261,40 @@ internal sealed class WorkflowStepSet
         int? afterItemIndex = null
     )
     {
-        var steps = new List<PlannedStep>();
-        int firstItemIndex = afterItemIndex is { } item ? item + 1 : 0;
-
-        for (int index = firstItemIndex; index < pipeline.Items.Count; index++)
+        int index = afterItemIndex is { } item ? item + 1 : 0;
+        if (pipeline.Items.ElementAtOrDefault(index) is not { } next)
         {
-            switch (pipeline.Items[index])
-            {
-                // A reply handler cannot share a workflow with anything, and the two halves of that come from
-                // opposite ends. The engine resolves a workflow's mailbox rendezvous for its first step only
-                // (WorkflowExecutor, ProcessingOrder == 0), so a step that receives must be first; and the app
-                // needs it last, because its verdict decides whether anything composed after it runs at all
-                // and a step cannot cancel later steps of its own workflow. First and last means alone — so a
-                // handler the walk reaches partway through ends the run before itself, and starts one of its
-                // own.
-                case IReplyHandlerItem when index > firstItemIndex:
-                    return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
-
-                case IReplyHandlerItem handler:
-                    steps.Add(
-                        CreateItemStep(
-                            serviceTaskType,
-                            index,
-                            pipeline.Items[index].StepOptions,
-                            pipeline.Items[index].DisplayName
-                        )
-                    );
-                    return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
-
-                case PipelineConclusion.Final:
-                    steps.Add(
-                        CreateItemStep(
-                            serviceTaskType,
-                            index,
-                            pipeline.Items[index].StepOptions,
-                            pipeline.Items[index].DisplayName
-                        )
-                    );
-                    return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
-
-                case PipelineStage.MailboxOpening:
-                    // The mint hugs the stage that sends, on both sides: the deadline clock starts here, and
-                    // the stage must never send without an address. No stage index on the step — the mint must
-                    // not inherit the stage's options.
-                    steps.Add(
-                        CreateStep(
-                            MintMailbox.Key,
-                            new MintMailboxPayload(serviceTaskType, index),
-                            operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
-                        )
-                    );
-
-                    steps.Add(
-                        CreateItemStep(
-                            serviceTaskType,
-                            index,
-                            pipeline.Items[index].StepOptions,
-                            pipeline.Items[index].DisplayName
-                        )
-                    );
-                    return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
-
-                case PipelineStage:
-                    steps.Add(
-                        CreateItemStep(
-                            serviceTaskType,
-                            index,
-                            pipeline.Items[index].StepOptions,
-                            pipeline.Items[index].DisplayName
-                        )
-                    );
-                    break;
-
-                default:
-                    throw new UnreachableException(
-                        $"Unknown pipeline item type: {pipeline.Items[index].GetType().Name}"
-                    );
-            }
+            return new ServiceTaskSegmentPlan([], ReceiveOpeningIndex: null);
         }
 
-        return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
-    }
+        PlannedStep step = CreateItemStep(serviceTaskType, index, next.StepOptions, next.DisplayName);
+        return next switch
+        {
+            // The engine resolves a workflow's mailbox rendezvous for its first step only (WorkflowExecutor,
+            // ProcessingOrder == 0), so the step that receives is alone in a workflow parked on the mailbox of
+            // the exchange it answers.
+            IReplyHandlerItem handler => new ServiceTaskSegmentPlan([step], handler.OpeningIndex),
 
-    /// <summary>
-    /// Whether the pipeline's item at <paramref name="itemIndex"/> is an <see cref="IReplyHandlerItem"/> — the
-    /// one item <see cref="PlanSegment"/> ends a run <em>before</em>, and therefore the one thing that makes
-    /// an ordinary stage its workflow's last step. The same type test <see cref="PlanSegment"/>'s stop arm
-    /// makes, on the interface that is the single definition of "reply handler", so the split rule and this
-    /// derivation of it cannot answer differently. Read from the pipeline the executing step resolved, which
-    /// is how a step knows whether it is its workflow's last without carrying an answer fixed at assembly
-    /// time. False past the pipeline's end: the item that ends a run with nothing composed after it is the
-    /// conclusion, and that one starts nothing.
-    /// </summary>
-    internal static bool ItemStartsItsOwnWorkflow(ServiceTaskPipeline pipeline, int itemIndex) =>
-        pipeline.Items.ElementAtOrDefault(itemIndex) is IReplyHandlerItem;
+            // The mint hugs the stage that sends, on both sides: the deadline clock starts here, and the stage
+            // must never send without an address. No stage index on the step — the mint must not inherit the
+            // stage's options.
+            PipelineStage.MailboxOpening => new ServiceTaskSegmentPlan(
+                [
+                    CreateStep(
+                        MintMailbox.Key,
+                        new MintMailboxPayload(serviceTaskType, index),
+                        operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
+                    ),
+                    step,
+                ],
+                ReceiveOpeningIndex: null
+            ),
+
+            PipelineStage or PipelineConclusion.Final => new ServiceTaskSegmentPlan([step], ReceiveOpeningIndex: null),
+
+            _ => throw new UnreachableException($"Unknown pipeline item type: {next.GetType().Name}"),
+        };
+    }
 
     /// <summary>
     /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's

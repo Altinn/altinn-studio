@@ -283,8 +283,7 @@ public class MailboxRelayTests
 
     /// <summary>
     /// The archive-then-journal shape: exchange A answered mid-pipeline, a stage between, then exchange B's
-    /// send and the terminal that answers it. The segment after A therefore has both a stage and an ending
-    /// receive enqueue, so the relay's ordering is visible.
+    /// send and the terminal that answers it.
     /// </summary>
     private sealed class ArchiveThenJournalTask : IServiceTask
     {
@@ -318,8 +317,8 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Both sends up front, so exchange B's clock starts in the primary workflow and the segment after A holds no step
-    /// of its own — decision 3, seen from the planner's side.
+    /// Both sends up front, so exchange B's clock starts before A's handler runs, and A's handler is followed by
+    /// B's terminal with no stage between.
     /// </summary>
     private sealed class UpFrontSendsTask : IServiceTask
     {
@@ -335,8 +334,8 @@ public class MailboxRelayTests
 
     /// <summary>
     /// The pipeline the segment-decide tests resolve against — the same composition
-    /// <see cref="ArchiveThenJournalTask"/> defines, with the tested handler at item index 1 and a
-    /// non-empty segment after it.
+    /// <see cref="ArchiveThenJournalTask"/> defines, with the tested handler at item index 1 and a stage
+    /// after it.
     /// </summary>
     private static readonly ServiceTaskPipeline _archiveThenJournalPipeline =
         new ArchiveThenJournalTask().ResolvePipeline();
@@ -812,7 +811,7 @@ public class MailboxRelayTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The first receiver — enqueued from the segment's last stage, from inside its still-unsettled step.
+    // The first receiver — enqueued from the stage before the handler, from inside its still-unsettled step.
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>
@@ -1179,7 +1178,7 @@ public class MailboxRelayTests
     }
 
     [Fact]
-    public void SegmentCompleted_ConcludesTheExchangeAndAsksForThePipelinesNextSegment()
+    public void SegmentCompleted_ConcludesTheExchangeAndAsksForTheNextItemsWorkflow()
     {
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
@@ -1204,16 +1203,12 @@ public class MailboxRelayTests
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
         Assert.Equal(ServiceTaskType, continuing.ServiceTaskType);
-        // The next segment has steps of its own, so it receives nothing: what starts the journal's receive
-        // leg is that segment's own last step, not this hop.
+        // The next item is a stage, so its workflow receives nothing: the journal's send and its receive leg
+        // follow from that stage's own completion, not from this hop.
         Assert.Equal(SegmentHandlerIndex, continuing.Handover.AfterItemIndex);
         Assert.Null(continuing.Handover.Target);
         Assert.Equal(
-            [
-                $"{ExecuteServiceTask.Key}: 2",
-                $"{MintMailbox.Key}: {JournalIndex}",
-                $"{ExecuteServiceTask.Key}: {JournalIndex}",
-            ],
+            [$"{ExecuteServiceTask.Key}: 2"],
             continuing.Handover.Plan.Steps.Select(step => step.OperationId).ToList()
         );
 
@@ -1385,11 +1380,11 @@ public class MailboxRelayTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The continuation — close mailbox k, then start segment k.
+    // The continuation — close mailbox k, then start the next item's workflow.
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// A concluded handler's continuation carrying the hand-over its decide would have produced: the segment
+    /// A concluded handler's continuation carrying the hand-over its decide would have produced: the workflow
     /// planned after that handler, from <paramref name="pipeline"/> (the archive-then-journal shape by
     /// default, which is what <see cref="CreateRelay"/>'s tasks compose).
     /// </summary>
@@ -1412,8 +1407,8 @@ public class MailboxRelayTests
         );
 
     /// <summary>
-    /// The same continuation for a next segment that is a receive workflow: one handler step, and the
-    /// target the decide resolved for it.
+    /// The same continuation for a next item that is a reply handler: one handler step, and the target the
+    /// decide resolved for it.
     /// </summary>
     private static MailboxContinuation.ConcludeAndContinue ContinuingToReceiver(
         Guid mailboxId,
@@ -1440,16 +1435,16 @@ public class MailboxRelayTests
             )
         );
 
-    /// <summary>An opening stage's continuation, carrying the plan its decide made.</summary>
+    /// <summary>A stage's continuation, carrying the plan its decide made.</summary>
     private static MailboxContinuation.ContinueAfterStage ContinuingAfterStage(
         ServiceTaskPipeline pipeline,
-        int openingStageIndex = OpeningStageIndex
+        int stageIndex = OpeningStageIndex
     ) =>
         new(
             ServiceTaskType,
             new MailboxHandover(
-                openingStageIndex,
-                WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex: openingStageIndex),
+                stageIndex,
+                WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex: stageIndex),
                 target: null
             )
         );
@@ -1588,12 +1583,12 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// Frontier-never-empty on this hop: the continuation's last step is the segment's last stage, and completing that
-    /// step is what enqueues the receiver — worked out there, exactly as it is on the primary workflow — so the
-    /// continuation cannot settle before the receiver that follows it exists.
+    /// Frontier-never-empty on this hop: the continuation's one step is the item after the handler, and completing
+    /// that step is what enqueues the workflow after it — worked out there, exactly as it is on the primary
+    /// workflow — so the continuation cannot settle before its successor exists.
     /// </summary>
     [Fact]
-    public async Task Continuation_RunsTheItemsAfterTheHandler_EndingOnTheNextSend()
+    public async Task Continuation_RunsTheItemAfterTheHandler_Alone()
     {
         var recorder = new RelayRecorder();
 
@@ -1601,31 +1596,54 @@ public class MailboxRelayTests
             .Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None);
 
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], StepOperationIds(continuation));
+        Assert.Equal($"Mailbox continue: Task_2 · after {SegmentHandlerIndex}", continuation.OperationId);
+
+        // The step names the one item it runs, and nothing about what follows it.
+        Assert.Equal(2, StepPayload(Assert.Single(continuation.Steps)).ItemIndex);
+    }
+
+    /// <summary>
+    /// The hop a plain stage ends its workflow on: the next item's workflow, named for the stage, with nothing
+    /// closed. Here the next item is the journal's send, so its mint comes with it.
+    /// </summary>
+    [Fact]
+    public async Task ContinueAfterAPlainStage_ClosesNothingAndEnqueuesTheNextItemsWorkflow()
+    {
+        var stepId = Guid.NewGuid();
+        var recorder = new RelayRecorder();
+
+        await CreateRelay(recorder, new ArchiveThenJournalTask())
+            .Continue(
+                ContinuingAfterStage(_archiveThenJournalPipeline, stageIndex: 2),
+                CreateRequest(stepId),
+                CancellationToken.None
+            );
+
+        Assert.Equal(["enqueue-continuation"], recorder.Calls);
+        Assert.Empty(recorder.Closes);
+        (_, string idempotencyKey, _, WorkflowEnqueueRequest request) = Assert.Single(recorder.Enqueues);
+        Assert.Equal(stepId.ToString(), idempotencyKey);
+
+        WorkflowRequest continuation = Assert.Single(request.Workflows);
+        Assert.True(continuation.IsHead);
+        Assert.True(continuation.DependsOnHeads);
+        Assert.Null(continuation.Mailbox);
+        Assert.Equal("Mailbox continue: Task_2 · after 2", continuation.OperationId);
         Assert.Equal(
-            [
-                $"{ExecuteServiceTask.Key}: 2",
-                $"{MintMailbox.Key}: {JournalIndex}",
-                $"{ExecuteServiceTask.Key}: {JournalIndex}",
-            ],
+            [$"{MintMailbox.Key}: {JournalIndex}", $"{ExecuteServiceTask.Key}: {JournalIndex}"],
             StepOperationIds(continuation)
         );
-
-        // The exchange just concluded is behind it: nothing re-mints or re-sends the archive.
-        Assert.DoesNotContain($"{MintMailbox.Key}: {OpeningStageIndex}", StepOperationIds(continuation));
-
-        // Each step names the one item it runs, and nothing about what follows it.
-        Assert.Equal(2, StepPayload(continuation.Steps[0]).ItemIndex);
-        Assert.Equal(JournalIndex, StepPayload(continuation.Steps[^1]).ItemIndex);
     }
 
     /// <summary>
     /// The hop a mailbox-opening stage ends its own workflow on: nothing closes — its exchange has not even
-    /// started — and one continuation carries the items composed after the stage, planned from the stage index
+    /// started — and one continuation carries the item composed after the stage, planned from the stage index
     /// the continuation carries and named for it. The up-front shape is the one that has such a stage:
     /// its second send is composed right after the first.
     /// </summary>
     [Fact]
-    public async Task ContinueAfterStage_ClosesNothingAndEnqueuesTheSegmentAfterTheStage()
+    public async Task ContinueAfterStage_ClosesNothingAndEnqueuesTheItemAfterTheStage()
     {
         var stepId = new Guid("018f4e00-0000-7000-8000-0000000000ab");
         var recorder = new RelayRecorder();
@@ -1706,8 +1724,8 @@ public class MailboxRelayTests
     }
 
     /// <summary>
-    /// The target of a next segment that receives is resolved when the verdict is mapped, not in the relay
-    /// tail: the mailbox is the one an earlier segment minted, read from the carry — so a broken carry can
+    /// The target of a next item that receives is resolved when the verdict is mapped, not in the relay
+    /// tail: the mailbox is the one an earlier workflow minted, read from the carry — so a broken carry can
     /// fail the verdict legibly instead of throwing after it.
     /// </summary>
     [Fact]
@@ -1774,20 +1792,21 @@ public class MailboxRelayTests
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
     }
 
+    /// <summary>The trailing stage of a pipeline that ends with a <c>Finally</c> hands over to the conclusion.</summary>
     [Fact]
-    public async Task Continuation_OfAPipelineThatEndsWithAFinalStep_EndsWithTheConcludingStep()
+    public async Task ContinueAfterTheLastStage_IsTheConcludingStepAlone()
     {
         var recorder = new RelayRecorder();
 
         await CreateRelay(recorder, new ArchiveThenRecordTask())
             .Continue(
-                Continuing(pipeline: _archiveThenRecordPipeline),
+                ContinuingAfterStage(_archiveThenRecordPipeline, stageIndex: 2),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
 
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", $"{ExecuteServiceTask.Key}: 3"], StepOperationIds(continuation));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], StepOperationIds(continuation));
 
         var appData = JsonSerializer.Deserialize<AppCommandData>(continuation.Steps[^1].Command.Data!.Value)!;
         var payload = CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
@@ -1802,30 +1821,38 @@ public class MailboxRelayTests
     public async Task Continuation_ResolvesEachStepsOwnOptions()
     {
         var recorder = new RelayRecorder();
+        MailboxRelay relay = CreateRelay(recorder, new ArchiveThenJournalTask());
 
-        await CreateRelay(recorder, new ArchiveThenJournalTask())
-            .Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None);
+        await relay.Continue(Continuing(), CreateRequest(Guid.NewGuid()), CancellationToken.None);
+        await relay.Continue(
+            ContinuingAfterStage(_archiveThenJournalPipeline, stageIndex: 2),
+            CreateRequest(Guid.NewGuid()),
+            CancellationToken.None
+        );
 
-        WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
+        Assert.Equal(2, recorder.Enqueues.Count);
+        WorkflowRequest afterHandler = Assert.Single(recorder.Enqueues[0].Request.Workflows);
+        WorkflowRequest afterStage = Assert.Single(recorder.Enqueues[1].Request.Workflows);
 
-        StepRequest record = continuation.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: 2");
+        StepRequest record = Assert.Single(afterHandler.Steps);
+        Assert.Equal($"{ExecuteServiceTask.Key}: 2", record.OperationId);
         Assert.Equal(TimeSpan.FromMinutes(7), record.Command.MaxExecutionTime);
 
         // A stage that declares nothing takes the command's and the engine's defaults, never another stage's.
-        StepRequest send = continuation.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: {JournalIndex}");
+        StepRequest send = afterStage.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: {JournalIndex}");
         Assert.Null(send.Command.MaxExecutionTime);
 
         // One HTTP call: the mint takes the engine's defaults, never the declaring stage's.
-        StepRequest mint = continuation.Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: {JournalIndex}");
+        StepRequest mint = afterStage.Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: {JournalIndex}");
         Assert.Null(mint.Command.MaxExecutionTime);
     }
 
     /// <summary>
     /// The enqueue runs the plan it was handed and plans nothing of its own. Pinned by disagreement, which is
     /// the only way to tell a carried plan from a re-derived one: the registered task composes the
-    /// archive-then-<em>record</em> shape while the continuation carries a plan made from the
-    /// archive-then-<em>journal</em> shape, and the journal's steps are what reach the engine. A hop that
-    /// resolved the pipeline again would enqueue the record shape instead.
+    /// archive-then-<em>record</em> shape, whose item 3 is its conclusion, while the continuation carries a plan
+    /// made from the archive-then-<em>journal</em> shape, whose item 3 is the journal's send, and the send's
+    /// steps are what reach the engine. A hop that resolved the pipeline again would enqueue the conclusion.
     /// </summary>
     [Fact]
     public async Task Continuation_EnqueuesTheCarriedPlan_WithoutPlanningAgain()
@@ -1834,18 +1861,14 @@ public class MailboxRelayTests
 
         await CreateRelay(recorder, new ArchiveThenRecordTask())
             .Continue(
-                Continuing(pipeline: _archiveThenJournalPipeline),
+                ContinuingAfterStage(_archiveThenJournalPipeline, stageIndex: 2),
                 CreateRequest(Guid.NewGuid()),
                 CancellationToken.None
             );
 
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
         Assert.Equal(
-            [
-                $"{ExecuteServiceTask.Key}: 2",
-                $"{MintMailbox.Key}: {JournalIndex}",
-                $"{ExecuteServiceTask.Key}: {JournalIndex}",
-            ],
+            [$"{MintMailbox.Key}: {JournalIndex}", $"{ExecuteServiceTask.Key}: {JournalIndex}"],
             StepOperationIds(continuation)
         );
     }
@@ -2048,8 +2071,8 @@ public class MailboxRelayTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // A workflow's last stage — completing it starts what the pipeline composes after it;
-    // concluding from a mailbox-opening one ends the task.
+    // A stage's completion starts what the pipeline composes after it; concluding from a
+    // mailbox-opening one ends the task.
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>
@@ -2199,7 +2222,7 @@ public class MailboxRelayTests
     /// stage's, which has not begun, nor an earlier one's.
     /// </summary>
     [Fact]
-    public void StageEnd_WithNoHandlerComposedNext_PlansTheNextSegmentAndTouchesNoExchange()
+    public void StageEnd_WithNoHandlerComposedNext_PlansTheNextItemAndTouchesNoExchange()
     {
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
@@ -2223,6 +2246,29 @@ public class MailboxRelayTests
         Assert.Equal([$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"], StepOperationIds(continuing.Handover));
         Assert.Null(continuing.Handover.Target);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
+    }
+
+    /// <summary>
+    /// A plain stage hands over the same way: its next item, the conclusion here, runs in a workflow of its own.
+    /// The carry is read only for a plan that receives, so an empty one is no obstacle.
+    /// </summary>
+    [Fact]
+    public void StageEnd_FromAPlainStage_PlansTheNextItemAlone()
+    {
+        WorkflowEngineCommandResult result = MailboxRelay.DecideStageEnd(
+            ServiceTaskType,
+            _stepId,
+            new WorkflowCallbackStateCarry(),
+            stageIndex: 2,
+            _archiveThenRecordPipeline
+        );
+
+        var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
+            Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result).MailboxContinuation
+        );
+        Assert.Equal(2, continuing.Handover.AfterItemIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], StepOperationIds(continuing.Handover));
+        Assert.Null(continuing.Handover.Target);
     }
 
     /// <summary>

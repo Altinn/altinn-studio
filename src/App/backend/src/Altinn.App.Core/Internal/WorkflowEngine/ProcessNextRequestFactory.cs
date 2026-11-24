@@ -101,9 +101,9 @@ internal sealed class ProcessNextRequestFactory
     internal const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
 
     /// <summary>
-    /// OperationId prefix for a workflow running a pipeline segment after an exchange concluded — enqueued by
-    /// <see cref="MailboxRelay"/>, never by this factory. A naming convention for ops and logs; nothing
-    /// identifies a continuation by it.
+    /// OperationId prefix for the workflow of a service task's pipeline item after the first, unless the item
+    /// is a reply handler — enqueued by <see cref="MailboxRelay"/>, never by this factory. A naming convention
+    /// for ops and logs; nothing identifies a continuation by it.
     /// </summary>
     internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 

@@ -18,11 +18,11 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// <remarks>
 /// <para>
 /// The unit tests own the pieces (mint outcomes, the relay's verdicts, the receipt-block guards); the
-/// composition they cannot span is this: the mint really is its own engine step sitting immediately
-/// before its declaring stage, the transition-into-the-task workflow really ends on that stage instead of
-/// on a concluding step, the continuation it hands over to really enqueues the first receiver, and a
-/// multi-message exchange really walks <c>AwaitNextReply</c> → successor receiver → conclusion →
-/// process continuation.
+/// composition they cannot span is this: every pipeline item really runs as its own workflow's last step,
+/// the mint really is its own engine step sitting immediately before its declaring stage in that stage's
+/// workflow, each item's completion really enqueues the next item's workflow, the stage before the handler
+/// really enqueues the first receiver, and a multi-message exchange really walks <c>AwaitNextReply</c> →
+/// successor receiver → conclusion → process continuation.
 /// </para>
 /// <para>
 /// Deliberately assertion-based rather than snapshot-based: this suite auto-accepts new and changed
@@ -82,50 +82,44 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         string ns = Uri.EscapeDataString(instance.Data.Model.AppId);
         string collectionKey = instance.Data.Model.Id.Split('/')[1];
 
-        // ---- The mint is its own step, and it hugs the stage that sends ----
+        // ---- Every item is its own workflow's last step ----
+        // The primary workflow carries the first item only, PrepareDocuments, and ends on it: its completion
+        // enqueues the send's workflow from inside the still-unsettled step, so the frontier is never empty.
+        // Exact-match DoesNotContain on purpose: this is the collection overload, and a prefix predicate would
+        // invert the assertion into one that can never hold.
         EngineWorkflow primary = await WaitForCompletedPrimaryWorkflow(engineClient, ns, collectionKey, "Task_Service");
         List<string> primaryOperationIds = primary.Steps.Select(s => s.OperationId).ToList();
+        Assert.Equal("ExecuteServiceTask: 0", primaryOperationIds[^1]);
+        Assert.DoesNotContain("MintMailbox: 1", primaryOperationIds);
+        Assert.DoesNotContain("ExecuteServiceTask: 1", primaryOperationIds);
 
-        int mintIndex = primaryOperationIds.IndexOf("MintMailbox: 1");
-        Assert.True(
-            mintIndex >= 0,
-            $"No mint step in the transition's step list: [{string.Join(", ", primaryOperationIds)}]"
+        // The mint hugs its declaring stage on both sides, which is why the scenario surrounds that stage with
+        // plain ones. Behind: the deadline clock starts at the mint, so it runs only once the stage before the
+        // send has completed. Ahead: the stage must never send without an address. Keyed on the primary
+        // workflow's last step, so a replay of that step continues onto the same workflow instead of forking
+        // the pipeline.
+        EngineWorkflow sendWorkflow = await WaitForWorkflow(
+            engineClient,
+            ns,
+            collectionKey,
+            $"{MailboxContinueOperationIdPrefix} Task_Service · after 0"
         );
-        Assert.Equal("Completed", primary.Steps[mintIndex].Status);
+        Assert.Equal(
+            ["MintMailbox: 1", "ExecuteServiceTask: 1"],
+            sendWorkflow.Steps.Select(s => s.OperationId).ToList()
+        );
+        Assert.Equal(primary.Steps[^1].DatabaseId.ToString(), sendWorkflow.IdempotencyKey);
 
-        // The mint hugs its declaring stage on both sides, which is why the scenario surrounds that stage
-        // with plain ones. Behind: the deadline clock starts at the mint, so hoisting it to the front of
-        // the stage list would let pre-send work erode the exchange's budget. Ahead: the stage must never
-        // send without an address, so the mint cannot be deferred past it.
-        Assert.Equal("ExecuteServiceTask: 0", primaryOperationIds[mintIndex - 1]);
-        Assert.Equal("ExecuteServiceTask: 1", primaryOperationIds[mintIndex + 1]);
-        Assert.Single(primaryOperationIds, id => id.StartsWith("MintMailbox", StringComparison.Ordinal));
-
-        // A mailbox-opening task expands to no concluding primary-workflow step - the reply handler runs on the receive
-        // workflows - and the primary workflow ends on the stage that opened the mailbox, whose completion enqueues
-        // what follows from inside the still-unsettled step, so the frontier is never empty from the moment the mailbox
-        // exists.
-        //
-        // The stage composed after the send is this pipeline's item 2 and its conclusion item 3, and every
-        // step names the item it runs, so both are step ids that really do get emitted - on the continuation
-        // and the receive workflows respectively, asserted below. Exact-match, not a StartsWith predicate:
-        // this is the collection overload of DoesNotContain, and a prefix predicate would invert the
-        // assertion into one that can never hold.
-        Assert.DoesNotContain("ExecuteServiceTask: 2", primaryOperationIds);
-        Assert.DoesNotContain("ExecuteServiceTask: 3", primaryOperationIds);
-        Assert.Equal("ExecuteServiceTask: 1", primaryOperationIds[^1]);
-
-        // The stage the send hands over to rides one continuation, and that stage is what enqueues the exchange's first
-        // receiver: keyed on the primary workflow's last step, so a replay of that step continues onto the same
-        // workflow instead of forking the pipeline.
-        EngineWorkflow continuation = await WaitForWorkflow(
+        // The stage composed after the send rides a workflow of its own, and that stage is what enqueues the
+        // exchange's first receiver.
+        EngineWorkflow recordWorkflow = await WaitForWorkflow(
             engineClient,
             ns,
             collectionKey,
             $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
         );
-        Assert.Equal(["ExecuteServiceTask: 2"], continuation.Steps.Select(s => s.OperationId).ToList());
-        Assert.Equal(primary.Steps[^1].DatabaseId.ToString(), continuation.IdempotencyKey);
+        Assert.Equal(["ExecuteServiceTask: 2"], recordWorkflow.Steps.Select(s => s.OperationId).ToList());
+        Assert.Equal(sendWorkflow.Steps[^1].DatabaseId.ToString(), recordWorkflow.IdempotencyKey);
 
         // ---- The address reached the declaring stage, once ----
         ExchangeState afterSend = await WaitForExchangeState(fixture, state => state.MailboxId is not null);
@@ -197,10 +191,14 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // AppCallbackPayload.StepId ("the engine's identity for the step being executed"). Should it go
         // red, suspect that bridge before suspecting the mint: an engine reporting a different id here is
         // breaking the callback contract, which is worth knowing either way.
-        Assert.Equal(primary.Steps[mintIndex].DatabaseId.ToString(), mailbox.IdempotencyKey);
+        Assert.Equal(sendWorkflow.Steps[0].DatabaseId.ToString(), mailbox.IdempotencyKey);
 
         // ---- One receive workflow per message: the first one's AwaitNextReply enqueued the second ----
         List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
+        Assert.All(
+            workflows.Where(w => w.OperationId.StartsWith(MailboxContinueOperationIdPrefix, StringComparison.Ordinal)),
+            continuation => Assert.Equal("Completed", continuation.OverallStatus)
+        );
         List<EngineWorkflow> receivers = workflows
             .Where(w => w.OperationId.StartsWith(MailboxReceiveOperationIdPrefix, StringComparison.Ordinal))
             .ToList();

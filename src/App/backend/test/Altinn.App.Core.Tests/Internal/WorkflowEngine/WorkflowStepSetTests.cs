@@ -260,8 +260,8 @@ public class WorkflowStepSetTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The segment planner: the items split at each reply handler and at each mailbox-opening stage,
-    // each segment ended by its own hand-over.
+    // The item planner: every pipeline item in a workflow of its own, a mailbox-opening stage with its
+    // mint.
     // ---------------------------------------------------------------------------------------------
 
     // ---------------------------------------------------------------------------------------------
@@ -364,12 +364,22 @@ public class WorkflowStepSetTests
             .ToList();
 
     /// <summary>
-    /// The regression floor for the whole expansion: a pipeline whose only exchange is answered by the terminal still
-    /// runs the primary workflow up to the send, and the answering handler is a workflow of its own. (The assembled
-    /// version of this is
-    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion</c>, which
-    /// must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
+    /// Every workflow the pipeline runs, walked the way the runtime walks it: the primary workflow's plan, then
+    /// the plan each workflow's last step derives from the item it ran, until the conclusion leaves nothing.
     /// </summary>
+    private static List<ServiceTaskSegmentPlan> Workflows(ServiceTaskPipeline pipeline)
+    {
+        var plans = new List<ServiceTaskSegmentPlan>();
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        while (plan.Steps.Count > 0)
+        {
+            plans.Add(plan);
+            int? lastItem = Assert.IsType<ExecuteServiceTaskPayload>(plan.Steps[^1].Payload).ItemIndex;
+            plan = WorkflowStepSet.PlanSegment("archiving", pipeline, lastItem);
+        }
+        return plans;
+    }
+
     [Fact]
     public void PlanSegment_PutsEachItemsOwnOptionsOnItsStep_AndNoneOnTheMint()
     {
@@ -383,54 +393,63 @@ public class WorkflowStepSetTests
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
             .Finally(FinalWork, conclusion);
 
-        ServiceTaskSegmentPlan primary = WorkflowStepSet.PlanSegment("archiving", pipeline);
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        ServiceTaskSegmentPlan rest = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
-        // The mint between the plain stage and the send carries nothing, so it inherits neither's options.
-        Assert.Equal([stage, null, send], primary.Steps.Select(step => step.DeclaredOptions));
-        Assert.Same(handler, Assert.Single(receive.Steps).DeclaredOptions);
-        Assert.Same(conclusion, Assert.Single(rest.Steps).DeclaredOptions);
+        Assert.Equal(4, workflows.Count);
+        Assert.Same(stage, Assert.Single(workflows[0].Steps).DeclaredOptions);
+        // The mint before the send carries nothing, so it inherits no options.
+        Assert.Equal([null, send], workflows[1].Steps.Select(step => step.DeclaredOptions));
+        Assert.Same(handler, Assert.Single(workflows[2].Steps).DeclaredOptions);
+        Assert.Same(conclusion, Assert.Single(workflows[3].Steps).DeclaredOptions);
     }
 
+    /// <summary>
+    /// The primary workflow carries the first item only. The assembled version of this is
+    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion</c>.
+    /// </summary>
     [Fact]
-    public void PlanSegment_SingleExchangePipeline_EndsMainOnTheSendAndAnswersItInAWorkflowOfItsOwn()
+    public void PlanSegment_SingleExchangePipeline_RunsEachItemInAWorkflowOfItsOwn()
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
         Assert.Equal(
-            [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
-            OperationIds(plan)
+            [
+                [$"{ExecuteServiceTask.Key}: 0"],
+                [$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
+                [$"{ExecuteServiceTask.Key}: 2"],
+            ],
+            workflows.Select(OperationIds)
         );
-        // The primary workflow is no receive workflow: the send ends its run, and what follows the send is worked out
-        // when that step runs.
-        Assert.Null(plan.ReceiveOpeningIndex);
-
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(receive));
-        Assert.Equal(1, receive.ReceiveOpeningIndex);
+        Assert.Equal([null, null, 1], workflows.Select(plan => plan.ReceiveOpeningIndex));
     }
 
     [Fact]
-    public void PlanSegment_PipelineWithNoExchange_EndsWithTheConcludingStepAndNoReceive()
+    public void PlanSegment_TwoStagesAndAConclusion_PlanThePrimaryWorkflowAndTwoContinuations()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Stage(PlainStage).Finally(FinalWork);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("signing", pipeline);
+        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 0", $"{ExecuteServiceTask.Key}: 1"], OperationIds(plan));
-        Assert.Null(plan.ReceiveOpeningIndex);
+        Assert.Equal(
+            [
+                [$"{ExecuteServiceTask.Key}: 0"],
+                [$"{ExecuteServiceTask.Key}: 1"],
+                [$"{ExecuteServiceTask.Key}: 2"],
+            ],
+            workflows.Select(OperationIds)
+        );
+        Assert.All(workflows, plan => Assert.Null(plan.ReceiveOpeningIndex));
     }
 
     /// <summary>
-    /// Segment 0 of a pipeline whose first exchange is answered mid-pipeline ends on the send: the handler
-    /// composed right after it is no step of this run — it is a run of its own. Item indexes here: the send at
-    /// 0, its handler at 1, a stage at 2, the second send at 3.
+    /// A pipeline that opens a mailbox first: the primary workflow is the mint and the send, and the handler
+    /// composed right after it is a workflow of its own. Item indexes here: the send at 0, its handler at 1, a
+    /// stage at 2, the second send at 3.
     /// </summary>
     [Fact]
     public void PlanSegment_EndsOnTheSendWhoseHandlerFollowsIt()
@@ -444,13 +463,11 @@ public class WorkflowStepSetTests
     }
 
     /// <summary>
-    /// A reply handler the walk starts on is the run's only step, and the plan is a receive workflow naming
-    /// the exchange it parks on. Both halves of "alone in its workflow" ride on this: the engine resolves the
-    /// rendezvous for a workflow's first step only, and the handler's verdict decides whether anything after
-    /// it runs.
+    /// A reply handler is its workflow's only step, and the plan is a receive workflow naming the exchange it
+    /// parks on, because the engine resolves the rendezvous for a workflow's first step only.
     /// </summary>
     [Fact]
-    public void PlanSegment_StartingOnAReplyHandler_IsThatHandlerAloneAndNamesItsExchange()
+    public void PlanSegment_ForAReplyHandler_IsThatHandlerAloneAndNamesItsExchange()
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
@@ -461,23 +478,31 @@ public class WorkflowStepSetTests
         Assert.Equal(0, plan.ReceiveOpeningIndex);
     }
 
+    /// <summary>
+    /// Every item of a pipeline with two exchanges, each in a workflow of its own: the send at 0, the
+    /// mid-pipeline handler at 1, a stage at 2, the second send at 3, the terminal that answers it at 4.
+    /// </summary>
     [Fact]
-    public void PlanSegment_AfterAHandler_RunsTheItemsBetweenItAndTheNextSend()
+    public void PlanSegment_TwoExchanges_RunEveryItemInAWorkflowOfItsOwn()
     {
-        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
-
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        List<ServiceTaskSegmentPlan> workflows = Workflows(ArchiveThenJournalPipeline());
 
         Assert.Equal(
-            [$"{ExecuteServiceTask.Key}: 2", $"{MintMailbox.Key}: 3", $"{ExecuteServiceTask.Key}: 3"],
-            OperationIds(plan)
+            [
+                [$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"],
+                [$"{ExecuteServiceTask.Key}: 1"],
+                [$"{ExecuteServiceTask.Key}: 2"],
+                [$"{MintMailbox.Key}: 3", $"{ExecuteServiceTask.Key}: 3"],
+                [$"{ExecuteServiceTask.Key}: 4"],
+            ],
+            workflows.Select(OperationIds)
         );
-        Assert.Null(plan.ReceiveOpeningIndex);
+        Assert.Equal([null, 0, null, null, 3], workflows.Select(plan => plan.ReceiveOpeningIndex));
     }
 
-    /// <summary>A mid-pipeline reply with trailing stages, ended by an ordinary <c>Finally</c>.</summary>
+    /// <summary>A mid-pipeline reply with a trailing stage, ended by an ordinary <c>Finally</c>.</summary>
     [Fact]
-    public void PlanSegment_AfterTheLastHandler_EndsWithTheConclusion()
+    public void PlanSegment_AfterTheLastHandler_RunsTheStageAndThenTheConclusion()
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
@@ -485,19 +510,21 @@ public class WorkflowStepSetTests
             .Stage(PlainStage)
             .Finally(FinalWork);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan stage = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan conclusion = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
 
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2", $"{ExecuteServiceTask.Key}: 3"], OperationIds(plan));
-        Assert.Null(plan.ReceiveOpeningIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(stage));
+        Assert.Null(stage.ReceiveOpeningIndex);
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(conclusion));
+        Assert.Null(conclusion.ReceiveOpeningIndex);
     }
 
     /// <summary>
-    /// The whole rule on one pipeline, walked segment by segment: a send ends its run, a plain stage ends its
-    /// run only because the handler after it must be alone, and that handler's own run is the single step that
-    /// receives. Item indexes: the send at 0, a plain stage at 1, the handler at 2, the conclusion at 3.
+    /// A plain stage between a send and the handler that answers it. Item indexes: the send at 0, a plain stage
+    /// at 1, the handler at 2, the conclusion at 3.
     /// </summary>
     [Fact]
-    public void PlanSegment_APlainStageBeforeAHandler_EndsItsRunAndTheHandlerRunsAlone()
+    public void PlanSegment_APlainStageBeforeAHandler_RunsAloneAndTheHandlerRunsAlone()
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
@@ -509,8 +536,6 @@ public class WorkflowStepSetTests
         Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(send));
         Assert.Null(send.ReceiveOpeningIndex);
 
-        // The stage between the send and the handler rides its own workflow and ends there — not because it
-        // opened anything, but because the handler after it cannot share a workflow.
         ServiceTaskSegmentPlan between = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(between));
         Assert.Null(between.ReceiveOpeningIndex);
@@ -525,13 +550,12 @@ public class WorkflowStepSetTests
     }
 
     /// <summary>
-    /// A mailbox-opening stage ends its segment even when the pipeline carries on with stages of its own: the
-    /// stage's work may conclude the whole task, and a step's verdict can only do that while no later step of
-    /// its workflow exists. Item indexes: a plain stage at 0, the send at 1, another plain stage at 2, the
-    /// terminal that answers at 3.
+    /// The mint stays in the workflow of the stage that sends, wherever that stage sits: a plain stage before
+    /// it gets the primary workflow to itself. Item indexes: a plain stage at 0, the send at 1, another plain
+    /// stage at 2, the terminal that answers at 3.
     /// </summary>
     [Fact]
-    public void PlanSegment_EndsAtAMailboxOpeningStage_EvenWithStagesComposedAfterIt()
+    public void PlanSegment_MailboxOpeningStage_SharesItsWorkflowWithItsMintOnly()
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage)
@@ -539,33 +563,28 @@ public class WorkflowStepSetTests
             .Stage(PlainStage)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
         Assert.Equal(
-            [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
-            OperationIds(plan)
+            [
+                [$"{ExecuteServiceTask.Key}: 0"],
+                [$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
+                [$"{ExecuteServiceTask.Key}: 2"],
+                [$"{ExecuteServiceTask.Key}: 3"],
+            ],
+            workflows.Select(OperationIds)
         );
-        Assert.Null(plan.ReceiveOpeningIndex);
-
-        // And what follows the send is the trailing stage, which ends its own run because the terminal that
-        // answers is composed right after it.
-        ServiceTaskSegmentPlan next = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(next));
-        Assert.Null(next.ReceiveOpeningIndex);
-
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(receive));
-        Assert.Equal(1, receive.ReceiveOpeningIndex);
+        Assert.Equal([null, null, null, 1], workflows.Select(plan => plan.ReceiveOpeningIndex));
     }
 
     /// <summary>
-    /// Both sends composed before either handler: each send ends its own segment, so the second mint rides the
-    /// continuation the first send's completion enqueues — and that continuation is what hands over to the
-    /// first exchange's receiver. Two handlers composed back to back are simply two runs. Item indexes: the
-    /// sends at 0 and 1, the first handler at 2, the terminal at 3.
+    /// Both sends composed before either handler: the second mint rides the continuation the first send's
+    /// completion enqueues, and the second send's completion starts the first exchange's receiver. Two
+    /// handlers composed back to back are two receive workflows. Item indexes: the sends at 0 and 1, the first
+    /// handler at 2, the terminal at 3.
     /// </summary>
     [Fact]
-    public void PlanSegment_UpFrontSends_RidesOneSegmentPerSend_ThenOnePerHandler()
+    public void PlanSegment_UpFrontSends_RidesOneWorkflowPerSend_ThenOnePerHandler()
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
@@ -587,7 +606,7 @@ public class WorkflowStepSetTests
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(archiveReceive));
         Assert.Equal(0, archiveReceive.ReceiveOpeningIndex);
 
-        // Two handlers back to back: the run after the first is the second, alone, on the other exchange.
+        // Two handlers back to back: the workflow after the first is the second, alone, on the other exchange.
         ServiceTaskSegmentPlan journalReceive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(journalReceive));
         Assert.Equal(1, journalReceive.ReceiveOpeningIndex);
@@ -595,12 +614,12 @@ public class WorkflowStepSetTests
 
     /// <summary>
     /// Handler order is exchange order, and it is the author's choice: answering B before A is legal once both
-    /// stages precede both handlers, and each handler's run parks on the exchange that handler answers rather
-    /// than on the one the preceding send opened. Item indexes: the sends at 0 and 1, the handlers at 2
+    /// stages precede both handlers, and each handler's workflow parks on the exchange that handler answers
+    /// rather than on the one the preceding send opened. Item indexes: the sends at 0 and 1, the handlers at 2
     /// (journal's) and 3 (archive's).
     /// </summary>
     [Fact]
-    public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheSegments()
+    public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheReceiveWorkflows()
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
@@ -609,8 +628,8 @@ public class WorkflowStepSetTests
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Finally(FinalWork);
 
-        // Each send ends a segment and parks on nothing; the receive workflows come after them, journal's
-        // first because its handler is composed first.
+        // Each send parks on nothing; the receive workflows come after them, journal's first because its
+        // handler is composed first.
         Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline).ReceiveOpeningIndex);
         Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).ReceiveOpeningIndex);
         Assert.Equal(1, WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).ReceiveOpeningIndex);
@@ -630,34 +649,14 @@ public class WorkflowStepSetTests
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-
         Assert.Equal(
             [
                 "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":2}",
                 "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":3}",
             ],
-            StageStepPayloadJson(plan)
+            StageStepPayloadJson(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1))
+                .Concat(StageStepPayloadJson(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2)))
         );
-    }
-
-    /// <summary>
-    /// The derivation every workflow's last step makes instead of reading a baked answer: only a reply handler
-    /// starts a workflow of its own, so only a reply handler ends the run of the item before it.
-    /// </summary>
-    [Fact]
-    public void ItemStartsItsOwnWorkflow_IsTrueForReplyHandlersOnly()
-    {
-        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
-
-        // The send at 0, the mid-pipeline handler at 1, a stage at 2, the second send at 3, the terminal at 4.
-        Assert.False(WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, 0));
-        Assert.True(WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, 1));
-        Assert.False(WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, 2));
-        Assert.False(WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, 3));
-        Assert.True(WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, 4));
-        // Past the end: the last item is the conclusion, and it starts nothing.
-        Assert.False(WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, 5));
     }
 
     /// <summary>
