@@ -9,6 +9,21 @@ This project contains scenario-based integration tests for Altinn apps. The test
 
 The harness starts localtest with `studioctl env up --detach` if no environment is running. It always sets `STUDIOCTL_INTERNAL_DEV=true` on its `studioctl` subprocesses so localtest uses images built from the current monorepo checkout when available. If localtest was already running, the harness reuses it and does not stop it during cleanup.
 
+## Running the tests like CI
+
+CI runs the tests against a studioctl built from the checkout, kept apart from any studioctl you have installed
+(`.github/actions/setup-studioctl`). To do the same, from the repository root:
+
+```sh
+make -C src/cli dev-install
+export STUDIOCTL_HOME="$PWD/src/cli/build/dev-home" STUDIOCTL_INTERNAL_DEV=true
+export PATH="$STUDIOCTL_HOME/bin:$PATH"
+make -C src/App/backend ti
+```
+
+Afterwards, with the same `STUDIOCTL_HOME`, `studioctl stop --all`, `studioctl env down` and `studioctl server down`
+clean up.
+
 ## Architecture
 
 - `AppFixture` coordinates localtest, generated app folders, app startup, and snapshot scrubbers.
@@ -218,6 +233,10 @@ port and its log path), or run `BasicAppTests` on an unmodified `main` checkout 
   `Command 'yarn install' failed`, because the fixture installs the test apps' frontends.
 - **A compile error in scenario `services`** shows only as the app failing to start. The test project
   excludes `_testapps/**` from its own build, so `dotnet build` does not catch it.
+- **A deeply nested checkout,** such as a worktree, can push the `studioctl-server` socket under
+  `STUDIOCTL_HOME` past the socket path limit (107 bytes on Linux): `env up` fails with
+  `studioctl-server start timed out after 10s ... dial unix <path>`. Point `STUDIOCTL_HOME` at a short
+  symlink to the dev home, or set `STUDIOCTL_SOCKET_DIR` to a short directory.
 
 ## Available Test Apps
 

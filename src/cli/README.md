@@ -36,6 +36,11 @@ runs that installation.
 
 - `make dev-install` publishes `studioctl-server` in Release configuration, which can raise warnings that `make test`
   does not. Before you push .NET changes, run `make test` and `make dev-install`.
+- `studioctl-server` builds with the Sonar and CA analyzers as errors, so a mutation such as `if (false)` or
+  `x || true` fails to compile instead of failing a test. Mutate to a live expression: compare against a value that
+  never occurs, or add an impossible condition.
+- Building the .NET projects formats their C# with CSharpier. Commit after a build, so the commit holds the
+  formatted text.
 - On macOS, `make dev-run` in a deeply nested checkout, such as a worktree, fails with `connect: invalid argument`,
   because the socket path for `studioctl-server` is too long. Set `STUDIOCTL_SOCKET_DIR` to a short directory.
 - The top level of `internal/cmd` parses commands, orchestrates and renders output. The work lives in its subpackages

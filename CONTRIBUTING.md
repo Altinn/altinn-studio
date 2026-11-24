@@ -45,6 +45,10 @@ an entry under `## [Unreleased]`, written for those users as the [changelog skil
 describes. CI requires an entry for changes to studioctl. Label a pull request `skip-changelog` when users will not
 notice it.
 
+After a release, merging `main` into an open pull request can conflict in the changelog, or merge cleanly with the
+pull request's entry now under the released version. Either way, check that the entry is still under
+`## [Unreleased]`, in the section it was in.
+
 ### Releases
 
 A release promotes the `[Unreleased]` section of a component's changelog to a version.
