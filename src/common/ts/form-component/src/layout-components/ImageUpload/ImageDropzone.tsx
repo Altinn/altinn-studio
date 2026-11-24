@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { Dropzone } from '@app/form-component/app-components/Dropzone';
-import { useIsMobileOrTablet } from '@app/form-component/app-components/hooks';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
 import cn from 'classnames';
-import type { IDropzoneProps } from '@app/form-component/app-components/Dropzone';
 
+import { Dropzone } from '../../app-components/Dropzone';
+import { useIsMobileOrTablet } from '../../app-components/hooks';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { getDescriptionId } from '../utils/labelIds';
 import classes from './ImageDropzone.module.css';
+import type { IDropzoneProps } from '../../app-components/Dropzone';
 
 type ImageDropzoneProps = {
   componentId: string;

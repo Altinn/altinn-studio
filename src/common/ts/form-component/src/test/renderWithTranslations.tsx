@@ -1,10 +1,11 @@
 import type { ReactElement } from 'react';
 
+import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
+
 import {
   type StaticLanguageCode,
   StaticLanguageTranslatorProvider,
-} from '@app/form-component/test/StaticLanguageTranslatorProvider';
-import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
+} from './StaticLanguageTranslatorProvider';
 
 export type RenderWithTranslationsOptions = Omit<RenderOptions, 'wrapper'> & {
   /** Language used to resolve translations. Defaults to 'en'. */

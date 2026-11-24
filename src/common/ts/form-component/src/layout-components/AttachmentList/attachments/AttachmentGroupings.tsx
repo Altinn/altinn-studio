@@ -1,8 +1,8 @@
 import type { JSX, ReactElement } from 'react';
 
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import cn from 'classnames';
 
+import { useTranslation } from '../../../LanguageTranslatorProvider';
 import classes from './AttachmentGroupings.module.css';
 import { MainAttachmentHeader, SubAttachmentHeader } from './AttachmentHeader';
 import { CollapsibleAttachments } from './CollapsibleAttachments';

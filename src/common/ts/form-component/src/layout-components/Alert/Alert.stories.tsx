@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Alert } from './Alert';
+import type { PropCategories } from '../common/storybook';
 import type { AlertProps } from './Alert';
 
 export const ALERT_PROP_CATEGORIES = {

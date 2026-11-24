@@ -7,7 +7,7 @@ import {
   drawCropArea,
   imagePlacement,
   type Position,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+} from '../../imageUploadUtils';
 
 type UseCanvasDrawProps = {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;

@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Date } from './Date';
+import type { PropCategories } from '../common/storybook';
 import type { DateProps } from './Date';
 
 export const DATE_PROP_CATEGORIES = {

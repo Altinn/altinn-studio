@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Divider } from './Divider';
+import type { PropCategories } from '../common/storybook';
 import type { DividerProps } from './Divider';
 
 export const DIVIDER_PROP_CATEGORIES = {

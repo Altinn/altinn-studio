@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react';
 
-import { Button } from '@app/form-component/app-components/Button';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import type { TextAlign } from '@app/form-component/app-components/Button';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
+import { Button } from '../../app-components/Button';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import type { TextAlign } from '../../app-components/Button';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export type ButtonLayoutSize = 'sm' | 'md' | 'lg';
 export type ButtonLayoutPosition = 'left' | 'center' | 'right';

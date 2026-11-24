@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
+import { useCurrentLanguage, useTranslation } from '../../LanguageTranslatorProvider';
 
 export type DemoVariant = 'info' | 'warning' | 'success';
 

@@ -1,12 +1,12 @@
 import type { ComponentProps } from 'react';
 
-import {
-  renderWithTranslations,
-  type RenderWithTranslationsOptions,
-} from '@app/form-component/test/renderWithTranslations';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import {
+  renderWithTranslations,
+  type RenderWithTranslationsOptions,
+} from '../../test/renderWithTranslations';
 import { CustomButton } from './CustomButton';
 
 const render = (

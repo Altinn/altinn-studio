@@ -1,5 +1,5 @@
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { IndicatorTag } from '@app/form-component/layout-components/common/IndicatorTag';
+import { useTranslation } from '../../../LanguageTranslatorProvider';
+import { IndicatorTag } from '../IndicatorTag';
 
 export interface IRequiredIndicatorProps {
   required?: boolean;

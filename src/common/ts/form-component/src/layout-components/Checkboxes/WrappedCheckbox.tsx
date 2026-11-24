@@ -1,16 +1,16 @@
 import { useEffect, useRef } from 'react';
 import type { Ref } from 'react';
 
-import { ConditionalWrapper } from '@app/form-component/app-components/ConditionalWrapper';
-import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopover';
-import { HelpText } from '@app/form-component/app-components/HelpText';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
-import { slugify } from '@app/form-component/layout-components/utils/slugify';
 import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { CheckboxProps } from '@digdir/designsystemet-react';
 
+import { ConditionalWrapper } from '../../app-components/ConditionalWrapper';
+import { ConfirmPopover } from '../../app-components/ConfirmPopover';
+import { HelpText } from '../../app-components/HelpText';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { useAlertOnChange } from '../common/useAlertOnChange';
+import { slugify } from '../utils/slugify';
 import classes from './CheckboxesLayout.module.css';
 import type { CheckboxesOption } from './CheckboxesLayout';
 

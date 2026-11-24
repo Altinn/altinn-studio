@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type React from 'react';
 
-import type { StoredImage } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import type { StoredImage } from '../imageUploadUtils';
 
 export function useFocusWhenUploaded(
   attachment: StoredImage | undefined,

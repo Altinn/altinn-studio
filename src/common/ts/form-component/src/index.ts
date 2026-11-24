@@ -8,7 +8,8 @@ export type {
 export { FormComponentActionType } from './types/FormComponentActionType';
 export type { DataModelBinding } from './types/DataModelBinding';
 
-export { LanguageTranslatorProvider } from './LanguageTranslatorProvider';
+export { LanguageTranslatorProvider, useTranslation } from './LanguageTranslatorProvider';
+export type { LanguageTranslatorContextProps } from './LanguageTranslatorProvider';
 
 export { parseAndCleanText, isElement } from './text/parseAndCleanText';
 export type { ParserReplace } from './text/parseAndCleanText';

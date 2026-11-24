@@ -1,8 +1,8 @@
-import { Button } from '@app/form-component/app-components';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { Button } from '../../app-components';
 import { ButtonGroupLayout } from './ButtonGroupLayout';
+import type { PropCategories } from '../common/storybook';
 import type { ButtonGroupLayoutProps } from './ButtonGroupLayout';
 
 export const BUTTON_GROUP_PROP_CATEGORIES = {

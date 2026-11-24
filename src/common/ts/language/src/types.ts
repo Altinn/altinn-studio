@@ -1,4 +1,4 @@
-import { en } from '@app/language/texts/en';
+import { en } from './texts/en';
 
 export type FixedLanguageList = ReturnType<typeof en>;
 

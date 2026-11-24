@@ -1,10 +1,10 @@
-import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { StaticLanguageTranslatorProvider } from '../../test/StaticLanguageTranslatorProvider';
 import { RadioButtonsLayout } from './RadioButtonsLayout';
+import type { PropCategories } from '../common/storybook';
 import type { RadioButtonsLayoutProps } from './RadioButtonsLayout';
 
 /**

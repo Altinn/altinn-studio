@@ -1,8 +1,8 @@
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { NavigationButtons } from './NavigationButtons';
+import type { PropCategories } from '../common/storybook';
 import type { NavigationButtonsProps } from './NavigationButtons';
 
 export const NAVIGATION_BUTTONS_PROP_CATEGORIES = {

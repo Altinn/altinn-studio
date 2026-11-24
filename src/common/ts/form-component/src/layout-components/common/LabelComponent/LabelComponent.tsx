@@ -1,12 +1,12 @@
 import { type PropsWithChildren } from 'react';
 
-import { Label } from '@app/form-component/app-components/Label';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
-import { OptionalIndicator } from '@app/form-component/layout-components/common/OptionalIndicator';
-import { RequiredIndicator } from '@app/form-component/layout-components/common/RequiredIndicator';
-import type { IGridStyling } from '@app/form-component/app-components/Flex/Flex';
+import { Label } from '../../../app-components/Label';
+import { useTranslation } from '../../../LanguageTranslatorProvider';
+import { Description } from '../Description';
+import { HelpTextContainer } from '../HelpTextContainer';
+import { OptionalIndicator } from '../OptionalIndicator';
+import { RequiredIndicator } from '../RequiredIndicator';
+import type { IGridStyling } from '../../../app-components/Flex/Flex';
 
 export interface ILabelComponentProps {
   /** Id for the rendered label element. */

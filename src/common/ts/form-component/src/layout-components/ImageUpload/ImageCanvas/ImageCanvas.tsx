@@ -1,19 +1,18 @@
 import React, { useCallback } from 'react';
 
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { useCanvasDraw } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useCanvasDraw';
-import { useDragInteraction } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useDragInteraction';
-import { useKeyboardNavigation } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useKeyboardNavigation';
-import { useZoomInteraction } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useZoomInteraction';
-import { ImagePreview } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/ImagePreview';
+import { useTranslation } from '../../../LanguageTranslatorProvider';
 import {
   constrainToArea,
   type CropInternal,
   type Position,
   type StoredImage,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
-
+} from '../imageUploadUtils';
+import { useCanvasDraw } from './hooks/useCanvasDraw';
+import { useDragInteraction } from './hooks/useDragInteraction';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
+import { useZoomInteraction } from './hooks/useZoomInteraction';
 import classes from './ImageCanvas.module.css';
+import { ImagePreview } from './ImagePreview';
 
 interface ImageCanvasProps {
   imageRef: React.RefObject<HTMLImageElement | null>;

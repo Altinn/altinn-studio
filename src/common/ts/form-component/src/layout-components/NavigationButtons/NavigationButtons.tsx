@@ -1,7 +1,6 @@
-import { Button } from '@app/form-component/app-components/Button';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-
+import { Button } from '../../app-components/Button';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import classes from './NavigationButtons.module.css';
 
 export type NavigationButtonsLoadingKey = 'next' | 'previous' | 'backToSummary' | 'backToPage';

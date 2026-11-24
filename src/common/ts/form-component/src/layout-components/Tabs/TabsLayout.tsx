@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { Flex } from '@app/form-component/app-components';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
+import { Flex } from '../../app-components';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import classes from './TabsLayout.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface TabsLayoutTab {
   /** Unique tab identifier */

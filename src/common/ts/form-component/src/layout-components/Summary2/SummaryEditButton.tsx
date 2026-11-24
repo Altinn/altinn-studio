@@ -1,7 +1,8 @@
-import { Button } from '@app/form-component/app-components/Button';
-import { useIsMobile } from '@app/form-component/app-components/hooks';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { PencilIcon } from '@navikt/aksel-icons';
+
+import { Button } from '../../app-components/Button';
+import { useIsMobile } from '../../app-components/hooks';
+import { useTranslation } from '../../LanguageTranslatorProvider';
 
 export interface SummaryEditButtonProps {
   onClick: () => void;

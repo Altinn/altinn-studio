@@ -1,7 +1,7 @@
-import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { screen } from '@testing-library/react';
 
+import { renderWithTranslations } from '../../../test/renderWithTranslations';
+import { getDescriptionId } from '../../utils/labelIds';
 import { Description } from './Description';
 
 describe('Description', () => {

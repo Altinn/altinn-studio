@@ -1,10 +1,10 @@
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
 import { Heading as DsHeading } from '@digdir/designsystemet-react';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './Heading.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export type HeadingSize = 'L' | 'M' | 'S' | 'h2' | 'h3' | 'h4';
 

@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Text } from './Text';
+import type { PropCategories } from '../common/storybook';
 import type { TextProps } from './Text';
 
 export const TEXT_PROP_CATEGORIES = {

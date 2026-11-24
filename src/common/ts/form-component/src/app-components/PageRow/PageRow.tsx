@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
-import { Flex } from '@app/form-component/app-components/Flex/Flex';
+import { Flex } from '../Flex/Flex';
 
 /** A row of components on a form or PDF page. */
 export function PageRow({ children }: PropsWithChildren) {

@@ -1,8 +1,8 @@
-import { AppCard } from '@app/form-component/app-components';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { AppCard } from '../../app-components';
 import { ImageLayout } from './ImageLayout';
+import type { PropCategories } from '../common/storybook';
 import type { ImageLayoutProps } from './ImageLayout';
 
 /**

@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Number } from './Number';
+import type { PropCategories } from '../common/storybook';
 import type { NumberProps } from './Number';
 
 export const NUMBER_PROP_CATEGORIES = {

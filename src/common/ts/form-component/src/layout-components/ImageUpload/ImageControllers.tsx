@@ -1,17 +1,13 @@
 import React, { useId, useRef } from 'react';
 
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { useFocusWhenUploaded } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusWhenUploaded';
-import {
-  isAnimationFile,
-  logToNormalZoom,
-  normalToLogZoom,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 import { Button, Input, Label } from '@digdir/designsystemet-react';
 import { ArrowUndoIcon, TrashIcon, UploadIcon } from '@navikt/aksel-icons';
-import type { StoredImage } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { useFocusWhenUploaded } from './hooks/useFocusWhenUploaded';
 import classes from './ImageControllers.module.css';
+import { isAnimationFile, logToNormalZoom, normalToLogZoom } from './imageUploadUtils';
+import type { StoredImage } from './imageUploadUtils';
 
 type ImageControllersProps = {
   imageType: string;

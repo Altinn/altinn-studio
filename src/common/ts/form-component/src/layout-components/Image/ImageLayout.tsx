@@ -1,10 +1,9 @@
-import { Flex } from '@app/form-component/app-components';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-
+import { Flex } from '../../app-components';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './ImageLayout.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 /** Justification/alignment of the image within its row. Mirrors the Studio `image.align` option. */
 export type ImageAlign =

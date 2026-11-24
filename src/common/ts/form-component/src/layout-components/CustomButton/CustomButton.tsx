@@ -1,7 +1,7 @@
-import { Button } from '@app/form-component/app-components/Button';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import type { ButtonColor, ButtonVariant } from '@app/form-component/app-components/Button';
+import { Button } from '../../app-components/Button';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import type { ButtonColor, ButtonVariant } from '../../app-components/Button';
 
 export type CustomButtonStyle = 'primary' | 'secondary' | 'tertiary';
 export type CustomButtonSize = 'sm' | 'md' | 'lg' | 'small' | 'medium' | 'large';

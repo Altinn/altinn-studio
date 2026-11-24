@@ -1,18 +1,18 @@
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
 
-import { ConfirmPopover } from '@app/form-component/app-components/ConfirmPopover';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
-import { optionFilter } from '@app/form-component/layout-components/common/optionFilter';
-import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
-import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
 import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
 
+import { ConfirmPopover } from '../../app-components/ConfirmPopover';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelComponent } from '../common/LabelComponent';
+import { optionFilter } from '../common/optionFilter';
+import { useAlertOnChange } from '../common/useAlertOnChange';
+import { getDescriptionId } from '../utils/labelIds';
 import classes from './MultipleSelectLayout.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface MultipleSelectOption {
   value: string;

@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 
-import type { TypingBufferConfig } from '@app/form-component/app-components/Timepicker/types';
-
 import { useTimeout } from './useTimeout';
+import type { TypingBufferConfig } from '../../types';
 
 export function useTypingBuffer({ onCommit, commitDelayMs, typingEndDelayMs }: TypingBufferConfig) {
   const [buffer, setBuffer] = useState('');

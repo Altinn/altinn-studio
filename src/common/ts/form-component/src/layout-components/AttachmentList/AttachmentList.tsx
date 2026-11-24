@@ -1,12 +1,11 @@
 import type { ReactElement } from 'react';
 
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import { AttachmentGroupings } from './attachments/AttachmentGroupings';
 import { MainAttachmentHeader } from './attachments/AttachmentHeader';
 import { Attachments } from './attachments/Attachments';
+import type { IGridStyling } from '../../app-components/Flex';
 import type { DisplayAttachment } from './attachments/types';
 
 export type { DisplayAttachment } from './attachments/types';

@@ -1,8 +1,8 @@
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { NavigationBar } from './NavigationBar';
+import type { PropCategories } from '../common/storybook';
 import type { NavigationBarProps } from './NavigationBar';
 
 export const NAVIGATION_BAR_PROP_CATEGORIES = {

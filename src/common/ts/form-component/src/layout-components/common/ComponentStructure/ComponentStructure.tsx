@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren, ReactNode } from 'react';
 
-import { Flex, type IGridStyling } from '@app/form-component/app-components/Flex';
+import { Flex, type IGridStyling } from '../../../app-components/Flex';
 
 export interface IComponentStructureProps {
   /**

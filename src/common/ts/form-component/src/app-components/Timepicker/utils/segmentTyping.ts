@@ -1,9 +1,4 @@
-import type {
-  SegmentBuffer,
-  SegmentType,
-  SegmentTypingResult,
-  TimeFormat,
-} from '@app/form-component/app-components/Timepicker/types';
+import type { SegmentBuffer, SegmentType, SegmentTypingResult, TimeFormat } from '../types';
 
 /**
  * Process hour input with Chrome-like smart coercion

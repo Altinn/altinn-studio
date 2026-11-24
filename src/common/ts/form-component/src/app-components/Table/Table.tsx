@@ -1,12 +1,12 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-import { ConfirmPopover } from '@app/form-component/app-components';
-import { Spinner } from '@app/form-component/app-components/Spinner/Spinner';
 import { Button } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import { format, isValid, parseISO } from 'date-fns';
 
+import { ConfirmPopover } from '..';
+import { Spinner } from '../Spinner/Spinner';
 import { BaseTable } from './BaseTable';
 import classes from './Table.module.css';
 

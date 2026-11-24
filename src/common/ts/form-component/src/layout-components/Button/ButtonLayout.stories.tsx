@@ -1,8 +1,8 @@
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ButtonLayout } from './ButtonLayout';
+import type { PropCategories } from '../common/storybook';
 import type { ButtonLayoutProps } from './ButtonLayout';
 
 export const BUTTON_LAYOUT_PROP_CATEGORIES = {

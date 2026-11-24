@@ -1,8 +1,8 @@
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { PDFPreviewButton } from './PDFPreviewButton';
+import type { PropCategories } from '../common/storybook';
 import type { PDFPreviewButtonProps } from './PDFPreviewButton';
 
 export const PDF_PREVIEW_BUTTON_PROP_CATEGORIES = {

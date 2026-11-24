@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Audio } from './Audio';
+import type { PropCategories } from '../common/storybook';
 import type { AudioProps } from './Audio';
 
 export const AUDIO_PROP_CATEGORIES = {

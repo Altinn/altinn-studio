@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Heading } from './Heading';
+import type { PropCategories } from '../common/storybook';
 import type { HeadingProps } from './Heading';
 
 export const HEADING_PROP_CATEGORIES = {

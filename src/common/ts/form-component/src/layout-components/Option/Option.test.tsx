@@ -1,6 +1,6 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { screen } from '@testing-library/react';
 
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { Option } from './Option';
 
 describe('Option', () => {

@@ -1,14 +1,13 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-import { Fieldset, Flex } from '@app/form-component/app-components';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
-import type { IGridStyling } from '@app/form-component/app-components/Flex/Flex';
-
+import { Fieldset, Flex } from '../../app-components';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { Description } from '../common/Description';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './ButtonGroupLayout.module.css';
+import type { IGridStyling } from '../../app-components/Flex/Flex';
 
 export interface ButtonGroupLayoutProps {
   /** Component ID, used for test IDs */

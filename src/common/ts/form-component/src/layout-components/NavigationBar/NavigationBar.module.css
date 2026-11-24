@@ -1,4 +1,4 @@
-@value mediaScreenSmDown from '@app/form-component/styles/breakpoints.module.css';
+@value mediaScreenSmDown from '../../app-components/breakpoints/breakpoints.module.css';
 
 .menu {
   list-style-type: none;

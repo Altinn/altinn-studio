@@ -1,9 +1,9 @@
-import { ParagraphText } from '@app/form-component/app-components';
 import fileTextIcon from '@navikt/aksel-icons/svg/FileText.svg';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { ParagraphText } from '../../app-components';
 import { TabsLayout } from './TabsLayout';
+import type { PropCategories } from '../common/storybook';
 import type { TabsLayoutProps } from './TabsLayout';
 
 /**

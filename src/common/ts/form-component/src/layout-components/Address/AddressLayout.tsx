@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { Flex, Input } from '@app/form-component/app-components';
-import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
-
+import { Flex, Input } from '../../app-components';
+import { LabelComponent } from '../common/LabelComponent';
 import classes from './AddressLayout.module.css';
 
 export type AddressFieldKey = 'address' | 'zipCode' | 'postPlace' | 'careOf' | 'houseNumber';

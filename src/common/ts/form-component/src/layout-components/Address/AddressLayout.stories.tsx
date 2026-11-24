@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { AddressLayout } from './AddressLayout';
+import type { PropCategories } from '../common/storybook';
 import type { AddressLayoutProps } from './AddressLayout';
 
 /**

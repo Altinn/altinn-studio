@@ -1,9 +1,9 @@
-import { ParagraphText } from '@app/form-component/app-components';
 import { List } from '@digdir/designsystemet-react';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { ParagraphText } from '../../app-components';
 import { Accordion } from './Accordion';
+import type { PropCategories } from '../common/storybook';
 import type { AccordionProps } from './Accordion';
 
 /**

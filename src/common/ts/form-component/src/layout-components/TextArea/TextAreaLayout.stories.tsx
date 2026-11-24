@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
-import { ComponentGridItem } from '@app/form-component/app-components/ComponentGridItem';
-import { PageRow } from '@app/form-component/app-components/PageRow';
-import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { ComponentGridItem } from '../../app-components/ComponentGridItem';
+import { PageRow } from '../../app-components/PageRow';
+import { withComponentGrid } from '../common/storybook';
 import { TextAreaLayout } from './TextAreaLayout';
+import type { PropCategories } from '../common/storybook';
 import type { TextAreaLayoutProps } from './TextAreaLayout';
 
 /**

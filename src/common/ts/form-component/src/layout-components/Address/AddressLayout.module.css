@@ -1,4 +1,4 @@
-@value mediaSmUp from '@app/form-component/styles/breakpoints.module.css';
+@value mediaSmUp from '../../app-components/breakpoints/breakpoints.module.css';
 
 .addressComponent {
   container-type: inline-size;

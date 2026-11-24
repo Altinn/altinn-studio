@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type React from 'react';
 
-import type { Position } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import type { Position } from '../../imageUploadUtils';
 
 type UseKeyboardNavigationProps = {
   position: Position;

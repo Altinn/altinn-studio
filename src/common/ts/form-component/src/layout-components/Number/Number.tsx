@@ -1,14 +1,14 @@
-import { DisplayNumber } from '@app/form-component/app-components/DisplayNumber';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelAsSpan } from '@app/form-component/layout-components/common/LabelAsSpan';
-import { getLabelId } from '@app/form-component/layout-components/utils/labelIds';
 import cn from 'classnames';
-import type { DisplayNumberProps } from '@app/form-component/app-components/DisplayNumber';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-import type { LabelAsSpanDirection } from '@app/form-component/layout-components/common/LabelAsSpan';
 
+import { DisplayNumber } from '../../app-components/DisplayNumber';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelAsSpan } from '../common/LabelAsSpan';
+import { getLabelId } from '../utils/labelIds';
 import classes from './Number.module.css';
+import type { DisplayNumberProps } from '../../app-components/DisplayNumber';
+import type { IGridStyling } from '../../app-components/Flex';
+import type { LabelAsSpanDirection } from '../common/LabelAsSpan';
 
 export type NumberDirection = LabelAsSpanDirection;
 

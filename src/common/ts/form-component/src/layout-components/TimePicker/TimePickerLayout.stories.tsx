@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { TimePickerLayout } from './TimePickerLayout';
+import type { PropCategories } from '../common/storybook';
 import type { TimePickerLayoutProps } from './TimePickerLayout';
 
 export const TIMEPICKER_PROP_CATEGORIES = {

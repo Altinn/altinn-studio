@@ -1,8 +1,7 @@
-import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-
+import { useCurrentLanguage, useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import classes from './Video.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface VideoSrc {
   nb?: string;

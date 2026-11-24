@@ -1,10 +1,10 @@
-import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { StaticLanguageTranslatorProvider } from '../../test/StaticLanguageTranslatorProvider';
 import { SingleValueSummaryLayout } from './SingleValueSummaryLayout';
 import { SummaryEditButton } from './SummaryEditButton';
+import type { PropCategories } from '../common/storybook';
 import type { SingleValueSummaryLayoutProps } from './SingleValueSummaryLayout';
 
 /**

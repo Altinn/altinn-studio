@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import pluginImport from 'eslint-plugin-import';
 import globals from 'globals';
 
 export default [
@@ -24,11 +25,14 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
+      import: pluginImport,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // Consumers compile this source, so the code must not rely on packages they happen to have installed.
+      'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts'] }],
     },
   },
 ];

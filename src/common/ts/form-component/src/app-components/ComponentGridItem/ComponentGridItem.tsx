@@ -1,10 +1,10 @@
 import type { HTMLAttributes, PropsWithChildren, Ref } from 'react';
 
-import { Flex } from '@app/form-component/app-components/Flex/Flex';
 import cn from 'classnames';
-import type { IGridStyling } from '@app/form-component/app-components/Flex/Flex';
 
+import { Flex } from '../Flex/Flex';
 import classes from './ComponentGridItem.module.css';
+import type { IGridStyling } from '../Flex/Flex';
 
 export type IComponentGridItemProps = PropsWithChildren<
   {
