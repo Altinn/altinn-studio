@@ -2688,6 +2688,37 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public void MailboxIdOfTheAppsOwnType_BesideTheForwardException_IsNotReported(bool semantic)
+    {
+        Write(
+            "logic/Relay.cs",
+            """
+            public sealed record StoredReply(Guid MailboxId, string Payload);
+
+            public sealed class Relay(IServiceTaskReplyForwarder forwarder)
+            {
+                public async Task Forward(StoredReply stored)
+                {
+                    try
+                    {
+                        await forwarder.ForwardReply(stored.MailboxId, "archive", stored.Payload, "key");
+                    }
+                    catch (ServiceTaskReplyForwardException e) when (e.Outcome == ServiceTaskReplyForwardOutcome.Unroutable) { }
+                }
+            }
+            """
+        );
+
+        var first = Migrate(semantic);
+        var again = Migrate(semantic);
+
+        Assert.Empty(first.Messages);
+        Assert.Empty(again.Messages);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
     {
         Write(
