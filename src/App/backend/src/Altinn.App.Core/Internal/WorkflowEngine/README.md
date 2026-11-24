@@ -15,16 +15,17 @@ kind of step.
   in Altinn.App.Api for each step, and the
   [callback authentication](../../../Altinn.App.Api/Infrastructure/Authentication/WorkflowEngineCallbackAuthenticationHandler.cs)
   checks the token it sends.
-- A service task runs each item of its pipeline as the last step of a workflow of its own, and
-  [`MailboxRelay`](MailboxRelay.cs) enqueues the next item's workflow when one completes. The
+- A service task runs each step of its pipeline as the last step of a workflow of its own, and
+  [`MailboxRelay`](MailboxRelay.cs) enqueues the next workflow when one completes. The
   [authoring guide](../../../../docs/service-task-pipelines.md) describes service tasks for app developers. A channel
   that receives an external system's answer hands it to
   [`IServiceTaskReplyForwarder`](../../Features/Process/IServiceTaskReplyForwarder.cs), which delivers it to the
-  mailbox the service task waits on.
+  mailbox an external stage waits on.
 - The models in `Models/` are the app's copies of the engine's wire contract.
   [The contract tests](../../../../../../Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/README.md)
   keep them from drifting. App code reads its own twins of them in `Features/Process`, such as
-  `MailboxClosedReason`, so that the app's vocabulary does not become part of a contract the engine owns.
+  `ServiceTaskReply` for a delivered message, so that the app's vocabulary does not become part of a contract the
+  engine owns.
 - Locking a task's data types belongs to the workflow, so it is not on the public `IInstanceDataMutator`. A command
   that locks data uses the `InstanceDataUnitOfWork` that the callback restores.
 

@@ -41,8 +41,9 @@ these rules:
   A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs each item of its pipeline as the last step of a workflow of its own. The first item runs in the
   transition's workflow after the commit, and each item's step enqueues the next item's workflow before its own
-  settles, so the collection has an active head until the task concludes. The step that concludes the task enqueues
-  the next transition as a dependent workflow, which does not acquire the instance again.
+  settles, so the collection has an active head until the task ends. Any step can end the task, and the last item's
+  completion does. The step that ends the task enqueues the next transition as a dependent workflow, which does not
+  acquire the instance again.
 
 ## Callbacks
 
@@ -87,7 +88,7 @@ the step's execution reference time, which stays the same across retries.
 - Rejected: an invalid payload, or a lost claim during instantiation, fails permanently.
 
 Every later save expects `processing`. `ReleaseProcessingStatus` moves the instance back to `idle` in the last save,
-unless a service task follows. Then the workflow that the service task enqueues when it concludes releases it. A
+unless a service task follows. Then the workflow that the service task enqueues when it ends releases it. A
 failed service task therefore leaves the instance in `processing`, and a resume runs the failed step without
 acquiring.
 
@@ -231,22 +232,26 @@ instance in a service task, with no workflow running or failed, comes from v8: a
 
 ## Mailboxes
 
-A mailbox lets a service task wait for a message instead of polling. The
-[authoring guide](service-task-pipelines.md#mailboxes-work-answered-by-a-message) covers how a task uses one, and the
-engine's [technical guide](../../../Runtime/workflow-engine/docs/technical-guide.md#mailboxes) how the engine stores
-and delivers messages.
+A mailbox lets a service task wait for a message instead of polling. App developers know it as an external stage's
+reply address. The [authoring guide](service-task-pipelines.md#external-stages-work-answered-by-a-message) covers how
+a task uses one, and the engine's
+[technical guide](../../../Runtime/workflow-engine/docs/technical-guide.md#mailboxes) how the engine stores and
+delivers messages.
 
-- A `MintMailbox` step creates the mailbox right before the stage that declares it, keyed on its own step ID, so a
-  retried stage runs against the address it already published. The mailbox travels in the callback state, keyed by the
-  opening stage's index, because no later step can derive the mint's key.
-- A stage that opens a mailbox shares its workflow only with the `MintMailbox` step before it. A reply handler runs
-  alone in a receive workflow parked on the mailbox, because the engine hands a message only to a workflow's first
-  step. Every other item after the first runs in a continuation workflow.
-- Since each item enqueues the next item's workflow before its own settles, the collection has an active head while an
-  exchange is open, and reads and new requests see the task as running. One resume with cascade revives a failed
-  chain.
-- At most one execution concludes an exchange. It closes the exchange's mailboxes before it starts anything that
-  follows.
+- An external stage is one pipeline item. A `MintMailbox` step creates its mailbox right before the send, keyed on its
+  own step ID, so a retried send runs against the address it already published. The mailbox travels in the callback
+  state, keyed by the stage's index, because no later step can derive the mint's key.
+- The send shares its workflow only with the `MintMailbox` step before it. Each reply runs alone in a receive workflow
+  parked on the mailbox, because the engine hands a message only to a workflow's first step. A reply step carries the
+  same item index as the send, and the mailbox receipt in its callback tells the two apart. Every other item after
+  the first runs in a continuation workflow.
+- A service task keeps at most one mailbox open: an external stage closes its mailbox before the next item starts.
+- Since each item enqueues the next item's workflow before its own settles, the collection has an active head while a
+  stage waits for replies, and reads and new requests see the task as running. One resume with cascade revives a
+  failed chain.
+- Only the step that is done with the replies, or that ends the task, closes the mailbox, and it does so before it
+  starts anything that follows. A failure closes nothing, so a resume runs the failed step against the same
+  mailbox.
 - Each hop re-signs with the app code current then. A message that waits past the expiry of the code that sealed it
   fails permanently, since a retry opens the same bytes.
 - `IServiceTaskReplyForwarder` seals a message in an envelope signed for the mailbox, the service task type and the
@@ -266,7 +271,7 @@ A step names its pipeline item by position, so reshaping a pipeline in flight is
 app does not guard against it. Names would not help either, since a redeploy can change what a stage does.
 
 - A step whose item no longer fits fails permanently with a code that names the index. It never moves to a neighboring
-  item, which could read another exchange's message.
+  item, which could read another stage's message.
 - A lifecycle step enqueued by a version from before lifecycle stages carries no stage index. It runs every stage of
   the task type's pipeline in that one step, as the version that enqueued it ran the whole lifecycle. The first stage
   runs under the step's id and each later stage under an id derived from it and the stage's position, the same on
@@ -277,9 +282,8 @@ app does not guard against it. Names would not help either, since a redeploy can
   planned every hook step has one, but a transition planned without a handler does not.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
-- A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can
-  leave a stale mailbox entry in the callback state, and the next mint at that index retries until its retry strategy
-  runs out.
+- A reply step runs the external stage now at its index, so after a reshape it can hand a reply to another external
+  stage's handler.
 
 ## Known gaps
 
