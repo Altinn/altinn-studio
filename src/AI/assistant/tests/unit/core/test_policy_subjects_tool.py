@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from itertools import count
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -14,15 +13,12 @@ from pydantic import ValidationError
 
 from agents.core import LoopContext, PolicySubjectsTool
 from agents.core.tools.policy_subjects_tool import PolicySubjectsArgs
-from agents.services.designer import policy_options
-from shared.utils import ttl_cache
+from agents.services.designer.policy_options import PolicyOptions
 
 from .conftest import Handler
 
 FIXTURES = Path(__file__).parent / "fixtures" / "policy_subjects"
 HOUR = 60 * 60
-# Each test starts on a later day, so that no test gets a list that another test read.
-_DAYS = count(1)
 
 
 def _recorded(options: str) -> Any:
@@ -73,25 +69,19 @@ def _many_roles(count: int) -> list[dict[str, Any]]:
     ]
 
 
-@pytest.fixture(autouse=True)
-def designer_url(monkeypatch):
-    monkeypatch.setattr(policy_options.config, "DESIGNER_BASE_URL", "http://designer.test/")
-
-
-@pytest.fixture(autouse=True)
-def clock(monkeypatch) -> SimpleNamespace:
-    """The time that the cache of Designer's lists sees. Set `now` to move it."""
-    clock = SimpleNamespace(now=next(_DAYS) * 24 * HOUR)
-    monkeypatch.setattr(ttl_cache, "time", SimpleNamespace(monotonic=lambda: clock.now))
-    return clock
+@pytest.fixture
+def clock() -> SimpleNamespace:
+    """The time that the tool's cache sees. Set `now` to move it."""
+    return SimpleNamespace(now=0.0)
 
 
 @pytest.fixture
-def run(ctx: LoopContext):
+def run(ctx: LoopContext, clock: SimpleNamespace):
     ctx.extras["app_name"] = "app"
+    tool = PolicySubjectsTool(PolicyOptions("http://designer.test/", clock=lambda: clock.now))
 
     async def run(**args):
-        return await PolicySubjectsTool().run(PolicySubjectsArgs(**args), ctx)
+        return await tool.run(PolicySubjectsArgs(**args), ctx)
 
     return run
 

@@ -1,12 +1,9 @@
-import time
-
 from shared.utils.ttl_cache import TtlCache
 
 
-def test_returns_a_value_until_it_expires(monkeypatch):
+def test_returns_a_value_until_it_expires():
     now = 1_000.0
-    monkeypatch.setattr(time, "monotonic", lambda: now)
-    cache: TtlCache[str] = TtlCache(ttl_seconds=60)
+    cache: TtlCache[str] = TtlCache(ttl_seconds=60, clock=lambda: now)
     cache.put("key", "value")
 
     now += 59

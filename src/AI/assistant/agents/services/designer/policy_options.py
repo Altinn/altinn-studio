@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -12,14 +13,8 @@ import httpx
 from shared.config import get_config
 from shared.utils.ttl_cache import TtlCache
 
-config = get_config()
-
 _ACCESS_PACKAGES_PATH = "/designer/api/{org}/{app}/policy/accesspackageoptions"
 _ROLES_PATH = "/designer/api/{org}/{app}/policy/subjectoptions"
-
-
-def _designer_url(path: str, org: str, app: str) -> str:
-    return config.DESIGNER_BASE_URL.rstrip("/") + path.format(org=org, app=app)
 
 
 ACCESS_PACKAGE_ATTRIBUTE = "urn:altinn:accesspackage"
@@ -30,7 +25,6 @@ _CACHE_TTL_SECONDS = 60 * 60
 _FETCH_TIMEOUT_SECONDS = 20.0
 # Enough of an entry to find it in Designer's response.
 _ENTRY_EXCERPT_CHARS = 200
-_cache: TtlCache[list[Any]] = TtlCache(_CACHE_TTL_SECONDS)
 
 # Most package descriptions end with this disclaimer, which says nothing about the package.
 _DISCLAIMER = re.compile(r"^Ved (?:regelverksendringer|innføring|endrede).*endringer i tilganger", re.IGNORECASE)
@@ -73,22 +67,31 @@ class Role:
         return self.provider_code == ALTINN2_PROVIDER
 
 
-async def access_packages(org: str, app: str) -> list[AccessPackage]:
-    return await _cached(_ACCESS_PACKAGES_PATH, org, app, _parse_access_packages)
+class PolicyOptions:
+    """The lists from one Designer, each kept for an hour for every app, since they do not depend on the app."""
+
+    def __init__(self, designer_base_url: str, *, clock: Callable[[], float] = time.monotonic) -> None:
+        self._designer_base_url = designer_base_url.rstrip("/")
+        self._cache: TtlCache[list[Any]] = TtlCache(_CACHE_TTL_SECONDS, clock=clock)
+
+    async def access_packages(self, org: str, app: str) -> list[AccessPackage]:
+        return await self._cached(_ACCESS_PACKAGES_PATH, org, app, _parse_access_packages)
+
+    async def roles(self, org: str, app: str) -> list[Role]:
+        return await self._cached(_ROLES_PATH, org, app, _parse_roles)
+
+    async def _cached[T](self, path: str, org: str, app: str, parse: Callable[[Any], list[T]]) -> list[T]:
+        """Keeps only a list that parsed, so that one bad answer does not last for the whole hour."""
+        cached = self._cache.get(path)
+        if cached is not None:
+            return cached
+        parsed = parse(await _fetch_json(self._designer_base_url + path.format(org=org, app=app)))
+        self._cache.put(path, parsed)
+        return parsed
 
 
-async def roles(org: str, app: str) -> list[Role]:
-    return await _cached(_ROLES_PATH, org, app, _parse_roles)
-
-
-async def _cached[T](path: str, org: str, app: str, parse: Callable[[Any], list[T]]) -> list[T]:
-    """Keeps only a list that parsed, so that one bad answer does not last for the whole hour."""
-    cached = _cache.get(path)
-    if cached is not None:
-        return cached
-    parsed = parse(await _fetch_json(_designer_url(path, org, app)))
-    _cache.put(path, parsed)
-    return parsed
+# Shared by every session, so that Designer is asked once an hour.
+shared = PolicyOptions(get_config().DESIGNER_BASE_URL)
 
 
 async def _fetch_json(url: str) -> Any:

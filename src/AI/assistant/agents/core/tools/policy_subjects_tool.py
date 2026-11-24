@@ -19,6 +19,7 @@ from agents.services.designer.policy_options import (
     ACCESS_PACKAGE_ATTRIBUTE,
     ROLE_CODE_ATTRIBUTE,
     AccessPackage,
+    PolicyOptions,
     PolicyOptionsError,
     Role,
 )
@@ -119,6 +120,9 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
     input_schema = PolicySubjectsArgs
     is_concurrency_safe = True
 
+    def __init__(self, options: PolicyOptions = policy_options.shared) -> None:
+        self._options = options
+
     async def run(self, args: PolicySubjectsArgs, ctx: LoopContext) -> ToolResult:
         org, app = ctx.repo_owner, ctx.extras.get("app_name")
         if not org or not app:
@@ -130,7 +134,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
         try:
             if args.kind == "access_packages":
                 content = _describe_access_packages(
-                    await policy_options.access_packages(org, app),
+                    await self._options.access_packages(org, app),
                     search=args.search,
                     group=args.group,
                     max_chars=max_chars,
@@ -138,7 +142,7 @@ class PolicySubjectsTool(Tool[PolicySubjectsArgs]):
                 source = _PACKAGES_SOURCE
             else:
                 content = _describe_roles(
-                    await policy_options.roles(org, app), kind=args.kind, search=args.search, max_chars=max_chars
+                    await self._options.roles(org, app), kind=args.kind, search=args.search, max_chars=max_chars
                 )
                 source = _ROLES_SOURCE
         except PolicyOptionsError as exc:
