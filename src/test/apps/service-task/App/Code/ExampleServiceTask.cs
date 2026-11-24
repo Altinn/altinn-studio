@@ -9,7 +9,7 @@ public class ExampleServiceTask : IServiceTask
 {
     public string Type => "exampleServiceTask";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     public async Task<ServiceTaskResult> Execute(StageContext context)
     {
@@ -24,6 +24,6 @@ public class ExampleServiceTask : IServiceTask
         if (formData.property1 != "true")
             return ServiceTaskResult.FailedPermanent("property1 must be 'true' for the service task to succeed.");
 
-        return ServiceTaskResult.Success();
+        return ServiceTaskResult.Completed();
     }
 }

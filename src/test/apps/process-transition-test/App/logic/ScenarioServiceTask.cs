@@ -8,8 +8,8 @@ namespace Altinn.App.Logic;
 
 /// <summary>
 /// Post-commit lever for the forward transition (<c>path == "postCommit"</c>), implemented as a
-/// pipeline service task with one stage: <c>PrepareScenario</c> completes first, then the
-/// <c>Finally</c> (<c>RunScenario</c>) reads the TransitionControl levers and runs the scenario.
+/// pipeline service task with two stages: <c>PrepareScenario</c> completes first, then
+/// <c>RunScenario</c> reads the TransitionControl levers and runs the scenario.
 /// Once <c>PrepareScenario</c> completes, its completion is recorded durably. Later retries,
 /// deferral re-checks and resumes re-run only <c>RunScenario</c>, exercising the multi-stage
 /// contract (expansion, dispatch by stage index, per-stage durability) through the public API.
@@ -38,26 +38,26 @@ public sealed class ScenarioServiceTask : IServiceTask
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
         pipeline
             .Stage(PrepareScenario, new ProcessStepOptions { WaitBudget = TimeSpan.FromMinutes(5) })
-            .Finally(RunScenario, new ProcessStepOptions { WaitBudget = ScenarioWaitBudget });
+            .Stage(RunScenario, new ProcessStepOptions { WaitBudget = ScenarioWaitBudget });
 
     /// <summary>
     /// Defers while a browser test holds the instance, so assertions about waiting UI do not
     /// race task completion. Otherwise completes immediately. Later retries/resumes re-enter
     /// <c>RunScenario</c> without re-running this completed stage.
     /// </summary>
-    private Task<StageResult> PrepareScenario(StageContext context)
+    private Task<ServiceTaskResult> PrepareScenario(StageContext context)
     {
         Guid instanceGuid = Guid.Parse(context.InstanceDataMutator.Instance.Id.Split('/').Last());
-        return Task.FromResult<StageResult>(
+        return Task.FromResult(
             ServiceTaskTestGate.IsHeld(instanceGuid)
-                ? StageResult.Defer(
+                ? ServiceTaskResult.Defer(
                     TimeSpan.FromSeconds(1),
                     "Waiting for the test to release the instance"
                 )
-                : StageResult.Completed()
+                : ServiceTaskResult.Completed()
         );
     }
 
@@ -67,7 +67,7 @@ public sealed class ScenarioServiceTask : IServiceTask
         DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
         if (dataElement is null)
         {
-            return ServiceTaskResult.Success();
+            return ServiceTaskResult.Completed();
         }
 
         var levers = (TransitionControl)
@@ -77,7 +77,7 @@ public sealed class ScenarioServiceTask : IServiceTask
         // value means there is no scenario to run.
         if (levers.path != "postCommit")
         {
-            return ServiceTaskResult.Success();
+            return ServiceTaskResult.Completed();
         }
 
         int delayMs = levers.delayMs ?? 0;
@@ -157,6 +157,6 @@ public sealed class ScenarioServiceTask : IServiceTask
             );
         }
 
-        return ServiceTaskResult.Success();
+        return ServiceTaskResult.Completed();
     }
 }

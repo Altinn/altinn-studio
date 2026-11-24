@@ -17,7 +17,7 @@ public class FailServiceTask : IServiceTask
 
     public string Type => "fail";
 
-    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
     public async Task<ServiceTaskResult> Execute(StageContext context)
     {
@@ -40,6 +40,6 @@ public class FailServiceTask : IServiceTask
             return ServiceTaskResult.FailedPermanent("Form data requested the service task to fail.");
         }
 
-        return ServiceTaskResult.Success();
+        return ServiceTaskResult.Completed();
     }
 }
