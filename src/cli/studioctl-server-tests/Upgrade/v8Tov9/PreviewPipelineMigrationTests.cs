@@ -2888,6 +2888,74 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task StepMethod_ThatSharesItsSignature_IsReported_AndLeftAsItIs(bool semantic)
+    {
+        var task = Write(
+            "logic/ArchiveTasks.cs",
+            $$"""
+            public interface IArchiveSteps
+            {
+                Task<StageResult> Archive(StageContext context);
+            }
+
+            public class ArchiveTask : IServiceTask, IArchiveSteps
+            {
+                public string Type => "archive";
+
+                public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+                    pipeline
+                        .Stage(Archive)
+                        .Stage(Send, new MailboxOptions { Timeout = TimeSpan.FromDays(1) }, out var handle)
+                        .ConcludeOnReplies(handle, OnAnswer, OnTimeout);
+
+                public Task<StageResult> Archive(StageContext context) => Task.FromResult(StageResult.Completed());
+
+                protected virtual Task<ServiceTaskResult> OnTimeout(StageContext context, MailboxClosedReason reason) =>
+                    Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedPermanent("No answer."));
+
+                private Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
+                    Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+
+                private Task<ServiceTaskExchangeResult> OnAnswer(StageContext context, ServiceTaskReply reply) =>
+                    Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+            }
+
+            public class PatientArchiveTask : ArchiveTask
+            {
+                protected override Task<ServiceTaskResult> OnTimeout(StageContext context, MailboxClosedReason reason) =>
+                    Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromDays(1)));
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        var file = Path.Combine("logic", "ArchiveTasks.cs");
+        Assert.Contains(
+            $"{file}:20: ArchiveTask.Archive shares its signature with IArchiveSteps, which its type implements, so "
+                + "its result type and parameters were not rewritten. Make it, and each method that shares its "
+                + "signature, a method that returns Task<ServiceTaskResult>.",
+            result.Todos
+        );
+        Assert.Contains(
+            result.Todos,
+            todo =>
+                todo.StartsWith(
+                    $"{file}:22: ArchiveTask.OnTimeout shares its signature with its override at {file}:34, so",
+                    StringComparison.Ordinal
+                )
+        );
+        var migrated = await ReadMigrated(task);
+        Assert.Contains("public Task<StageResult> Archive(StageContext context) =>", migrated);
+        Assert.Contains(
+            "protected virtual Task<ServiceTaskResult> OnTimeout(StageContext context, MailboxClosedReason reason) =>",
+            migrated
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
     {
         Write(

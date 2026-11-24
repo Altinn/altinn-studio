@@ -415,6 +415,68 @@ internal sealed partial class PreviewPipelineMigration
                 );
             }
 
+            if (SharedSignature(target) is { } shared)
+            {
+                return (
+                    $"shares its signature with {shared}",
+                    $"Make it, and each method that shares its signature, a method that {first.Shape}"
+                );
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// What else declares the method's signature, which a rewrite of the method alone would break: the method it
+        /// overrides, the overrides of an abstract or virtual method, or an interface of the app's that its type
+        /// implements with it. <c>null</c> when nothing does.
+        /// </summary>
+        private string? SharedSignature(StepFunction target)
+        {
+            if (target.Declaration is not MethodDeclarationSyntax method)
+            {
+                return null;
+            }
+
+            if (method.Modifiers.Any(SyntaxKind.OverrideKeyword))
+            {
+                return "the method it overrides";
+            }
+
+            if (method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+            {
+                return "its overrides";
+            }
+
+            var sameName = files
+                .SelectMany(static file =>
+                    file.Root.DescendantNodes().OfType<MethodDeclarationSyntax>().Select(other => (file, other))
+                )
+                .Where(pair => pair.other.Identifier.ValueText == target.Name)
+                .ToList();
+            if (method.Modifiers.Any(SyntaxKind.VirtualKeyword))
+            {
+                foreach (
+                    var (file, other) in sameName.Where(static pair =>
+                        pair.other.Modifiers.Any(SyntaxKind.OverrideKeyword)
+                    )
+                )
+                {
+                    return $"its override at {file.RelativePath}:{Line(file, other)}";
+                }
+            }
+
+            var bases = ((method.Parent as TypeDeclarationSyntax)?.BaseList?.Types ?? default)
+                .Select(static type => SimpleName(type.Type) ?? (type.Type as GenericNameSyntax)?.Identifier.ValueText)
+                .ToHashSet(StringComparer.Ordinal);
+            foreach (var (_, other) in sameName)
+            {
+                if (other.Parent is InterfaceDeclarationSyntax owner && bases.Contains(owner.Identifier.ValueText))
+                {
+                    return $"{owner.Identifier.ValueText}, which its type implements";
+                }
+            }
+
             return null;
         }
 
