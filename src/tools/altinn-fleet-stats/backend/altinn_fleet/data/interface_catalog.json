@@ -1132,6 +1132,7 @@
       ],
       "members": [
         "CorrespondenceRequest Build();",
+        "ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding);",
         "ICorrespondenceRequestBuilder WithAttachment(ICorrespondenceAttachmentBuilder builder);",
         "ICorrespondenceRequestBuilder WithAttachment(CorrespondenceAttachment attachment);",
         "ICorrespondenceRequestBuilder WithAttachments(IEnumerable<CorrespondenceAttachment> attachments);",
@@ -1155,7 +1156,7 @@
         "ICorrespondenceRequestBuilder WithReplyOptions(IEnumerable<CorrespondenceReplyOption> replyOptions);",
         "ICorrespondenceRequestBuilder WithRequestedPublishTime(DateTimeOffset requestedPublishTime);"
       ],
-      "member_count": 23,
+      "member_count": 24,
       "is_obsolete": false,
       "obsolete_message": "",
       "area": "Features",
