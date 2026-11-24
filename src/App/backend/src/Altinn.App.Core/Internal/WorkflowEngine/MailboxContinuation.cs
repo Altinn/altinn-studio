@@ -8,8 +8,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// </summary>
 /// <remarks>
 /// <see cref="Conclude"/> always travels with the next transition's action on the same result: the task ends, so its
-/// open mailbox closes first. <see cref="MailboxRelay.Continue"/> still gates the after-workflow on that action being
-/// present, so a <see cref="Conclude"/> without one closes and starts nothing.
+/// open mailbox closes first.
 /// </remarks>
 internal abstract record MailboxContinuation
 {
@@ -83,8 +82,7 @@ internal abstract record MailboxContinuation
     }
 
     /// <summary>
-    /// The task ends with a mailbox open: close it, then start the after-workflow if — and only if — the result
-    /// asked the process to move on.
+    /// The task ends with a mailbox open: close it, then start the after-workflow.
     /// </summary>
     internal sealed record Conclude : MailboxContinuation
     {

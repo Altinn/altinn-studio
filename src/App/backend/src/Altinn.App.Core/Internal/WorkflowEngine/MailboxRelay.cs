@@ -334,12 +334,7 @@ internal sealed class MailboxRelay
                     conclude.MailboxId,
                     cancellationToken
                 );
-
-                if (request.AutoAdvanceProcess)
-                {
-                    await EnqueueAfterWorkflow(request, cancellationToken);
-                }
-
+                await EnqueueAfterWorkflow(request, cancellationToken);
                 return;
 
             case MailboxContinuation.ConcludeAndContinue continuing:
@@ -574,8 +569,6 @@ internal readonly record struct MailboxRelayRequest
     /// The state blob the step published, re-signed: what every workflow the relay enqueues starts from.
     /// </summary>
     public required string State { get; init; }
-
-    public required bool AutoAdvanceProcess { get; init; }
 
     public required string? AutoAdvanceAction { get; init; }
 }

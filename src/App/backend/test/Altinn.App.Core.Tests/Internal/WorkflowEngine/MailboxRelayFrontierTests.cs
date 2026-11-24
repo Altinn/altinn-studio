@@ -341,8 +341,6 @@ public class MailboxRelayFrontierTests
                 language: null
             ),
             State = "published-state",
-            // As the callback relays a result: the after-workflow starts only when the result moves the process on.
-            AutoAdvanceProcess = processNext is not null,
             AutoAdvanceAction = processNext?.Action,
         };
 

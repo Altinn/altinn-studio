@@ -257,7 +257,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload,
                         instanceDataUnitOfWork,
                         updatedState,
-                        success.ProcessNextContinuation is not null,
                         success.ProcessNextContinuation?.Action,
                         cancellationToken
                     );
@@ -508,7 +507,6 @@ public class WorkflowEngineCallbackController : ControllerBase
         AppCallbackPayload payload,
         InstanceDataUnitOfWork unitOfWork,
         string state,
-        bool autoAdvanceProcess,
         string? autoAdvanceAction,
         CancellationToken cancellationToken
     )
@@ -523,7 +521,6 @@ public class WorkflowEngineCallbackController : ControllerBase
                 Payload = payload,
                 DataAccessor = unitOfWork,
                 State = state,
-                AutoAdvanceProcess = autoAdvanceProcess,
                 AutoAdvanceAction = autoAdvanceAction,
             },
             cancellationToken

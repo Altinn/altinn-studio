@@ -265,12 +265,7 @@ public class MailboxRelayTests
     private static ServiceTaskItem.ExternalStage External(ServiceTaskPipeline pipeline, int index) =>
         Assert.IsType<ServiceTaskItem.ExternalStage>(pipeline.Items[index]);
 
-    private static MailboxRelayRequest CreateRequest(
-        Guid stepId,
-        Guid? workflowId = null,
-        bool autoAdvance = true,
-        string? action = null
-    ) =>
+    private static MailboxRelayRequest CreateRequest(Guid stepId, Guid? workflowId = null, string? action = null) =>
         new()
         {
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -301,7 +296,6 @@ public class MailboxRelayTests
                 language: null
             ),
             State = "published-state",
-            AutoAdvanceProcess = autoAdvance,
             AutoAdvanceAction = action,
         };
 
@@ -413,27 +407,6 @@ public class MailboxRelayTests
         Assert.Equal("published-state", state);
         Assert.Equal("reject", action);
         Assert.Equal(_stepId.ToString(), key);
-    }
-
-    /// <summary>
-    /// The after-workflow starts only when the result moves the process on: without the next transition's action
-    /// on the result, the relay closes the mailbox and starts nothing.
-    /// </summary>
-    [Fact]
-    public async Task Conclude_WithoutTheNextTransition_ClosesAndStartsNothing()
-    {
-        var recorder = new RelayRecorder();
-
-        await CreateRelay(recorder)
-            .Continue(
-                new MailboxContinuation.Conclude(_mailboxId),
-                CreateRequest(_stepId, autoAdvance: false),
-                CancellationToken.None
-            );
-
-        Assert.Equal(["close-mailbox"], recorder.Calls);
-        Assert.Empty(recorder.AfterWorkflows);
-        Assert.Empty(recorder.Enqueues);
     }
 
     [Fact]
