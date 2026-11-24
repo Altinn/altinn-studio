@@ -14,7 +14,7 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 
 - Start with the README of the component you change. The [root README](README.md) says how the parts fit
   together.
-- Follow the [architecture goals](docs/architecture/goals.md), the [coding standards](docs/coding-standards.md) and
+- Follow the [architecture principles](docs/architecture.md), the [coding standards](docs/coding-standards.md) and
   the [documentation rules](docs/documentation.md). Workflows, builds and deployments follow the conventions in
   [docs/cicd.md](docs/cicd.md), and telemetry, dashboards and alerts follow
   [docs/observability.md](docs/observability.md).

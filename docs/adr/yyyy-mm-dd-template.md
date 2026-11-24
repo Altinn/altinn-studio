@@ -14,8 +14,8 @@ The problem you want to solve, any relevant context.
 
 ## Decision drivers
 
-Weigh alternatives against the [architecture goals](../architecture/goals.md). If the chosen alternative goes against a
-goal, explain why. If it adds a provider dependency, say what leaving would take.
+Weigh alternatives against the [architecture principles](../architecture.md). If the chosen alternative goes against a
+principle, explain why. If it adds a provider dependency, say what leaving would take.
 
 A list of decision drivers. These are points which can differ in importance. If a point is "nice to have" rather than
 "need to have", then prefix the description.

@@ -1,7 +1,7 @@
-# Architecture goals
+# Architecture principles
 
-We weigh every design in Altinn Studio against these goals, applying Digdir's
-[architecture principles][digdir-principles] to Altinn Studio. An ADR that goes against a goal says why.
+We weigh every design in Altinn Studio against these principles, applying Digdir's
+[architecture principles][digdir-principles] to Altinn Studio. An ADR that goes against a principle says why.
 
 Altinn 1 and Altinn 2 were rebuilt because they depended on proprietary products that reached end of life
 ([Altinn and open source][altinn-oss]).
@@ -49,11 +49,11 @@ Altinn Studio is licensed under the MIT License and developed in the open as a [
 
 ## Isolation
 
-Altinn Studio isolates each service owner's apps and data from every other service owner's.
+Altinn Studio isolates each service owner's apps, data and credentials from every other service owner's.
 
-- Each service owner runs its apps in its own [runtime cluster](../infrastructure/environments.md#runtime-clusters).
-- Shared services and databases isolate each service owner's data and traffic so a bug, load spike or compromise in one
-  app does not expose or disrupt another service owner.
+- A bug, load spike or compromise in one service owner's app cannot read, alter or disrupt another service owner's
+  apps or data.
+- Shared services and databases enforce tenant boundaries rather than relying on callers to respect them.
 
 ## Security in depth
 
@@ -63,14 +63,14 @@ Altinn Studio isolates each service owner's apps and data from every other servi
 
 ## Accessibility
 
-- Designer and apps meet the [universal design regulation][uu] (WCAG 2.1 AA).
+- Designer and apps follow WCAG 2.1 AA and comply with the [universal design regulation][uu].
 - Interfaces work with keyboards and assistive technology by default, not as a follow-up fix.
 
 ## Privacy
 
 - Components collect and retain only the personal data a task requires, following privacy by design and by default
   ([GDPR article 25][gdpr25]).
-- Services keep personal and other [sensitive data](../observability.md#sensitive-data) out of logs, metrics and traces.
+- Services keep personal and other [sensitive data](observability.md#sensitive-data) out of logs, metrics and traces.
 
 [digdir-principles]: https://www.digdir.no/digital-samhandling/overordnede-arkitekturprinsipper/1065
 [digdir-6]: https://www.digdir.no/digital-samhandling/prinsipp-6-lag-digitale-losninger-som-stotter-samhandling/1063
