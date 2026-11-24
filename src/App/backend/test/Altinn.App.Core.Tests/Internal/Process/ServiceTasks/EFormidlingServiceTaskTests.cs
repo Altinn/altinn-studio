@@ -60,16 +60,16 @@ public class EFormidlingServiceTaskTests
     /// Drives the send stage the way the engine does — by item index, through the composed pipeline — so
     /// dispatch by index is exercised rather than a direct method call.
     /// </summary>
-    private static Task<StageResult> SendShipment(EFormidlingServiceTask task, StageContext context)
+    private static Task<ServiceTaskResult> SendShipment(EFormidlingServiceTask task, StageContext context)
     {
         var stage =
-            task.ResolvePipeline().Items[0] as PipelineStage.Plain
+            task.ResolvePipeline().Items[0] as ServiceTaskItem.Stage
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
         return stage.Work(context);
     }
 
     private static Task<ServiceTaskResult> AwaitDelivery(EFormidlingServiceTask task, StageContext context) =>
-        Assert.IsType<PipelineConclusion.Final>(task.ResolvePipeline().Items[^1]).Work(context);
+        Assert.IsType<ServiceTaskItem.Stage>(task.ResolvePipeline().Items[^1]).Work(context);
 
     private void SetupShipmentStatus(
         EFormidlingDeliveryState state,
@@ -103,18 +103,18 @@ public class EFormidlingServiceTaskTests
     [Fact]
     public void Pipeline_Should_SendThenWaitForDelivery()
     {
-        // The pipeline's shape — one stage, then the conclusion — is what in-flight workflows dispatch
+        // The pipeline's shape — a send stage, then a polling stage — is what in-flight workflows dispatch
         // against, so it is pinned here.
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
         Assert.Equal(2, pipeline.Items.Count);
-        Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
-        PipelineConclusion conclusion = Assert.IsType<PipelineConclusion.Final>(pipeline.Items[1]);
-        // The wait budget belongs to the conclusion alone — the send stage must not be handed a
+        Assert.IsType<ServiceTaskItem.Stage>(pipeline.Items[0]);
+        var poll = Assert.IsType<ServiceTaskItem.Stage>(pipeline.Items[1]);
+        // The wait budget belongs to the polling stage alone — the send stage must not be handed a
         // budget it can never use. Deliberately longer than the two-hour lifetime the shipment
         // carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the instance
         // before our wait gives up.
-        Assert.Equal(TimeSpan.FromHours(2.5), conclusion.StepOptions?.WaitBudget);
+        Assert.Equal(TimeSpan.FromHours(2.5), poll.StepOptions?.WaitBudget);
         Assert.Null(pipeline.Items[0].StepOptions);
     }
 
@@ -186,7 +186,7 @@ public class EFormidlingServiceTaskTests
         var result = await SendShipment(serviceTask, parameters);
 
         // Assert
-        Assert.IsType<CompletedStageResult>(result);
+        Assert.IsType<CompletedServiceTaskResult>(result);
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        var failed = Assert.IsType<FailedStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("earlier pass", failed.ErrorMessage);
         _eFormidlingServiceMock.Verify(
@@ -386,7 +386,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        Assert.IsType<CompletedStageResult>(result);
+        Assert.IsType<CompletedServiceTaskResult>(result);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.SendEFormidlingShipment(
@@ -411,7 +411,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        Assert.IsType<CompletedStageResult>(result);
+        Assert.IsType<CompletedServiceTaskResult>(result);
         Assert.Equal(
             _workflowId.ToString(),
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey]
@@ -465,7 +465,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        var failed = Assert.IsType<FailedStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
     }
 
@@ -547,7 +547,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, CreateContext(unitOfWork));
 
-        var failed = Assert.IsType<FailedStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains($"{(int)statusCode} {statusCode}", failed.ErrorMessage);
         Assert.Contains("create eFormidling message", failed.ErrorMessage);
@@ -578,7 +578,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, CreateContext(unitOfWork));
 
-        var failed = Assert.IsType<FailedStageResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Contains($"The integrasjonspunkt said: {expectedReason}", failed.ErrorMessage);
     }
 
@@ -590,7 +590,9 @@ public class EFormidlingServiceTaskTests
 
         // The message becomes a log line and an error-history entry, so a multi-line body is flattened.
         SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest, "first line\r\nsecond line"));
-        var flattened = Assert.IsType<FailedStageResult>(await SendShipment(_serviceTask, CreateContext(unitOfWork)));
+        var flattened = Assert.IsType<FailedServiceTaskResult>(
+            await SendShipment(_serviceTask, CreateContext(unitOfWork))
+        );
         Assert.Contains("first line", flattened.ErrorMessage);
         Assert.Contains("second line", flattened.ErrorMessage);
         Assert.DoesNotContain('\n', flattened.ErrorMessage);
@@ -598,7 +600,7 @@ public class EFormidlingServiceTaskTests
 
         // No body, no "said" clause: the status line and the consequence stand on their own.
         SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest));
-        var bare = Assert.IsType<FailedStageResult>(await SendShipment(_serviceTask, CreateContext(unitOfWork)));
+        var bare = Assert.IsType<FailedServiceTaskResult>(await SendShipment(_serviceTask, CreateContext(unitOfWork)));
         Assert.DoesNotContain("The integrasjonspunkt said", bare.ErrorMessage);
         Assert.Contains("400 BadRequest", bare.ErrorMessage);
     }
@@ -637,7 +639,7 @@ public class EFormidlingServiceTaskTests
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
         // Nothing was sent, so there is nothing to wait for.
-        Assert.IsType<SuccessfulServiceTaskResult>(result);
+        Assert.IsType<CompletedServiceTaskResult>(result);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.GetEFormidlingShipmentStatus(
@@ -712,7 +714,7 @@ public class EFormidlingServiceTaskTests
 
         // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
-        Assert.IsType<SuccessfulServiceTaskResult>(result);
+        Assert.IsType<CompletedServiceTaskResult>(result);
         Assert.Equal(
             reportedStatus,
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]

@@ -67,22 +67,19 @@ public class AbandonTaskTests
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(context =>
-                {
-                    seen.Add(context);
-                    return Task.FromResult(StageResult.Completed());
-                })
-                .Build();
+        public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) =>
+            pipeline.Stage(context =>
+            {
+                seen.Add(context);
+                return Task.FromResult(StageResult.Completed());
+            });
     }
 
     private sealed class ThrowingTask(Exception exception) : IProcessTask
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
-            pipeline.Stage(_ => throw exception).Build();
+        public void DefineAbandon(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => throw exception);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.App;
@@ -32,10 +33,10 @@ public class WorkflowCallbackStateCarryTests
 
     private static readonly StorageVersionMetadata _versions = new(InstanceVersion: 9, ProcessStateVersion: 4);
 
-    /// <summary>The item index whose stage's mailbox the tests carry.</summary>
+    /// <summary>The item index of the external stage whose mailbox the tests carry.</summary>
     private const int OpeningIndex = 0;
 
-    /// <summary>A second opening index, so multi-exchange shapes are exercised.</summary>
+    /// <summary>A second external stage's index, for the one-at-a-time rule.</summary>
     private const int SecondIndex = 1;
 
     private static Instance CreateInstance() =>
@@ -101,26 +102,22 @@ public class WorkflowCallbackStateCarryTests
     }
 
     [Fact]
-    public async Task Capture_ThenRestore_KeepsEveryExchangeApartByItsOpeningStage()
+    public async Task Capture_ThenRestore_CarriesTheMailboxOfALaterStageUnderItsOwnIndex()
     {
-        // A task may open several mailboxes, and the blob was a map from day one — so this held before any
-        // pipeline could compose a second exchange, and adding that needed no format migration against
-        // workflows already in flight.
         WorkflowCallbackStateService service = CreateService();
         var minting = new WorkflowCallbackStateCarry();
-        minting.RecordMailbox(OpeningIndex, _mailboxId, _deadline);
         minting.RecordMailbox(SecondIndex, _secondMailboxId, _deadline.AddDays(1));
         InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
 
         string captured = await service.CaptureState(unitOfWork, minting);
 
         (_, WorkflowCallbackStateCarry carry) = await service.RestoreState(_instanceId, captured, "nb");
-        AssertCarries(carry, OpeningIndex);
+        Assert.Null(carry.FindMailbox(OpeningIndex));
         CarriedMailbox? second = carry.FindMailbox(SecondIndex);
         Assert.NotNull(second);
         Assert.Equal(_secondMailboxId, second.Id);
         Assert.Equal(_deadline.AddDays(1), second.Deadline);
-        Assert.Equal(2, carry.Mailboxes!.Count);
+        Assert.Same(second, carry.OpenMailbox);
     }
 
     /// <summary>
@@ -165,7 +162,7 @@ public class WorkflowCallbackStateCarryTests
     }
 
     [Fact]
-    public async Task Capture_AfterTheExchangeConcluded_DropsTheMailbox()
+    public async Task Capture_AfterTheMailboxClosed_DropsIt()
     {
         WorkflowCallbackStateService service = CreateService();
         var concluding = new WorkflowCallbackStateCarry();
@@ -176,31 +173,28 @@ public class WorkflowCallbackStateCarryTests
         (_, WorkflowCallbackStateCarry open) = await service.RestoreState(_instanceId, whileOpen, "nb");
         AssertCarries(open, OpeningIndex);
 
-        concluding.RecordMailboxConcluded(OpeningIndex);
-        string afterConclusion = await service.CaptureState(unitOfWork, concluding);
+        concluding.RecordMailboxClosed();
+        string afterClose = await service.CaptureState(unitOfWork, concluding);
 
-        (_, WorkflowCallbackStateCarry carried) = await service.RestoreState(_instanceId, afterConclusion, "nb");
+        (_, WorkflowCallbackStateCarry carried) = await service.RestoreState(_instanceId, afterClose, "nb");
         Assert.Null(carried.Mailboxes);
         Assert.Null(carried.FindMailbox(OpeningIndex));
+        Assert.Null(carried.OpenMailbox);
     }
 
     [Fact]
-    public async Task Capture_AfterOneOfTwoExchangesConcluded_KeepsTheOtherTraveling()
+    public void RecordMailbox_AfterTheOpenOneClosed_CarriesTheNextStagesMailbox()
     {
-        WorkflowCallbackStateService service = CreateService();
-        var concluding = new WorkflowCallbackStateCarry();
-        concluding.RecordMailbox(OpeningIndex, _mailboxId, _deadline);
-        concluding.RecordMailbox(SecondIndex, _secondMailboxId, _deadline);
-        InstanceDataUnitOfWork unitOfWork = await CreateUnitOfWork();
+        // The next external stage opens its own once the one before it is done with its replies.
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningIndex, _mailboxId, _deadline);
+        carry.RecordMailboxClosed();
 
-        concluding.RecordMailboxConcluded(OpeningIndex);
-        string captured = await service.CaptureState(unitOfWork, concluding);
+        carry.RecordMailbox(SecondIndex, _secondMailboxId, _deadline);
 
-        (_, WorkflowCallbackStateCarry carry) = await service.RestoreState(_instanceId, captured, "nb");
         Assert.Null(carry.FindMailbox(OpeningIndex));
-        CarriedMailbox? stillOpen = carry.FindMailbox(SecondIndex);
-        Assert.NotNull(stillOpen);
-        Assert.Equal(_secondMailboxId, stillOpen.Id);
+        Assert.Equal(_secondMailboxId, carry.FindMailbox(SecondIndex)?.Id);
+        Assert.Equal([SecondIndex.ToString(CultureInfo.InvariantCulture)], carry.Mailboxes?.Keys);
     }
 
     [Fact]
@@ -229,14 +223,38 @@ public class WorkflowCallbackStateCarryTests
     }
 
     [Fact]
-    public void RecordMailbox_ForAnotherIndex_IsNotAConflict()
+    public void RecordMailbox_ForAnotherStageWhileOneIsOpen_Throws()
     {
+        // A service task keeps one mailbox open at a time, so a second while the first is carried means the first
+        // was never closed.
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(OpeningIndex, _mailboxId, _deadline);
 
-        carry.RecordMailbox(SecondIndex, _secondMailboxId, _deadline);
+        Assert.Throws<InvalidOperationException>(() => carry.RecordMailbox(SecondIndex, _secondMailboxId, _deadline));
+        AssertCarries(carry, OpeningIndex);
+    }
 
-        Assert.Equal(2, carry.Mailboxes!.Count);
+    [Fact]
+    public void Restore_OfABlobCarryingTwoMailboxes_Throws()
+    {
+        // Only a version that opened several mailboxes at once wrote such a blob.
+        var state = new WorkflowCallbackState
+        {
+            Instance = CreateInstance(),
+            InstanceVersion = 9,
+            ProcessStateVersion = 4,
+            FormData = [],
+            Mailboxes = new Dictionary<string, CarriedMailbox>(StringComparer.Ordinal)
+            {
+                ["0"] = new CarriedMailbox { Id = _mailboxId, Deadline = _deadline },
+                ["1"] = new CarriedMailbox { Id = _secondMailboxId, Deadline = _deadline },
+            },
+        };
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+            new WorkflowCallbackStateCarry(state)
+        );
+        Assert.Contains("carries 2 mailboxes", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]

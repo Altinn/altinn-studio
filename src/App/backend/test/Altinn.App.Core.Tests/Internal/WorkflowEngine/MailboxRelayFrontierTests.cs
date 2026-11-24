@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -19,17 +17,19 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
-/// <summary>The frontier-never-empty invariant, walked across a multi-hop relay.</summary>
+/// <summary>The frontier-never-empty invariant, walked across a service task's hops.</summary>
 /// <remarks>
-/// Every workflow the exchange needs is enqueued from inside a still-unsettled workflow's step, as a head —
-/// getting it wrong is silent early execution of downstream work, so the walk asserts at every boundary.
-/// The reader is the app-lib's own <see cref="WorkflowEngineService.ResolveWorkflowTaskStatus"/>, and the
-/// walk asserts both that the answer is processing and <em>which</em> workflow holds it open.
+/// Every workflow a task needs after its first is enqueued from inside a still-unsettled workflow's step, as a
+/// head, so the collection never reads all-settled while a stage waits. Getting it wrong is silent early execution
+/// of the next process action, so the walk asserts at every boundary. Each hop is decided by the relay's own
+/// deciders, exactly as the step's result would decide it, and relayed as the callback relays it. The reader is the
+/// app-lib's own <see cref="WorkflowEngineService.ResolveWorkflowTaskStatus"/>, and the walk asserts both that the
+/// answer is processing and <em>which</em> workflow holds it open.
 /// </remarks>
 public class MailboxRelayFrontierTests
 {
@@ -37,13 +37,12 @@ public class MailboxRelayFrontierTests
     private const string App = "test-app";
     private const string Namespace = "ttd/test-app";
     private const string ServiceTaskType = "archiving";
-
-    /// <summary>The item index of the stage that opens the exchange.</summary>
-    private const int OpeningStageIndex = 0;
     private const string TaskId = "Task_2";
 
     private static readonly Guid _instanceGuid = new("2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde");
-    private static readonly Guid _mailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private static readonly Guid _archiveMailboxId = new("018f4e00-0000-7000-8000-0000000000aa");
+    private static readonly Guid _journalMailboxId = new("018f4e00-0000-7000-8000-0000000000bb");
+    private static readonly DateTimeOffset _deadline = new(2026, 8, 30, 12, 0, 0, TimeSpan.Zero);
 
     /// <summary>
     /// The engine, reduced to what the frontier depends on: which workflows are heads, and their statuses.
@@ -192,73 +191,34 @@ public class MailboxRelayFrontierTests
         ) => throw new NotSupportedException();
     }
 
-    private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
+    private static Task<ServiceTaskResult> Prepare(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskResult> Send(StageContext context, ReplyAddress address) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskReplyResult> OnReply(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+    private static Task<ServiceTaskResult> OnTimeout(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-    private sealed class ArchivingTask : IServiceTask
-    {
-        public string Type => ServiceTaskType;
-
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .ConcludeOnReplies(archive, OnMessage, OnClosed);
-    }
-
-    /// <summary>Two exchanges: the first answered mid-pipeline, so concluding it starts a continuation.</summary>
-    private sealed class ArchiveThenJournalTask : IServiceTask
-    {
-        public string Type => ServiceTaskType;
-
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
-                .HandleReplies(
-                    archive,
-                    (_, _) => Task.FromResult<StageExchangeResult>(StageResult.Completed()),
-                    (_, _) => Task.FromResult(StageResult.Completed())
-                )
-                .Stage(PlainStage)
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(journal, OnMessage, OnClosed);
-    }
+    private const int PrepareIndex = 0;
+    private const int ArchiveIndex = 1;
+    private const int JournalIndex = 2;
 
     /// <summary>
-    /// Both sends up front, so the first send's own step ends the primary workflow and the second rides a continuation
-    /// — the hop where a workflow hands over to the next item with no exchange in between.
+    /// A stage, then two exchanges, one external stage each: every hop a task makes between its first workflow and
+    /// the next transition.
     /// </summary>
-    private sealed class UpFrontSendsTask : IServiceTask
-    {
-        public string Type => ServiceTaskType;
+    private static readonly ServiceTaskPipeline _pipeline = new PipelineBuilder.ServiceTask()
+        .Stage(Prepare)
+        .ExternalStage(Send, OnReply)
+        .ExternalStage(Send, OnReply, onTimeout: OnTimeout)
+        .ToPipeline();
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle alpha)
-                .Stage(SendStage, _mailboxThreeDays, out MailboxHandle beta)
-                .HandleReplies(
-                    alpha,
-                    (_, _) => Task.FromResult<StageExchangeResult>(StageResult.Completed()),
-                    (_, _) => Task.FromResult(StageResult.Completed())
-                )
-                .ConcludeOnReplies(beta, OnMessage, OnClosed);
-    }
-
-    /// <summary>
-    /// The hand-over a deciding hop would have made: the workflow planned after that item. Every call site
-    /// passes an item the plan after which is an ordinary continuation, so no target rides along.
-    /// </summary>
-    private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
-        new(afterItemIndex, WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
+    private static ServiceTaskItem.ExternalStage External(int index) =>
+        Assert.IsType<ServiceTaskItem.ExternalStage>(_pipeline.Items[index]);
 
     private static Instance CreateInstance() =>
         new()
@@ -277,13 +237,8 @@ public class MailboxRelayFrontierTests
     /// The relay, wired to the model; the after-workflow is intercepted at the same <see cref="IProcessEngine"/>
     /// entry point production uses and enqueued with the shape it gives it.
     /// </summary>
-    private static MailboxRelay CreateRelay(CollectionModel collection, IServiceTask? serviceTask = null)
+    private static MailboxRelay CreateRelay(CollectionModel collection)
     {
-        var services = new ServiceCollection();
-        services.AddSingleton<AppImplementationFactory>();
-        services.AddSingleton(serviceTask ?? new ArchivingTask());
-        ServiceProvider sp = services.BuildServiceProvider();
-
         var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
         processEngine
             .Setup(x =>
@@ -313,7 +268,7 @@ public class MailboxRelayFrontierTests
                 (_, _, _, collectionKey, _, _, _, idempotencyKey, cancellationToken) =>
                     collection.EnqueueWorkflows(
                         Namespace,
-                        idempotencyKey!,
+                        idempotencyKey ?? throw new InvalidOperationException("The after-workflow carries no key."),
                         collectionKey,
                         new WorkflowEnqueueRequest
                         {
@@ -337,15 +292,32 @@ public class MailboxRelayFrontierTests
         );
     }
 
-    private static WorkflowEngineService CreateReader(CollectionModel collection) =>
-        new(
-            processNextRequestFactory: null!,
-            collection,
-            Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+    /// <summary>
+    /// The reader. Its request factory is consulted only when the collection reads all-settled, which is the
+    /// failure this walk looks for, so it is real rather than absent and the walk fails on its assertion.
+    /// </summary>
+    private static WorkflowEngineService CreateReader(CollectionModel collection)
+    {
+        ServiceProvider services = new ServiceCollection()
+            .AddSingleton<AppImplementationFactory>()
+            .BuildServiceProvider();
+        var factory = new ProcessNextRequestFactory(
+            services.GetRequiredService<AppImplementationFactory>(),
+            Mock.Of<IAuthenticationContext>(),
+            new AppIdentifier(Org, App),
+            Options.Create(new AppSettings()),
+            Mock.Of<IWorkflowCallbackTokenGenerator>(),
+            new ProcessStepOptionsResolver([]),
+            Mock.Of<IAppMetadata>()
         );
+        return new(factory, collection, Mock.Of<IInstanceClientWithStorageMetadata>(), new AppIdentifier(Org, App));
+    }
 
-    private static MailboxRelayRequest CreateRequest(Guid receiverWorkflowId, Guid stepId) =>
+    private static MailboxRelayRequest CreateRequest(
+        Guid runningWorkflowId,
+        Guid stepId,
+        ProcessNextContinuation? processNext
+    ) =>
         new()
         {
             AppId = new AppIdentifier(Org, App),
@@ -355,7 +327,7 @@ public class MailboxRelayFrontierTests
                 CommandKey = ExecuteServiceTask.Key,
                 Actor = new Actor { UserId = 1337 },
                 ExecutionReferenceTime = new DateTimeOffset(2026, 8, 19, 10, 0, 0, TimeSpan.Zero),
-                WorkflowId = receiverWorkflowId,
+                WorkflowId = runningWorkflowId,
                 StepId = stepId,
                 State = "incoming-state",
             },
@@ -369,232 +341,281 @@ public class MailboxRelayFrontierTests
                 language: null
             ),
             State = "published-state",
-            AutoAdvanceProcess = true,
-            AutoAdvanceAction = null,
+            // As the callback relays a result: the after-workflow starts only when the result moves the process on.
+            AutoAdvanceProcess = processNext is not null,
+            AutoAdvanceAction = processNext?.Action,
         };
 
-    [Fact]
-    public async Task MultiHopRelay_NeverLetsTheCollectionReadAllSettled()
+    private static AppCallbackMailbox Delivered(Guid mailboxId, long seq) =>
+        new()
+        {
+            Id = mailboxId,
+            Seq = seq,
+            Delivery = new AppCallbackMailboxDelivery
+            {
+                IdempotencyKey = $"source-message-{seq}",
+                Payload = "<receipt/>",
+                AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
+            },
+        };
+
+    private static AppCallbackMailbox Closed(Guid mailboxId, long seq) =>
+        new()
+        {
+            Id = mailboxId,
+            Seq = seq,
+            DisposedReason = MailboxDisposedReason.Deadline,
+        };
+
+    /// <summary>
+    /// One hop, as the callback runs it: the decided result relayed from inside the running workflow's step, which
+    /// adds exactly one workflow; then the engine settles the running workflow, and the new one alone holds the
+    /// frontier.
+    /// </summary>
+    private static async Task<Guid> Hop(
+        MailboxRelay relay,
+        WorkflowEngineService reader,
+        CollectionModel collection,
+        WorkflowEngineCommandResult decided,
+        Guid running,
+        string boundary
+    )
     {
-        // Asserting at every step boundary — the only instant the frontier can go empty — and naming the
-        // workflow holding it open.
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(decided);
+        Assert.NotNull(success.MailboxContinuation);
+
+        int before = collection.EnqueuedByTheRelay.Count;
+        await relay.Continue(
+            success.MailboxContinuation,
+            CreateRequest(running, Guid.NewGuid(), success.ProcessNextContinuation),
+            CancellationToken.None
+        );
+        Assert.Equal(before + 1, collection.EnqueuedByTheRelay.Count);
+        Guid successor = collection.EnqueuedByTheRelay[^1];
+
+        // Only now does the engine settle the step that ran.
+        collection.Settle(running);
+        await AssertFrontierHeldOpenBy(reader, collection, successor, boundary);
+        return successor;
+    }
+
+    [Fact]
+    public async Task TwoExternalStages_NeverLetTheCollectionReadAllSettled()
+    {
         var collection = new CollectionModel();
         MailboxRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
-        Instance instance = CreateInstance();
+        var carry = new WorkflowCallbackStateCarry();
 
         Guid primary = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
-        Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Held);
-        collection.Settle(primary);
-        await AssertFrontierHeldOpenBy(
+
+        // The stage ends the primary workflow and hands over to the archive's mint and send.
+        Guid running = await Hop(
+            relay,
             reader,
             collection,
-            instance,
-            receiver,
-            "primary workflow settled after enqueueing receiver 1"
+            MailboxRelay.DecideStage(
+                ServiceTaskResult.Completed(),
+                ServiceTaskType,
+                Guid.NewGuid(),
+                carry,
+                PrepareIndex,
+                _pipeline
+            ),
+            primary,
+            "the primary workflow settled after the stage"
         );
 
-        for (long hop = 0; hop < 3; hop++)
-        {
-            // The relay's enqueue happens inside the callback — the receiver is still unsettled.
-            int headsBefore = collection.EnqueuedByTheRelay.Count;
-            await relay.Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, hop),
-                CreateRequest(receiver, Guid.NewGuid()),
-                CancellationToken.None
-            );
-            Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
-            Guid successor = collection.EnqueuedByTheRelay[^1];
+        // The archive's mint opens its mailbox, and its send hands over to the first receiver.
+        carry.RecordMailbox(ArchiveIndex, _archiveMailboxId, _deadline);
+        running = await Hop(
+            relay,
+            reader,
+            collection,
+            MailboxRelay.DecideSend(
+                ServiceTaskResult.Completed(),
+                ServiceTaskType,
+                Guid.NewGuid(),
+                carry,
+                new CarriedMailbox { Id = _archiveMailboxId, Deadline = _deadline },
+                External(ArchiveIndex),
+                ArchiveIndex
+            ),
+            running,
+            "the archive's send settled"
+        );
 
-            // Only now does the engine settle the step that answered.
-            collection.Settle(receiver);
-            await AssertFrontierHeldOpenBy(
+        // Two replies wait for the next.
+        for (long seq = 0; seq < 2; seq++)
+        {
+            running = await Hop(
+                relay,
                 reader,
                 collection,
-                instance,
-                successor,
-                $"receiver at position {hop} settled"
+                MailboxRelay.DecideReply(
+                    ServiceTaskReplyResult.AwaitNextReply(),
+                    ServiceTaskType,
+                    Guid.NewGuid(),
+                    Delivered(_archiveMailboxId, seq),
+                    carry,
+                    External(ArchiveIndex),
+                    ArchiveIndex,
+                    _pipeline
+                ),
+                running,
+                $"the archive's receiver at position {seq} settled"
             );
-
-            receiver = successor;
         }
 
-        // The conclusion: the mailbox closes and the after-workflow takes over the frontier before the
-        // concluding receiver settles.
-        int beforeConclusion = collection.EnqueuedByTheRelay.Count;
-        await relay.Continue(
-            new MailboxContinuation.Conclude([_mailboxId]),
-            CreateRequest(receiver, Guid.NewGuid()),
-            CancellationToken.None
-        );
-        Assert.Equal(beforeConclusion + 1, collection.EnqueuedByTheRelay.Count);
-        Guid afterWorkflow = collection.EnqueuedByTheRelay[^1];
-
-        collection.Settle(receiver);
-        await AssertFrontierHeldOpenBy(reader, collection, instance, afterWorkflow, "the concluding receiver settled");
-    }
-
-    /// <summary>
-    /// The same invariant across the new hop: a continuation is enqueued from inside the receiver that
-    /// concluded the exchange before it, so the collection never reads all-settled at the hand-over — and it
-    /// still holds the frontier alone once retention purges the workflows before it.
-    /// </summary>
-    [Fact]
-    public async Task AContinuation_HoldsTheFrontierFromInsideTheReceiverThatConcludedTheExchange()
-    {
-        var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection, new ArchiveThenJournalTask());
-        WorkflowEngineService reader = CreateReader(collection);
-
-        Guid primary = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Completed);
-        Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
-
-        int headsBefore = collection.EnqueuedByTheRelay.Count;
-        await relay.Continue(
-            new MailboxContinuation.ConcludeAndContinue(
-                _mailboxId,
+        // The third is the last: the archive's mailbox closes and the journal's mint and send start.
+        running = await Hop(
+            relay,
+            reader,
+            collection,
+            MailboxRelay.DecideReply(
+                ServiceTaskReplyResult.Completed(),
                 ServiceTaskType,
-                // ArchiveThenJournalTask answers exchange A with the handler at item index 1, and the hop
-                // that concludes it carries the workflow it planned.
-                Handover(new ArchiveThenJournalTask().ResolvePipeline(), afterItemIndex: 1)
+                Guid.NewGuid(),
+                Delivered(_archiveMailboxId, 2),
+                carry,
+                External(ArchiveIndex),
+                ArchiveIndex,
+                _pipeline
             ),
-            CreateRequest(receiver, Guid.NewGuid()),
-            CancellationToken.None
+            running,
+            "the archive's last receiver settled"
         );
-        Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
-        Guid continuation = collection.EnqueuedByTheRelay[^1];
-
-        // Only now does the engine settle the step that concluded exchange A.
-        collection.Settle(receiver);
-        await AssertFrontierHeldOpenBy(
-            reader,
-            collection,
-            CreateInstance(),
-            continuation,
-            "the concluding receiver settled"
-        );
-
-        collection.Purge(primary, receiver);
-        await AssertFrontierHeldOpenBy(
-            reader,
-            collection,
-            CreateInstance(),
-            continuation,
-            "retention purged the primary workflow and receiver 1"
-        );
-    }
-
-    /// <summary>
-    /// The invariant on the hop that has no exchange to lean on: a mailbox-opening stage ends its workflow, so
-    /// the workflow carrying what follows it is enqueued from inside that stage's still-unsettled step. Get the
-    /// order wrong and the primary workflow settles with no head at all while a mailbox it just opened is waiting for a
-    /// receiver nothing will enqueue.
-    /// </summary>
-    [Fact]
-    public async Task AContinuationAfterAnOpeningStage_HoldsTheFrontierFromInsideTheWorkflowThatRanIt()
-    {
-        var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection, new UpFrontSendsTask());
-        WorkflowEngineService reader = CreateReader(collection);
-
-        Guid primary = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
-
-        int headsBefore = collection.EnqueuedByTheRelay.Count;
-        await relay.Continue(
-            new MailboxContinuation.ContinueAfterStage(
-                ServiceTaskType,
-                Handover(new UpFrontSendsTask().ResolvePipeline(), OpeningStageIndex)
-            ),
-            CreateRequest(primary, Guid.NewGuid()),
-            CancellationToken.None
-        );
-        Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
-        Guid continuation = collection.EnqueuedByTheRelay[^1];
-
-        // Only now does the engine settle the step that ran the send.
-        collection.Settle(primary);
-        await AssertFrontierHeldOpenBy(
-            reader,
-            collection,
-            CreateInstance(),
-            continuation,
-            "the sending step's workflow settled"
-        );
+        Assert.Null(carry.Mailboxes);
 
         collection.Purge(primary);
-        await AssertFrontierHeldOpenBy(
+        await AssertFrontierHeldOpenBy(reader, collection, running, "retention purged the primary workflow");
+
+        // The journal's mint opens its own mailbox, and its send hands over to its first receiver.
+        carry.RecordMailbox(JournalIndex, _journalMailboxId, _deadline);
+        running = await Hop(
+            relay,
             reader,
             collection,
-            CreateInstance(),
-            continuation,
-            "retention purged the primary workflow"
+            MailboxRelay.DecideSend(
+                ServiceTaskResult.Completed(),
+                ServiceTaskType,
+                Guid.NewGuid(),
+                carry,
+                new CarriedMailbox { Id = _journalMailboxId, Deadline = _deadline },
+                External(JournalIndex),
+                JournalIndex
+            ),
+            running,
+            "the journal's send settled"
+        );
+
+        // The journal's mailbox times out; its onTimeout completes the last item, so the task ends.
+        await Hop(
+            relay,
+            reader,
+            collection,
+            MailboxRelay.DecideReply(
+                ServiceTaskResult.Completed(),
+                ServiceTaskType,
+                Guid.NewGuid(),
+                Closed(_journalMailboxId, 0),
+                carry,
+                External(JournalIndex),
+                JournalIndex,
+                _pipeline
+            ),
+            running,
+            "the journal's receiver settled, ending the task"
         );
     }
 
-    /// <summary>Two plain stages and a conclusion, with no mailbox anywhere.</summary>
-    private sealed class TwoStagesTask : IServiceTask
-    {
-        public string Type => ServiceTaskType;
-
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(PlainStage)
-                .Stage(PlainStage)
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
-    }
-
     /// <summary>
-    /// The same invariant along a pipeline of plain stages: each stage ends its workflow and enqueues the next
-    /// item's from inside its still-unsettled step, so the collection never reads all-settled between them.
+    /// A send that ends the task closes its mailbox without waiting, and the after-workflow takes over the frontier
+    /// from inside the send's step.
     /// </summary>
     [Fact]
-    public async Task PlainStages_EachHoldTheFrontierUntilTheNextItemsWorkflowExists()
+    public async Task SendThatEndsTheTask_HandsTheFrontierToTheNextTransition()
     {
         var collection = new CollectionModel();
-        MailboxRelay relay = CreateRelay(collection, new TwoStagesTask());
+        MailboxRelay relay = CreateRelay(collection);
         WorkflowEngineService reader = CreateReader(collection);
-        ServiceTaskPipeline pipeline = new TwoStagesTask().ResolvePipeline();
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(ArchiveIndex, _archiveMailboxId, _deadline);
+
+        Guid running = collection.Seed("Mailbox continue: Task_2 · after 0", PersistentItemStatus.Processing);
+
+        await Hop(
+            relay,
+            reader,
+            collection,
+            MailboxRelay.DecideSend(
+                ServiceTaskResult.EndTask("reject"),
+                ServiceTaskType,
+                Guid.NewGuid(),
+                carry,
+                new CarriedMailbox { Id = _archiveMailboxId, Deadline = _deadline },
+                External(ArchiveIndex),
+                ArchiveIndex
+            ),
+            running,
+            "the send that ended the task settled"
+        );
+    }
+
+    private static Task<ServiceTaskResult> Plain(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
+
+    /// <summary>
+    /// The same invariant along a pipeline of stages: each stage ends its workflow and enqueues the next item's
+    /// from inside its still-unsettled step, so the collection never reads all-settled between them.
+    /// </summary>
+    [Fact]
+    public async Task Stages_EachHoldTheFrontierUntilTheNextItemsWorkflowExists()
+    {
+        var collection = new CollectionModel();
+        MailboxRelay relay = CreateRelay(collection);
+        WorkflowEngineService reader = CreateReader(collection);
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .Stage(Plain)
+            .Stage(Plain)
+            .Stage(Plain)
+            .ToPipeline();
 
         Guid running = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         for (int stage = 0; stage < 2; stage++)
         {
-            int headsBefore = collection.EnqueuedByTheRelay.Count;
-            await relay.Continue(
-                new MailboxContinuation.ContinueAfterStage(ServiceTaskType, Handover(pipeline, stage)),
-                CreateRequest(running, Guid.NewGuid()),
-                CancellationToken.None
-            );
-            Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
-            Guid next = collection.EnqueuedByTheRelay[^1];
-
-            collection.Settle(running);
-            await AssertFrontierHeldOpenBy(
+            running = await Hop(
+                relay,
                 reader,
                 collection,
-                CreateInstance(),
-                next,
+                MailboxRelay.DecideStage(
+                    ServiceTaskResult.Completed(),
+                    ServiceTaskType,
+                    Guid.NewGuid(),
+                    new WorkflowCallbackStateCarry(),
+                    stage,
+                    pipeline
+                ),
+                running,
                 $"the workflow of the stage at {stage} settled"
             );
-
-            running = next;
         }
     }
 
     private static async Task AssertFrontierHeldOpenBy(
         WorkflowEngineService reader,
         CollectionModel collection,
-        Instance instance,
         Guid expected,
         string boundary
     )
     {
-        WorkflowTaskStatus status = await reader.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
+        WorkflowTaskStatus status = await reader.ResolveWorkflowTaskStatus(CreateInstance(), CancellationToken.None);
 
         Assert.True(
             status.Status == WorkflowActivityStatus.Processing,
             $"The collection read all-settled at the boundary '{boundary}', so the next process action would have "
-                + $"started while the exchange was still open. Got {status.Status}."
+                + $"started while the task was still running. Got {status.Status}."
         );
         Assert.Equal(expected, Assert.Single(collection.ActiveHeads));
     }

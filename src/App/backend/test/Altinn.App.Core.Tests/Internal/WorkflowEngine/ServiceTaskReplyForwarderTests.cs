@@ -168,7 +168,7 @@ public class ServiceTaskReplyForwarderTests
     [InlineData(HttpStatusCode.Conflict, ServiceTaskReplyForwardOutcome.Late, false)]
     [InlineData(HttpStatusCode.RequestEntityTooLarge, ServiceTaskReplyForwardOutcome.PayloadTooLarge, false)]
     // Not transient: the mailbox's log length never goes back down.
-    [InlineData(HttpStatusCode.TooManyRequests, ServiceTaskReplyForwardOutcome.MailboxFull, false)]
+    [InlineData(HttpStatusCode.TooManyRequests, ServiceTaskReplyForwardOutcome.TooManyReplies, false)]
     // The one answer a forwarder must never retry: the submission itself was wrong.
     [InlineData(HttpStatusCode.BadRequest, ServiceTaskReplyForwardOutcome.Rejected, false)]
     // An undocumented 4xx that is still a verdict on these bytes: a replay reaches it again.
@@ -195,7 +195,7 @@ public class ServiceTaskReplyForwarderTests
 
         Assert.Equal(expectedOutcome, exception.Outcome);
         Assert.Equal(expectedTransient, exception.IsTransient);
-        Assert.Equal(mailboxId, exception.MailboxId);
+        Assert.Equal(mailboxId, exception.ReplyAddressId);
         Assert.Equal(Key, exception.IdempotencyKey);
     }
 
@@ -261,7 +261,7 @@ public class ServiceTaskReplyForwarderTests
 
         Assert.Equal(ServiceTaskReplyForwardOutcome.SigningUnavailable, exception.Outcome);
         Assert.True(exception.IsTransient);
-        Assert.Equal(mailboxId, exception.MailboxId);
+        Assert.Equal(mailboxId, exception.ReplyAddressId);
         Assert.IsType<WorkflowCallbackSecretNotFoundException>(exception.InnerException);
     }
 

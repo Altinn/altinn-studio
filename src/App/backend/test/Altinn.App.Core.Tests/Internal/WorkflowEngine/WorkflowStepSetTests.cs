@@ -18,20 +18,20 @@ public class WorkflowStepSetTests
 {
     private static List<string> Keys(IReadOnlyList<PlannedStep> steps) => steps.Select(s => s.CommandKey).ToList();
 
-    /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
-    private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
-        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+    /// <summary>The pipeline of a service task that does one thing: one stage.</summary>
+    private static ServiceTaskPipeline SingleStageServiceTaskPipeline() =>
+        new PipelineBuilder.ServiceTask().Stage(_ => Task.FromResult(ServiceTaskResult.Completed())).ToPipeline();
 
     /// <summary>The lifecycle pipeline every task type without its own definition forwards to.</summary>
     private static ProcessTaskPipeline SingleStagePipeline() =>
-        new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
+        new PipelineBuilder.Lifecycle().Stage(_ => Task.FromResult(StageResult.Completed())).ToPipeline();
 
     private static ProcessTaskPipeline ThreeStagePipeline(ProcessStepOptions? middleOptions = null) =>
-        new PipelineBuilder()
+        new PipelineBuilder.Lifecycle()
             .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Stage(_ => Task.FromResult(StageResult.Completed()), middleOptions)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Build();
+            .ToPipeline();
 
     [Fact]
     public void GetTaskStartSteps_ServiceTaskInstantiation_RoutesStepsToTheCorrectLists()
@@ -41,7 +41,7 @@ public class WorkflowStepSetTests
             {
                 TaskId = "Task_1",
                 StartPipeline = SingleStagePipeline(),
-                ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
+                ServiceTask = new ResolvedServiceTask("pdf", SingleStageServiceTaskPipeline()),
                 StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
@@ -169,9 +169,9 @@ public class WorkflowStepSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
-                StartPipeline = new PipelineBuilder()
+                StartPipeline = new PipelineBuilder.Lifecycle()
                     .Stage(_ => Task.FromResult(StageResult.Completed()), options)
-                    .Build(),
+                    .ToPipeline(),
                 ServiceTask = null,
                 StartingHook = null,
                 IsInitialTaskStart = false,
@@ -249,7 +249,7 @@ public class WorkflowStepSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
-                StartPipeline = new PipelineBuilder().Build(),
+                StartPipeline = new PipelineBuilder.Lifecycle().ToPipeline(),
                 ServiceTask = null,
                 StartingHook = null,
                 IsInitialTaskStart = false,
@@ -260,8 +260,8 @@ public class WorkflowStepSetTests
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The item planner: every pipeline item in a workflow of its own, a mailbox-opening stage with its
-    // mint.
+    // The item planner: every pipeline item in a workflow of its own, an external stage's send with its
+    // mint, and each of its replies in a receive workflow.
     // ---------------------------------------------------------------------------------------------
 
     // ---------------------------------------------------------------------------------------------
@@ -278,11 +278,11 @@ public class WorkflowStepSetTests
     [Fact]
     public void GetTaskEndSteps_StagesComposedFromNamedMethods_LabelEachStepWithTheMethodName()
     {
-        ProcessTaskPipeline pipeline = new PipelineBuilder()
+        ProcessTaskPipeline pipeline = new PipelineBuilder.Lifecycle()
             .Stage(StoreReceipt)
             .Stage(RevokeSigneeRights)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Build();
+            .ToPipeline();
 
         List<PlannedStep> stageSteps = WorkflowStepSet
             .GetTaskEndSteps("Task_1", pipeline, endingHook: null)
@@ -295,125 +295,115 @@ public class WorkflowStepSetTests
     }
 
     [Fact]
-    public void PlanSegment_ItemsComposedFromNamedMethods_GoByTheMethodNames()
+    public void PlanItem_ItemsComposedFromNamedMethods_GoByTheMethodNames()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .ExternalStage(SendToArchive, OnArchiveReply, onTimeout: OnArchiveTimeout)
+            .Stage(FinalWork)
+            .ToPipeline();
+        var archive = Assert.IsType<ServiceTaskItem.ExternalStage>(pipeline.Items[0]);
 
-        // The step that mints the mailbox stays unnamed; the stage that sends from it goes by its method.
-        Assert.Equal([null, "Send stage"], WorkflowStepSet.PlanSegment("archiving", pipeline).Steps.Select(StepName));
+        // The step that mints the mailbox stays unnamed; the send goes by its method, and a receive step by both
+        // handlers, since it runs one or the other.
         Assert.Equal(
-            "On segment message / On segment closed",
-            StepName(Assert.Single(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).Steps))
+            [null, "Send to archive"],
+            WorkflowStepSet.PlanItem("archiving", pipeline, 0).Steps.Select(StepName)
         );
         Assert.Equal(
-            "Final work",
-            StepName(Assert.Single(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).Steps))
+            "On archive reply / On archive timeout",
+            StepName(Assert.Single(WorkflowStepSet.PlanReceive("archiving", archive, 0).Steps))
         );
+        Assert.Equal("Final work", StepName(Assert.Single(WorkflowStepSet.PlanItem("archiving", pipeline, 1).Steps)));
     }
 
     [Fact]
-    public void PlanSegment_UnnamedLambdas_CarryNoLabels()
+    public void PlanItem_UnnamedLambdas_CarryNoLabels()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(_ => Task.FromResult(StageResult.Completed()))
-            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .Stage(_ => Task.FromResult(ServiceTaskResult.Completed()))
+            .ExternalStage(
+                (_, _) => Task.FromResult(ServiceTaskResult.Completed()),
+                (_, _) => Task.FromResult(ServiceTaskReplyResult.Completed())
+            )
+            .ToPipeline();
 
-        Assert.All(WorkflowStepSet.PlanSegment("signing", pipeline).Steps, step => Assert.Null(step.StepName));
+        Assert.All(Workflows(pipeline).SelectMany(plan => plan.Steps), step => Assert.Null(step.StepName));
     }
 
-    private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
+    private static Task<ServiceTaskResult> PlainStage(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskResult> SendToArchive(StageContext context, ReplyAddress replyAddress) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskReplyResult> OnArchiveReply(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
-
-    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-
-    private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<StageExchangeResult>(StageResult.Completed());
-
-    private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskResult> OnArchiveTimeout(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
     private static Task<ServiceTaskResult> FinalWork(StageContext context) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+        Task.FromResult(ServiceTaskResult.Completed());
 
     private static List<string> OperationIds(ServiceTaskSegmentPlan plan) =>
         plan.Steps.Select(step => step.OperationId).ToList();
 
-    /// <summary>The payloads of the plan's <c>ExecuteServiceTask</c> steps, in order.</summary>
-    private static List<ExecuteServiceTaskPayload> StageStepPayloads(ServiceTaskSegmentPlan plan) =>
-        plan
-            .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step => Assert.IsType<ExecuteServiceTaskPayload>(step.Payload))
-            .ToList();
-
-    /// <summary>The raw JSON of the plan's <c>ExecuteServiceTask</c> step payloads, in order.</summary>
-    private static List<string> StageStepPayloadJson(ServiceTaskSegmentPlan plan) =>
-        plan
-            .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step => CommandPayloadSerializer.Serialize(step.Payload)!)
-            .ToList();
+    /// <summary>The raw JSON of the plan's step payloads, in order.</summary>
+    private static List<string> StepPayloadJson(ServiceTaskSegmentPlan plan) =>
+        plan.Steps.Select(step => CommandPayloadSerializer.Serialize(step.Payload) ?? "").ToList();
 
     /// <summary>
-    /// Every workflow the pipeline runs, walked the way the runtime walks it: the primary workflow's plan, then
-    /// the plan each workflow's last step derives from the item it ran, until the conclusion leaves nothing.
+    /// Every workflow the pipeline runs when each item completes, in order: each item's own workflow, and after an
+    /// external stage's send, the receive workflow its first reply runs in.
     /// </summary>
     private static List<ServiceTaskSegmentPlan> Workflows(ServiceTaskPipeline pipeline)
     {
         var plans = new List<ServiceTaskSegmentPlan>();
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
-        while (plan.Steps.Count > 0)
+        for (int index = 0; index < pipeline.Items.Count; index++)
         {
-            plans.Add(plan);
-            int? lastItem = Assert.IsType<ExecuteServiceTaskPayload>(plan.Steps[^1].Payload).ItemIndex;
-            plan = WorkflowStepSet.PlanSegment("archiving", pipeline, lastItem);
+            plans.Add(WorkflowStepSet.PlanItem("archiving", pipeline, index));
+            if (pipeline.Items[index] is ServiceTaskItem.ExternalStage external)
+            {
+                plans.Add(WorkflowStepSet.PlanReceive("archiving", external, index));
+            }
         }
         return plans;
     }
 
     [Fact]
-    public void PlanSegment_PutsEachItemsOwnOptionsOnItsStep_AndNoneOnTheMint()
+    public void PlanItem_PutsEachItemsOwnOptionsOnItsSteps_AndNoneOnTheMint()
     {
         var stage = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(1) };
-        var send = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
-        var handler = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
-        var conclusion = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(4) };
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        var external = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
+        var last = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(4) };
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(PlainStage, stage)
-            .Stage(SendStage, _threeDays, out MailboxHandle archive, send)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
-            .Finally(FinalWork, conclusion);
+            .ExternalStage(SendToArchive, OnArchiveReply, options: external)
+            .Stage(FinalWork, last)
+            .ToPipeline();
 
         List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
         Assert.Equal(4, workflows.Count);
         Assert.Same(stage, Assert.Single(workflows[0].Steps).DeclaredOptions);
-        // The mint before the send carries nothing, so it inherits no options.
-        Assert.Equal([null, send], workflows[1].Steps.Select(step => step.DeclaredOptions));
-        Assert.Same(handler, Assert.Single(workflows[2].Steps).DeclaredOptions);
-        Assert.Same(conclusion, Assert.Single(workflows[3].Steps).DeclaredOptions);
+        // The mint before the send carries nothing, so it inherits no options; the send and each reply carry the
+        // external stage's.
+        Assert.Equal([null, external], workflows[1].Steps.Select(step => step.DeclaredOptions));
+        Assert.Same(external, Assert.Single(workflows[2].Steps).DeclaredOptions);
+        Assert.Same(last, Assert.Single(workflows[3].Steps).DeclaredOptions);
     }
 
     /// <summary>
     /// The primary workflow carries the first item only. The assembled version of this is
-    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion</c>.
+    /// <c>ProcessNextRequestFactoryTests</c>'s external stage case.
     /// </summary>
     [Fact]
-    public void PlanSegment_SingleExchangePipeline_RunsEachItemInAWorkflowOfItsOwn()
+    public void PlanItem_AStageThenAnExternalStage_RunsEachStepInAWorkflowOfItsOwn()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
             .Stage(PlainStage)
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .ConcludeOnReplies(archive, OnMessage, OnClosed);
+            .ExternalStage(SendToArchive, OnArchiveReply)
+            .ToPipeline();
 
         List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
@@ -421,17 +411,20 @@ public class WorkflowStepSetTests
             [
                 [$"{ExecuteServiceTask.Key}: 0"],
                 [$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
-                [$"{ExecuteServiceTask.Key}: 2"],
+                [$"{ExecuteServiceTask.Key}: 1"],
             ],
             workflows.Select(OperationIds)
         );
-        Assert.Equal([null, null, 1], workflows.Select(plan => plan.ReceiveOpeningIndex));
+        Assert.Equal([null, null, 1], workflows.Select(plan => plan.ReceiveStageIndex));
     }
 
     [Fact]
-    public void PlanSegment_TwoStagesAndAConclusion_PlanThePrimaryWorkflowAndTwoContinuations()
+    public void PlanItem_TwoStages_PlanThePrimaryWorkflowAndOneContinuation()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Stage(PlainStage).Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .Stage(PlainStage)
+            .Stage(FinalWork)
+            .ToPipeline();
 
         List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
@@ -439,249 +432,60 @@ public class WorkflowStepSetTests
             [
                 [$"{ExecuteServiceTask.Key}: 0"],
                 [$"{ExecuteServiceTask.Key}: 1"],
-                [$"{ExecuteServiceTask.Key}: 2"],
             ],
             workflows.Select(OperationIds)
         );
-        Assert.All(workflows, plan => Assert.Null(plan.ReceiveOpeningIndex));
+        Assert.All(workflows, plan => Assert.Null(plan.ReceiveStageIndex));
     }
 
     /// <summary>
-    /// A pipeline that opens a mailbox first: the primary workflow is the mint and the send, and the handler
-    /// composed right after it is a workflow of its own. Item indexes here: the send at 0, its handler at 1, a
-    /// stage at 2, the second send at 3.
+    /// Two external stages in sequence, the shape of a task with two exchanges: each send shares its workflow with
+    /// its own mint only, and each stage's replies run alone in receive workflows parked on its own mailbox.
     /// </summary>
     [Fact]
-    public void PlanSegment_EndsOnTheSendWhoseHandlerFollowsIt()
+    public void PlanItem_TwoExternalStages_EachSendWithItsMintThenItsReceiver()
     {
-        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .ExternalStage(SendToArchive, OnArchiveReply)
+            .ExternalStage(SendToArchive, OnArchiveReply)
+            .ToPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
-
-        Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(plan));
-        Assert.Null(plan.ReceiveOpeningIndex);
-    }
-
-    /// <summary>
-    /// A reply handler is its workflow's only step, and the plan is a receive workflow naming the exchange it
-    /// parks on, because the engine resolves the rendezvous for a workflow's first step only.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_ForAReplyHandler_IsThatHandlerAloneAndNamesItsExchange()
-    {
-        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
-
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
-
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(plan));
-        Assert.Equal(1, StageStepPayloads(plan)[0].ItemIndex);
-        Assert.Equal(0, plan.ReceiveOpeningIndex);
-    }
-
-    /// <summary>
-    /// Every item of a pipeline with two exchanges, each in a workflow of its own: the send at 0, the
-    /// mid-pipeline handler at 1, a stage at 2, the second send at 3, the terminal that answers it at 4.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_TwoExchanges_RunEveryItemInAWorkflowOfItsOwn()
-    {
-        List<ServiceTaskSegmentPlan> workflows = Workflows(ArchiveThenJournalPipeline());
+        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
 
         Assert.Equal(
             [
                 [$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"],
-                [$"{ExecuteServiceTask.Key}: 1"],
-                [$"{ExecuteServiceTask.Key}: 2"],
-                [$"{MintMailbox.Key}: 3", $"{ExecuteServiceTask.Key}: 3"],
-                [$"{ExecuteServiceTask.Key}: 4"],
-            ],
-            workflows.Select(OperationIds)
-        );
-        Assert.Equal([null, 0, null, null, 3], workflows.Select(plan => plan.ReceiveOpeningIndex));
-    }
-
-    /// <summary>A mid-pipeline reply with a trailing stage, ended by an ordinary <c>Finally</c>.</summary>
-    [Fact]
-    public void PlanSegment_AfterTheLastHandler_RunsTheStageAndThenTheConclusion()
-    {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Stage(PlainStage)
-            .Finally(FinalWork);
-
-        ServiceTaskSegmentPlan stage = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        ServiceTaskSegmentPlan conclusion = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
-
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(stage));
-        Assert.Null(stage.ReceiveOpeningIndex);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(conclusion));
-        Assert.Null(conclusion.ReceiveOpeningIndex);
-    }
-
-    /// <summary>
-    /// A plain stage between a send and the handler that answers it. Item indexes: the send at 0, a plain stage
-    /// at 1, the handler at 2, the conclusion at 3.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_APlainStageBeforeAHandler_RunsAloneAndTheHandlerRunsAlone()
-    {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .Stage(PlainStage)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
-
-        ServiceTaskSegmentPlan send = WorkflowStepSet.PlanSegment("archiving", pipeline);
-        Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(send));
-        Assert.Null(send.ReceiveOpeningIndex);
-
-        ServiceTaskSegmentPlan between = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(between));
-        Assert.Null(between.ReceiveOpeningIndex);
-
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(receive));
-        Assert.Equal(0, receive.ReceiveOpeningIndex);
-
-        ServiceTaskSegmentPlan rest = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(rest));
-        Assert.Null(rest.ReceiveOpeningIndex);
-    }
-
-    /// <summary>
-    /// The mint stays in the workflow of the stage that sends, wherever that stage sits: a plain stage before
-    /// it gets the primary workflow to itself. Item indexes: a plain stage at 0, the send at 1, another plain
-    /// stage at 2, the terminal that answers at 3.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_MailboxOpeningStage_SharesItsWorkflowWithItsMintOnly()
-    {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(PlainStage)
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .Stage(PlainStage)
-            .ConcludeOnReplies(archive, OnMessage, OnClosed);
-
-        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
-
-        Assert.Equal(
-            [
                 [$"{ExecuteServiceTask.Key}: 0"],
                 [$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
-                [$"{ExecuteServiceTask.Key}: 2"],
-                [$"{ExecuteServiceTask.Key}: 3"],
+                [$"{ExecuteServiceTask.Key}: 1"],
             ],
             workflows.Select(OperationIds)
         );
-        Assert.Equal([null, null, null, 1], workflows.Select(plan => plan.ReceiveOpeningIndex));
+        Assert.Equal([null, 0, null, 1], workflows.Select(plan => plan.ReceiveStageIndex));
     }
 
     /// <summary>
-    /// Both sends composed before either handler: the second mint rides the continuation the first send's
-    /// completion enqueues, and the second send's completion starts the first exchange's receiver. Two
-    /// handlers composed back to back are two receive workflows. Item indexes: the sends at 0 and 1, the first
-    /// handler at 2, the terminal at 3.
+    /// The whole serialized payload of every step the planner emits for an external stage, pinned exactly: the send
+    /// and its replies run the same item, so they carry the same payload, and the mint names the stage it opens for.
+    /// Pinned on the serialized shape because that is what a workflow enqueued by this version replays from.
     /// </summary>
     [Fact]
-    public void PlanSegment_UpFrontSends_RidesOneWorkflowPerSend_ThenOnePerHandler()
+    public void PlanItem_ExternalStagePayloads_AreTheItemIndexAndNothingElse()
     {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .Stage(SendStage, _threeDays, out MailboxHandle journal)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .ConcludeOnReplies(journal, OnMessage, OnClosed);
-
-        ServiceTaskSegmentPlan first = WorkflowStepSet.PlanSegment("archiving", pipeline);
-        Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(first));
-        Assert.Null(first.ReceiveOpeningIndex);
-
-        ServiceTaskSegmentPlan second = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
-        Assert.Equal([$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"], OperationIds(second));
-        Assert.Null(second.ReceiveOpeningIndex);
-
-        // The handler that answers the *first* exchange follows the second send, so the second send's
-        // completion is what starts exchange 0's receive leg.
-        ServiceTaskSegmentPlan archiveReceive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(archiveReceive));
-        Assert.Equal(0, archiveReceive.ReceiveOpeningIndex);
-
-        // Two handlers back to back: the workflow after the first is the second, alone, on the other exchange.
-        ServiceTaskSegmentPlan journalReceive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(journalReceive));
-        Assert.Equal(1, journalReceive.ReceiveOpeningIndex);
-    }
-
-    /// <summary>
-    /// Handler order is exchange order, and it is the author's choice: answering B before A is legal once both
-    /// stages precede both handlers, and each handler's workflow parks on the exchange that handler answers
-    /// rather than on the one the preceding send opened. Item indexes: the sends at 0 and 1, the handlers at 2
-    /// (journal's) and 3 (archive's).
-    /// </summary>
-    [Fact]
-    public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheReceiveWorkflows()
-    {
-        ServiceTaskPipeline pipeline = new PipelineBuilder()
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .Stage(SendStage, _threeDays, out MailboxHandle journal)
-            .HandleReplies(journal, OnSegmentMessage, OnSegmentClosed)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Finally(FinalWork);
-
-        // Each send parks on nothing; the receive workflows come after them, journal's first because its
-        // handler is composed first.
-        Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline).ReceiveOpeningIndex);
-        Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).ReceiveOpeningIndex);
-        Assert.Equal(1, WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).ReceiveOpeningIndex);
-        Assert.Equal(0, WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2).ReceiveOpeningIndex);
-        Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 3).ReceiveOpeningIndex);
-    }
-
-    /// <summary>
-    /// The whole serialized payload of every step the planner emits, pinned exactly: an
-    /// <c>ExecuteServiceTask</c> payload is the service task and the one item the step runs, and nothing else.
-    /// Pinned on the serialized shape rather than on a property being null, because the shape is what a
-    /// workflow enqueued by this version replays from — and because a pin on the whole string fails for a
-    /// field <em>added</em> too, which is the direction that would put a hand-over back in a payload.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_StepPayloads_AreTheItemIndexAndNothingElse()
-    {
-        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
+        ServiceTaskPipeline pipeline = new PipelineBuilder.ServiceTask()
+            .Stage(PlainStage)
+            .ExternalStage(SendToArchive, OnArchiveReply)
+            .ToPipeline();
+        var archive = Assert.IsType<ServiceTaskItem.ExternalStage>(pipeline.Items[1]);
 
         Assert.Equal(
             [
-                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":2}",
-                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":3}",
+                "{\"$type\":\"mintMailbox\",\"serviceTaskType\":\"archiving\",\"stageIndex\":1}",
+                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":1}",
+                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":1}",
             ],
-            StageStepPayloadJson(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1))
-                .Concat(StageStepPayloadJson(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2)))
+            StepPayloadJson(WorkflowStepSet.PlanItem("archiving", pipeline, 1))
+                .Concat(StepPayloadJson(WorkflowStepSet.PlanReceive("archiving", archive, 1)))
         );
     }
-
-    /// <summary>
-    /// The one way a plan can come back empty — and one no well-formed pipeline reaches, since <c>Items</c>
-    /// always ends with a conclusion and a conclusion starts nothing. Not a throw: the hop that asks is inside
-    /// a step's verdict, and it refuses permanently rather than enqueue a workflow with no steps — see
-    /// <c>MailboxRelayTests.StageEnd_WithNothingComposedAfterTheStage_FailsPermanently</c>.
-    /// </summary>
-    [Fact]
-    public void PlanSegment_StartingPastTheLastItem_PlansNothing()
-    {
-        ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
-        int lastIndex = pipeline.Items.Count - 1;
-
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: lastIndex);
-
-        Assert.Empty(plan.Steps);
-        Assert.Null(plan.ReceiveOpeningIndex);
-    }
-
-    private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
-        new PipelineBuilder()
-            .Stage(SendStage, _threeDays, out MailboxHandle archive)
-            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
-            .Stage(PlainStage)
-            .Stage(SendStage, _threeDays, out MailboxHandle journal)
-            .ConcludeOnReplies(journal, OnMessage, OnClosed);
 }

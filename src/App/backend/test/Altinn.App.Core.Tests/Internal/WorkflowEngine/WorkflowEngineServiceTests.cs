@@ -2062,8 +2062,8 @@ public class WorkflowEngineServiceTests
     {
         public string Type => ServiceTaskWithoutWorkflowType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(_ => Task.FromResult(ServiceTaskResult.Completed()));
     }
 
     private static Instance CreateInstanceOnTask(string elementId, Guid? instanceGuid = null) =>

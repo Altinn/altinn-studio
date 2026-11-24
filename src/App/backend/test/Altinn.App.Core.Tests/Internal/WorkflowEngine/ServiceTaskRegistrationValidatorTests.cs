@@ -20,19 +20,14 @@ public class ServiceTaskRegistrationValidatorTests
             await Record.ExceptionAsync(() => validator.StartAsync(CancellationToken.None));
     }
 
-    private static Task<StageResult> NoopStage(StageContext context) => Task.FromResult(StageResult.Completed());
+    private static Task<ServiceTaskResult> NoopStage(StageContext context) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskResult> NoopFinally(StageContext context) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    private static Task<ServiceTaskResult> NoopSend(StageContext context, ReplyAddress replyAddress) =>
+        Task.FromResult(ServiceTaskResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> NoopSend(StageContext context, ServiceTaskMailbox mailbox) =>
-        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
-
-    private static Task<ServiceTaskExchangeResult> NoopMessage(StageContext context, ServiceTaskReply reply) =>
-        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
-
-    private static Task<ServiceTaskResult> NoopClosed(StageContext context, MailboxClosedReason reason) =>
-        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+    private static Task<ServiceTaskReplyResult> NoopReply(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult(ServiceTaskReplyResult.Completed());
 
     // ── Well-formed tasks ────────────────────────────────────────────────────────────────────
 
@@ -40,21 +35,21 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "simple";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
-        public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
+        public Task<ServiceTaskResult> Execute(StageContext context) => NoopStage(context);
     }
 
     private sealed class GoodPipelineTask : IServiceTask
     {
         public string Type => "good";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline.Stage(NoopStage).Finally(NoopFinally);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.Stage(NoopStage).ExternalStage(NoopSend, NoopReply).Stage(NoopStage);
     }
 
     [Fact]
-    public async Task SimpleTask_TheForwardingDefaultPipeline_PassesValidation()
+    public async Task SimpleTask_PassesValidation()
     {
         var exception = await Validate(s => s.AddSingleton<IServiceTask, SimpleTask>());
 
@@ -83,10 +78,10 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "invalidOptions";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             pipeline
                 .Stage(NoopStage, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
-                .Finally(NoopFinally);
+                .Stage(NoopStage);
     }
 
     [Fact]
@@ -98,11 +93,29 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains("defining the pipeline failed", exception.Message);
     }
 
+    private sealed class TooLongTimeoutTask : IServiceTask
+    {
+        public string Type => "tooLongTimeout";
+
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
+            pipeline.ExternalStage(NoopSend, NoopReply, timeout: TimeSpan.FromDays(30));
+    }
+
+    [Fact]
+    public async Task AnExternalStageTimeoutPastTheEnginesCap_FailsStartup()
+    {
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, TooLongTimeoutTask>());
+
+        Assert.NotNull(exception);
+        Assert.Contains(typeof(TooLongTimeoutTask).FullName ?? "", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("timeout", exception.Message, StringComparison.Ordinal);
+    }
+
     private sealed class ThrowingDefineTask : IServiceTask
     {
         public string Type => "throwingDefine";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) =>
             throw new InvalidOperationException("no pipeline for you");
     }
 
@@ -115,78 +128,24 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains("no pipeline for you", exception.Message);
     }
 
-    private sealed class NullDefineTask : IServiceTask
+    private sealed class EmptyDefineTask : IServiceTask
     {
-        public string Type => "nullDefine";
+        public string Type => "emptyDefine";
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => null!;
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) { }
     }
 
     [Fact]
-    public async Task DefineReturningNull_FailsStartup()
+    public async Task DefineComposingNoStep_FailsStartup_NamingTheTaskType()
     {
-        var exception = await Validate(s => s.AddSingleton<IServiceTask, NullDefineTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, EmptyDefineTask>());
 
         Assert.NotNull(exception);
-        Assert.Contains("DefineExecute returned null", exception.Message);
-    }
-
-    // ── Mailbox composition ──────────────────────────────────────────────────────────────────
-
-    private sealed class UnansweredMailboxTask : IServiceTask
-    {
-        public string Type => "unansweredMailbox";
-
-        // The violation: a stage opens a mailbox and the pipeline ends with Finally, so nothing answers the
-        // messages that come back.
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
-                .Finally(NoopFinally);
-    }
-
-    [Fact]
-    public async Task PipelineTaskOpeningAMailboxNothingAnswers_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IServiceTask, UnansweredMailboxTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
-        Assert.Contains("nothing answers it", exception.Message, StringComparison.Ordinal);
-        // The startup surface points at both handler positions, as the builder's own guidance does.
-        Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), exception.Message, StringComparison.Ordinal);
-        Assert.Contains(nameof(PipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
-    }
-
-    private sealed class ForeignMailboxHandleTask : IServiceTask
-    {
-        public string Type => "foreignMailboxHandle";
-
-        private static readonly MailboxHandle _cached = CacheAHandle();
-
-        private static MailboxHandle CacheAHandle()
-        {
-            new PipelineBuilder().Stage(
-                NoopSend,
-                new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
-                out MailboxHandle handle
-            );
-            return handle;
-        }
-
-        // The violation: a handle cached from an earlier DefineExecute call belongs to that call's builder.
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
-                .ConcludeOnReplies(_cached, NoopMessage, NoopClosed);
-    }
-
-    [Fact]
-    public async Task PipelineTaskAnsweringAnotherPipelinesMailbox_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IServiceTask, ForeignMailboxHandleTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(typeof(EmptyDefineTask).FullName ?? "", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            "'emptyDefine' service task would have nothing to run",
+            exception.Message,
+            StringComparison.Ordinal
+        );
     }
 }

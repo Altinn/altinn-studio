@@ -69,22 +69,19 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-            pipeline
-                .Stage(context =>
-                {
-                    seen.Add(context);
-                    return Task.FromResult(StageResult.Completed());
-                })
-                .Build();
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
+            pipeline.Stage(context =>
+            {
+                seen.Add(context);
+                return Task.FromResult(StageResult.Completed());
+            });
     }
 
     private sealed class ThrowingTask(Exception exception) : IProcessTask
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-            pipeline.Stage(_ => throw exception).Build();
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => throw exception);
     }
 
     [Fact]
@@ -119,7 +116,7 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
             pipeline
                 .Stage(context =>
                 {
@@ -130,8 +127,7 @@ public class StartTaskTests
                 {
                     ran.Add($"second:{context.StepId}");
                     return Task.FromResult(StageResult.Completed());
-                })
-                .Build();
+                });
     }
 
     [Fact]
@@ -172,11 +168,10 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
-                .Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(2))))
-                .Build();
+                .Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(2))));
     }
 
     [Fact]
@@ -224,8 +219,8 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-            pipeline.Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(1), "not yet"))).Build();
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) =>
+            pipeline.Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(1), "not yet")));
     }
 
     [Fact]
@@ -244,8 +239,7 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-            pipeline.Stage(_ => Task.FromResult(result)).Build();
+        public void DefineStart(PipelineBuilder.Lifecycle pipeline) => pipeline.Stage(_ => Task.FromResult(result));
     }
 
     // A record's protected copy constructor lets an app derive its own result, which no mapper can act on.
