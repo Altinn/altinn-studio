@@ -5,6 +5,9 @@
   [in-flight workflows](../../../../docs/workflow-engine-integration.md#in-flight-workflows) explains.
 - Some types here and in `Features/Process` look redundant and are deliberate, such as the enums that come in pairs.
   Do not merge them in passing.
+- Keep each item of a service task's pipeline the last step of its own workflow, with nothing before it but a
+  mailbox-opening stage's `MintMailbox` step. Each item's completion enqueues the next item's workflow, so an item
+  that shares a workflow with the next one runs that one twice.
 - After you change the steps a transition plans, the callbacks or the mailbox relay, run the
   [integration tests](README.md).
 
