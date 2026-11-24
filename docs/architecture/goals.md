@@ -22,16 +22,17 @@ upgrade without controlling its direction. Every third-party dependency is a com
 can drift as its maintainers and priorities change.
 
 - We look to the standard library and the platform first ([decision-log#3][dl3]).
+- Public HTTP and library APIs do not rely on or expose vendor products or third-party libraries, except where an open
+  standard is the shared contract ([decision-log#3][dl3], [decision-log#31][dl31]).
 - Dependencies we take on are open source, permissively licensed and actively maintained.
 - Container images hold only what runs ([decision-log#42][dl42]).
 
-## Vendor independence and digital sovereignty
+## Digital sovereignty
 
 Altinn Studio can move to another cloud provider, or to our own data centers, without rebuilding.
 
 - Any provider service sits behind a standard interface or a boundary we own, such as PostgreSQL, OTLP or the
-  Kubernetes API.
-- Our APIs and services do not depend on a provider's product features or contracts ([decision-log#31][dl31]).
+  Kubernetes API, so replacing the provider does not change how Altinn Studio behaves.
 - An ADR that adds a provider dependency says what leaving would take.
 
 Background: the [national digitalization strategy][dns], the Skate report [Skiftende skydekke][skate] and the
