@@ -793,16 +793,16 @@ happened. `404 Not Found` means the namespace has no such resource. Refusals car
 atomically. The `idempotencyKey` query parameter identifies the request, and the optional `collectionKey` chains it
 onto a [collection](workflow-collections.md). `201 Created` means the engine stored them. `200 OK` means the key has
 already enqueued this request, and returns the original workflows. That guarantee lasts until retention purges the
-key, or until a workflow it created is [abandoned](#abandon). `409 Conflict` means the key was used with a different
-body, `400 Bad Request` that validation failed, and `429 Too Many Requests` that the engine is at
+key, or until a workflow it created is [abandoned](#abandon). `409 Conflict` means the key was used for a different
+request, `400 Bad Request` that validation failed, and `429 Too Many Requests` that the engine is at
 `BackpressureThreshold`.
 
-The engine compares a fingerprint of the body, not the body itself. The fingerprint leaves out `context` and each
-workflow's `state`, which a caller may rebuild per attempt, and each step's `labels`, which the engine stores for its
-readers and never queries. So a replay with a fresh callback token, with state signed again under a rotated key, or
-with a step label renamed by a deploy in between, still gets `200 OK`. The workflows keep the context and state of the
-request that created them. Everything else counts, including the workflow labels, since the engine indexes them and
-callers read them back.
+The engine compares a fingerprint of the request, not the body itself. The fingerprint covers the work: the
+collection key, the steps with their commands and options, the dependencies and the schedule. It leaves out the data
+the work runs on, which is `context` and each workflow's `state`, and the `labels` of workflows and steps. A caller may
+rebuild those per attempt, so a replay with a fresh callback token, with state signed again under a rotated key, or
+with a label renamed by a deploy in between, still gets `200 OK`. The workflows keep the context, state and labels of
+the request that created them. A replay under another collection key gets `409 Conflict`.
 Validation runs before the fingerprint check, and a command may validate the context it declares, so a replay whose
 context a command rejects gets `400 Bad Request` rather than the original workflows.
 

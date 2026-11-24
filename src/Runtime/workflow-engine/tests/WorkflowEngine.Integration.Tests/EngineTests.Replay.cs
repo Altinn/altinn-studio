@@ -7,14 +7,15 @@ namespace WorkflowEngine.Integration.Tests;
 public partial class EngineTests
 {
     [Fact]
-    public async Task Replay_WithOtherStateAndStepLabels_JoinsTheFirstWorkflowAndKeepsWhatItStored()
+    public async Task Replay_WithOtherStateAndLabels_JoinsTheFirstWorkflowAndKeepsWhatItStored()
     {
         const string firstState = """{"signedWith":"first"}""";
+        var firstWorkflowLabels = new Dictionary<string, string> { ["shownAs"] = "Send in" };
         var firstStepLabels = new Dictionary<string, string> { ["stepName"] = "Validate data" };
         var idempotencyKey = $"idem-{Guid.NewGuid()}";
 
         using var firstResponse = await _client.EnqueueRaw(
-            CreateReplayRequest(firstState, firstStepLabels),
+            CreateReplayRequest(firstState, firstWorkflowLabels, firstStepLabels),
             idempotencyKey: idempotencyKey
         );
         Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
@@ -24,6 +25,7 @@ public partial class EngineTests
         using var replayResponse = await _client.EnqueueRaw(
             CreateReplayRequest(
                 """{"signedWith":"second"}""",
+                new Dictionary<string, string> { ["shownAs"] = "Submit" },
                 new Dictionary<string, string> { ["stepName"] = "Validate the data" }
             ),
             idempotencyKey: idempotencyKey
@@ -37,10 +39,38 @@ public partial class EngineTests
         var stored = await _client.GetWorkflow(workflowId);
         Assert.NotNull(stored);
         Assert.Equal(firstState, stored.InitialState);
+        Assert.Equal(firstWorkflowLabels, stored.Labels);
         Assert.Equal(firstStepLabels, stored.Steps.Single().Labels);
     }
 
-    private WorkflowEnqueueRequest CreateReplayRequest(string state, Dictionary<string, string> stepLabels) =>
+    [Fact]
+    public async Task Replay_UnderAnotherCollectionKey_IsAConflict()
+    {
+        var request = CreateReplayRequest("state", workflowLabels: [], stepLabels: []);
+        var idempotencyKey = $"idem-{Guid.NewGuid()}";
+
+        using var firstResponse = await _client.EnqueueRaw(
+            request,
+            idempotencyKey: idempotencyKey,
+            collectionKey: $"collection-{Guid.NewGuid()}"
+        );
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+
+        using var replayResponse = await _client.EnqueueRaw(
+            request,
+            idempotencyKey: idempotencyKey,
+            collectionKey: $"collection-{Guid.NewGuid()}"
+        );
+
+        Assert.Equal(HttpStatusCode.Conflict, replayResponse.StatusCode);
+        await _testHelpers.AssertDbWorkflowCount(1);
+    }
+
+    private WorkflowEnqueueRequest CreateReplayRequest(
+        string state,
+        Dictionary<string, string> workflowLabels,
+        Dictionary<string, string> stepLabels
+    ) =>
         _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf-replay",
@@ -49,7 +79,10 @@ public partial class EngineTests
             {
                 State = state,
             }
-        );
+        ) with
+        {
+            Labels = workflowLabels,
+        };
 
     private static async Task<Guid> ReadSingleWorkflowId(HttpResponseMessage response) =>
         (await EngineApiClient.AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response))

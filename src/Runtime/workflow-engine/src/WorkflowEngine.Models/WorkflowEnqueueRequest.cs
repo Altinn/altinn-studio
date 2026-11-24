@@ -30,28 +30,28 @@ public sealed record WorkflowEnqueueRequest
     [JsonPropertyName("workflows")]
     public required IReadOnlyList<WorkflowRequest> Workflows { get; init; }
 
-    /// <summary>
-    /// The fingerprint an idempotency key is checked against. A replay with the same key and the same fingerprint
-    /// returns the original workflows, and a different fingerprint is a conflict. The fingerprint covers what the
-    /// engine runs and indexes, and leaves out what it only carries for others:
-    /// <list type="bullet">
-    ///   <item><see cref="Context"/>. A caller may rebuild it per attempt, such as a fresh auth token with a new
-    ///   issued-at. The commands still validate it before the fingerprint is checked, so a replay whose context a
-    ///   command rejects is invalid rather than a duplicate.</item>
-    ///   <item>Each step's <see cref="StepRequest.Labels"/>. The engine stores them for its readers and never
-    ///   queries them, so a caller may rename what it shows for a step between an enqueue whose response was lost
-    ///   and the replay, and the replay still finds the workflow it already has.</item>
-    ///   <item>Each workflow's <see cref="WorkflowRequest.State"/>. The engine never reads it, and a caller may
-    ///   rebuild it on a retry, such as state signed under a rotated key or by a newer version of the caller. The
-    ///   workflows keep the state of the request that created them.</item>
-    /// </list>
-    /// Workflow <see cref="Labels"/> stay in. The engine indexes them, and callers read them back to decide what a
-    /// workflow was for, so a key reused with other workflow labels is a different request.
-    /// </summary>
-    internal byte[] ComputeHash()
+    // A null field is left out, so a nullable field added to the request later does not change the hash of
+    // requests that leave it unset.
+    private static readonly JsonSerializerOptions _fingerprintOptions = new()
     {
-        var fingerprint = this with
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    /// <summary>
+    /// The fingerprint an idempotency key is checked against: the same key with the same fingerprint returns the
+    /// original workflows, and another fingerprint is a conflict. It covers the work, which is the collection the
+    /// workflows join, the steps, their commands and options, the dependencies and the schedule. It leaves out the
+    /// data the work runs on (<see cref="Context"/> and each workflow's <see cref="WorkflowRequest.State"/>) and the
+    /// labels of workflows and steps. A caller may rebuild those per attempt, and the workflows keep the ones they
+    /// were created with. The commands still validate the context before the fingerprint is checked, so a replay
+    /// whose context a command rejects is invalid rather than a duplicate.
+    /// </summary>
+    /// <param name="collectionKey">The collection key the request was sent with, or null.</param>
+    internal byte[] ComputeHash(string? collectionKey)
+    {
+        var work = this with
         {
+            Labels = null,
             Context = null,
             Workflows = Workflows
                 .Select(workflow =>
@@ -63,6 +63,10 @@ public sealed record WorkflowEnqueueRequest
                 )
                 .ToList(),
         };
-        return SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(fingerprint));
+        return SHA256.HashData(
+            JsonSerializer.SerializeToUtf8Bytes(new Fingerprint(collectionKey, work), _fingerprintOptions)
+        );
     }
+
+    private sealed record Fingerprint(string? CollectionKey, WorkflowEnqueueRequest Work);
 }
