@@ -534,7 +534,7 @@ public class PdfControllerTests
             taskId: previewedTask == PreviewedTask.CurrentPdfTask ? null : "Task_Pdf"
         );
 
-        Assert.IsType<SuccessfulServiceTaskResult>(taskResult);
+        Assert.IsType<CompletedServiceTaskResult>(taskResult);
         Assert.IsType<FileContentResult>(result);
         Assert.NotNull(requestBody);
         Assert.Contains("/Task_Pdf?pdf=1", requestBody);

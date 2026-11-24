@@ -1484,12 +1484,12 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public async Task<ServiceTaskResult> Execute(StageContext context)
         {
             await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
-            return ServiceTaskResult.Success();
+            return ServiceTaskResult.Completed();
         }
     }
 
@@ -1501,7 +1501,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public StageContext? ReceivedContext { get; private set; }
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -1516,7 +1516,7 @@ public class WorkflowEngineCallbackControllerTests
                 );
             }
 
-            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+            return Task.FromResult(ServiceTaskResult.Completed());
         }
     }
 
@@ -1526,7 +1526,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -1536,7 +1536,7 @@ public class WorkflowEngineCallbackControllerTests
                 "service-task-output.json",
                 "{}"u8.ToArray()
             );
-            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
+            return Task.FromResult(ServiceTaskResult.EndTask(action));
         }
     }
 
@@ -1546,13 +1546,13 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
             stageChange(context.InstanceDataMutator);
-            return Task.FromResult<ServiceTaskResult>(
-                defer ? ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)) : ServiceTaskResult.Success()
+            return Task.FromResult(
+                defer ? ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)) : ServiceTaskResult.Completed()
             );
         }
     }
@@ -1563,10 +1563,10 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public void DefineExecute(PipelineBuilder.ServiceTask pipeline) => pipeline.Stage(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));
+            Task.FromResult(ServiceTaskResult.FailedRetryable("Expected failure"));
     }
 
     private sealed class StageEndedProcessCommand(DateTime ended) : IWorkflowEngineCommand

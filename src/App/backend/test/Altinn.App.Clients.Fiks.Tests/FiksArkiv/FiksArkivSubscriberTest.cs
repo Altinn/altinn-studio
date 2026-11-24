@@ -113,7 +113,7 @@ public class FiksArkivSubscriberTest
     [InlineData(FiksArkivMeldingtype.Ikkefunnet)]
     [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettMottatt)]
     [InlineData(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering)]
-    public async Task ExecuteAsync_RegistersMessageReceivedHandler_ForwardsEveryMessageIntoTheMailbox(
+    public async Task ExecuteAsync_RegistersMessageReceivedHandler_ForwardsEveryMessageToTheReplyAddress(
         string messageType
     )
     {
@@ -121,12 +121,12 @@ public class FiksArkivSubscriberTest
         var fiksIOClientMock = new Mock<IFiksIOClient>();
         var forwarder = RecordingForwarder(out var forwarded);
         var messageId = Guid.NewGuid();
-        var mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
+        var replyAddressId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
         var svarSenderMock = new Mock<ISvarSender>();
         FiksIOReceivedMessage message = ReceivedMessage(
             messageType,
             messageId,
-            mailboxId.ToString().ToUrlSafeBase64(),
+            replyAddressId.ToString().ToUrlSafeBase64(),
             svarSenderMock
         );
         MessageReceivedCallback? messageReceivedCallback = null;
@@ -154,7 +154,7 @@ public class FiksArkivSubscriberTest
         await messageReceivedCallback!.Invoke(message);
 
         var delivery = Assert.Single(forwarded);
-        Assert.Equal(mailboxId, delivery.MailboxId);
+        Assert.Equal(replyAddressId, delivery.ReplyAddressId);
         Assert.Equal(fixture.FiksArkivServiceTask.Type, delivery.ServiceTaskType);
         Assert.Equal(messageId.ToString(), delivery.IdempotencyKey);
         var stored = JsonSerializer.Deserialize<StoredFiksArkivMessage>(delivery.Payload);
@@ -215,14 +215,14 @@ public class FiksArkivSubscriberTest
     [InlineData(ServiceTaskReplyForwardOutcome.Unroutable, false)]
     [InlineData(ServiceTaskReplyForwardOutcome.Late, false)]
     [InlineData(ServiceTaskReplyForwardOutcome.PayloadTooLarge, false)]
-    [InlineData(ServiceTaskReplyForwardOutcome.MailboxFull, false)]
+    [InlineData(ServiceTaskReplyForwardOutcome.TooManyReplies, false)]
     [InlineData(ServiceTaskReplyForwardOutcome.Rejected, false)]
     public async Task IncomingMessageListener_RedeliveryFollowsTheForwardingOutcome(
         ServiceTaskReplyForwardOutcome outcome,
         bool expectRedelivery
     )
     {
-        var mailboxId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
+        var replyAddressId = Guid.Parse("c0ffee11-1111-4a1a-9c3d-4d5e6f708192");
         var forwarder = new Mock<IServiceTaskReplyForwarder>(MockBehavior.Strict);
         forwarder
             .Setup(x =>
@@ -235,13 +235,13 @@ public class FiksArkivSubscriberTest
                 )
             )
             .ThrowsAsync(
-                new ServiceTaskReplyForwardException(outcome, mailboxId, "key", $"forwarding failed: {outcome}")
+                new ServiceTaskReplyForwardException(outcome, replyAddressId, "key", $"forwarding failed: {outcome}")
             );
         var svarSenderMock = new Mock<ISvarSender>();
         FiksIOReceivedMessage message = ReceivedMessage(
             FiksArkivMeldingtype.ArkivmeldingOpprettKvittering,
             Guid.NewGuid(),
-            mailboxId.ToString().ToUrlSafeBase64(),
+            replyAddressId.ToString().ToUrlSafeBase64(),
             svarSenderMock
         );
 
@@ -298,7 +298,7 @@ public class FiksArkivSubscriberTest
     }
 
     private static Mock<IServiceTaskReplyForwarder> RecordingForwarder(
-        out List<(Guid MailboxId, string ServiceTaskType, string Payload, string IdempotencyKey)> forwarded
+        out List<(Guid ReplyAddressId, string ServiceTaskType, string Payload, string IdempotencyKey)> forwarded
     )
     {
         var recorded = new List<(Guid, string, string, string)>();
@@ -315,8 +315,13 @@ public class FiksArkivSubscriberTest
                 )
             )
             .Callback(
-                (Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey, CancellationToken _) =>
-                    recorded.Add((mailboxId, serviceTaskType, payload, idempotencyKey))
+                (
+                    Guid replyAddressId,
+                    string serviceTaskType,
+                    string payload,
+                    string idempotencyKey,
+                    CancellationToken _
+                ) => recorded.Add((replyAddressId, serviceTaskType, payload, idempotencyKey))
             )
             .Returns(Task.CompletedTask);
         return forwarder;
