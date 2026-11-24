@@ -17,9 +17,9 @@ We choose published open standards over our own formats or a vendor's, and exten
 
 ## Minimal dependencies
 
-A dependency, whether a library, a service or a tool, has to earn its place. Adding one brings code into Altinn Studio
-without taking any responsibility out. We answer for its bugs, vulnerabilities and upgrades, and we know it less well
-than our own code.
+A dependency, whether a library, a service or a tool, has to earn its place. It adds code we have to debug, patch and
+upgrade without controlling its direction. Every third-party dependency is a compromise, and even one that fits today
+can drift as its maintainers and priorities change.
 
 - We look to the standard library and the platform first ([decision-log#3][dl3]).
 - Dependencies we take on are open source, permissively licensed and actively maintained.
