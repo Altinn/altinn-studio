@@ -3,6 +3,7 @@
 Follow [CONTRIBUTING.md](CONTRIBUTING.md). The [README](README.md) says how the parts fit together.
 
 - Read the code, not the docs, to learn how something works.
+- Read the [architecture goals](docs/architecture/goals.md) before proposing a design or adding a dependency.
 - Projects use different languages and versions. Check the project's `global.json`, `go.mod`, `package.json` or
   `pyproject.toml` before you assume a version.
 - Before you report a change complete, run the checks that CONTRIBUTING.md and the component's README ask for. If you
