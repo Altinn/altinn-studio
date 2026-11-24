@@ -15,8 +15,8 @@
     "@designer/hooks": "workspace:^",
     "@designer/icons": "workspace:^",
     "@designer/pure-functions": "workspace:^",
-    "@digdir/designsystemet-css": "1.23.0",
-    "@digdir/designsystemet-react": "1.23.0",
+    "@digdir/designsystemet-css": "1.24.1",
+    "@digdir/designsystemet-react": "1.24.1",
     "highlight.js": "11.12.0",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1"

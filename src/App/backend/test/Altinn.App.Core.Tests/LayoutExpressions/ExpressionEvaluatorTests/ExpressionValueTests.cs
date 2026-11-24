@@ -284,6 +284,24 @@ public class ExpressionValueTests(ITestOutputHelper outputHelper)
         TestTryDeserialize(long.MinValue, long.MinValue, true);
     }
 
+    [Theory]
+    [InlineData("0.38")]
+    [InlineData("2.35")]
+    [InlineData("-0.7331")]
+    [InlineData("1e-8")]
+    [InlineData("1234567890.1234567")]
+    public void TryDeserialize_DecimalMatchesJsonNumber(string json)
+    {
+        var expected = JsonSerializer.Deserialize<decimal>(json);
+        ExpressionValue number = ExpressionValue.FromJsonString(json);
+        ExpressionValue text = json;
+
+        Assert.True(number.TryDeserialize<decimal>(out var result));
+        Assert.Equal(expected, result);
+        Assert.True(text.TryDeserialize<decimal?>(out var nullableResult));
+        Assert.Equal(expected, nullableResult);
+    }
+
     private void TestTryDeserialize<T>(ExpressionValue value, T? expected, bool success)
     {
         outputHelper.WriteLine($"{value} -> {typeof(T).Name} {expected}: expects {(success ? "success" : "failure")}");

@@ -127,6 +127,58 @@ public class GetRepositoryResourceListTests
     }
 
     [Fact]
+    public async Task GetResourceList_ReturnsStatus_PrefersRepositoryStatusAndFallsBackToEnvironmentStatus()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/ttd/resources/resourcelist?includeEnvResources=true";
+        RepositoryMock
+            .Setup(r =>
+                r.GetServiceResources(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<System.Threading.CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                new ServiceResource
+                {
+                    Identifier = "repo-with-status",
+                    Title = new Dictionary<string, string>(),
+                    Status = "Completed",
+                },
+                new ServiceResource { Identifier = "repo-without-status", Title = new Dictionary<string, string>() },
+            ]);
+        ResourceRegistryMock
+            .Setup(registry => registry.GetServiceResourceList(It.IsAny<string>(), true, true))
+            .ReturnsAsync([
+                CreateEnvironmentResource("repo-with-status", "Deprecated"),
+                CreateEnvironmentResource("repo-without-status", "Deprecated"),
+                CreateEnvironmentResource("environment-only", "Withdrawn"),
+            ]);
+
+        // Act
+        using HttpResponseMessage res = await HttpClient.GetAsync(uri);
+        List<ListviewServiceResource> resources = await res.Content.ReadFromJsonAsync<List<ListviewServiceResource>>();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        Assert.Equal("Completed", resources.Single(resource => resource.Identifier == "repo-with-status").Status);
+        Assert.Equal("Deprecated", resources.Single(resource => resource.Identifier == "repo-without-status").Status);
+        Assert.Equal("Withdrawn", resources.Single(resource => resource.Identifier == "environment-only").Status);
+    }
+
+    private static ServiceResource CreateEnvironmentResource(string identifier, string status) =>
+        new()
+        {
+            Identifier = identifier,
+            Title = new Dictionary<string, string>(),
+            Status = status,
+            ResourceType = ResourceType.GenericAccessResource,
+            HasCompetentAuthority = new CompetentAuthority { Orgcode = "ttd" },
+        };
+
+    [Fact]
     public async Task GetResourceList_NoContent()
     {
         // Arrange
