@@ -2663,6 +2663,31 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task ForwardReplyOfTheAppsOwn_KeepsItsMailboxIdArgument(bool semantic)
+    {
+        var relay = Write(
+            "logic/Relay.cs",
+            """
+            public sealed class Relay
+            {
+                public Task Forward(Guid id) => ForwardReply(mailboxId: id, payload: "{}");
+
+                private Task ForwardReply(Guid mailboxId, string payload) => Task.CompletedTask;
+            }
+            """
+        );
+        var original = await File.ReadAllTextAsync(relay, TestContext.Current.CancellationToken);
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(Oks(result));
+        Assert.Equal(original, await File.ReadAllTextAsync(relay, TestContext.Current.CancellationToken));
+        AssertCompilesAgainstCurrent();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public void PreviewApiLeftAnywhere_IsReportedWithItsFileAndLine(bool semantic)
     {
         Write(
