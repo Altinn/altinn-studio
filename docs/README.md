@@ -5,6 +5,7 @@ README. Docs for service owners and app developers are on [docs.altinn.studio](h
 
 | Doc                                                              | What it is for                                            |
 | ---------------------------------------------------------------- | --------------------------------------------------------- |
+| [architecture/goals.md](architecture/goals.md)                   | The goals we weigh every design against                   |
 | [cicd.md](cicd.md)                                               | How we write workflows and build images                   |
 | [coding-standards.md](coding-standards.md)                       | How we write code                                         |
 | [documentation.md](documentation.md)                             | Where documentation goes and how to write it              |
