@@ -2805,6 +2805,39 @@ public sealed class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task SuccessfulResultCreatedWithNew_IsReported_AndNamedAsAType_IsRenamed(bool semantic)
+    {
+        var task = Write(
+            "logic/CreatedResults.cs",
+            """
+            public static class CreatedResults
+            {
+                public static ServiceTaskResult Reject() => new SuccessfulServiceTaskResult { Action = "reject" };
+
+                public static bool Rejected(ServiceTaskResult result) =>
+                    result is SuccessfulServiceTaskResult { Action: "reject" };
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Equal(
+            [
+                $"{Path.Combine("logic", "CreatedResults.cs")}:8: EndedServiceTaskResult cannot be created with new, so "
+                    + "this SuccessfulServiceTaskResult was left as it is. Create it with "
+                    + "ServiceTaskResult.EndTask(action).",
+            ],
+            result.Todos
+        );
+        var migrated = await ReadMigrated(task);
+        Assert.Contains("=> new SuccessfulServiceTaskResult { Action = \"reject\" };", migrated);
+        Assert.Contains("result is EndedServiceTaskResult { Action: \"reject\" };", migrated);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task MailboxIdInAPropertyPattern_OnTheForwardException_IsRenamed(bool semantic)
     {
         var relay = Write(

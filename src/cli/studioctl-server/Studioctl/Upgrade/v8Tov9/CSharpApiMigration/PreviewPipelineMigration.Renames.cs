@@ -56,6 +56,8 @@ internal sealed partial class PreviewPipelineMigration
 
         public const string ServiceTaskOpeningStageResult = "ServiceTaskOpeningStageResult";
 
+        public const string SuccessfulServiceTaskResult = "SuccessfulServiceTaskResult";
+
         public const string ForwardException = "ServiceTaskReplyForwardException";
 
         public const string Forwarder = "IServiceTaskReplyForwarder";
@@ -78,16 +80,25 @@ internal sealed partial class PreviewPipelineMigration
         public static readonly Dictionary<string, string> RenamedTypes = new(StringComparer.Ordinal)
         {
             ["ServiceTaskMailbox"] = "ReplyAddress",
-            ["SuccessfulServiceTaskResult"] = "EndedServiceTaskResult",
+            [SuccessfulServiceTaskResult] = "EndedServiceTaskResult",
             ["StageAwaitNextReplyResult"] = "ServiceTaskAwaitNextReplyResult",
         };
 
         public static readonly MemberRename[] RenamedMembers =
         [
-            new(PipelineApi.ServiceTaskResult, "Success", "EndTask", Returned: "SuccessfulServiceTaskResult"),
+            new(PipelineApi.ServiceTaskResult, "Success", PipelineApi.EndTask, Returned: SuccessfulServiceTaskResult),
             new("ServiceTaskReplyForwardOutcome", "MailboxFull", "TooManyReplies"),
             new(ForwardException, "MailboxId", "ReplyAddressId", OnInstance: true),
         ];
+
+        /// <summary>
+        /// The previews' types that code could create with <c>new</c>, where the types they were renamed to cannot
+        /// be, and what creates one now.
+        /// </summary>
+        public static readonly Dictionary<string, string> CreatedThrough = new(StringComparer.Ordinal)
+        {
+            [SuccessfulServiceTaskResult] = $"{PipelineApi.ServiceTaskResult}.{PipelineApi.EndTask}(action)",
+        };
 
         public static readonly ParameterRename[] RenamedParameters =
         [
@@ -271,20 +282,16 @@ internal sealed partial class PreviewPipelineMigration
 
     /// <summary>
     /// Makes the renames that mean the same wherever they stand, and reports them per file, with each call
-    /// <see cref="MarkHeldResults"/> marked, which it leaves as it is.
+    /// <see cref="MarkHeldResults"/> marked and each creation of a type that cannot be created now, which it leaves as
+    /// they are.
     /// </summary>
     private void RenameEverywhere(ScannedCSharpFile file, TypeNames names, List<UpgradeMessage> messages)
     {
         var rewriter = new RenameRewriter(names, file.SemanticModel);
         var renamed = MethodRewriter.Kept(rewriter.Visit(file.Root), file.Root);
-        foreach (var (call, rename, returned) in rewriter.Held)
+        foreach (var (node, todo) in rewriter.Left)
         {
-            messages.Todo(
-                $"{file.RelativePath}:{file.GetLine(call)}: {rename.Type}.{rename.Member} returned the "
-                    + $"{returned} this code holds, so it was left as it is. {rename.Type}.{rename.Renamed} returns a "
-                    + $"{rename.Type}: keep what you read from the result in a variable of its own, or match the "
-                    + $"result with is {PreviewApi.RenamedTypes.GetValueOrDefault(returned, returned)}."
-            );
+            messages.Todo($"{file.RelativePath}:{file.GetLine(node)}: {todo}");
         }
 
         if (rewriter.Renamed.Count == 0)
@@ -307,9 +314,9 @@ internal sealed partial class PreviewPipelineMigration
         public SortedSet<string> Renamed { get; } = new(StringComparer.Ordinal);
 
         /// <summary>
-        /// The calls left as they are because their result is held as the type the previews' member returned.
+        /// What was left as it is, and the to-do for it.
         /// </summary>
-        public List<(InvocationExpressionSyntax Call, MemberRename Rename, string Returned)> Held { get; } = [];
+        public List<(SyntaxNode Node, string Todo)> Left { get; } = [];
 
         public override SyntaxNode? Visit(SyntaxNode? node) =>
             node?.HasAnnotation(_leftAsItIs) == true ? node : base.Visit(node);
@@ -322,6 +329,26 @@ internal sealed partial class PreviewPipelineMigration
                 && names.IsAltinn(node, model)
             )
             {
+                if (
+                    PreviewApi.CreatedThrough.TryGetValue(node.Identifier.ValueText, out var factory)
+                    && (
+                        node.Parent is QualifiedNameSyntax qualified && qualified.Right == node
+                            ? qualified.Parent
+                            : node.Parent
+                    )
+                        is ObjectCreationExpressionSyntax creation
+                )
+                {
+                    Left.Add(
+                        (
+                            creation,
+                            $"{renamed} cannot be created with new, so this {node.Identifier.ValueText} was left as "
+                                + $"it is. Create it with {factory}."
+                        )
+                    );
+                    return node;
+                }
+
                 Renamed.Add($"{node.Identifier.ValueText} is {renamed}");
                 return node.WithIdentifier(SyntaxFactory.Identifier(renamed).WithTriviaFrom(node.Identifier));
             }
@@ -350,7 +377,15 @@ internal sealed partial class PreviewPipelineMigration
                     && call.HasAnnotation(_heldAsReturned)
                 )
                 {
-                    Held.Add((call, rename, returned));
+                    Left.Add(
+                        (
+                            call,
+                            $"{rename.Type}.{rename.Member} returned the {returned} this code holds, so it was left as "
+                                + $"it is. {rename.Type}.{rename.Renamed} returns a {rename.Type}: keep what you read "
+                                + "from the result in a variable of its own, or match the result with is "
+                                + $"{PreviewApi.RenamedTypes.GetValueOrDefault(returned, returned)}."
+                        )
+                    );
                     return visited;
                 }
 

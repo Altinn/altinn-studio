@@ -39,4 +39,6 @@ internal static class PipelineApi
     public const string ServiceTaskResult = "ServiceTaskResult";
 
     public const string ServiceTaskReplyResult = "ServiceTaskReplyResult";
+
+    public const string EndTask = "EndTask";
 }
