@@ -30,7 +30,7 @@ export default [
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      // Consumers compile this source, so the code must not rely on packages they happen to have installed.
+      // Ensures this package declares everything it imports, instead of relying on what its consumers have installed.
       'import/no-extraneous-dependencies': [
         'error',
         { devDependencies: ['**/*.test.{ts,tsx}', path.join(import.meta.dirname, 'src/test/**')] },

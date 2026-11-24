@@ -82,9 +82,10 @@ export default defineConfig([
 
       'jsx-a11y/no-autofocus': ['off'],
 
-      'import/no-unresolved': ['off'],
+      // TypeScript accepts any path to a CSS module, so this catches wrong relative paths. TypeScript checks the rest.
+      'import/no-unresolved': ['error', { ignore: ['^[^.]'] }],
       'import/no-default-export': ['error'],
-      // Consumers compile this source, so the code must not rely on packages they happen to have installed.
+      // Ensures this package declares everything it imports, instead of relying on what its consumers have installed.
       'import/no-extraneous-dependencies': [
         'error',
         {
