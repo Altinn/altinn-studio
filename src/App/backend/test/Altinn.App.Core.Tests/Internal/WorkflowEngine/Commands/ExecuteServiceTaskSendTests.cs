@@ -248,9 +248,8 @@ public class ExecuteServiceTaskSendTests
         );
         Assert.Equal("archiving", continuing.ServiceTaskType);
         Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
-        Assert.Equal(SendStageIndex, continuing.Handover.Plan.ReceiveStageIndex);
 
-        PlannedStep step = Assert.Single(continuing.Handover.Plan.Steps);
+        PlannedStep step = Assert.Single(continuing.Handover.Steps);
         Assert.Equal($"{ExecuteServiceTask.Key}: {SendStageIndex}", step.OperationId);
         Assert.Equal(new ExecuteServiceTaskPayload("archiving", SendStageIndex), step.Payload);
         Assert.Same(_stageOptions, step.DeclaredOptions);
@@ -456,10 +455,9 @@ public class ExecuteServiceTaskSendTests
         );
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
         Assert.Null(continuing.Handover.Target);
-        Assert.Null(continuing.Handover.Plan.ReceiveStageIndex);
 
         Assert.Collection(
-            continuing.Handover.Plan.Steps,
+            continuing.Handover.Steps,
             mint =>
             {
                 Assert.Equal($"{MintMailbox.Key}: 1", mint.OperationId);

@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// still-unsettled step that asked for it, keeping the frontier non-empty until the task ends.
 /// </summary>
 /// <remarks>
-/// Nothing here resolves a service task or its pipeline. A hand-over carries the plan its result made, whole;
+/// Nothing here resolves a service task or its pipeline. A hand-over carries the steps its result planned, whole;
 /// a successor receiver rebuilds its one step from the stage index its result carried, which is data rather
 /// than a plan. The options resolver does its own lookups from each step's identity.
 /// </remarks>
@@ -187,8 +187,7 @@ internal sealed class MailboxRelay
 
         var handover = new MailboxHandover(
             itemIndex,
-            WorkflowStepSet.PlanItem(serviceTaskType, pipeline, itemIndex + 1),
-            target: null
+            WorkflowStepSet.PlanItem(serviceTaskType, pipeline, itemIndex + 1)
         );
         if (closing is not { } mailboxId)
         {
@@ -361,9 +360,8 @@ internal sealed class MailboxRelay
 
     /// <summary>
     /// Starts what the deciding hop said follows the step it ran, as the one workflow it planned: a receive
-    /// workflow when the plan names a mailbox to park on — its one step being the external stage's reply step,
-    /// which must be alone in a workflow — and an ordinary continuation otherwise. Only reached after the
-    /// closure its caller performs.
+    /// workflow when the hand-over names a mailbox to park on, and an ordinary continuation otherwise. Only reached
+    /// after the closure its caller performs.
     /// </summary>
     private Task HandOver(
         MailboxHandover handover,
@@ -375,7 +373,7 @@ internal sealed class MailboxRelay
             ? EnqueueReceiver(
                 target.MailboxId,
                 serviceTaskType,
-                handover.Plan.Steps,
+                handover.Steps,
                 operationIdSuffix: target.StageIndex.ToString(CultureInfo.InvariantCulture),
                 request,
                 cancellationToken
@@ -439,8 +437,8 @@ internal sealed class MailboxRelay
 
     /// <summary>
     /// The workflow of the item composed after the one the deciding hop ran (a completed stage, or an external
-    /// stage done with its replies): the plan that hop made, carried here whole and enqueued. This hop
-    /// resolves nothing about the pipeline: the plan is authoritative, and the only thing left to do to it is
+    /// stage done with its replies): the steps that hop planned, carried here whole and enqueued. This hop
+    /// resolves nothing about the pipeline: the steps are authoritative, and the only thing left to do to them is
     /// resolve each step's options, which the resolver does from the step's own identity.
     /// </summary>
     private async Task EnqueueContinuation(
@@ -452,7 +450,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> steps = [.. handover.Plan.Steps.ToStepRequests(_stepOptionsResolver)];
+        List<StepRequest> steps = [.. handover.Steps.ToStepRequests(_stepOptionsResolver)];
 
         var continuationWorkflow = new WorkflowRequest
         {

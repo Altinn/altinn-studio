@@ -157,7 +157,7 @@ public class ExecuteServiceTaskStageTests
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: {LastIndex}"],
-            continuing.Handover.Plan.Steps.Select(step => step.OperationId)
+            continuing.Handover.Steps.Select(step => step.OperationId)
         );
         Assert.Null(continuing.Handover.Target);
     }
@@ -186,7 +186,7 @@ public class ExecuteServiceTaskStageTests
         var continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(success.MailboxContinuation);
         Assert.Equal("shipping", continuing.ServiceTaskType);
         Assert.Equal(0, continuing.Handover.AfterItemIndex);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Plan.Steps.Select(step => step.OperationId));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));
         Assert.Null(continuing.Handover.Target);
     }
 

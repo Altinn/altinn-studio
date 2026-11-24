@@ -327,11 +327,7 @@ public class MailboxRelayTests
     private static MailboxContinuation.ContinueAfterStage NextItem(ServiceTaskPipeline pipeline, int afterItemIndex) =>
         new(
             ServiceTaskType,
-            new MailboxHandover(
-                afterItemIndex,
-                WorkflowStepSet.PlanItem(ServiceTaskType, pipeline, afterItemIndex + 1),
-                target: null
-            )
+            new MailboxHandover(afterItemIndex, WorkflowStepSet.PlanItem(ServiceTaskType, pipeline, afterItemIndex + 1))
         );
 
     /// <summary>
@@ -347,8 +343,7 @@ public class MailboxRelayTests
             ServiceTaskType,
             new MailboxHandover(
                 afterItemIndex,
-                WorkflowStepSet.PlanItem(ServiceTaskType, pipeline ?? _archiveRecordJournal, afterItemIndex + 1),
-                target: null
+                WorkflowStepSet.PlanItem(ServiceTaskType, pipeline ?? _archiveRecordJournal, afterItemIndex + 1)
             )
         );
 
@@ -886,62 +881,6 @@ public class MailboxRelayTests
         );
 
         Assert.Same(refusal, thrown);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // The hand-over's guards.
-    // ---------------------------------------------------------------------------------------------
-
-    /// <summary>
-    /// The three invariants the hand-over makes structural, at the one place a plan becomes one. An empty plan
-    /// would enqueue a workflow the engine settles at once, emptying the frontier under an open mailbox; a plan
-    /// and a target that disagree would either park ordinary steps on a mailbox or enqueue a reply step with
-    /// nothing to receive from; and a receive plan with a second step would run that step with no rendezvous at
-    /// all, after the first had already consumed the reply.
-    /// </summary>
-    [Fact]
-    public void MailboxHandover_WithAnEmptyPlan_IsRefusedAtConstruction()
-    {
-        ArgumentException thrown = Assert.Throws<ArgumentException>(() =>
-            new MailboxHandover(0, new ServiceTaskSegmentPlan([], ReceiveStageIndex: null), target: null)
-        );
-
-        Assert.Contains("at least one step", thrown.Message, StringComparison.Ordinal);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void MailboxHandover_WhosePlanAndTargetDisagree_IsRefusedAtConstruction(bool planReceives)
-    {
-        var plan = new ServiceTaskSegmentPlan(
-            [WorkflowStepSet.CreateItemStep(ServiceTaskType, ArchiveIndex, declaredOptions: null, stepName: null)],
-            planReceives ? ArchiveIndex : null
-        );
-        MailboxTarget? target = planReceives ? null : new MailboxTarget(_mailboxId, ArchiveIndex);
-
-        ArgumentException thrown = Assert.Throws<ArgumentException>(() => new MailboxHandover(0, plan, target));
-
-        Assert.Contains("mailbox travels with it", thrown.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void MailboxHandover_WhoseReceivePlanHasASecondStep_IsRefusedAtConstruction()
-    {
-        var plan = new ServiceTaskSegmentPlan(
-            [
-                WorkflowStepSet.CreateItemStep(ServiceTaskType, ArchiveIndex, declaredOptions: null, stepName: null),
-                WorkflowStepSet.CreateItemStep(ServiceTaskType, RecordIndex, declaredOptions: null, stepName: null),
-            ],
-            ArchiveIndex
-        );
-
-        ArgumentException thrown = Assert.Throws<ArgumentException>(() =>
-            new MailboxHandover(0, plan, new MailboxTarget(_mailboxId, ArchiveIndex))
-        );
-
-        Assert.Contains("runs exactly one step", thrown.Message, StringComparison.Ordinal);
-        Assert.Contains("carries 2", thrown.Message, StringComparison.Ordinal);
     }
 
     // ---------------------------------------------------------------------------------------------

@@ -305,15 +305,12 @@ public class WorkflowStepSetTests
 
         // The step that mints the mailbox stays unnamed; the send goes by its method, and a receive step by both
         // handlers, since it runs one or the other.
-        Assert.Equal(
-            [null, "Send to archive"],
-            WorkflowStepSet.PlanItem("archiving", pipeline, 0).Steps.Select(StepName)
-        );
+        Assert.Equal([null, "Send to archive"], WorkflowStepSet.PlanItem("archiving", pipeline, 0).Select(StepName));
         Assert.Equal(
             "On archive reply / On archive timeout",
-            StepName(Assert.Single(WorkflowStepSet.PlanReceive("archiving", archive, 0).Steps))
+            StepName(WorkflowStepSet.PlanReceive("archiving", archive, 0))
         );
-        Assert.Equal("Final work", StepName(Assert.Single(WorkflowStepSet.PlanItem("archiving", pipeline, 1).Steps)));
+        Assert.Equal("Final work", StepName(Assert.Single(WorkflowStepSet.PlanItem("archiving", pipeline, 1))));
     }
 
     [Fact]
@@ -327,7 +324,7 @@ public class WorkflowStepSetTests
             )
             .ToPipeline();
 
-        Assert.All(Workflows(pipeline).SelectMany(plan => plan.Steps), step => Assert.Null(step.StepName));
+        Assert.All(Workflows(pipeline).SelectMany(steps => steps), step => Assert.Null(step.StepName));
     }
 
     private static Task<ServiceTaskResult> PlainStage(StageContext context) =>
@@ -345,29 +342,29 @@ public class WorkflowStepSetTests
     private static Task<ServiceTaskResult> FinalWork(StageContext context) =>
         Task.FromResult(ServiceTaskResult.Completed());
 
-    private static List<string> OperationIds(ServiceTaskSegmentPlan plan) =>
-        plan.Steps.Select(step => step.OperationId).ToList();
+    private static List<string> OperationIds(IReadOnlyList<PlannedStep> steps) =>
+        steps.Select(step => step.OperationId).ToList();
 
-    /// <summary>The raw JSON of the plan's step payloads, in order.</summary>
-    private static List<string> StepPayloadJson(ServiceTaskSegmentPlan plan) =>
-        plan.Steps.Select(step => CommandPayloadSerializer.Serialize(step.Payload) ?? "").ToList();
+    /// <summary>The raw JSON of the steps' payloads, in order.</summary>
+    private static List<string> StepPayloadJson(IReadOnlyList<PlannedStep> steps) =>
+        steps.Select(step => CommandPayloadSerializer.Serialize(step.Payload) ?? "").ToList();
 
     /// <summary>
     /// Every workflow the pipeline runs when each item completes, in order: each item's own workflow, and after an
     /// external stage's send, the receive workflow its first reply runs in.
     /// </summary>
-    private static List<ServiceTaskSegmentPlan> Workflows(ServiceTaskPipeline pipeline)
+    private static List<IReadOnlyList<PlannedStep>> Workflows(ServiceTaskPipeline pipeline)
     {
-        var plans = new List<ServiceTaskSegmentPlan>();
+        var workflows = new List<IReadOnlyList<PlannedStep>>();
         for (int index = 0; index < pipeline.Items.Count; index++)
         {
-            plans.Add(WorkflowStepSet.PlanItem("archiving", pipeline, index));
+            workflows.Add(WorkflowStepSet.PlanItem("archiving", pipeline, index));
             if (pipeline.Items[index] is ServiceTaskItem.ExternalStage external)
             {
-                plans.Add(WorkflowStepSet.PlanReceive("archiving", external, index));
+                workflows.Add([WorkflowStepSet.PlanReceive("archiving", external, index)]);
             }
         }
-        return plans;
+        return workflows;
     }
 
     [Fact]
@@ -382,15 +379,15 @@ public class WorkflowStepSetTests
             .Stage(FinalWork, last)
             .ToPipeline();
 
-        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
+        List<IReadOnlyList<PlannedStep>> workflows = Workflows(pipeline);
 
         Assert.Equal(4, workflows.Count);
-        Assert.Same(stage, Assert.Single(workflows[0].Steps).DeclaredOptions);
+        Assert.Same(stage, Assert.Single(workflows[0]).DeclaredOptions);
         // The mint before the send carries nothing, so it inherits no options; the send and each reply carry the
         // external stage's.
-        Assert.Equal([null, external], workflows[1].Steps.Select(step => step.DeclaredOptions));
-        Assert.Same(external, Assert.Single(workflows[2].Steps).DeclaredOptions);
-        Assert.Same(last, Assert.Single(workflows[3].Steps).DeclaredOptions);
+        Assert.Equal([null, external], workflows[1].Select(step => step.DeclaredOptions));
+        Assert.Same(external, Assert.Single(workflows[2]).DeclaredOptions);
+        Assert.Same(last, Assert.Single(workflows[3]).DeclaredOptions);
     }
 
     /// <summary>
@@ -405,7 +402,7 @@ public class WorkflowStepSetTests
             .ExternalStage(SendToArchive, OnArchiveReply)
             .ToPipeline();
 
-        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
+        List<IReadOnlyList<PlannedStep>> workflows = Workflows(pipeline);
 
         Assert.Equal(
             [
@@ -415,7 +412,6 @@ public class WorkflowStepSetTests
             ],
             workflows.Select(OperationIds)
         );
-        Assert.Equal([null, null, 1], workflows.Select(plan => plan.ReceiveStageIndex));
     }
 
     [Fact]
@@ -426,7 +422,7 @@ public class WorkflowStepSetTests
             .Stage(FinalWork)
             .ToPipeline();
 
-        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
+        List<IReadOnlyList<PlannedStep>> workflows = Workflows(pipeline);
 
         Assert.Equal(
             [
@@ -435,7 +431,6 @@ public class WorkflowStepSetTests
             ],
             workflows.Select(OperationIds)
         );
-        Assert.All(workflows, plan => Assert.Null(plan.ReceiveStageIndex));
     }
 
     /// <summary>
@@ -450,7 +445,7 @@ public class WorkflowStepSetTests
             .ExternalStage(SendToArchive, OnArchiveReply)
             .ToPipeline();
 
-        List<ServiceTaskSegmentPlan> workflows = Workflows(pipeline);
+        List<IReadOnlyList<PlannedStep>> workflows = Workflows(pipeline);
 
         Assert.Equal(
             [
@@ -461,7 +456,6 @@ public class WorkflowStepSetTests
             ],
             workflows.Select(OperationIds)
         );
-        Assert.Equal([null, 0, null, 1], workflows.Select(plan => plan.ReceiveStageIndex));
     }
 
     /// <summary>
@@ -485,7 +479,7 @@ public class WorkflowStepSetTests
                 "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":1}",
             ],
             StepPayloadJson(WorkflowStepSet.PlanItem("archiving", pipeline, 1))
-                .Concat(StepPayloadJson(WorkflowStepSet.PlanReceive("archiving", archive, 1)))
+                .Concat(StepPayloadJson([WorkflowStepSet.PlanReceive("archiving", archive, 1)]))
         );
     }
 }

@@ -1,4 +1,3 @@
-using System.Globalization;
 using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
@@ -127,74 +126,48 @@ internal abstract record MailboxContinuation
 }
 
 /// <summary>
-/// What the pipeline runs after the step a relay hop just ran: the plan that hop made, carried whole so the
-/// enqueue re-derives nothing, plus — when the plan is a receive workflow — the mailbox it parks on. One
-/// shape rather than a pair, because the difference between a receive workflow and a continuation is one the
-/// enqueue must read anyway (a mailbox to park on, and its own operation id naming) and nothing else
-/// dispatches on. The three guards below are what that collapse costs and pays for: a pair could not express
-/// the disagreements they refuse, so they are stated here rather than left to the planner in another file.
+/// What the pipeline runs after the step a relay hop just ran: the steps that hop planned, carried whole so the
+/// enqueue re-derives nothing, and for a receive workflow the mailbox it parks on.
 /// </summary>
 internal sealed record MailboxHandover
 {
-    public MailboxHandover(int afterItemIndex, ServiceTaskSegmentPlan plan, MailboxTarget? target)
+    /// <summary>
+    /// Hands over to the workflow of the next item.
+    /// </summary>
+    public MailboxHandover(int afterItemIndex, IReadOnlyList<PlannedStep> steps)
     {
-        // The one place a plan becomes a hand-over, so the one place worth stating the invariant: the enqueue has
-        // no result channel left to refuse an empty plan in — it would enqueue a workflow with no steps, which the
-        // engine settles at once, emptying the frontier.
-        if (plan.Steps.Count == 0)
-        {
-            throw new ArgumentException(
-                "A hand-over must carry at least one step: the last item ends the task instead of handing over.",
-                nameof(plan)
-            );
-        }
-
-        // A receive workflow parks on a mailbox, so the two halves are one decision: a plan that names an
-        // external stage and no target would enqueue a reply step with nothing to receive from, and a target
-        // without one would park ordinary steps on a mailbox.
-        if ((plan.ReceiveStageIndex is null) != (target is null))
-        {
-            throw new ArgumentException(
-                "A receive plan's mailbox travels with it: a plan naming the external stage it receives for must be "
-                    + "handed that stage's mailbox, and a plan naming none must be handed no mailbox.",
-                nameof(target)
-            );
-        }
-
-        // A receive workflow's one step is the reply step, and the engine resolves a workflow's mailbox
-        // rendezvous for its first step only (ProcessingOrder == 0): a second step would run with none, after
-        // the first had already consumed the message this workflow was parked for.
-        if (target is not null && plan.Steps.Count != 1)
-        {
-            throw new ArgumentException(
-                "A receive workflow runs exactly one step, the external stage's reply step; this plan carries "
-                    + $"{plan.Steps.Count.ToString(CultureInfo.InvariantCulture)}.",
-                nameof(plan)
-            );
-        }
-
         AfterItemIndex = afterItemIndex;
-        Plan = plan;
+        Steps = steps;
+    }
+
+    /// <summary>
+    /// Hands over to a receive workflow: the reply step alone, parked on the external stage's mailbox. Alone because
+    /// the engine hands the mailbox receipt to a workflow's first step only, so a second step would run without it,
+    /// as the send.
+    /// </summary>
+    public MailboxHandover(int afterItemIndex, PlannedStep replyStep, MailboxTarget target)
+    {
+        AfterItemIndex = afterItemIndex;
+        Steps = [replyStep];
         Target = target;
     }
 
     /// <summary>
-    /// The item the plan follows — the stage that completed, or the external stage that sent or was done with its
+    /// The item the steps follow — the stage that completed, or the external stage that sent or was done with its
     /// replies. What a continuation workflow's operation id names.
     /// </summary>
     public int AfterItemIndex { get; }
 
     /// <summary>
-    /// The plan as the deciding hop made it, authoritative: the enqueue hop applies step options to these
-    /// steps and enqueues them, and never plans again — so nothing rides on the two hops resolving
-    /// <c>DefineExecute</c> to the same shape.
+    /// The steps as the deciding hop planned them, authoritative: the enqueue hop applies step options to them and
+    /// enqueues them, and never plans again — so nothing rides on the two hops resolving <c>DefineExecute</c> to the
+    /// same shape.
     /// </summary>
-    public ServiceTaskSegmentPlan Plan { get; }
+    public IReadOnlyList<PlannedStep> Steps { get; }
 
     /// <summary>
-    /// The mailbox the plan's one reply step is to be parked on, or null when the plan is an ordinary
-    /// continuation. Resolved from the carry at the decide, where a missing entry can still fail the step
-    /// legibly.
+    /// The mailbox the one reply step is to be parked on, or null when the steps are an ordinary continuation.
+    /// Resolved from the carry at the decide, where a missing entry can still fail the step legibly.
     /// </summary>
     public MailboxTarget? Target { get; }
 }

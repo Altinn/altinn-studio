@@ -475,7 +475,7 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal("archiving", continuing.ServiceTaskType);
         Assert.Equal(StageIndex, continuing.Handover.AfterItemIndex);
         Assert.Null(continuing.Handover.Target);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Plan.Steps.Select(step => step.OperationId));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));
         Assert.Null(carry.Mailboxes);
         Assert.Equal(["HandleArchiveReply"], task.Ran);
     }
@@ -667,7 +667,7 @@ public class ExecuteServiceTaskReplyTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
-        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Plan.Steps.Select(step => step.OperationId));
+        Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], continuing.Handover.Steps.Select(step => step.OperationId));
         Assert.Null(carry.Mailboxes);
     }
 

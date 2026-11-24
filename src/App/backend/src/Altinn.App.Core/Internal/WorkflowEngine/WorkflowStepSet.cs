@@ -11,21 +11,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// The steps of one workflow of a service task's pipeline. A non-null <see cref="ReceiveStageIndex"/> makes the plan a
-/// <em>receive</em> workflow: its one step runs the reply handler of the external stage at that index, so the
-/// workflow must be parked on that stage's mailbox. With it null the plan is an ordinary continuation, with no
-/// mailbox of its own. Nothing here says what runs after the item: its step derives that when it runs, from the
-/// pipeline it resolved.
-/// </summary>
-/// <param name="Steps">The workflow's steps, in execution order, with options unresolved.</param>
-/// <param name="ReceiveStageIndex">
-/// The external stage whose replies this plan's single step handles, or null when the plan is not a receive
-/// workflow. An index rather than a mailbox id: the id lives in the workflow state carry, and is resolved from it at
-/// the hop that decides to enqueue this plan.
-/// </param>
-internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<PlannedStep> Steps, int? ReceiveStageIndex);
-
-/// <summary>
 /// The steps one process event adds to a transition, in three lists: its lifecycle steps, which run before the commit
 /// for a task end or abandon and after it for a task start, the steps after those in the transition's primary workflow,
 /// and the steps that each get an auxiliary workflow of their own.
@@ -88,8 +73,7 @@ internal sealed class WorkflowStepSet
 
             // The primary workflow carries the first item only, so it ends on that item's step, whose completion
             // starts the next item's workflow or ends the task.
-            ServiceTaskSegmentPlan segment = PlanItem(serviceTask.Type, serviceTask.Pipeline, itemIndex: 0);
-            group.AddPrimaryPostCommitSteps(segment.Steps);
+            group.AddPrimaryPostCommitSteps(PlanItem(serviceTask.Type, serviceTask.Pipeline, itemIndex: 0));
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
@@ -243,12 +227,15 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Plans the workflow of the pipeline item at <paramref name="itemIndex"/>. Every item gets a workflow of its own
-    /// and is that workflow's last step, so the item's own result decides what follows it. An
-    /// <strong>external stage</strong>'s send is preceded by its <c>MintMailbox</c> step. Options are left
-    /// unresolved.
+    /// The steps of the workflow of the pipeline item at <paramref name="itemIndex"/>, with options unresolved. Every
+    /// item gets a workflow of its own and is that workflow's last step, so the item's own result decides what follows
+    /// it. An <strong>external stage</strong>'s send is preceded by its <c>MintMailbox</c> step.
     /// </summary>
-    internal static ServiceTaskSegmentPlan PlanItem(string serviceTaskType, ServiceTaskPipeline pipeline, int itemIndex)
+    internal static IReadOnlyList<PlannedStep> PlanItem(
+        string serviceTaskType,
+        ServiceTaskPipeline pipeline,
+        int itemIndex
+    )
     {
         ServiceTaskItem item = pipeline.Items[itemIndex];
         PlannedStep step = CreateItemStep(serviceTaskType, itemIndex, item.StepOptions, item.DisplayName);
@@ -256,39 +243,33 @@ internal sealed class WorkflowStepSet
         {
             // The mint hugs the send on both sides: the deadline clock starts here, and the send must never go
             // without an address. No item options on the mint step — it must not inherit the send's options.
-            ServiceTaskItem.ExternalStage => new ServiceTaskSegmentPlan(
-                [
-                    CreateStep(
-                        MintMailbox.Key,
-                        new MintMailboxPayload(serviceTaskType, itemIndex),
-                        operationId: $"{MintMailbox.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}"
-                    ),
-                    step,
-                ],
-                ReceiveStageIndex: null
-            ),
+            ServiceTaskItem.ExternalStage =>
+            [
+                CreateStep(
+                    MintMailbox.Key,
+                    new MintMailboxPayload(serviceTaskType, itemIndex),
+                    operationId: $"{MintMailbox.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}"
+                ),
+                step,
+            ],
 
-            ServiceTaskItem.Stage => new ServiceTaskSegmentPlan([step], ReceiveStageIndex: null),
+            ServiceTaskItem.Stage => [step],
 
             _ => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
         };
     }
 
     /// <summary>
-    /// Plans the receive workflow of the external stage at <paramref name="stageIndex"/>: one step, carrying the
-    /// stage's index like its send does. The engine hands a workflow's mailbox receipt to its first step only
+    /// The one step of a receive workflow of the external stage at <paramref name="stageIndex"/>, carrying the stage's
+    /// index like its send does. The engine hands a workflow's mailbox receipt to its first step only
     /// (WorkflowExecutor, ProcessingOrder == 0), so the step that handles a reply is alone in a workflow parked on
     /// the mailbox, and the receipt is what tells it apart from the send.
     /// </summary>
-    internal static ServiceTaskSegmentPlan PlanReceive(
+    internal static PlannedStep PlanReceive(
         string serviceTaskType,
         ServiceTaskItem.ExternalStage stage,
         int stageIndex
-    ) =>
-        new(
-            [CreateItemStep(serviceTaskType, stageIndex, stage.StepOptions, stage.ReplyDisplayName)],
-            ReceiveStageIndex: stageIndex
-        );
+    ) => CreateItemStep(serviceTaskType, stageIndex, stage.StepOptions, stage.ReplyDisplayName);
 
     /// <summary>
     /// One pipeline item's engine step — a stage's, an external stage's send or a reply's alike. The item's
