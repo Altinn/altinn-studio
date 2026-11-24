@@ -136,6 +136,44 @@ describe('RepoList', () => {
     ).toHaveAttribute('href', '/resourceadm/ttd/ttd-resources');
   });
 
+  test('Should hide inactive resources until the switch is turned on', async () => {
+    (useParams as Mock).mockReturnValue({
+      selectedContext: 'ttd',
+    });
+    const deprecatedResourceTitle = 'Utgått ressurs';
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () =>
+        Promise.resolve([
+          ...getResourceListResponse,
+          {
+            ...getResourceListResponse[0],
+            title: { nb: deprecatedResourceTitle, nn: '', en: '' },
+            identifier: 'utgatt-ressurs',
+            status: 'Deprecated',
+          },
+        ]),
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(resourceTitle)).toBeInTheDocument();
+    expect(screen.queryByText(deprecatedResourceTitle)).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('switch', { name: textMock('dashboard.resource_table_show_inactive') }),
+    );
+
+    expect(screen.getByText(deprecatedResourceTitle)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('dashboard.resource_table_num_resources', { num: 2 }),
+        level: 3,
+      }),
+    ).toBeInTheDocument();
+  });
+
   test('Should navigate to resourceadm editor on resource edit click', async () => {
     (useParams as Mock).mockReturnValue({
       selectedContext: 'ttd',
