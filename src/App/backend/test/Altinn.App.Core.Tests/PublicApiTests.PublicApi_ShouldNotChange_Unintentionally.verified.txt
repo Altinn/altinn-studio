@@ -3746,11 +3746,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
-    public interface IProcessTaskDataLocker
-    {
-        System.Threading.Tasks.Task Lock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task Unlock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
 }
 namespace Altinn.App.Core.Internal.Profile
 {

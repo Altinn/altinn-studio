@@ -17,6 +17,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Localtest lets apps delete locked data, and change locked data of a data type with `taskIds`, as Altinn Storage does. A change outside the data type's tasks is still refused with `409 Conflict`. ([#22098](https://github.com/Altinn/altinn-studio/pull/22098))
+- `studioctl app upgrade v9` reports `ProcessTaskDataLocker` and `IProcessTaskDataLocker` as removed in v9. Before, it pointed code that used the class to the interface. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 
 ### Fixed
 
