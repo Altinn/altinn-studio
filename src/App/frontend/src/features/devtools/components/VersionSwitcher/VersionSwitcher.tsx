@@ -16,7 +16,7 @@ const description = 'Siden lastes på nytt med versjonen i adressen. Virker bare
 const loadingText = 'Henter versjonene som er publisert';
 const errorText = 'Kunne ikke hente versjonene som er publisert.';
 const emptyText = 'Ingen versjoner funnet';
-const ownVersionLabel = 'Appens egen versjon';
+const ownVersionLabel = 'Versjonen som følger med appen';
 
 /** Stands for the app's own frontend in the list. No published version can start with "-". */
 const ownVersionValue = '-';

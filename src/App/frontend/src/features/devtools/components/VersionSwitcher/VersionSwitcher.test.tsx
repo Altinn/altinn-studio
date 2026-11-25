@@ -46,7 +46,7 @@ describe('VersionSwitcher', () => {
     await userEvent.click(await screen.findByRole('combobox', { name: 'Frontend versjon' }));
 
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-      'Appens egen versjon',
+      'Versjonen som følger med appen',
       '9.0.0-preview.13',
       '9.0.0-preview.12',
     ]);
@@ -56,7 +56,9 @@ describe('VersionSwitcher', () => {
     setLocation('http://local.altinn.cloud/ttd/app/');
     renderSwitcher();
 
-    expect(await screen.findByRole('combobox', { name: 'Frontend versjon' })).toHaveValue('Appens egen versjon');
+    expect(await screen.findByRole('combobox', { name: 'Frontend versjon' })).toHaveValue(
+      'Versjonen som følger med appen',
+    );
     expect(screen.getByRole('button', { name: 'Bytt versjon' })).toBeDisabled();
   });
 
@@ -85,7 +87,7 @@ describe('VersionSwitcher', () => {
     renderSwitcher();
 
     await userEvent.click(await screen.findByRole('combobox', { name: 'Frontend versjon' }));
-    await userEvent.click(screen.getByRole('option', { name: 'Appens egen versjon' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Versjonen som følger med appen' }));
     await userEvent.click(screen.getByRole('button', { name: 'Bytt versjon' }));
 
     expect(assign).toHaveBeenCalledWith('http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1');
