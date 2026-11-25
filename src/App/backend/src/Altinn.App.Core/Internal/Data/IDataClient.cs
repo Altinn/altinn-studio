@@ -734,6 +734,7 @@ public interface IDataClient
     /// <summary>
     /// Lock data element in storage
     /// </summary>
+    /// <remarks>Storage ignores the lock on data of a type that has <c>taskIds</c>.</remarks>
     /// <param name="instanceIdentifier">InstanceIdentifier identifying the instance containing the DataElement to lock</param>
     /// <param name="dataGuid">Id of the DataElement to lock</param>
     /// <param name="authenticationMethod">An optional specification of the authentication method to use for requests</param>

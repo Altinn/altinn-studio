@@ -25,8 +25,6 @@ kind of step.
   [The contract tests](../../../../../../Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/README.md)
   keep them from drifting. App code reads its own twins of them in `Features/Process`, such as
   `MailboxClosedReason`, so that the app's vocabulary does not become part of a contract the engine owns.
-- Locking a task's data types belongs to the workflow, so it is not on the public `IInstanceDataMutator`. A command
-  that locks data uses the `InstanceDataUnitOfWork` that the callback restores.
 
 The [integration tests](../../../../test/Altinn.App.Integration.Tests/WorkflowEngine) run the callbacks against a real
 engine. Run them with `make ti filter=WorkflowEngine` from the backend folder.

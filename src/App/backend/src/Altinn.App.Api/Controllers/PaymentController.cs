@@ -129,24 +129,16 @@ public class PaymentController : ControllerBase
                     finalTaskId,
                     StringComparison.Ordinal
                 );
-                DataElement? paymentDataElement = refreshed.Data?.SingleOrDefault(dataElement =>
-                    string.Equals(
-                        dataElement.DataType,
-                        validPaymentConfiguration.PaymentDataType,
-                        StringComparison.Ordinal
-                    )
-                );
-                bool paymentDataElementLocked = paymentDataElement?.Locked is true;
-                if (ProcessStatusHelper.IsIdle(refreshed) && !currentTaskMoved && !paymentDataElementLocked)
+                if (ProcessStatusHelper.IsIdle(refreshed) && !currentTaskMoved)
                 {
-                    // An idle instance with the same current task and no locked target does not prove the
-                    // known webhook race. Preserve unrelated blob/version/idempotency conflicts exactly.
+                    // An idle instance with the same current task does not prove the known webhook race.
+                    // Preserve unrelated blob/version/idempotency conflicts exactly.
                     throw;
                 }
 
                 _logger.LogInformation(
                     ex,
-                    "Storing payment status failed for task {TaskId} (the process likely advanced and locked the data concurrently). Returning read-only status.",
+                    "Storing payment status failed for task {TaskId} (the process likely advanced concurrently). Returning read-only status.",
                     LogSanitizer.Sanitize(finalTaskId)
                 );
                 paymentInformation = await _paymentService.CheckPaymentStatus(

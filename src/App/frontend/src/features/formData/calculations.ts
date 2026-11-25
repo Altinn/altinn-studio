@@ -392,14 +392,14 @@ function planRows(
 export function runCalculations(
   state: FormStoreState,
   dataSources: ExpressionDataSources,
-  isWritable: (dataElementId: string | null) => boolean,
+  isWritable: (dataType: string) => boolean,
 ) {
   if (state.readOnly) {
     return;
   }
   for (const [dataType, model] of Object.entries(state.data.models)) {
     const bootstrap = state.bootstrap.dataModels[dataType];
-    if (!bootstrap.calculationConfig || !isWritable(model.dataElementId)) {
+    if (!bootstrap.calculationConfig || !isWritable(dataType)) {
       continue;
     }
     for (const calculation of bootstrap.calculationConfig.calculations) {

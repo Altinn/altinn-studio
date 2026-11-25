@@ -1122,9 +1122,9 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesLockedDataAndKeepsProcessing()
+    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesDataAndKeepsProcessing()
     {
-        Guid lockedDataElementId = Guid.NewGuid();
+        Guid dataElementId = Guid.NewGuid();
         var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
         await using ControllerSetup setup = CreateSetup(
             services =>
@@ -1146,18 +1146,17 @@ public class WorkflowEngineCallbackControllerTests
                 instance.Data.Add(
                     new DataElement
                     {
-                        Id = lockedDataElementId.ToString(),
+                        Id = dataElementId.ToString(),
                         InstanceGuid = GetInstanceGuid(instance).ToString(),
                         DataType = DataTypeId,
                         ContentType = ContentType,
-                        Filename = "locked.json",
-                        Locked = true,
+                        Filename = "data.json",
                         BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
                     }
                 );
                 services.Storage.AddDataRaw(
-                    lockedDataElementId,
-                    """{"locked":true}"""u8.ToArray(),
+                    dataElementId,
+                    """{"value":1}"""u8.ToArray(),
                     StorageClientInterceptor.CreateBlobVersionId(1)
                 );
             }
@@ -1175,8 +1174,7 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Null(mutation.ProcessState);
         var delete = Assert.Single(mutation.DeleteDataElements);
-        Assert.Equal(lockedDataElementId, delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
+        Assert.Equal(dataElementId, delete.DataElementId);
         Assert.Null(mutation.DeleteInstance);
         Assert.Empty(mutation.CreateDataElements);
         Assert.Empty(mutation.UpdateDataElements);
