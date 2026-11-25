@@ -67,12 +67,12 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
     (
         "benchmarks/evaluators.py",
         "evaluators",
-        "the structural rubric a built app is scored against",
+        "the score every evaluator gives",
     ),
     (
         "benchmarks/app_checks.py",
         "evaluators",
-        "the skill scores a built app gets",
+        "the scores a built app gets",
     ),
     (
         "benchmarks/app_model.py",
@@ -80,14 +80,14 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "how a built app is read before it is scored",
     ),
     (
-        "benchmarks/expressions.py",
-        "evaluators",
-        "how the skill scores evaluate an expression",
-    ),
-    (
         "benchmarks/bench_app.py",
         "evaluators",
         "the app an end-to-end item starts from",
+    ),
+    (
+        "benchmarks/app_templates.py",
+        "evaluators",
+        "the app templates the end-to-end evals build on",
     ),
     (
         "benchmarks/outputs.py",

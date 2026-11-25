@@ -5,7 +5,6 @@ from __future__ import annotations
 import base64
 import mimetypes
 import os
-import subprocess
 import sys
 import tempfile
 import uuid
@@ -15,10 +14,10 @@ from typing import Any
 
 import httpx
 
-from . import app_checks, evaluators, preview_check
+from . import app_checks, preview_check
 from .app_model import load_app
-from .bench_app import BenchApp, bench_org, create_bench_app
-from .evaluators import Score, evaluate
+from .bench_app import BenchApp, BenchAppError, bench_org, clone_branch, create_bench_app
+from .evaluators import Score
 from .experiment import SCORES_KEY
 from .rubric import RUBRIC_VERSION
 
@@ -30,7 +29,7 @@ RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
 RENDER_FIX_ROUNDS_ENV = "BENCH_RENDER_FIX_ROUNDS"
 DEFAULT_RENDER_FIX_ROUNDS = 1
 
-STRUCTURAL_SCORE_NAMES = (*evaluators.SCORE_NAMES, *app_checks.SCORE_NAMES)
+STRUCTURAL_SCORE_NAMES = app_checks.SCORE_NAMES
 
 COMPLETED_SCORE_NAME = "bench_completed"
 BUILT_SCORE_NAME = "bench_built"
@@ -144,24 +143,12 @@ def await_workflow(base_url: str, session_id: str) -> dict:
 
 
 def clone_result_branch(app: BenchApp, session_id: str, workdir: Path) -> Path | None:
-    destination = workdir / session_id[:8]
-    command = [
-        "git",
-        "-c",
-        f"http.extraHeader=X-Api-Key: {_env('AGENT_DESIGNER_API_KEY')}",
-        "clone",
-        "--depth",
-        "1",
-        "--branch",
-        session_branch(session_id),
-        app.clone_url,
-        str(destination),
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"  clone failed: {result.stderr.strip().splitlines()[-1:]}", file=sys.stderr)
+    branch, destination = session_branch(session_id), workdir / session_id[:8]
+    try:
+        return clone_branch(app.repo, branch, destination, _env("AGENT_DESIGNER_API_KEY"))
+    except BenchAppError as error:
+        print(f"  {error}", file=sys.stderr)
         return None
-    return destination
 
 
 def is_render_fix_enabled() -> bool:
@@ -245,9 +232,9 @@ class AgentTask:
         if rubric.get("rubric_version") != RUBRIC_VERSION:
             raise ValueError(
                 f"item {item_id} expectedOutput is not a v{RUBRIC_VERSION} rubric; "
-                "write it as datasets/README.md says, with `rubric --from-app …` for the structural part"
+                "write it as datasets/README.md says, with `rubric --from-app …` for the counts and titles"
             )
-        skill_rubric = app_checks.SkillRubric.parse(rubric)
+        parsed = app_checks.Rubric.parse(rubric)
 
         app = self.bench_app()
         session_id = str(uuid.uuid4())
@@ -276,7 +263,7 @@ class AgentTask:
             clone = clone_result_branch(app, session_id, Path(tmp))
             scores.append(_built_score(clone is not None, status))
             if clone is not None:
-                scores.extend(self._score_app(clone, rubric, skill_rubric, session_id, Path(tmp)))
+                scores.extend(self._score_app(clone, parsed, session_id, Path(tmp)))
 
         for score in scores:
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
@@ -300,19 +287,12 @@ class AgentTask:
             "description": self.description,
         }
 
-    @property
-    def _repo(self) -> str:
-        app = self.bench_app()
-        return f"{app.org}/{app.app}"
-
-    def _score_app(
-        self, clone: Path, rubric: dict, skill_rubric: app_checks.SkillRubric, session_id: str, workdir: Path
-    ) -> list[Score]:
+    def _score_app(self, clone: Path, rubric: app_checks.Rubric, session_id: str, workdir: Path) -> list[Score]:
         app = load_app(clone)
-        scores = [*evaluate(app, rubric), *app_checks.evaluate(app, skill_rubric, self.template)]
+        scores = app_checks.evaluate(app, rubric, self.template)
         if not preview_check.is_enabled():
             return scores
-        results = preview_check.collect(self._repo, session_branch(session_id), app.page_order)
+        results = preview_check.collect(self.bench_app().repo, session_branch(session_id), app.page_order)
         if results is None:
             return scores
         scores.extend(preview_check.build_scores(results))
@@ -346,7 +326,7 @@ class AgentTask:
             clone = clone_result_branch(self.bench_app(), session_id, round_dir)
             if clone is None:
                 break
-            results = preview_check.collect(self._repo, branch, load_app(clone).page_order)
+            results = preview_check.collect(self.bench_app().repo, branch, load_app(clone).page_order)
             if results is None:
                 break
             failures = [result for result in results if not result.rendered]
@@ -356,8 +336,7 @@ class AgentTask:
 
 
 def _built_score(built: bool, status: dict) -> Score:
-    """Whether the build committed an app. Without one there is nothing to score, so a build that stops to ask is
-    this one failure, not a zero on every other score. The comment keeps what the assistant said instead."""
+    """1 when the build committed an app. A build that stops to ask fails this score and gets no others."""
     said = ((status.get("last_message") or {}).get("content") or "").strip().replace("\n", " ")
     return Score(
         name=BUILT_SCORE_NAME,

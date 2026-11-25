@@ -119,7 +119,7 @@ def test_behavior_ids_are_kebab_case_under_their_component():
         assert re.fullmatch(r"[a-z]+\.[a-z0-9]+(-[a-z0-9]+)*", behavior.id), behavior.id
 
 
-EMITTING_MODULES = ("gates", "planner", "generation", "preview_check", "evaluators", "app_checks", "agent_task")
+EMITTING_MODULES = ("gates", "planner", "generation", "preview_check", "app_checks", "agent_task")
 
 
 def _emittable_score_names() -> set[str]:
@@ -144,7 +144,7 @@ def test_declared_score_names_match_what_each_module_actually_emits():
     """SCORE_NAMES is a declaration, so it is checked against the source it describes."""
     import re
 
-    for module in ("gates", "planner", "generation", "evaluators"):
+    for module in ("gates", "planner", "generation"):
         source = (ASSISTANT_ROOT / "benchmarks" / f"{module}.py").read_text(encoding="utf-8")
         found = set(re.findall(r'name="([a-z_]+)"', source))
         declared = set(__import__(f"benchmarks.{module}", fromlist=["SCORE_NAMES"]).SCORE_NAMES)

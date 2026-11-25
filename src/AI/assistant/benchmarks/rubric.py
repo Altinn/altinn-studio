@@ -1,12 +1,4 @@
-"""Build a structural rubric from a golden app.
-
-The rubric is stored as the dataset item's `expectedOutput` in Langfuse.
-It is deliberately name-agnostic: no page IDs, no component IDs, no
-data-model property names — different runs name those differently while
-producing an equally correct form.  What must hold across any correct
-run is structure (page count, navigation) and content (the field
-titles a user actually sees).
-"""
+"""The page count, the input count, the field titles and the navigation of a checked app, for an item's rubric."""
 
 from __future__ import annotations
 
@@ -34,9 +26,6 @@ def build_rubric(app: AppModel) -> dict[str, Any]:
         "expected_titles": titles,
         "navigation_required": len(app.page_order) > 1,
     }
-
-
-STRUCTURAL_KEYS = frozenset(build_rubric(AppModel()))
 
 
 def build_rubric_from_dir(root: Path) -> dict[str, Any]:

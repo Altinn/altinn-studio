@@ -11,8 +11,8 @@ from pathlib import Path
 import httpx
 import pytest
 
-from benchmarks import bench_app
-from benchmarks.bench_app import BenchApp, BenchAppError, app_name, build_app_tree, create_bench_app
+from benchmarks import app_templates, bench_app
+from benchmarks.bench_app import BenchApp, BenchAppError, app_name, build_app_tree, clone_branch, create_bench_app
 
 NOW = datetime(2026, 11, 25, 9, 30, 15, tzinfo=UTC)
 API_KEY = "secret-api-key"
@@ -39,7 +39,7 @@ def tree(template, tmp_path) -> Path:
 
 def test_the_tree_has_designers_steps(tree, template):
     metadata = _json(tree / "App/config/applicationmetadata.json")
-    original = _json(bench_app.TEMPLATES_DIR / template / "src/App/config/applicationmetadata.json")
+    original = _json(app_templates.TEMPLATES_DIR / template / "src/App/config/applicationmetadata.json")
     assert (metadata["id"], metadata["org"], metadata["title"]) == ("ttd/bench-app", "ttd", {"nb": "bench-app"})
     assert metadata["created"] == metadata["lastChanged"] == "2026-11-25T09:30:15Z"
     assert metadata["createdBy"] == metadata["lastChangedBy"] == DEVELOPER
@@ -68,7 +68,7 @@ def test_the_app_name_is_one_designer_accepts(template):
     with pytest.raises(ValueError, match="not a valid app name"):
         app_name("v" + "9" * 20, NOW)
     with pytest.raises(ValueError, match=r"Available: .*v9"):
-        bench_app._template_source("v1")
+        app_templates.template_source("v1")
 
 
 def test_the_urls_default_to_the_local_stack(monkeypatch):
@@ -76,7 +76,7 @@ def test_the_urls_default_to_the_local_stack(monkeypatch):
         monkeypatch.delenv(name, raising=False)
     app = BenchApp(org="ttd", app="bench-v9-x", template="v9")
     assert app.agent_url == "http://gitea-proxy:81/ttd/bench-v9-x.git"
-    assert app.clone_url == "http://localhost/repos/ttd/bench-v9-x.git"
+    assert bench_app.clone_url(app.repo) == "http://localhost/repos/ttd/bench-v9-x.git"
     assert bench_app.bench_org() == "ttd"
 
 
@@ -125,6 +125,16 @@ def test_creating_the_app_pushes_one_commit_with_designers_options(gitea, templa
     assert _git(repository, "log", "--format=%s|%an", "master").splitlines() == [f"App created|{DEVELOPER}"]
     metadata = json.loads(_git(repository, "show", "master:App/config/applicationmetadata.json"))
     assert metadata["id"] == f"ttd/{app.app}"
+
+
+def test_a_branch_of_the_app_clones(gitea, tmp_path):
+    app = create_bench_app("v9", org="ttd", api_key=API_KEY, now=NOW)
+
+    clone = clone_branch(app.repo, "master", tmp_path / "clone", API_KEY)
+    assert (clone / "App/config/applicationmetadata.json").is_file()
+    with pytest.raises(BenchAppError, match="Could not clone nope") as raised:
+        clone_branch(app.repo, "nope", tmp_path / "other", API_KEY)
+    assert API_KEY not in str(raised.value)
 
 
 @pytest.mark.parametrize(

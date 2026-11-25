@@ -39,4 +39,9 @@ V8_PROFILE = AppVersionProfile(
         "Datepicker": _DATEPICKER_CONSTRAINTS,
     },
     forbidden_new_file_patterns={},
+    uses_layout_sets=True,
+    data_type_tasks_key="taskId",
+    heading_component="Header",
+    missing_expression_functions=frozenset({"formatNumber"}),
+    missing_frontend_expression_functions=frozenset({"list", "object", "jmespath", "sum", "average", "count"}),
 )

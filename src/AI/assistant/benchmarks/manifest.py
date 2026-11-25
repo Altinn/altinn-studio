@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass
 
 from benchmarks import app_checks, registry
-from benchmarks.bench_app import template_ids
+from benchmarks.app_templates import template_ids
 
 METRICS = ("rate", "mean")
 
@@ -200,8 +200,7 @@ COMPONENTS = (
 
 
 def _per_template(name: str, component: str, see: tuple[str, ...] = (), **fields) -> tuple[Behavior, ...]:
-    """One behavior for each app template, so that a v9 regression cannot hide behind a v8 pass. A `{v}` in a
-    `see` entry is the template."""
+    """One behavior for each template, so a v9 regression cannot hide behind a v8 pass. `see` may name `{v}`."""
     return tuple(
         Behavior(
             id=f"{component}.{name}-{v}",
@@ -619,6 +618,25 @@ BEHAVIORS = (
         see=("build.matches-the-request",),
     ),
     *_per_template(
+        "has-the-requested-form",
+        "build",
+        text="The form has the pages and the number of fields the request asks for",
+        checks=(
+            "pages.order has the number of pages the rubric expects, each page has navigation when the rubric "
+            "asks for it, and the form has at least the number of input fields the rubric expects."
+        ),
+        blind="The counts in the rubric are estimates until a checked run sets them. Each count is pass or fail.",
+        evaluator="bench_form",
+        metric="mean",
+        fix=Fix(
+            kind="trust",
+            title="The page and field counts are estimates",
+            task="Check one app for each template by hand, and set the counts in the rubric from it.",
+            acceptance="The counts in the rubric come from an app that a person checked.",
+        ),
+        see=("build.has-the-requested-fields-{v}",),
+    ),
+    *_per_template(
         "components-valid",
         "build",
         text="Every generated component satisfies its schema",
@@ -700,9 +718,9 @@ BEHAVIORS = (
         "The app keeps the shape of its version",
         (
             "A v9 app has none of the files that the assistant's v9 profile rules out, such as layout-sets.json and "
-            "rule files, and no Header, taskId, enablePdfCreation or eFormidling block. Each UI folder has a "
-            "defaultDataType. A v8 app has layout-sets.json for every folder, and no Heading, taskIds or "
-            "App/ui/Settings.json."
+            "rule files, and no taskId, enablePdfCreation or eFormidling block. Each UI folder has a "
+            "defaultDataType. A v8 app has layout-sets.json for every folder, and no taskIds or App/ui/Settings.json. "
+            "A component of the other version fails build.components-valid."
         ),
         "Only the rules the bench knows. A new rule in a version file needs a check here too.",
         "Add a check here for each rule a version file adds.",
@@ -743,16 +761,15 @@ BEHAVIORS = (
         "behave",
         "Fields show and hide on the right answers",
         (
-            "For each field the item names, the bench fills in the controlling field with each of its options and "
-            "with nothing. The field must show for one answer only. Each function the app uses exists in its "
-            "version, and in v8 a layout uses only the functions the v8 frontend has."
+            "For each field the item names, a hidden expression on the field, a group it is in or its page reads "
+            "the controlling field and names the answer the field shows for. Each function the app uses exists in "
+            "its version, and in v8 a layout uses only the functions the v8 frontend has."
         ),
         (
-            "The bench evaluator supports a part of the functions and no repeating group rows. Its tests run the "
-            "shared expression and validation tests that fit. An expression with another function, or options from "
-            "a library or from C#, is not measured."
+            "The bench reads the expressions and does not run them, so an expression that hides the field for the "
+            "answer instead of showing it passes. Options from a library or from C# are not measured."
         ),
-        "Add items with expressions in repeating groups and with required and readOnly expressions.",
+        "Fill in the form in localtest, and check that each field shows for its answer only.",
     ),
     *_skill(
         "bench_process",
@@ -760,10 +777,10 @@ BEHAVIORS = (
         "The process has the tasks and the gateway the item asks for",
         (
             "Each flow joins two elements, each task has one way out, a type on the right element and a diagram "
-            "shape. A PDF task follows the data task, then a gateway. The gateway sends each amount the item names "
-            "to the right task, with exactly one true flow."
+            "shape. A PDF task follows the data task, then a gateway. Each condition of the gateway reads the amount "
+            "and compares it with the limit the item names, and the flows go to signing and to the end."
         ),
-        "It reads process.bpmn. It does not run the process.",
+        "It reads process.bpmn and does not run it, so a condition that compares the wrong way passes.",
         "Add items with other task types, such as confirmation and payment.",
     ),
     *_skill(
@@ -818,11 +835,14 @@ BEHAVIORS = (
         "configured",
         "The form rejects the values the item says it must reject",
         (
-            "The fields the item names are required. A pattern accepts and rejects the item's values. The rules in "
-            "the validation file fail and pass on the item's values, and their messages are in each language. "
+            "The fields the item names are required. A pattern accepts and rejects the item's values. An error rule "
+            "in the validation file reads the fields that the item compares, and the messages are in each language. "
             "appsettings.json turns on the backend checks in v8, and does not turn them off in v9."
         ),
-        "Patterns run with Python's regular expressions, which differ from JavaScript's in rare cases.",
+        (
+            "The rules are read, not run, so a rule that compares the wrong way passes. Patterns run with Python's "
+            "regular expressions, which differ from JavaScript's in rare cases."
+        ),
         "Add an item with a C# validator.",
     ),
     *_skill(

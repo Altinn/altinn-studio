@@ -1,11 +1,4 @@
-"""A new Altinn app for a benchmark run, made from an app template in this repository and pushed to Gitea.
-
-The e2e bench gives the agent a fresh app per run and template version, so that every result names the template
-it ran on and a person can open the app afterwards. Designer's create-app endpoint does not accept API keys, so
-this module repeats its steps instead: `RepositoryService.CreateService` in src/Designer/backend creates the Gitea
-repository, copies the template, adds the `appName` text, `.altinnstudio/settings.json` and the core properties of
-the application metadata, and pushes one commit. Change this module when that method changes.
-"""
+"""Make a new app from an app template for a bench run, with the steps of Designer's `CreateService`."""
 
 from __future__ import annotations
 
@@ -23,7 +16,7 @@ from typing import Any
 
 import httpx
 
-TEMPLATES_DIR = Path(__file__).resolve().parents[3] / "App" / "template"
+from .app_templates import template_source
 
 DEFAULT_ORG = "ttd"
 DEFAULT_CLONE_BASE = "http://localhost/repos"
@@ -54,14 +47,13 @@ class BenchApp:
     template: str
 
     @property
-    def agent_url(self) -> str:
-        """The repository as the agent container reaches it."""
-        return f"{gitea_proxy_url()}/{self.org}/{self.app}.git"
+    def repo(self) -> str:
+        return f"{self.org}/{self.app}"
 
     @property
-    def clone_url(self) -> str:
-        """The repository as this host reaches it."""
-        return f"{clone_base()}/{self.org}/{self.app}.git"
+    def agent_url(self) -> str:
+        """The repository as the agent container reaches it."""
+        return f"{gitea_proxy_url()}/{self.repo}.git"
 
 
 def bench_org() -> str:
@@ -72,13 +64,13 @@ def clone_base() -> str:
     return os.environ.get("BENCH_GITEA_CLONE_BASE", DEFAULT_CLONE_BASE).rstrip("/")
 
 
+def clone_url(repo: str) -> str:
+    """The repository `org/app` as this host reaches it."""
+    return f"{clone_base()}/{repo}.git"
+
+
 def gitea_proxy_url() -> str:
     return os.environ.get("BENCH_GITEA_PROXY_URL", DEFAULT_GITEA_PROXY_URL).rstrip("/")
-
-
-def template_ids() -> list[str]:
-    """The templates Designer offers: the folders whose `src` has an apptemplate.json."""
-    return sorted(manifest.parent.parent.name for manifest in TEMPLATES_DIR.glob("*/src/apptemplate.json"))
 
 
 def app_name(template: str, now: datetime) -> str:
@@ -91,7 +83,7 @@ def app_name(template: str, now: datetime) -> str:
 
 def build_app_tree(template: str, org: str, app: str, destination: Path, *, now: datetime, developer: str) -> None:
     """Write the files a new app made from `template` has in its first commit to `destination`."""
-    source = _template_source(template)
+    source = template_source(template)
     for path in _release_files(source):
         if path.parts[0] in COPIED_FOLDERS or str(path) in COPIED_FILES:
             target = destination / path
@@ -104,6 +96,15 @@ def build_app_tree(template: str, org: str, app: str, destination: Path, *, now:
     _add_app_name_text(destination, app)
     _write_studio_settings(destination)
     _set_core_properties(destination, org, app, now=now, developer=developer)
+
+
+def clone_branch(repo: str, branch: str, destination: Path, api_key: str) -> Path:
+    """A shallow clone of one branch of `repo` (`org/app`) at `destination`."""
+    url = clone_url(repo)
+    header = f"http.extraHeader=X-Api-Key: {api_key}"
+    clone = ["clone", "--quiet", "--depth", "1", "--branch", branch, url, str(destination)]
+    _git(destination.parent, ["-c", header, *clone], api_key, f"Could not clone {branch} of {repo}")
+    return destination
 
 
 def create_bench_app(template: str, *, org: str, api_key: str, now: datetime | None = None) -> BenchApp:
@@ -125,17 +126,8 @@ def create_bench_app(template: str, *, org: str, api_key: str, now: datetime | N
     return bench_app
 
 
-def _template_source(template: str) -> Path:
-    available = template_ids()
-    if template not in available:
-        raise ValueError(f"{template!r} is not a known app template. Available: {', '.join(available) or 'none'}.")
-    return TEMPLATES_DIR / template / "src"
-
-
 def _release_files(source: Path) -> list[PurePosixPath]:
-    """The files git tracks in `source`, less those `.releaseignore` names, as the Dockerfile's release does.
-
-    Listing tracked files rather than the folder keeps a local build's output out of the app."""
+    """The files git tracks in `source`, less those `.releaseignore` names, so a local build's output stays out."""
     result = subprocess.run(["git", "-C", str(source), "ls-files", "-z"], capture_output=True, text=True)
     if result.returncode != 0:
         raise BenchAppError(f"git could not list the files of {source}: {result.stderr}")
@@ -164,8 +156,7 @@ def _write_studio_settings(destination: Path) -> None:
 
 
 def _set_core_properties(destination: Path, org: str, app: str, *, now: datetime, developer: str) -> None:
-    """ApplicationMetadataService.SetCoreProperties, with the app name as the title, as RepositoryController.CreateApp
-    passes it."""
+    """ApplicationMetadataService.SetCoreProperties, with the app name as the title, as CreateApp passes it."""
     path = destination / "App" / "config" / "applicationmetadata.json"
     metadata: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     timestamp = now.astimezone(UTC).isoformat().replace("+00:00", "Z")
@@ -223,7 +214,7 @@ def _commit_and_push(tree: Path, bench_app: BenchApp, developer: str, api_key: s
     _git(tree, ["init", "--quiet", f"--initial-branch={DEFAULT_BRANCH}"], api_key, failure)
     _git(tree, ["add", "--all"], api_key, failure)
     _git(tree, [*identity, "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", COMMIT_MESSAGE], api_key, failure)
-    url = bench_app.clone_url
+    url = clone_url(bench_app.repo)
     _git(
         tree,
         ["-c", f"http.extraHeader=X-Api-Key: {api_key}", "push", "--quiet", url, f"{DEFAULT_BRANCH}:{DEFAULT_BRANCH}"],

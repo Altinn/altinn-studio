@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .bench_app import template_ids
+from .app_templates import template_ids
 
 DATASETS_DIR = Path(__file__).parent / "datasets"
 

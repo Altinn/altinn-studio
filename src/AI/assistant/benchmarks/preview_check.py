@@ -15,7 +15,7 @@ from agents.services.preview.render_check import (
     swap_layout_in_preview_url,
 )
 
-from .bench_app import clone_base
+from .bench_app import BenchAppError, clone_branch
 from .evaluators import Score
 
 RENDERS_SCORE_NAME = "bench_renders"
@@ -126,28 +126,6 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
     return [pages_render] if entry_unmeasured else [renders, pages_render]
 
 
-def _clone_branch(repo: str, branch: str, workdir: Path) -> Path:
-    import subprocess
-
-    destination = workdir / "app"
-    command = [
-        "git",
-        "-c",
-        f"http.extraHeader=X-Api-Key: {os.environ['AGENT_DESIGNER_API_KEY']}",
-        "clone",
-        "--depth",
-        "1",
-        "--branch",
-        branch,
-        f"{clone_base()}/{repo}.git",
-        str(destination),
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        sys.exit(f"clone of {branch!r} failed: {result.stderr.strip().splitlines()[-1:]}")
-    return destination
-
-
 def _main() -> None:
     import argparse
     import tempfile
@@ -160,7 +138,11 @@ def _main() -> None:
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(prefix="altinity-preview-") as tmp:
-        page_order = load_app(_clone_branch(args.repo, args.branch, Path(tmp))).page_order
+        try:
+            clone = clone_branch(args.repo, args.branch, Path(tmp) / "app", os.environ["AGENT_DESIGNER_API_KEY"])
+        except BenchAppError as error:
+            sys.exit(str(error))
+        page_order = load_app(clone).page_order
     if not page_order:
         sys.exit("no ordered pages found on that branch")
 

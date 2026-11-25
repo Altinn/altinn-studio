@@ -28,13 +28,13 @@ flowchart LR
 
 _From the fastest kind to the most complete kind. An e2e item takes minutes. A decision or prompt item takes seconds._
 
-There is one e2e eval for each app template in `src/App/template`. Each run makes a new app from the template, as Designer does (`bench_app.py`), and the assistant builds on it. `app_checks.py` then gives the committed app one score for each skill, from a rubric that finds fields by title, so two correct runs can use different IDs. The browser render check and the render-fix loop are off by default (`BENCH_PREVIEW_CHECK`, `BENCH_RENDER_FIX`).
+There is one e2e eval for each app template in `src/App/template`. Each run makes a new app from the template, as Designer does (`bench_app.py`), and the assistant builds on it. `app_checks.py` then gives the committed app one score for each skill and a few for the whole app, from a rubric that finds fields by title, so two correct runs can use different IDs. The checks read the files and do not run the app. The browser render check and the render-fix loop are off by default (`BENCH_PREVIEW_CHECK`, `BENCH_RENDER_FIX`).
 
 ```mermaid
 flowchart TD
   T["Copy the template, do Designer's steps, push"] --> A["The assistant builds and pushes a session branch"]
   A --> B["Clone the branch and load the app"]
-  B --> C["Structural scores and one score for each skill"]
+  B --> C["One score for each skill, and the scores of the whole app"]
   C --> D["Optional: render each page in Chromium"]
 ```
 

@@ -1,10 +1,4 @@
-"""Load an Altinn app directory for evaluation.
-
-The benchmark evaluates the app as committed to the session branch (a git clone), not a reconstruction from trace
-spans. Traces cut long payloads and do not carry every file, so the repository is the ground truth. The loader reads
-v8 and v9 apps alike: a UI folder knows its data type and tasks from `layout-sets.json` in v8 and from its own
-`Settings.json` in v9.
-"""
+"""Load the files of a v8 or v9 app that the bench scores."""
 
 from __future__ import annotations
 
@@ -16,6 +10,9 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+from agents.altinn.app_version import AppVersionProfile, detect_app_major_version, get_app_version_profile
+from agents.altinn.layout.components import layout_components
 
 # Component types that collect user input.  Used both for counting
 # fields and for collecting the field titles the rubric matches on.
@@ -33,8 +30,6 @@ INPUT_COMPONENT_TYPES = {
     "List",
     "Address",
 }
-
-NAVIGATION_COMPONENT_TYPES = {"NavigationButtons", "NavigationBar"}
 
 BPMN = "{http://www.omg.org/spec/BPMN/20100524/MODEL}"
 BPMNDI = "{http://www.omg.org/spec/BPMN/20100524/DI}"
@@ -59,7 +54,7 @@ class UiFolder:
 
     def components(self, page: str | None = None) -> list[dict[str, Any]]:
         names = [page] if page else list(self.pages)
-        return [c for name in names for c in ((self.pages.get(name) or {}).get("data") or {}).get("layout") or []]
+        return [c for name in names for c in layout_components(self.pages.get(name)) or []]
 
 
 @dataclass
@@ -189,6 +184,10 @@ class AppModel:
     appsettings: dict[str, Any] = field(default_factory=dict)
 
     @property
+    def profile(self) -> AppVersionProfile:
+        return get_app_version_profile(self.version)
+
+    @property
     def data_task(self) -> str | None:
         """The first data task after the start event."""
         return next((n for n in self.process.reachable(self.process.start) if self.process.is_task(n, "data")), None)
@@ -209,8 +208,7 @@ class AppModel:
         return [c for c in components if isinstance(c, dict) and c.get("type") in INPUT_COMPONENT_TYPES]
 
     def fields(self, title: str) -> list[tuple[UiFolder, dict[str, Any]]]:
-        """The form's input components with this title, as `match_title` finds it. A field on the PDF page or the
-        receipt is not a field of the form."""
+        """The form's input components with this title. A field on the PDF page or the receipt is not one."""
         form = self.form
         if form is None:
             return []
@@ -321,8 +319,6 @@ def _json(path: Path) -> Any:
 
 def load_app(root: Path) -> AppModel:
     """Load the app at `root` (repo root containing `App/`)."""
-    from agents.altinn.app_version import detect_app_major_version
-
     app_dir = root / "App"
     model = AppModel(root=root, version=detect_app_major_version(str(root)))
     model.files = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and ".git" not in p.parts}
@@ -340,10 +336,12 @@ def load_app(root: Path) -> AppModel:
 
     sets = _json(app_dir / "ui" / "layout-sets.json")
     model.layout_sets = sets if isinstance(sets, dict) else None
-    # v9 ignores a leftover layout-sets.json, so only v8 reads its sets.
-    v8 = model.version < 9
+    # A v9 app ignores a leftover layout-sets.json.
+    layout_sets = model.profile.uses_layout_sets
     model.ui_settings = (
-        ((model.layout_sets or {}).get("uiSettings") or {}) if v8 else (_json(app_dir / "ui" / "Settings.json") or {})
+        ((model.layout_sets or {}).get("uiSettings") or {})
+        if layout_sets
+        else (_json(app_dir / "ui" / "Settings.json") or {})
     )
     declared = {s.get("id"): s for s in (model.layout_sets or {}).get("sets") or [] if isinstance(s, dict)}
     for settings_path in sorted((app_dir / "ui").glob("*/Settings.json")):
@@ -352,7 +350,7 @@ def load_app(root: Path) -> AppModel:
         pages = {
             p.stem: data for p in sorted((folder_dir / "layouts").glob("*.json")) if (data := _json(p)) is not None
         }
-        if v8:
+        if layout_sets:
             entry = declared.get(folder_dir.name) or {}
             folder = UiFolder(folder_dir.name, settings, pages, entry.get("dataType"), tuple(entry.get("tasks") or ()))
         else:
@@ -462,9 +460,7 @@ SIMILAR_TITLE_MIN_SHARE = 0.3
 
 
 def match_title[T](title: str, candidates: Iterable[tuple[str, T]]) -> list[T]:
-    """The candidates whose text is `title` after normalizing. Without one, those with the same field number, such as
-    «A5.», and else those whose words are all in the title or that have all its words. So the two fields a name and
-    number field is split into are both found."""
+    """The candidates with this title: the same text, else the same field number, else the same words."""
     wanted, number = normalize_title(title), _field_number(title)
     exact: list[T] = []
     numbered: list[T] = []
@@ -478,6 +474,7 @@ def match_title[T](title: str, candidates: Iterable[tuple[str, T]]) -> list[T]:
             exact.append(candidate)
         elif number and _field_number(text) == number:
             numbered.append(candidate)
+        # A name and number field can be split in two, and each half has some of the title's words
         elif _same_words(have, wanted) and share >= SIMILAR_TITLE_MIN_SHARE:
             similar.append(candidate)
     return exact or numbered or similar
