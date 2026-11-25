@@ -1568,7 +1568,7 @@ public class MailboxRelayTests
         Assert.Equal("published-state", continuation.State);
         Assert.Null(continuation.Mailbox);
         // Named for the item it follows — the handler that just concluded its exchange.
-        Assert.Equal($"Mailbox continue: Task_2 · after {SegmentHandlerIndex}", continuation.OperationId);
+        Assert.Equal($"Service task stage: Task_2 · {SegmentHandlerIndex + 1}", continuation.OperationId);
 
         Assert.NotNull(request.Labels);
         Assert.Equal(
@@ -1597,7 +1597,7 @@ public class MailboxRelayTests
 
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], StepOperationIds(continuation));
-        Assert.Equal($"Mailbox continue: Task_2 · after {SegmentHandlerIndex}", continuation.OperationId);
+        Assert.Equal($"Service task stage: Task_2 · {SegmentHandlerIndex + 1}", continuation.OperationId);
 
         // The step names the one item it runs, and nothing about what follows it.
         Assert.Equal(2, StepPayload(Assert.Single(continuation.Steps)).ItemIndex);
@@ -1629,7 +1629,7 @@ public class MailboxRelayTests
         Assert.True(continuation.IsHead);
         Assert.True(continuation.DependsOnHeads);
         Assert.Null(continuation.Mailbox);
-        Assert.Equal("Mailbox continue: Task_2 · after 2", continuation.OperationId);
+        Assert.Equal("Service task stage: Task_2 · 3", continuation.OperationId);
         Assert.Equal(
             [$"{MintMailbox.Key}: {JournalIndex}", $"{ExecuteServiceTask.Key}: {JournalIndex}"],
             StepOperationIds(continuation)
@@ -1663,7 +1663,7 @@ public class MailboxRelayTests
         Assert.True(continuation.DependsOnHeads);
         Assert.Null(continuation.Mailbox);
         Assert.Equal("published-state", continuation.State);
-        Assert.Equal($"Mailbox continue: Task_2 · after {OpeningStageIndex}", continuation.OperationId);
+        Assert.Equal($"Service task stage: Task_2 · {OpeningStageIndex + 1}", continuation.OperationId);
 
         // The second send and its mint, and nothing more: the handler that answers the first exchange is
         // composed right after this second send, so starting it is that send's own step's job.
@@ -1912,7 +1912,7 @@ public class MailboxRelayTests
             "continuation" => (
                 CreateRelay(recorder, new ArchiveThenJournalTask()),
                 Continuing(),
-                $"Mailbox continue: Task_2 · after {SegmentHandlerIndex}"
+                $"Service task stage: Task_2 · {SegmentHandlerIndex + 1}"
             ),
             _ => throw new ArgumentOutOfRangeException(nameof(successor), successor, null),
         };

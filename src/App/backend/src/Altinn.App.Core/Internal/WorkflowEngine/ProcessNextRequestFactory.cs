@@ -102,10 +102,10 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// OperationId prefix for the workflow of a service task's pipeline item after the first, unless the item
-    /// is a reply handler — enqueued by <see cref="MailboxRelay"/>, never by this factory. Recognized like the
-    /// receive prefix above.
+    /// is a reply handler, followed by the task and the item's index — enqueued by <see cref="MailboxRelay"/>,
+    /// never by this factory. Recognized like the receive prefix above.
     /// </summary>
-    internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+    internal const string ServiceTaskStageOperationIdPrefix = "Service task stage:";
 
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;

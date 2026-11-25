@@ -64,7 +64,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
     private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
-    private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+    private const string ServiceTaskStageOperationIdPrefix = "Service task stage:";
 
     private const string AckPayload = """{"kind":"ack","reference":"ark-1"}""";
     private const string ReceiptPayload = """{"kind":"receipt","reference":"ark-1"}""";
@@ -258,7 +258,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             ns,
             collectionKey,
             // Named for the item it follows: the handler that concluded exchange A, at item index 1.
-            $"{MailboxContinueOperationIdPrefix} {SequentialTaskId} · after 1"
+            $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 2"
         );
 
         // Each step performs at most one keyed enqueue, so the bare executing step id is the whole key -
@@ -407,7 +407,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             engineClient,
             ns,
             collectionKey,
-            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 0"
+            $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 1"
         );
         Assert.Equal(new List<string> { "MintMailbox: 1", "ExecuteServiceTask: 1" }, OperationIds(upfrontSecondSend));
         Assert.Equal(upfrontPrimary.Steps[^1].DatabaseId.ToString(), upfrontSecondSend.IdempotencyKey);
@@ -475,7 +475,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             upfrontWorkflows,
             // The handler that just concluded sits at item index 2, so this is the name a continuation of
             // its own would have had. The one named "after 0" above is the *first send's*, a hop earlier.
-            w => w.OperationId == $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 2"
+            w => w.OperationId == $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 3"
         );
         EngineWorkflow betaReceiver = Single(upfrontWorkflows, betaReceiverOperationId);
         EngineWorkflow alphaConcludingReceiver = Single(
@@ -493,7 +493,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         EngineWorkflow betaContinuation = Single(
             finalWorkflows,
             // Beta's handler is the pipeline's item 3.
-            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 3"
+            $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 4"
         );
 
         // RecordOutcome runs alone on the continuation Beta's conclusion starts, and its completion starts
@@ -502,10 +502,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // proves.
         Assert.Equal(new List<string> { "ExecuteServiceTask: 4" }, OperationIds(betaContinuation));
         Assert.Equal("Completed", betaContinuation.OverallStatus);
-        EngineWorkflow conclusion = Single(
-            finalWorkflows,
-            $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 4"
-        );
+        EngineWorkflow conclusion = Single(finalWorkflows, $"{ServiceTaskStageOperationIdPrefix} {UpfrontTaskId} · 5");
         Assert.Equal(new List<string> { "ExecuteServiceTask: 5" }, OperationIds(conclusion));
         Assert.Equal("Completed", conclusion.OverallStatus);
         Assert.Equal(betaContinuation.Steps[^1].DatabaseId.ToString(), conclusion.IdempotencyKey);
