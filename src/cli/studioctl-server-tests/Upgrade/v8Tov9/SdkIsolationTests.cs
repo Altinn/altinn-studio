@@ -55,6 +55,8 @@ public sealed class SdkIsolationTests
             "App.cs",
             "public class App { public CoreType Core; public System.Threading.CancellationToken Token; }"
         );
+        // net11.0 defaults to C# 15, so an app already on v9 may use unions when the upgrade runs on it again.
+        app.Write("Pet.cs", "public record Cat; public record Dog; public union Pet(Cat, Dog);");
         app.Write(
             "../Core/Core.csproj",
             """
