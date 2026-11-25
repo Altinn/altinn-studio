@@ -294,8 +294,8 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
         IsIntegrasjonspunktError(exception, "DuplicateFilenameException");
 
     /// <remarks>
-    /// The body is normally a JSON object naming the Java exception in an <c>exception</c> field. The
-    /// substring fallback covers a body that is not JSON, or one the snapshot truncated.
+    /// The body is normally a JSON object naming the Java exception in an <c>exception</c> field, and that field
+    /// then decides. The substring match covers only a body that is not JSON, or one the snapshot truncated.
     /// </remarks>
     private static bool IsIntegrasjonspunktError(PlatformHttpException exception, string exceptionName)
     {
@@ -311,10 +311,10 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
             if (
                 document.RootElement.ValueKind is JsonValueKind.Object
                 && document.RootElement.TryGetProperty("exception", out JsonElement reportedException)
-                && reportedException.GetString() == $"no.difi.meldingsutveksling.exceptions.{exceptionName}"
             )
             {
-                return true;
+                return reportedException.ValueKind is JsonValueKind.String
+                    && reportedException.GetString() == $"no.difi.meldingsutveksling.exceptions.{exceptionName}";
             }
         }
         catch (JsonException)

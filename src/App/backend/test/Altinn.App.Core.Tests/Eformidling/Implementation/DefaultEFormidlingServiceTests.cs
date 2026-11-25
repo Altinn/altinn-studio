@@ -595,6 +595,11 @@ public class DefaultEFormidlingServiceTests
     [InlineData(DuplicateFilenameBody, true)]
     [InlineData("not json DuplicateFilenameException", true)]
     [InlineData(DuplicateMessageBody, false)]
+    [InlineData(
+        "{ \"exception\" : \"java.io.IOException\", \"message\" : \"Could not store: DuplicateFilenameException\" }",
+        false
+    )]
+    [InlineData("{ \"exception\" : null, \"message\" : \"DuplicateFilenameException\" }", false)]
     [InlineData("Connection refused", false)]
     [InlineData("", false)]
     public void IsDuplicateFilenameError_matches_only_duplicate_filename_errors(string body, bool expected)
@@ -608,6 +613,10 @@ public class DefaultEFormidlingServiceTests
     [InlineData("not json MessageAlreadyExistsException", true)]
     [InlineData(
         "{ \"exception\" : \"no.difi.meldingsutveksling.exceptions.SomethingElseException\", \"message\" : \"boom\" }",
+        false
+    )]
+    [InlineData(
+        "{ \"exception\" : \"java.io.IOException\", \"message\" : \"Wraps a MessageAlreadyExistsException\" }",
         false
     )]
     [InlineData("Connection refused", false)]
