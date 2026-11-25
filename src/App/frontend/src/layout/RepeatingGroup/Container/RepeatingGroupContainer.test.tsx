@@ -32,9 +32,17 @@ interface IRender {
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
   onServiceTaskPage?: boolean;
+  /** Adds a repeating group `Group.Nested` with one row in every row of the group, as a child of the group. */
+  withNestedGroup?: boolean;
 }
 
-async function render({ container, numRows = 3, validationIssues = [], onServiceTaskPage = false }: IRender = {}) {
+async function render({
+  container,
+  numRows = 3,
+  validationIssues = [],
+  onServiceTaskPage = false,
+  withNestedGroup = false,
+}: IRender = {}) {
   window.altinnAppGlobalData.textResources!.resources = [
     { id: 'option.label', value: 'Value to be shown' },
     { id: 'button.open', value: 'New open text' },
@@ -98,6 +106,24 @@ async function render({ container, numRows = 3, validationIssues = [], onService
     },
   ];
 
+  const nestedComponents: ILayout = withNestedGroup
+    ? [
+        getFormLayoutRepeatingGroupMock({
+          id: 'nestedGroup',
+          children: ['nestedField'],
+          dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'Group.Nested' } },
+        }),
+        {
+          id: 'nestedField',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.Nested.value' } },
+          showValidations: [],
+          readOnly: false,
+          required: false,
+        },
+      ]
+    : [];
+
   const group = getFormLayoutRepeatingGroupMock({
     ...mockContainer,
     ...container,
@@ -122,7 +148,7 @@ async function render({ container, numRows = 3, validationIssues = [], onService
           obj.layouts = {
             FormLayout: {
               data: {
-                layout: [group, ...mockComponents],
+                layout: [group, ...mockComponents, ...nestedComponents],
               },
             },
           };
@@ -131,6 +157,7 @@ async function render({ container, numRows = 3, validationIssues = [], onService
               [ALTINN_ROW_ID]: uuidv4(),
               prop1: `value${index + 1}`,
               checkboxBinding: ['option.value'],
+              ...(withNestedGroup ? { Nested: [{ [ALTINN_ROW_ID]: uuidv4(), value: `nested${index + 1}` }] } : {}),
             })),
           };
           obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
@@ -452,6 +479,47 @@ describe('RepeatingGroupContainer', () => {
     expect(await screen.findByRole('button', { name: /Feil i rad 1. Vis meldinger/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /New close text/i })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.queryByRole('button', { name: /Rett feil her/i })).not.toBeInTheDocument();
+  });
+
+  it('marks the pagination page of a row with a row-object error', async () => {
+    await render({
+      numRows: 4,
+      container: { pagination: { rowsPerPage: 2 } },
+      validationIssues: [
+        {
+          customTextKey: 'Raden er feil',
+          field: 'Group[2]',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    // Row 2 is the first row on page 2. Its error is bound to the row object, not to a child field.
+    expect(await screen.findByRole('button', { name: /Rett feil her: Side 2/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rett feil her: Side 1/i })).not.toBeInTheDocument();
+  });
+
+  it('marks the outer pagination page of a row-object error in a nested group', async () => {
+    await render({
+      numRows: 4,
+      withNestedGroup: true,
+      container: { pagination: { rowsPerPage: 2 }, children: ['field1', 'nestedGroup'] },
+      validationIssues: [
+        {
+          customTextKey: 'Den nestede raden er feil',
+          field: 'Group[2].Nested[0]',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    // The error is on the first nested row of outer row 2, so the outer page is 2. The nested row index (0) is not a page.
+    expect(await screen.findByRole('button', { name: /Rett feil her: Side 2/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rett feil her: Side 1/i })).not.toBeInTheDocument();
   });
 
   it('should notify screen readers via a live region when a row is deleted', async () => {

@@ -205,8 +205,14 @@ function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: st
     }
 
     const { depth } = splitDashedKey(indexedId);
+    // Row-object validations of this group carry the group's own node id, so only their row context names the row.
+    // Nested groups' row-object validations carry the nested group's id, whose depth already holds this group's row.
     const rowsWithErrors = new Set<number>(
-      deepValidations.map((v) => splitDashedKey(v.nodeId).depth.slice(depth.length)[0]),
+      deepValidations.map((v) =>
+        v.nodeId === indexedId && v.repeatingGroupRow
+          ? v.repeatingGroupRow.rowIndex
+          : splitDashedKey(v.nodeId).depth.slice(depth.length)[0],
+      ),
     );
 
     const pagesWithErrors = new Set<number>();
