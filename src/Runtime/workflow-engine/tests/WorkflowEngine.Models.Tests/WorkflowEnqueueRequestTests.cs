@@ -171,19 +171,41 @@ public class WorkflowEnqueueRequestTests
     [Fact]
     public void ComputeHash_FieldsLeftOutOrUnset_AreNotInTheHashedJson()
     {
-        // Arrange: this is all the engine hashes for a request that sets nothing optional. If a field added to
-        // the request models shows up here, deploying it makes every stored hash stale, and a replay across the
-        // deploy gets a conflict.
+        // Arrange: this is all the engine hashes for a request that sets nothing optional. A change to this JSON
+        // makes every stored hash stale when it is deployed, and a replay across the deploy gets a conflict.
         var request = CreateRequestWithStep("Validate data");
         const string hashedJson =
-            """{"CollectionKey":"collection-1","Work":{"workflows":[{"operationId":"op","steps":["""
+            """{"collectionKey":"collection-1","workflows":[{"operationId":"op","steps":["""
             + """{"operationId":"step","command":{"type":"app","data":{"payload":"payload"}}}]"""
-            + ""","dependsOnHeads":true}]}}""";
+            + ""","dependsOnHeads":true}]}""";
 
         // Act
         var hash = request.ComputeHash("collection-1");
 
         // Assert
         Assert.Equal(SHA256.HashData(Encoding.UTF8.GetBytes(hashedJson)), hash);
+    }
+
+    [Theory]
+    [InlineData(typeof(WorkflowEnqueueRequest), typeof(WorkflowEnqueueRequest.Fingerprint), "Labels", "Context")]
+    [InlineData(typeof(WorkflowRequest), typeof(WorkflowEnqueueRequest.WorkflowFingerprint), "State")]
+    [InlineData(typeof(StepRequest), typeof(WorkflowEnqueueRequest.StepFingerprint), "Labels")]
+    public void Fingerprint_EveryRequestField_IsSelectedOrListedAsLeftOut(
+        Type request,
+        Type fingerprint,
+        params string[] leftOut
+    )
+    {
+        // Arrange: a field added to a request model fails here until someone decides whether another value of it
+        // means other work. The collection key is the one selected field that is not in the request body.
+        var requestFields = request.GetProperties().Select(property => property.Name);
+        var selectedFields = fingerprint.GetProperties().Select(property => property.Name);
+
+        // Act
+        var expected = requestFields.Except(leftOut).Order();
+        var actual = selectedFields.Except(["CollectionKey"]).Order();
+
+        // Assert
+        Assert.Equal(expected, actual);
     }
 }

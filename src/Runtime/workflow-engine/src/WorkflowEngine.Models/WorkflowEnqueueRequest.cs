@@ -30,10 +30,11 @@ public sealed record WorkflowEnqueueRequest
     [JsonPropertyName("workflows")]
     public required IReadOnlyList<WorkflowRequest> Workflows { get; init; }
 
-    // A null field is left out, so a nullable field added to the request later does not change the hash of
-    // requests that leave it unset.
+    // A null field is left out, so selecting a nullable field later does not change the hash of requests that
+    // leave it unset.
     private static readonly JsonSerializerOptions _fingerprintOptions = new()
     {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
@@ -46,27 +47,44 @@ public sealed record WorkflowEnqueueRequest
     /// were created with. The commands still validate the context before the fingerprint is checked, so a replay
     /// whose context a command rejects is invalid rather than a duplicate.
     /// </summary>
+    /// <remarks>
+    /// Only the fields of <see cref="Fingerprint"/>, <see cref="WorkflowFingerprint"/> and
+    /// <see cref="StepFingerprint"/> are hashed. A field added to a request model changes no hash until it is added
+    /// to one of them, which it should be only when another value means other work.
+    /// </remarks>
     /// <param name="collectionKey">The collection key the request was sent with, or null.</param>
     internal byte[] ComputeHash(string? collectionKey)
     {
-        var work = this with
-        {
-            Labels = null,
-            Context = null,
-            Workflows = Workflows
-                .Select(workflow =>
-                    workflow with
-                    {
-                        State = null,
-                        Steps = workflow.Steps.Select(step => step with { Labels = null }).ToList(),
-                    }
-                )
-                .ToList(),
-        };
-        return SHA256.HashData(
-            JsonSerializer.SerializeToUtf8Bytes(new Fingerprint(collectionKey, work), _fingerprintOptions)
+        var fingerprint = new Fingerprint(
+            collectionKey,
+            Workflows.Select(workflow => new WorkflowFingerprint(
+                workflow.Ref,
+                workflow.OperationId,
+                workflow.Steps.Select(step => new StepFingerprint(step.OperationId, step.Command, step.RetryStrategy)),
+                workflow.StartAt,
+                workflow.DependsOn,
+                workflow.Links,
+                workflow.DependsOnHeads,
+                workflow.IsHead,
+                workflow.Mailbox
+            ))
         );
+        return SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(fingerprint, _fingerprintOptions));
     }
 
-    private sealed record Fingerprint(string? CollectionKey, WorkflowEnqueueRequest Work);
+    internal sealed record Fingerprint(string? CollectionKey, IEnumerable<WorkflowFingerprint> Workflows);
+
+    internal sealed record WorkflowFingerprint(
+        string? Ref,
+        string OperationId,
+        IEnumerable<StepFingerprint> Steps,
+        DateTimeOffset? StartAt,
+        IEnumerable<WorkflowRef>? DependsOn,
+        IEnumerable<WorkflowRef>? Links,
+        bool DependsOnHeads,
+        bool? IsHead,
+        MailboxReference? Mailbox
+    );
+
+    internal sealed record StepFingerprint(string OperationId, CommandDefinition Command, RetryStrategy? RetryStrategy);
 }
