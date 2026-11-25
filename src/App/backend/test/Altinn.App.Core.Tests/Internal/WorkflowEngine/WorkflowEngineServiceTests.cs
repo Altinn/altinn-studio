@@ -1016,7 +1016,6 @@ public class WorkflowEngineServiceTests
                 CreateWorkflowStatus(
                     DateTimeOffset.UtcNow,
                     status: PersistentItemStatus.Waiting,
-                    operationId: $"{ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix} Task_1 · 1",
                     databaseId: stageWorkflowId,
                     steps: [CreateStep($"{ExecuteServiceTask.Key}: 1", PersistentItemStatus.Waiting)]
                 ),
@@ -1098,7 +1097,6 @@ public class WorkflowEngineServiceTests
                 CreateWorkflowStatus(
                     DateTimeOffset.UtcNow,
                     status: PersistentItemStatus.Failed,
-                    operationId: $"{ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix} Task_1 · 1",
                     databaseId: stageWorkflowId,
                     steps: [CreateStep($"{ExecuteServiceTask.Key}: 1", PersistentItemStatus.Failed)]
                 ),
