@@ -594,6 +594,7 @@ public class DefaultEFormidlingServiceTests
     [Theory]
     [InlineData(DuplicateFilenameBody, true)]
     [InlineData("not json DuplicateFilenameException", true)]
+    [InlineData("{ \"message\" : \"DuplicateFilenameException\" }", true)]
     [InlineData(DuplicateMessageBody, false)]
     [InlineData(
         "{ \"exception\" : \"java.io.IOException\", \"message\" : \"Could not store: DuplicateFilenameException\" }",
