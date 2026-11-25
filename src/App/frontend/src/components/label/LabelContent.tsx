@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type { ReactNode } from 'react';
 
 import {
   Description,
@@ -19,7 +20,7 @@ import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndica
 export type LabelContentProps = Readonly<{
   id: string;
   wrapperId?: string;
-  label?: React.ReactNode;
+  label?: ReactNode;
   description?: string;
   required?: boolean;
   readOnly?: boolean;

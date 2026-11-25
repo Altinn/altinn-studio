@@ -783,6 +783,8 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("schema")]
         public required object Schema { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("writable")]
+        public required bool Writable { get; init; }
     }
     public sealed class FormBootstrapResponse
     {
@@ -862,6 +864,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public class CorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest Build() { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder builder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment attachment) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachments(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment> attachments) { }
@@ -971,6 +974,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public interface ICorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
         Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest Build();
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder builder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment attachment);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachments(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment> attachments);
@@ -1310,6 +1314,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class CorrespondenceRequest : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest>
     {
         public CorrespondenceRequest() { }
+        public bool? AllowForwarding { get; init; }
         public required Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContent Content { get; init; }
         public System.DateTimeOffset? DueDateTime { get; init; }
         public System.Collections.Generic.IReadOnlyList<System.Guid>? ExistingAttachments { get; init; }
@@ -1361,6 +1366,8 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class GetCorrespondenceStatusResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.GetCorrespondenceStatusResponse>
     {
         public GetCorrespondenceStatusResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("allowForwarding")]
+        public bool AllowForwarding { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("content")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContentResponse? Content { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("correspondenceId")]
@@ -3738,11 +3745,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineEnd(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
-    }
-    public interface IProcessTaskDataLocker
-    {
-        System.Threading.Tasks.Task Lock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task Unlock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
     }
 }
 namespace Altinn.App.Core.Internal.Profile

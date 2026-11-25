@@ -1,5 +1,5 @@
-import React, { useLayoutEffect } from 'react';
-import type { JSX } from 'react';
+import { useLayoutEffect, useState } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 import { BaseTable, Button, Flex, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -100,7 +100,7 @@ export function RepeatingGroupTableRow({
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
   const instanceLocked = FormStore.useIsInstanceLocked();
 
-  const [rowHasErrors, setRowHasErrors] = React.useState(false);
+  const [rowHasErrors, setRowHasErrors] = useState(false);
   const editButtonText = rowHasErrors
     ? langAsString('general.edit_alt_error')
     : getEditButtonText(isEditingRow, langTools, editButtonOpen, editButtonClose);
@@ -403,7 +403,7 @@ function DeleteElement({
   deleteButtonText: string;
   langAsString: (key: string) => string;
   disabled?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const config = useComponentConfig(useRepeatingGroupComponentId(), 'RepeatingGroup');
   const alertOnDelete = useEvalExpression(config.edit?.alertOnDelete, Expressions.RepeatingGroup.edit.alertOnDelete);

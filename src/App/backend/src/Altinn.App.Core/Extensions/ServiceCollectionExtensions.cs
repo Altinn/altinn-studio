@@ -359,8 +359,6 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<ExclusiveGatewayFactory>();
         services.AddTransient<ProcessStateEnricher>();
 
-        services.AddTransient<IProcessTaskDataLocker, ProcessTaskDataLocker>();
-
         // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();
         services.AddTransient<IProcessTask, ConfirmationProcessTask>();

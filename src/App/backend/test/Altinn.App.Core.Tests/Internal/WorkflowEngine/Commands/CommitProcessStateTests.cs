@@ -83,14 +83,13 @@ public class CommitProcessStateTests
             ],
         };
         Instance instance = CreateInstance("Task_1");
-        var lockedDataElement = new DataElement
+        var dataElement = new DataElement
         {
             Id = Guid.NewGuid().ToString(),
             InstanceGuid = new InstanceIdentifier(instance).InstanceGuid.ToString(),
             DataType = autoDeleteDataType,
-            Locked = true,
         };
-        instance.Data = [lockedDataElement];
+        instance.Data = [dataElement];
         CommandSetup setup = CreateCommandSetup(instance, applicationMetadata);
         List<StorageInstanceMutationRequest> mutations = CaptureMutations(setup);
         var ended = DateTime.UtcNow;
@@ -123,8 +122,7 @@ public class CommitProcessStateTests
         Assert.Equal(ProcessStatus.Processing, dataMutation.ExpectedProcessStatus);
         Assert.Null(dataMutation.ProcessState);
         var delete = Assert.Single(dataMutation.DeleteDataElements);
-        Assert.Equal(Guid.Parse(lockedDataElement.Id), delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
+        Assert.Equal(Guid.Parse(dataElement.Id), delete.DataElementId);
         Assert.Null(dataMutation.DeleteInstance);
 
         StorageInstanceMutationRequest releaseMutation = mutations[2];
@@ -195,7 +193,6 @@ public class CommitProcessStateTests
                 Id = Guid.NewGuid().ToString(),
                 InstanceGuid = new InstanceIdentifier(instance).InstanceGuid.ToString(),
                 DataType = dataTypeId,
-                Locked = true,
             },
         ];
         CommandSetup setup = CreateCommandSetup(instance, metadata);
@@ -216,10 +213,6 @@ public class CommitProcessStateTests
         // A cleanup step with nothing to delete stages nothing, so it makes no save.
         Assert.Equal(expectedElementDeletes > 0 ? 3 : 2, mutations.Count);
         Assert.Equal(expectedElementDeletes, mutations.Sum(mutation => mutation.DeleteDataElements.Count));
-        Assert.All(
-            mutations.SelectMany(mutation => mutation.DeleteDataElements),
-            delete => Assert.True(delete.IgnoreLock)
-        );
         StorageInstanceMutationRequest release = mutations[^1];
         Assert.Equal(expectedInstanceDelete, release.DeleteInstance?.Hard == true);
         Assert.Equal(ProcessStatus.Processing, release.ExpectedProcessStatus);
@@ -257,7 +250,6 @@ public class CommitProcessStateTests
             Id = Guid.NewGuid().ToString(),
             InstanceGuid = new InstanceIdentifier(instance).InstanceGuid.ToString(),
             DataType = "auto-delete",
-            Locked = true,
         };
         instance.Data = [dataElement];
         ProcessState originalProcess = instance.Process;
@@ -287,7 +279,6 @@ public class CommitProcessStateTests
         Assert.Same(originalProcess, setup.UnitOfWork.Instance.Process);
         Assert.Equal(ProcessStatus.Processing, setup.UnitOfWork.Instance.Process?.Status);
         Assert.Same(dataElement, Assert.Single(setup.UnitOfWork.Instance.Data));
-        Assert.True(dataElement.Locked);
         Assert.Equal(
             WorkflowAggregateSaveOutcome.NothingToSave,
             await setup.UnitOfWork.SaveWorkflowOwnedAggregate(

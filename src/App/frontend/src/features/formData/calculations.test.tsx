@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { act, waitFor } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -20,6 +18,7 @@ const schema: JSONSchema7 = {
     label: { type: 'string' },
     enabled: { type: 'boolean' },
     nullableNumber: { type: ['number', 'null'] },
+    wrappedNullableNumber: { anyOf: [{ type: 'number', enum: [0, 1] }, { type: 'null' }] },
     nullableBoolean: { oneOf: [{ type: 'boolean' }, { type: 'null' }] },
     numbers: { type: 'array', items: { type: 'number' } },
     strings: { type: 'array', items: { type: 'string' } },
@@ -126,6 +125,38 @@ describe('calculation targets', () => {
 });
 
 describe('calculations in the form store', () => {
+  it('writes and clears a calculated number through the nullable schema produced by the upgrader', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: [
+          { field: 'wrappedNullableNumber', expression: ['if', ['dataModel', 'enabled'], 1, 'else', null] },
+        ],
+      },
+      { enabled: true },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toMatchObject({ wrappedNullableNumber: 1 });
+
+    act(() => {
+      store
+        .getState()
+        .data.setLeafValue({ reference: { dataType: defaultDataTypeMock, field: 'enabled' }, newValue: false });
+      store.getState().data.debounce('forced');
+    });
+
+    const data = store.getState().data.models[defaultDataTypeMock].currentData;
+    expect(data).toMatchObject({ wrappedNullableNumber: null });
+  });
+
+  it('loads the migrated constant-null expression and clears an existing target', async () => {
+    const { store } = await renderCalculations(
+      { calculations: [{ field: 'wrappedNullableNumber', expression: ['if', true, null, 'else', null] }] },
+      { wrappedNullableNumber: 1 },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toMatchObject({
+      wrappedNullableNumber: null,
+    });
+  });
+
   it('preserves stored values when a PDF previews another task with calculations', async () => {
     const initialData = { quantity: 4, total: 3 };
     const { store } = await renderCalculations(

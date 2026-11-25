@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
 
 namespace Altinn.Platform.Storage.Repository;
 
@@ -45,6 +46,7 @@ public interface IDataRepository
     /// <summary>
     /// Atomically reads data element metadata and its authoritative current blob version.
     /// </summary>
+    /// <returns>The read, with a null data element when there is none.</returns>
     Task<DataElementReadResult> ReadWithCurrentBlobVersion(
         Guid instanceGuid,
         Guid dataElementId,
@@ -145,6 +147,21 @@ public interface IDataRepository
     /// Deletes detached blob-version metadata after the physical blob has been deleted.
     /// </summary>
     Task<bool> DeleteBlobVersion(
+        Guid instanceGuid,
+        Guid dataElementId,
+        string blobVersionId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Reads the complete stored metadata for one blob version of a data element, attached or detached.
+    /// </summary>
+    /// <param name="instanceGuid">The instance guid that owns the data element.</param>
+    /// <param name="dataElementId">The data element id.</param>
+    /// <param name="blobVersionId">The blob version id.</param>
+    /// <param name="cancellationToken">A cancellation token to pass to async operations</param>
+    /// <returns>The blob version, or null when the data element has no such version.</returns>
+    Task<DataElementBlobVersion> ReadBlobVersion(
         Guid instanceGuid,
         Guid dataElementId,
         string blobVersionId,

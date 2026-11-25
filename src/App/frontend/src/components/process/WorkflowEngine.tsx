@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { AccordionItem, Flex } from '@app/form-component';
 import { Alert, Heading } from '@digdir/designsystemet-react';
@@ -293,7 +294,7 @@ export function useIsWorkflowFailedOnCurrentServiceTask() {
   );
 }
 
-function WorkflowFailedDetailItem({ label, value }: { label: string; value: React.ReactNode }) {
+function WorkflowFailedDetailItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <div>

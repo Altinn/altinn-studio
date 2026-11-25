@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { useIsMobile } from '@app/form-component';
 import { Button, Dropdown } from '@digdir/designsystemet-react';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { HttpError } from '@studio/http-client';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

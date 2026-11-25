@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { createContext, useCallback, useState } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -21,7 +21,7 @@ import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { IData, IInstance, IInstanceDataSources, WorkflowActivityStatus } from 'src/types/shared';
 
 const emptyArray: never[] = [];
-const InstanceContext = React.createContext<IInstance | null>(null);
+const InstanceContext = createContext<IInstance | null>(null);
 
 /**
  * How many consecutive failed refetch cycles (each cycle already retries 3 times with backoff
@@ -216,5 +216,3 @@ export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
     });
   };
 };
-
-export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => T | undefined;

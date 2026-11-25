@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TabsLayout } from '@app/form-component';
 import type { TabsLayoutTab } from '@app/form-component';

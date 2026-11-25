@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useRef } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 type ElementFocusContextValue = {

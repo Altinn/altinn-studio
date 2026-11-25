@@ -1,5 +1,4 @@
-import React from 'react';
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import type { ClipboardEvent, InputHTMLAttributes, ReactNode } from 'react';
 
 import {
   type FieldCounterProps,
@@ -65,7 +64,7 @@ export function Input(props: InputProps) {
     ...rest
   } = props;
 
-  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+  const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
     if (readOnly) {
       event.preventDefault();
     }

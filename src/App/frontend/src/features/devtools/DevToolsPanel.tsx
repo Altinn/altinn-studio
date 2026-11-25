@@ -1,6 +1,12 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import React, { useState } from 'react';
-import type { ErrorInfo, PropsWithChildren } from 'react';
+import { Component, useState } from 'react';
+import type {
+  ErrorInfo,
+  MouseEvent as ReactMouseEvent,
+  PropsWithChildren,
+  ReactNode,
+  TouchEvent as ReactTouchEvent,
+} from 'react';
 
 import { Button } from '@app/form-component';
 import { XMarkIcon } from '@navikt/aksel-icons';
@@ -22,7 +28,7 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
   const { langAsString } = useLanguage();
   const [height, setHeight] = useState(250);
 
-  const resizeHandler = (mouseDownEvent: React.MouseEvent) => {
+  const resizeHandler = (mouseDownEvent: ReactMouseEvent) => {
     mouseDownEvent.preventDefault();
     const startHeight = clampHeight(height);
     const startPosition = mouseDownEvent.screenY;
@@ -42,7 +48,7 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
     document.body.addEventListener('mouseup', onMouseUp, { once: true });
   };
 
-  const resizeHandlerMobile = (touchStartEvent: React.TouchEvent) => {
+  const resizeHandlerMobile = (touchStartEvent: ReactTouchEvent) => {
     touchStartEvent.preventDefault();
     const startHeight = clampHeight(height);
     const startPosition = touchStartEvent.touches[0].screenY;
@@ -108,7 +114,7 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
 interface IErrorBoundary {
   lastError?: Error;
 }
-class DevToolsErrorBoundary extends React.Component<PropsWithChildren, IErrorBoundary> {
+class DevToolsErrorBoundary extends Component<PropsWithChildren, IErrorBoundary> {
   constructor(props: PropsWithChildren) {
     super(props);
     this.state = { lastError: undefined };
@@ -127,7 +133,7 @@ class DevToolsErrorBoundary extends React.Component<PropsWithChildren, IErrorBou
     }
   }
 
-  render(): React.ReactNode {
+  render(): ReactNode {
     const { lastError } = this.state;
     const { children } = this.props;
 

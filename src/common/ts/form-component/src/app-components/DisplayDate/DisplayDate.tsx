@@ -1,9 +1,9 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import classes from './DisplayDate.module.css';
 
 export type DisplayDateProps = {
-  value: React.ReactNode;
+  value: ReactNode;
   iconUrl?: string;
   iconAltText?: string;
   labelId?: string;

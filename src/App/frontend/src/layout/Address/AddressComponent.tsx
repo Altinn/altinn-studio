@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { AddressLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

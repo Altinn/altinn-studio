@@ -1,5 +1,5 @@
-import React from 'react';
 import { useLocation, useParams } from 'react-router';
+import type { ReactNode } from 'react';
 
 import { screen } from '@testing-library/dom';
 import { act, render as renderRtl } from '@testing-library/react';
@@ -315,6 +315,6 @@ describe('SigneeListSummary', () => {
   });
 });
 
-function render(ui: React.ReactNode) {
+function render(ui: ReactNode) {
   return act(async () => renderRtl(ui, { wrapper: queryTest.wrapper }));
 }

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Paragraph } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 

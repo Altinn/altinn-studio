@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 import type { PageValidation } from '@app/layout-contract/generated/common.generated';
 

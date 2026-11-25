@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

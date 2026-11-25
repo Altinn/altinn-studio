@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
@@ -171,8 +172,12 @@ internal sealed class DataModelTypeResolver
 
                 currentType = property.Type;
 
-                // If this is a collection, get the element type
-                if (IsCollectionType(currentType, out var elementType))
+                // Traverse collection elements for indexed values or child paths. A whole collection
+                // must not be mistaken for a scalar calculation input or output.
+                if (
+                    (i < pathSegments.Length - 1 || segment.Contains('['))
+                    && IsCollectionType(currentType, out var elementType)
+                )
                 {
                     currentType = elementType;
                 }
@@ -185,6 +190,45 @@ internal sealed class DataModelTypeResolver
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Resolve how generated C# reads and writes a JSON path on a variable named model. Collection
+    /// items are read with ElementAtOrDefault, and a path through a collection cannot be written.
+    /// </summary>
+    public ModelMember? ResolveMember(string jsonPath)
+    {
+        if (_rootDataModelType == null)
+            return null;
+        ITypeSymbol? type = _rootDataModelType;
+        var read = new System.Text.StringBuilder("model");
+        string? write = "model";
+        var segments = SplitJsonPath(jsonPath);
+        for (var i = 0; i < segments.Length; i++)
+        {
+            if (type == null || FindPropertyByJsonName(type, StripArrayIndex(segments[i])) is not { } property)
+                return null;
+            var name =
+                SyntaxFacts.GetKeywordKind(property.Name) == SyntaxKind.None ? property.Name : "@" + property.Name;
+            var last = i == segments.Length - 1;
+            read.Append(i == 0 ? "." : "?.").Append(name);
+            if (write != null)
+                write = i == 0 ? $"model.{name}" : $"({write} ??= new()).{name}";
+            type = property.Type;
+            if (segments[i].Contains('['))
+            {
+                if (
+                    !IsCollectionType(type, out type)
+                    || !int.TryParse(segments[i][(segments[i].IndexOf('[') + 1)..^1], out var index)
+                )
+                    return null;
+                read.Append("?.ElementAtOrDefault(").Append(index).Append(')');
+                write = null;
+            }
+            else if (last && IsCollectionType(type, out _))
+                return null;
+        }
+        return type == null ? null : new ModelMember(read.ToString(), write, GetFriendlyTypeName(type));
     }
 
     /// <summary>
@@ -375,3 +419,8 @@ internal sealed class DataModelTypeResolver
         return null;
     }
 }
+
+/// <param name="Read">A null-safe C# expression for the value, such as model.A?.B</param>
+/// <param name="Write">An assignable C# target that creates missing parents, or null</param>
+/// <param name="Type">The friendly C# type name, such as decimal?</param>
+internal sealed record ModelMember(string Read, string? Write, string Type);

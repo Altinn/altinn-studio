@@ -28,6 +28,7 @@ export default defineConfig([
   ...fixupConfigRules(pluginImport.flatConfigs.typescript),
   jsxA11y.flatConfigs.recommended,
   ...fixupConfigRules(reactPlugin.configs.flat.recommended),
+  ...fixupConfigRules(reactPlugin.configs.flat['jsx-runtime']),
   ...tsPlugin.configs['flat/recommended'],
   eslintPluginPrettierRecommended,
 
@@ -92,6 +93,15 @@ export default defineConfig([
         {
           selector: "ExportNamedDeclaration[source.type='Literal']",
           message: 'Do not re-exports already exported symbols',
+        },
+        {
+          selector:
+            "ImportDeclaration[source.value='react'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)",
+          message: "Import what you need by name, such as `import { useState } from 'react'`.",
+        },
+        {
+          selector: "TSQualifiedName[left.name='React']",
+          message: "Import the type by name, such as `import type { ReactNode } from 'react'`.",
         },
       ],
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 
 import { AccordionItem, Flex } from '@app/form-component/app-components';
@@ -20,7 +19,7 @@ export interface AccordionProps {
   /** Whether the accordion starts open */
   openByDefault?: boolean;
   /** Rendered child components (in the runtime these are GenericComponent renders) */
-  children?: React.ReactNode;
+  children?: ReactNode;
   /** Optional CSS class name passed to the AccordionItem */
   className?: string;
   /**

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';

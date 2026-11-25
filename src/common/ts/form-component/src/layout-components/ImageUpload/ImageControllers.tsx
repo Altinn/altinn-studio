@@ -1,4 +1,5 @@
-import React, { useId, useRef } from 'react';
+import { useId, useRef } from 'react';
+import type { ChangeEvent } from 'react';
 
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { useFocusWhenUploaded } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusWhenUploaded';
@@ -50,7 +51,7 @@ export function ImageControllers({
   // Focus delete button when image is successfully uploaded
   useFocusWhenUploaded(storedImage, deleteButtonRef);
 
-  const handleSliderZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSliderZoom = (e: ChangeEvent<HTMLInputElement>) => {
     const logarithmicZoomValue = normalToLogZoom({
       value: Number.parseFloat(e.target.value),
       minZoom,
@@ -60,7 +61,7 @@ export function ImageControllers({
     updateZoom(logarithmicZoomValue);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onFileUploaded(file);

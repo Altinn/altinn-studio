@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { waitFor } from '@testing-library/react';
 import fs from 'node:fs';

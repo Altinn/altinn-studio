@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { HeadingDef } from 'src/layout/Heading/config.def.generated';

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { act, render, screen, waitFor } from '@testing-library/react';
 
@@ -15,7 +15,7 @@ function QueryResult({ attribute }: { attribute?: string }) {
   return attribute ? <div {...{ [attribute]: true }} /> : <div>{data}</div>;
 }
 
-function renderWithQueries(children: React.ReactNode, load?: () => Promise<string>) {
+function renderWithQueries(children: ReactNode, load?: () => Promise<string>) {
   const queryTest = createQueryTestWrapper({ queries: { fetchLogo: load } });
   return render(children, { wrapper: queryTest.wrapper });
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useLocation } from 'react-router';
-import type React from 'react';
+import type { RefObject } from 'react';
 
 import { SearchParams } from 'src/core/routing/types';
 
@@ -106,7 +106,7 @@ export function tryFocusComponent(request: FocusComponentRequest) {
   return focusRegisteredComponent(request);
 }
 
-export function useHandleFocusComponent(nodeId: string, containerDivRef: React.RefObject<HTMLDivElement | null>) {
+export function useHandleFocusComponent(nodeId: string, containerDivRef: RefObject<HTMLDivElement | null>) {
   const focus = useCallback(
     (binding: string | null) => {
       const div = containerDivRef.current;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import dot from 'dot-object';
 import deepEqual from 'fast-deep-equal';
@@ -30,7 +30,7 @@ import type { FDBatchedValue } from 'src/features/formData/FormDataWriteBatch';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
-import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
+import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
@@ -41,11 +41,10 @@ export type FDValue = FDLeafValue | object | FDValue[];
 export interface FormDataSliceProps {
   dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
-  // Rejects every write, as if all data elements were locked
+  // Rejects every write, as if no data model were writable
   locked: boolean;
   proxies: FormDataWriteProxies;
   changeInstance: ChangeInstanceData;
-  selectFromInstance: InstanceDataSelector;
   getCalculationDataSources: () => ExpressionDataSources;
 }
 

@@ -144,10 +144,18 @@ public sealed class StorageClientInterceptorTests
     {
         var (storage, _, dataId) = CreateStorage();
         using var client = new HttpClient(storage);
-        return await client.PostAsJsonAsync(
-            MutationUrl,
-            new { updateDataElements = new[] { new { dataElementId = dataId, expectedCurrentBlobVersion } } }
-        );
+        var update = new
+        {
+            dataElementId = dataId,
+            contentPartName = "content",
+            expectedCurrentBlobVersion,
+        };
+        using var body = new MultipartFormDataContent
+        {
+            { JsonContent.Create(new { updateDataElements = new[] { update } }), "mutation" },
+            { new ByteArrayContent("updated"u8.ToArray()), "content", "content.json" },
+        };
+        return await client.PostAsync(MutationUrl, body);
     }
 
     [Fact]

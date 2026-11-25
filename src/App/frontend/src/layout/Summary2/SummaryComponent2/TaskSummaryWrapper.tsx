@@ -1,4 +1,4 @@
-import React from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { FormProvider } from 'src/features/form/FormProvider';
@@ -11,7 +11,7 @@ interface TaskSummaryProps {
   type?: string;
 }
 
-export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren<TaskSummaryProps>) {
+export function TaskSummaryWrapper({ taskId, children }: PropsWithChildren<TaskSummaryProps>) {
   const currentTaskId = useNavigationParam('taskId');
   const uiFolderSettings = taskId ? getUiFolderSettings(taskId) : undefined;
 

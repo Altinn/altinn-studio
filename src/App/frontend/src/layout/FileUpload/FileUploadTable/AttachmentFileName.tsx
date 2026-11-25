@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Link } from '@digdir/designsystemet-react';
 import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';

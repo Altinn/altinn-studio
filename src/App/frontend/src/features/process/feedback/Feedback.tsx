@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { LangAsParagraph } from 'src/features/language/Lang';

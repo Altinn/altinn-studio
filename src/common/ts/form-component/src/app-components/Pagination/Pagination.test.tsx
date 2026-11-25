@@ -1,9 +1,11 @@
+import type { ComponentProps } from 'react';
+
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { Pagination } from './Pagination';
 
-type Props = React.ComponentProps<typeof Pagination>;
+type Props = ComponentProps<typeof Pagination>;
 
 const defaultProps: Props = {
   id: 'p1',

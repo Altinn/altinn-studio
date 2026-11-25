@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';

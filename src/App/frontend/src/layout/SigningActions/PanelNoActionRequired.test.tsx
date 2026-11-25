@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { screen } from '@testing-library/react';
 
@@ -8,7 +8,7 @@ import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
 // The panel's own layout wiring is not under test here, only its link to the inbox
 vi.mock('src/layout/SigningActions/PanelSigning', () => ({
-  SigningPanel: ({ actionButton }: { actionButton: React.ReactNode }) => <div>{actionButton}</div>,
+  SigningPanel: ({ actionButton }: { actionButton: ReactNode }) => <div>{actionButton}</div>,
 }));
 vi.mock('src/utils/layout/hooks', () => ({ useComponentConfig: () => ({ textResourceBindings: undefined }) }));
 vi.mock('src/utils/layout/useEvalExpression', () => ({ useEvalOptionalText: () => undefined }));

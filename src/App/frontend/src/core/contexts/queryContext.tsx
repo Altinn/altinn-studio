@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import type { HttpError } from '@studio/http-client';

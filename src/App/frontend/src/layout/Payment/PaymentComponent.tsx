@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 
 import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

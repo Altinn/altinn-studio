@@ -2,6 +2,8 @@
 
 using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Storage.Extensions;
 
@@ -50,7 +52,14 @@ public static class DataTypeExtensions
     }
 
     /// <summary>
-    /// Returns why data of this type may not be written in the instance's current task, or null when it may.
+    /// Whether <see cref="GetTaskBindingConflict"/> restricts data of this type to the tasks in
+    /// <see cref="DataType.TaskIds"/>. Storage ignores the lock on elements of such a data type.
+    /// </summary>
+    public static bool IsTaskBound(this DataType dataType) => dataType.TaskIds is { Count: > 0 };
+
+    /// <summary>
+    /// Returns the conflict response explaining why data of this type may not be written in the instance's current task,
+    /// or null when it may.
     /// </summary>
     /// <remarks>
     /// Neither the caller's identity nor a process transition plays any part: the workflow engine stores the task it
@@ -60,15 +69,15 @@ public static class DataTypeExtensions
     /// </remarks>
     /// <param name="instance">The instance as loaded before the write.</param>
     /// <param name="isDelete">Whether the write deletes an element of the data type.</param>
-    public static string GetTaskBindingConflict(this DataType dataType, Instance instance, bool isDelete)
+    public static JsonResult GetTaskBindingConflict(this DataType dataType, Instance instance, bool isDelete)
     {
-        if (dataType.TaskIds is not { Count: > 0 } taskIds)
+        if (!dataType.IsTaskBound())
         {
             return null;
         }
 
         string currentTask = instance.Process?.CurrentTask?.ElementId;
-        if (currentTask is not null && taskIds.Contains(currentTask))
+        if (currentTask is not null && dataType.TaskIds.Contains(currentTask))
         {
             return null;
         }
@@ -78,9 +87,21 @@ public static class DataTypeExtensions
             return null;
         }
 
-        string boundTasks = string.Join(", ", taskIds);
-        return currentTask is null
-            ? $"Data element of type {dataType.Id} can only be modified in {boundTasks} (no current task)"
-            : $"Data element of type {dataType.Id} can only be modified in {boundTasks} (current task {currentTask})";
+        string boundTasks = string.Join(", ", dataType.TaskIds);
+        return new JsonResult(
+            new ProblemDetails
+            {
+                Type = "task_binding_conflict",
+                Title = "Task binding conflict",
+                Status = StatusCodes.Status409Conflict,
+                Detail = currentTask is null
+                    ? $"Data element of type {dataType.Id} can only be modified in {boundTasks} (no current task)"
+                    : $"Data element of type {dataType.Id} can only be modified in {boundTasks} (current task {currentTask})",
+            }
+        )
+        {
+            ContentType = "application/problem+json",
+            StatusCode = StatusCodes.Status409Conflict,
+        };
     }
 }

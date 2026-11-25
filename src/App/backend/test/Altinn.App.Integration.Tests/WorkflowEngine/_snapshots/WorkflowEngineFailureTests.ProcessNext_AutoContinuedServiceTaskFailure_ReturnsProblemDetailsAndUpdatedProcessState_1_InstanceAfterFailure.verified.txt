@@ -99,7 +99,7 @@
         },
         Size: 364,
         BlobVersionId: <blobVersionId[0]>,
-        Locked: true,
+        Locked: false,
         IsRead: false,
         Created: DateTime_4,
         CreatedBy: 991825827,

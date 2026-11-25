@@ -615,7 +615,6 @@ public class StorageClientInterceptor : HttpMessageHandler
                 Filename = create.Filename ?? part.Filename,
                 Size = part.Bytes.Length,
                 Metadata = create.Metadata,
-                Locked = create.Locked ?? false,
             };
             instance.Data.Add(dataElement);
             _data[dataId] = part.Bytes;
@@ -627,25 +626,17 @@ public class StorageClientInterceptor : HttpMessageHandler
             DataElement dataElement = instance.Data.Single(dataElement =>
                 dataElement.Id == update.DataElementId.ToString()
             );
-            if (update.ContentPartName is { } contentPartName)
-            {
-                var part = contentParts[contentPartName];
-                dataElement.ContentType = update.ContentType ?? part.ContentType;
-                dataElement.Filename = update.Filename ?? part.Filename;
-                dataElement.Size = part.Bytes.Length;
-                _data[update.DataElementId] = part.Bytes;
+            var part = contentParts[update.ContentPartName];
+            dataElement.ContentType = update.ContentType ?? part.ContentType;
+            dataElement.Filename = update.Filename ?? part.Filename;
+            dataElement.Size = part.Bytes.Length;
+            _data[update.DataElementId] = part.Bytes;
 
-                dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
-            }
+            dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
 
             if (update.Metadata is not null)
             {
                 dataElement.Metadata = update.Metadata;
-            }
-
-            if (update.Locked is not null)
-            {
-                dataElement.Locked = update.Locked.Value;
             }
         }
 
@@ -909,9 +900,9 @@ public class StorageClientInterceptor : HttpMessageHandler
                 );
             }
 
-            if (update.ContentPartName is { } contentPartName && !contentParts.TryGetValue(contentPartName, out _))
+            if (!contentParts.ContainsKey(update.ContentPartName))
             {
-                return CreateErrorResponse(HttpStatusCode.BadRequest, $"Missing content part {contentPartName}");
+                return CreateErrorResponse(HttpStatusCode.BadRequest, $"Missing content part {update.ContentPartName}");
             }
 
             if (

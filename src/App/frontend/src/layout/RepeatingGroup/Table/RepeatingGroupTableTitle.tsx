@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 

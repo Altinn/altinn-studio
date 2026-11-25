@@ -16,6 +16,7 @@ export interface RawDataModelInfo {
   schema: JSONSchema7;
   initialData: object;
   dataElementId: string | null;
+  writable: boolean;
   expressionValidationConfig: IExpressionValidationConfig | null;
   calculationConfig?: CalculationConfig | null;
   initialValidationIssues?: BackendValidationIssue[] | null;

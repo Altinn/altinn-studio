@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useIsMobileOrTablet } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Paragraph, ValidationMessage } from '@digdir/designsystemet-react';

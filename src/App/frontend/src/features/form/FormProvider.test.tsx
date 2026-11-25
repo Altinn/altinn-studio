@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -20,6 +18,20 @@ import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { AppQueriesContext } from 'src/core/queries/types';
 import type { IProcess } from 'src/types/shared';
+
+const inputBinding = { dataType: defaultDataTypeMock, field: 'myInput' };
+
+function WriteProbe() {
+  const setLeafValue = FormStore.data.useSetLeafValue();
+  return (
+    <button
+      type='button'
+      onClick={() => setLeafValue({ reference: inputBinding, newValue: 'written' })}
+    >
+      write-probe
+    </button>
+  );
+}
 
 describe('FormProvider', () => {
   it('does not change form data when a PDF renders a task other than the current one', async () => {
@@ -84,9 +96,51 @@ describe('FormProvider', () => {
   });
 });
 
+describe('FormProvider writes to a data model', () => {
+  it.each([
+    { writable: false, locked: false, accepted: false },
+    { writable: true, locked: true, accepted: true },
+  ])(
+    'follow the bootstrap response, not the data element lock (writable: $writable, locked: $locked)',
+    async ({ writable, locked, accepted }) => {
+      const user = userEvent.setup();
+      const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+      await renderGenericComponentTest({
+        type: 'Input',
+        renderer: (props) => (
+          <>
+            <InputComponent {...props} />
+            <WriteProbe />
+          </>
+        ),
+        component: { dataModelBindings: { simpleBinding: inputBinding } },
+        queries: {
+          getInstance: async () => {
+            const instance = getInstanceWithProcessMock();
+            instance.data.forEach((element) => (element.locked = locked));
+            return instance;
+          },
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].writable = writable;
+            }),
+        },
+      });
+
+      await user.click(screen.getByRole('button', { name: 'write-probe' }));
+      expect(screen.getByRole('textbox')).toHaveValue(accepted ? 'written' : '');
+      if (accepted) {
+        expect(logError).not.toHaveBeenCalled();
+      } else {
+        expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
+      }
+      logError.mockRestore();
+    },
+  );
+});
+
 describe("FormProvider on a service task's page", () => {
   const doProcessNext = vi.fn<AppQueriesContext['doProcessNext']>();
-  const inputBinding = { dataType: defaultDataTypeMock, field: 'myInput' };
 
   /** The process the backend returns, which each test can change. */
   let process: IProcess;
@@ -101,18 +155,6 @@ describe("FormProvider on a service task's page", () => {
     ];
     vi.mocked(doProcessNext).mockReset();
   });
-
-  function WriteProbe() {
-    const setLeafValue = FormStore.data.useSetLeafValue();
-    return (
-      <button
-        type='button'
-        onClick={() => setLeafValue({ reference: inputBinding, newValue: 'written' })}
-      >
-        write-probe
-      </button>
-    );
-  }
 
   function SubmitProbe() {
     const processNext = useProcessNextOutsideFormProvider();

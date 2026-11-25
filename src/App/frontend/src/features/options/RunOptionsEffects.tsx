@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
 import { createOptionsEffectNodeSelector } from 'src/features/options/createOptionsEffectNodeSelector';

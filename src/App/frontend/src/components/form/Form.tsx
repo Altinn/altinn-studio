@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { Flex, PageRow } from '@app/form-component';
@@ -204,7 +204,7 @@ function HandleNavigationFocusComponent() {
   const navigate = useNavigate();
   const locationRef = useAsRef(useLocation());
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       // Replace URL if we have query params
       if (exitSubform || validate) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Flex, Input, LabelComponent } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';

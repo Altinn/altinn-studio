@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import { useId } from 'react';
 import type { ChangeEvent } from 'react';
 
 import { Fieldset, LiveValidationMessage, RequiredIndicator } from '@app/form-component';

@@ -18,11 +18,6 @@ internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipe
 internal sealed record TaskStartContext
 {
     /// <summary>
-    /// The task that is starting.
-    /// </summary>
-    public required string TaskId { get; init; }
-
-    /// <summary>
     /// The start pipeline the entering task's type composed. Each stage becomes a step, unless there is only one.
     /// </summary>
     public required ProcessTaskPipeline StartPipeline { get; init; }

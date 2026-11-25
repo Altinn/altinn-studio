@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import { Fragment, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { isHttpError } from '@studio/http-client';
@@ -11,7 +11,6 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { useFormBootstrapQuery } from 'src/core/queries/formBootstrap';
-import { useSelectFromInstanceData } from 'src/core/queries/instance';
 import { OrderDetailsProvider, PaymentInformationProvider } from 'src/core/queries/payment';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
@@ -63,7 +62,7 @@ interface FormProviderProps {
 /**
  * This helper-context provider is used to provide all the contexts needed for forms to work
  */
-export function FormProvider({ children, readOnly = false, ...props }: React.PropsWithChildren<FormProviderProps>) {
+export function FormProvider({ children, readOnly = false, ...props }: PropsWithChildren<FormProviderProps>) {
   const parentFromContext = FormStore.raw.useLaxStore();
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
@@ -152,7 +151,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
 
 function LayoutRevisionBoundary({ children }: PropsWithChildren) {
   const layoutRevision = useLayoutRevisionKey();
-  return <React.Fragment key={layoutRevision}>{children}</React.Fragment>;
+  return <Fragment key={layoutRevision}>{children}</Fragment>;
 }
 
 const layoutRevisionKeys = new WeakMap<object, number>();
@@ -180,8 +179,7 @@ function MaybePaymentProvider({ children, hasProcess }: PropsWithChildren<{ hasP
 
 /**
  * A PDF can render a task other than the current one, such as a preview of a later PDF service task. That task's
- * layouts must not change the current task's form data, so its form is read-only and its data is locked, as the
- * current task's data will be when that task runs.
+ * layouts must not change the current task's form data, so its form is read-only and rejects every write.
  */
 function useIsPdfOfOtherTask(): boolean {
   const isPdf = useIsPdf();
@@ -279,7 +277,6 @@ export function useFormDataSliceProps(
   locked: boolean,
 ): FormDataSliceProps | undefined {
   const proxies = useFormDataWriteProxies();
-  const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
   const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
@@ -294,7 +291,6 @@ export function useFormDataSliceProps(
     locked,
     proxies,
     changeInstance,
-    selectFromInstance,
     getCalculationDataSources: () => calculationDataSources.current,
   };
 }
