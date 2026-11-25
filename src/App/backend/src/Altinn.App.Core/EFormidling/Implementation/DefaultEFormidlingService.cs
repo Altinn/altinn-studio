@@ -295,7 +295,8 @@ internal sealed class DefaultEFormidlingService : IEFormidlingService
 
     /// <remarks>
     /// The body is normally a JSON object naming the Java exception in an <c>exception</c> field, and that field
-    /// then decides. The substring match covers only a body that is not JSON, or one the snapshot truncated.
+    /// then decides. The substring match covers a body without that field, such as one that is not JSON or one
+    /// the snapshot truncated.
     /// </remarks>
     private static bool IsIntegrasjonspunktError(PlatformHttpException exception, string exceptionName)
     {
