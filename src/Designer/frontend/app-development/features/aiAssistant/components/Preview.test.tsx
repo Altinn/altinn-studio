@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -7,42 +7,33 @@ import { renderWithProviders } from '../../../test/mocks';
 import { Preview } from './Preview';
 import { app, org } from '@designer/testing/testids';
 import { textMock } from '@designer/testing/mocks/i18nMock';
+import { previewSessionPage } from 'app-shared/api/paths';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
-vi.mock('app-shared/utils/previewAvailability', () => ({
-  get isPreviewDisabled() {
-    return previewAvailability.isPreviewDisabled;
-  },
-}));
-
-const layoutSetName = 'form-layout-set';
-const taskId = 'Task_1';
+const layoutSetName = 'Task_1';
 const layoutName = 'first-page';
-const instanceId = 'mock-instance-id';
+const sessionUrl = 'https://preview.test/0123456789abcdef0123456789abcdef/ttd/app/';
+const instanceId = '51001/7b1b0d6c-1d4e-4c1f-9d0a-2b9b8e1f2a3c';
 
-const defaultLayoutSets: LayoutSets = [{ id: layoutSetName, taskId: taskId }];
+const defaultLayoutSets: LayoutSets = [{ id: layoutSetName }];
 
 const defaultLayoutSettings: ILayoutSettings = {
   pages: { order: [layoutName] },
 };
 
 describe('Preview', () => {
-  afterEach(() => {
-    previewAvailability.isPreviewDisabled = false;
-  });
-
-  it('should inform that preview is temporarily disabled instead of loading it', () => {
-    previewAvailability.isPreviewDisabled = true;
-    const createPreviewInstance = vi.fn();
+  it('should inform that preview is turned off for an app before v9, and start no session', async () => {
+    const startPreviewSession = vi.fn();
     renderPreview({
-      getLayoutSets: vi.fn().mockResolvedValue(defaultLayoutSets),
-      getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
-      createPreviewInstance,
+      getAppVersion: vi
+        .fn()
+        .mockResolvedValue({ frontendVersion: '4.0.0', backendVersion: '8.0.0' }),
+      startPreviewSession,
     });
 
-    expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
+    expect(await screen.findByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
     expect(screen.queryByTitle('App Preview')).not.toBeInTheDocument();
-    expect(createPreviewInstance).not.toHaveBeenCalled();
+    expect(startPreviewSession).not.toHaveBeenCalled();
   });
 
   it('should show a loading spinner while data is pending', () => {
@@ -65,33 +56,39 @@ describe('Preview', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('should render an iframe when all data is available', async () => {
+  it('should show an error message when the preview service cannot start a session', async () => {
     renderPreview({
       getLayoutSets: vi.fn().mockResolvedValue(defaultLayoutSets),
       getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
-      createPreviewInstance: vi.fn().mockResolvedValue({ id: instanceId }),
+      startPreviewSession: vi.fn().mockRejectedValue(new Error()),
     });
 
-    expect(await screen.findByTitle('App Preview')).toBeInTheDocument();
+    expect(await screen.findByText('Error loading preview')).toBeInTheDocument();
+    expect(screen.queryByTitle('App Preview')).not.toBeInTheDocument();
   });
 
-  it('should include layout set and task in the preview URL', async () => {
+  it("should show the first page of the app's first task from the preview service", async () => {
+    const createPreviewSessionInstance = vi.fn().mockResolvedValue({ instanceId });
     renderPreview({
       getLayoutSets: vi.fn().mockResolvedValue(defaultLayoutSets),
       getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
-      createPreviewInstance: vi.fn().mockResolvedValue({ id: instanceId }),
+      createPreviewSessionInstance,
     });
 
-    const iframe = await screen.findByTitle('App Preview');
-    const src = iframe.getAttribute('src');
-    expect(src).toContain(org);
-    expect(src).toContain(app);
-    expect(src).toContain(layoutSetName);
-    expect(src).toContain(taskId);
-    expect(src).toContain(layoutName);
+    expect(await screen.findByTitle('App Preview')).toHaveAttribute(
+      'src',
+      previewSessionPage(sessionUrl, instanceId, layoutSetName, layoutName),
+    );
+    expect(createPreviewSessionInstance).toHaveBeenCalledWith(org, app, sessionUrl, layoutSetName);
   });
 });
 
 const renderPreview = (queries: Partial<ServicesContextProps> = {}) => {
-  renderWithProviders(queries)(<Preview />);
+  const defaultQueries: Partial<ServicesContextProps> = {
+    getAppVersion: vi.fn().mockResolvedValue({ frontendVersion: '9.0.0', backendVersion: '9.0.0' }),
+    startPreviewSession: vi.fn().mockResolvedValue({ url: sessionUrl }),
+    createPreviewSessionInstance: vi.fn().mockResolvedValue({ instanceId }),
+  };
+  // A client of its own, since the session and the instance are queries that would otherwise carry over.
+  renderWithProviders({ ...defaultQueries, ...queries }, createQueryClientMock())(<Preview />);
 };
