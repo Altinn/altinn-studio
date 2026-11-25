@@ -3942,6 +3942,16 @@
                 }
               }
             }
+          },
+          "504": {
+            "description": "Gateway Timeout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -4033,6 +4043,16 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInitializationProblemDetails"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Gateway Timeout",
             "content": {
               "application/json": {
                 "schema": {
@@ -12549,7 +12569,8 @@
         "enum": [
           "workflowNotAccepted",
           "workflowAcceptanceUnknown",
-          "workflowFailed"
+          "workflowFailed",
+          "workflowStillRunning"
         ],
         "type": "string",
         "description": "The stage an instance/process reached when workflow initialization failed. Part of the wire contract."

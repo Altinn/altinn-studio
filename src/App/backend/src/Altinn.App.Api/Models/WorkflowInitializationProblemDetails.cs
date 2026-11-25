@@ -34,6 +34,11 @@ public enum WorkflowInitializationState
     /// The workflow engine accepted the workflow, but it failed during execution.
     /// </summary>
     WorkflowFailed,
+
+    /// <summary>
+    /// The workflow engine accepted the workflow, and it had not finished when the request stopped waiting for it.
+    /// </summary>
+    WorkflowStillRunning,
 }
 
 /// <summary>

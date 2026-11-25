@@ -326,6 +326,7 @@ public class InstancesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status504GatewayTimeout)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> Post(
         [FromRoute] string org,
@@ -640,6 +641,7 @@ public class InstancesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status504GatewayTimeout)]
     [RequestSizeLimit(RequestSizeLimit)]
     public async Task<ActionResult<InstanceResponse>> PostSimplified(
         [FromRoute] string org,
@@ -995,6 +997,7 @@ public class InstancesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(WorkflowInitializationProblemDetails), StatusCodes.Status504GatewayTimeout)]
     public async Task<ActionResult> CopyInstance(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -1832,6 +1835,22 @@ public class InstancesController : ControllerBase
         string app
     )
     {
+        if (exception.WorkflowFailure.Kind == WorkflowFailureKind.Timeout)
+        {
+            return WorkflowInitializationProblem.Create(
+                _logger,
+                exception,
+                message,
+                state: WorkflowInitializationState.WorkflowStillRunning,
+                instance: exception.Instance,
+                recommendedAction: WorkflowRecommendedAction.InspectInstance,
+                workflowFailure: exception.WorkflowFailure,
+                workflowAccepted: true,
+                processStateChanged: exception.ProcessStateChanged,
+                statusCode: StatusCodes.Status504GatewayTimeout
+            );
+        }
+
         return WorkflowInitializationProblem.Create(
             _logger,
             exception,

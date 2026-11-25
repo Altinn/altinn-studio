@@ -100,6 +100,8 @@ internal static class WorkflowInitializationProblem
                 "Runtime created the instance, but the initial workflow was not accepted by the workflow engine. Runtime could not delete the created instance, so inspect the instance before retrying instance creation.",
             (WorkflowInitializationState.WorkflowAcceptanceUnknown, _, _, _, _, _) =>
                 "Runtime submitted the initial workflow, but could not determine whether the workflow engine accepted it. Inspect the instance and workflow state before retrying instance creation.",
+            (WorkflowInitializationState.WorkflowStillRunning, _, _, _, _, _) =>
+                "The workflow engine accepted the initial workflow, but it had not finished when the request stopped waiting, and it may still complete. Do not create a duplicate instance; read the instance's process state to see whether initialization completes or fails.",
             (WorkflowInitializationState.WorkflowFailed, _, _, true, true, _) =>
                 "The workflow engine accepted the initial workflow, but the workflow failed after process state may have been updated in Storage. Do not create a duplicate instance; resolve the workflow failure and call the resume endpoint.",
             (WorkflowInitializationState.WorkflowFailed, _, _, true, _, _) =>

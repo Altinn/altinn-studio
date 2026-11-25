@@ -193,7 +193,8 @@ and the [ADR](../../../../docs/adr/2026-07-10-workflow-engine-noncritical-side-e
 A request that enqueues a transition polls the collection until its chain settles, and then reads the instance from
 Storage. The chain is the workflow it enqueued and every later primary workflow.
 
-- The wait answers 504 after a fixed time.
+- The wait answers 504 after a fixed time. The workflow goes on, so the answer to an instantiation says that it is
+  still running and tells the caller to read the instance instead of creating another.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
   returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
   request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.

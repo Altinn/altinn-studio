@@ -28,6 +28,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
 - A workflow step that is retried after the workflow engine accepted its enqueue no longer gets a conflict when the retry signs the state differently, such as after an app code rotation or a deploy of a newer app library. The retry joins the workflow its first attempt enqueued. ([#21609](https://github.com/Altinn/altinn-studio/pull/21609))
 - Creating an instance fails at once when the app's `IInstantiationProcessor.DataCreation` throws, as in v8. The request waited 100 seconds while the workflow engine retried for a day. The instance is kept, and the answer names the failed step and the `process/resume` endpoint. At a later task start the exception is still retried.
+- When creating an instance takes longer than the request waits, the answer is a 504 with `initializationState: workflowStillRunning` and `recommendedAction: inspectInstance`. It was a 500 that said the workflow had failed and pointed to `process/resume`, while the workflow was still running.
 
 ## [9.0.0-preview.14] - 2026-11-20
 
