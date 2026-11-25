@@ -585,7 +585,7 @@ public class MailboxRelayTests
         Assert.Null(continuation.StartAt);
         Assert.Null(continuation.Mailbox);
         Assert.Equal("published-state", continuation.State);
-        Assert.Equal($"Mailbox continue: Task_2 · after {ArchiveIndex}", continuation.OperationId);
+        Assert.Equal($"Service task stage: Task_2 · {ArchiveIndex + 1}", continuation.OperationId);
 
         StepRequest step = Assert.Single(continuation.Steps);
         Assert.Equal($"{ExecuteServiceTask.Key}: {RecordIndex}", step.OperationId);
@@ -611,7 +611,7 @@ public class MailboxRelayTests
         Assert.Equal(["close-mailbox", "enqueue-continuation"], recorder.Calls);
         WorkflowRequest continuation = Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows);
         Assert.Null(continuation.Mailbox);
-        Assert.Equal("Mailbox continue: Task_2 · after 0", continuation.OperationId);
+        Assert.Equal("Service task stage: Task_2 · 1", continuation.OperationId);
         Assert.Equal([$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"], StepOperationIds(continuation));
         Assert.Equal(new ExecuteServiceTaskPayload(ServiceTaskType, 1), StepPayload(continuation.Steps[^1]));
         Assert.Null(continuation.Steps[0].Command.MaxExecutionTime);
@@ -638,7 +638,7 @@ public class MailboxRelayTests
         Assert.True(continuation.DependsOnHeads);
         Assert.Null(continuation.Mailbox);
         Assert.Equal("published-state", continuation.State);
-        Assert.Equal($"Mailbox continue: Task_2 · after {RecordIndex}", continuation.OperationId);
+        Assert.Equal($"Service task stage: Task_2 · {RecordIndex + 1}", continuation.OperationId);
         Assert.Equal(
             [$"{MintMailbox.Key}: {JournalIndex}", $"{ExecuteServiceTask.Key}: {JournalIndex}"],
             StepOperationIds(continuation)
@@ -702,8 +702,8 @@ public class MailboxRelayTests
         {
             "receiver" => "Mailbox receive: Task_2 · after message 2",
             "first-receiver" => "Mailbox receive: Task_2 · 0",
-            "continuation" => "Mailbox continue: Task_2 · after 0",
-            "next-item" => "Mailbox continue: Task_2 · after 1",
+            "continuation" => "Service task stage: Task_2 · 1",
+            "next-item" => "Service task stage: Task_2 · 2",
             _ => throw new ArgumentOutOfRangeException(nameof(hop), hop, null),
         };
 

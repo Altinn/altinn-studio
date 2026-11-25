@@ -444,10 +444,10 @@ internal sealed class MailboxRelay
 
         var continuationWorkflow = new WorkflowRequest
         {
-            // Named for the item it follows, which tells a task's continuations apart.
+            // Named for the item it runs, as that item's ExecuteServiceTask step is.
             OperationId =
-                $"{ProcessNextRequestFactory.MailboxContinueOperationIdPrefix} {taskId} · after "
-                + handover.AfterItemIndex.ToString(CultureInfo.InvariantCulture),
+                $"{ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix} {taskId} · "
+                + (handover.AfterItemIndex + 1).ToString(CultureInfo.InvariantCulture),
             Steps = steps,
             State = request.State,
             IsHead = true,

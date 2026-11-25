@@ -39,7 +39,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
     private const string RecordStageLabel = "RecordDispatch";
     private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
-    private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+    private const string ServiceTaskStageOperationIdPrefix = "Service task stage:";
 
     private const string AckPayload = """{"kind":"ack","reference":"ark-1"}""";
     private const string ReceiptPayload = """{"kind":"receipt","reference":"ark-1"}""";
@@ -101,7 +101,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
             engineClient,
             ns,
             collectionKey,
-            $"{MailboxContinueOperationIdPrefix} Task_Service · after 0"
+            $"{ServiceTaskStageOperationIdPrefix} Task_Service · 1"
         );
         Assert.Equal(
             ["MintMailbox: 1", "ExecuteServiceTask: 1"],
@@ -194,7 +194,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         // ---- One receive workflow per message: the first one's AwaitNextReply enqueued the second ----
         List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
         Assert.All(
-            workflows.Where(w => w.OperationId.StartsWith(MailboxContinueOperationIdPrefix, StringComparison.Ordinal)),
+            workflows.Where(w => w.OperationId.StartsWith(ServiceTaskStageOperationIdPrefix, StringComparison.Ordinal)),
             continuation => Assert.Equal("Completed", continuation.OverallStatus)
         );
         List<EngineWorkflow> receivers = workflows
@@ -220,7 +220,7 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         );
         EngineWorkflow recordWorkflow = Assert.Single(
             workflows,
-            w => w.OperationId == $"{MailboxContinueOperationIdPrefix} Task_Service · after 1"
+            w => w.OperationId == $"{ServiceTaskStageOperationIdPrefix} Task_Service · 2"
         );
         Assert.Equal(["ExecuteServiceTask: 2"], recordWorkflow.Steps.Select(s => s.OperationId).ToList());
         Assert.Equal(secondReceiver.Steps[^1].DatabaseId.ToString(), recordWorkflow.IdempotencyKey);

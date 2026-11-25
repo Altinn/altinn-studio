@@ -733,7 +733,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             StringComparison.Ordinal
         )
         || workflow.OperationId.StartsWith(
-            ProcessNextRequestFactory.MailboxContinueOperationIdPrefix,
+            ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix,
             StringComparison.Ordinal
         );
 

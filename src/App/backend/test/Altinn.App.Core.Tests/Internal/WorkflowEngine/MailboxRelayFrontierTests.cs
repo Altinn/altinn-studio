@@ -540,7 +540,7 @@ public class MailboxRelayFrontierTests
         var carry = new WorkflowCallbackStateCarry();
         carry.RecordMailbox(ArchiveIndex, _archiveMailboxId, _deadline);
 
-        Guid running = collection.Seed("Mailbox continue: Task_2 · after 0", PersistentItemStatus.Processing);
+        Guid running = collection.Seed("Service task stage: Task_2 · 1", PersistentItemStatus.Processing);
 
         await Hop(
             relay,

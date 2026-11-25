@@ -44,7 +44,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
     private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
-    private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+    private const string ServiceTaskStageOperationIdPrefix = "Service task stage:";
 
     private const string AckPayload = """{"kind":"ack","reference":"ark-1"}""";
     private const string ReceiptPayload = """{"kind":"receipt","reference":"ark-1"}""";
@@ -256,7 +256,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             ns,
             collectionKey,
             // Named for the item it follows: the archive's external stage, item 0.
-            $"{MailboxContinueOperationIdPrefix} {SequentialTaskId} · after 0"
+            $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 1"
         );
 
         // Each step performs at most one keyed enqueue, so the bare executing step id is the whole key -
@@ -392,15 +392,14 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Equal(3, receivers.Count);
         Assert.All(receivers, receiver => Assert.Equal("Completed", receiver.OverallStatus));
         Assert.Equal(
-            new List<string> { $"{MailboxContinueOperationIdPrefix} {SequentialTaskId} · after 0" },
+            new List<string> { $"{ServiceTaskStageOperationIdPrefix} {SequentialTaskId} · 1" },
             finalWorkflows
-                .Where(w => w.OperationId.StartsWith(MailboxContinueOperationIdPrefix, StringComparison.Ordinal))
+                .Where(w => w.OperationId.StartsWith(ServiceTaskStageOperationIdPrefix, StringComparison.Ordinal))
                 .Select(w => w.OperationId)
                 .ToList()
         );
 
-        // ================= What the app itself saw =================
-
+        // ================= What the app itself saw ==========
         MultiExchangeState finalState = await GetState(fixture);
 
         // Both timeout handlers are tripwires: reaching one would mean a stage was never answered, or that the
