@@ -15,11 +15,14 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
 - `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
 - Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- Repeating group rows show an icon for their most severe validation message. The icon lists the row's messages, each leading to its field, and rows edited in the table show them in a panel below the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853), [#19946](https://github.com/Altinn/altinn-studio/issues/19946))
 
 ### Changed
 
 - Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- Repeating group rows with errors keep their configured edit-button text instead of changing it to “Fix error here”. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
+- Validations on the data object of a repeating group row, such as `Pets[2]`, now show on that row and in the error summary, and stop **Next** and saving the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
 
 ### Fixed
 
@@ -62,10 +65,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Changed
 
 - Breaking: “Back to summary” and “Back to page” now follow “Next” validation by default. Set `validateOnBackToSummary` to `{ "page": "current", "show": [] }` to skip return validation. ([v9 migration guide](https://docs.altinn.studio/nb/altinn-studio/v9/new-in-v9/upgrade/#returknapper-følger-valideringen-for-neste), [Altinn/app-frontend-react#1862](https://github.com/Altinn/app-frontend-react/issues/1862))
-
-### Changed
-
-- Repeating groups keep their configured edit-button text and show separate validation indicators. Users can open row messages to navigate to affected fields; editable table rows show their messages together below the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853), [#19946](https://github.com/Altinn/altinn-studio/issues/19946))
 
 ### Fixed
 
