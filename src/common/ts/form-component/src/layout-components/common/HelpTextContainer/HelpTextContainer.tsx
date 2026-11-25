@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { HelpText } from '@app/form-component/app-components/HelpText';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-
+import { HelpText } from '../../../app-components/HelpText';
+import { useTranslation } from '../../../LanguageTranslatorProvider';
 import classes from './HelpTextContainer.module.css';
 
 export interface IHelpTextContainerProps {

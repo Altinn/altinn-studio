@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react';
 
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { screen } from '@testing-library/react';
 
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { GroupLayout } from './GroupLayout';
 
 const overrides = {

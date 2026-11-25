@@ -1,5 +1,4 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
-
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { Divider } from './Divider';
 
 describe('Divider', () => {

@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Video } from './Video';
+import type { PropCategories } from '../common/storybook';
 import type { VideoProps } from './Video';
 
 export const VIDEO_PROP_CATEGORIES = {

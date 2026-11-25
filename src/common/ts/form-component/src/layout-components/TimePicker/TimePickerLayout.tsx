@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 
-import { Flex } from '@app/form-component/app-components/Flex';
-import { TimePicker as TimePickerControl } from '@app/form-component/app-components/Timepicker';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-import type { TimeFormat } from '@app/form-component/app-components/Timepicker';
+import { Flex } from '../../app-components/Flex';
+import { TimePicker as TimePickerControl } from '../../app-components/Timepicker';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelComponent } from '../common/LabelComponent';
+import type { IGridStyling } from '../../app-components/Flex';
+import type { TimeFormat } from '../../app-components/Timepicker';
 
 export interface TimePickerLayoutProps {
   /** The configured component id. Rendered as the input's `id`, the label's `htmlFor`, and the form-content wrapper id. */

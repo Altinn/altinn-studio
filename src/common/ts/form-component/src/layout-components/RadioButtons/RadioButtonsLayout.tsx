@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react';
 
-import { ConditionalWrapper } from '@app/form-component/app-components/ConditionalWrapper';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelContent } from '@app/form-component/layout-components/common/LabelContent';
-import { shouldUseRowLayout } from '@app/form-component/layout-components/utils/shouldUseRowLayout';
 import { Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-import type { LayoutStyle } from '@app/form-component/layout-components/utils/shouldUseRowLayout';
 
+import { ConditionalWrapper } from '../../app-components/ConditionalWrapper';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelContent } from '../common/LabelContent';
+import { shouldUseRowLayout } from '../utils/shouldUseRowLayout';
 import classes from './RadioButtonsLayout.module.css';
 import { WrappedRadio } from './WrappedRadio';
+import type { IGridStyling } from '../../app-components/Flex';
+import type { LayoutStyle } from '../utils/shouldUseRowLayout';
 
 export interface RadioButtonsOption {
   value: string;

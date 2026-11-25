@@ -1,13 +1,11 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
+import { fixupConfigRules } from '@eslint/compat';
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import pluginImport from 'eslint-plugin-import';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
-import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
-import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -16,6 +14,7 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import storybook from 'eslint-plugin-storybook';
 import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
+import path from 'node:path';
 
 // eslint-disable-next-line import/no-default-export
 export default defineConfig([
@@ -40,8 +39,6 @@ export default defineConfig([
   {
     files: ['**/*.{js,cjs,mjs,jsx,ts,tsx}'],
     plugins: {
-      'no-relative-import-paths': fixupPluginRules(noRelativeImportPaths),
-      'preferred-import-path': preferredImportPath,
       'simple-import-sort': simpleImportSort,
       '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks,
@@ -85,8 +82,23 @@ export default defineConfig([
 
       'jsx-a11y/no-autofocus': ['off'],
 
-      'import/no-unresolved': ['off'],
+      // TypeScript accepts any path to a CSS module, so this catches wrong relative paths. TypeScript checks the rest.
+      'import/no-unresolved': ['error', { ignore: ['^[^.]'] }],
       'import/no-default-export': ['error'],
+      // Ensures this package declares everything it imports, instead of relying on what its consumers have installed.
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: [
+            '**/*.test.{ts,tsx}',
+            '**/*.stories.{ts,tsx}',
+            'src/test/**',
+            'src/**/storybook/**',
+            '.storybook/**',
+            '*.config.{ts,mjs}',
+          ].map((glob) => path.join(import.meta.dirname, glob)),
+        },
+      ],
 
       '@typescript-eslint/no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-vars': [
@@ -129,13 +141,6 @@ export default defineConfig([
       'sonarjs/no-small-switch': ['warn'],
       'sonarjs/no-nested-template-literals': ['warn'],
 
-      'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: true }],
-
-      'preferred-import-path/preferred-import-path': [
-        'warn',
-        { '^/src': 'src', '^/test/': 'test/' },
-      ],
-
       'simple-import-sort/imports': [
         'error',
         {
@@ -143,10 +148,8 @@ export default defineConfig([
             ['^\\u0000core.js$'],
             ['^react[^\\u0000]*$', '^react.*\\u0000$'],
             ['^\\u0000'],
-            ['^@?(?!src/|test/)\\w+[^\\u0000]*$', '^@?(?!src/|test/)\\w+.*\\u0000$'],
-            ['^\\./?[^\\u0000]*$', '^\\./?.*\\u0000$'],
-            ['^test/[^\\u0000]+$', '^test/.*\\u0000$'],
-            ['^src/[^\\u0000]+$', '^src/.*\\u0000$'],
+            ['^@?\\w+[^\\u0000]*$', '^@?\\w+.*\\u0000$'],
+            ['^\\.[^\\u0000]*$', '^\\..*\\u0000$'],
             ['^.+\\.(s?css|less)$'],
           ],
         },
@@ -190,14 +193,17 @@ export default defineConfig([
   {
     files: ['src/app-components/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': [
+      'import/no-restricted-paths': [
         'error',
         {
-          patterns: [
+          basePath: import.meta.dirname,
+          zones: [
             {
-              regex: '@app/form-component/(?!app-components)',
+              target: './src/app-components',
+              from: './src',
+              except: ['./app-components'],
               message:
-                'app-components should not import from outside @app/form-component/app-components/. Keep these components self-contained.',
+                'app-components should not import from outside src/app-components/. Keep these components self-contained.',
             },
           ],
         },

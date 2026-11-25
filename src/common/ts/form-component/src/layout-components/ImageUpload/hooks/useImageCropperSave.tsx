@@ -6,11 +6,8 @@ import {
   getNewFileName,
   IMAGE_TYPE,
   imagePlacement,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
-import type {
-  CropInternal,
-  Position,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+} from '../imageUploadUtils';
+import type { CropInternal, Position } from '../imageUploadUtils';
 
 type UseImageCropperSaveProps = {
   canvasRef: RefObject<HTMLCanvasElement | null>;

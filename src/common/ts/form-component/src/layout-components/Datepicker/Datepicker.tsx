@@ -1,18 +1,17 @@
 import type { ReactNode } from 'react';
 
-import { DatePickerControl } from '@app/form-component/app-components/Datepicker';
+import { DatePickerControl } from '../../app-components/Datepicker';
 import {
   getDateConstraint,
   getDateFormat,
   getDatepickerFormat,
-} from '@app/form-component/app-components/Datepicker/utils/dateHelpers';
-import { Flex } from '@app/form-component/app-components/Flex';
-import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-
+} from '../../app-components/Datepicker/utils/dateHelpers';
+import { Flex } from '../../app-components/Flex';
+import { useCurrentLanguage, useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelComponent } from '../common/LabelComponent';
 import { DatePickerDropdownCaption } from './DatePickerDropdownCaption';
+import type { IGridStyling } from '../../app-components/Flex';
 
 import 'react-day-picker/style.css';
 

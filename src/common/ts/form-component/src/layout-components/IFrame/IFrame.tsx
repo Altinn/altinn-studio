@@ -1,12 +1,11 @@
 import type { BaseSyntheticEvent } from 'react';
 
-import { Panel } from '@app/form-component/app-components/Panel';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-
+import { Panel } from '../../app-components/Panel';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import { getSandboxProperties, type SandboxProperties } from './getSandboxProperties';
 import classes from './IFrame.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface IFrameProps {
   /** The indexed component ID; drives the form-content wrapper. */

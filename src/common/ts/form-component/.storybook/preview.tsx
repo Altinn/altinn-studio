@@ -1,13 +1,14 @@
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-css/theme';
 
+import type { Preview } from '@storybook/react-vite';
+
 import {
   type StaticLanguageCode,
   StaticLanguageTranslatorProvider,
-} from '@app/form-component/test/StaticLanguageTranslatorProvider';
-import type { Preview } from '@storybook/react-vite';
+} from '../src/test/StaticLanguageTranslatorProvider';
 
-import '@app/form-component/styles/global.css';
+import '../src/styles/global.css';
 
 const preview: Preview = {
   parameters: {

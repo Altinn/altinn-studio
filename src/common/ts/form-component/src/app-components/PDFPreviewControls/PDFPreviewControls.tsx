@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { Button } from '@app/form-component/app-components/Button';
-import { Spinner } from '@app/form-component/app-components/Spinner';
 import { Dialog, Heading } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
-import type { ButtonColor, ButtonVariant } from '@app/form-component/app-components/Button';
 
+import { Button } from '../Button';
+import { Spinner } from '../Spinner';
 import classes from './PDFPreviewControls.module.css';
+import type { ButtonColor, ButtonVariant } from '../Button';
 
 export type PDFPreviewButtonStyle = 'primary' | 'secondary';
 

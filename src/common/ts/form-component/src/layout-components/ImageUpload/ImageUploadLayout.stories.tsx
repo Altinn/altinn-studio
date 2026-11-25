@@ -1,9 +1,9 @@
-import { ValidationMessages } from '@app/form-component/app-components/ValidationMessages';
 import { fn } from 'storybook/test';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { ValidationMessages } from '../../app-components/ValidationMessages';
 import { ImageUploadLayout } from './ImageUploadLayout';
+import type { PropCategories } from '../common/storybook';
 import type { ImageUploadLayoutProps } from './ImageUploadLayout';
 import type { StoredImage } from './imageUploadUtils';
 

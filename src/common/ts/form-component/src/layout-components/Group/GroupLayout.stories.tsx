@@ -1,10 +1,10 @@
 import type { PropsWithChildren } from 'react';
 
-import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { StaticLanguageTranslatorProvider } from '../../test/StaticLanguageTranslatorProvider';
 import { GroupLayout } from './GroupLayout';
+import type { PropCategories } from '../common/storybook';
 import type { GroupLayoutProps } from './GroupLayout';
 
 /**

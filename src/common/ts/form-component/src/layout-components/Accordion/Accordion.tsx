@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
 
-import { AccordionItem, Flex } from '@app/form-component/app-components';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 // NOTE: We intentionally use the raw `Card` from designsystemet here rather than the
 // lib's own `AppCard` app-component. This mirrors the runtime Accordion's bare
 // `<Card data-color='neutral'>` presentation (no `Card.Block`, default variant).
@@ -11,7 +8,11 @@ import { ComponentStructure } from '@app/form-component/layout-components/common
 // appearance. Do not "fix" this import to `AppCard` without accounting for that
 // visual difference.
 import { Card } from '@digdir/designsystemet-react';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
+
+import { AccordionItem, Flex } from '../../app-components';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface AccordionProps {
   /** Text resource key or literal string for the accordion title */

@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
-import { Dropzone, mapExtensionToAcceptMime } from '@app/form-component/app-components/Dropzone';
-import { useIsMobileOrTablet } from '@app/form-component/app-components/hooks';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelContent } from '@app/form-component/layout-components/common/LabelContent';
-import { getDescriptionId, getLabelId } from '@app/form-component/layout-components/utils/labelIds';
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 import { CloudUpIcon } from '@navikt/aksel-icons';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
+import { Dropzone, mapExtensionToAcceptMime } from '../../app-components/Dropzone';
+import { useIsMobileOrTablet } from '../../app-components/hooks';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelContent } from '../common/LabelContent';
+import { getDescriptionId, getLabelId } from '../utils/labelIds';
 import classes from './FileUploadLayout.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export type FileUploadDisplayMode = 'simple' | 'list';
 

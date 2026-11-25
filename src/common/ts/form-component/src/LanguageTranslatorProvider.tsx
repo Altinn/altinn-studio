@@ -7,7 +7,7 @@ type LangParams = (string | number | undefined)[];
 type LangFn = (key: LanguageKey | undefined, params?: LangParams) => ReactNode;
 type LangAsStringFn = (key: LanguageKey | undefined, params?: LangParams) => string;
 
-type LanguageTranslatorContextProps = {
+export type LanguageTranslatorContextProps = {
   lang: LangFn;
   langAsString: LangAsStringFn;
   /**

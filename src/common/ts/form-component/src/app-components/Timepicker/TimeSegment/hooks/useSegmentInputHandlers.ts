@@ -4,14 +4,14 @@ import {
   handleSegmentKeyDown,
   handleValueDecrement,
   handleValueIncrement,
-} from '@app/form-component/app-components/Timepicker/utils/keyboardNavigation';
+} from '../../utils/keyboardNavigation';
 import {
   clearSegment,
   commitSegmentValue,
   handleSegmentCharacterInput,
   processSegmentBuffer,
-} from '@app/form-component/app-components/Timepicker/utils/segmentTyping';
-import type { SegmentInputConfig } from '@app/form-component/app-components/Timepicker/types';
+} from '../../utils/segmentTyping';
+import type { SegmentInputConfig } from '../../types';
 
 export function useSegmentInputHandlers({
   segmentType,

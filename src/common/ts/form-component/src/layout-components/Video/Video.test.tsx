@@ -1,5 +1,4 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
-
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { Video } from './Video';
 
 const src = { nb: 'nb.mp4', nn: 'nn.mp4', en: 'en.mp4' };

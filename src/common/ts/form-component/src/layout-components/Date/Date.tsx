@@ -1,13 +1,13 @@
-import { DisplayDate } from '@app/form-component/app-components/DisplayDate';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelAsSpan } from '@app/form-component/layout-components/common/LabelAsSpan';
-import { getLabelId } from '@app/form-component/layout-components/utils/labelIds';
 import cn from 'classnames';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-import type { LabelAsSpanDirection } from '@app/form-component/layout-components/common/LabelAsSpan';
 
+import { DisplayDate } from '../../app-components/DisplayDate';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelAsSpan } from '../common/LabelAsSpan';
+import { getLabelId } from '../utils/labelIds';
 import classes from './Date.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
+import type { LabelAsSpanDirection } from '../common/LabelAsSpan';
 
 export type DateDirection = LabelAsSpanDirection;
 

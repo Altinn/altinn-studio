@@ -1,9 +1,9 @@
 import type { PropsWithChildren, ReactElement } from 'react';
 
-import { useCurrentLanguage, useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { Link, List } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { useCurrentLanguage, useTranslation } from '../../../LanguageTranslatorProvider';
 import classes from './Attachments.module.css';
 import { FileExtensionIcon } from './FileExtensionIcon';
 import type { DisplayAttachment } from './types';

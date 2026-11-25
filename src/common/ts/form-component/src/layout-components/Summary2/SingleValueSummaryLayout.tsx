@@ -1,12 +1,12 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
 
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { Description } from '../common/Description';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './SingleValueSummaryLayout.module.css';
 
 export interface SingleValueSummaryLayoutProps {

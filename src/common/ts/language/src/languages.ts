@@ -1,6 +1,6 @@
-import { en } from '@app/language/texts/en';
-import { nb } from '@app/language/texts/nb';
-import { nn } from '@app/language/texts/nn';
+import { en } from './texts/en';
+import { nb } from './texts/nb';
+import { nn } from './texts/nn';
 import type { FixedLanguageList } from './types';
 
 // This makes sure we don't generate a new object

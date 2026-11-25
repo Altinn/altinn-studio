@@ -1,6 +1,6 @@
-import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { StaticLanguageTranslatorProvider } from '../../../test/StaticLanguageTranslatorProvider';
 import { LabelContent } from './LabelContent';
 
 const meta = {

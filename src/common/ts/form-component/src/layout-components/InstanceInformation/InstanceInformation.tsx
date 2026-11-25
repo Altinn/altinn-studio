@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
 
-import { Fieldset } from '@app/form-component/app-components';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
 import cn from 'classnames';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
+import { Fieldset } from '../../app-components';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { Description } from '../common/Description';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './InstanceInformation.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export type InstanceSummaryDataObject = {
   [name: string]: {

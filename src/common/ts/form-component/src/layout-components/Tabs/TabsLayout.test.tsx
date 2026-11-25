@@ -1,7 +1,7 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { fireEvent, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { TabsLayout } from './TabsLayout';
 import type { TabsLayoutTab } from './TabsLayout';
 

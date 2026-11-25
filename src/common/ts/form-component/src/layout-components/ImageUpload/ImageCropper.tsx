@@ -1,26 +1,23 @@
 import { useCallback, useRef, useState } from 'react';
 
-import { AppCard } from '@app/form-component/app-components/Card';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { useFocusOnChange } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusOnChange';
-import { useFocusWhenRemoved } from '@app/form-component/layout-components/ImageUpload/hooks/useFocusWhenRemoved';
-import { useImageCropperSave } from '@app/form-component/layout-components/ImageUpload/hooks/useImageCropperSave';
-import { useImageUploader } from '@app/form-component/layout-components/ImageUpload/hooks/useImageUploader';
-import { ImageCanvas } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/ImageCanvas';
-import { ImageControllers } from '@app/form-component/layout-components/ImageUpload/ImageControllers';
-import { ImageDropzone } from '@app/form-component/layout-components/ImageUpload/ImageDropzone';
+import { ValidationMessage } from '@digdir/designsystemet-react';
+
+import { AppCard } from '../../app-components/Card';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { useFocusOnChange } from './hooks/useFocusOnChange';
+import { useFocusWhenRemoved } from './hooks/useFocusWhenRemoved';
+import { useImageCropperSave } from './hooks/useImageCropperSave';
+import { useImageUploader } from './hooks/useImageUploader';
+import { ImageCanvas } from './ImageCanvas/ImageCanvas';
+import { ImageControllers } from './ImageControllers';
+import { ImageDropzone } from './ImageDropzone';
 import {
   calculateMinZoom,
   calculatePositionForZoom,
   IMAGE_TYPE,
   MAX_ZOOM,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
-import { ValidationMessage } from '@digdir/designsystemet-react';
-import type {
-  CropInternal,
-  Position,
-  StoredImage,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+} from './imageUploadUtils';
+import type { CropInternal, Position, StoredImage } from './imageUploadUtils';
 
 export interface ImageCropperProps {
   componentId: string;

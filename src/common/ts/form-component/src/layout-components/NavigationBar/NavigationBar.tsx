@@ -1,13 +1,13 @@
 import { forwardRef, memo, useCallback, useLayoutEffect, useRef } from 'react';
 import type { ButtonHTMLAttributes, Ref } from 'react';
 
-import { Flex } from '@app/form-component/app-components/Flex';
-import { Spinner } from '@app/form-component/app-components/Spinner';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { CaretDownFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Flex } from '../../app-components/Flex';
+import { Spinner } from '../../app-components/Spinner';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import classes from './NavigationBar.module.css';
 
 export interface NavigationBarPage {

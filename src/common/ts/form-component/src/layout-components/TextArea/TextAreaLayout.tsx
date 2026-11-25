@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 
-import { TextArea } from '@app/form-component/app-components/TextArea';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
-import { getDescriptionId } from '@app/form-component/layout-components/utils/labelIds';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';
+
+import { TextArea } from '../../app-components/TextArea';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelComponent } from '../common/LabelComponent';
+import { getDescriptionId } from '../utils/labelIds';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface TextAreaLayoutProps {
   /** Component ID, used as the input's `id`, label's `htmlFor` and the form-content wrapper. */

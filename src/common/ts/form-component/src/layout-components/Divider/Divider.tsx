@@ -1,6 +1,7 @@
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { Divider as DsDivider } from '@digdir/designsystemet-react';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
+
+import { ComponentStructure } from '../common/ComponentStructure';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export interface DividerProps {
   componentId: string;

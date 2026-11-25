@@ -1,14 +1,14 @@
 import type { PropsWithChildren, Ref } from 'react';
 
-import { ConditionalWrapper } from '@app/form-component/app-components/ConditionalWrapper';
-import { FullWidthWrapper } from '@app/form-component/app-components/FullWidthWrapper';
-import { Fieldset } from '@app/form-component/app-components/Label';
-import { Panel } from '@app/form-component/app-components/Panel';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { ConditionalWrapper } from '../../app-components/ConditionalWrapper';
+import { FullWidthWrapper } from '../../app-components/FullWidthWrapper';
+import { Fieldset } from '../../app-components/Label';
+import { Panel } from '../../app-components/Panel';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './GroupLayout.module.css';
 
 export type GroupHeadingLevel = 2 | 3 | 4 | 5 | 6;

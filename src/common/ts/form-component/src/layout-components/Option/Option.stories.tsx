@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Option } from './Option';
+import type { PropCategories } from '../common/storybook';
 import type { OptionProps } from './Option';
 
 export const OPTION_PROP_CATEGORIES = {

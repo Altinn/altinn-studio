@@ -1,7 +1,6 @@
-import { ParagraphText } from '@app/form-component/app-components';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
-
+import { ParagraphText } from '../../app-components';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { HelpTextContainer } from '../common/HelpTextContainer';
 import classes from './Paragraph.module.css';
 
 export interface ParagraphProps {

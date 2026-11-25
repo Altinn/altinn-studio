@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 import type { ChangeEvent, ReactNode } from 'react';
 
-import { ConditionalWrapper } from '@app/form-component/app-components/ConditionalWrapper';
-import { DeleteWarningPopover } from '@app/form-component/app-components/DeleteWarningPopover';
-import { HelpText } from '@app/form-component/app-components/HelpText';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { useAlertOnChange } from '@app/form-component/layout-components/common/useAlertOnChange';
 import { Radio } from '@digdir/designsystemet-react';
 
+import { ConditionalWrapper } from '../../app-components/ConditionalWrapper';
+import { DeleteWarningPopover } from '../../app-components/DeleteWarningPopover';
+import { HelpText } from '../../app-components/HelpText';
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { useAlertOnChange } from '../common/useAlertOnChange';
 import classes from './RadioButtonsLayout.module.css';
 import type { RadioButtonsOption } from './RadioButtonsLayout';
 

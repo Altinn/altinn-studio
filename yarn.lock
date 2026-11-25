@@ -149,7 +149,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@app/form-component@workspace:src/common/ts/form-component"
   dependencies:
-    "@app/language": "workspace:0.1.0"
+    "@app/language": "workspace:*"
     "@chromatic-com/storybook": "npm:5.3.1"
     "@digdir/designsystemet-css": "npm:1.23.0"
     "@digdir/designsystemet-react": "npm:1.23.0"
@@ -164,6 +164,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:16.3.3"
     "@testing-library/user-event": "npm:14.6.7"
+    "@types/json-schema": "npm:7.0.15"
     "@types/react": "npm:19.2.18"
     "@types/react-dom": "npm:19.2.7"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
@@ -177,13 +178,13 @@ __metadata:
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-jsx-a11y: "npm:6.10.2"
-    eslint-plugin-preferred-import-path: "npm:1.1.0"
     eslint-plugin-prettier: "npm:5.5.6"
     eslint-plugin-react: "npm:7.37.5"
     eslint-plugin-react-hooks: "npm:7.1.1"
     eslint-plugin-simple-import-sort: "npm:13.0.0"
     eslint-plugin-sonarjs: "npm:4.2.1"
     eslint-plugin-storybook: "npm:10.5.10"
+    eslint-plugin-testing-library: "npm:7.16.2"
     globals: "npm:17.9.0"
     html-react-parser: "npm:6.1.8"
     jsdom: "npm:30.1.1"
@@ -201,7 +202,6 @@ __metadata:
     typescript: "npm:@typescript/typescript6@6.0.2"
     typescript-plugin-css-modules: "npm:5.2.0"
     vite: "npm:8.2.4"
-    vite-tsconfig-paths: "npm:6.1.1"
     vitest: "npm:5.0.5"
   peerDependencies:
     "@digdir/designsystemet-react": 1.23.0
@@ -217,27 +217,20 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^10.0.1"
     "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/react": "npm:16.3.3"
-    "@testing-library/user-event": "npm:14.6.7"
-    "@types/react": "npm:19.2.18"
-    "@types/react-dom": "npm:19.2.7"
     "@typescript-eslint/eslint-plugin": "npm:8.66.0"
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
-    "@vitejs/plugin-react": "npm:6.0.5"
     eslint: "npm:10.15.0"
+    eslint-plugin-import: "npm:2.32.0"
     globals: "npm:17.9.0"
     jsdom: "npm:30.1.1"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vite: "npm:8.2.4"
     vitest: "npm:5.0.5"
-  peerDependencies:
-    react: ^19.0.0
-    react-dom: ^19.0.0
   languageName: unknown
   linkType: soft
 
-"@app/language@workspace:*, @app/language@workspace:0.1.0, @app/language@workspace:src/common/ts/language":
+"@app/language@workspace:*, @app/language@workspace:src/common/ts/language":
   version: 0.0.0-use.local
   resolution: "@app/language@workspace:src/common/ts/language"
   dependencies:
@@ -246,6 +239,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.15.0"
+    eslint-plugin-import: "npm:2.32.0"
     globals: "npm:17.9.0"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vite: "npm:8.2.4"
@@ -265,6 +259,7 @@ __metadata:
     ajv: "npm:8.20.0"
     ajv-formats: "npm:3.0.1"
     eslint: "npm:10.15.0"
+    eslint-plugin-import: "npm:2.32.0"
     globals: "npm:17.9.0"
     prettier: "npm:3.9.8"
     typescript: "npm:@typescript/typescript6@6.0.2"
@@ -5137,6 +5132,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:8.66.0"
     "@typescript/native": "npm:typescript@7.0.2"
     eslint: "npm:10.15.0"
+    eslint-plugin-import: "npm:2.32.0"
     prettier: "npm:3.9.8"
     typescript: "npm:@typescript/typescript6@6.0.2"
     vite: "npm:8.2.4"
@@ -8716,7 +8712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:^4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.3.6, debug@npm:^4.4.0, debug@npm:^4.4.1, debug@npm:^4.4.3":
+"debug@npm:4, debug@npm:^4, debug@npm:^4.1.0, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.3.6, debug@npm:^4.4.0, debug@npm:^4.4.1, debug@npm:^4.4.3":
   version: 4.4.3
   resolution: "debug@npm:4.4.3"
   dependencies:
@@ -10948,13 +10944,6 @@ __metadata:
     define-properties: "npm:^1.2.1"
     gopd: "npm:^1.0.1"
   checksum: 10/1f1fd078fb2f7296306ef9dd51019491044ccf17a59ed49d375b576ca108ff37e47f3d29aead7add40763574a992f16a5367dd1e2173b8634ef18556ab719ac4
-  languageName: node
-  linkType: hard
-
-"globrex@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "globrex@npm:0.1.2"
-  checksum: 10/81ce62ee6f800d823d6b7da7687f841676d60ee8f51f934ddd862e4057316d26665c4edc0358d4340a923ac00a514f8b67c787e28fe693aae16350f4e60d55e9
   languageName: node
   linkType: hard
 
@@ -17559,20 +17548,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsconfck@npm:^3.0.3":
-  version: 3.1.6
-  resolution: "tsconfck@npm:3.1.6"
-  peerDependencies:
-    typescript: ^5.0.0
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  bin:
-    tsconfck: bin/tsconfck.js
-  checksum: 10/8574595286850273bf83319b4e67ca760088df3c36f7ca1425aaf797416672e854271bd31e75c9b3e1836ed5b66410c6bc38cbbda9c638a5416c6a682ed94132
-  languageName: node
-  linkType: hard
-
 "tsconfig-paths@npm:^3.15.0":
   version: 3.15.0
   resolution: "tsconfig-paths@npm:3.15.0"
@@ -18148,19 +18123,6 @@ __metadata:
     core-util-is: "npm:1.0.2"
     extsprintf: "npm:^1.2.0"
   checksum: 10/da548149dd9c130a8a2587c9ee71ea30128d1526925707e2d01ed9c5c45c9e9f86733c66a328247cdd5f7c1516fb25b0f959ba754bfbe15072aa99ff96468a29
-  languageName: node
-  linkType: hard
-
-"vite-tsconfig-paths@npm:6.1.1":
-  version: 6.1.1
-  resolution: "vite-tsconfig-paths@npm:6.1.1"
-  dependencies:
-    debug: "npm:^4.1.1"
-    globrex: "npm:^0.1.2"
-    tsconfck: "npm:^3.0.3"
-  peerDependencies:
-    vite: "*"
-  checksum: 10/f752bce4f3c5707f0df7af8a20294b1f325e26f50578b82c8262d851028616ebb1a3e73ab0789c55cf3c8da8d985e843193c0bec2cb31662c567ccdf137f1fd0
   languageName: node
   linkType: hard
 

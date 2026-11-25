@@ -1,6 +1,6 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { fireEvent, screen } from '@testing-library/react';
 
+import { renderWithTranslations } from '../../../test/renderWithTranslations';
 import { LabelContent } from './LabelContent';
 import type { LabelContentProps } from './LabelContent';
 

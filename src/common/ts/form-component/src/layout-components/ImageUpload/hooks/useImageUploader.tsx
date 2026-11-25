@@ -1,10 +1,7 @@
 import type { RefObject } from 'react';
 
-import {
-  calculateMinZoom,
-  validateFile,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
-import type { CropInternal } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import { calculateMinZoom, validateFile } from '../imageUploadUtils';
+import type { CropInternal } from '../imageUploadUtils';
 
 type UseImageUploaderProps = {
   cropArea: CropInternal;

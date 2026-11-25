@@ -1,8 +1,4 @@
-import type {
-  SegmentType,
-  TimeFormat,
-  TimeValue,
-} from '@app/form-component/app-components/Timepicker/types';
+import type { SegmentType, TimeFormat, TimeValue } from '../types';
 
 export const formatTimeValue = (time: TimeValue, format: TimeFormat): string => {
   const is12Hour = format.includes('a');

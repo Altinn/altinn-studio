@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { MonthCaption } from 'react-day-picker';
 
-import { DatePickerControl, getDateFormat } from '@app/form-component/app-components/Datepicker';
 import { Radio, Textfield } from '@digdir/designsystemet-react';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
+
+import { DatePickerControl, getDateFormat } from '../Datepicker';
 
 export type FormDataValue =
   string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { ErrorValidations } from '@app/form-component/app-components/ErrorValidations';
-import { SoftValidations } from '@app/form-component/app-components/SoftValidations';
+import { ErrorValidations } from '../ErrorValidations';
+import { SoftValidations } from '../SoftValidations';
 
 export type ValidationSeverity = 'error' | 'warning' | 'info' | 'success';
 

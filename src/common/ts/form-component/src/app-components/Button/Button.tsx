@@ -1,10 +1,10 @@
 import type { PropsWithChildren, Ref } from 'react';
 
-import { Spinner } from '@app/form-component/app-components/Spinner';
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
+import { Spinner } from '../Spinner';
 import classes from './Button.module.css';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;

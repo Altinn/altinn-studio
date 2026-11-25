@@ -1,8 +1,7 @@
-import { Spinner } from '@app/form-component/app-components/Spinner';
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import type { StoredImage } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
-
+import { Spinner } from '../../../app-components/Spinner';
+import { useTranslation } from '../../../LanguageTranslatorProvider';
 import classes from './ImagePreview.module.css';
+import type { StoredImage } from '../imageUploadUtils';
 
 type ImagePreviewProps = {
   storedImage: StoredImage;

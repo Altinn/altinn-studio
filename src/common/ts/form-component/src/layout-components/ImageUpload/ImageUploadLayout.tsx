@@ -1,14 +1,11 @@
 import type { ReactNode } from 'react';
 
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
-import { LabelComponent } from '@app/form-component/layout-components/common/LabelComponent';
-import { ImageCropper } from '@app/form-component/layout-components/ImageUpload/ImageCropper';
-import { getCropArea } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
-import type {
-  CropConfig,
-  StoredImage,
-} from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import { ComponentStructure } from '../common/ComponentStructure';
+import { LabelComponent } from '../common/LabelComponent';
+import { ImageCropper } from './ImageCropper';
+import { getCropArea } from './imageUploadUtils';
+import type { IGridStyling } from '../../app-components/Flex';
+import type { CropConfig, StoredImage } from './imageUploadUtils';
 
 export interface ImageUploadLayoutProps {
   /** The configured component id (Studio "Komponent-ID"). Used for the label's `htmlFor`, the

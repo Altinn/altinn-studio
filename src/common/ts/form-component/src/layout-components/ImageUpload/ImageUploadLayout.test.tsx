@@ -1,8 +1,8 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { ImageUploadLayout } from './ImageUploadLayout';
 import type { StoredImage } from './imageUploadUtils';
 

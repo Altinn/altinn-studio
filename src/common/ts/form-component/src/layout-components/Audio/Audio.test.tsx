@@ -1,5 +1,4 @@
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
-
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { Audio } from './Audio';
 
 const src = { nb: 'nb.mp3', nn: 'nn.mp3', en: 'en.mp3' };

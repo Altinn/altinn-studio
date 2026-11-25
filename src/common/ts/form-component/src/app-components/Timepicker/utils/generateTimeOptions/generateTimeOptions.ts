@@ -1,4 +1,4 @@
-import type { TimeOption } from '@app/form-component/app-components/Timepicker/types';
+import type { TimeOption } from '../../types';
 
 /**
  * Generates hour options for the timepicker dropdown

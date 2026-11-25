@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { Button } from '@app/form-component/app-components/Button';
 import { Popover } from '@digdir/designsystemet-react';
 
+import { Button } from '../Button';
 import classes from './ConfirmPopover.module.css';
 
 export interface ConfirmPopoverProps {

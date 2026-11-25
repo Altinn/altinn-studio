@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
 
-import { MAX_ZOOM } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
+import { MAX_ZOOM } from '../../imageUploadUtils';
 
 interface UseZoomInteractionProps {
   canvasRef: RefObject<HTMLCanvasElement | null>;

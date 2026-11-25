@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { IFrame } from './IFrame';
+import type { PropCategories } from '../common/storybook';
 import type { IFrameProps } from './IFrame';
 
 export const IFRAME_PROP_CATEGORIES = {

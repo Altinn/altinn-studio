@@ -1,9 +1,9 @@
 import type { ComponentProps } from 'react';
 
-import { renderWithTranslations } from '@app/form-component/test/renderWithTranslations';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { renderWithTranslations } from '../../test/renderWithTranslations';
 import { Datepicker } from './Datepicker';
 
 const render = (

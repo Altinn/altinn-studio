@@ -1,12 +1,12 @@
 import type { Ref } from 'react';
 
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { Description } from '@app/form-component/layout-components/common/Description';
-import { HelpTextContainer } from '@app/form-component/layout-components/common/HelpTextContainer';
-import { OptionalIndicator } from '@app/form-component/layout-components/common/OptionalIndicator';
-import { RequiredIndicator } from '@app/form-component/layout-components/common/RequiredIndicator';
 import cn from 'classnames';
 
+import { useTranslation } from '../../../LanguageTranslatorProvider';
+import { Description } from '../Description';
+import { HelpTextContainer } from '../HelpTextContainer';
+import { OptionalIndicator } from '../OptionalIndicator';
+import { RequiredIndicator } from '../RequiredIndicator';
 import classes from './LabelContent.module.css';
 
 export interface LabelContentProps {

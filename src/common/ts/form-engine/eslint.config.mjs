@@ -1,7 +1,9 @@
 import js from '@eslint/js';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import pluginImport from 'eslint-plugin-import';
 import globals from 'globals';
+import path from 'node:path';
 
 export default [
   {
@@ -24,9 +26,15 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
+      import: pluginImport,
     },
     rules: {
       ...tsPlugin.configs.recommended.rules,
+      // Ensures this package declares everything it imports, instead of relying on what its consumers have installed.
+      'import/no-extraneous-dependencies': [
+        'error',
+        { devDependencies: ['**/*.test.{ts,tsx}', path.join(import.meta.dirname, 'src/test/**')] },
+      ],
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },

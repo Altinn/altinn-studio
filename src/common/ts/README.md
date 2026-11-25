@@ -23,3 +23,16 @@ The App frontend generates most of `layout-contract` from its component definiti
 change the definitions and run `yarn gen` in the App frontend. Its CI fails when the generated files are out of date.
 
 The package scripts in this directory run the checks for all the packages.
+
+## Making a package usable as a dependency
+
+Consumers add a package as `workspace:*` in their `package.json`, and need nothing else.
+
+- Import the package's own files with relative paths. Importing internal files by the package name only works through
+  an alias that every consumer would have to copy.
+- Export what consumers use from `index.ts`, or list it in `exports` in `package.json`. Consumers can then only depend
+  on what the package makes public.
+- List every package the code imports in the package's own `package.json`.
+- Make a package a peer dependency when the consumer must share the same copy, such as React and the design system.
+  Two copies of React break hooks and context. Also list it as a dev dependency, so the package's own tests and
+  Storybook can run.

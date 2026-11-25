@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { breakpoints } from '@app/form-component/app-components/breakpoints/breakpoints';
+import { breakpoints } from '../breakpoints/breakpoints';
 
-export { breakpoints } from '@app/form-component/app-components/breakpoints/breakpoints';
+export { breakpoints } from '../breakpoints/breakpoints';
 
 type Condition = (width: number) => boolean;
 

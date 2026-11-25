@@ -3,8 +3,7 @@ import type { ComponentProps } from 'react';
 import {
   renderWithTranslations,
   type RenderWithTranslationsOptions,
-} from '@app/form-component/test/renderWithTranslations';
-
+} from '../../test/renderWithTranslations';
 import { PDFPreviewButton } from './PDFPreviewButton';
 
 beforeAll(() => {

@@ -1,7 +1,7 @@
-import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Link } from './Link';
+import type { PropCategories } from '../common/storybook';
 import type { LinkProps } from './Link';
 
 export const LINK_PROP_CATEGORIES = {

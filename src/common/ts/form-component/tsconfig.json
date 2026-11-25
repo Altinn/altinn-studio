@@ -11,10 +11,6 @@
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noEmit": true,
-    "paths": {
-      "@app/form-component/*": ["./src/*"],
-      "@app/language/*": ["../language/src/*"]
-    },
     "plugins": [
       {
         "name": "typescript-plugin-css-modules"

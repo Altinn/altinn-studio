@@ -1,9 +1,9 @@
-import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
-import { ComponentStructure } from '@app/form-component/layout-components/common/ComponentStructure';
 import { Alert as DsAlert } from '@digdir/designsystemet-react';
-import type { IGridStyling } from '@app/form-component/app-components/Flex';
 
+import { useTranslation } from '../../LanguageTranslatorProvider';
+import { ComponentStructure } from '../common/ComponentStructure';
 import classes from './Alert.module.css';
+import type { IGridStyling } from '../../app-components/Flex';
 
 export type AlertSeverity = 'success' | 'warning' | 'danger' | 'info';
 
