@@ -44,8 +44,7 @@ version file describes:
   `@xsdRootElement`. Studio Designer refuses a `$ref` directly on the root. Older models use
   `Altinn.App.Models.<Class>`, and Studio keeps that form for a model that has it.
 - The data type names the task the model belongs to: `"taskId": "Task_1"` in v8 and `"taskIds": ["Task_1"]` in v9.
-  Users can change the data during that task. When the task ends, the app locks the data element, and later tasks
-  can only read it.
+  Users can change the data during that task. Other tasks can only read it.
 - With `appLogic.autoCreate: true`, the app creates the data element when the task starts. Without it, something
   else creates the element, such as a user who adds a subform entry. A stateless form's model names no task.
 - Several data types can share a task. The version file says which one is the default for the task's pages.

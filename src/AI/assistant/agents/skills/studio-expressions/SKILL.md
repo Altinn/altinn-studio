@@ -118,11 +118,10 @@ which functions differ, and links the function reference for that version.
 
 ## Computed values
 
-Expressions in layouts never change the data. To store a computed value in the data model, write C#. The
-`studio-app-lib` skill covers `IDataWriteProcessor`.
+Expressions in layouts never change the data. To store a computed value in the data model, give the field an
+expression in `App/models/<dataTypeId>.calculation.json`. The version file has the format. Write C# only for what an
+expression cannot compute. The `studio-app-lib` skill covers `IDataWriteProcessor`.
 
-- Never create `App/models/<dataTypeId>.calculation.json`. The docs describe calculations with expressions, but they
-  are not released yet.
 - Never add rules to `RuleConfiguration.json` or `RuleHandler.js`. The version files say why.
 
 ## Before you finish

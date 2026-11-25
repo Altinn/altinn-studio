@@ -243,7 +243,6 @@ lik
 # docs page titles ("Slik oppgraderer du appen fra v8 til v9").
 @paths src/AI/assistant/agents/skills/studio-app-development/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v8.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md src/AI/assistant/agents/skills/studio-app-settings/references/v9.md src/AI/assistant/agents/skills/studio-data-model/SKILL.md src/AI/assistant/agents/skills/studio-docs/SKILL.md src/AI/assistant/agents/skills/studio-integrations/SKILL.md src/AI/assistant/agents/skills/studio-integrations/references/v8.md src/AI/assistant/agents/skills/studio-integrations/references/v9.md src/AI/assistant/agents/skills/studio-layouts/references/v9.md src/AI/assistant/agents/skills/studio-process/SKILL.md src/AI/assistant/agents/skills/studio-process/references/v9.md
 Lage
-Prosess
 appen
 modell
 prosess
