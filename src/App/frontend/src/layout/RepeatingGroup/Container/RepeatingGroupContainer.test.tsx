@@ -32,6 +32,7 @@ interface IRender {
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
   onServiceTaskPage?: boolean;
+  showField1Validations?: boolean;
   /** Adds a repeating group `Group.Nested` with one row in every row of the group, as a child of the group. */
   withNestedGroup?: boolean;
 }
@@ -41,6 +42,7 @@ async function render({
   numRows = 3,
   validationIssues = [],
   onServiceTaskPage = false,
+  showField1Validations = false,
   withNestedGroup = false,
 }: IRender = {}) {
   window.altinnAppGlobalData.textResources!.resources = [
@@ -57,7 +59,7 @@ async function render({
       dataModelBindings: {
         simpleBinding: { dataType: defaultDataTypeMock, field: 'Group.prop1' },
       },
-      showValidations: [],
+      showValidations: showField1Validations ? ['AllExceptRequired'] : [],
       textResourceBindings: {
         title: 'Title1',
       },
@@ -520,6 +522,33 @@ describe('RepeatingGroupContainer', () => {
     // The error is on the first nested row of outer row 2, so the outer page is 2. The nested row index (0) is not a page.
     expect(await screen.findByRole('button', { name: /Rett feil her: Side 2/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Rett feil her: Side 1/i })).not.toBeInTheDocument();
+  });
+
+  it('shows a table field message in the row panel and leaves only the aria description in the cell', async () => {
+    await render({
+      numRows: 1,
+      showField1Validations: true,
+      container: { edit: { ...mockContainer.edit, mode: 'onlyTable' } },
+      validationIssues: [
+        {
+          customTextKey: 'Feltet er feil',
+          field: 'Group[0].prop1',
+          dataElementId: defaultMockDataElementId,
+          severity: BackendValidationSeverity.Error,
+          source: 'custom',
+        },
+      ],
+    });
+
+    const panel = await screen.findByTestId('table-row-validation-messages');
+    expect(within(panel).getAllByText(/Feltet er feil/)).toHaveLength(1);
+
+    // The cell keeps one copy as the description of its input. CSS hides it visually, which jsdom cannot check.
+    const describedBy = screen.getByRole('textbox', { name: 'Title1' }).getAttribute('aria-describedby');
+    const cellMessages = document.getElementById(describedBy ?? '');
+    expect(cellMessages).toHaveAttribute('data-validation');
+    expect(panel).not.toContainElement(cellMessages);
+    expect(screen.getAllByText(/Feltet er feil/)).toHaveLength(2);
   });
 
   it('should notify screen readers via a live region when a row is deleted', async () => {
