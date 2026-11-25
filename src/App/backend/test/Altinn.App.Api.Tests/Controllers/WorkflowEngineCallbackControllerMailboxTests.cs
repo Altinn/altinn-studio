@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -17,6 +18,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -86,6 +88,22 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         }
     }
 
+    /// <summary>An action pipeline of a user task type, composed by the test.</summary>
+    private sealed class ActionPipelineProbeTask(Func<PipelineBuilder, ServiceTaskPipeline> definePipeline)
+        : IActionPipelineTask
+    {
+        public string Type => ServiceTaskType;
+
+        public string StartAction => ActionPipelineAction;
+
+        public ServiceTaskPipeline DefineActionPipeline(PipelineBuilder pipeline) => definePipeline(pipeline);
+
+        public ValidationIssue ProcessNextRefusal(string taskId) =>
+            new() { Code = "ProbeNotFinished", Severity = ValidationIssueSeverity.Error };
+    }
+
+    private const string ActionPipelineAction = "probe";
+
     /// <summary>Every engine call the callback makes, in the order it made them.</summary>
     private sealed class CallRecorder
     {
@@ -132,6 +150,12 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                 }
             );
         }
+
+        public Task<MailboxResponse?> GetMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
 
         public Task<MailboxResponse?> CloseMailbox(
             string ns,
@@ -257,7 +281,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
         Exception? engineThrowsOnEnqueue = null,
         CallRecorder? recorder = null,
-        bool trailingStage = false
+        bool trailingStage = false,
+        IActionPipelineTask? actionPipelineTask = null
     )
     {
         var instanceGuid = Guid.NewGuid();
@@ -269,14 +294,21 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             App,
             configureServices: services =>
             {
-                services.AddSingleton<IServiceTask>(
-                    new RelayProbeTask(
-                        onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
-                        onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),
-                        onSend,
-                        trailingStage
-                    )
-                );
+                if (actionPipelineTask is not null)
+                {
+                    services.AddSingleton<IProcessTask>(actionPipelineTask);
+                }
+                else
+                {
+                    services.AddSingleton<IServiceTask>(
+                        new RelayProbeTask(
+                            onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
+                            onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),
+                            onSend,
+                            trailingStage
+                        )
+                    );
+                }
 
                 services.AddSingleton<IWorkflowEngineClient>(new RecordingClient(recorder, engineThrowsOnEnqueue));
 
@@ -322,6 +354,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
             "Bearer",
             Services.GenerateCallbackToken(instanceGuid, commandKeys: [ExecuteServiceTask.Key])
         );
+        client.DefaultRequestHeaders.Add("Collection-Key", instanceGuid.ToString());
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
 
         var incoming = new WorkflowCallbackState
@@ -400,7 +433,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
                 IdempotencyKey = key,
                 Payload = services
                     .GetRequiredService<MailboxDeliveryEnvelope>()
-                    .Wrap("<receipt/>", _mailboxId, ServiceTaskType, key),
+                    .Wrap("<receipt/>", _mailboxId, PipelineId.ServiceTask(ServiceTaskType), key, sender: null),
                 AcceptedAt = DateTimeOffset.UnixEpoch,
             },
         };
@@ -437,6 +470,63 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase
         Assert.Equal(["close", "after-workflow"], outcome.Recorder.Calls);
         Assert.Equal(_mailboxId, Assert.Single(outcome.Recorder.Closed));
         Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+    }
+
+    [Fact]
+    public async Task ActionPipelineRelease_FromAReplyHandler_ClosesTheMailboxBeforeTheReleaseWorkflow()
+    {
+        var pipeline = PipelineId.ActionPipeline(ServiceTaskType, ActionPipelineAction);
+        var task = new ActionPipelineProbeTask(builder =>
+            builder
+                .Stage(
+                    (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
+                    new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
+                    out MailboxHandle attempt
+                )
+                .ConcludeOnReplies(
+                    attempt,
+                    (_, _) => Task.FromResult(ActionPipelineResult.Release() as ServiceTaskExchangeResult),
+                    (_, _) => Task.FromResult(ActionPipelineResult.Release())
+                )
+        );
+
+        CallbackOutcome outcome = await RunCallback(
+            Closed,
+            new ExecuteServiceTaskPayload(pipeline.TaskType, HandlerIndex, pipeline.Action),
+            onMessage: null,
+            onClosed: null,
+            onSend: null,
+            actionPipelineTask: task
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["close", "enqueue"], outcome.Recorder.Calls);
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+        WorkflowRequest release = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
+        Assert.Equal(ReleaseProcessingStatus.Key, Assert.Single(release.Steps).OperationId);
+    }
+
+    [Fact]
+    public async Task ActionPipelineRelease_FromFinally_EnqueuesTheReleaseWorkflowFromTheController()
+    {
+        var task = new ActionPipelineProbeTask(builder =>
+            builder.Finally(_ => Task.FromResult(ActionPipelineResult.Release()))
+        );
+
+        CallbackOutcome outcome = await RunCallback(
+            mailbox: null,
+            new ExecuteServiceTaskPayload(ServiceTaskType, ItemIndex: 0, ActionPipelineAction),
+            onMessage: null,
+            onClosed: null,
+            onSend: null,
+            actionPipelineTask: task
+        );
+
+        Assert.Equal(HttpStatusCode.OK, outcome.Status);
+        Assert.Equal(["enqueue"], outcome.Recorder.Calls);
+        Assert.Equal(outcome.StepId.ToString(), Assert.Single(outcome.Recorder.EnqueueKeys));
+        WorkflowRequest release = Assert.Single(Assert.Single(outcome.Recorder.EnqueueRequests).Workflows);
+        Assert.Equal(ReleaseProcessingStatus.Key, Assert.Single(release.Steps).OperationId);
     }
 
     [Fact]

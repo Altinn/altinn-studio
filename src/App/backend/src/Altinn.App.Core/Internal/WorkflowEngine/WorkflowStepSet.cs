@@ -89,7 +89,10 @@ internal sealed class WorkflowStepSet
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
             // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
             // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
-            ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
+            ServiceTaskSegmentPlan segment = PlanSegment(
+                PipelineId.ServiceTask(serviceTask.Type),
+                serviceTask.Pipeline
+            );
             group.AddPrimaryPostCommitSteps(segment.Steps);
         }
 
@@ -258,7 +261,7 @@ internal sealed class WorkflowStepSet
     /// deciding hop refuses an empty plan rather than enqueue a workflow with no steps.
     /// </returns>
     internal static ServiceTaskSegmentPlan PlanSegment(
-        string serviceTaskType,
+        PipelineId pipelineId,
         ServiceTaskPipeline pipeline,
         int? afterItemIndex = null
     )
@@ -283,7 +286,7 @@ internal sealed class WorkflowStepSet
                 case IReplyHandlerItem handler:
                     steps.Add(
                         CreateItemStep(
-                            serviceTaskType,
+                            pipelineId,
                             index,
                             pipeline.Items[index].StepOptions,
                             pipeline.Items[index].DisplayName
@@ -294,7 +297,7 @@ internal sealed class WorkflowStepSet
                 case PipelineConclusion.Final:
                     steps.Add(
                         CreateItemStep(
-                            serviceTaskType,
+                            pipelineId,
                             index,
                             pipeline.Items[index].StepOptions,
                             pipeline.Items[index].DisplayName
@@ -309,14 +312,14 @@ internal sealed class WorkflowStepSet
                     steps.Add(
                         CreateStep(
                             MintMailbox.Key,
-                            new MintMailboxPayload(serviceTaskType, index),
+                            new MintMailboxPayload(pipelineId.TaskType, index, pipelineId.Action),
                             operationId: $"{MintMailbox.Key}: {index.ToString(CultureInfo.InvariantCulture)}"
                         )
                     );
 
                     steps.Add(
                         CreateItemStep(
-                            serviceTaskType,
+                            pipelineId,
                             index,
                             pipeline.Items[index].StepOptions,
                             pipeline.Items[index].DisplayName
@@ -327,7 +330,7 @@ internal sealed class WorkflowStepSet
                 case PipelineStage:
                     steps.Add(
                         CreateItemStep(
-                            serviceTaskType,
+                            pipelineId,
                             index,
                             pipeline.Items[index].StepOptions,
                             pipeline.Items[index].DisplayName
@@ -367,14 +370,14 @@ internal sealed class WorkflowStepSet
     /// runs, never what runs after it.
     /// </summary>
     internal static PlannedStep CreateItemStep(
-        string serviceTaskType,
+        PipelineId pipelineId,
         int itemIndex,
         ProcessStepOptions? declaredOptions,
         string? stepName
     ) =>
         CreateStep(
             ExecuteServiceTask.Key,
-            new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
+            new ExecuteServiceTaskPayload(pipelineId.TaskType, itemIndex, pipelineId.Action),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
             declaredOptions: declaredOptions,
             stepName: stepName

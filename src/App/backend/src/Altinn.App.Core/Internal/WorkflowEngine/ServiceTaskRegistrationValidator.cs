@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates that every registered service task composes a pipeline.
+/// Validates that every registered service task and action pipeline task composes a pipeline.
 /// <see cref="Process.ProcessTaskConfigurationValidationService"/> validates BPMN task configuration.
 /// </summary>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
@@ -38,6 +39,11 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
             ValidatePipeline(task, errors);
         }
 
+        foreach (IActionPipelineTask task in Resolve<IProcessTask>(sp).OfType<IActionPipelineTask>())
+        {
+            ValidateActionPipeline(task, errors);
+        }
+
         if (errors.Count > 0)
         {
             throw new InvalidOperationException(
@@ -66,6 +72,37 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         catch (Exception ex)
         {
             errors.Add($"  - {taskName}: defining the pipeline failed: {ex.Message}");
+        }
+    }
+
+    private static void ValidateActionPipeline(IActionPipelineTask task, List<string> errors)
+    {
+        string taskName = task.GetType().FullName ?? task.GetType().Name;
+
+        // process/next keeps the way back from the task, so reject cannot start the pipeline.
+        if (string.IsNullOrWhiteSpace(task.StartAction) || task.StartAction == "reject")
+        {
+            errors.Add($"  - {taskName}: the action pipeline cannot be started by the action '{task.StartAction}'.");
+        }
+
+        ServiceTaskPipeline pipeline;
+        try
+        {
+            pipeline = task.ResolveActionPipeline();
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"  - {taskName}: defining the action pipeline failed: {ex.Message}");
+            return;
+        }
+
+        if (pipeline.Items.OfType<ReplySegment>().Any())
+        {
+            errors.Add(
+                $"  - {taskName}: an action pipeline cannot answer messages with HandleReplies. The conclusion that "
+                    + "follows it would move the process as the caller that started the pipeline, not as the sender "
+                    + "of the message that led to it. Answer with ConcludeOnReplies instead."
+            );
         }
     }
 

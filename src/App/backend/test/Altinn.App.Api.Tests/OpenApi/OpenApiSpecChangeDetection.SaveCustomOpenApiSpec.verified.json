@@ -3578,6 +3578,10 @@
             "type": "boolean",
             "nullable": true
           },
+          "awaitingMessages": {
+            "type": "boolean",
+            "nullable": true
+          },
           "failedAttempts": {
             "type": "integer",
             "format": "int32",

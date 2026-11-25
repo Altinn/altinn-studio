@@ -451,7 +451,7 @@ public class ExecuteServiceTaskTests
 
         // Assert
         var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
-        Assert.Contains("No service task found for type nonExistentType", failed.ErrorMessage);
+        Assert.Contains("Service task 'nonExistentType' is not registered", failed.ErrorMessage);
         Assert.Equal("ProcessException", failed.ExceptionType);
     }
 

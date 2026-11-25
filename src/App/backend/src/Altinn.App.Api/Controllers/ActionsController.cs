@@ -191,6 +191,7 @@ public class ActionsController : ControllerBase
         }
 
         UserActionResult result = await actionHandler.HandleAction(userActionContext);
+        instance = result.UpdatedInstance?.Instance ?? instance;
 
         if (result.ResultType is ResultType.Failure)
         {
@@ -208,6 +209,28 @@ public class ActionsController : ControllerBase
                     Instance = instance,
                     ClientActions = result.ClientActions,
                     Error = result.Error,
+                }
+            );
+        }
+
+        // The action changed the instance in Storage itself, so the unit of work must hold nothing to save, and its
+        // task, which incremental validation would run for, may no longer be the current one.
+        if (result.UpdatedInstance is not null)
+        {
+            if (dataMutator.GetDataElementChanges(initializeAltinnRowId: false).AllChanges.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "A user action that changed the instance in Storage itself staged data changes as well."
+                );
+            }
+
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+            return Ok(
+                new UserActionResponse()
+                {
+                    Instance = instance,
+                    ClientActions = result.ClientActions,
+                    RedirectUrl = result.RedirectUrl,
                 }
             );
         }

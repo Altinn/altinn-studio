@@ -270,7 +270,13 @@ public class ExecuteServiceTaskReplyTests
             Delivery = new AppCallbackMailboxDelivery
             {
                 IdempotencyKey = "fiks-message-42",
-                Payload = _envelope.Wrap(body, _mailboxId, "archiving", "fiks-message-42"),
+                Payload = _envelope.Wrap(
+                    body,
+                    _mailboxId,
+                    PipelineId.ServiceTask("archiving"),
+                    "fiks-message-42",
+                    sender: null
+                ),
                 AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
             },
         };
@@ -511,7 +517,13 @@ public class ExecuteServiceTaskReplyTests
         {
             Delivery = Delivered().Delivery! with
             {
-                Payload = _envelope.Wrap("<receipt>ok</receipt>", sealedForMailbox, sealedForTask, sealedForKey),
+                Payload = _envelope.Wrap(
+                    "<receipt>ok</receipt>",
+                    sealedForMailbox,
+                    PipelineId.ServiceTask(sealedForTask),
+                    sealedForKey,
+                    sender: null
+                ),
             },
         };
 
@@ -586,7 +598,7 @@ public class ExecuteServiceTaskReplyTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, awaiting.MailboxId);
-        Assert.Equal("archiving", awaiting.ServiceTaskType);
+        Assert.Equal("archiving", awaiting.Pipeline.TaskType);
         Assert.Equal(ArchivingReplyIndex, awaiting.HandlerItemIndex);
     }
 
@@ -681,7 +693,7 @@ public class ExecuteServiceTaskReplyTests
             success.MailboxContinuation
         );
         Assert.Equal(_mailboxId, continuing.MailboxId);
-        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal("archiving", continuing.Pipeline.TaskType);
         // The hand-over is the segment this handler's decide planned, named for the handler it follows.
         Assert.Equal(ContinuingSegmentIndex, continuing.Handover.AfterItemIndex);
         Assert.NotEmpty(continuing.Handover.Plan.Steps);

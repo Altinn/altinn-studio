@@ -262,7 +262,7 @@ serviceTaskType, payload, idempotencyKey)`, doing no work of its own beyond deco
 - An **early message is not an error**: it is accepted and waits at its position. `Late` always means the
   mailbox closed, never "too early".
 - Keep the payload small: the engine accepts 256 KB, and the integrity envelope's JSON escaping can eat
-  most of it (up to ×6) — roughly half is a safe budget for a JSON body. Anything large belongs in
+  most of it (up to ×7) — roughly half is a safe budget for a JSON body. Anything large belongs in
   Storage, forwarded as a reference.
 - Resolve the forwarder **per message from a scope** — injecting this transient into a singleton
   subscriber pins its HttpClient.
@@ -276,6 +276,17 @@ serviceTaskType, payload, idempotencyKey)`, doing no work of its own beyond deco
 The worked example in-tree is Fiks Arkiv (`Altinn.App.Clients.Fiks`): `FiksArkivServiceTask` publishes the
 mailbox id as the outbound message's `klientKorrelasjonsId`, and `FiksArkivSubscriber.IncomingMessageListener`
 reads the echo, decrypts, and forwards.
+
+## Action pipelines
+
+The app libraries' own user tasks, such as payment, can declare an action pipeline: a pipeline that a user action
+starts, which holds the instance while it waits for messages. It is internal, so an app cannot declare one. It is
+composed with the same builder and runs on the same steps and mailboxes as a service task, with one more ending:
+`ActionPipelineResult.Release()` returns the instance to idle on the same task instead of moving the process. A
+service task that returns it fails permanently. An action pipeline answers messages with `ConcludeOnReplies` only:
+startup fails on `HandleReplies`, because the conclusion after it would move the process as the caller that started
+the pipeline, not as the sender of the message. See
+[action pipelines](workflow-engine-integration.md#action-pipelines) for how the runtime runs one.
 
 ## Redeploys and in-flight workflows
 

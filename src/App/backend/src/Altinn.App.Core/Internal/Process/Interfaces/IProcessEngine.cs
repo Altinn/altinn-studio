@@ -62,6 +62,34 @@ internal interface IProcessEngine
     );
 
     /// <summary>
+    /// Starts the action pipeline that <paramref name="action"/> starts in the current user task, as the caller in
+    /// <paramref name="language"/>, and waits until it holds the instance waiting for messages, moves the process or
+    /// releases the instance. It acquires the instance from <paramref name="instanceVersions"/> as process/next does.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The current task's type starts no action pipeline with the action.</exception>
+    Task<ActionPipelineOutcome> StartActionPipeline(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string action,
+        string? language,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Sends the caller's message, in <paramref name="language"/>, to the action pipeline that holds the current task,
+    /// and waits until that message has been handled. Sends nothing when no workflow holds the task.
+    /// </summary>
+    /// <exception cref="Features.Process.ServiceTaskReplyForwardException">The mailbox did not take the message.</exception>
+    Task<ActionPipelineOutcome> SendToActionPipeline(
+        Instance instance,
+        Guid mailboxId,
+        string payload,
+        string idempotencyKey,
+        string? language,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Attempts to resume the workflow that established the instance's current task.
     /// </summary>
     Task<ProcessChangeResult> ResumeCurrentTask(

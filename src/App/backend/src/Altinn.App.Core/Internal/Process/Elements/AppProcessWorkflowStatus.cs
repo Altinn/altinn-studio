@@ -39,6 +39,15 @@ public sealed class AppProcessWorkflowStatus
     public bool? Retrying { get; init; }
 
     /// <summary>
+    /// True when the workflow holds the instance in the current user task and waits for messages to it, such as
+    /// during a payment attempt, so the task's page can be shown read-only instead of a wait. Only present while
+    /// <see cref="Status"/> is <see cref="WorkflowActivityStatus.Processing"/>. Omitted when false.
+    /// </summary>
+    [JsonPropertyName("awaitingMessages")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? AwaitingMessages { get; init; }
+
+    /// <summary>
     /// How many consecutive attempts of the transition's current step have failed and been
     /// scheduled for automatic retry. Only present while <see cref="Status"/> is
     /// <see cref="WorkflowActivityStatus.Processing"/>, and unlike <see cref="Retrying"/> it holds

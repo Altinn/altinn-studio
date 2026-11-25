@@ -1945,6 +1945,23 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public Task<ActionPipelineOutcome> StartActionPipeline(
+            Instance instance,
+            StorageVersionMetadata instanceVersions,
+            string action,
+            string? language,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<ActionPipelineOutcome> SendToActionPipeline(
+            Instance instance,
+            Guid mailboxId,
+            string payload,
+            string idempotencyKey,
+            string? language,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<ProcessChangeResult> ResumeCurrentTask(
             ProcessNextRequest request,
             CancellationToken cancellationToken = default
@@ -2009,6 +2026,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> GetMailbox(
+            string ns,
+            Guid mailboxId,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
@@ -2138,6 +2161,12 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> GetMailbox(
+            string ns,
+            Guid mailboxId,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 

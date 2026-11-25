@@ -192,7 +192,7 @@ public class ProcessStepOptionsResolverTests
 
         StepRequest resolved = WorkflowStepSet
             .CreateItemStep(
-                "pipeline",
+                PipelineId.ServiceTask("pipeline"),
                 itemIndex: 1,
                 new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) },
                 stepName: null

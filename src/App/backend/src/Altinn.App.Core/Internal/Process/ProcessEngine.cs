@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -14,6 +15,7 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -49,6 +51,8 @@ internal class ProcessEngine : IProcessEngine
     private readonly WorkflowCallbackStateService _workflowCallbackStateService;
     private readonly IWorkflowEngineService _workflowEngineService;
     private readonly IInstanceClientWithStorageMetadata _instanceClient;
+    private readonly ITranslationService _translationService;
+    private readonly ServiceTaskReplyForwarder _replyForwarder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessEngine"/> class.
@@ -79,6 +83,8 @@ internal class ProcessEngine : IProcessEngine
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _instanceClient = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
+        _translationService = serviceProvider.GetRequiredService<ITranslationService>();
+        _replyForwarder = serviceProvider.GetRequiredService<ServiceTaskReplyForwarder>();
     }
 
     /// <inheritdoc/>
@@ -420,6 +426,170 @@ internal class ProcessEngine : IProcessEngine
         return changeResult;
     }
 
+    /// <inheritdoc/>
+    public async Task<ActionPipelineOutcome> StartActionPipeline(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string action,
+        string? language,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (
+            !TryGetCurrentTaskIdAndAltinnTaskType(
+                instance,
+                out CurrentTaskIdAndAltinnTaskType? currentTaskIdAndAltinnTaskType,
+                out ProcessChangeResult? invalidProcessStateError
+            )
+        )
+        {
+            return new ActionPipelineOutcome.Refused(invalidProcessStateError);
+        }
+
+        (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
+        if (_appImplementationFactory.FindActionPipelineTask(altinnTaskType)?.StartAction != action)
+        {
+            throw new InvalidOperationException(
+                $"Task type {altinnTaskType} has no action pipeline that {action} starts."
+            );
+        }
+
+        if (await GetProcessStatusBlockedResult(instance, cancellationToken) is { } processStatusBlockedResult)
+        {
+            return new ActionPipelineOutcome.Refused(processStatusBlockedResult);
+        }
+
+        InstanceDataUnitOfWork snapshot = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            instanceVersions,
+            currentTaskId,
+            await _authenticationContext.Current.GetLanguage(language),
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        string state = await _workflowCallbackStateService.CaptureState(snapshot);
+
+        ProcessNextWorkflowResult workflowResult;
+        try
+        {
+            workflowResult = await _workflowEngineService.EnqueueAndWaitForActionPipeline(
+                instance,
+                instanceVersions,
+                state,
+                PipelineId.ActionPipeline(altinnTaskType, action),
+                await ProcessNextRequestFactory.CreateCallerActor(_authenticationContext.Current, language),
+                cancellationToken
+            );
+        }
+        catch (WorkflowSubmissionFailedException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            return new ActionPipelineOutcome.Refused(
+                new ProcessChangeResult
+                {
+                    Success = false,
+                    ErrorType = ProcessErrorType.Conflict,
+                    ErrorTitle = "Concurrent process transition attempt.",
+                    ErrorMessage =
+                        "Another process transition was submitted from the same instance version. Refresh the instance and try again.",
+                    ProcessNextState = ProcessNextState.ConcurrentTransition,
+                }
+            );
+        }
+
+        // A superseded acquire starts nothing, wherever another request's chain has left the instance since.
+        if (workflowResult.WorkflowFailure is null && !workflowResult.AnchorHasDependent)
+        {
+            return new ActionPipelineOutcome.Refused(
+                CreateInstanceChangedResult(workflowResult.Instance, workflowResult.InstanceVersions)
+            );
+        }
+
+        return ToActionPipelineOutcome(instance.Process, workflowResult);
+    }
+
+    /// <inheritdoc/>
+    public async Task<ActionPipelineOutcome> SendToActionPipeline(
+        Instance instance,
+        Guid mailboxId,
+        string payload,
+        string idempotencyKey,
+        string? language,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string altinnTaskType =
+            instance.Process?.CurrentTask?.AltinnTaskType
+            ?? throw new InvalidOperationException("The instance has no current task.");
+        string action =
+            _appImplementationFactory.FindActionPipelineTask(altinnTaskType)?.StartAction
+            ?? throw new InvalidOperationException($"Task type {altinnTaskType} has no action pipeline.");
+
+        if (await _workflowEngineService.FindActiveWorkflow(instance, cancellationToken) is not Guid pipelineWorkflowId)
+        {
+            InstanceWithStorageMetadata current = await _instanceClient.GetInstanceWithStorageMetadata(
+                instance,
+                cancellationToken: cancellationToken
+            );
+            // A failed pipeline has no active workflow either, but still holds the instance.
+            return await GetProcessStatusBlockedResult(current.Instance, cancellationToken) is { } blocked
+                ? new ActionPipelineOutcome.Refused(blocked)
+                : new ActionPipelineOutcome.NotOpen(current);
+        }
+
+        long position = await _replyForwarder.Forward(
+            mailboxId,
+            PipelineId.ActionPipeline(altinnTaskType, action),
+            payload,
+            idempotencyKey,
+            await ProcessNextRequestFactory.CreateCallerActor(_authenticationContext.Current, language),
+            cancellationToken
+        );
+        ProcessNextWorkflowResult workflowResult = await _workflowEngineService.WaitForActionPipelineMessage(
+            instance,
+            pipelineWorkflowId,
+            mailboxId,
+            position,
+            cancellationToken
+        );
+        return ToActionPipelineOutcome(instance.Process, workflowResult);
+    }
+
+    private static ActionPipelineOutcome ToActionPipelineOutcome(
+        ProcessState? processBefore,
+        ProcessNextWorkflowResult workflowResult
+    )
+    {
+        var after = new InstanceWithStorageMetadata(workflowResult.Instance, workflowResult.InstanceVersions);
+        if (workflowResult.WorkflowFailure?.Kind == WorkflowFailureKind.DependencyFailed)
+        {
+            return new ActionPipelineOutcome.Refused(
+                CreateCurrentTaskWorkflowBlockedResult(ProcessNextState.ResumeRequired)
+            );
+        }
+
+        if (workflowResult.WorkflowFailure is { } failure)
+        {
+            return new ActionPipelineOutcome.Refused(
+                new ProcessChangeResult(after.Instance, after.Metadata)
+                {
+                    Success = false,
+                    ErrorType = ProcessErrorType.Internal,
+                    ErrorTitle = "Something went wrong while running the action.",
+                    ErrorMessage = CreateWorkflowFailureMessage(failure),
+                    WorkflowFailure = failure,
+                }
+            );
+        }
+
+        if (HasAdvanced(processBefore, after.Instance.Process))
+        {
+            return new ActionPipelineOutcome.Moved(after);
+        }
+
+        return ProcessStatusHelper.IsIdle(after.Instance)
+            ? new ActionPipelineOutcome.Released(after)
+            : new ActionPipelineOutcome.Open(after);
+    }
+
     private async Task<ProcessChangeResult> ProcessNext(
         ProcessNextRequest request,
         CancellationToken cancellationToken = default
@@ -474,6 +644,34 @@ internal class ProcessEngine : IProcessEngine
         {
             activity?.SetProcessChangeResult(processStatusBlockedResult);
             return processStatusBlockedResult;
+        }
+
+        // Only the task's action pipeline moves it on, so process/next keeps only reject, the way back.
+        if (
+            request.Action is not "reject"
+            && _appImplementationFactory.FindActionPipelineTask(altinnTaskType) is { } actionPipelineTask
+        )
+        {
+            List<ValidationIssueWithSource> refusalIssues =
+            [
+                ValidationIssueWithSource.FromIssue(
+                    actionPipelineTask.ProcessNextRefusal(currentTaskId),
+                    source: actionPipelineTask.GetType().FullName ?? actionPipelineTask.GetType().Name,
+                    noIncrementalUpdates: true
+                ),
+            ];
+            await _translationService.TranslateValidationIssues(refusalIssues, request.Language);
+            var refusal = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Conflict,
+                ErrorTitle = "The task moves on only through its own action.",
+                ErrorMessage =
+                    $"Task {LogSanitizer.Sanitize(currentTaskId)} moves on only through the action {actionPipelineTask.StartAction}.",
+                ValidationIssues = refusalIssues,
+            };
+            activity?.SetProcessChangeResult(refusal);
+            return refusal;
         }
 
         // An idle instance in a service task has no workflow for it. Unless a reject abandons the task, process/next

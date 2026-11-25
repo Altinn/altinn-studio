@@ -1364,7 +1364,7 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(ReleaseProcessingStatus.Key, keys);
 
         var payload = Assert.Single(ExtractExecuteServiceTaskPayloads(bundle));
-        Assert.Equal("signing", payload.ServiceTaskType);
+        Assert.Equal("signing", payload.TaskType);
 
         var step = Assert.Single(ExtractExecuteServiceTaskSteps(bundle));
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", step.OperationId);
@@ -1455,7 +1455,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal($"{ExecuteServiceTask.Key}: 0", serviceTaskSteps[0].OperationId);
         Assert.Equal(1, serviceTaskSteps[1].Payload.ItemIndex);
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", serviceTaskSteps[1].OperationId);
-        Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.ServiceTaskType));
+        Assert.All(serviceTaskSteps, s => Assert.Equal("signing", s.Payload.TaskType));
 
         // Both stay primary: in the primary workflow, after the commit boundary and the auxiliary enqueue.
         var keys = ExtractCommandKeys(bundle);
@@ -1647,7 +1647,7 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal($"{ExecuteServiceTask.Key}: 1", operationIds[^1]);
 
         MintMailboxPayload payload = ExtractMintPayload(bundle);
-        Assert.Equal("archiving", payload.ServiceTaskType);
+        Assert.Equal("archiving", payload.TaskType);
         Assert.Equal(1, payload.StageIndex);
     }
 

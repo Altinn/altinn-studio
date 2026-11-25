@@ -358,6 +358,17 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         return Task.FromResult<MailboxMintResult>(new MailboxMintResult.Minted(mailbox));
     }
 
+    public Task<MailboxResponse?> GetMailbox(
+        string ns,
+        Guid mailboxId,
+        CancellationToken cancellationToken = default
+    ) =>
+        Task.FromResult(
+            _mailboxesByIdempotencyKey.Values.FirstOrDefault(mailbox =>
+                mailbox.Id == mailboxId && string.Equals(mailbox.Namespace, ns, StringComparison.Ordinal)
+            )
+        );
+
     /// <summary>
     /// Terminal and idempotent as the engine is; <c>null</c> for an unknown id (the engine's <c>404</c>).
     /// </summary>

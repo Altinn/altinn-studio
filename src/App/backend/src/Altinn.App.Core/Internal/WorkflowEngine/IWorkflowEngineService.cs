@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models.Notifications.Future;
@@ -56,6 +57,40 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
+    /// Enqueues the acquire workflow for the action pipeline <paramref name="pipelineId"/> on the current task, run as
+    /// <paramref name="actor"/>, and waits until the pipeline opens, moves the process or ends.
+    /// </summary>
+    /// <remarks>
+    /// The idempotency key is the one process/next uses for <paramref name="instanceVersions"/>, so a repeated call
+    /// joins the first, and a process/next from the same version is rejected with 409.
+    /// </remarks>
+    Task<ProcessNextWorkflowResult> EnqueueAndWaitForActionPipeline(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        PipelineId pipelineId,
+        Actor actor,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// The first active workflow in the instance's collection, which holds the instance now, or null when none runs.
+    /// </summary>
+    Task<Guid?> FindActiveWorkflow(Instance instance, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Waits, from the workflow <paramref name="sinceWorkflowId"/> on, until the action pipeline has handled the
+    /// message at <paramref name="position"/> in <paramref name="mailboxId"/>, or has ended.
+    /// </summary>
+    Task<ProcessNextWorkflowResult> WaitForActionPipelineMessage(
+        Instance instance,
+        Guid sinceWorkflowId,
+        Guid mailboxId,
+        long position,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Returns the current task's transition status, destination, and failure for reads and process/resume.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(
@@ -81,6 +116,33 @@ internal interface IWorkflowEngineService
         string state,
         Actor actor,
         string? idempotencyKey = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Enqueues an action pipeline's first workflow inside the acquire that holds the instance for it, keyed by that
+    /// acquire workflow.
+    /// </summary>
+    Task EnqueueDependentActionPipeline(
+        Instance instance,
+        PipelineId pipelineId,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        Actor actor,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Enqueues the workflow that returns the instance to idle on its task at the end of an action pipeline.
+    /// </summary>
+    Task EnqueueRelease(
+        Instance instance,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        Actor actor,
+        string idempotencyKey,
         CancellationToken cancellationToken = default
     );
 }
