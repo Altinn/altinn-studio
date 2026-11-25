@@ -598,6 +598,82 @@ describe('RepeatingGroupContainer', () => {
     });
   });
 
+  describe('row validation indicator', () => {
+    const issue = (
+      field: string,
+      severity: BackendValidationSeverity,
+      customTextKey: string,
+    ): BackendValidationIssue => ({
+      customTextKey,
+      field,
+      dataElementId: defaultMockDataElementId,
+      severity,
+      source: 'custom',
+    });
+    const mixedSeverities = [
+      issue('Group[0].prop1', BackendValidationSeverity.Warning, 'Advarsel i feltet'),
+      issue('Group[0].prop1', BackendValidationSeverity.Error, 'Feil i feltet'),
+      issue('Group[1].prop1', BackendValidationSeverity.Informational, 'Info om feltet'),
+    ];
+
+    it('labels each row by its most severe message and leaves a row without messages alone', async () => {
+      await render({ numRows: 3, showField1Validations: true, validationIssues: mixedSeverities });
+
+      expect(await screen.findByRole('button', { name: 'Feil i rad 1. Vis meldinger' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Informasjon i rad 2. Vis meldinger' })).toBeInTheDocument();
+      expect(screen.getAllByTestId('row-validation-indicator')).toHaveLength(2);
+    });
+
+    it('lists every message of the row in a popover that closes and returns focus to the indicator', async () => {
+      await render({ numRows: 1, showField1Validations: true, validationIssues: mixedSeverities.slice(0, 2) });
+
+      const indicator = await screen.findByTestId('row-validation-indicator');
+      await userEvent.click(indicator);
+      const dialog = await screen.findByRole('dialog', { name: 'Meldinger' });
+      expect(within(dialog).getAllByRole('listitem')).toHaveLength(2);
+      expect(dialog).toHaveTextContent('Feil i feltet');
+      expect(dialog).toHaveTextContent('Advarsel i feltet');
+
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Lukk' }));
+      expect(screen.queryByRole('dialog', { name: 'Meldinger' })).not.toBeInTheDocument();
+      expect(indicator).toHaveFocus();
+    });
+
+    it('closes the popover when keyboard focus leaves it', async () => {
+      await render({ numRows: 1, showField1Validations: true, validationIssues: mixedSeverities.slice(0, 2) });
+
+      await userEvent.click(await screen.findByTestId('row-validation-indicator'));
+      await screen.findByRole('dialog', { name: 'Meldinger' });
+      await userEvent.click(screen.getByRole('button', { name: /Legg til ny/ }));
+      await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Meldinger' })).not.toBeInTheDocument());
+    });
+
+    it('renders a link in a message as a real link that does not navigate away from the popover', async () => {
+      await render({
+        numRows: 1,
+        showField1Validations: true,
+        validationIssues: [
+          issue('Group[0].prop1', BackendValidationSeverity.Warning, 'Kontroller [registeret](https://www.altinn.no/)'),
+        ],
+      });
+
+      await userEvent.click(await screen.findByTestId('row-validation-indicator'));
+      const dialog = await screen.findByRole('dialog', { name: 'Meldinger' });
+      const link = within(dialog).getByRole('link', { name: 'registeret' });
+      expect(link).toHaveAttribute('href', 'https://www.altinn.no/');
+      expect(link.closest('button')).toBeNull();
+    });
+
+    it.each([
+      { name: 'only the table', edit: { mode: 'onlyTable' as const } },
+      { name: 'no edit or delete buttons', edit: { ...mockContainer.edit, editButton: false, deleteButton: false } },
+    ])('keeps the indicator when the row has $name', async ({ edit }) => {
+      await render({ numRows: 1, showField1Validations: true, container: { edit }, validationIssues: mixedSeverities });
+
+      expect(await screen.findByRole('button', { name: 'Feil i rad 1. Vis meldinger' })).toBeInTheDocument();
+    });
+  });
+
   it('should notify screen readers via a live region when a row is deleted', async () => {
     await render({ numRows: 3 });
 
