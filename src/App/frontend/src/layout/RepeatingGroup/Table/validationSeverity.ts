@@ -16,7 +16,7 @@ export const validationSeverityPresentation = {
 
 const severityOrder: ValidationSeverity[] = ['error', 'warning', 'info', 'success'];
 
-/** The most severe of the messages, which decides the icon and colour shown for all of them. */
+/** The most severe of the messages, which decides the icon and color shown for all of them. */
 export function getHighestSeverity(validations: { severity: ValidationSeverity }[]): ValidationSeverity | undefined {
   return severityOrder.find((severity) => validations.some((validation) => validation.severity === severity));
 }
