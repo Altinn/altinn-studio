@@ -135,6 +135,7 @@ const defaultQueryMocks: AppQueries = {
   fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
+  fetchAppFrontendVersions: async () => [],
   fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
   fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
   fetchExternalApi: async () => {

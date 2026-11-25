@@ -13,6 +13,7 @@ import { LayoutInspector } from 'src/features/devtools/components/LayoutInspecto
 import { NodeInspector } from 'src/features/devtools/components/NodeInspector/NodeInspector';
 import { PDFGeneratorPreviewSection } from 'src/features/devtools/components/PDFGeneratorPreviewSection/PDFGeneratorPreviewSection';
 import { PermissionsEditor } from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor';
+import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitcher/VersionSwitcher';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import classes from 'src/features/devtools/DevTools.module.css';
@@ -56,6 +57,7 @@ export const DevToolsControls = () => {
           <PDFGeneratorPreviewSection />
           <DevNavigationButtons />
           <DevHiddenFunctionality />
+          <VersionSwitcher />
           <PermissionsEditor />
           <DevLanguageSelector />
           <DevFontSelector />
