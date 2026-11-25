@@ -16,7 +16,7 @@ export interface ValidationMessageItem {
 export interface ValidationMessagesProps {
   /** Rendered as the wrapper div id  */
   id?: string;
-  /** Rendered as the `data-validation` attribute */
+  /** Rendered as the `data-validation` attribute. The repeating-group table depends on it to hide the message in its cells. */
   dataValidation?: string;
   validations: ValidationMessageItem[];
 }

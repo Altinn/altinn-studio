@@ -10,7 +10,11 @@
   min-width: 0;
 }
 
-/* Keep compact table descriptions available to assistive technology. */
+/*
+ * The shared panel under the row shows the message to sighted users, so the cell copy is hidden visually. It stays
+ * readable for screen readers, which read it from the cell. It is revealed while it has focus, so a keyboard user
+ * who tabs to a link in it does not focus something invisible.
+ */
 .control [data-validation] {
   border: none;
   padding: 0;
@@ -22,6 +26,16 @@
   clip: rect(1px 1px 1px 1px);
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+.control [data-validation]:focus-within {
+  position: static;
+  height: auto;
+  width: auto;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  white-space: normal;
 }
 
 .indicator {

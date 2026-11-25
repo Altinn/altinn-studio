@@ -45,6 +45,7 @@ import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { ValidationSeverity } from 'src/features/validation';
 import type { CompTypes } from 'src/layout/layout';
+import type { RepeatingGroupPanelMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
 
 export interface IRepeatingGroupTableRowProps {
   className?: string;
@@ -116,13 +117,19 @@ export function RepeatingGroupTableRow({
   const tableEditingIds = tableItems
     .filter((item) => shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns))
     .map((item) => item.baseId);
-  const inlineValidations = rowValidations.filter(
-    (validation) =>
-      (!mobileView && tableEditingIds.includes(validation.baseComponentId)) ||
-      ((config.edit?.mode === 'onlyTable' || tableEditingIds.length > 0) &&
-        validation.nodeId === ownerIndexedId &&
-        validation.repeatingGroupRow),
-  );
+  // Field messages are the ones their own component renders in a table cell, so the panel's copy is only visual.
+  // Row-object messages have no cell copy, so the panel is where screen readers read them.
+  const panelMessages = rowValidations.flatMap((validation): RepeatingGroupPanelMessage[] => {
+    if (!mobileView && tableEditingIds.includes(validation.baseComponentId)) {
+      return [{ validation, renderedInTableCell: true }];
+    }
+    const isRowObjectMessage =
+      (config.edit?.mode === 'onlyTable' || tableEditingIds.length > 0) &&
+      validation.nodeId === ownerIndexedId &&
+      validation.repeatingGroupRow;
+    return isRowObjectMessage ? [{ validation, renderedInTableCell: false }] : [];
+  });
+  const inlineValidations = panelMessages.map(({ validation }) => validation);
   const panelSeverity = getRowValidationSeverity(inlineValidations);
   const mobileTableItems = tableItems.filter(
     (item) =>
@@ -291,7 +298,7 @@ export function RepeatingGroupTableRow({
         )}
       </BaseTable.Row>
       <RepeatingGroupTableMessages
-        validations={inlineValidations}
+        messages={panelMessages}
         columnSpan={mobileView ? 2 : tableItems.length + columnCount}
         index={index}
         className={isEditingRow ? classes.editingRow : undefined}
