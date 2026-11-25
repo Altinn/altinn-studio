@@ -64,8 +64,7 @@ The service and its Redis run in the Studio clusters, from the manifests in [inf
 The [deploy workflow](../../../.github/workflows/deploy-studio-preview.yaml) builds the image and pushes the
 manifests as an OCI artifact with a tag for each environment. The
 [syncroot entry](../../../infra/studio/syncroot/base/altinn-preview.yaml) deploys the environment's overlay, which
-sets preview's host and the Studio origin in the `altinn-preview-environment` ConfigMap. Only dev has the entry so
-far.
+sets preview's host and the Studio origin in the `altinn-preview-environment` ConfigMap.
 
 Preview's host is on a domain of its own, so it has a certificate of its own, which the platform keeps in the same Key
 Vault as Studio's:

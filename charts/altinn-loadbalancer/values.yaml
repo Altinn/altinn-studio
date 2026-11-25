@@ -21,6 +21,8 @@ hosts:
 # preview's certificate, the preview-ssl-key-secret Secret, so add an environment here once its certificate is there.
 previewHosts:
   dev: preview-dev.altinnusercontent.studio
+  staging: preview-staging.altinnusercontent.studio
+  prod: preview.altinnusercontent.studio
 
 env:
   DESIGNER_HOST: altinn-designer:3000

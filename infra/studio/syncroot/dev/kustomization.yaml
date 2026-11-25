@@ -2,5 +2,3 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base
-  # Preview runs in dev first. Move it to base once staging and prod have its host names and certificate.
-  - ../base/altinn-preview.yaml
