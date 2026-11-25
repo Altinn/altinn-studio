@@ -1,10 +1,9 @@
-import type React from 'react';
-import type { JSX, PropsWithChildren } from 'react';
+import type { JSX, PropsWithChildren, ReactNode } from 'react';
 
 interface IConditionalWrapperProps {
   condition: boolean;
-  wrapper: (children: React.ReactNode) => JSX.Element;
-  otherwise?: (children: React.ReactNode) => JSX.Element;
+  wrapper: (children: ReactNode) => JSX.Element;
+  otherwise?: (children: ReactNode) => JSX.Element;
 }
 
 export const ConditionalWrapper = ({

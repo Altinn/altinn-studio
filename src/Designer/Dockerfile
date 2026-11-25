@@ -27,6 +27,7 @@ COPY src/Designer/frontend/libs/designer-hooks/package.json ./src/Designer/front
 COPY src/Designer/frontend/libs/designer-icons/package.json ./src/Designer/frontend/libs/designer-icons/
 COPY src/Designer/frontend/libs/designer-pure-functions/package.json ./src/Designer/frontend/libs/designer-pure-functions/
 COPY src/Designer/frontend/libs/designer-ui-test/package.json ./src/Designer/frontend/libs/designer-ui-test/
+COPY src/Designer/frontend/packages/app-builder/package.json ./src/Designer/frontend/packages/app-builder/
 COPY src/Designer/frontend/packages/policy-editor/package.json ./src/Designer/frontend/packages/policy-editor/
 COPY src/Designer/frontend/packages/process-editor/package.json ./src/Designer/frontend/packages/process-editor/
 COPY src/Designer/frontend/packages/process-editor-v8/package.json ./src/Designer/frontend/packages/process-editor-v8/
@@ -86,7 +87,7 @@ RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 # The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
 # at the repository folder without a second path convention. rsync will not create intermediate
 # directories, hence the mkdir.
-FROM alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS app-template-release
+FROM alpine@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS app-template-release
 RUN apk add --no-cache rsync
 RUN mkdir -p /app-template-release/v8 /app-template-release/v9
 

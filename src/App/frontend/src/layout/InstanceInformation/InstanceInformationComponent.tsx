@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { InstanceInformation as InstanceInformationLayout, PrettyDateAndTime } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { formatDate, formatISO } from 'date-fns';

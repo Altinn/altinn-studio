@@ -51,6 +51,7 @@
     "src/Designer/frontend/admin",
     "src/Designer/frontend/settings",
     "src/Designer/frontend/testing/playwright",
+    "src/Designer/frontend/packages/app-builder",
     "src/Designer/frontend/packages/schema-editor",
     "src/Designer/frontend/packages/schema-model",
     "src/Designer/frontend/packages/shared",

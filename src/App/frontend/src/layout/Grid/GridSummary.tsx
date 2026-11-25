@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { BaseTable, useIsMobile } from '@app/form-component';

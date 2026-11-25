@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import { createRef, ReactElement } from 'react';
 import { useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
@@ -102,7 +102,7 @@ describe('SigneeListComponent', () => {
     await render(
       <SigneeListComponent
         baseComponentId='signee-list'
-        containerDivRef={React.createRef()}
+        containerDivRef={createRef()}
       />,
     );
 
@@ -131,7 +131,7 @@ describe('SigneeListComponent', () => {
     await render(
       <SigneeListComponent
         baseComponentId='signee-list'
-        containerDivRef={React.createRef()}
+        containerDivRef={createRef()}
       />,
     );
 
@@ -144,7 +144,7 @@ describe('SigneeListComponent', () => {
     await render(
       <SigneeListComponent
         baseComponentId='signee-list'
-        containerDivRef={React.createRef()}
+        containerDivRef={createRef()}
       />,
     );
 

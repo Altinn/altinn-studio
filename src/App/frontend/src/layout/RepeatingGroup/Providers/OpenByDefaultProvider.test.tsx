@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';

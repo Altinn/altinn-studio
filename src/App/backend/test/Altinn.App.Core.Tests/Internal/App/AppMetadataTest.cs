@@ -568,4 +568,13 @@ public class AppMetadataTest
         actual.Should().NotBeNull();
         actual.CopyInstanceSettings.Should().BeEquivalentTo(expectedCopyInstanceSettings);
     }
+
+    [Fact]
+    public void GetApplicationMetadata_onProcessEnd_deserializes_confirm()
+    {
+        AppFiles appFiles = GetAppFiles("AppMetadata", "on-process-end.applicationmetadata.json");
+        IAppMetadata appMetadata = SetupAppMetadata(appFiles);
+
+        Assert.True(appMetadata.ApplicationMetadata.OnProcessEnd?.Confirm);
+    }
 }

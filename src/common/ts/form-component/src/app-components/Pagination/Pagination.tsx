@@ -1,4 +1,4 @@
-import React from 'react';
+import type { HTMLAttributes } from 'react';
 
 import {
   useIsMobile,
@@ -31,7 +31,7 @@ export type PaginationProps = {
   pageAriaLabelTemplate?: string;
   onPageSizeChange: (value: number) => void;
   setCurrentPage: (pageNumber: number) => void;
-} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> &
+} & Omit<HTMLAttributes<HTMLElement>, 'onChange'> &
   Pick<UsePaginationProps, 'onChange'>;
 
 export const Pagination = ({

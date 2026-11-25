@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useIsFetchingData, useIsFetchingDataNow } from 'src/core/queries/useIsFetchingData';
 import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';

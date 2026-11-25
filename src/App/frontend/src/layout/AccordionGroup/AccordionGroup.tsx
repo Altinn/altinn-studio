@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Card } from '@digdir/designsystemet-react';
 
 import classes from 'src/layout/AccordionGroup/AccordionGroup.module.css';

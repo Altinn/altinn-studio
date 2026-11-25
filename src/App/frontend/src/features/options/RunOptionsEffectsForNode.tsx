@@ -1,5 +1,3 @@
-import React from 'react';
-
 import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 import type { IDataModelBindingsForGroupCheckbox } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
 import type { IDataModelBindingsForGroupMultiselect } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';

@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { MapDef } from 'src/layout/Map/config.def.generated';

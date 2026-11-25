@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { FatalError } from '@app/form-component';
 import cn from 'classnames';
@@ -8,9 +8,9 @@ import { Lang } from 'src/features/language/Lang';
 import { getHelpCircleIllustrationUrl } from 'src/utils/urls/appUrlHelper';
 
 export interface IAltinnErrorProps {
-  statusCode?: string | React.ReactNode;
-  title: string | React.ReactNode;
-  content: string | React.ReactNode;
+  statusCode?: string | ReactNode;
+  title: string | ReactNode;
+  content: string | ReactNode;
   showContactInfo?: boolean;
   url?: string;
   urlText?: string;

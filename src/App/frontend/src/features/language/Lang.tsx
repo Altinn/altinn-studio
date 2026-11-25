@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Paragraph } from '@digdir/designsystemet-react';
 import type { ValidLanguageKey } from '@app/language';
 

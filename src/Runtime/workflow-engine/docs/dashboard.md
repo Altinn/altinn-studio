@@ -90,7 +90,7 @@ without the filters, and sets the status checkboxes to the found workflow's stat
 
 Always visible. It shows:
 
-- The engine status icon and label (Running, Idle, Unhealthy, Disabled, Queue Full, Stopped)
+- The engine status icon and label (Running, Idle, Unhealthy, Queue Full, Stopped)
 - Capacity meters: Workers, DB connections and HTTP connections, each as used/total
 - Meter colors: green below 50%, yellow from 50 to 80%, red above 80%
 
@@ -115,7 +115,6 @@ Pushes the engine status and capacity, throttled to about 50 ms, and only when t
         "running": true,
         "healthy": true,
         "idle": false,
-        "disabled": false,
         "queueFull": false
     },
     "capacity": {

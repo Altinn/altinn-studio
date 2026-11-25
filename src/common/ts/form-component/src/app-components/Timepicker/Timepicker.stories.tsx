@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ComponentProps } from 'react';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -15,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 const noop = () => undefined;
 
-const Wrapper = (args: React.ComponentProps<typeof TimePicker>) => {
+const Wrapper = (args: ComponentProps<typeof TimePicker>) => {
   const [value, setValue] = useState(args.value);
   return <TimePicker {...args} value={value} onChange={setValue} />;
 };

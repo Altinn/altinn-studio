@@ -1,4 +1,5 @@
-import React, { Fragment, type PropsWithChildren } from 'react';
+import { Fragment, memo } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -98,7 +99,7 @@ const SummarySubformWrapperInner = ({
   );
 };
 
-export const SummarySubformWrapper = React.memo(SummarySubformWrapperInner);
+export const SummarySubformWrapper = memo(SummarySubformWrapperInner);
 SummarySubformWrapper.displayName = 'SummarySubformWrapper';
 
 const DoSummaryWrapper = ({
@@ -107,7 +108,7 @@ const DoSummaryWrapper = ({
   entryDisplayName,
   title,
   baseComponentId,
-}: React.PropsWithChildren<{
+}: PropsWithChildren<{
   dataElement: IData;
   uiFolder: string;
   entryDisplayName?: ExprValToActualOrExpr<ExprVal.String>;

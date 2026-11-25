@@ -1,7 +1,7 @@
 /* Filtering, label dropdowns, status chips, tabs */
 
 import { dom, state } from '../core/state.js';
-import { esc, escAttr, escJsArg, fmtNamespace, abbrevGuids } from '../core/helpers.js';
+import { esc, escAttr, escJsArg, abbrevGuids } from '../core/helpers.js';
 import { rebuildDropdown, updateDropdownToggle } from '../shared/dropdown.js';
 
 /** Late-bound references */
@@ -55,11 +55,9 @@ const rebuildLabelFilterBar = () => {
         // Namespace is surfaced by the namespace dropdown, so don't echo it as a chip.
         if (key === 'namespace') continue;
         for (const v of values) {
-            const full = key === 'namespace' ? fmtNamespace(v) : v;
-            const display = key === 'namespace' ? full : abbrevGuids(v);
-            html += `<span class="label-chip" onclick="toggleLabelFilter('${escJsArg(key)}','${escJsArg(v)}')" title="${escAttr(key)}=${escAttr(full)}">`;
+            html += `<span class="label-chip" onclick="toggleLabelFilter('${escJsArg(key)}','${escJsArg(v)}')" title="${escAttr(key)}=${escAttr(v)}">`;
             html += `<span class="label-chip-key">${esc(key)}</span>`;
-            html += `<span class="label-chip-value">${esc(display)}</span>`;
+            html += `<span class="label-chip-value">${esc(abbrevGuids(v))}</span>`;
             html += `<span class="label-chip-x">&times;</span>`;
             html += `</span>`;
         }
@@ -112,8 +110,8 @@ const fetchNamespaces = async () => {
 };
 
 const rebuildNamespaceDropdown = () => {
-    rebuildDropdown(dom.nsList, state.allNamespaces, state.namespaceFilter, fmtNamespace);
-    updateDropdownToggle(state.namespaceFilter, dom.nsSelected, dom.nsDropdown, fmtNamespace);
+    rebuildDropdown(dom.nsList, state.allNamespaces, state.namespaceFilter);
+    updateDropdownToggle(state.namespaceFilter, dom.nsSelected, dom.nsDropdown);
     // Disable the dropdown only when there are no namespaces to filter by
     dom.nsDropdown.classList.toggle('disabled', state.allNamespaces.size === 0);
 };
@@ -226,9 +224,7 @@ export const applyFilter = () => {
                         // cardLabels is lowercased, so lowercase the key to match
                         // mixed-case keys (e.g. partyId, processNextInstanceGuid).
                         const k = key.toLowerCase();
-                        const hasMatch = [...values].some((v) =>
-                            cardLabels.includes(`${k}:${v}`),
-                        );
+                        const hasMatch = [...values].some((v) => cardLabels.includes(`${k}:${v}`));
                         if (!hasMatch) {
                             labelHidden = true;
                             break;

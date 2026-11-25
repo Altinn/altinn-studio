@@ -94,6 +94,18 @@ export default defineConfig([
         { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/consistent-type-imports': ['warn'],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "ImportDeclaration[source.value='react'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)",
+          message: "Import what you need by name, such as `import { useState } from 'react'`.",
+        },
+        {
+          selector: "TSQualifiedName[left.name='React']",
+          message: "Import the type by name, such as `import type { ReactNode } from 'react'`.",
+        },
+      ],
 
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],

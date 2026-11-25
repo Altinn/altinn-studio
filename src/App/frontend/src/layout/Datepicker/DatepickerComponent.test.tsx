@@ -1,8 +1,7 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
@@ -198,6 +197,28 @@ describe('DatepickerComponent', () => {
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: '12.34.____',
     });
+  });
+
+  it('should show its own validation message and not save when an invalid date is typed into a date-time field', async () => {
+    const { mutations } = await render({
+      component: { showValidations: ['AllExceptRequired'] },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: { myDate: { type: 'string', format: 'date-time' } },
+            };
+          }),
+      },
+    });
+
+    await userEvent.type(screen.getByRole('textbox'), '32.13.2026');
+    await userEvent.tab();
+
+    expect(await screen.findByText('Ugyldig datoformat. Bruk formatet DD.MM.YYYY.')).toBeInTheDocument();
+    expect(screen.queryByText('Feil format eller verdi')).not.toBeInTheDocument();
+    expect(mutations.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
   });
 
   it('should not have aria-describedby if textResources.description does not exist', async () => {

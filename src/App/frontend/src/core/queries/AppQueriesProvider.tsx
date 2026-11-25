@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 
@@ -23,11 +24,7 @@ interface ContextData {
 
 const { Provider, useCtx } = createContext<ContextData>({ name: 'AppQueriesContext', required: true });
 
-export const AppQueriesProvider = ({
-  children,
-  queryClient,
-  ...allQueries
-}: React.PropsWithChildren<AppQueriesProps>) => {
+export const AppQueriesProvider = ({ children, queryClient, ...allQueries }: PropsWithChildren<AppQueriesProps>) => {
   const client = getQueryClient(queryClient);
   const queries = Object.fromEntries(
     Object.entries(allQueries).filter(([key]) => key.startsWith('fetch') || key.startsWith('get')),

@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+import type { FC } from 'react';
 
 import { CompCategory } from '@app/layout-contract';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -83,7 +84,7 @@ export function SummaryGroupComponent({
     if (def.category !== CompCategory.Form) {
       return;
     }
-    const RenderCompactSummary = def.renderCompactSummary.bind(def) as React.FC<SummaryRendererProps>;
+    const RenderCompactSummary = def.renderCompactSummary.bind(def) as FC<SummaryRendererProps>;
     return (
       <RenderCompactSummary
         onChangeClick={onChangeClick}

@@ -1,5 +1,4 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { KeyboardEvent, PropsWithChildren, ReactNode } from 'react';
 
 import { Flex } from '@app/form-component';
 import cn from 'classnames';
@@ -11,11 +10,11 @@ export interface IAltinnCollapsibleListProps extends PropsWithChildren {
   /** Callback for click on expand/collapse */
   onClickExpand: () => void;
   /** React nodes values for the list header */
-  listHeader: React.ReactNode;
+  listHeader: ReactNode;
 }
 
 export const AltinnCollapsibleList = ({ open, listHeader, onClickExpand, children }: IAltinnCollapsibleListProps) => {
-  function onKeyPress(event: React.KeyboardEvent) {
+  function onKeyPress(event: KeyboardEvent) {
     event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {
       onClickExpand();

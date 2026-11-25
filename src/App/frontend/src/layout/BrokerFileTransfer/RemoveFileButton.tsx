@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@app/form-component';
 import { TrashIcon } from '@navikt/aksel-icons';
 

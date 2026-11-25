@@ -1,5 +1,4 @@
-import React from 'react';
-import type { CSSProperties, ElementType, PropsWithChildren, Ref } from 'react';
+import type { CSSProperties, ElementType, HTMLAttributes, PropsWithChildren, Ref } from 'react';
 
 import cn from 'classnames';
 
@@ -29,7 +28,7 @@ type Props = PropsWithChildren<{
   flexWrap?: CSSProperties['flexWrap'];
   ref?: Ref<HTMLDivElement>;
 }> &
-  React.HTMLAttributes<HTMLDivElement>;
+  HTMLAttributes<HTMLDivElement>;
 
 export function Flex({
   id,

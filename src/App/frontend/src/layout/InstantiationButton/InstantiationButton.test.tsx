@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
 import { screen, waitFor } from '@testing-library/react';

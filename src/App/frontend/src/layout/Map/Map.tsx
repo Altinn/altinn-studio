@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, ZoomControl } from 'react-leaflet';
 import type { RefObject } from 'react';
 

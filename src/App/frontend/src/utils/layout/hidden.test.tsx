@@ -1,4 +1,4 @@
-import React, { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import { act, renderHook as rtlRenderHook } from '@testing-library/react';
 import { createStore } from 'zustand';

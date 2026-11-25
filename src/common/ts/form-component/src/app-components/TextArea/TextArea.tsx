@@ -1,4 +1,4 @@
-import React from 'react';
+import type { CSSProperties, FC } from 'react';
 
 import { Field, Textarea } from '@digdir/designsystemet-react';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';
@@ -15,10 +15,10 @@ export interface TextAreaWithLabelProps {
   ariaDescribedBy?: string;
   ariaLabel?: string;
   autoComplete?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }
 
-export const TextArea: React.FC<TextAreaWithLabelProps> = ({
+export const TextArea: FC<TextAreaWithLabelProps> = ({
   id,
   value,
   onChange,

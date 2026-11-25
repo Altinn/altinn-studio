@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { Flex } from '@app/form-component';
+import { PageRow } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
@@ -215,18 +215,14 @@ function PlainPage({ pageKey }: { pageKey: string }) {
 
   return (
     <div className={classes.page}>
-      <Flex
-        container
-        spacing={6}
-        alignItems='flex-start'
-      >
+      <PageRow>
         {children.map((baseId) => (
           <GenericComponent
             key={baseId}
             baseComponentId={baseId}
           />
         ))}
-      </Flex>
+      </PageRow>
     </div>
   );
 }
@@ -255,11 +251,7 @@ function PdfForPage({ pageKey, pdfExclusions }: { pageKey: string; pdfExclusions
 
   return (
     <div className={classes.page}>
-      <Flex
-        container
-        spacing={6}
-        alignItems='flex-start'
-      >
+      <PageRow>
         {children.map((baseComponentId) => {
           if (hidden[baseComponentId]) {
             return null;
@@ -272,7 +264,7 @@ function PdfForPage({ pageKey, pdfExclusions }: { pageKey: string; pdfExclusions
             />
           );
         })}
-      </Flex>
+      </PageRow>
     </div>
   );
 }

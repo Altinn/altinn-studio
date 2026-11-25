@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@app/form-component';
 import type { HttpError } from '@studio/http-client';
 

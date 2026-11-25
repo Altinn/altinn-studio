@@ -1,5 +1,4 @@
-import React from 'react';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 import { AttachmentGroupings, Attachments } from '@app/form-component';
 import { Heading } from '@digdir/designsystemet-react';
@@ -12,14 +11,14 @@ import type { IDisplayAttachment } from 'src/types/shared';
 
 export interface IReceiptComponentProps {
   attachments: IDisplayAttachment[] | undefined;
-  body: React.ReactNode;
+  body: ReactNode;
   collapsibleTitle: JSX.Element | undefined;
   hideCollapsibleCount?: boolean;
   instanceMetaDataObject: SummaryDataObject;
   pdf: IDisplayAttachment[];
   subtitle?: string | JSX.Element | JSX.Element[] | null;
-  title: React.ReactNode;
-  titleSubmitted: React.ReactNode;
+  title: ReactNode;
+  titleSubmitted: ReactNode;
 }
 
 export function ReceiptComponent({

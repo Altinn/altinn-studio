@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback, useState } from 'react';
 
 import { NavigationBar, useIsMobile } from '@app/form-component';
 
@@ -18,7 +18,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComponent<'NavigationBar'>) {
   const config = useComponentConfig(baseComponentId, 'NavigationBar');
   const id = useIndexedId(baseComponentId);
-  const [showMenu, setShowMenu] = React.useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const isCompact = useIsMobile() || config.compact === true;
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
@@ -27,9 +27,9 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
-  const { getPageValidation } = usePageValidation(baseComponentId);
+  const { pageValidation } = usePageValidation(baseComponentId);
   // Inherited validation applies only to forward navigation.
-  const validationOnForward = config.validateOnForward ?? getPageValidation();
+  const validationOnForward = config.validateOnForward ?? pageValidation;
   const validationOnBackward = config.validateOnBackward;
 
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
@@ -48,7 +48,7 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
     navigateToPage,
   });
 
-  const handleNavigationClick = React.useCallback(
+  const handleNavigationClick = useCallback(
     (pageId: string) =>
       performProcess(pageId, async () => {
         const {

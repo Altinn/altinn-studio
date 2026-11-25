@@ -318,6 +318,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
                 IgnoreReservation = request.IgnoreReservation,
                 IsConfirmationNeeded = request.IsConfirmationNeeded ?? false,
                 IsConfidential = request.IsConfidential ?? false,
+                AllowForwarding = request.AllowForwarding ?? false,
             },
             Recipients = request.Recipients.Select(r => r.ToUrnFormattedString()).ToList(),
             ExistingAttachments = allExistingAttachments.Count > 0 ? allExistingAttachments : [],

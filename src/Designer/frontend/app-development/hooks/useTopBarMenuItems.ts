@@ -6,12 +6,15 @@ import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenu
 import { useIsRepoOwnerOrg } from 'app-development/hooks/useIsRepoOwnerOrg';
 import { useCanUseFeatureQuery } from 'app-development/hooks/queries/useCanUseFeatureQuery';
 import { topBarMenuItems } from 'app-development/utils/headerMenu';
+import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
+import { useAppBuilderAvailability } from 'app-development/features/appBuilder/useAppBuilderAvailability';
 
 export const useTopBarMenuItems = (): HeaderMenuItem[] => {
   const { org, app } = useStudioEnvironmentParams();
   const { flags } = useFeatureFlagsContext();
   const isRepoOwnerOrg = useIsRepoOwnerOrg();
   const { data: aiAssistantFeature } = useCanUseFeatureQuery(org, app, FeatureName.AiAssistant);
+  const { isAvailable: isAppBuilderAvailable } = useAppBuilderAvailability(org, app);
 
   const repositoryType = getRepositoryType(org, app);
   const allowedFeatures = aiAssistantFeature?.canUseFeature ? [FeatureName.AiAssistant] : [];
@@ -20,5 +23,6 @@ export const useTopBarMenuItems = (): HeaderMenuItem[] => {
     .filter((item) => item.repositoryTypes.includes(repositoryType))
     .filter((item) => !item.requiresOrgOwnedRepo || isRepoOwnerOrg)
     .filter((item) => !item.featureFlagName || flags.includes(item.featureFlagName))
-    .filter((item) => !item.requiredFeature || allowedFeatures.includes(item.requiredFeature));
+    .filter((item) => !item.requiredFeature || allowedFeatures.includes(item.requiredFeature))
+    .filter((item) => item.key !== HeaderMenuItemKey.AppBuilder || isAppBuilderAvailable);
 };

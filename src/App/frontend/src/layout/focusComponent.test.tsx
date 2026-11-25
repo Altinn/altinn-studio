@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StrictMode, useCallback, useEffect, useRef, useState } from 'react';
 import { MemoryRouter, useLocation, useNavigate } from 'react-router';
 
 import { NumericInput } from '@app/form-component';
@@ -384,9 +384,9 @@ describe('focusComponent', () => {
   it('survives StrictMode subscription setup and cleanup without repeating focus', () => {
     setFocusComponentRequest({ nodeId: 'node-a', errorBinding: null });
     render(
-      <React.StrictMode>
+      <StrictMode>
         <FocusTarget />
-      </React.StrictMode>,
+      </StrictMode>,
     );
     expect(screen.getByLabelText('Name')).toHaveFocus();
   });

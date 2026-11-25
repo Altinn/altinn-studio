@@ -479,8 +479,7 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Loose conversion rules:
     ///     * Undefined is null
     ///     * Null is false
-    ///     * "true" (case-insensitive) is true
-    ///     * "false" (case-insensitive) is false
+    ///     * "true" is true and "false" is false, in lowercase only, as in the frontend
     ///     * "1" is true
     ///     * "0" is false
     ///     * 1 is true
@@ -502,8 +501,6 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
                 "false" => false,
                 "1" => true,
                 "0" => false,
-                { } sValue when sValue.Equals("true", StringComparison.OrdinalIgnoreCase) => true,
-                { } sValue when sValue.Equals("false", StringComparison.OrdinalIgnoreCase) => false,
                 _ => ExpressionEvaluator.ParseNumber(String, throwException: false) switch
                 {
                     1 => true,
@@ -525,9 +522,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Convert the ExpressionValue to the requested type T using normal JSON deserialization rules
     /// </summary>
     /// <remarks>
-    /// Different from some json implementations we accept deserializing "number in string" and bool to numeric types
-    /// (e.g., "123" to int, true to 1)
-    /// Accept loose conversion rules for bool (e.g., "true", "TRUE", "1" and 1.0 to true)
+    /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
+    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" and " 123 " to int, but not a
+    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "1" and 1 to true, but not "TRUE" or 2), and a number
+    /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
+    /// list of scalars is converted item by item with the same rules.
     /// </remarks>
     /// <param name="result">The result (null or default if unsuccessful), but note that null might also be a valid result</param>
     /// <typeparam name="T">The type to convert to</typeparam>
@@ -549,9 +548,11 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
     /// Convert the ExpressionValue to the requested type T using normal JSON deserialization rules
     /// </summary>
     /// <remarks>
-    /// Different from some json implementations we accept deserializing "number in string" and bool to numeric types
-    /// (e.g., "123" to int, true to 1)
-    /// Accept loose conversion rules for bool (e.g., "true", "TRUE", "1" and 1.0 to true)
+    /// A scalar converts with the rules the expression functions use for an argument of that type: a number is parsed
+    /// from a string as <see cref="ExpressionEvaluator.ParseNumber"/> does (so "123" and " 123 " to int, but not a
+    /// boolean), a bool as <see cref="ToBoolLoose"/> does ("true", "1" and 1 to true, but not "TRUE" or 2), and a number
+    /// or a bool is its JSON text as a string. A number that is not an integer is refused for an integer type, and a
+    /// list of scalars is converted item by item with the same rules.
     /// </remarks>
     /// <param name="result">The result (null or default if unsuccessful), but note that null might also be a valid result</param>
     /// <param name="type">The type to convert to</param>
@@ -609,34 +610,37 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
             case JsonValueKind.False or JsonValueKind.True when underlyingType == typeof(bool):
                 result = Bool;
                 return true;
-            // Support converting bool to numeric types (e.g., true -> 1, false -> 0)
+            // A boolean is not a number, as PrepareNumericArg refuses one
             case JsonValueKind.False or JsonValueKind.True when IsSupportedNumericType(underlyingType):
-                result = Convert.ChangeType(Bool ? 1 : 0, underlyingType, CultureInfo.InvariantCulture);
+                result = null;
+                return false;
+            // A boolean is "true" or "false" as text, as ToStringForEquals gives it
+            case JsonValueKind.False or JsonValueKind.True when underlyingType == typeof(string):
+                result = Bool ? "true" : "false";
                 return true;
             case JsonValueKind.Number when IsSupportedNumericType(underlyingType):
-                result = Convert.ChangeType(Number, underlyingType, CultureInfo.InvariantCulture);
-                return true;
+                return TryConvertNumber(Number, underlyingType, out result);
             case JsonValueKind.Number when underlyingType == typeof(string):
                 result = Number.ToString(CultureInfo.InvariantCulture);
                 return true;
             case JsonValueKind.String when underlyingType == typeof(string):
                 result = String;
                 return true;
-            // Support parsing numbers from strings for numeric types
+            // A number in a string is parsed as the expression functions parse a numeric argument
             case JsonValueKind.String when IsSupportedNumericType(underlyingType):
             {
                 var parsedNumber = ExpressionEvaluator.ParseNumber(String, throwException: false);
                 if (parsedNumber.HasValue)
                 {
-                    result = Convert.ChangeType(parsedNumber.Value, underlyingType, CultureInfo.InvariantCulture);
-                    return true;
+                    return TryConvertNumber(parsedNumber.Value, underlyingType, out result);
                 }
-                else
-                {
-                    result = null;
-                    return false;
-                }
+
+                result = null;
+                return false;
             }
+            // A list of scalars is converted item by item with the rules above, and refused if any item is refused
+            case JsonValueKind.Array when GetScalarListElementType(type) is { } elementType:
+                return TryDeserializeScalarList(type, elementType, out result);
             case JsonValueKind.Array:
             case JsonValueKind.Object:
                 try
@@ -661,8 +665,8 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
                 }
         }
 
-        // Add special handling for bool to support loose conversion rules
-        // e.g., "true", "false", "1", "0" as strings or numbers
+        // A number or a string is a bool as the expression functions read a boolean argument:
+        // 1, 0, "1", "0", and "true" or "false" in lowercase
         if (underlyingType == typeof(bool))
         {
             bool? boolValue = ToBoolLoose();
@@ -706,6 +710,119 @@ public readonly struct ExpressionValue : IEquatable<ExpressionValue>
 
         result = null;
         return false;
+    }
+
+    /// <summary>
+    /// Converts through the shortest text that reads back to the same double, so that 0.3 becomes 0.3m and not the
+    /// decimal expansion of its binary value, 0.2999999999999999888977697537m, which the conversion in .NET gives.
+    /// This is the value the frontend stores, and the value the backend reads back from the saved JSON.
+    /// </summary>
+    internal static decimal DoubleToDecimal(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            throw new OverflowException($"{value} cannot be represented as a decimal");
+        }
+
+        Span<char> text = stackalloc char[32];
+        value.TryFormat(text, out int length, provider: CultureInfo.InvariantCulture);
+        return decimal.Parse(text[..length], NumberStyles.Float, CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
+    /// Converts a number to a numeric type. A number that is not an integer is refused for an integer type instead of
+    /// being rounded, and a number outside the range of the type is refused.
+    /// </summary>
+    private static bool TryConvertNumber(double number, Type numericType, out object? result)
+    {
+        if (IsIntegerType(numericType) && !double.IsInteger(number))
+        {
+            result = null;
+            return false;
+        }
+
+        try
+        {
+            result =
+                numericType == typeof(decimal)
+                    ? DoubleToDecimal(number)
+                    : Convert.ChangeType(number, numericType, CultureInfo.InvariantCulture);
+            return true;
+        }
+        catch (OverflowException)
+        {
+            result = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// The item type of a list or array of scalars (strings and value types, such as numbers and booleans) that a
+    /// <see cref="List{T}"/> can be assigned to, or null for other types.
+    /// </summary>
+    private static Type? GetScalarListElementType(Type type)
+    {
+        Type? elementType;
+        if (type.IsArray)
+        {
+            elementType = type.GetArrayRank() == 1 ? type.GetElementType() : null;
+        }
+        else if (type.IsGenericType && type.GetGenericArguments() is [var genericArgument])
+        {
+            elementType = type.IsAssignableFrom(typeof(List<>).MakeGenericType(genericArgument))
+                ? genericArgument
+                : null;
+        }
+        else
+        {
+            elementType = null;
+        }
+
+        return elementType is not null && (elementType == typeof(string) || elementType.IsValueType)
+            ? elementType
+            : null;
+    }
+
+    private bool TryDeserializeScalarList(Type type, Type elementType, out object? result)
+    {
+        var items =
+            Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType)) as System.Collections.IList
+            ?? throw new UnreachableException("List<T> implements IList");
+        foreach (var item in JsonElement.EnumerateArray())
+        {
+            if (!new ExpressionValue(item).TryDeserialize(elementType, out var convertedItem))
+            {
+                result = null;
+                return false;
+            }
+
+            items.Add(convertedItem);
+        }
+
+        if (type.IsArray)
+        {
+            var array = Array.CreateInstance(elementType, items.Count);
+            items.CopyTo(array, 0);
+            result = array;
+        }
+        else
+        {
+            result = items;
+        }
+
+        return true;
+    }
+
+    private static bool IsIntegerType(Type type)
+    {
+        return type == typeof(int)
+            || type == typeof(long)
+            || type == typeof(short)
+            || type == typeof(byte)
+            || type == typeof(uint)
+            || type == typeof(ulong)
+            || type == typeof(ushort)
+            || type == typeof(sbyte);
     }
 
     private static bool IsSupportedNumericType(Type type)

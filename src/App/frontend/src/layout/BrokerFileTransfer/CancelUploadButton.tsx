@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button, ConfirmPopover } from '@app/form-component';
 
 import { Lang } from 'src/features/language/Lang';

@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { KeyboardEvent } from 'react';
 
 import {
   handleSegmentKeyDown,
@@ -85,7 +85,7 @@ export function useSegmentInputHandlers({
     }
   }
 
-  function handleArrowKeyNavigation(event: React.KeyboardEvent<HTMLInputElement>) {
+  function handleArrowKeyNavigation(event: KeyboardEvent<HTMLInputElement>) {
     const result = handleSegmentKeyDown(event);
 
     if (result.shouldNavigate && result.direction) {

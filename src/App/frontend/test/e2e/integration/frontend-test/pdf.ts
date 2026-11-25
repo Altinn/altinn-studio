@@ -228,6 +228,7 @@ describe('PDF', () => {
       snapshotName: 'group',
       enableResponseFuzzing: true,
       callback: () => {
+        cy.findByText('Calculation examples').should('not.exist');
         cy.findByRole('cell', { name: 'Mottaker:' }).parent().should('contain.text', 'Testdepartementet');
 
         cy.getSummary('Group summary title').should('contain.text', 'Endre fraNOK 1');
@@ -279,7 +280,11 @@ describe('PDF', () => {
 
   it('should generate PDF for group step (using Summary2 automatic PDF by default)', { retries: 0 }, () => {
     interceptAltinnAppGlobalData((data) => {
-      data.ui.folders.Task_3.components = { excludeFromPdf: ['newValue', 'calculatedChange'] };
+      const { components } = data.ui.folders.Task_3;
+      data.ui.folders.Task_3.components = {
+        ...components,
+        excludeFromPdf: [...(components?.excludeFromPdf ?? []), 'newValue', 'calculatedChange'],
+      };
     });
 
     cy.goto('group');
@@ -305,6 +310,7 @@ describe('PDF', () => {
       freeze: false,
       snapshotName: 'group-custom-summary2',
       callback: () => {
+        cy.findByText('Calculation examples').should('not.exist');
         cy.get('[data-summary-target="currentValue-0"]').should('contain.text', 'NOK 1');
         cy.get('[data-summary-target^="newValue-"]', { timeout: 0 }).should('not.exist');
         cy.get('[data-summary-target^="calculatedChange-"]', { timeout: 0 }).should('not.exist');

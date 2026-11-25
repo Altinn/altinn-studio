@@ -543,7 +543,9 @@ public sealed class InstanceDataUnitOfWorkTests
             """{"status":"existing"}"""u8.ToArray(),
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
             seedStorageVersions: true,
-            blobVersionId: BlobVersion(1)
+            blobVersionId: BlobVersion(1),
+            configureInstance: instance =>
+                instance.DataValues = new Dictionary<string, string?> { [derivedFieldId] = cachedStatus }
         );
         DataElement formDataElement = AddPersistedPaymentForm(
             setup,
@@ -559,7 +561,6 @@ public sealed class InstanceDataUnitOfWorkTests
                 Path = nameof(PaymentForm.Status),
             },
         ];
-        setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { [derivedFieldId] = cachedStatus };
         setup.Services.Storage.GetInstanceAndData(setup.InstanceOwnerPartyId, setup.InstanceGuid).instance.DataValues =
         [];
         _ = await setup.DataMutator.GetFormData(formDataElement);
@@ -1070,7 +1071,12 @@ public sealed class InstanceDataUnitOfWorkTests
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
             new StorageVersionMetadata(ProcessStateVersion: 1),
-            blobVersionId: BlobVersion(1)
+            blobVersionId: BlobVersion(1),
+            configureInstance: instance =>
+            {
+                instance.DataValues = new Dictionary<string, string?> { ["paymentStatus"] = "created" };
+                instance.PresentationTexts = new Dictionary<string, string?> { ["customerName"] = "Old Name" };
+            }
         );
         DataType formDataType = setup.Services.AddDataType<PaymentForm>(
             "payment-form",
@@ -1096,18 +1102,6 @@ public sealed class InstanceDataUnitOfWorkTests
             },
         ];
 
-        setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { ["paymentStatus"] = "created" };
-        setup.DataMutator.Instance.PresentationTexts = new Dictionary<string, string?>
-        {
-            ["customerName"] = "Old Name",
-        };
-        var (storageInstance, _) = setup.Services.Storage.GetInstanceAndData(
-            setup.InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        storageInstance.DataValues = new Dictionary<string, string?> { ["paymentStatus"] = "created" };
-        storageInstance.PresentationTexts = new Dictionary<string, string?> { ["customerName"] = "Old Name" };
-
         Guid formDataGuid = Guid.NewGuid();
         var formDataElement = new DataElement
         {
@@ -1118,6 +1112,10 @@ public sealed class InstanceDataUnitOfWorkTests
             Filename = "payment-form.json",
         };
         setup.DataMutator.Instance.Data.Add(formDataElement);
+        var (storageInstance, _) = setup.Services.Storage.GetInstanceAndData(
+            setup.InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
         storageInstance.Data.Add(formDataElement);
         setup.Services.Storage.AddDataRaw(
             formDataGuid,
@@ -1148,6 +1146,182 @@ public sealed class InstanceDataUnitOfWorkTests
         );
         Assert.DoesNotContain("paymentStatus", setup.DataMutator.Instance.DataValues.Keys);
         Assert.DoesNotContain("customerName", setup.DataMutator.Instance.PresentationTexts.Keys);
+    }
+
+    [Fact]
+    public async Task SaveChanges_SendsTheDataValuesAndPresentationTextsChangedOnInstance()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(ProcessStateVersion: 1),
+            configureInstance: instance =>
+            {
+                instance.DataValues = new Dictionary<string, string?>
+                {
+                    ["unchanged"] = "same",
+                    ["changed"] = "old",
+                    ["removed"] = "gone",
+                    ["emptied"] = "value",
+                };
+                instance.PresentationTexts = new Dictionary<string, string?> { ["title"] = "Old title" };
+            }
+        );
+
+        setup.DataMutator.Instance.DataValues["changed"] = "new";
+        setup.DataMutator.Instance.DataValues["added"] = "here";
+        setup.DataMutator.Instance.DataValues.Remove("removed");
+        setup.DataMutator.Instance.DataValues["emptied"] = "";
+        setup.DataMutator.Instance.PresentationTexts["title"] = "New title";
+        Assert.True(setup.DataMutator.HasInstanceFieldChanges());
+
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        RequestResponse mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Equal(
+            new Dictionary<string, string?>
+            {
+                ["changed"] = "new",
+                ["added"] = "here",
+                ["removed"] = null,
+                ["emptied"] = null,
+            },
+            mutation.DataValues
+        );
+        Assert.Equal(new Dictionary<string, string?> { ["title"] = "New title" }, mutation.PresentationTexts);
+        Assert.Equal(
+            new Dictionary<string, string?>
+            {
+                ["unchanged"] = "same",
+                ["changed"] = "new",
+                ["added"] = "here",
+            },
+            setup.DataMutator.Instance.DataValues
+        );
+
+        // The save took the instance Storage returned as the new starting point, so nothing is left to send.
+        Assert.False(setup.DataMutator.HasInstanceFieldChanges());
+    }
+
+    [Fact]
+    public async Task SaveChanges_WhenOnlyStorageHasTheDataValue_SendsNothing()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(ProcessStateVersion: 1)
+        );
+        setup.DataMutator.Instance.DataValues = [];
+        setup.DataMutator.Instance.PresentationTexts = new Dictionary<string, string?> { ["empty"] = "" };
+
+        Assert.False(setup.DataMutator.HasInstanceFieldChanges());
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SaveChanges_WhenADerivedKeyIsChangedOnInstance_Throws(bool presentationText)
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(ProcessStateVersion: 1)
+        );
+        var derivedFields = new List<DataField>
+        {
+            new()
+            {
+                Id = "derived",
+                DataTypeId = "payment",
+                Path = "status",
+            },
+        };
+        if (presentationText)
+        {
+            setup.Services.AppMetadata.PresentationFields = derivedFields;
+            setup.DataMutator.Instance.PresentationTexts = new Dictionary<string, string?> { ["derived"] = "set" };
+        }
+        else
+        {
+            setup.Services.AppMetadata.DataFields = derivedFields;
+            setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { ["derived"] = "set" };
+        }
+
+        var exception = await Assert.ThrowsAsync<InstanceChangeNotSavableException>(() =>
+            setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false))
+        );
+
+        Assert.Contains(
+            presentationText ? "presentationFields" : "dataFields",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+        Assert.DoesNotContain(
+            setup.Services.Storage.RequestsResponses,
+            request => request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+    }
+
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_SendsTheDataValuesChangedOnInstanceWithTheStagedOnes()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        (setup.DataMutator.Instance.DataValues ??= [])["caseNumber"] = "2026-1";
+        setup.DataMutator.UpdateInstanceDataValue("eFormidlingShipmentStatus", "levert");
+
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-data-values-key",
+            CancellationToken.None
+        );
+
+        RequestResponse mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(mutationRequest.RequestBody!);
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal(
+            new Dictionary<string, string?> { ["caseNumber"] = "2026-1", ["eFormidlingShipmentStatus"] = "levert" },
+            mutation.DataValues
+        );
+        Assert.Equal("2026-1", setup.DataMutator.Instance.DataValues["caseNumber"]);
+        Assert.False(setup.DataMutator.HasInstanceFieldChanges());
+    }
+
+    [Fact]
+    public async Task VerifyDataElementsUnchangedSincePreviousChanges_WhenAValidatorChangesADataValue_Throws()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            "initial"u8.ToArray(),
+            new StorageVersionMetadata(ProcessStateVersion: 1)
+        );
+        setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { ["saved"] = "yes" };
+        DataElementChanges changes = setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await setup.DataMutator.SaveChanges(changes);
+
+        setup.DataMutator.Instance.DataValues["fromValidator"] = "no";
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            setup.DataMutator.VerifyDataElementsUnchangedSincePreviousChanges(changes)
+        );
+        Assert.Equal("The instance has been changed by validators: data value 'fromValidator'", exception.Message);
     }
 
     [Fact]
@@ -1828,7 +2002,12 @@ public sealed class InstanceDataUnitOfWorkTests
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
             initialBytes,
             new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
-            seedStorageVersions: true
+            seedStorageVersions: true,
+            configureInstance: instance =>
+            {
+                instance.DataValues = new Dictionary<string, string?> { ["paymentStatus"] = "created" };
+                instance.PresentationTexts = new Dictionary<string, string?> { ["customerName"] = "Old Name" };
+            }
         );
         DataType formDataType = setup.Services.AddDataType<PaymentForm>(
             "payment-form",
@@ -1854,18 +2033,6 @@ public sealed class InstanceDataUnitOfWorkTests
             },
         ];
 
-        setup.DataMutator.Instance.DataValues = new Dictionary<string, string?> { ["paymentStatus"] = "created" };
-        setup.DataMutator.Instance.PresentationTexts = new Dictionary<string, string?>
-        {
-            ["customerName"] = "Old Name",
-        };
-        var (storageInstance, _) = setup.Services.Storage.GetInstanceAndData(
-            setup.InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        storageInstance.DataValues = new Dictionary<string, string?> { ["paymentStatus"] = "created" };
-        storageInstance.PresentationTexts = new Dictionary<string, string?> { ["customerName"] = "Old Name" };
-
         Guid formDataGuid = Guid.NewGuid();
         var formDataElement = new DataElement
         {
@@ -1876,6 +2043,10 @@ public sealed class InstanceDataUnitOfWorkTests
             Filename = "payment-form.json",
         };
         setup.DataMutator.Instance.Data.Add(formDataElement);
+        var (storageInstance, _) = setup.Services.Storage.GetInstanceAndData(
+            setup.InstanceOwnerPartyId,
+            setup.InstanceGuid
+        );
         storageInstance.Data.Add(formDataElement);
         var (serializedFormData, _) = setup
             .ServiceProvider.GetRequiredService<ModelSerializationService>()
@@ -2089,6 +2260,111 @@ public sealed class InstanceDataUnitOfWorkTests
             CancellationToken.None
         );
         Assert.Equal(WorkflowAggregateSaveOutcome.NothingToSave, secondOutcome);
+    }
+
+    [Fact]
+    public async Task DataElementsMarkedAsDeleted_AreRemovedFromTheInstance_OnConstructionAndAfterSave()
+    {
+        const int instanceOwnerPartyId = 1337;
+        Guid instanceGuid = Guid.NewGuid();
+        Guid dataElementId = Guid.NewGuid();
+        byte[] initialBytes = [1, 2, 3];
+        byte[] updatedBytes = [4, 5, 6];
+        DataElement NewDataElement(Guid id, bool deleted) =>
+            new()
+            {
+                Id = id.ToString(),
+                InstanceGuid = instanceGuid.ToString(),
+                DataType = "task-data",
+                ContentType = "application/json",
+                Filename = "task-data.json",
+                DeleteStatus = deleted
+                    ? new DeleteStatus { IsHardDeleted = true, HardDeleted = DateTime.UtcNow }
+                    : null,
+            };
+        DataElement dataElement = NewDataElement(dataElementId, deleted: false);
+        DataElement notDeletedWithStatus = NewDataElement(Guid.NewGuid(), deleted: false);
+        notDeletedWithStatus.DeleteStatus = new DeleteStatus { IsHardDeleted = false };
+        DataElement deletedBeforeConstruction = NewDataElement(Guid.NewGuid(), deleted: true);
+        DataElement deletedInStorageResponse = NewDataElement(Guid.NewGuid(), deleted: true);
+        var instance = new Instance
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            AppId = "ttd/test-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [dataElement, deletedBeforeConstruction, notDeletedWithStatus],
+        };
+        var appMetadata = new ApplicationMetadata(instance.AppId)
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "task-data",
+                    TaskIds = ["Task_1"],
+                    AllowedContentTypes = ["application/json"],
+                },
+            ],
+        };
+        var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
+        Mock<IInstanceMutationClient> mutationClientMock = dataClientMock.As<IInstanceMutationClient>();
+        mutationClientMock
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new InstanceMutationWithStorageMetadata(
+                    new Instance
+                    {
+                        Id = instance.Id,
+                        AppId = instance.AppId,
+                        Org = instance.Org,
+                        InstanceOwner = instance.InstanceOwner,
+                        Process = instance.Process,
+                        Data = [dataElement, deletedInStorageResponse, notDeletedWithStatus],
+                    },
+                    new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 8)
+                )
+            );
+
+        var unitOfWork = new InstanceDataUnitOfWork(
+            instance,
+            new StorageVersionMetadata(InstanceVersion: 12, ProcessStateVersion: 8),
+            dataClientMock.Object,
+            mutationClientMock.Object,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            appMetadata,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(null!),
+            Mock.Of<IAppResources>(),
+            Options.Create(new FrontEndSettings()),
+            taskId: "Task_1",
+            language: null
+        );
+
+        Assert.Equal([dataElement, notDeletedWithStatus], unitOfWork.Instance.Data);
+        Assert.Same(instance, unitOfWork.Instance);
+
+        unitOfWork.PreloadBinaryData(dataElement, initialBytes);
+        unitOfWork.UpdateBinaryDataElement(dataElement, dataElement.ContentType!, updatedBytes);
+        WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
+            unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
+            "callback-step-id",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        Assert.Equal([dataElement.Id, notDeletedWithStatus.Id], unitOfWork.Instance.Data.Select(element => element.Id));
     }
 
     [Fact]
@@ -3951,7 +4227,8 @@ public sealed class InstanceDataUnitOfWorkTests
             bool locked = false,
             string? blobVersionId = null,
             bool lastBlobVersionIdEmpty = false,
-            bool withoutBlobVersion = false
+            bool withoutBlobVersion = false,
+            Action<Instance>? configureInstance = null
         )
         {
             var services = new MockedServiceCollection();
@@ -4024,6 +4301,8 @@ public sealed class InstanceDataUnitOfWorkTests
                 Data = [.. dataElements],
                 Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
             };
+            // The instance as Storage has it when the unit of work is created, which a save does not send.
+            configureInstance?.Invoke(instance);
 
             services.Storage.AddInstance(instance);
             for (int i = 0; i < dataElements.Count; i++)

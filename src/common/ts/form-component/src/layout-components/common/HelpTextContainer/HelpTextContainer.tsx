@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { HelpText } from '@app/form-component/app-components/HelpText';
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
@@ -7,7 +7,7 @@ import classes from './HelpTextContainer.module.css';
 
 export interface IHelpTextContainerProps {
   id?: string;
-  helpText: React.ReactNode;
+  helpText: ReactNode;
   title?: string;
 }
 

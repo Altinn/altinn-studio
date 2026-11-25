@@ -11,6 +11,12 @@ import { useGetDerivedValidationState } from 'src/features/validation/validation
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 
+type PageNavigationValidation = (
+  currentPage: string,
+  config: PageValidation,
+  isCancelled?: () => boolean,
+) => Promise<boolean>;
+
 /**
  * Checks if a page has validation errors as specified by the config.
  * If there are errors, the visibility of the page is set to the specified mask.
@@ -24,7 +30,7 @@ export function useOnPageNavigationValidation() {
   const store = FormStore.raw.useStore();
 
   /* Ensures the callback will have the latest state */
-  const callback = useOurEffectEvent(async (currentPage: string, config: PageValidation): Promise<boolean> => {
+  const callback = useOurEffectEvent<PageNavigationValidation>(async (currentPage, config, isCancelled) => {
     const pageConfig = config.page ?? 'current';
 
     const mask = getVisibilityMask(config.show);
@@ -75,7 +81,13 @@ export function useOnPageNavigationValidation() {
     // We need to get updated validations from backend to validate subform
     if (scope.hasSubform) {
       await refetchInitialValidations();
+      if (isCancelled?.()) {
+        return false;
+      }
       await validating();
+      if (isCancelled?.()) {
+        return false;
+      }
       scope = buildScope();
     }
 
@@ -99,10 +111,13 @@ export function useOnPageNavigationValidation() {
     return hasErrors ? onCurrentOrPreviousPage : false;
   });
 
-  return useCallback(
-    async (currentPage: string, config: PageValidation) => {
+  return useCallback<PageNavigationValidation>(
+    async (currentPage, config, isCancelled) => {
       await validating();
-      return callback(currentPage, config);
+      if (isCancelled?.()) {
+        return false;
+      }
+      return callback(currentPage, config, isCancelled);
     },
     [callback, validating],
   );

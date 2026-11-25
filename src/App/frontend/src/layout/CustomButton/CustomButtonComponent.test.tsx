@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 import type { CustomAction } from '@app/layout-contract/generated/components/CustomButton/config.generated';
 

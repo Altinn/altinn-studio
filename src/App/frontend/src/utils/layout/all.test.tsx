@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import layoutSchema from '@app/layout-contract/schemas/json/layout/layout.schema.v1.json';

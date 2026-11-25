@@ -1,7 +1,6 @@
 // Bundles the core-js polyfills into the app, so it works in older browsers
 import 'core-js';
 
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
 

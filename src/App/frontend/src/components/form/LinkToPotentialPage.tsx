@@ -1,11 +1,11 @@
-import React from 'react';
 import { Link } from 'react-router';
+import type { ReactNode } from 'react';
 import type { LinkProps } from 'react-router';
 
 import { useIsValidPageId } from 'src/hooks/useNavigatePage';
 import { useIsHiddenPage } from 'src/utils/layout/hidden';
 
-type Props = LinkProps & { children?: React.ReactNode };
+type Props = LinkProps & { children?: ReactNode };
 
 /**
  * This component is used to navigate to a potential page. If the page it is supposed

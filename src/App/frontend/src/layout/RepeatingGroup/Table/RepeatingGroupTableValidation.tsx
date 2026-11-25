@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { BaseTable } from '@app/form-component';
 import cn from 'classnames';
 

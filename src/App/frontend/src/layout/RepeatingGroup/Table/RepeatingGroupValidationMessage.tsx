@@ -1,4 +1,4 @@
-import React from 'react';
+import type { KeyboardEvent, MouseEvent } from 'react';
 
 import { Link, ValidationMessage } from '@digdir/designsystemet-react';
 
@@ -20,7 +20,7 @@ export function RepeatingGroupValidationMessage({
 }) {
   const navigate = useNavigateToComponent();
 
-  function handleNavigation(event: React.MouseEvent | React.KeyboardEvent) {
+  function handleNavigation(event: MouseEvent | KeyboardEvent) {
     if (event.target instanceof Element && event.target.closest('a')) {
       return;
     }

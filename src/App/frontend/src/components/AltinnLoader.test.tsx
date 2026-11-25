@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import { AltinnLoader } from 'src/components/AltinnLoader';

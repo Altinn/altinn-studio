@@ -64,6 +64,37 @@ public sealed class IndexPageGeneratorTests : IDisposable
         Assert.False(generator.HasLegacyIndexCshtml);
     }
 
+    [Theory]
+    [InlineData(true, "\"development\":true")]
+    [InlineData(false, "\"development\":false")]
+    [InlineData(null, null)]
+    public async Task The_development_setting_reaches_the_frontend_only_when_set(
+        bool? development,
+        string? expectedJson
+    )
+    {
+        var generator = CreateGenerator();
+        var globalState = new BootstrapGlobalResponse
+        {
+            ApplicationMetadata = new ApplicationMetadata("ttd/app"),
+            Ui = new UiConfiguration { Folders = [] },
+            AvailableLanguages = [],
+            PlatformFrontendSettings = new PlatformFrontendSettings { Development = development },
+        };
+
+        var html = await generator.Generate("ttd", "app", globalState);
+
+        if (expectedJson is null)
+        {
+            // The frontend then decides from the host name.
+            Assert.DoesNotContain("\"development\"", html);
+        }
+        else
+        {
+            Assert.Contains(expectedJson, html);
+        }
+    }
+
     [Fact]
     public void Legacy_index_page_is_detected()
     {

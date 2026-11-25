@@ -1,4 +1,3 @@
-import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';

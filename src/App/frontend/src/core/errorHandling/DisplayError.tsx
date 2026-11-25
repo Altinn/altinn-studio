@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { isHttpError } from '@studio/http-client';
 import type { HttpError } from '@studio/http-client';
 

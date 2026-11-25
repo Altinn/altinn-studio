@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 

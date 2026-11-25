@@ -1,4 +1,4 @@
-import React from 'react';
+import type { JSX } from 'react';
 
 import { BaseTable, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -33,7 +33,7 @@ import type { GridRowLayout } from 'src/layout/Grid/useGridRows';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
 
-export function RepeatingGroupTable(): React.JSX.Element | null {
+export function RepeatingGroupTable(): JSX.Element | null {
   const mobileView = useIsMobileOrTablet();
   const baseComponentId = useRepeatingGroupComponentId();
   const { rowsToDisplay } = useRepeatingGroupPagination();

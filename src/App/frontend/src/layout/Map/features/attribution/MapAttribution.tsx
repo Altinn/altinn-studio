@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 
 import { parseAndCleanText } from 'src/language/sharedLanguage';
 import classes from 'src/layout/Map/MapComponent.module.css';
@@ -34,10 +34,10 @@ export function MapAttribution({ baseComponentId }: MapAttributionProps) {
   return (
     <p className={classes.attribution}>
       {attributions.map((attribution, i) => (
-        <React.Fragment key={i}>
+        <Fragment key={i}>
           {i > 0 && ' | '}
           {parseAndCleanText(attribution)}
-        </React.Fragment>
+        </Fragment>
       ))}
     </p>
   );

@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { SummaryDef } from 'src/layout/Summary/config.def.generated';
@@ -23,7 +23,7 @@ export class Summary extends SummaryDef {
     return false;
   }
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'Summary'>): React.JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'Summary'>): JSX.Element | null {
     return <ValidateSummary {...props} />;
   }
 }

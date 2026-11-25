@@ -1,4 +1,4 @@
-import React from 'react';
+import { createElement } from 'react';
 
 import { isElement, parseAndCleanText as baseParseAndCleanText, type ParserReplace } from '@app/form-component';
 import { domToReact } from 'html-react-parser';
@@ -23,7 +23,7 @@ const replaceInternalLinks: ParserReplace = (domNode, options) => {
   const notConfiguredSetting =
     isElement(domNode) && domNode.name === 'a' && notConfiguredPlatformSetting(domNode.attribs.href);
   if (isElement(domNode) && notConfiguredSetting) {
-    return React.createElement(
+    return createElement(
       PlatformLink,
       { setting: notConfiguredSetting, className: domNode.attribs.class },
       domToReact(domNode.children as DOMNode[], options),
@@ -34,7 +34,7 @@ const replaceInternalLinks: ParserReplace = (domNode, options) => {
    * Internal links
    */
   if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialNode') {
-    return React.createElement(
+    return createElement(
       LinkToPotentialNode,
       {
         to: domNode.attribs.href,
@@ -44,7 +44,7 @@ const replaceInternalLinks: ParserReplace = (domNode, options) => {
     );
   }
   if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialPage') {
-    return React.createElement(
+    return createElement(
       LinkToPotentialPage,
       {
         to: domNode.attribs.href,

@@ -9,6 +9,7 @@
       "repeating3",
       "option-comp",
       "hide",
+      "calculations",
       "validation-showcase",
       "summary"
     ],
@@ -16,7 +17,7 @@
     "showLanguageSelector": true
   },
   "components": {
-    "excludeFromPdf": []
+    "excludeFromPdf": ["show-calculations"]
   },
   "defaultDataType": "nested-group",
 }

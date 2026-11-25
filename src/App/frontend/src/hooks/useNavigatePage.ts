@@ -219,7 +219,7 @@ export function useIsValidPageId() {
   );
 }
 
-function useVisiblePageOrderSnapshot() {
+export function useVisiblePageOrderSnapshot() {
   const rawOrder = useRawPageOrder();
   const rawOrderRef = useAsRef(rawOrder);
   const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
@@ -398,7 +398,8 @@ export function useEnterSubform() {
 
       await maybeSaveOnPageChange();
       refetchInitialValidations();
-      return navigate(url);
+      // The parent form keeps its return shortcut while the user edits an entry on the page being edited.
+      return navigate(url, { resetReturnToView: !!page && page !== pageKey });
     },
     [maybeSaveOnPageChange, navigate, navParams, orderRef, refetchInitialValidations],
   );

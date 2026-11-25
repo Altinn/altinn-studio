@@ -1,5 +1,4 @@
-import React from 'react';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 import { BaseTable, Button, Flex, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -381,7 +380,7 @@ function DeleteElement({
   deleteButtonText: string;
   langAsString: (key: string) => string;
   disabled?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const config = useComponentConfig(useRepeatingGroupComponentId(), 'RepeatingGroup');
   const alertOnDelete = useEvalExpression(config.edit?.alertOnDelete, Expressions.RepeatingGroup.edit.alertOnDelete);

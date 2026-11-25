@@ -159,17 +159,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
-                // SetFormData is internal, but we know the dataMutator is InstanceDataUnitOfWork
-                if (dataMutator is Internal.Data.InstanceDataUnitOfWork unitOfWork)
-                {
-                    unitOfWork.SetFormData(dataElement, FormDataWrapperFactory.Create(newData, dataType, dataElement));
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        "Data mutator does not support SetFormData for shadow field removal"
-                    );
-                }
+                formDataWrapper.ReplaceBackingData(newData);
             }
         }
     }

@@ -1,4 +1,5 @@
-import React from 'react';
+import { createRef } from 'react';
+import type { ReactNode } from 'react';
 
 import { act, render as rtlRender, screen } from '@testing-library/react';
 
@@ -121,7 +122,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -135,7 +136,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -151,7 +152,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -168,7 +169,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -194,7 +195,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -220,7 +221,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -235,7 +236,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -251,7 +252,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -271,7 +272,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -291,7 +292,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
       (process) => {
         process.currentTask = undefined;
@@ -309,7 +310,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -325,7 +326,7 @@ describe('AttachmentListComponent', () => {
     await render(
       <AttachmentListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef<HTMLDivElement>()}
+        containerDivRef={createRef<HTMLDivElement>()}
       />,
     );
 
@@ -333,7 +334,7 @@ describe('AttachmentListComponent', () => {
   });
 });
 
-async function render(ui: React.ReactNode, mutateProcess?: (process: IProcess) => void) {
+async function render(ui: ReactNode, mutateProcess?: (process: IProcess) => void) {
   const { wrapper, queryClient, queries } = createQueryTestWrapper(
     { queries: { getInstance: async () => ({ ...getInstanceWithProcessMock(mutateProcess), data: instanceData }) } },
     '/instance/123/instance/Task_1',

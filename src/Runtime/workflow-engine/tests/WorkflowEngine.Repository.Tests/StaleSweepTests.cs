@@ -168,7 +168,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task PoisonedFailure_TagsFailureMetricWithIsHead()
+    public async Task PoisonedFailure_TagsFailureMetricWithIsHeadAndNamespace()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -207,6 +207,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(1L, value);
         Assert.Equal("poisoned", tags["altinn.workflow_engine.reason"]);
         Assert.Equal("false", tags["altinn.workflow_engine.workflow.is_head"]);
+        Assert.Equal(wf.Namespace, tags["altinn.workflow_engine.namespace"]);
     }
 
     /// <summary>

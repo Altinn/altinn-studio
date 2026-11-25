@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, useRouteError } from 'react-router';
 import type { ShouldRevalidateFunction } from 'react-router';
 

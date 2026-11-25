@@ -1,5 +1,3 @@
-import React from 'react';
-
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { useBindingSchema } from 'src/features/datamodel/useBindingSchema';

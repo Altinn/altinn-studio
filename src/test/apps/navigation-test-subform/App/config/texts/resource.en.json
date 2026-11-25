@@ -10,6 +10,10 @@
       "value": "Summary"
     },
     {
+      "id": "summary2",
+      "value": "Complete overview"
+    },
+    {
       "id": "feedback",
       "value": "Feedback"
     },

@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { CSSProperties } from 'react';
 
 import type {
   IDataModelBindingsList,
@@ -175,5 +175,5 @@ export function getColumnStyles(columnSettings: ITableColumnProperties) {
     '--cell-word-break': lineWrap ? 'break-word' : 'normal',
   };
 
-  return columnStyleVariables as React.CSSProperties;
+  return columnStyleVariables as CSSProperties;
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
@@ -14,7 +14,7 @@ const defaultProps = {
 };
 
 const ControlledRadioButton = (props: Partial<IRadioButtonProps> = {}) => {
-  const [value, setValue] = React.useState<string | undefined>(undefined);
+  const [value, setValue] = useState<string | undefined>(undefined);
 
   return (
     <RadioButton
