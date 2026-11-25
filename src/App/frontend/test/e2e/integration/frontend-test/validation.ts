@@ -940,7 +940,10 @@ describe('Validation', () => {
       .should('have.attr', 'data-color', 'danger');
 
     // Filling out the comment fixes the problem and lets us navigate to the next page
-    cy.get(appFrontend.group.row(1).nestedGroup.row(0).editBtn).click();
+    // The message in the row's popover opens the nested row and focuses the field it is about
+    cy.get(appFrontend.group.row(1).nestedGroup.row(0).tableRow).findByTestId('row-validation-indicator').click();
+    cy.findByRole('dialog', { name: 'Meldinger' }).find('[role="link"]').click();
+    cy.get(appFrontend.group.comments).should('have.focus');
     cy.get(appFrontend.group.comments).type('hello world');
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.row(1).tableRow).findByTestId('row-validation-indicator').should('not.exist');
