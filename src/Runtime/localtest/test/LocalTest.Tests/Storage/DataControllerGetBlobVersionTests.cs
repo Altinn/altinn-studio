@@ -217,6 +217,24 @@ public sealed class DataControllerGetBlobVersionTests
         Assert.IsType<ForbidResult>(result);
     }
 
+    [Fact]
+    public async Task GetBlobVersion_WithoutReadAccessToTheInstance_ReturnsForbid()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        DataElement created = await Create(storage, instance, "first");
+
+        ActionResult result = await GetBlobVersion(
+            storage,
+            instance,
+            created,
+            created.BlobVersionId,
+            denyInstanceRead: true
+        );
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -282,9 +300,10 @@ public sealed class DataControllerGetBlobVersionTests
         DataElement dataElement,
         string blobVersionId,
         string? org = AppOwner,
-        bool denyRead = false
+        bool denyRead = false,
+        bool denyInstanceRead = false
     ) =>
-        CreateDataController(storage, org, denyRead)
+        CreateDataController(storage, org, denyRead, denyInstanceRead)
             .GetBlobVersion(
                 PartyId(instance),
                 InstanceGuid(instance),
@@ -348,10 +367,20 @@ public sealed class DataControllerGetBlobVersionTests
         return applicationRepository.Object;
     }
 
-    // Denies the read action and fails on any other authorization call.
-    private static IAuthorization Authorization()
+    // Answers the read of the instance, denies the read action of the data type and fails on any other call.
+    private static IAuthorization Authorization(bool denyInstanceRead = false)
     {
         var authorization = new Mock<IAuthorization>(MockBehavior.Strict);
+        authorization
+            .Setup(service =>
+                service.AuthorizeInstanceAction(
+                    It.IsAny<Instance>(),
+                    "read",
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(!denyInstanceRead);
         authorization
             .Setup(service =>
                 service.AuthorizeInstanceAction(
@@ -386,7 +415,8 @@ public sealed class DataControllerGetBlobVersionTests
     private static DataController CreateDataController(
         LocalStorageFixture storage,
         string? org,
-        bool denyRead = false
+        bool denyRead = false,
+        bool denyInstanceRead = false
     ) =>
         new(
             storage.DataRepository,
@@ -397,7 +427,7 @@ public sealed class DataControllerGetBlobVersionTests
             Mock.Of<IInstanceEventService>(),
             Options.Create(new GeneralSettings { Hostname = "localhost" }),
             Mock.Of<IOnDemandClient>(),
-            Authorization()
+            Authorization(denyInstanceRead)
         )
         {
             ControllerContext = new ControllerContext

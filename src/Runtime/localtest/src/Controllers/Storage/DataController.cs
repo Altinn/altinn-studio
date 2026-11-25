@@ -425,7 +425,7 @@ public class DataController : ControllerBase
     /// <param name="blobVersionId">The blob version to retrieve.</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The content of the blob version.</returns>
-    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+    [Authorize]
     [HttpGet("data/{dataGuid:guid}/versions/{blobVersionId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -449,7 +449,17 @@ public class DataController : ControllerBase
             return instanceError;
         }
 
-        if (User.GetOrg() != instance.Org)
+        // Read access is checked here and not by the InstanceRead policy, which answers 403 for an instance that
+        // does not exist.
+        if (
+            User.GetOrg() != instance.Org
+            || !await _authorizationService.AuthorizeInstanceAction(
+                instance,
+                "read",
+                instance.Process?.CurrentTask?.ElementId,
+                cancellationToken
+            )
+        )
         {
             return Forbid();
         }
