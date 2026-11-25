@@ -783,6 +783,8 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("schema")]
         public required object Schema { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("writable")]
+        public required bool Writable { get; init; }
     }
     public sealed class FormBootstrapResponse
     {

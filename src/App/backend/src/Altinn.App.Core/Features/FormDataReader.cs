@@ -123,8 +123,6 @@ internal sealed class FormDataReader : IFormDataReader
     }
 
     private bool CanPersist(Instance instance, DataElement dataElement) =>
-        !dataElement.Locked
-        && _appMetadata.ApplicationMetadata.DataTypes.Find(dataType => dataType.Id == dataElement.DataType)
-            is { } dataType
-        && dataType.IsWritableInCurrentTask(instance);
+        _appMetadata.ApplicationMetadata.DataTypes.Find(dataType => dataType.Id == dataElement.DataType) is { } dataType
+        && dataType.IsWritableInCurrentTask(instance, dataElement);
 }

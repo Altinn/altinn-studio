@@ -109,7 +109,7 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
             };
         }
 
-        if (!dataType.IsWritableInCurrentTask(instance))
+        if (dataType.HasTaskBindingConflict(instance))
         {
             string boundTasks = string.Join(", ", dataType.TaskIds ?? []);
             string? currentTaskId = instance.Process?.CurrentTask?.ElementId;

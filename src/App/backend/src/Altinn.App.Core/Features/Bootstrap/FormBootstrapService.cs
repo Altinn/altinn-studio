@@ -274,7 +274,8 @@ internal sealed class FormBootstrapService
 
             var schema = GetSchema(dataType);
             var formData = await GetFormData(dataAccessor, dataElement, language, cancellationToken);
-            var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
+            var writable = dataTypeDef.IsWritableInCurrentTask(dataAccessor.Instance, dataElement);
+            var validationConfig = isPdf || !writable ? null : GetValidationConfig(dataType);
 
             return (
                 dataType,
@@ -284,9 +285,9 @@ internal sealed class FormBootstrapService
                         Schema = schema,
                         InitialData = formData,
                         DataElementId = dataElement.Id,
+                        Writable = writable,
                         ExpressionValidationConfig = validationConfig,
-                        CalculationConfig =
-                            isPdf || dataElement.Locked ? null : _appResources.GetCalculationConfig(dataType),
+                        CalculationConfig = isPdf || !writable ? null : _appResources.GetCalculationConfig(dataType),
                     }
             );
         });
@@ -353,6 +354,7 @@ internal sealed class FormBootstrapService
                     Schema = schema,
                     InitialData = defaultData,
                     DataElementId = null,
+                    Writable = true,
                     ExpressionValidationConfig = validationConfig,
                     CalculationConfig = _appResources.GetCalculationConfig(dataType),
                 };
@@ -623,8 +625,8 @@ internal sealed class FormBootstrapService
 
         var persistableChanges = changes
             .AllChanges.Where(c =>
-                c is not FormDataChange { Type: ChangeType.Updated, DataElement.Locked: true }
-                && c.DataType.IsWritableInCurrentTask(dataAccessor.Instance)
+                c.DataElement is { } dataElement
+                && c.DataType.IsWritableInCurrentTask(dataAccessor.Instance, dataElement)
             )
             .ToList();
         if (persistableChanges.Count == 0 && !hasInstanceFieldChanges)

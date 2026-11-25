@@ -82,14 +82,21 @@ public sealed class DataModelInfo
     public string? DataElementId { get; init; }
 
     /// <summary>
-    /// Expression validation configuration. Null for PDF mode or locked data.
+    /// Whether the data type's <c>taskIds</c>, or the lock on data of a type without them, let this data model
+    /// change in the instance's current task. Always true for stateless.
+    /// </summary>
+    [JsonPropertyName("writable")]
+    public required bool Writable { get; init; }
+
+    /// <summary>
+    /// Expression validation configuration. Null for PDF mode or data that is not writable.
     /// </summary>
     [JsonPropertyName("expressionValidationConfig")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? ExpressionValidationConfig { get; init; }
 
     /// <summary>
-    /// Expression calculation configuration. Null for PDF mode or locked data.
+    /// Expression calculation configuration. Null for PDF mode or data that is not writable.
     /// </summary>
     [JsonPropertyName("calculationConfig")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
