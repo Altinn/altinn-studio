@@ -1909,6 +1909,106 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
+    public async Task Create_Instantiation_GivesEveryStepTheInstantiationRetryBudget()
+    {
+        var factory = CreateFactory();
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(),
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            isInstantiation: true
+        );
+
+        IReadOnlyList<StepRequest> steps = bundle.Request.Workflows[0].Steps;
+        Assert.Contains(steps, step => step.OperationId == ProcessingStatusAcquirer.Key);
+        Assert.Contains(steps, step => step.OperationId == EnqueueAuxiliaryWorkflows.Key);
+        Assert.Contains(steps, step => step.OperationId == ReleaseProcessingStatus.Key);
+        Assert.All(
+            steps,
+            step => Assert.Equal(ProcessNextRequestFactory.InstantiationRetryBudget, step.RetryStrategy?.MaxDuration)
+        );
+    }
+
+    [Fact]
+    public async Task Create_InitialTaskStartOutsideInstantiation_LeavesTheRetriesToTheEngine()
+    {
+        var factory = CreateFactory();
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(),
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        Assert.All(bundle.Request.Workflows[0].Steps, step => Assert.Null(step.RetryStrategy));
+    }
+
+    private sealed class StartTaskWithRetryBudgets : IProcessTask
+    {
+        public string Type => "budgeted";
+
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(_ => Task.FromResult(StageResult.Completed()), Retrying(TimeSpan.FromSeconds(20)))
+                .Stage(_ => Task.FromResult(StageResult.Completed()), Retrying(TimeSpan.FromMinutes(30)))
+                .Build();
+
+        private static ProcessStepOptions Retrying(TimeSpan maxDuration) =>
+            new()
+            {
+                RetryStrategy = ProcessStepRetryStrategy.Constant(TimeSpan.FromSeconds(2), maxDuration: maxDuration),
+            };
+    }
+
+    [Fact]
+    public async Task Create_Instantiation_KeepsAShorterDeclaredRetryBudgetAndCutsALongerOne()
+    {
+        var factory = CreateFactory(configureServices: s =>
+            s.AddSingleton<IProcessTask>(new StartTaskWithRetryBudgets())
+        );
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(altinnTaskType: "budgeted"),
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            isInstantiation: true
+        );
+
+        List<StepRequest> stages = bundle
+            .Request.Workflows[0]
+            .Steps.Where(step => step.OperationId.StartsWith(StartTask.Key, StringComparison.Ordinal))
+            .ToList();
+        Assert.Equal(2, stages.Count);
+        Assert.Equal(TimeSpan.FromSeconds(20), stages[0].RetryStrategy?.MaxDuration);
+        Assert.Equal(ProcessNextRequestFactory.InstantiationRetryBudget, stages[1].RetryStrategy?.MaxDuration);
+        Assert.All(stages, stage => Assert.Equal(TimeSpan.FromSeconds(2), stage.RetryStrategy?.BaseInterval));
+    }
+
+    [Fact]
+    public async Task Create_InstantiationIntoAServiceTask_LeavesTheServiceTaskStepsTheirOwnRetries()
+    {
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(altinnTaskType: "signing"),
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            isInstantiation: true
+        );
+
+        Assert.Null(GetStep(bundle, ExecuteServiceTask.Key).RetryStrategy);
+        Assert.Equal(
+            ProcessNextRequestFactory.InstantiationRetryBudget,
+            GetStep(bundle, CommitProcessState.Key).RetryStrategy?.MaxDuration
+        );
+    }
+
+    [Fact]
     public async Task Create_SetsOperationIdIdempotencyKeyAndType()
     {
         // Arrange
