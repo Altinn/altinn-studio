@@ -694,23 +694,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>
             IsServiceTaskSuccessor(workflow)
-            || workflow.Steps.Any(step =>
-                step.OperationId == CommitProcessState.Key && step.Status == PersistentItemStatus.Completed
-            )
+            || workflow.Steps.Any(step => IsCommitStep(step) && step.Status == PersistentItemStatus.Completed)
         );
 
     /// <summary>
-    /// A workflow of a service task's pipeline item after the first, named by the relay that enqueued it.
+    /// A workflow the relay enqueued for a service task's later pipeline item or a reply: it runs a service task step
+    /// and commits no transition of its own. Told by its steps, not by its operation ID, which is a display name.
     /// </summary>
     private static bool IsServiceTaskSuccessor(WorkflowStatusResponse workflow) =>
-        workflow.OperationId.StartsWith(
-            ProcessNextRequestFactory.MailboxReceiveOperationIdPrefix,
-            StringComparison.Ordinal
-        )
-        || workflow.OperationId.StartsWith(
-            ProcessNextRequestFactory.ServiceTaskStageOperationIdPrefix,
-            StringComparison.Ordinal
-        );
+        workflow.Steps.Any(step => step.OperationId.StartsWith($"{ExecuteServiceTask.Key}:", StringComparison.Ordinal))
+        && !workflow.Steps.Any(IsCommitStep);
+
+    private static bool IsCommitStep(StepStatusResponse step) => step.OperationId == CommitProcessState.Key;
 
     internal static WorkflowFailure? BuildWorkflowFailure(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows)
     {
