@@ -33,4 +33,10 @@ describe('getUrlWithFrontendVersion', () => {
       'http://local.altinn.cloud/ttd/app/?frontendVersion=9.0.1',
     );
   });
+
+  it('removes the parameter for an empty version and keeps the rest', () => {
+    expect(getUrlWithFrontendVersion('http://local.altinn.cloud/ttd/app/?lang=en&frontendVersion=9.0.0#x', '')).toBe(
+      'http://local.altinn.cloud/ttd/app/?lang=en#x',
+    );
+  });
 });

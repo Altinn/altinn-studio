@@ -16,6 +16,10 @@ const description = 'Siden lastes på nytt med versjonen i adressen. Virker bare
 const loadingText = 'Henter versjonene som er publisert';
 const errorText = 'Kunne ikke hente versjonene som er publisert.';
 const emptyText = 'Ingen versjoner funnet';
+const ownVersionLabel = 'Appens egen versjon';
+
+/** Stands for the app's own frontend in the list. No published version can start with "-". */
+const ownVersionValue = '-';
 
 /**
  * Hidden in production, where the backend ignores the parameter. isDev() knows localtest, TT02 and Studio by their
@@ -30,12 +34,12 @@ export function VersionSwitcher() {
 
 function VersionSwitcherField() {
   const { versions, isLoading, isError } = useAppFrontendVersionsQuery();
-  const [selectedVersion, setSelectedVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
+  const [currentVersion] = useState(() => getFrontendVersionFromUrl(window.location.href));
+  const [selectedVersion, setSelectedVersion] = useState(currentVersion);
+  const selectedLabel = selectedVersion || ownVersionLabel;
 
   function switchVersion() {
-    if (selectedVersion) {
-      window.location.assign(getUrlWithFrontendVersion(window.location.href, selectedVersion));
-    }
+    window.location.assign(getUrlWithFrontendVersion(window.location.href, selectedVersion));
   }
 
   return (
@@ -50,15 +54,22 @@ function VersionSwitcherField() {
         <>
           <Suggestion
             multiple={false}
-            filter={optionFilter}
+            filter={(args) => optionFilter(args, [selectedLabel])}
             data-size='sm'
-            selected={selectedVersion ? { value: selectedVersion, label: selectedVersion } : undefined}
+            selected={{ value: selectedVersion || ownVersionValue, label: selectedLabel }}
             className={comboboxClasses.container}
             style={{ width: '100%' }}
           >
             <Suggestion.Input aria-label='Frontend versjon' />
             <Suggestion.List>
               <Suggestion.Empty>{emptyText}</Suggestion.Empty>
+              <Suggestion.Option
+                value={ownVersionValue}
+                label={ownVersionLabel}
+                onClick={() => setSelectedVersion('')}
+              >
+                {ownVersionLabel}
+              </Suggestion.Option>
               {versions.map((version) => (
                 <Suggestion.Option
                   key={version}
@@ -73,7 +84,7 @@ function VersionSwitcherField() {
           </Suggestion>
           <Button
             size='sm'
-            disabled={!selectedVersion}
+            disabled={selectedVersion === currentVersion}
             onClick={switchVersion}
           >
             Bytt versjon

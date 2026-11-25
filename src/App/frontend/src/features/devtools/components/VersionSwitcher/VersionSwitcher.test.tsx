@@ -46,9 +46,18 @@ describe('VersionSwitcher', () => {
     await userEvent.click(await screen.findByRole('combobox', { name: 'Frontend versjon' }));
 
     expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Appens egen versjon',
       '9.0.0-preview.13',
       '9.0.0-preview.12',
     ]);
+  });
+
+  it("shows the app's own version when the address has no version", async () => {
+    setLocation('http://local.altinn.cloud/ttd/app/');
+    renderSwitcher();
+
+    expect(await screen.findByRole('combobox', { name: 'Frontend versjon' })).toHaveValue('Appens egen versjon');
+    expect(screen.getByRole('button', { name: 'Bytt versjon' })).toBeDisabled();
   });
 
   it('shows the version from the address', async () => {
@@ -69,6 +78,17 @@ describe('VersionSwitcher', () => {
     expect(assign).toHaveBeenCalledWith(
       'http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1?frontendVersion=9.0.0-preview.13',
     );
+  });
+
+  it("goes back to the app's own version by removing the version from the address", async () => {
+    setLocation('http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1?frontendVersion=9.0.0-preview.13');
+    renderSwitcher();
+
+    await userEvent.click(await screen.findByRole('combobox', { name: 'Frontend versjon' }));
+    await userEvent.click(screen.getByRole('option', { name: 'Appens egen versjon' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Bytt versjon' }));
+
+    expect(assign).toHaveBeenCalledWith('http://local.altinn.cloud/ttd/app/instance/1/abc/Task_1/Side1');
   });
 
   it('says so when the versions cannot be fetched', async () => {

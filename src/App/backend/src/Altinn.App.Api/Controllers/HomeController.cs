@@ -120,7 +120,6 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
-            // Like lang, a repeated parameter counts with its first value.
             string? frontendVersion = Request.Query[FrontendVersionOverride.QueryParameterName].FirstOrDefault();
             string? appFrontendAssetBaseUrlOverride =
                 FrontendVersionOverride.GetAssetBaseUrl(frontendVersion, AltinnEnvironments.GetHostingEnvironment(_env))

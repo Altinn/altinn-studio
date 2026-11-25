@@ -196,7 +196,7 @@ export function fetchExternalApi({
   return httpGet(externalApiUrl);
 }
 
-/** The app frontend versions published on app-dist. App-dist allows any origin to read the list. */
+/** The app frontend versions published on app-dist. */
 export const fetchAppFrontendVersions = async (): Promise<string[]> =>
   (await httpClient.get<string[]>(frontendVersionsUrl)).data;
 

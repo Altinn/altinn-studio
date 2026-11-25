@@ -9,17 +9,18 @@ export interface AppFrontendVersions {
   isError: boolean;
 }
 
-/**
- * The app frontend versions published on app-dist, for choosing one in dev tools. App-dist lists them oldest first,
- * so they are reversed here.
- */
+/** App-dist lists the versions oldest first. Outside the hook, so the query reverses them only when they change. */
+const newestFirst = (versions: string[]) => [...versions].reverse();
+
+/** The app frontend versions published on app-dist, for choosing one in dev tools. */
 export function useAppFrontendVersionsQuery(): AppFrontendVersions {
   const { fetchAppFrontendVersions } = useAppQueries();
   const { data, isLoading, isError } = useQuery({
     queryKey: ['appFrontendVersions'],
     queryFn: fetchAppFrontendVersions,
+    select: newestFirst,
     staleTime: Infinity,
   });
 
-  return { versions: data ? [...data].reverse() : [], isLoading, isError };
+  return { versions: data ?? [], isLoading, isError };
 }

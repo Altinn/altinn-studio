@@ -17,10 +17,14 @@ export function getFrontendVersionFromUrl(href: string): string {
 
 /**
  * Returns the address with the frontend version set, keeping the path, the other parameters and the hash, so the
- * page reloads where the user is.
+ * page reloads where the user is. An empty version removes the parameter, so the app uses its own frontend again.
  */
 export function getUrlWithFrontendVersion(href: string, version: string): string {
   const url = new URL(href);
-  url.searchParams.set(frontendVersionSearchParam, version);
+  if (version) {
+    url.searchParams.set(frontendVersionSearchParam, version);
+  } else {
+    url.searchParams.delete(frontendVersionSearchParam);
+  }
   return url.toString();
 }
