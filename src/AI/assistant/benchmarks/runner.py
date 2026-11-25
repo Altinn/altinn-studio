@@ -19,6 +19,10 @@ REPORTS_DIR = Path(__file__).parent / "reports"
 SCORE_CONFIG_SPECS: dict[str, dict] = {
     "bench_completed": {"dataType": "BOOLEAN"},
     "bench_built": {"dataType": "BOOLEAN"},
+    "bench_pages": {"dataType": "BOOLEAN"},
+    "bench_navigation": {"dataType": "BOOLEAN"},
+    "bench_field_coverage": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
+    "bench_input_count": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
     **{name: {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1} for name in app_checks.SCORE_NAMES},
 }
 

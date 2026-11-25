@@ -67,12 +67,12 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
     (
         "benchmarks/evaluators.py",
         "evaluators",
-        "the score every evaluator gives",
+        "the structural rubric a built app is scored against",
     ),
     (
         "benchmarks/app_checks.py",
         "evaluators",
-        "the scores a built app gets",
+        "the skill scores a built app gets",
     ),
     (
         "benchmarks/app_model.py",

@@ -618,25 +618,6 @@ BEHAVIORS = (
         see=("build.matches-the-request",),
     ),
     *_per_template(
-        "has-the-requested-form",
-        "build",
-        text="The form has the pages and the number of fields the request asks for",
-        checks=(
-            "pages.order has the number of pages the rubric expects, each page has navigation when the rubric "
-            "asks for it, and the form has at least the number of input fields the rubric expects."
-        ),
-        blind="The counts in the rubric are estimates until a checked run sets them. Each count is pass or fail.",
-        evaluator="bench_form",
-        metric="mean",
-        fix=Fix(
-            kind="trust",
-            title="The page and field counts are estimates",
-            task="Check one app for each template by hand, and set the counts in the rubric from it.",
-            acceptance="The counts in the rubric come from an app that a person checked.",
-        ),
-        see=("build.has-the-requested-fields-{v}",),
-    ),
-    *_per_template(
         "components-valid",
         "build",
         text="Every generated component satisfies its schema",

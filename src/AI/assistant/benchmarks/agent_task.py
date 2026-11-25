@@ -14,10 +14,10 @@ from typing import Any
 
 import httpx
 
-from . import app_checks, preview_check
+from . import app_checks, evaluators, preview_check
 from .app_model import load_app
 from .bench_app import BenchApp, BenchAppError, bench_org, clone_branch, create_bench_app
-from .evaluators import Score
+from .evaluators import Score, evaluate
 from .experiment import SCORES_KEY
 from .rubric import RUBRIC_VERSION
 
@@ -29,7 +29,7 @@ RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
 RENDER_FIX_ROUNDS_ENV = "BENCH_RENDER_FIX_ROUNDS"
 DEFAULT_RENDER_FIX_ROUNDS = 1
 
-STRUCTURAL_SCORE_NAMES = app_checks.SCORE_NAMES
+STRUCTURAL_SCORE_NAMES = (*evaluators.SCORE_NAMES, *app_checks.SCORE_NAMES)
 
 COMPLETED_SCORE_NAME = "bench_completed"
 BUILT_SCORE_NAME = "bench_built"
@@ -232,9 +232,9 @@ class AgentTask:
         if rubric.get("rubric_version") != RUBRIC_VERSION:
             raise ValueError(
                 f"item {item_id} expectedOutput is not a v{RUBRIC_VERSION} rubric; "
-                "write it as datasets/README.md says, with `rubric --from-app …` for the counts and titles"
+                "write it as datasets/README.md says, with `rubric --from-app …` for the structural part"
             )
-        parsed = app_checks.Rubric.parse(rubric)
+        skill_rubric = app_checks.SkillRubric.parse(rubric)
 
         app = self.bench_app()
         session_id = str(uuid.uuid4())
@@ -263,7 +263,7 @@ class AgentTask:
             clone = clone_result_branch(app, session_id, Path(tmp))
             scores.append(_built_score(clone is not None, status))
             if clone is not None:
-                scores.extend(self._score_app(clone, parsed, session_id, Path(tmp)))
+                scores.extend(self._score_app(clone, rubric, skill_rubric, session_id, Path(tmp)))
 
         for score in scores:
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
@@ -287,9 +287,11 @@ class AgentTask:
             "description": self.description,
         }
 
-    def _score_app(self, clone: Path, rubric: app_checks.Rubric, session_id: str, workdir: Path) -> list[Score]:
+    def _score_app(
+        self, clone: Path, rubric: dict, skill_rubric: app_checks.SkillRubric, session_id: str, workdir: Path
+    ) -> list[Score]:
         app = load_app(clone)
-        scores = app_checks.evaluate(app, rubric, self.template)
+        scores = [*evaluate(app, rubric), *app_checks.evaluate(app, skill_rubric, self.template)]
         if not preview_check.is_enabled():
             return scores
         results = preview_check.collect(self.bench_app().repo, session_branch(session_id), app.page_order)

@@ -36,10 +36,11 @@ def task(monkeypatch, tmp_path):
     monkeypatch.setattr(agent_task, "clone_result_branch", lambda app, s, w: tmp_path / "clone")
     monkeypatch.setattr(agent_task, "load_app", lambda path: object())
     monkeypatch.setattr(
-        agent_task.app_checks,
+        agent_task,
         "evaluate",
-        lambda app, rubric, template: [Score("bench_form", 1.0, "NUMERIC", "2/2 checks pass")],
+        lambda app, rubric: [Score("bench_pages", 1.0, "BOOLEAN", "2/2")],
     )
+    monkeypatch.setattr(agent_task.app_checks, "evaluate", lambda app, rubric, template: [])
     monkeypatch.setattr(agent_task.preview_check, "is_enabled", lambda: False)
     return AgentTask(
         agent_base="http://agent",
@@ -56,7 +57,7 @@ class TestTheOutputCarriesTheScores:
 
         names = [score.name for score in output[SCORES_KEY]]
         assert "bench_completed" in names
-        assert "bench_form" in names
+        assert "bench_pages" in names
 
     def test_the_session_is_reported_so_a_run_can_be_traced_back(self, task):
         output = task(item=_item())

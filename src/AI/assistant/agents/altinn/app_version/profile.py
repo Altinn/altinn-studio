@@ -17,15 +17,6 @@ class AppVersionProfile:
     text_resources_schema_location: str
     binding_constraints: Mapping[str, Sequence[str]]
     forbidden_new_file_patterns: Mapping[str, str]
-    # v8 maps UI folders to tasks and data types in App/ui/layout-sets.json. v9 names a folder after its task.
-    uses_layout_sets: bool
-    # The key in a data type of applicationmetadata.json that names its tasks.
-    data_type_tasks_key: str
-    heading_component: str
-    # Functions in the expression schema that the version lacks. Only the backend evaluates a gateway condition,
-    # so a condition may use the functions that only the frontend lacks.
-    missing_expression_functions: frozenset[str]
-    missing_frontend_expression_functions: frozenset[str]
 
     @property
     def version_label(self) -> str:

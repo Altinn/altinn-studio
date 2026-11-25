@@ -62,9 +62,4 @@ V9_PROFILE = AppVersionProfile(
         "App/ui/*/RuleHandler.js": _NO_RULE_FILES,
         "App/views/Home/Index.cshtml": _NO_INDEX_PAGE,
     },
-    uses_layout_sets=False,
-    data_type_tasks_key="taskIds",
-    heading_component="Heading",
-    missing_expression_functions=frozenset(),
-    missing_frontend_expression_functions=frozenset(),
 )

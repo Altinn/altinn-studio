@@ -1,4 +1,4 @@
-"""The page count, the input count, the field titles and the navigation of a checked app, for an item's rubric."""
+"""The structural rubric of a checked app: page count, input count, field titles and navigation, without names."""
 
 from __future__ import annotations
 
@@ -26,6 +26,9 @@ def build_rubric(app: AppModel) -> dict[str, Any]:
         "expected_titles": titles,
         "navigation_required": len(app.page_order) > 1,
     }
+
+
+STRUCTURAL_KEYS = frozenset(build_rubric(AppModel()))
 
 
 def build_rubric_from_dir(root: Path) -> dict[str, Any]:

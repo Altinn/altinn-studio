@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from agents.altinn.app_version import AppVersionProfile, detect_app_major_version, get_app_version_profile
+from agents.altinn.app_version import detect_app_major_version
 from agents.altinn.layout.components import layout_components
 
 # Component types that collect user input.  Used both for counting
@@ -184,10 +184,6 @@ class AppModel:
     appsettings: dict[str, Any] = field(default_factory=dict)
 
     @property
-    def profile(self) -> AppVersionProfile:
-        return get_app_version_profile(self.version)
-
-    @property
     def data_task(self) -> str | None:
         """The first data task after the start event."""
         return next((n for n in self.process.reachable(self.process.start) if self.process.is_task(n, "data")), None)
@@ -336,12 +332,10 @@ def load_app(root: Path) -> AppModel:
 
     sets = _json(app_dir / "ui" / "layout-sets.json")
     model.layout_sets = sets if isinstance(sets, dict) else None
-    # A v9 app ignores a leftover layout-sets.json.
-    layout_sets = model.profile.uses_layout_sets
+    # v9 ignores a leftover layout-sets.json, so only v8 reads its sets.
+    v8 = model.version < 9
     model.ui_settings = (
-        ((model.layout_sets or {}).get("uiSettings") or {})
-        if layout_sets
-        else (_json(app_dir / "ui" / "Settings.json") or {})
+        ((model.layout_sets or {}).get("uiSettings") or {}) if v8 else (_json(app_dir / "ui" / "Settings.json") or {})
     )
     declared = {s.get("id"): s for s in (model.layout_sets or {}).get("sets") or [] if isinstance(s, dict)}
     for settings_path in sorted((app_dir / "ui").glob("*/Settings.json")):
@@ -350,7 +344,7 @@ def load_app(root: Path) -> AppModel:
         pages = {
             p.stem: data for p in sorted((folder_dir / "layouts").glob("*.json")) if (data := _json(p)) is not None
         }
-        if layout_sets:
+        if v8:
             entry = declared.get(folder_dir.name) or {}
             folder = UiFolder(folder_dir.name, settings, pages, entry.get("dataType"), tuple(entry.get("tasks") or ()))
         else:

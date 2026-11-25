@@ -46,7 +46,7 @@ defects in this harness came from hand-written items that assumed something wron
 `app_build.jsonl` holds the goal that the e2e evals send, and the rubric they score against. Both e2e evals read the
 same file, and a sync gives each item the template as a suffix, because Langfuse needs a unique ID for each item.
 Write the rubric from the goal: the field titles from the PDF, the values a rule must accept or reject, and the
-rights of each task. The keys are the fields of `Rubric` in [app_checks.py](../app_checks.py), and a key that
+rights of each task. The keys are the fields of `SkillRubric` in [app_checks.py](../app_checks.py), and a key that
 no check reads stops the run before the build starts. Run `python -m benchmarks.runner rubric --from-app <clone>`
 on an app that you checked by hand to get the page count and the number of input fields.
 

@@ -1,4 +1,4 @@
-"""The scores of a small app that does everything a rubric asks, in v8 and in v9, and of breaks of it."""
+"""The skill scores on a small app that does everything a rubric asks, in v8 and in v9, and on breaks of it."""
 
 from __future__ import annotations
 
@@ -29,10 +29,6 @@ TITLES = {
 }
 A1 = "A1. Søkervirksomhetens navn og organisasjonsnummer."
 RUBRIC: dict[str, Any] = {
-    "expected_pages": 1,
-    "min_input_components": 11,
-    "expected_titles": list(TITLES.values()),
-    "navigation_required": False,
     "languages": ["nb", "nn", "en"],
     "language_selector": True,
     "conditional_fields": [
@@ -338,7 +334,7 @@ def build_app(root: Path, template: str) -> Path:
 
 
 def scores(root: Path, template: str) -> dict[str, tuple[float, str]]:
-    rubric = app_checks.Rubric.parse(RUBRIC)
+    rubric = app_checks.SkillRubric.parse(RUBRIC)
     return {s.name: (s.value, s.comment) for s in app_checks.evaluate(load_app(root), rubric, template)}
 
 
@@ -436,14 +432,6 @@ BREAKS = {
             "App/models/model.validation.json",
             lambda d: d["validations"]["belop"][0].update(condition=["greaterThan", ["dataModel", ["argv", 0]], 0]),
         ),
-    ),
-    "a field the rubric expects is missing": (
-        "bench_field_coverage",
-        lambda r, ui: _edit(r, f"App/ui/{ui}/layouts/Side1.json", lambda d: d["data"]["layout"].pop(9)),
-    ),
-    "a page more than the rubric expects": (
-        "bench_form",
-        lambda r, ui: _edit(r, f"App/ui/{ui}/Settings.json", lambda d: d["pages"]["order"].append("Side2")),
     ),
     "people may also start the app": (
         "bench_settings",
@@ -608,10 +596,10 @@ def test_user_profile_prefill_from_the_user_s_own_party(tmp_path):
 
 def test_a_misspelled_rubric_key_fails_before_the_build():
     with pytest.raises(ValueError, match="language_selectr"):
-        app_checks.Rubric.parse({**RUBRIC, "language_selectr": True})
+        app_checks.SkillRubric.parse({**RUBRIC, "language_selectr": True})
 
 
 def test_the_bench_items_rubrics_parse():
     path = Path(app_checks.__file__).parent / "datasets" / "app_build.jsonl"
     for line in path.read_text(encoding="utf-8").splitlines():
-        app_checks.Rubric.parse(json.loads(line)["expectedOutput"])
+        app_checks.SkillRubric.parse(json.loads(line)["expectedOutput"])

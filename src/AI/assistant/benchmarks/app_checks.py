@@ -1,4 +1,4 @@
-"""The scores of a built app, one for each skill and a few for the whole app."""
+"""One score for each skill, read from the files of a built app."""
 
 from __future__ import annotations
 
@@ -10,15 +10,16 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any
 
-from agents.altinn.app_version import AppVersionProfile, get_app_version_profile
+from agents.altinn.app_version import get_app_version_profile
 from agents.altinn.layout import get_layout_schema, get_referenced_schemas
-from agents.altinn.layout.components import has_navigation, text_key_bindings
+from agents.altinn.layout.components import text_key_bindings
 from agents.altinn.layout.schema_validator import validate_layout_json
 from shared.config.base_config import get_config
 
 from .app_model import AppModel, Flow, Rule, UiFolder, binding, normalize_title, property_names
 from .app_templates import template_source
 from .evaluators import Score
+from .rubric import STRUCTURAL_KEYS
 
 SERVICE_TASK_TYPES = {"pdf", "subformPdf", "eFormidling", "fiksArkiv"}
 SERVICE_OWNER = "urn:altinn:org"
@@ -34,6 +35,10 @@ COMMENT_FOUND = 4
 COMMENT_FAILED = 12
 COMMENT_SKIPPED = 6
 
+# What a v8 app lacks, as the v8 file of the studio-expressions skill says. The v8 backend has the list functions, so
+# a gateway condition, which only the backend evaluates, may use them.
+V8_LACKS = frozenset({"formatNumber"})
+V8_FRONTEND_LACKS = frozenset({"list", "object", "jmespath", "sum", "average", "count"})
 # A list in these properties is an expression, so an unknown function there is a misspelling, not a list of IDs.
 EXPRESSION_PROPERTIES = frozenset({"hidden", "hiddenRow", "required", "readOnly", "condition"})
 
@@ -56,13 +61,9 @@ PREFILL_SOURCES["UserProfile"] |= {f"Party.Organization.{name}" for name in PREF
 
 
 @dataclass(frozen=True)
-class Rubric:
-    """What an item asks for, from its expectedOutput. A field the item leaves out turns its checks off."""
+class SkillRubric:
+    """What an item asks of the skills, from its expectedOutput. A field the item leaves out turns its checks off."""
 
-    expected_pages: int = 0
-    min_input_components: int = 0
-    expected_titles: list[str] = field(default_factory=list)
-    navigation_required: bool = False
     languages: list[str] = field(default_factory=lambda: [DEFAULT_LANGUAGE])
     language_selector: bool = False
     conditional_fields: list[dict[str, str]] = field(default_factory=list)
@@ -82,10 +83,10 @@ class Rubric:
     rights: list[dict[str, Any]] = field(default_factory=list)
 
     @classmethod
-    def parse(cls, expected_output: dict[str, Any]) -> Rubric:
+    def parse(cls, expected_output: dict[str, Any]) -> SkillRubric:
         """A key that no check reads fails, so that a misspelled key cannot turn its checks off unseen."""
         names = {f.name for f in fields(cls)}
-        unknown = set(expected_output) - names - {"rubric_version"}
+        unknown = set(expected_output) - names - STRUCTURAL_KEYS
         if unknown:
             raise ValueError(f"the rubric has keys no check reads: {', '.join(sorted(unknown))}")
         return cls(**{key: value for key, value in expected_output.items() if key in names})
@@ -131,16 +132,12 @@ class _View:
     """The app, with the lookups that several checks share."""
 
     app: AppModel
-    rubric: Rubric
+    rubric: SkillRubric
     template: str
 
     @property
-    def profile(self) -> AppVersionProfile:
-        return self.app.profile
-
-    @property
     def v9(self) -> bool:
-        return self.profile.major_version >= 9
+        return self.app.version >= 9
 
     def task_after(self, kind: str) -> str | None:
         """The nearest task of a type after the data task."""
@@ -151,10 +148,9 @@ class _View:
     def form_type(self) -> str | None:
         return self.app.form.data_type if self.app.form else None
 
-    def task_ids(self, data_type: dict[str, Any]) -> list[Any]:
-        """The tasks of a data type, under the key the version reads."""
-        tasks = data_type.get(self.profile.data_type_tasks_key)
-        return tasks if isinstance(tasks, list) else [tasks] if tasks else []
+    def task_ids(self, data_type: dict[str, Any]) -> list[str | None]:
+        """The tasks of a data type: the list `taskIds` in v9, the one `taskId` in v8."""
+        return list(data_type.get("taskIds") or []) if self.v9 else [data_type.get("taskId")]
 
     def paths(self, title: str) -> set[tuple[str | None, str]]:
         """(data type, path) of the fields with this title."""
@@ -265,24 +261,6 @@ def _read(path: Path | None) -> str:
         return ""
 
 
-def _form(view: _View, checks: Checks) -> None:
-    app, rubric, form = view.app, view.rubric, view.app.form
-    if expected := rubric.expected_pages:
-        found = len(app.page_order)
-        checks.check(f"{expected} pages in pages.order, found {found}", found == expected)
-    if form and rubric.navigation_required and len(form.order) > 1:
-        for page in form.order:
-            checks.check(f"{page} has navigation", has_navigation(form.components(page)))
-    if expected := rubric.min_input_components:
-        found = len(app.input_components())
-        checks.check(f"at least {expected} input fields, found {found}", found >= expected)
-
-
-def _field_coverage(view: _View, checks: Checks) -> None:
-    for title in view.rubric.expected_titles:
-        checks.check(f"has {_short(title)}", bool(view.app.fields(title)))
-
-
 def _texts(view: _View, checks: Checks) -> None:
     app = view.app
     used = {key for _, _, c in app.all_components() for key in text_key_bindings(c).values()} | _option_labels(app)
@@ -349,7 +327,7 @@ def _pdf_page(view: _View, checks: Checks, titles: list[str]) -> None:
     read = _read_by(view, folder, page)
     for title in titles:
         checks.check(f"PDF page shows {_short(title)}", bool(view.paths(title) & read))
-    heading = view.profile.heading_component
+    heading = "Heading" if view.v9 else "Header"
     checks.check(f"PDF page has a {heading}", any(c.get("type") == heading for c in _components(folder, page)))
 
 
@@ -387,17 +365,15 @@ def _variables(view: _View, folder: UiFolder | None, page: str | None = None) ->
 
 
 def _expressions(view: _View, checks: Checks) -> None:
-    app, profile = view.app, view.profile
+    app = view.app
     for pair in view.rubric.conditional_fields:
         label = f"{_short(pair['field'])} shows only for {pair['shown_for']} in {_short(pair['controller'])}"
         checks.check(label, _shows_only_for(view, pair))
     in_forms = _expressions_in([*(f.pages for f in app.folders.values()), *app.validation.values()])
     in_gateways = (e for flow in app.process.flows.values() for e in _expressions_in(flow.condition, expected=True))
-    missing = _missing_functions(
-        in_forms, profile.missing_expression_functions | profile.missing_frontend_expression_functions
-    )
-    missing |= _missing_functions(in_gateways, profile.missing_expression_functions)
-    checks.none(f"every function exists in {profile.version_label}", missing)
+    missing = _missing_functions(in_forms, frozenset() if view.v9 else V8_LACKS | V8_FRONTEND_LACKS)
+    missing |= _missing_functions(in_gateways, frozenset() if view.v9 else V8_LACKS)
+    checks.none(f"every function exists in {view.template}", missing)
 
 
 def _missing_functions(found: Iterable[Any], lacking: frozenset[str]) -> set[str]:
@@ -547,7 +523,7 @@ def _signing(view: _View, checks: Checks) -> None:
     checks.check("signatureDataType exists", bool(signature))
     checks.check("signature data type is app-owned", _contributors(signature) == [APP_OWNED])
     checks.check("signature data type holds JSON", signature.get("allowedContentTypes") == ["application/json"])
-    key = view.profile.data_type_tasks_key
+    key = "taskIds" if view.v9 else "taskId"
     checks.check(f"signature data type bound with {key}", task in view.task_ids(signature))
     checks.check("signature data type has minCount", int(signature.get("minCount") or 0) >= 1)
     checks.check("runDefaultValidator is true", node.text("signatureConfig/runDefaultValidator") == "true")
@@ -654,7 +630,7 @@ def _prefill(view: _View, checks: Checks) -> None:
             checks.check("v9: no UserProfile at task start", "UserProfile" not in prefill)
         if "ER" in prefill and any(parties.values()):
             checks.check("ER prefill, so no persons may start", not parties.get("person"))
-    version = view.profile.major_version
+    version = view.app.version
     for entry in view.rubric.prefill:
         if version not in entry.get("versions", [version]):
             continue
@@ -693,7 +669,7 @@ def _settings(view: _View, checks: Checks) -> None:
     checks.check(
         f"attachment counts {spec['min_count']}-{spec['max_count']}", counts == (spec["min_count"], spec["max_count"])
     )
-    key = view.profile.data_type_tasks_key
+    key = "taskIds" if view.v9 else "taskId"
     bound = view.app.data_task is not None and view.app.data_task in view.task_ids(found)
     checks.check(f"attachment bound with {key}", bound)
 
@@ -872,7 +848,7 @@ def _schemas(version: int) -> Any:
 
 def _version_conformance(view: _View, checks: Checks) -> None:
     """The version's shape. A component of the other version fails bench_schema_valid."""
-    app, profile = view.app, view.profile
+    app, profile = view.app, get_app_version_profile(view.app.version)
     types = list(app.data_types().values())
     if profile.forbidden_new_file_patterns:
         label = f"{profile.version_label}: no file the version does not have"
@@ -916,8 +892,6 @@ class Area:
 
 
 AREAS = {
-    "bench_form": Area(_form, "build"),
-    "bench_field_coverage": Area(_field_coverage, "build"),
     "bench_version_conformance": Area(
         _version_conformance, "app", "studio-app-development", "How the files of an app connect, in v8 and v9."
     ),
@@ -953,8 +927,8 @@ AREAS = {
 SCORE_NAMES = tuple(AREAS)
 
 
-def evaluate(app: AppModel, rubric: Rubric, template: str) -> list[Score]:
-    """The scores of an app made from `template`."""
+def evaluate(app: AppModel, rubric: SkillRubric, template: str) -> list[Score]:
+    """One score for each skill, for an app made from `template`."""
     view = _View(app, rubric, template)
     scores = []
     for name, area in AREAS.items():

@@ -1,14 +1,12 @@
-"""Tests for the app model, the rubric builder and the form scores."""
+"""Tests for the benchmark app model, rubric builder, and evaluators."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-import pytest
-
-from benchmarks import app_checks
 from benchmarks.app_model import load_app, match_title, normalize_title
+from benchmarks.evaluators import evaluate
 from benchmarks.planner import spec_field_count
 from benchmarks.rubric import RUBRIC_VERSION, build_rubric_from_dir
 
@@ -80,21 +78,20 @@ class TestRubric:
         assert "A.1 Leverandørvirksomhetens navn" in rubric["expected_titles"]
 
 
-class TestFormScores:
-    @pytest.fixture(autouse=True)
-    def _offline(self, monkeypatch):
-        """These apps are v8, and the v8 layout schema is on altinncdn.no."""
-        monkeypatch.setattr(app_checks, "_schemas", lambda version: None)
-
+class TestEvaluators:
     def _scores(self, app_dir: Path, rubric: dict) -> dict[str, float]:
-        scores = app_checks.evaluate(load_app(app_dir), app_checks.Rubric.parse(rubric), "v8")
-        return {s.name: s.value for s in scores if s.name in ("bench_form", "bench_field_coverage")}
+        return {s.name: s.value for s in evaluate(load_app(app_dir), rubric)}
 
     def test_identical_app_scores_perfect(self, tmp_path: Path):
         golden = _golden(tmp_path / "golden")
         rubric = build_rubric_from_dir(golden)
         scores = self._scores(golden, rubric)
-        assert scores == {"bench_form": 1.0, "bench_field_coverage": 1.0}
+        assert scores == {
+            "bench_pages": 1.0,
+            "bench_navigation": 1.0,
+            "bench_field_coverage": 1.0,
+            "bench_input_count": 1.0,
+        }
 
     def test_different_page_and_field_names_still_score_perfect(self, tmp_path: Path):
         """The rubric must be name-agnostic — same form, different naming."""
@@ -130,9 +127,9 @@ class TestFormScores:
             resources={"app.field.navn": "Leverandørvirksomhetens navn"},
         )
         scores = self._scores(candidate, rubric)
-        # The page count and navigation on Side2 pass. Navigation on Side1 and the input count fail.
-        assert scores["bench_form"] == 0.5
+        assert scores["bench_navigation"] == 0.0
         assert scores["bench_field_coverage"] == 0.5
+        assert scores["bench_input_count"] == 0.5
 
     def test_page_missing_from_order_flagged(self, tmp_path: Path):
         rubric = build_rubric_from_dir(_golden(tmp_path / "golden"))
@@ -155,7 +152,7 @@ class TestFormScores:
             },
         )
         scores = self._scores(candidate, rubric)
-        assert scores["bench_form"] < 1
+        assert scores["bench_pages"] == 0.0
 
 
 def test_the_spec_field_count_leaves_out_headings_and_paragraphs():
