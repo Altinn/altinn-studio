@@ -14,14 +14,15 @@ export type RowContext = {
  */
 export function getCurrentDataModelPath(rowContexts: RowContext[]): IDataModelReference | undefined {
   const current = rowContexts[rowContexts.length - 1];
-  if (!current) {
-    return undefined;
-  }
+  return current ? getRowDataModelReference(current) : undefined;
+}
 
-  return {
-    dataType: current.groupBinding.dataType,
-    field: `${current.groupBinding.field}[${current.rowIndex}]`,
-  };
+/** Returns the data model path for the object in one repeating-group row. */
+export function getRowDataModelReference({
+  groupBinding,
+  rowIndex,
+}: Pick<RowContext, 'groupBinding' | 'rowIndex'>): IDataModelReference {
+  return { dataType: groupBinding.dataType, field: `${groupBinding.field}[${rowIndex}]` };
 }
 
 export function appendRowContext(

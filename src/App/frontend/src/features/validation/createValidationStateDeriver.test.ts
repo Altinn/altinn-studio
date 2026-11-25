@@ -922,12 +922,16 @@ describe('validations on repeating arrays and row objects', () => {
       'Group[1]',
     ]);
     expect(getValidationsForNode(derived, 'child-0', 'visible')).toEqual([]);
-    expect(getDeepNodeRefValidations(derived, 'group', 'visible', false, 0).map((v) => v.message.key)).toEqual([
-      'Group[0]',
-    ]);
-    expect(getDeepNodeRefValidations(derived, 'group', 'visible', false, 1).map((v) => v.message.key)).toEqual([
-      'Group[1]',
-    ]);
+    expect(
+      getDeepNodeRefValidations(derived, 'group', { mask: 'visible', includeSelf: false, rowIndex: 0 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[0]']);
+    expect(
+      getDeepNodeRefValidations(derived, 'group', { mask: 'visible', includeSelf: false, rowIndex: 1 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[1]']);
   });
 
   it('reveals array, row and child errors on Next while a row save exposes only that row', () => {
@@ -936,7 +940,11 @@ describe('validations on repeating arrays and row objects', () => {
     const initial = derive(state, inputs);
     expect(getNodeRefValidations(initial, 'group', 'visible')).toEqual([]);
     expect(
-      getDeepNodeRefValidations(initial, 'group', ValidationMask.CustomBackend, false, 0).map((v) => v.message.key),
+      getDeepNodeRefValidations(initial, 'group', {
+        mask: ValidationMask.CustomBackend,
+        includeSelf: false,
+        rowIndex: 0,
+      }).map((v) => v.message.key),
     ).toEqual(['Group[0]', 'Group[0].Value', 'Group[0].Nested', 'Group[0].Nested[1]']);
     const saved = derive(
       { ...state, validation: { ...state.validation, rowMasks: { 'row-0': ValidationMask.CustomBackend } } },
@@ -961,22 +969,29 @@ describe('validations on repeating arrays and row objects', () => {
     const { state, inputs } = objectFixture();
     state.validation.pageMasks = { Form: ValidationMask.CustomBackend };
     const derived = createValidationStateDeriver()(state, inputs);
-    expect(getDeepNodeRefValidations(derived, 'nested-0', 'visible', false, 1).map((v) => v.message.key)).toEqual([
-      'Group[0].Nested[1]',
-    ]);
-    expect(getDeepNodeRefValidations(derived, 'nested-0', 'visible', false, 0)).toEqual([]);
-    expect(getDeepNodeRefValidations(derived, 'nested-1', 'visible', false, 0).map((v) => v.message.key)).toEqual([
-      'Group[1].Nested[0]',
-    ]);
+    expect(
+      getDeepNodeRefValidations(derived, 'nested-0', { mask: 'visible', includeSelf: false, rowIndex: 1 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[0].Nested[1]']);
+    expect(
+      getDeepNodeRefValidations(derived, 'nested-0', { mask: 'visible', includeSelf: false, rowIndex: 0 }),
+    ).toEqual([]);
+    expect(
+      getDeepNodeRefValidations(derived, 'nested-1', { mask: 'visible', includeSelf: false, rowIndex: 0 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[1].Nested[0]']);
     const scoped = createValidationStateDeriver()(state, {
       ...inputs,
       descendantScope: { nodeId: 'group', includeSelf: true, restriction: 1 },
     });
     expect(scoped.repeatingGroupRowsByNode.get('group')?.map((row) => row.context.rowIndex)).toEqual([1]);
-    expect(getDeepNodeRefValidations(scoped, 'group', 'visible', false, 1).map((v) => v.message.key)).toEqual([
-      'Group[1]',
-      'Group[1].Nested[0]',
-    ]);
+    expect(
+      getDeepNodeRefValidations(scoped, 'group', { mask: 'visible', includeSelf: false, rowIndex: 1 }).map(
+        (v) => v.message.key,
+      ),
+    ).toEqual(['Group[1]', 'Group[1].Nested[0]']);
   });
 
   it('suppresses hidden row-object errors and keeps the array message below the group', () => {
@@ -985,7 +1000,9 @@ describe('validations on repeating arrays and row objects', () => {
     state.validation.pageMasks = { Form: ValidationMask.CustomBackend };
     const derived = createValidationStateDeriver()(state, inputs);
     expect(getNodeRefValidations(derived, 'group', 'visible').map((v) => v.message.key)).toEqual(['Group']);
-    expect(getDeepNodeRefValidations(derived, 'group', 'visible', false, 0)).toEqual([]);
+    expect(getDeepNodeRefValidations(derived, 'group', { mask: 'visible', includeSelf: false, rowIndex: 0 })).toEqual(
+      [],
+    );
     expect(getNodeRefValidations(derived, 'group', 'visible', undefined, true).map((v) => v.message.key)).toEqual([
       'Group',
       'Group[0]',

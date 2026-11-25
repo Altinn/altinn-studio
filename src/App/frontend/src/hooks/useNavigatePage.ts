@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import type { NavigateOptions } from 'react-router';
 
-import { CompCategory } from '@app/layout-contract';
-
 import { useRefetchInitialValidations } from 'src/core/queries/backendValidation';
 import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
@@ -17,6 +15,7 @@ import {
   replaceAndPreventResetOptions,
 } from 'src/features/navigation/navigationOptions';
 import { useOnSubformExitValidation } from 'src/features/validation/callbacks/onSubformExitValidation';
+import { getRepeatingGroupRowFocusTarget } from 'src/features/validation/repeatingGroupRowValidations';
 import { useGetDerivedValidationState } from 'src/features/validation/validationHooks';
 import {
   getLiveInstanceNavigationParams,
@@ -26,7 +25,6 @@ import {
 } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
-import { getComponentDef } from 'src/layout';
 import {
   type FocusComponentRequest,
   setFocusComponentRequest,
@@ -36,7 +34,6 @@ import {
 import { TaskKeys } from 'src/routesBuilder';
 import { ProcessTaskType } from 'src/types';
 import { computeStartUrl } from 'src/utils/computeStartUrl';
-import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
 import { getPageHiddenExpressions, getVisiblePageOrder, useHiddenPages } from 'src/utils/layout/hidden';
 import type { NodeRefValidation } from 'src/features/validation';
 
@@ -530,24 +527,11 @@ export function useNavigateToComponent() {
   ) => {
     const row = options?.error?.repeatingGroupRow;
     if (row) {
-      // Row-object messages belong to the group, but navigation must reveal a field in that specific row.
-      const derived = getDerivedValidationState();
-      const target = getDerivedNodeDescendantIds(derived.nodes, indexedId, row.rowIndex)
-        .map((id) => derived.nodeById.get(id))
-        .find((node) => {
-          if (!node || node.hidden || !node.isValid || !node.rowIds.includes(row.rowId)) {
-            return false;
-          }
-          const item = layoutLookups.getComponent(node.baseId);
-          return (
-            !('renderAsSummary' in item && item.renderAsSummary) &&
-            getComponentDef(item.type).category === CompCategory.Form
-          );
-        });
+      const target = getRepeatingGroupRowFocusTarget(getDerivedValidationState(), layoutLookups, indexedId, row);
       if (!target) {
         return;
       }
-      indexedId = target.id;
+      indexedId = target;
     }
     const targetPage = layoutLookups.componentToPage[baseComponentId];
     const errorBindingKey = options?.error?.['bindingKey'] ?? null;

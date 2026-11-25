@@ -1,3 +1,4 @@
+import { CompCategory } from '@app/layout-contract';
 import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
@@ -8,8 +9,15 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { withCurrentDataModelPath } from 'src/features/validation/deriveNodes';
 import { ValidationMask } from 'src/features/validation/index';
 import { selectValidations } from 'src/features/validation/utils';
-import { getCurrentDataModelPath, getIndexedDataModelReference } from 'src/utils/layout/rowContext';
+import { getComponentDef } from 'src/layout';
+import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
+import {
+  getCurrentDataModelPath,
+  getIndexedDataModelReference,
+  getRowDataModelReference,
+} from 'src/utils/layout/rowContext';
 import type { FormStoreState } from 'src/features/form/FormContext';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { DerivedValidationNode } from 'src/features/validation/deriveNodes';
 import type {
   DerivedValidationState,
@@ -27,6 +35,7 @@ import type { RowContext } from 'src/utils/layout/rowContext';
 export type RepeatingGroupRowValidations = {
   context: RowContext;
   hidden: boolean;
+  /** The `ValidationMask` bits of the group and this row that decide which messages are visible. */
   visibility: number;
   validations: FieldValidation[];
 };
@@ -58,14 +67,14 @@ export function deriveRepeatingGroupRowValidations(
   }
 
   const scope = inputs.descendantScope;
-  const restriction = scope?.nodeId === node.id ? scope.restriction : undefined;
-  const indexes = restriction === undefined ? rows.keys() : [restriction];
+  const scopedRowIndex = scope?.nodeId === node.id ? scope.restriction : undefined;
+  const indexes = scopedRowIndex === undefined ? rows.keys() : [scopedRowIndex];
   return Array.from(indexes).flatMap((rowIndex) => {
     if (rowIndex < 0 || rowIndex >= rows.length) {
       return [];
     }
     const row: unknown = rows[rowIndex];
-    const field = `${groupBinding.field}[${rowIndex}]`;
+    const { field } = getRowDataModelReference({ groupBinding, rowIndex });
     const validations = [
       ...(model.validations.backend[field] ?? []).filter(
         (validation) => !validation.componentId || validation.componentId === node.id,
@@ -97,31 +106,67 @@ export function deriveRepeatingGroupRowValidations(
   });
 }
 
+function getRowMask(row: RepeatingGroupRowValidations, mask: NodeVisibility): number {
+  if (typeof mask === 'number') {
+    return mask;
+  }
+  return row.visibility | (mask === 'showAll' ? ValidationMask.Backend | ValidationMask.CustomBackend : 0);
+}
+
+/** Takes the same arguments as `getNodeRefValidations`, plus a row index that limits the result to one row. */
 export function getRepeatingGroupRowValidations(
   derived: DerivedValidationState,
   nodeId: string,
   mask: NodeVisibility,
-  restriction?: number,
   severity?: ValidationSeverity,
   includeHidden = false,
+  rowIndex?: number,
 ): NodeRefValidation[] {
   const node = derived.nodeById.get(nodeId);
   if (!node) {
     return [];
   }
   return (derived.repeatingGroupRowsByNode.get(nodeId) ?? []).flatMap((row) => {
-    if ((!includeHidden && row.hidden) || (restriction !== undefined && row.context.rowIndex !== restriction)) {
+    if ((!includeHidden && row.hidden) || (rowIndex !== undefined && row.context.rowIndex !== rowIndex)) {
       return [];
     }
-    const effectiveMask =
-      typeof mask === 'number'
-        ? mask
-        : row.visibility | (mask === 'showAll' ? ValidationMask.Backend | ValidationMask.CustomBackend : 0);
-    return selectValidations(row.validations, effectiveMask, severity).map((validation) => ({
+    return selectValidations(row.validations, getRowMask(row, mask), severity).map((validation) => ({
       ...validation,
       baseComponentId: node.baseId,
       nodeId,
       repeatingGroupRow: row.context,
     }));
+  });
+}
+
+export function hasRepeatingGroupRowErrors(derived: DerivedValidationState, rowId: string, mask: NodeVisibility) {
+  for (const rows of derived.repeatingGroupRowsByNode.values()) {
+    const row = rows.find(({ context }) => context.rowId === rowId);
+    if (row && !row.hidden && selectValidations(row.validations, getRowMask(row, mask), 'error').length > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * A row-object message belongs to the group, so navigating to it needs a form field in that row to reveal and focus.
+ * Returns the first visible one, or undefined when the row has none.
+ */
+export function getRepeatingGroupRowFocusTarget(
+  derived: DerivedValidationState,
+  layoutLookups: LayoutLookups,
+  groupNodeId: string,
+  row: RowContext,
+): string | undefined {
+  return getDerivedNodeDescendantIds(derived.nodes, groupNodeId, row.rowIndex).find((id) => {
+    const node = derived.nodeById.get(id);
+    if (!node || node.hidden || !node.isValid || !node.rowIds.includes(row.rowId)) {
+      return false;
+    }
+    const item = layoutLookups.getComponent(node.baseId);
+    return (
+      !('renderAsSummary' in item && item.renderAsSummary) && getComponentDef(item.type).category === CompCategory.Form
+    );
   });
 }

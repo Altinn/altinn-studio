@@ -429,7 +429,7 @@ export function getNodeRefValidations(
   mask: NodeVisibility,
   severity?: ValidationSeverity,
   includeHidden = false,
-  restriction?: number,
+  rowIndex?: number,
 ): NodeRefValidation[] {
   const node = derived.nodeById.get(nodeId);
   if (!node) {
@@ -442,7 +442,7 @@ export function getNodeRefValidations(
       baseComponentId: node.baseId,
       nodeId,
     })),
-    ...getRepeatingGroupRowValidations(derived, nodeId, mask, restriction, severity, includeHidden),
+    ...getRepeatingGroupRowValidations(derived, nodeId, mask, severity, includeHidden, rowIndex),
   ];
 }
 
@@ -458,20 +458,26 @@ export function getValidationDescendantIds(
   return getDerivedNodeDescendantIds(derived.nodes, nodeId, restriction);
 }
 
+interface DeepValidationQuery {
+  mask: NodeVisibility;
+  severity?: ValidationSeverity;
+  /** Includes the node's own messages, not only those of its rows and descendants. */
+  includeSelf: boolean;
+  /** Limits a repeating group to one of its rows. */
+  rowIndex?: number;
+}
+
 /** Includes object validations owned by rows without including the array's own messages in row-only scopes. */
 export function getDeepNodeRefValidations(
   derived: DerivedValidationState,
   nodeId: string,
-  mask: NodeVisibility,
-  includeSelf: boolean,
-  restriction?: number,
-  severity?: ValidationSeverity,
+  { mask, severity, includeSelf, rowIndex }: DeepValidationQuery,
 ): NodeRefValidation[] {
   return [
     ...(includeSelf
-      ? getNodeRefValidations(derived, nodeId, mask, severity, false, restriction)
-      : getRepeatingGroupRowValidations(derived, nodeId, mask, restriction, severity)),
-    ...getValidationDescendantIds(derived, nodeId, restriction).flatMap((id) =>
+      ? getNodeRefValidations(derived, nodeId, mask, severity, false, rowIndex)
+      : getRepeatingGroupRowValidations(derived, nodeId, mask, severity, false, rowIndex)),
+    ...getValidationDescendantIds(derived, nodeId, rowIndex).flatMap((id) =>
       getNodeRefValidations(derived, id, mask, severity),
     ),
   ];

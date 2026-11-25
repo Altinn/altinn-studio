@@ -21,7 +21,7 @@ import {
   getNodeRefValidations,
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
-import { getRepeatingGroupRowValidations } from 'src/features/validation/repeatingGroupRowValidations';
+import { hasRepeatingGroupRowErrors } from 'src/features/validation/repeatingGroupRowValidations';
 import { useAllNavigationParams } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -188,7 +188,7 @@ export function useVisibleValidationsDeep(
       includedPageKeys: pageKey ? [pageKey] : undefined,
       descendantScope: { nodeId: indexedId, includeSelf: true, restriction },
     });
-    return getDeepNodeRefValidations(derived, indexedId, mask, includeSelf, restriction, severity);
+    return getDeepNodeRefValidations(derived, indexedId, { mask, severity, includeSelf, rowIndex: restriction });
   });
 }
 
@@ -207,7 +207,7 @@ export function useVisibleValidationsDeepSelector() {
       severity?: ValidationSeverity,
     ): NodeRefValidation[] => {
       const freshDerived = buildFreshDerivedState();
-      return getDeepNodeRefValidations(freshDerived, indexedId, mask, includeSelf, restriction, severity);
+      return getDeepNodeRefValidations(freshDerived, indexedId, { mask, severity, includeSelf, rowIndex: restriction });
     },
     [buildFreshDerivedState],
   );
@@ -302,12 +302,7 @@ export function usePruneValidationMasks() {
             ([rowId, mask]) =>
               !(derived.nodeIdsByRowId.get(rowId) ?? emptyArray).some(
                 (nodeId) => getNodeRefValidations(derived, nodeId, mask, 'error').length > 0,
-              ) &&
-              ![...derived.repeatingGroupRowsByNode.keys()].some((nodeId) =>
-                getRepeatingGroupRowValidations(derived, nodeId, mask, undefined, 'error').some(
-                  (validation) => validation.repeatingGroupRow?.rowId === rowId,
-                ),
-              ),
+              ) && !hasRepeatingGroupRowErrors(derived, rowId, mask),
           )
           .map(([rowId]) => rowId)
       : emptyArray,
