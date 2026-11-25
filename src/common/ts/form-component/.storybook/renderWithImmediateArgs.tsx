@@ -23,7 +23,7 @@ export function renderWithImmediateArgs<TArgs extends Args>(
     const [pending, setPending] = useState<Partial<TArgs> | null>(null);
     const caughtUp =
       pending !== null &&
-      (Object.keys(pending) as (keyof TArgs)[]).every((key) => pending[key] === args[key]);
+      (Object.keys(pending) as (keyof TArgs)[]).every((key) => isSameArg(pending[key], args[key]));
     if (caughtUp) {
       setPending(null);
     }
@@ -43,4 +43,18 @@ export function renderWithImmediateArgs<TArgs extends Args>(
     const [, updateArgs] = useArgs<TArgs>();
     return <ImmediateArgs args={args} updateArgs={updateArgs} />;
   };
+}
+
+// Storybook rebuilds object and array args when it stores them, so those are compared by content.
+function isSameArg(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  return (
+    typeof a === 'object' &&
+    typeof b === 'object' &&
+    a !== null &&
+    b !== null &&
+    JSON.stringify(a) === JSON.stringify(b)
+  );
 }
