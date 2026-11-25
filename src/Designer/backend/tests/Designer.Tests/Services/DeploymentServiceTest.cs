@@ -1252,7 +1252,8 @@ public class DeploymentServiceTest : IDisposable
             _gitOpsConfigurationManager.Object,
             _apiKeyService.Object,
             _notificationService.Object,
-            _hostEnvironment.Object
+            _hostEnvironment.Object,
+            _metrics.Metrics
         );
 
         AltinnAuthenticatedRepoEditingContext authenticatedContext =

@@ -2,8 +2,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,8 +15,8 @@ using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Scheduling;
-using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -102,7 +102,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     public async Task Execute_UndeploySucceeded_SetsDeprecatedStatusInResourceRegistry()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
         SetupCompletedBuild(fixture, BuildResult.Succeeded);
 
@@ -120,7 +120,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     public async Task Execute_UndeploySucceeded_ResourceRegistryUpdateFails_StillPublishesCompletedEvent()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
         SetupCompletedBuild(fixture, BuildResult.Succeeded);
         fixture
@@ -157,7 +157,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     )
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(pipelineType);
         SetupCompletedBuild(fixture, buildResult);
 
@@ -181,7 +181,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     public async Task Execute_UndeploySucceeded_AppDeployedAgainAfterUndeploy_SkipsDeprecation()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
         DateTime undeployRequested = DateTime.UtcNow.AddMinutes(-10);
         SetupCompletedBuild(fixture, BuildResult.Succeeded, decommissionCreated: undeployRequested);
@@ -227,7 +227,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     public async Task Execute_UndeploySucceeded_LatestDeployBeforeUndeploy_SetsDeprecatedStatus()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
         DateTime undeployRequested = DateTime.UtcNow.AddMinutes(-10);
         SetupCompletedBuild(fixture, BuildResult.Succeeded, decommissionCreated: undeployRequested);
@@ -249,7 +249,7 @@ public class DeploymentPipelinePollingJobTest : IDisposable
     public async Task Execute_UndeploySucceeded_StorageUpdateFails_StillSetsDeprecatedStatusInResourceRegistry()
     {
         // Arrange
-        var fixture = Fixture.Create();
+        var fixture = Fixture.Create(_metrics.Metrics, _timeProvider);
         var jobExecutionContext = JobExecutionContextFactory(PipelineType.Undeploy);
         SetupCompletedBuild(fixture, BuildResult.Succeeded);
         fixture
