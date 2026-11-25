@@ -85,7 +85,6 @@ internal sealed class InternalizedServiceTypeDetector
         ["ProcessClient"] = new("Altinn.App.Core.Infrastructure.Clients.Storage", "IProcessClient"),
         ["ProcessNavigator"] = new("Altinn.App.Core.Internal.Process", "IProcessNavigator"),
         ["ProcessReader"] = new("Altinn.App.Core.Internal.Process", "IProcessReader"),
-        ["ProcessTaskDataLocker"] = new("Altinn.App.Core.Internal.Process.ProcessTasks", "IProcessTaskDataLocker"),
         ["ProfileClientCachingDecorator"] = new("Altinn.App.Core.Infrastructure.Clients.Profile", "IProfileClient"),
         ["ProfileClient"] = new("Altinn.App.Core.Infrastructure.Clients.Profile", "IProfileClient"),
         ["RegisterERClient"] = new("Altinn.App.Core.Infrastructure.Clients.Register", "IOrganizationClient"),

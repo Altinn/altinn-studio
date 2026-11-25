@@ -172,12 +172,9 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
-        if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: true)
-            is { } taskBindingConflict
-        )
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: true) is { } conflict)
         {
-            return Conflict(taskBindingConflict);
+            return conflict;
         }
 
         (VersionPreconditions preconditions, ActionResult versionError) =
@@ -649,12 +646,9 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
-        if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false)
-            is { } taskBindingConflict
-        )
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false) is { } conflict)
         {
-            return Conflict(taskBindingConflict);
+            return conflict;
         }
 
         (VersionPreconditions preconditions, ActionResult versionError) =
@@ -838,6 +832,14 @@ public class DataController : ControllerBase
             );
         }
 
+        // Storage reads the versions with the instance. Here they are two reads, and the versions come
+        // first so that they are never newer than the instance the checks use: a transition after this
+        // read stops the write.
+        InstanceVersionResult snapshotVersions = await _instanceRepository.ReadVersions(
+            instanceGuid,
+            cancellationToken
+        );
+
         (Instance instance, _, ActionResult instanceError) = await GetInstanceAsync(
             instanceGuid,
             instanceOwnerPartyId,
@@ -888,15 +890,13 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
-        if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false)
-            is { } taskBindingConflict
-        )
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false) is { } conflict)
         {
-            return Conflict(taskBindingConflict);
+            return conflict;
         }
 
-        if (dataElement.Locked)
+        bool taskBound = dataTypeDefinition.IsTaskBound();
+        if (dataElement.Locked && !taskBound)
         {
             return Conflict($"Data element {dataGuid} is locked and cannot be updated");
         }
@@ -911,6 +911,20 @@ public class DataController : ControllerBase
         if (versionError is not null)
         {
             return versionError;
+        }
+
+        if (
+            preconditions.ProcessStateVersion is not null
+            && preconditions.ProcessStateVersion != snapshotVersions.ProcessStateVersion
+        )
+        {
+            return VersionPreconditionHelper.VersionMismatch(
+                Response,
+                new ProcessStateVersionMismatchException(
+                    snapshotVersions.InstanceVersion,
+                    snapshotVersions.ProcessStateVersion
+                )
+            );
         }
 
         string currentBlobVersion = await _dataRepository.ReadCurrentBlobVersion(
@@ -1048,10 +1062,12 @@ public class DataController : ControllerBase
                 updatedProperties,
                 new DataElementUpdateContext
                 {
-                    IgnoreLock = false,
+                    IgnoreLock = taskBound,
                     ExpectedCurrentBlobVersion = expectedCurrentBlobVersion,
                     ExpectedInstanceVersion = preconditions.InstanceVersion,
-                    ExpectedProcessStateVersion = preconditions.ProcessStateVersion,
+                    ExpectedProcessStateVersion = taskBound
+                        ? snapshotVersions.ProcessStateVersion
+                        : preconditions.ProcessStateVersion,
                 },
                 cancellationToken
             );
@@ -1181,7 +1197,10 @@ public class DataController : ControllerBase
 
         if (dataElement.DataType != storedDataElement.DataType)
         {
-            return BadRequest("Mismatch between stored data type and dataElement content");
+            return Problem(
+                detail: "You can't change dataElement.DataType in an update request",
+                statusCode: StatusCodes.Status400BadRequest
+            );
         }
 
         (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(
@@ -1202,12 +1221,9 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
-        if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false)
-            is { } taskBindingConflict
-        )
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false) is { } conflict)
         {
-            return Conflict(taskBindingConflict);
+            return conflict;
         }
 
         (VersionPreconditions preconditions, ActionResult versionError) =

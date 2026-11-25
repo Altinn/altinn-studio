@@ -498,23 +498,26 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
     // --- RemovedInternalProcessTypeDetector ------------------------------------------------------
 
-    [Fact]
-    public void InternalProcessTypeDetector_FlagsRemovedHandlerReference()
+    [Theory]
+    [InlineData("EndTaskEventHandler", "task lifecycle handlers")]
+    [InlineData("IProcessTaskDataLocker", "taskIds")]
+    [InlineData("ProcessTaskDataLocker", "taskIds")]
+    public void InternalProcessTypeDetector_FlagsRemovedTypeWithItsOwnGuidance(string removedType, string guidance)
     {
         _app.Write(
             "logic/Custom.cs",
-            """
+            $$"""
             public class Custom
             {
-                private readonly EndTaskEventHandler _handler;
+                private readonly {{removedType}} _dependency;
             }
             """
         );
 
         var result = new RemovedInternalProcessTypeDetector(Scanner()).Detect();
 
-        Assert.NotEmpty(result.Todos);
-        Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
+        Assert.Contains(guidance, Assert.Single(result.Todos));
+        Assert.Contains(result.Warnings, w => w.Contains(removedType));
     }
 
     // --- LegacyCorrespondenceCodeDetector --------------------------------------------------------
