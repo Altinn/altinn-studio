@@ -477,8 +477,8 @@ public class DataController : ControllerBase
             );
         }
 
-        // LocalTest records the data type when the element is deleted. Until then a version is authorized by
-        // its element's data type.
+        // The repository supplies the data type of a live element, or the one recorded when the element was
+        // deleted. A version has none when its element was deleted before LocalTest recorded data types.
         string dataTypeId = blobVersion.DataType;
         if (dataTypeId is null)
         {

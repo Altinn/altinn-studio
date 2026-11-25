@@ -981,6 +981,16 @@ namespace LocalTest.Services.Storage.Implementation
                 return null;
             }
 
+            // The data type of a live element is read under the element lock, so that a delete cannot remove the
+            // element between this read and the caller's use of the data type.
+            string dataType = metadata.DataType;
+            string dataPath = GetDataPath(instanceId, dataId);
+            if (dataType is null && File.Exists(dataPath))
+            {
+                string dataElementContent = await ReadFileAsString(dataPath, cancellationToken);
+                dataType = JsonConvert.DeserializeObject<DataElement>(dataElementContent).DataType;
+            }
+
             // The sidecar holds no storage context. Every version of an instance is stored under the instance's
             // app and org.
             string instancePath = GetInstancePath(instanceGuid);
@@ -999,7 +1009,7 @@ namespace LocalTest.Services.Storage.Implementation
                 DataElementId = dataElementId,
                 AppId = instance.AppId,
                 BlobStorageOrg = instance.Org,
-                DataType = metadata.DataType,
+                DataType = dataType,
             };
         }
 

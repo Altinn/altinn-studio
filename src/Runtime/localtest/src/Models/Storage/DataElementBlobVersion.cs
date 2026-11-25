@@ -39,7 +39,7 @@ public sealed record DataElementBlobVersion
     public int? StorageAccountNumber { get; set; }
 
     /// <summary>
-    /// Gets or sets the data type recorded when the element was deleted, if known.
+    /// Gets or sets the data type of the owning data element, if known.
     /// </summary>
     public string? DataType { get; set; }
 }
