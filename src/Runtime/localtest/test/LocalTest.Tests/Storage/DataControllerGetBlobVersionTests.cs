@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace LocalTest.Tests.Storage;
@@ -47,23 +48,7 @@ public sealed class DataControllerGetBlobVersionTests
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
-        InstanceMutationResponse replaced = await Commit(
-            storage,
-            instance,
-            new InstanceMutationRequest
-            {
-                UpdateDataElements =
-                [
-                    new InstanceMutationUpdateDataElement
-                    {
-                        DataElementId = Guid.Parse(created.Id),
-                        ContentPartName = "replacement",
-                    },
-                ],
-            },
-            ("replacement", "second")
-        );
-        string currentBlobVersion = Assert.Single(replaced.Instance.Data).BlobVersionId;
+        string currentBlobVersion = await Replace(storage, instance, created, "second");
         Assert.NotEqual(created.BlobVersionId, currentBlobVersion);
 
         await AssertContent(
@@ -82,23 +67,7 @@ public sealed class DataControllerGetBlobVersionTests
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
-        InstanceMutationResponse replaced = await Commit(
-            storage,
-            instance,
-            new InstanceMutationRequest
-            {
-                UpdateDataElements =
-                [
-                    new InstanceMutationUpdateDataElement
-                    {
-                        DataElementId = Guid.Parse(created.Id),
-                        ContentPartName = "replacement",
-                    },
-                ],
-            },
-            ("replacement", "second")
-        );
-        string lastBlobVersion = Assert.Single(replaced.Instance.Data).BlobVersionId;
+        string lastBlobVersion = await Replace(storage, instance, created, "second");
         await Commit(storage, instance, Delete(created));
 
         await AssertContent(
@@ -118,7 +87,7 @@ public sealed class DataControllerGetBlobVersionTests
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
         await Commit(storage, instance, Delete(created));
-        DataController controller = CreateDataController(storage, AppOwner);
+        DataController controller = CreateDataController(storage, AppOwner, new Access());
         controller.Request.Headers[HeaderNames.IfMatch] = BlobVersionId.ToETag(
             created.BlobVersionId
         );
@@ -134,7 +103,7 @@ public sealed class DataControllerGetBlobVersionTests
     }
 
     [Fact]
-    public async Task GetBlobVersion_UnknownVersion_ReturnsNotFound()
+    public async Task GetBlobVersion_WhenVersionIsMissing_ReturnsNotFound()
     {
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
@@ -164,7 +133,7 @@ public sealed class DataControllerGetBlobVersionTests
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
 
-        ActionResult result = await CreateDataController(storage, AppOwner)
+        ActionResult result = await CreateDataController(storage, AppOwner, new Access())
             .GetBlobVersion(
                 PartyId(instance),
                 Guid.NewGuid(),
@@ -182,7 +151,11 @@ public sealed class DataControllerGetBlobVersionTests
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
-        ActionResult<DataElement> deleted = await CreateDataController(storage, AppOwner)
+        ActionResult<DataElement> deleted = await CreateDataController(
+                storage,
+                AppOwner,
+                new Access()
+            )
             .Delete(
                 PartyId(instance),
                 InstanceGuid(instance),
@@ -197,48 +170,49 @@ public sealed class DataControllerGetBlobVersionTests
         Assert.IsType<NotFoundObjectResult>(result);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("other")]
-    public async Task GetBlobVersion_FromAnyoneButTheServiceOwner_ReturnsForbid(string? org)
+    [Fact]
+    public async Task GetBlobVersion_WhenBlobIsMissing_ReturnsNotFound()
     {
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
-
-        ActionResult result = await GetBlobVersion(
-            storage,
-            instance,
-            created,
-            created.BlobVersionId,
-            org
+        string blobPath = Path.Combine(
+            storage.Root,
+            storage.Settings.BlobStorageFolder,
+            created.BlobStoragePath
         );
+        Assert.True(File.Exists(blobPath));
+        File.Delete(blobPath);
 
-        Assert.IsType<ForbidResult>(result);
+        ActionResult result = await GetBlobVersion(storage, instance, created, created.BlobVersionId);
+
+        Assert.IsType<NotFoundObjectResult>(result);
     }
 
     [Fact]
-    public async Task GetBlobVersion_WithoutReadAccessToTheInstance_ReturnsForbid()
+    public async Task GetBlobVersion_WithoutRecordedDataTypeOfDeletedElement_ReturnsNotFound()
     {
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
         DataElement created = await Create(storage, instance, "first");
-
-        ActionResult result = await GetBlobVersion(
-            storage,
-            instance,
-            created,
-            created.BlobVersionId,
-            denyInstanceRead: true
+        await Commit(storage, instance, Delete(created));
+        string metadataPath = storage.GetBlobVersionMetadataPath(
+            InstanceGuid(instance),
+            Guid.Parse(created.Id)
         );
+        JObject metadata = JObject.Parse(await File.ReadAllTextAsync(metadataPath));
+        Assert.True(metadata.Remove("DataType"));
+        await File.WriteAllTextAsync(metadataPath, metadata.ToString());
 
-        Assert.IsType<ForbidResult>(result);
+        ActionResult result = await GetBlobVersion(storage, instance, created, created.BlobVersionId);
+
+        Assert.IsType<NotFoundObjectResult>(result);
     }
 
     [Theory]
-    [InlineData(false)]
     [InlineData(true)]
-    public async Task GetBlobVersion_WithoutReadAccessToTheDataType_ReturnsForbid(bool elementDeleted)
+    [InlineData(false)]
+    public async Task GetBlobVersion_WhenDataTypeIsUnknown_ReturnsBadRequest(bool elementDeleted)
     {
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
@@ -253,11 +227,80 @@ public sealed class DataControllerGetBlobVersionTests
             instance,
             created,
             created.BlobVersionId,
-            denyRead: true
+            access: new Access(DataTypeDeclared: false)
+        );
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task GetBlobVersion_WhenDataTypeRequiresReadAction_AuthorizesRecordedOrFallbackDataType(
+        bool elementDeleted,
+        bool authorized
+    )
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        DataElement created = await Create(storage, instance, "first");
+        if (elementDeleted)
+        {
+            await Commit(storage, instance, Delete(created));
+        }
+
+        ActionResult result = await GetBlobVersion(
+            storage,
+            instance,
+            created,
+            created.BlobVersionId,
+            access: new Access(ReadActionRequired: true, ReadActionAllowed: authorized)
+        );
+
+        if (authorized)
+        {
+            await AssertContent(result, "first");
+        }
+        else
+        {
+            Assert.IsType<ForbidResult>(result);
+        }
+    }
+
+    [Theory]
+    [InlineData("other-org", true)]
+    [InlineData(null, true)]
+    [InlineData(AppOwner, false)]
+    public async Task GetBlobVersion_ForAnyoneButAuthorizedServiceOwner_ReturnsForbidden(
+        string? org,
+        bool instanceReadAllowed
+    )
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        DataElement created = await Create(storage, instance, "first");
+
+        ActionResult result = await GetBlobVersion(
+            storage,
+            instance,
+            created,
+            created.BlobVersionId,
+            org,
+            new Access(InstanceReadAllowed: instanceReadAllowed)
         );
 
         Assert.IsType<ForbidResult>(result);
     }
+
+    // What the application metadata declares and what the caller is authorized for.
+    private sealed record Access(
+        bool InstanceReadAllowed = true,
+        bool DataTypeDeclared = true,
+        bool ReadActionRequired = false,
+        bool ReadActionAllowed = false
+    );
 
     private static InstanceMutationRequest Delete(DataElement dataElement) =>
         new()
@@ -294,16 +337,42 @@ public sealed class DataControllerGetBlobVersionTests
         return response.Instance.Data.Single(dataElement => dataElement.Id == createdId);
     }
 
+    // Returns the blob version of the new content.
+    private static async Task<string> Replace(
+        LocalStorageFixture storage,
+        Instance instance,
+        DataElement dataElement,
+        string content
+    )
+    {
+        InstanceMutationResponse response = await Commit(
+            storage,
+            instance,
+            new InstanceMutationRequest
+            {
+                UpdateDataElements =
+                [
+                    new InstanceMutationUpdateDataElement
+                    {
+                        DataElementId = Guid.Parse(dataElement.Id),
+                        ContentPartName = "replacement",
+                    },
+                ],
+            },
+            ("replacement", content)
+        );
+        return Assert.Single(response.Instance.Data).BlobVersionId;
+    }
+
     private static Task<ActionResult> GetBlobVersion(
         LocalStorageFixture storage,
         Instance instance,
         DataElement dataElement,
         string blobVersionId,
         string? org = AppOwner,
-        bool denyRead = false,
-        bool denyInstanceRead = false
+        Access? access = null
     ) =>
-        CreateDataController(storage, org, denyRead, denyInstanceRead)
+        CreateDataController(storage, org, access ?? new Access())
             .GetBlobVersion(
                 PartyId(instance),
                 InstanceGuid(instance),
@@ -338,7 +407,7 @@ public sealed class DataControllerGetBlobVersionTests
             )
         );
 
-    private static IApplicationRepository ApplicationRepository(bool denyRead)
+    private static IApplicationRepository ApplicationRepository(Access access)
     {
         var applicationRepository = new Mock<IApplicationRepository>();
         applicationRepository
@@ -358,8 +427,8 @@ public sealed class DataControllerGetBlobVersionTests
                     [
                         new DataType
                         {
-                            Id = DataTypeId,
-                            ActionRequiredToRead = denyRead ? ReadAction : null,
+                            Id = access.DataTypeDeclared ? DataTypeId : "another-type",
+                            ActionRequiredToRead = access.ReadActionRequired ? ReadAction : null,
                         },
                     ],
                 }
@@ -367,8 +436,8 @@ public sealed class DataControllerGetBlobVersionTests
         return applicationRepository.Object;
     }
 
-    // Answers the read of the instance, denies the read action of the data type and fails on any other call.
-    private static IAuthorization Authorization(bool denyInstanceRead = false)
+    // Answers the read of the instance and the read action of the data type, and fails on any other call.
+    private static IAuthorization Authorization(Access access)
     {
         var authorization = new Mock<IAuthorization>(MockBehavior.Strict);
         authorization
@@ -380,7 +449,7 @@ public sealed class DataControllerGetBlobVersionTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(!denyInstanceRead);
+            .ReturnsAsync(access.InstanceReadAllowed);
         authorization
             .Setup(service =>
                 service.AuthorizeInstanceAction(
@@ -390,7 +459,7 @@ public sealed class DataControllerGetBlobVersionTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(false);
+            .ReturnsAsync(access.ReadActionAllowed);
         return authorization.Object;
     }
 
@@ -415,19 +484,18 @@ public sealed class DataControllerGetBlobVersionTests
     private static DataController CreateDataController(
         LocalStorageFixture storage,
         string? org,
-        bool denyRead = false,
-        bool denyInstanceRead = false
+        Access access
     ) =>
         new(
             storage.DataRepository,
             new BlobRepository(Options.Create(storage.Settings)),
             storage.InstanceRepository,
-            ApplicationRepository(denyRead),
+            ApplicationRepository(access),
             CreateDataService(storage),
             Mock.Of<IInstanceEventService>(),
             Options.Create(new GeneralSettings { Hostname = "localhost" }),
             Mock.Of<IOnDemandClient>(),
-            Authorization(denyInstanceRead)
+            Authorization(access)
         )
         {
             ControllerContext = new ControllerContext
@@ -476,13 +544,14 @@ public sealed class DataControllerGetBlobVersionTests
             httpContext.Request.Body = body;
         }
 
-        IAuthorization authorization = Authorization();
+        var access = new Access();
+        IAuthorization authorization = Authorization(access);
         var controller = new InstanceMutationsController(
             storage.DataRepository,
             new BlobRepository(Options.Create(storage.Settings)),
             storage.InstanceRepository,
             storage.MutationRepository,
-            ApplicationRepository(denyRead: false),
+            ApplicationRepository(access),
             CreateDataService(storage),
             InstanceEventService(),
             settings,

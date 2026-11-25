@@ -95,12 +95,12 @@ public interface IDataService
     );
 
     /// <summary>
-    /// Deletes the blob without a version of a data element whose metadata has already been deleted, best-effort.
+    /// Best-effort delete of the legacy non-versioned blob of data element metadata that has already been deleted.
     /// </summary>
     /// <remarks>
-    /// Aggregate mutations use this instead of <see cref="CleanupDeletedDataElementBlobs"/>, so that the blob
-    /// versions of the element stay readable for a workflow step that runs again. Storage removes those versions
-    /// seven days later. LocalTest never does, as it never removes a version that new content replaced.
+    /// Aggregate mutations use this operation to keep the element's original blob versions readable for workflow retries.
+    /// LocalTest has no orphan cleanup, so those detached versions stay. Legacy blobs have no blob-version
+    /// metadata, so they are deleted here.
     /// </remarks>
     Task DeleteLegacyDataElementBlob(
         Instance instance,

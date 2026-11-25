@@ -151,7 +151,15 @@ public sealed class DataServiceBlobCleanupTests
         );
         blobRepository.VerifyNoOtherCalls();
         Assert.Equal(
-            new DataElementBlobVersion(blobVersionId, dataElement.DataType),
+            new DataElementBlobVersion
+            {
+                Id = BlobVersionId.Decode(blobVersionId),
+                InstanceGuid = instanceGuid,
+                DataElementId = dataElementId,
+                AppId = instance.AppId,
+                BlobStorageOrg = instance.Org,
+                DataType = dataElement.DataType,
+            },
             await storage.DataRepository.ReadBlobVersion(instanceGuid, dataElementId, blobVersionId)
         );
     }

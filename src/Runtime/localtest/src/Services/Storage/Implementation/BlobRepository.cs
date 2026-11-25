@@ -38,6 +38,12 @@ public class BlobRepository : IBlobRepository
     )
     {
         string filePath = GetFilePath(blobStoragePath);
+        if (!File.Exists(filePath))
+        {
+            // Returning null because the blob does not exist.
+            return null;
+        }
+
         return await ReadFileAsStream(filePath);
     }
 

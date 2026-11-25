@@ -415,9 +415,10 @@ public class DataController : ControllerBase
     /// Gets the content of one blob version of a data element, for the instance's own service owner.
     /// </summary>
     /// <remarks>
-    /// The version may be the current one, one that new content replaced, or one that a deleted element left. An
-    /// aggregate mutation keeps the versions of an element it deletes; other deletes remove them at once. Reading a
-    /// version requires the same access to its data type as reading the element.
+    /// The version may be current, superseded, or belong to a deleted element. LocalTest has no orphan cleanup, so
+    /// detached versions remain readable. Aggregate mutations keep a deleted element's versions; other deletes remove
+    /// them immediately. Reading a version requires the same access to its data type as reading the element, using
+    /// the application's current metadata.
     /// </remarks>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
@@ -444,21 +445,20 @@ public class DataController : ControllerBase
             false,
             cancellationToken
         );
-        if (instance == null)
+        if (instance is null)
         {
             return instanceError;
         }
 
-        // Read access is checked here and not by the InstanceRead policy, which answers 403 for an instance that
-        // does not exist.
         if (
             User.GetOrg() != instance.Org
-            || !await _authorizationService.AuthorizeInstanceAction(
+            || await _authorizationService.AuthorizeInstanceAction(
                 instance,
                 "read",
                 instance.Process?.CurrentTask?.ElementId,
                 cancellationToken
             )
+                is false
         )
         {
             return Forbid();
@@ -470,30 +470,37 @@ public class DataController : ControllerBase
             blobVersionId,
             cancellationToken
         );
-        if (blobVersion?.DataType is null)
+        if (blobVersion is null)
         {
             return NotFound(
                 $"Unable to find blob version {blobVersionId} of data element {dataGuid}."
             );
         }
 
-        (Application application, ActionResult applicationError) = await GetApplicationAsync(
-            instance.AppId,
-            instance.Org,
-            cancellationToken
-        );
-        if (application == null)
+        // LocalTest records the data type when the element is deleted. Until then a version is authorized by
+        // its element's data type.
+        string dataTypeId = blobVersion.DataType;
+        if (dataTypeId is null)
         {
-            return applicationError;
+            (DataElement dataElement, ActionResult dataElementError) = await GetDataElementAsync(
+                instanceGuid,
+                dataGuid,
+                cancellationToken
+            );
+            if (dataElement is null)
+            {
+                return dataElementError;
+            }
+
+            dataTypeId = dataElement.DataType;
         }
 
         (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(
             instance,
-            blobVersion.DataType,
-            application,
-            cancellationToken
+            dataTypeId,
+            cancellationToken: cancellationToken
         );
-        if (dataTypeDefinition == null)
+        if (dataTypeDefinition is null)
         {
             return dataTypeError;
         }
@@ -506,27 +513,17 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
-        Stream dataStream;
-        try
-        {
-            dataStream = await _blobRepository.ReadBlob(
-                instance.Org,
-                BlobRepository.GetVersionedBlobPath(
-                    instance.AppId,
-                    instanceGuid.ToString(),
-                    blobVersionId
-                ),
-                application.StorageAccountNumber,
-                cancellationToken
-            );
-        }
-        catch (IOException exception)
-            when (exception is FileNotFoundException or DirectoryNotFoundException)
-        {
-            dataStream = null;
-        }
-
-        if (dataStream == null)
+        Stream dataStream = await _blobRepository.ReadBlob(
+            blobVersion.BlobStorageOrg,
+            BlobRepository.GetVersionedBlobPath(
+                blobVersion.AppId,
+                instanceGuid.ToString(),
+                blobVersionId
+            ),
+            blobVersion.StorageAccountNumber,
+            cancellationToken
+        );
+        if (dataStream is null)
         {
             return NotFound(
                 $"Unable to read blob version {blobVersionId} of data element {dataGuid}."

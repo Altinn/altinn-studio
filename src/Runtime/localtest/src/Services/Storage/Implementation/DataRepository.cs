@@ -959,6 +959,11 @@ namespace LocalTest.Services.Storage.Implementation
             CancellationToken cancellationToken = default
         )
         {
+            if (!BlobVersionId.TryDecode(blobVersionId, out Guid blobVersion))
+            {
+                return null;
+            }
+
             string instanceId = instanceGuid.ToString();
             string dataId = dataElementId.ToString();
             using IDisposable dataElementLock = await _dataElementLocks.Lock(
@@ -976,15 +981,26 @@ namespace LocalTest.Services.Storage.Implementation
                 return null;
             }
 
-            string dataType = metadata.DataType;
-            string dataPath = GetDataPath(instanceId, dataId);
-            if (dataType is null && File.Exists(dataPath))
+            // The sidecar holds no storage context. Every version of an instance is stored under the instance's
+            // app and org.
+            string instancePath = GetInstancePath(instanceGuid);
+            if (instancePath is null)
             {
-                string content = await ReadFileAsString(dataPath, cancellationToken);
-                dataType = JsonConvert.DeserializeObject<DataElement>(content).DataType;
+                return null;
             }
 
-            return new DataElementBlobVersion(blobVersionId, dataType);
+            string content = await File.ReadAllTextAsync(instancePath, cancellationToken);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(content);
+
+            return new DataElementBlobVersion
+            {
+                Id = blobVersion,
+                InstanceGuid = instanceGuid,
+                DataElementId = dataElementId,
+                AppId = instance.AppId,
+                BlobStorageOrg = instance.Org,
+                DataType = metadata.DataType,
+            };
         }
 
         public async Task<string> ReadCurrentBlobVersion(

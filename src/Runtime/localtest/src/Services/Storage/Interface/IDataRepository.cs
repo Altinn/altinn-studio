@@ -36,7 +36,7 @@ public interface IDataRepository
     /// <param name="instanceGuid">the instance guid as partitionKey</param>
     /// <param name="dataElementId">The data element guid</param>
     /// <param name="cancellationToken">A cancellation token to pass to async operations</param>
-    /// <returns>The identified data element, or null when there is none.</returns>
+    /// <returns>The identified data element.</returns>
     Task<DataElement> Read(
         Guid instanceGuid,
         Guid dataElementId,
@@ -154,23 +154,26 @@ public interface IDataRepository
     );
 
     /// <summary>
-    /// Reads blob versions that are no longer attached to data element metadata.
+    /// Reads the complete stored metadata for one blob version of a data element, attached or detached.
     /// </summary>
-    Task<IReadOnlyList<string>> ReadDetachedBlobVersions(
-        Guid instanceGuid,
-        Guid dataElementId,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Reads one blob version of a data element: the current one, one that new content replaced, or one that a
-    /// deleted element left.
-    /// </summary>
+    /// <param name="instanceGuid">The instance guid that owns the data element.</param>
+    /// <param name="dataElementId">The data element id.</param>
+    /// <param name="blobVersionId">The blob version id.</param>
+    /// <param name="cancellationToken">A cancellation token to pass to async operations</param>
     /// <returns>The blob version, or null when the data element has no such version.</returns>
     Task<DataElementBlobVersion> ReadBlobVersion(
         Guid instanceGuid,
         Guid dataElementId,
         string blobVersionId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Reads blob versions that are no longer attached to data element metadata.
+    /// </summary>
+    Task<IReadOnlyList<string>> ReadDetachedBlobVersions(
+        Guid instanceGuid,
+        Guid dataElementId,
         CancellationToken cancellationToken = default
     );
 

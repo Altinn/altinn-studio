@@ -823,7 +823,7 @@ public class InstanceMutationsController(
                 );
             }
 
-            // The blob versions stay, so that a workflow step that runs again can read them.
+            // Preserve versioned blobs for workflow retries. LocalTest has no orphan cleanup to reclaim them.
             foreach (DataElement dataElement in postCommitBlobCleanupDataElements)
             {
                 await _dataService.DeleteLegacyDataElementBlob(
