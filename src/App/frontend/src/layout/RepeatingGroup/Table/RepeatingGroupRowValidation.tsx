@@ -1,31 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { Button, Popover } from '@digdir/designsystemet-react';
-import {
-  CheckmarkCircleIcon,
-  ExclamationmarkTriangleIcon,
-  InformationSquareIcon,
-  XMarkIcon,
-  XMarkOctagonFillIcon,
-} from '@navikt/aksel-icons';
+import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation.module.css';
 import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
+import { getHighestSeverity, validationSeverityPresentation } from 'src/layout/RepeatingGroup/Table/validationSeverity';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
-
-export const validationSeverityPresentation = {
-  error: { Icon: XMarkOctagonFillIcon, color: 'danger' },
-  warning: { Icon: ExclamationmarkTriangleIcon, color: 'warning' },
-  info: { Icon: InformationSquareIcon, color: 'info' },
-  success: { Icon: CheckmarkCircleIcon, color: 'success' },
-} as const;
-
-const severityOrder: ValidationSeverity[] = ['error', 'warning', 'info', 'success'];
-export function getRowValidationSeverity(validations: NodeRefValidation[]): ValidationSeverity | undefined {
-  return severityOrder.find((severity) => validations.some((validation) => validation.severity === severity));
-}
 
 export function RepeatingGroupRowValidation({
   validations,
@@ -34,7 +17,7 @@ export function RepeatingGroupRowValidation({
   validations: NodeRefValidation[];
   index: number;
 }) {
-  const severity = getRowValidationSeverity(validations);
+  const severity = getHighestSeverity(validations);
   return severity ? (
     <RowValidationPopover
       validations={validations}

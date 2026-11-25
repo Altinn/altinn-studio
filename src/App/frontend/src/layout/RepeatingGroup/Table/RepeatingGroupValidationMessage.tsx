@@ -4,11 +4,13 @@ import { Link, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
+import { validationSeverityPresentation } from 'src/layout/RepeatingGroup/Table/validationSeverity';
 import utilClasses from 'src/styles/utils.module.css';
 import {
   DataModelLocationProviderFromNode,
   NestedDataModelLocationProviders,
 } from 'src/utils/layout/DataModelLocation';
+import { getRowDataModelReference } from 'src/utils/layout/rowContext';
 import type { NodeRefValidation } from 'src/features/validation';
 
 export function RepeatingGroupValidationMessage({
@@ -35,12 +37,7 @@ export function RepeatingGroupValidationMessage({
   const content = <LangReference reference={validation.message} />;
   const rowContext = validation.repeatingGroupRow;
   const message = rowContext ? (
-    <NestedDataModelLocationProviders
-      reference={{
-        dataType: rowContext.groupBinding.dataType,
-        field: `${rowContext.groupBinding.field}[${rowContext.rowIndex}]`,
-      }}
-    >
+    <NestedDataModelLocationProviders reference={getRowDataModelReference(rowContext)}>
       {content}
     </NestedDataModelLocationProviders>
   ) : (
@@ -51,7 +48,7 @@ export function RepeatingGroupValidationMessage({
     <ValidationMessage
       asChild
       data-size='md'
-      data-color={validation.severity === 'error' ? 'danger' : validation.severity}
+      data-color={validationSeverityPresentation[validation.severity].color}
     >
       <div>
         <span className={utilClasses.visuallyHidden}>

@@ -6,12 +6,9 @@ import cn from 'classnames';
 
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { GenericComponent } from 'src/layout/GenericComponent';
-import {
-  getRowValidationSeverity,
-  validationSeverityPresentation,
-} from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation.module.css';
 import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
+import { getHighestSeverity, validationSeverityPresentation } from 'src/layout/RepeatingGroup/Table/validationSeverity';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 
@@ -29,7 +26,7 @@ export function RepeatingGroupTableField({
   panelSeverity: ValidationSeverity | undefined;
 }) {
   const validations = useUnifiedValidationsForNode(baseComponentId);
-  const severity = getRowValidationSeverity(validations);
+  const severity = getHighestSeverity(validations);
   const presentation = severity ? validationSeverityPresentation[severity] : undefined;
   const arrowPresentation = panelSeverity ? validationSeverityPresentation[panelSeverity] : presentation;
 
@@ -71,7 +68,7 @@ export function RepeatingGroupTableField({
   );
 }
 
-export function RepeatingGroupTableMessages({
+export function RepeatingGroupMessagePanel({
   messages,
   columnSpan,
   index,
@@ -87,7 +84,7 @@ export function RepeatingGroupTableMessages({
     return null;
   }
 
-  const severity = getRowValidationSeverity(messages.map(({ validation }) => validation));
+  const severity = getHighestSeverity(messages.map(({ validation }) => validation));
   // A row with only field messages is a visual duplicate, so screen readers skip the whole row.
   const readableByScreenReaders = messages.some(({ renderedInTableCell }) => !renderedInTableCell);
 
@@ -101,7 +98,6 @@ export function RepeatingGroupTableMessages({
       <BaseTable.Cell
         colSpan={columnSpan}
         className={classes.messageCell}
-        style={{ paddingBlockStart: 'var(--ds-size-2)', paddingBlockEnd: 'var(--ds-size-4)' }}
       >
         <ul
           className={classes.messages}

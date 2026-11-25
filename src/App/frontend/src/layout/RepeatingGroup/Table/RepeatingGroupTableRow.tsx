@@ -28,22 +28,20 @@ import {
   useRepeatingGroupsFocusContext,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
-import {
-  getRowValidationSeverity,
-  RepeatingGroupRowValidation,
-} from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
+import { RepeatingGroupRowValidation } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
 import { useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import {
+  RepeatingGroupMessagePanel,
   RepeatingGroupTableField,
-  RepeatingGroupTableMessages,
 } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
+import { getHighestSeverity } from 'src/layout/RepeatingGroup/Table/validationSeverity';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { ValidationSeverity } from 'src/features/validation';
+import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 import type { CompTypes } from 'src/layout/layout';
 import type { RepeatingGroupPanelMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
 
@@ -58,6 +56,9 @@ export interface IRepeatingGroupTableRowProps {
   tableIds: string[];
   columnCount: number;
 }
+
+/** A stacked mobile row has one cell for its fields and one for its actions. */
+const MOBILE_ROW_CELL_COUNT = 2;
 
 function getEditButtonText(
   isEditing: boolean,
@@ -113,41 +114,30 @@ export function RepeatingGroupTableRow({
   const instanceLocked = FormStore.useIsInstanceLocked();
 
   const rowValidations = useDeepValidationsForNode(baseComponentId, false, index, true);
-  // Keep the existing background highlight for errors outside directly editable cells.
-  const tableEditingIds = tableItems
-    .filter((item) => shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns))
-    .map((item) => item.baseId);
-  // Field messages are the ones their own component renders in a table cell, so the panel's copy is only visual.
-  // Row-object messages have no cell copy, so the panel is where screen readers read them.
-  const panelMessages = rowValidations.flatMap((validation): RepeatingGroupPanelMessage[] => {
-    if (!mobileView && tableEditingIds.includes(validation.baseComponentId)) {
-      return [{ validation, renderedInTableCell: true }];
-    }
-    const isRowObjectMessage =
-      (config.edit?.mode === 'onlyTable' || tableEditingIds.length > 0) &&
-      validation.nodeId === ownerIndexedId &&
-      validation.repeatingGroupRow;
-    return isRowObjectMessage ? [{ validation, renderedInTableCell: false }] : [];
+  const editableIds = new Set(
+    tableItems
+      .filter((item) => shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns))
+      .map((item) => item.baseId),
+  );
+  const panelMessages = getPanelMessages({
+    rowValidations,
+    editableIds,
+    mobileView,
+    showsRowObjectMessages: config.edit?.mode === 'onlyTable' || editableIds.size > 0,
+    groupNodeId: ownerIndexedId,
   });
-  const inlineValidations = panelMessages.map(({ validation }) => validation);
-  const panelSeverity = getRowValidationSeverity(inlineValidations);
+  const panelSeverity = getHighestSeverity(panelMessages.map(({ validation }) => validation));
   const mobileTableItems = tableItems.filter(
     (item) =>
       !isEditingRow ||
       config.edit?.mode === 'onlyTable' ||
-      (shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) &&
-        config.tableColumns?.[item.baseId]?.showInExpandedEdit === false),
+      (editableIds.has(item.baseId) && config.tableColumns?.[item.baseId]?.showInExpandedEdit === false),
   );
+  // Keep the existing background highlight for errors outside directly editable cells.
   const rowHasErrors = rowValidations.some(
-    (validation) => validation.severity === 'error' && !tableEditingIds.includes(validation.baseComponentId),
+    (validation) => validation.severity === 'error' && !editableIds.has(validation.baseComponentId),
   );
   const editButtonText = getEditButtonText(isEditingRow, langTools, editButtonOpen, editButtonClose);
-  const validationIndicator = (
-    <RepeatingGroupRowValidation
-      validations={rowValidations}
-      index={index}
-    />
-  );
   const editElement = editButton !== false && displayEditColumn && (
     <EditElement
       mobileViewSmall={mobileView && mobileViewSmall}
@@ -162,8 +152,27 @@ export function RepeatingGroupTableRow({
     />
   );
 
+  const stackedActions = mobileView || useVerticalButtonLayout;
   const deleteButtonText = langAsString('general.delete');
   const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
+  const deleteElement = deleteButton !== false && displayDeleteColumn && (
+    <DeleteElement
+      index={index}
+      uuid={uuid}
+      isDeletingRow={isDeletingRow}
+      disabled={instanceLocked}
+      deleteButtonText={deleteButtonText}
+      langAsString={langAsString}
+    >
+      {compactButtons
+        ? isEditingRow
+          ? deleteButtonText
+          : null
+        : stackedActions
+          ? toggleDeletebuttonText
+          : deleteButtonText}
+    </DeleteElement>
+  );
 
   return (
     <>
@@ -176,7 +185,7 @@ export function RepeatingGroupTableRow({
       >
         {!mobileView ? (
           tableItems.map((item) =>
-            shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
+            editableIds.has(item.baseId) ? (
               <EditableCell
                 key={item.baseId}
                 index={index}
@@ -201,7 +210,7 @@ export function RepeatingGroupTableRow({
               spacing={6}
             >
               {mobileTableItems.map((item, i, { length }) =>
-                shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns) ? (
+                editableIds.has(item.baseId) ? (
                   <Flex
                     container
                     item
@@ -238,71 +247,112 @@ export function RepeatingGroupTableRow({
             </Flex>
           </BaseTable.Cell>
         ) : null}
-        {mobileView || useVerticalButtonLayout ? (
-          <BaseTable.ButtonCell
-            className={cn({ [classes.mobileTableCell]: mobileView })}
-            style={mobileView ? { verticalAlign: 'top' } : undefined}
-          >
-            <div
-              className={cn(classes.rowActions, { [classes.verticalActions]: useVerticalButtonLayout && !mobileView })}
-            >
-              {validationIndicator}
-              {editElement}
-              {deleteButton !== false && displayDeleteColumn && (
-                <DeleteElement
-                  index={index}
-                  uuid={uuid}
-                  isDeletingRow={isDeletingRow}
-                  disabled={instanceLocked}
-                  deleteButtonText={deleteButtonText}
-                  langAsString={langAsString}
-                >
-                  {compactButtons ? (isEditingRow ? deleteButtonText : null) : toggleDeletebuttonText}
-                </DeleteElement>
-              )}
-            </div>
-          </BaseTable.ButtonCell>
-        ) : (
-          <>
-            {displayEditColumn && (
-              <BaseTable.ButtonCell>
-                <div className={classes.rowActions}>
-                  {validationIndicator}
-                  {editElement}
-                </div>
-              </BaseTable.ButtonCell>
-            )}
-            {displayDeleteColumn && (
-              <BaseTable.ButtonCell>
-                <div className={classes.rowActions}>
-                  {!displayEditColumn && validationIndicator}
-                  {deleteButton !== false && (
-                    <DeleteElement
-                      index={index}
-                      uuid={uuid}
-                      isDeletingRow={isDeletingRow}
-                      disabled={instanceLocked}
-                      deleteButtonText={deleteButtonText}
-                      langAsString={langAsString}
-                    >
-                      {compactButtons ? (isEditingRow ? deleteButtonText : null) : deleteButtonText}
-                    </DeleteElement>
-                  )}
-                </div>
-              </BaseTable.ButtonCell>
-            )}
-            {!displayEditColumn && !displayDeleteColumn && (
-              <BaseTable.ButtonCell>{validationIndicator}</BaseTable.ButtonCell>
-            )}
-          </>
-        )}
+        <RowActionCells
+          stacked={stackedActions}
+          mobileView={mobileView}
+          verticalLayout={useVerticalButtonLayout}
+          displayEditColumn={displayEditColumn}
+          displayDeleteColumn={displayDeleteColumn}
+          validationIndicator={
+            <RepeatingGroupRowValidation
+              validations={rowValidations}
+              index={index}
+            />
+          }
+          editElement={editElement}
+          deleteElement={deleteElement}
+        />
       </BaseTable.Row>
-      <RepeatingGroupTableMessages
+      <RepeatingGroupMessagePanel
         messages={panelMessages}
-        columnSpan={mobileView ? 2 : tableItems.length + columnCount}
+        columnSpan={mobileView ? MOBILE_ROW_CELL_COUNT : tableItems.length + columnCount}
         index={index}
         className={isEditingRow ? classes.editingRow : undefined}
       />
+    </>
+  );
+}
+
+/**
+ * Field messages are the ones their own component renders in a table cell, so the panel's copy is only visual.
+ * Row-object messages have no cell copy, so the panel is where screen readers read them.
+ */
+function getPanelMessages({
+  rowValidations,
+  editableIds,
+  mobileView,
+  showsRowObjectMessages,
+  groupNodeId,
+}: {
+  rowValidations: NodeRefValidation[];
+  editableIds: Set<string>;
+  mobileView: boolean;
+  showsRowObjectMessages: boolean;
+  groupNodeId: string;
+}): RepeatingGroupPanelMessage[] {
+  return rowValidations.flatMap((validation): RepeatingGroupPanelMessage[] => {
+    if (!mobileView && editableIds.has(validation.baseComponentId)) {
+      return [{ validation, renderedInTableCell: true }];
+    }
+    const isRowObjectMessage =
+      showsRowObjectMessages && validation.nodeId === groupNodeId && validation.repeatingGroupRow;
+    return isRowObjectMessage ? [{ validation, renderedInTableCell: false }] : [];
+  });
+}
+
+function RowActionCells({
+  stacked,
+  mobileView,
+  verticalLayout,
+  displayEditColumn,
+  displayDeleteColumn,
+  validationIndicator,
+  editElement,
+  deleteElement,
+}: {
+  stacked: boolean;
+  mobileView: boolean;
+  verticalLayout: boolean;
+  displayEditColumn: boolean;
+  displayDeleteColumn: boolean;
+  validationIndicator: ReactNode;
+  editElement: ReactNode;
+  deleteElement: ReactNode;
+}) {
+  if (stacked) {
+    return (
+      <BaseTable.ButtonCell
+        className={cn({ [classes.mobileTableCell]: mobileView })}
+        style={mobileView ? { verticalAlign: 'top' } : undefined}
+      >
+        <div className={cn(classes.rowActions, { [classes.verticalActions]: verticalLayout && !mobileView })}>
+          {validationIndicator}
+          {editElement}
+          {deleteElement}
+        </div>
+      </BaseTable.ButtonCell>
+    );
+  }
+
+  return (
+    <>
+      {displayEditColumn && (
+        <BaseTable.ButtonCell>
+          <div className={classes.rowActions}>
+            {validationIndicator}
+            {editElement}
+          </div>
+        </BaseTable.ButtonCell>
+      )}
+      {displayDeleteColumn && (
+        <BaseTable.ButtonCell>
+          <div className={classes.rowActions}>
+            {!displayEditColumn && validationIndicator}
+            {deleteElement}
+          </div>
+        </BaseTable.ButtonCell>
+      )}
+      {!displayEditColumn && !displayDeleteColumn && <BaseTable.ButtonCell>{validationIndicator}</BaseTable.ButtonCell>}
     </>
   );
 }

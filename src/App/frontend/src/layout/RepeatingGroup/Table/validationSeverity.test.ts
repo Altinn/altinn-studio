@@ -1,16 +1,5 @@
-import { getRowValidationSeverity } from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation';
-import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
-
-function validation(severity: ValidationSeverity): NodeRefValidation {
-  return {
-    baseComponentId: 'field',
-    nodeId: 'field-0',
-    severity,
-    category: 0,
-    source: 'test',
-    message: { key: undefined, fallback: 'Message' },
-  };
-}
+import { getHighestSeverity } from 'src/layout/RepeatingGroup/Table/validationSeverity';
+import type { ValidationSeverity } from 'src/features/validation';
 
 it.each([
   { severities: [], expected: undefined },
@@ -22,6 +11,6 @@ it.each([
 ] satisfies { severities: ValidationSeverity[]; expected: ValidationSeverity | undefined }[])(
   'shows $expected for $severities',
   ({ severities, expected }) => {
-    expect(getRowValidationSeverity(severities.map(validation))).toBe(expected);
+    expect(getHighestSeverity(severities.map((severity) => ({ severity })))).toBe(expected);
   },
 );

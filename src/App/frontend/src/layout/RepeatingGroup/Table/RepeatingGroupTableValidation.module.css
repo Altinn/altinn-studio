@@ -52,8 +52,10 @@
   height: 1.25em;
 }
 
-.messageRow > .messageCell {
+/* The repeated class outranks the table looks' cell padding, such as `.table.cellPaddingMedium > tbody > tr > td`. */
+.messageRow.messageRow > .messageCell {
   vertical-align: top;
+  padding-block: var(--ds-size-2) var(--ds-size-4);
 }
 
 .messages {

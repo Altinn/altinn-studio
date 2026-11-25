@@ -80,6 +80,7 @@ export function RepeatingGroupTable(): JSX.Element | null {
   }
   const useVerticalButtonLayout = config.edit?.buttonLayout === 'vertical';
   // Reserve an action cell even when editing/deleting is disabled so validation stays discoverable.
+  const onlyValidationColumn = !displayEditColumn && !displayDeleteColumn;
   const columnCount = useVerticalButtonLayout
     ? 1
     : Math.max(1, Number(displayEditColumn) + Number(displayDeleteColumn));
@@ -160,43 +161,25 @@ export function RepeatingGroupTable(): JSX.Element | null {
               </DataModelLocationProvider>
               {useVerticalButtonLayout ? (
                 <BaseTable.HeaderCell style={{ padding: 0 }}>
-                  {!displayEditColumn && !displayDeleteColumn && (
-                    <span className={utilClasses.visuallyHidden}>
-                      <Lang id='group.row_validation_messages' />
-                    </span>
-                  )}
-                  {displayEditColumn && (
-                    <span className={utilClasses.visuallyHidden}>
-                      <Lang id='general.edit' />
-                    </span>
-                  )}
-                  {displayDeleteColumn && (
-                    <span className={utilClasses.visuallyHidden}>
-                      <Lang id='general.delete' />
-                    </span>
-                  )}
+                  {onlyValidationColumn && <HiddenHeaderText id='group.row_validation_messages' />}
+                  {displayEditColumn && <HiddenHeaderText id='general.edit' />}
+                  {displayDeleteColumn && <HiddenHeaderText id='general.delete' />}
                 </BaseTable.HeaderCell>
               ) : (
                 <>
                   {displayEditColumn && (
                     <BaseTable.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
-                      <span className={utilClasses.visuallyHidden}>
-                        <Lang id='general.edit' />
-                      </span>
+                      <HiddenHeaderText id='general.edit' />
                     </BaseTable.HeaderCell>
                   )}
-                  {!displayEditColumn && !displayDeleteColumn && (
+                  {onlyValidationColumn && (
                     <BaseTable.HeaderCell style={{ padding: 0 }}>
-                      <span className={utilClasses.visuallyHidden}>
-                        <Lang id='group.row_validation_messages' />
-                      </span>
+                      <HiddenHeaderText id='group.row_validation_messages' />
                     </BaseTable.HeaderCell>
                   )}
                   {displayDeleteColumn && (
                     <BaseTable.HeaderCell style={{ padding: 0 }}>
-                      <span className={utilClasses.visuallyHidden}>
-                        <Lang id='general.delete' />
-                      </span>
+                      <HiddenHeaderText id='general.delete' />
                     </BaseTable.HeaderCell>
                   )}
                 </>
@@ -364,5 +347,13 @@ function TitleCell({
         columnSettings={columnSettings}
       />
     </BaseTable.HeaderCell>
+  );
+}
+
+function HiddenHeaderText({ id }: { id: string }) {
+  return (
+    <span className={utilClasses.visuallyHidden}>
+      <Lang id={id} />
+    </span>
   );
 }
