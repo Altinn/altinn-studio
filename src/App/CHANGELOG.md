@@ -21,6 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return `void`, and `Build()` is removed. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Breaking: `IServiceTaskReplyForwarder.ForwardReply` takes `replyAddressId`, `ServiceTaskReplyForwardException.MailboxId` is renamed `ReplyAddressId`, and `ServiceTaskReplyForwardOutcome.MailboxFull` is renamed `TooManyReplies`. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Each stage of a service task runs in a workflow of its own, listed as `Service task stage` after the first in the workflow engine and Studio's admin panel. A task no longer stalls when a redeploy adds a stage while it runs. ([#22101](https://github.com/Altinn/altinn-studio/pull/22101))
+- A Fiks Arkiv task fails after one day without a receipt from the archive, where it waited seven, and Fiks IO keeps its message for the archive one day, where it kept it two. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 
 ### Removed
 

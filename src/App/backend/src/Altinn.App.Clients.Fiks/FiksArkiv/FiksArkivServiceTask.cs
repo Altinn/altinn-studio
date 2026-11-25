@@ -31,10 +31,11 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     private readonly FiksArkivSettings _fiksArkivSettings;
 
     /// <summary>
-    /// How long the reply address accepts the archive's answers. Seven days covers a holiday weekend plus working
-    /// days either side.
+    /// How long the reply address accepts the archive's answers.
     /// </summary>
-    internal static readonly TimeSpan ArchiveReplyTimeout = TimeSpan.FromDays(7);
+    // The archive answers within minutes when it is up. After a day without a receipt, failing the task so someone
+    // looks beats leaving the instance waiting.
+    internal static readonly TimeSpan ArchiveReplyTimeout = TimeSpan.FromDays(1);
 
     public string Type => AltinnTaskTypes.FiksArkiv;
 

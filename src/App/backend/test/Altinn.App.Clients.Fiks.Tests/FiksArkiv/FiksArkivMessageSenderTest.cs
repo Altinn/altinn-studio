@@ -152,7 +152,7 @@ public class FiksArkivMessageSenderTest
         Assert.Equal(_replyAddress.ToString(), sentRequest.CorrelationId);
         Assert.Equal(Guid.Parse("120ec76a-c73b-43f7-957b-1450422c32b3"), sentRequest.Recipient);
         Assert.Equal(workflowStepId, sentRequest.SendersReference);
-        Assert.Equal(TimeSpan.FromDays(2), sentRequest.MessageLifetime);
+        Assert.Equal(FiksArkivMessageSender.ArchiveMessageLifetime, sentRequest.MessageLifetime);
         Assert.NotSame(generatedArchivePayload, sentRequest.Payload.ElementAt(1));
         Assert.Equal("dummy"u8.ToArray(), stagedArchiveRecord?.ToArray());
         Assert.Equal("dummy"u8.ToArray(), sentArchiveRecord);

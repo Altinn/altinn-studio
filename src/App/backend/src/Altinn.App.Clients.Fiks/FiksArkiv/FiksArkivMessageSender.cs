@@ -13,6 +13,13 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 
 internal sealed class FiksArkivMessageSender : IFiksArkivMessageSender
 {
+    /// <summary>
+    /// How long Fiks IO keeps a message for the archive to fetch.
+    /// </summary>
+    // A day, like the task's reply timeout: a message the archive fetches later is answered after the task has
+    // given up on it.
+    internal static readonly TimeSpan ArchiveMessageLifetime = TimeSpan.FromDays(1);
+
     private readonly ILogger<FiksArkivMessageSender> _logger;
     private readonly IFiksIOClient _fiksIOClient;
     private readonly Telemetry? _telemetry;
@@ -107,7 +114,7 @@ internal sealed class FiksArkivMessageSender : IFiksArkivMessageSender
                 Recipient: recipient.AccountId,
                 MessageType: messageType,
                 SendersReference: sendersReference,
-                MessageLifetime: TimeSpan.FromDays(2),
+                MessageLifetime: ArchiveMessageLifetime,
                 Payload: messagePayloads,
                 // klientKorrelasjonsId is the one field Fiks IO echoes on every reply, so the reply address
                 // rides here.

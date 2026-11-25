@@ -39,7 +39,7 @@ public class FiksArkivServiceTaskTest
 
         // The send and every reply are one item: replies run at the send's index, and nothing follows them.
         var stage = Assert.IsType<ServiceTaskItem.ExternalStage>(Assert.Single(pipeline.Items));
-        Assert.Equal(TimeSpan.FromDays(7), stage.Timeout);
+        Assert.Equal(FiksArkivServiceTask.ArchiveReplyTimeout, stage.Timeout);
         Assert.Null(stage.StepOptions);
 
         // The composed timeout handler is the task's own, not the runtime's default failure.
