@@ -54,6 +54,20 @@ internal sealed partial class AppFiles(AppFolder folder)
 
     public JsonNode? Footer() => ReadJson("App/ui/footer.json");
 
+    public string? StartPage() => ReadText("App/views/Home/Index.cshtml");
+
+    public JsonNode? LayoutSets() => ReadJson("App/ui/layout-sets.json");
+
+    public JsonNode? LayoutSettings(string layoutSet) => ReadJson($"App/ui/{layoutSet}/Settings.json");
+
+    public JsonNode? RuleConfiguration(string layoutSet) => ReadJson($"App/ui/{layoutSet}/RuleConfiguration.json");
+
+    public string? RuleHandler(string layoutSet) => ReadText($"App/ui/{layoutSet}/RuleHandler.js");
+
+    public JsonNode? ExpressionValidation(string dataType) => ReadJson($"App/models/{dataType}.validation.json");
+
+    public JsonNode? OptionsList(string optionsId) => ReadJson($"App/options/{optionsId}.json");
+
     /// <summary>The layouts of a UI folder, by page name, or <c>null</c> when there is no such folder.</summary>
     public IReadOnlyDictionary<string, JsonNode?>? Layouts(string uiFolder)
     {
@@ -126,6 +140,18 @@ internal sealed partial class AppFiles(AppFolder folder)
         {
             return null;
         }
+    }
+
+    private string? ReadText(string path)
+    {
+        using Stream? file = folder.OpenRead(path);
+        if (file is null)
+        {
+            return null;
+        }
+
+        using var reader = new StreamReader(file);
+        return reader.ReadToEnd();
     }
 
     private XDocument? ReadXml(string path)

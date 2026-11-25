@@ -31,6 +31,23 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
 
+## v8 apps
+
+Preview serves a v8 app's own page, `App/views/Home/Index.cshtml`, which loads the app frontend the page names. The
+mock user, the instances and the process are the same as for a v9 app.
+
+- Preview never runs the page as Razor, since that would run code from the repository in the service. It writes the
+  org and the app where the page has `@ViewBag.Org` and `@ViewBag.App`, and leaves any other Razor as text.
+- The page's own script takes `window.org` and `window.app` from the first two segments of the path, which in preview
+  are the session ID and the org. Preview adds a [script](src/Altinn.Studio.Preview/AppApi/V8IndexPage.cs) that runs
+  first and sets both so that the page can't change them. The frontend's requests then carry the session ID, as a v9
+  app's do.
+- The frontend keeps its routes in the URL's fragment, so only the app's root serves the page.
+- The frontend reads the app's files one request at a time, where the v9 frontend gets them with the page and the
+  form. It decides which of the backend's features to use from the app library version in the application metadata,
+  so preview names the version the app references.
+- A code list that the app makes in code is empty, since preview doesn't run the app.
+
 ## Security rules
 
 - Only Designer reaches the internal port, because it starts a session for whichever developer the caller names.

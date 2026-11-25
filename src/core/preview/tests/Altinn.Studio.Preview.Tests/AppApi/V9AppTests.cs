@@ -90,9 +90,9 @@ public sealed class V9AppTests : IDisposable
     }
 
     [Fact]
-    public async Task Page_IsNotFound_ForAnAppBeforeV9()
+    public async Task Page_IsNotFound_ForAnAppBeforeV8()
     {
-        RepositoryRoot.AddFile(_workingCopy, "App/App.csproj", Project("8.12.15"));
+        RepositoryRoot.AddFile(_workingCopy, "App/App.csproj", Project("7.16.0"));
         Uri appRoot = await StartSession();
 
         using HttpResponseMessage response = await Get(appRoot);

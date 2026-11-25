@@ -63,26 +63,34 @@ internal static class PreviewEndpoints
             }
         }
 
-        if (!IsPageRoute(path))
+        var files = new AppFiles(session.Folder);
+        string? appLibVersion = files.AppLibVersion();
+        string? page = AppGenerations.Of(appLibVersion) switch
         {
-            return Results.NotFound();
-        }
-
-        string? page = IndexPage.Generate(
-            new AppFiles(session.Folder),
-            session.Id,
-            session.Session.WorkingCopy,
-            options.Value.StudioOrigin,
-            context.Request.Query["lang"]
-        );
+            AppGeneration.V9 when appLibVersion is not null && IsV9PageRoute(path) => IndexPage.Generate(
+                files,
+                appLibVersion,
+                session.Id,
+                session.Session.WorkingCopy,
+                options.Value.StudioOrigin,
+                context.Request.Query["lang"]
+            ),
+            AppGeneration.V8 when string.IsNullOrEmpty(path) => V8IndexPage.Generate(
+                files,
+                session.Id,
+                session.Session.WorkingCopy
+            ),
+            _ => null,
+        };
         return page is null ? Results.NotFound() : Results.Content(page, "text/html; charset=utf-8");
     }
 
     /// <summary>
-    /// Whether a path can be one of the frontend's routes, such as <c>instance/{partyId}/{instanceGuid}/{taskId}</c>
-    /// or a stateless page's name. Those have no file extension and aren't in the API.
+    /// Whether a path can be one of the v9 frontend's routes, such as
+    /// <c>instance/{partyId}/{instanceGuid}/{taskId}</c> or a stateless page's name. Those have no file extension and
+    /// aren't in the API. The v8 frontend keeps its routes in the URL's fragment, so its page has the app's root only.
     /// </summary>
-    private static bool IsPageRoute(string? path)
+    private static bool IsV9PageRoute(string? path)
     {
         if (string.IsNullOrEmpty(path))
         {

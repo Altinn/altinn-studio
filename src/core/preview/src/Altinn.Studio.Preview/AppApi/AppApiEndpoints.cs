@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Http.Features;
 namespace Altinn.Studio.Preview.AppApi;
 
 /// <summary>
-/// The app backend's API, as the v9 app frontend calls it, for the session's working copy. Storage, the platform and
-/// the user are mocks: the instances and their form data are the session's state, and the user is
+/// The app backend's API, as the v8 and v9 app frontends call it, for the session's working copy. Storage, the
+/// platform and the user are mocks: the instances and their form data are the session's state, and the user is
 /// <see cref="MockUser"/>, who may do everything.
 /// </summary>
 /// <remarks>
 /// The routes are the app backend's, below <c>/{sessionId}/{org}/{app}</c>. They need the session that
 /// <see cref="SessionFilter"/> finds, so they belong to the public port's group.
 /// </remarks>
-internal static class AppApiEndpoints
+internal static partial class AppApiEndpoints
 {
     private const string Instance = "/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}";
 
@@ -34,6 +34,7 @@ internal static class AppApiEndpoints
         app.MapGet(Instance + "/bootstrap-form/{uiFolder}", GetFormBootstrap);
         app.MapPatch(Instance + "/data", PatchFormData);
         app.MapPut(Instance + "/process/next", MoveProcessNext);
+        MapWhatOnlyTheV8FrontendCalls(app);
         return app;
     }
 
@@ -148,13 +149,39 @@ internal static class AppApiEndpoints
         );
     }
 
-    private static async Task<IResult> PatchFormData(
+    private static Task<IResult> PatchFormData(
         HttpContext context,
         ISessionStore sessionStore,
         TimeProvider timeProvider,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         MultiPatchRequest request,
+        CancellationToken cancellationToken
+    ) =>
+        Patch(
+            context,
+            sessionStore,
+            timeProvider,
+            instanceOwnerPartyId,
+            instanceGuid,
+            [.. request.Patches.Select(item => (item.DataElementId, item.Patch))],
+            (instance, newData) =>
+                new MultiPatchResponse(
+                    [],
+                    [.. newData.Select(data => new DataModelPair(data.Key, data.Value))],
+                    instance
+                ),
+            cancellationToken
+        );
+
+    private static async Task<IResult> Patch<TResponse>(
+        HttpContext context,
+        ISessionStore sessionStore,
+        TimeProvider timeProvider,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        IReadOnlyList<(Guid DataElementId, JsonPatch Patch)> patches,
+        Func<Instance, IReadOnlyDictionary<Guid, JsonNode?>, TResponse> response,
         CancellationToken cancellationToken
     )
     {
@@ -165,14 +192,7 @@ internal static class AppApiEndpoints
             Session(context).Id,
             state =>
                 FindIn(state, instanceOwnerPartyId, instanceGuid) is { } instance
-                    ? (
-                        instance.Instance,
-                        MockInstances.Patch(
-                            instance,
-                            [.. request.Patches.Select(item => (item.DataElementId, item.Patch))],
-                            timeProvider.GetUtcNow()
-                        )
-                    )
+                    ? (instance.Instance, MockInstances.Patch(instance, patches, timeProvider.GetUtcNow()))
                     : null,
             cancellationToken
         );
@@ -181,18 +201,9 @@ internal static class AppApiEndpoints
             return Results.NotFound();
         }
 
-        if (outcome.NewData is not { } newData)
-        {
-            return Results.Problem(title: outcome.Error, statusCode: StatusCodes.Status409Conflict);
-        }
-
-        return Results.Json(
-            new MultiPatchResponse(
-                [],
-                [.. newData.Select(data => new DataModelPair(data.Key, data.Value))],
-                instanceAfter
-            )
-        );
+        return outcome.NewData is { } newData
+            ? Results.Json(response(instanceAfter, newData))
+            : Results.Problem(title: outcome.Error, statusCode: StatusCodes.Status409Conflict);
     }
 
     private static async Task<IResult> MoveProcessNext(
@@ -201,7 +212,8 @@ internal static class AppApiEndpoints
         TimeProvider timeProvider,
         int instanceOwnerPartyId,
         Guid instanceGuid,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        bool returnInstance = false
     )
     {
         AppDefinition app = AppDefinition.Read(Files(context));
@@ -218,9 +230,14 @@ internal static class AppApiEndpoints
             return Results.NotFound();
         }
 
-        return moved
+        if (!moved)
+        {
+            return Results.Problem(title: "The process has no task to end.", statusCode: StatusCodes.Status409Conflict);
+        }
+
+        return returnInstance
             ? Results.Json(EnrichedInstance.From(instance, app.Process))
-            : Results.Problem(title: "The process has no task to end.", statusCode: StatusCodes.Status409Conflict);
+            : Results.Json(EnrichedProcess.From(instance.Process, app.Process));
     }
 
     private static async Task<MockInstance?> Find(
