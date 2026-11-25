@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models.UserAction;
+using Altinn.App.logic.Validation;
 using Altinn.App.Models;
 
 namespace Altinn.App.Actions;
@@ -20,19 +21,19 @@ public class GeneratePetsAction : IUserAction
         {
             data.Pets =
             [
-                new Pet { UniqueId = "validation-showcase-balder", Name = "Balder", Species = "Dog", Age = 4 },
-                new Pet { UniqueId = "validation-showcase-maja", Name = "Maja", Species = "Cat", Age = 2 },
-                new Pet { UniqueId = "validation-showcase-luna", Name = "Luna", Species = "Rabbit", Age = 3 },
-                new Pet { UniqueId = "validation-showcase-felix", Name = "Felix", Species = "Cat", Age = 5 },
-                new Pet { UniqueId = "validation-showcase-milo", Name = "Milo", Species = "Dog", Age = 12 },
-                new Pet { UniqueId = "validation-showcase-saga", Name = "Saga", Species = "Dog", Age = 7 },
-                new Pet { UniqueId = "validation-showcase-nala", Name = "Nala", Species = "Cat", Age = 6 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}balder", Name = "Balder", Species = "Dog", Age = 4 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}maja", Name = "Maja", Species = "Cat", Age = 2 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}luna", Name = "Luna", Species = "Rabbit", Age = 3 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}felix", Name = "Felix", Species = "Cat", Age = 5 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}milo", Name = "Milo", Species = "Dog", Age = 12 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}saga", Name = "Saga", Species = "Dog", Age = 7 },
+                new Pet { UniqueId = $"{RepeatingGroupShowcaseValidator.ExampleIdPrefix}nala", Name = "Nala", Species = "Cat", Age = 6 },
             ];
             data.Endringsmeldinggrp9786 ??= new();
             data.Endringsmeldinggrp9786.Avgivergrp9787 ??= new();
             data.Endringsmeldinggrp9786.Avgivergrp9787.OppgavegiverNavndatadef68 = new()
             {
-                value = "fields",
+                value = RepeatingGroupShowcaseValidator.FieldMessages,
             };
             return UserActionResult.SuccessResult([]);
         }
