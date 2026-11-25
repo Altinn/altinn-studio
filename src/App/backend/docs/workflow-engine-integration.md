@@ -128,8 +128,7 @@ The gateways also run as the service owner, through the data accessor they are g
   share the acquire workflow, and the first request's language applies to the whole chain.
 - A retried callback can enqueue its continuation with different signed state, such as after an app code rotation or a
   Storage replay. The engine answers 409, and the app accepts the existing continuation when exactly one matches its
-  key, source task visit and parent. A service task's receive and continuation workflows recover the same way, by key,
-  operation ID and parent.
+  key, source task visit and parent.
 
 ## Concurrent requests
 
@@ -292,5 +291,7 @@ app does not guard against it. Names would not help either, since a redeploy can
 - An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
   after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
   workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).
+- The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox
+  exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
   and never succeed.
