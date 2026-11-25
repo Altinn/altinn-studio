@@ -570,6 +570,27 @@ BEHAVIORS = (
         see=("build.reaches-terminal-state",),
     ),
     *_per_template(
+        "commits-an-app",
+        "build",
+        text="The build commits an app instead of stopping to ask",
+        checks="A session branch exists after the workflow. Without one, the comment keeps what the assistant said.",
+        blind=(
+            "A question can be the right answer to an unclear goal, and this score cannot tell a good question from a "
+            "refusal. Read the comment. The other build scores leave out a build without an app."
+        ),
+        evaluator="bench_built",
+        fix=Fix(
+            kind="coverage",
+            title="A stop is counted, not judged",
+            task=(
+                "Read why each build stopped. Make the goal clear when the goal caused the stop, and file an issue "
+                "when the assistant did."
+            ),
+            acceptance="Each stop in a run is fixed in the goal or filed as an issue.",
+        ),
+        see=("build.completes-the-workflow-{v}",),
+    ),
+    *_per_template(
         "entry-page-renders",
         "build",
         text="The first page of the generated app renders",

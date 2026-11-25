@@ -33,10 +33,12 @@ DEFAULT_RENDER_FIX_ROUNDS = 1
 STRUCTURAL_SCORE_NAMES = (*evaluators.SCORE_NAMES, *app_checks.SCORE_NAMES)
 
 COMPLETED_SCORE_NAME = "bench_completed"
+BUILT_SCORE_NAME = "bench_built"
 
 # Emitted here, not in preview_check, because only the task knows a fix round ran.
 SCORE_NAMES = (
     COMPLETED_SCORE_NAME,
+    BUILT_SCORE_NAME,
     preview_check.RENDER_FIX_ROUNDS_SCORE_NAME,
     preview_check.PAGES_RENDER_AFTER_FIX_SCORE_NAME,
 )
@@ -271,9 +273,8 @@ class AgentTask:
         ]
         with tempfile.TemporaryDirectory(prefix="assistant-bench-") as tmp:
             clone = clone_result_branch(app, session_id, Path(tmp))
-            if clone is None:
-                scores.extend(self._unbuilt_scores())
-            else:
+            scores.append(_built_score(clone is not None, status))
+            if clone is not None:
                 scores.extend(self._score_app(clone, rubric, session_id, Path(tmp)))
 
         for score in scores:
@@ -302,22 +303,6 @@ class AgentTask:
     def _repo(self) -> str:
         app = self.bench_app()
         return f"{app.org}/{app.app}"
-
-    def _unbuilt_scores(self) -> list[Score]:
-        """No branch means no app; zeros keep the item in every denominator."""
-        comment = "no committed session branch to evaluate"
-        names = list(STRUCTURAL_SCORE_NAMES)
-        if preview_check.is_enabled():
-            names += [n for n in preview_check.SCORE_NAMES if n not in names]
-        return [
-            Score(
-                name=name,
-                value=0.0,
-                data_type="BOOLEAN" if name in _BOOLEAN_SCORES else "NUMERIC",
-                comment=comment,
-            )
-            for name in names
-        ]
 
     def _score_app(self, clone: Path, rubric: dict, session_id: str, workdir: Path) -> list[Score]:
         app = load_app(clone)
@@ -367,11 +352,16 @@ class AgentTask:
         return results, rounds
 
 
-_BOOLEAN_SCORES = {
-    "bench_pages",
-    "bench_navigation",
-    preview_check.RENDERS_SCORE_NAME,
-}
+def _built_score(built: bool, status: dict) -> Score:
+    """Whether the build committed an app. Without one there is nothing to score, so a build that stops to ask is
+    this one failure, not a zero on every other score. The comment keeps what the assistant said instead."""
+    said = ((status.get("last_message") or {}).get("content") or "").strip().replace("\n", " ")
+    return Score(
+        name=BUILT_SCORE_NAME,
+        value=1.0 if built else 0.0,
+        data_type="BOOLEAN",
+        comment="committed a session branch" if built else f"no session branch. The assistant said: {said[:400]}",
+    )
 
 
 def experiment_id(run_name: str, dataset_id: str) -> str:

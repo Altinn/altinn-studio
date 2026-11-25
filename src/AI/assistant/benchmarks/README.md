@@ -35,7 +35,8 @@ The rubric in `expectedOutput` holds what the goal asks for: field titles, value
 by its title, so two runs can use different IDs and paths. [app_checks.py](app_checks.py) gives one score for each
 skill. A score is the share of its checks that pass, and its comment names each check that fails. The checks know
 where v8 and v9 keep each part, as the skills' version files say. The structural scores in
-[evaluators.py](evaluators.py), such as the page count, still run too.
+[evaluators.py](evaluators.py), such as the page count, still run too. A build that commits no
+app gets `bench_built` 0, with what the assistant said in its comment, and no other scores.
 
 To see the structural rubric of an app that you know is correct:
 
