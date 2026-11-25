@@ -140,8 +140,23 @@ class Behavior:
 
 
 # A skill is a component: the report groups the behaviors of a component, so each skill shows its v8 and v9
-# scores together. app_checks.AREAS names the skills and the score of each.
-SKILLS = {area.component: area for area in app_checks.AREAS.values() if area.skill}
+# scores together. app_checks.AREAS names the component of each score.
+SKILLS = {
+    "app": ("studio-app-development", "How the files of an app connect, in v8 and v9."),
+    "texts": ("studio-text-resources", "Texts, translations, variables and the language selector."),
+    "layouts": ("studio-layouts", "UI folders, pages, the custom receipt and the PDF page."),
+    "expressions": ("studio-expressions", "Expressions that hide fields and route the process."),
+    "process": ("studio-process", "The tasks, the PDF task and the gateway in process.bpmn."),
+    "signing": ("studio-signing", "The signing task, its data types and its pages."),
+    "policy": ("studio-policy", "Who may do what, in which task."),
+    "prefill": ("studio-prefill", "Data from Enhetsregisteret and the user profile."),
+    "settings": ("studio-app-settings", "Who may start the app, and the attachment's limits."),
+    "validation": ("studio-validation", "Required fields, patterns and expression validation."),
+    "codelists": ("studio-code-lists", "Code list files and their texts."),
+    "datamodel": ("studio-data-model", "The schema, the C# class and the data types."),
+}
+# The first check of each component, which the component's `where` names
+FIRST_CHECKS = {component: check.__name__ for check, component in reversed(app_checks.AREAS.values())}
 
 COMPONENTS = (
     Component(
@@ -187,14 +202,8 @@ COMPONENTS = (
         role="mixed",
     ),
     *(
-        Component(
-            id=key,
-            name=area.skill,
-            where=f"benchmarks/app_checks.py::{area.check.__name__}",
-            does=area.does,
-            role="actor",
-        )
-        for key, area in SKILLS.items()
+        Component(id=key, name=skill, where=f"benchmarks/app_checks.py::{FIRST_CHECKS[key]}", does=does, role="actor")
+        for key, (skill, does) in SKILLS.items()
     ),
 )
 
@@ -215,7 +224,7 @@ def _per_template(name: str, component: str, see: tuple[str, ...] = (), **fields
 
 def _skill(score: str, name: str, text: str, checks: str, blind: str, task: str) -> tuple:
     """A skill behavior. Its score is the share of its checks that pass, on the app the item builds."""
-    component = app_checks.AREAS[score].component
+    component = app_checks.AREAS[score][1]
     return _per_template(
         name,
         component,
@@ -226,7 +235,7 @@ def _skill(score: str, name: str, text: str, checks: str, blind: str, task: str)
         blind=f"{blind} One item builds one app, so one failed check moves the score by a large step.",
         fix=Fix(
             kind="coverage",
-            title=f"The {SKILLS[component].skill} skill is measured on one app",
+            title=f"The {SKILLS[component][0]} skill is measured on one app",
             task=task,
             acceptance="Each check in the skill's 'Before you finish' list has a check here, on more than one app.",
         ),
@@ -859,7 +868,7 @@ def _check_integrity() -> None:
         assert behavior.component in components, f"{behavior.id}: unknown component"
         for other in behavior.see:
             assert other in ids, f"{behavior.id}: see references unknown behavior {other}"
-    unreported = set(app_checks.SCORE_NAMES) - {b.evaluator for b in BEHAVIORS}
+    unreported = set(app_checks.AREAS) - {b.evaluator for b in BEHAVIORS}
     assert not unreported, f"{sorted(unreported)}: a score that no behavior names is in no report"
     for component in COMPONENTS:
         assert any(b.component == component.id for b in BEHAVIORS), (

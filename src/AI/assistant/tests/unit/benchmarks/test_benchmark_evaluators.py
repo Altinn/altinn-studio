@@ -8,7 +8,7 @@ from pathlib import Path
 from benchmarks.app_model import load_app, match_title, normalize_title
 from benchmarks.evaluators import evaluate
 from benchmarks.planner import spec_field_count
-from benchmarks.rubric import RUBRIC_VERSION, build_rubric_from_dir
+from benchmarks.rubric import RUBRIC_VERSION, Rubric, build_rubric_from_dir
 
 
 def _component(cid: str, ctype: str, title_key: str | None = None) -> dict:
@@ -80,7 +80,7 @@ class TestRubric:
 
 class TestEvaluators:
     def _scores(self, app_dir: Path, rubric: dict) -> dict[str, float]:
-        return {s.name: s.value for s in evaluate(load_app(app_dir), rubric)}
+        return {s.name: s.value for s in evaluate(load_app(app_dir), Rubric.model_validate(rubric))}
 
     def test_identical_app_scores_perfect(self, tmp_path: Path):
         golden = _golden(tmp_path / "golden")

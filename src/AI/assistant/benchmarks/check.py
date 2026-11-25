@@ -12,7 +12,7 @@ from typing import Any
 from langfuse import get_client
 
 from benchmarks import manifest, provenance, registry, runstore
-from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models
+from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models, new_bench_app
 from benchmarks.experiment import SCORES_KEY, ItemEvaluator, structural_evaluator
 from benchmarks.generation import ITEM_EVALUATORS, GenerationTask
 from benchmarks.generation import SCORE_NAMES as GENERATION_SCORE_NAMES
@@ -83,7 +83,7 @@ def task_for(
             agent_base=agent_base,
             assets_dir=Path(getattr(args, "assets_dir", None) or ASSETS_DIR).expanduser(),
             run_name=run_name,
-            template=registry.by_name(dataset.name).app_template or "",
+            app=new_bench_app(registry.by_name(dataset.name).app_template or ""),
             role_models=role_models,
             description=f"End to end build for {dataset.name}",
         )

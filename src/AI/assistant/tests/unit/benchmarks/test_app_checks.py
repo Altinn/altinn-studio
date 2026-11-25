@@ -7,12 +7,15 @@ import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
+from agents.altinn.layout import schema_validator
 from benchmarks import app_checks
 from benchmarks.app_model import load_app
 from benchmarks.bench_app import build_app_tree
+from benchmarks.rubric import Rubric
 
 PACKAGE = "urn:altinn:accesspackage:tilskudd-stotte-erstatning"
 TITLES = {
@@ -29,6 +32,7 @@ TITLES = {
 }
 A1 = "A1. Søkervirksomhetens navn og organisasjonsnummer."
 RUBRIC: dict[str, Any] = {
+    "expected_pages": 1,
     "languages": ["nb", "nn", "en"],
     "language_selector": True,
     "conditional_fields": [
@@ -40,10 +44,7 @@ RUBRIC: dict[str, Any] = {
     "required_fields": [A1, TITLES["prosjekt"], TITLES["belop"]],
     "numeric_fields": [TITLES["belop"], TITLES["kostnad"]],
     "patterns": [{"field": A1, "accepts": ["123456789"], "rejects": ["12345678", "12345678a"]}],
-    "expression_validations": [
-        {"values": {TITLES["belop"]: 600000, TITLES["kostnad"]: 500000}, "fails": True},
-        {"values": {TITLES["belop"]: 400000, TITLES["kostnad"]: 500000}, "fails": False},
-    ],
+    "compared_fields": [[TITLES["belop"], TITLES["kostnad"]]],
     "prefill": [
         {"source": "ER", "fields": ["Name", "OrgNumber"], "title": A1},
         {"source": "UserProfile", "title": TITLES["kontakt"], "versions": [8]},
@@ -334,15 +335,14 @@ def build_app(root: Path, template: str) -> Path:
 
 
 def scores(root: Path, template: str) -> dict[str, tuple[float, str]]:
-    rubric = app_checks.SkillRubric.parse(RUBRIC)
-    return {s.name: (s.value, s.comment) for s in app_checks.evaluate(load_app(root), rubric, template)}
+    rubric = Rubric.model_validate(RUBRIC)
+    return {s.name: (s.value, s.comment) for s in app_checks.evaluate(load_app(root, template), rubric)}
 
 
 @pytest.fixture(autouse=True)
 def _offline_v8_schema(monkeypatch):
     """The v8 layout schema is on altinncdn.no, so a unit test leaves it unmeasured."""
-    real = app_checks._schemas
-    monkeypatch.setattr(app_checks, "_schemas", lambda version: real(version) if version >= 9 else None)
+    monkeypatch.setattr(schema_validator, "fetch_cdn_schema", Mock(side_effect=OSError("no network in unit tests")))
 
 
 @pytest.mark.parametrize("template", ["v8", "v9"])
@@ -594,12 +594,20 @@ def test_user_profile_prefill_from_the_user_s_own_party(tmp_path):
     assert value == 1, comment
 
 
-def test_a_misspelled_rubric_key_fails_before_the_build():
-    with pytest.raises(ValueError, match="language_selectr"):
-        app_checks.SkillRubric.parse({**RUBRIC, "language_selectr": True})
+@pytest.mark.parametrize(
+    ("change", "named"),
+    [
+        ({"language_selectr": True}, "language_selectr"),
+        ({"receipt": {**RUBRIC["receipt"], "variable_field": []}}, "variable_field"),
+        ({"rights": [{**RUBRIC["rights"][0], "task": "signering"}]}, "rights.0.task"),
+    ],
+)
+def test_a_misspelled_rubric_key_fails_before_the_build(change, named):
+    with pytest.raises(ValueError, match=named):
+        Rubric.model_validate({**RUBRIC, **change})
 
 
 def test_the_bench_items_rubrics_parse():
     path = Path(app_checks.__file__).parent / "datasets" / "app_build.jsonl"
     for line in path.read_text(encoding="utf-8").splitlines():
-        app_checks.SkillRubric.parse(json.loads(line)["expectedOutput"])
+        Rubric.model_validate(json.loads(line)["expectedOutput"])

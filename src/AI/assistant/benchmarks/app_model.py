@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from agents.altinn.app_version import detect_app_major_version
-from agents.altinn.layout.components import layout_components
+from agents.altinn.layout.components import layout_components, text_key_bindings
 
 # Component types that collect user input.  Used both for counting
 # fields and for collecting the field titles the rubric matches on.
@@ -35,6 +35,7 @@ BPMN = "{http://www.omg.org/spec/BPMN/20100524/MODEL}"
 BPMNDI = "{http://www.omg.org/spec/BPMN/20100524/DI}"
 ALTINN = "{http://altinn.no/process}"
 XACML = "{urn:oasis:names:tc:xacml:3.0:core:schema:wd-17}"
+DEFAULT_LANGUAGE = "nb"
 
 
 @dataclass
@@ -52,9 +53,29 @@ class UiFolder:
         order = (self.settings.get("pages") or {}).get("order")
         return [page for page in order if isinstance(page, str)] if isinstance(order, list) else []
 
+    @property
+    def pdf_page(self) -> str | None:
+        return (self.settings.get("pages") or {}).get("pdfLayoutName")
+
     def components(self, page: str | None = None) -> list[dict[str, Any]]:
         names = [page] if page else list(self.pages)
         return [c for name in names for c in layout_components(self.pages.get(name)) or []]
+
+    def hiding(self, component: dict[str, Any]) -> list[Any]:
+        """The hidden expressions of the component, of the groups that list it in `children`, and of its page."""
+        # A multi-page repeating group lists its children as "page:id"
+        parents = {
+            child.split(":")[-1]: c
+            for c in self.components()
+            for child in c.get("children") or []
+            if isinstance(child, str)
+        }
+        chain = [component]
+        while (parent := parents.get(chain[-1].get("id", ""))) is not None and parent not in chain:
+            chain.append(parent)
+        page = next((p for p in self.pages if component in self.components(p)), None)
+        page_hidden = (self.pages[page].get("data") or {}).get("hidden") if page else None
+        return [e for e in (*(c.get("hidden") for c in chain), page_hidden) if e is not None]
 
 
 @dataclass
@@ -133,6 +154,20 @@ class Process:
             queue.extend(flow.target for flow in self.outgoing(node))
         return seen
 
+    def always_before(self, target: str) -> set[str]:
+        """The elements every path from the start passes before `target`."""
+        paths: list[set[str]] = []
+
+        def walk(node: str, trail: list[str]) -> None:
+            if node == target:
+                paths.append(set(trail))
+            for flow in self.outgoing(node) if node != target else []:
+                if flow.target not in trail:
+                    walk(flow.target, [*trail, node])
+
+        walk(self.start, [])
+        return set.intersection(*paths) if paths else set()
+
 
 @dataclass
 class Rule:
@@ -164,6 +199,8 @@ class AppModel:
     """The files of one app that the scores read."""
 
     root: Path | None = None
+    # The app template in src/App/template that the app was made from, when the caller knows it
+    template: str | None = None
     version: int = 8
     files: set[str] = field(default_factory=set)
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -184,6 +221,10 @@ class AppModel:
     appsettings: dict[str, Any] = field(default_factory=dict)
 
     @property
+    def v9(self) -> bool:
+        return self.version >= 9
+
+    @property
     def data_task(self) -> str | None:
         """The first data task after the start event."""
         return next((n for n in self.process.reachable(self.process.start) if self.process.is_task(n, "data")), None)
@@ -195,8 +236,20 @@ class AppModel:
         return found or max(self.folders.values(), key=lambda f: len(f.order), default=None)
 
     @property
+    def form_type(self) -> str | None:
+        return self.form.data_type if self.form else None
+
+    @property
     def page_order(self) -> list[str]:
         return self.form.order if self.form else []
+
+    def task_after(self, kind: str) -> str | None:
+        """The nearest task of a type after the data task."""
+        return next((n for n in self.process.reachable(self.data_task or "") if self.process.is_task(n, kind)), None)
+
+    def tasks_of(self, data_type: dict[str, Any]) -> list[str | None]:
+        """The tasks of a data type: the list `taskIds` in v9, the one `taskId` in v8."""
+        return list(data_type.get("taskIds") or []) if self.v9 else [data_type.get("taskId")]
 
     def input_components(self) -> list[dict[str, Any]]:
         """The form's components that collect input."""
@@ -210,6 +263,53 @@ class AppModel:
             return []
         return match_title(title, ((self.title_of(c) or "", (form, c)) for c in self.input_components()))
 
+    def paths(self, title: str) -> set[tuple[str | None, str]]:
+        """(data type, path) of the fields with this title."""
+        return {(b[0] or f.data_type, b[1]) for f, c in self.fields(title) if (b := binding(c)) is not None}
+
+    def shown_by(self, folder: UiFolder | None, page: str | None = None) -> set[tuple[str | None, str]]:
+        """The data model fields a folder or a page shows: its bindings, its summaries' targets and its text variables."""
+        by_id = {c.get("id"): (f, c) for f, _, c in self.all_components()}
+        read: set[tuple[str | None, str]] = set()
+        for component in folder_components(folder, page):
+            target = component.get("target")
+            target = target if isinstance(target, dict) else {}
+            shown = [(folder, component)] + [
+                by_id[r] for r in (component.get("componentRef"), target.get("id")) if r in by_id
+            ]
+            for owner, item in shown:
+                for key in item.get("dataModelBindings") or {}:
+                    if (bound := binding(item, key)) is not None and owner:
+                        read.add((bound[0] or owner.data_type, bound[1]))
+        variables = self.variables(folder, page)
+        return read | {(data_type, path) for path in variables for data_type in self.data_types()}
+
+    def variables(self, folder: UiFolder | None, page: str | None = None) -> set[str]:
+        keys = {key for c in folder_components(folder, page) for key in text_key_bindings(c).values()}
+        entries = [self.texts.get(DEFAULT_LANGUAGE, {}).get(k) or {} for k in keys]
+        return {
+            v.get("key")
+            for entry in entries
+            for v in entry.get("variables") or []
+            if str(v.get("dataSource", "")).startswith("dataModel.")
+        }
+
+    def code_list(self, component: dict[str, Any]) -> list[dict[str, Any]]:
+        found = component.get("options") or self.options.get(component.get("optionsId") or "")
+        return found if isinstance(found, list) else []
+
+    def option_label(self, option: dict[str, Any]) -> str:
+        return normalize_title(self.text(option.get("label")) or str(option.get("label")))
+
+    def option_labels(self) -> set[str]:
+        return {
+            option["label"]
+            for options in self.options.values()
+            if isinstance(options, list)
+            for option in options
+            if isinstance(option, dict) and isinstance(option.get("label"), str)
+        }
+
     def title_of(self, component: dict[str, Any]) -> str | None:
         """The nb text of a component's title, or its text key when there is no text."""
         key = (component.get("textResourceBindings") or {}).get("title")
@@ -217,7 +317,7 @@ class AppModel:
             return None
         return self.text(key) or key
 
-    def text(self, key: Any, language: str = "nb") -> str | None:
+    def text(self, key: Any, language: str = DEFAULT_LANGUAGE) -> str | None:
         if not isinstance(key, str):
             return None
         entry = self.texts.get(language, {}).get(key)
@@ -255,6 +355,38 @@ class AppModel:
                 return None
             node = _resolve(schema, properties[part])
         return node, in_list
+
+    def validation_rules(self, data_type: str | None) -> list[tuple[str, dict[str, Any]]]:
+        """(field, rule) for each rule of a validation file with a condition and a message, with its `ref` filled in."""
+        config = self.validation.get(data_type or "", {})
+        definitions: dict[str, dict[str, Any]] = {}
+        for name, definition in (config.get("definitions") or {}).items():
+            if isinstance(definition, dict):
+                definitions[name] = _with_ref(definition, definitions)
+        rules = []
+        for path, entries in (config.get("validations") or {}).items():
+            for entry in entries if isinstance(entries, list) else []:
+                rule = definitions.get(entry, {}) if isinstance(entry, str) else _with_ref(entry, definitions)
+                if "condition" in rule and "message" in rule:
+                    rules.append((path, rule))
+        return rules
+
+
+def _with_ref(rule: Any, definitions: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """A rule's own keys over those of the definition it names in `ref`."""
+    if not isinstance(rule, dict):
+        return {}
+    ref = rule.get("ref")
+    return {**(definitions.get(ref, {}) if isinstance(ref, str) else {}), **rule}
+
+
+def folder_components(folder: UiFolder | None, page: str | None = None) -> list[dict[str, Any]]:
+    return folder.components(page) if folder else []
+
+
+def contributors(data_type: dict[str, Any]) -> Any:
+    """allowedContributors, or allowedContributers, the old spelling that the app libraries still read."""
+    return data_type.get("allowedContributors", data_type.get("allowedContributers"))
 
 
 def binding(component: dict[str, Any], key: str = "simpleBinding") -> tuple[str | None, str] | None:
@@ -313,10 +445,10 @@ def _json(path: Path) -> Any:
         return None
 
 
-def load_app(root: Path) -> AppModel:
-    """Load the app at `root` (repo root containing `App/`)."""
+def load_app(root: Path, template: str | None = None) -> AppModel:
+    """Load the app at `root` (repo root containing `App/`), made from `template` when the caller knows it."""
     app_dir = root / "App"
-    model = AppModel(root=root, version=detect_app_major_version(str(root)))
+    model = AppModel(root=root, version=detect_app_major_version(str(root)), template=template)
     model.files = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and ".git" not in p.parts}
     model.metadata = _json(app_dir / "config" / "applicationmetadata.json") or {}
     model.appsettings = _json(app_dir / "appsettings.json") or {}

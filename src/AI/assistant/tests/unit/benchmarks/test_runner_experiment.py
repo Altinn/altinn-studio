@@ -11,6 +11,7 @@ import pytest
 
 from benchmarks import check, provenance, registry, remote
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask
+from benchmarks.bench_app import BenchApp
 from benchmarks.lf_api import LangfuseApi
 
 
@@ -83,6 +84,7 @@ def client(monkeypatch):
     created = _Client([_item("item-1"), _item("item-2"), _item("archived", status="ARCHIVED")])
     monkeypatch.setattr(check, "get_client", lambda: created)
     monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": "gpt-5.6-terra"})
+    monkeypatch.setattr(check, "new_bench_app", lambda template: BenchApp("ttd", "bench", template))
     return created
 
 

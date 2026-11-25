@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from agents.altinn.layout.components import has_navigation
 
 from .app_model import AppModel
+from .rubric import Rubric
 
 
 @dataclass(frozen=True)
@@ -26,7 +26,7 @@ SCORE_NAMES = (
 )
 
 
-def evaluate(app: AppModel, rubric: dict[str, Any]) -> list[Score]:
+def evaluate(app: AppModel, rubric: Rubric) -> list[Score]:
     return [
         _pages(app, rubric),
         _navigation(app, rubric),
@@ -35,8 +35,8 @@ def evaluate(app: AppModel, rubric: dict[str, Any]) -> list[Score]:
     ]
 
 
-def _pages(app: AppModel, rubric: dict[str, Any]) -> Score:
-    expected = int(rubric.get("expected_pages") or 0)
+def _pages(app: AppModel, rubric: Rubric) -> Score:
+    expected = rubric.expected_pages
     actual = len(app.page_order)
     return Score(
         name="bench_pages",
@@ -46,9 +46,9 @@ def _pages(app: AppModel, rubric: dict[str, Any]) -> Score:
     )
 
 
-def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
+def _navigation(app: AppModel, rubric: Rubric) -> Score:
     form = app.form
-    if form is None or not rubric.get("navigation_required") or len(form.order) < 2:
+    if form is None or not rubric.navigation_required or len(form.order) < 2:
         return Score("bench_navigation", 1.0, "BOOLEAN", "single page — nothing to navigate")
     missing = [page for page in form.order if not has_navigation(form.components(page))]
     return Score(
@@ -63,8 +63,8 @@ def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
     )
 
 
-def _field_coverage(app: AppModel, rubric: dict[str, Any]) -> Score:
-    expected_titles: list[str] = [t for t in rubric.get("expected_titles") or [] if t]
+def _field_coverage(app: AppModel, rubric: Rubric) -> Score:
+    expected_titles = [t for t in rubric.expected_titles if t]
     if not expected_titles:
         return Score("bench_field_coverage", 1.0, "NUMERIC", "rubric has no expected titles")
     missing = [expected for expected in expected_titles if not app.fields(expected)]
@@ -81,8 +81,8 @@ def _field_coverage(app: AppModel, rubric: dict[str, Any]) -> Score:
     )
 
 
-def _input_count(app: AppModel, rubric: dict[str, Any]) -> Score:
-    expected = int(rubric.get("min_input_components") or 0)
+def _input_count(app: AppModel, rubric: Rubric) -> Score:
+    expected = rubric.min_input_components
     actual = len(app.input_components())
     value = 1.0 if expected == 0 else round(min(1.0, actual / expected), 4)
     return Score(

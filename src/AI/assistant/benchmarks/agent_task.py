@@ -14,12 +14,12 @@ from typing import Any
 
 import httpx
 
-from . import app_checks, evaluators, preview_check
+from . import app_checks, preview_check
 from .app_model import load_app
 from .bench_app import BenchApp, BenchAppError, bench_org, clone_branch, create_bench_app
-from .evaluators import Score, evaluate
+from .evaluators import Score
 from .experiment import SCORES_KEY
-from .rubric import RUBRIC_VERSION
+from .rubric import RUBRIC_VERSION, Rubric
 
 POLL_INTERVAL_SECONDS = 10
 WORKFLOW_TIMEOUT_SECONDS = 30 * 60
@@ -29,7 +29,7 @@ RENDER_FIX_FLAG = "BENCH_RENDER_FIX"
 RENDER_FIX_ROUNDS_ENV = "BENCH_RENDER_FIX_ROUNDS"
 DEFAULT_RENDER_FIX_ROUNDS = 1
 
-STRUCTURAL_SCORE_NAMES = (*evaluators.SCORE_NAMES, *app_checks.SCORE_NAMES)
+STRUCTURAL_SCORE_NAMES = app_checks.SCORE_NAMES
 
 COMPLETED_SCORE_NAME = "bench_completed"
 BUILT_SCORE_NAME = "bench_built"
@@ -48,6 +48,13 @@ def _env(name: str, default: str | None = None) -> str:
     if value is None:
         sys.exit(f"Missing required environment variable: {name}")
     return value
+
+
+def new_bench_app(template: str) -> BenchApp:
+    """One new app per eval run, made from the template, which every item of the run builds on."""
+    app = create_bench_app(template, org=bench_org(), api_key=_env("AGENT_DESIGNER_API_KEY"))
+    print(f"bench app: {app.repo}")
+    return app
 
 
 def session_branch(session_id: str) -> str:
@@ -211,17 +218,9 @@ class AgentTask:
     agent_base: str
     assets_dir: Path
     run_name: str
-    template: str
+    app: BenchApp
     role_models: dict[str, str] = field(default_factory=dict)
     description: str | None = None
-    app: BenchApp | None = None
-
-    def bench_app(self) -> BenchApp:
-        """One new app per eval run, made from the template, which every item of the run builds on."""
-        if self.app is None:
-            self.app = create_bench_app(self.template, org=bench_org(), api_key=_env("AGENT_DESIGNER_API_KEY"))
-            print(f"bench app: {self.app.org}/{self.app.app}")
-        return self.app
 
     def __call__(self, *, item: Any, **_: Any) -> dict[str, Any]:
         goal = (item_field(item, "input") or {}).get("goal")
@@ -234,14 +233,13 @@ class AgentTask:
                 f"item {item_id} expectedOutput is not a v{RUBRIC_VERSION} rubric; "
                 "write it as datasets/README.md says, with `rubric --from-app …` for the structural part"
             )
-        skill_rubric = app_checks.SkillRubric.parse(rubric)
+        parsed = Rubric.model_validate(rubric)
 
-        app = self.bench_app()
         session_id = str(uuid.uuid4())
         print(f"item {item_id}: session {session_id}")
         start_agent(
             self.agent_base,
-            app,
+            self.app,
             session_id,
             goal,
             load_attachments(item, self.assets_dir),
@@ -260,10 +258,10 @@ class AgentTask:
             )
         ]
         with tempfile.TemporaryDirectory(prefix="assistant-bench-") as tmp:
-            clone = clone_result_branch(app, session_id, Path(tmp))
+            clone = clone_result_branch(self.app, session_id, Path(tmp))
             scores.append(_built_score(clone is not None, status))
             if clone is not None:
-                scores.extend(self._score_app(clone, rubric, skill_rubric, session_id, Path(tmp)))
+                scores.extend(self._score_app(clone, parsed, session_id, Path(tmp)))
 
         for score in scores:
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
@@ -287,14 +285,12 @@ class AgentTask:
             "description": self.description,
         }
 
-    def _score_app(
-        self, clone: Path, rubric: dict, skill_rubric: app_checks.SkillRubric, session_id: str, workdir: Path
-    ) -> list[Score]:
-        app = load_app(clone)
-        scores = [*evaluate(app, rubric), *app_checks.evaluate(app, skill_rubric, self.template)]
+    def _score_app(self, clone: Path, rubric: Rubric, session_id: str, workdir: Path) -> list[Score]:
+        app = load_app(clone, self.app.template)
+        scores = app_checks.evaluate(app, rubric)
         if not preview_check.is_enabled():
             return scores
-        results = preview_check.collect(self.bench_app().repo, session_branch(session_id), app.page_order)
+        results = preview_check.collect(self.app.repo, session_branch(session_id), app.page_order)
         if results is None:
             return scores
         scores.extend(preview_check.build_scores(results))
@@ -319,16 +315,16 @@ class AgentTask:
         for round_number in range(1, max_rounds + 1):
             rounds = round_number
             print(f"  render fix round {round_number}: {len(failures)} failing page(s)")
-            start_agent(self.agent_base, self.bench_app(), session_id, _render_fix_goal(failures), [], branch=branch)
+            start_agent(self.agent_base, self.app, session_id, _render_fix_goal(failures), [], branch=branch)
             status = await_workflow(self.agent_base, session_id)
             print(f"  fix workflow finished: {status.get('status')}")
 
             round_dir = workdir / f"fix-round-{round_number}"
             round_dir.mkdir(exist_ok=True)
-            clone = clone_result_branch(self.bench_app(), session_id, round_dir)
+            clone = clone_result_branch(self.app, session_id, round_dir)
             if clone is None:
                 break
-            results = preview_check.collect(self.bench_app().repo, branch, load_app(clone).page_order)
+            results = preview_check.collect(self.app.repo, branch, load_app(clone).page_order)
             if results is None:
                 break
             failures = [result for result in results if not result.rendered]

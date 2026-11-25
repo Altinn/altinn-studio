@@ -1,12 +1,12 @@
-"""One score for each skill, read from the files of a built app."""
+"""The scores of a built app, read from its files: the structural scores, and one score for each skill."""
 
 from __future__ import annotations
 
 import functools
 import itertools
 import re
-from collections.abc import Callable, Iterable, Iterator
-from dataclasses import dataclass, field, fields
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -16,10 +16,11 @@ from agents.altinn.layout.components import text_key_bindings
 from agents.altinn.layout.schema_validator import validate_layout_json
 from shared.config.base_config import get_config
 
-from .app_model import AppModel, Flow, Rule, UiFolder, binding, normalize_title, property_names
+from . import evaluators
+from .app_model import AppModel, Flow, Rule, binding, contributors, folder_components, normalize_title, property_names
 from .app_templates import template_source
 from .evaluators import Score
-from .rubric import STRUCTURAL_KEYS
+from .rubric import ConditionalField, Gateway, Receipt, Rubric
 
 SERVICE_TASK_TYPES = {"pdf", "subformPdf", "eFormidling", "fiksArkiv"}
 SERVICE_OWNER = "urn:altinn:org"
@@ -27,7 +28,6 @@ PDF_DATA_TYPE = "ref-data-as-pdf"
 APP_OWNED = "app:owned"
 # A v8 layout set and a v9 UI folder name the custom receipt as this task
 RECEIPT_TASK = "CustomReceipt"
-DEFAULT_LANGUAGE = "nb"
 
 # How much of a field title a check's label shows, and how many items a score's comment names.
 LABEL_LENGTH = 20
@@ -58,38 +58,6 @@ PREFILL_SOURCES = {source: set(names.split()) for source, names in _PREFILL_SOUR
 # The user's Party.Person and Party.Organization are the person and the organization that DSF and ER read.
 PREFILL_SOURCES["UserProfile"] |= {f"Party.Person.{name}" for name in PREFILL_SOURCES["DSF"]}
 PREFILL_SOURCES["UserProfile"] |= {f"Party.Organization.{name}" for name in PREFILL_SOURCES["ER"]}
-
-
-@dataclass(frozen=True)
-class SkillRubric:
-    """What an item asks of the skills, from its expectedOutput. A field the item leaves out turns its checks off."""
-
-    languages: list[str] = field(default_factory=lambda: [DEFAULT_LANGUAGE])
-    language_selector: bool = False
-    conditional_fields: list[dict[str, str]] = field(default_factory=list)
-    shared_code_list: list[str] = field(default_factory=list)
-    code_list_files: list[str] = field(default_factory=list)
-    required_fields: list[str] = field(default_factory=list)
-    numeric_fields: list[str] = field(default_factory=list)
-    patterns: list[dict[str, Any]] = field(default_factory=list)
-    expression_validations: list[dict[str, Any]] = field(default_factory=list)
-    prefill: list[dict[str, Any]] = field(default_factory=list)
-    party_types: dict[str, bool] = field(default_factory=dict)
-    attachment: dict[str, Any] | None = None
-    gateway: dict[str, Any] | None = None
-    pdf_page_fields: list[str] = field(default_factory=list)
-    signs: list[str] = field(default_factory=list)
-    receipt: dict[str, Any] | None = None
-    rights: list[dict[str, Any]] = field(default_factory=list)
-
-    @classmethod
-    def parse(cls, expected_output: dict[str, Any]) -> SkillRubric:
-        """A key that no check reads fails, so that a misspelled key cannot turn its checks off unseen."""
-        names = {f.name for f in fields(cls)}
-        unknown = set(expected_output) - names - STRUCTURAL_KEYS
-        if unknown:
-            raise ValueError(f"the rubric has keys no check reads: {', '.join(sorted(unknown))}")
-        return cls(**{key: value for key, value in expected_output.items() if key in names})
 
 
 @dataclass
@@ -125,43 +93,6 @@ class Checks:
         if self.skipped:
             parts.append("not measured: " + "; ".join(self.skipped[:COMMENT_SKIPPED]))
         return Score(self.name, round(self.passed / measured, 4), "NUMERIC", " — ".join(parts))
-
-
-@dataclass
-class _View:
-    """The app, with the lookups that several checks share."""
-
-    app: AppModel
-    rubric: SkillRubric
-    template: str
-
-    @property
-    def v9(self) -> bool:
-        return self.app.version >= 9
-
-    def task_after(self, kind: str) -> str | None:
-        """The nearest task of a type after the data task."""
-        process = self.app.process
-        return next((n for n in process.reachable(self.app.data_task or "") if process.is_task(n, kind)), None)
-
-    @property
-    def form_type(self) -> str | None:
-        return self.app.form.data_type if self.app.form else None
-
-    def task_ids(self, data_type: dict[str, Any]) -> list[str | None]:
-        """The tasks of a data type: the list `taskIds` in v9, the one `taskId` in v8."""
-        return list(data_type.get("taskIds") or []) if self.v9 else [data_type.get("taskId")]
-
-    def paths(self, title: str) -> set[tuple[str | None, str]]:
-        """(data type, path) of the fields with this title."""
-        return {(b[0] or f.data_type, b[1]) for f, c in self.app.fields(title) if (b := binding(c)) is not None}
-
-    def options(self, component: dict[str, Any]) -> list[dict[str, Any]]:
-        found = component.get("options") or self.app.options.get(component.get("optionsId") or "")
-        return found if isinstance(found, list) else []
-
-    def label(self, option: dict[str, Any]) -> str:
-        return normalize_title(self.app.text(option.get("label")) or str(option.get("label")))
 
 
 def _short(title: str) -> str:
@@ -239,21 +170,6 @@ def _expressions_in(value: Any, expected: bool = False) -> Iterable[Any]:
             yield from _expressions_in(item)
 
 
-def _option_labels(app: AppModel) -> set[str]:
-    return {
-        option["label"]
-        for options in app.options.values()
-        if isinstance(options, list)
-        for option in options
-        if isinstance(option, dict) and isinstance(option.get("label"), str)
-    }
-
-
-def _contributors(data_type: dict[str, Any]) -> Any:
-    """allowedContributors, or allowedContributers, the old spelling that the app libraries still read."""
-    return data_type.get("allowedContributors", data_type.get("allowedContributers"))
-
-
 def _read(path: Path | None) -> str:
     try:
         return path.read_text(encoding="utf-8") if path else ""
@@ -261,16 +177,15 @@ def _read(path: Path | None) -> str:
         return ""
 
 
-def _texts(view: _View, checks: Checks) -> None:
-    app = view.app
-    used = {key for _, _, c in app.all_components() for key in text_key_bindings(c).values()} | _option_labels(app)
-    for language in view.rubric.languages:
+def _texts(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    used = {key for _, _, c in app.all_components() for key in text_key_bindings(c).values()} | app.option_labels()
+    for language in rubric.languages:
         texts = app.texts.get(language, {})
         checks.check(f"resource.{language}.json", app.text_files.get(language, {}).get("language") == language)
         checks.none(f"{language} has every used text", (k for k in used if not texts.get(k, {}).get("value")))
         checks.check(f"title in {language}", bool((app.metadata.get("title") or {}).get(language)))
         checks.check(f"appName in {language}", bool(texts.get("appName", {}).get("value")))
-    if view.rubric.language_selector:
+    if rubric.language_selector:
         in_folder = any((f.settings.get("pages") or {}).get("showLanguageSelector") for f in app.folders.values())
         checks.check("language selector on", app.ui_settings.get("showLanguageSelector") is True or in_folder)
     checks.none(
@@ -285,95 +200,58 @@ def _texts(view: _View, checks: Checks) -> None:
     )
 
 
-def _layouts(view: _View, checks: Checks) -> None:
-    for folder in view.app.folders.values():
-        pdf_page = (folder.settings.get("pages") or {}).get("pdfLayoutName")
-        loose = (set(folder.pages) ^ set(folder.order)) - {pdf_page}
+def _layouts(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    for folder in app.folders.values():
+        loose = (set(folder.pages) ^ set(folder.order)) - {folder.pdf_page}
         checks.check(f"{folder.name}: pages.order and files agree", not loose)
         ids = [c.get("id") for c in folder.components()]
         checks.check(f"{folder.name}: unique component ids", len(ids) == len(set(ids)))
-    if view.rubric.receipt:
-        _receipt(view, checks, view.rubric.receipt)
-    if view.rubric.pdf_page_fields:
-        _pdf_page(view, checks, view.rubric.pdf_page_fields)
-    if view.rubric.attachment:
-        uploads = {c.get("id") for c in _components(view.app.form) if c.get("type") == "FileUpload"}
-        checks.check("FileUpload for an attachment data type", bool(uploads & set(view.app.data_types())))
+    if rubric.receipt:
+        _receipt(app, checks, rubric.receipt)
+    if rubric.pdf_page_fields:
+        _pdf_page(app, checks, rubric.pdf_page_fields)
+    if rubric.attachment:
+        uploads = {c.get("id") for c in folder_components(app.form) if c.get("type") == "FileUpload"}
+        checks.check("FileUpload for an attachment data type", bool(uploads & set(app.data_types())))
 
 
-def _receipt(view: _View, checks: Checks, spec: dict[str, Any]) -> None:
-    app = view.app
+def _receipt(app: AppModel, checks: Checks, spec: Receipt) -> None:
     receipt = app.folder_for_task(RECEIPT_TASK)
-    checks.check("custom receipt on the form's data type", bool(receipt) and receipt.data_type == view.form_type)
-    read = _read_by(view, receipt)
-    for title in spec.get("fields") or []:
-        checks.check(f"receipt shows {_short(title)}", bool(view.paths(title) & read))
-    variables = _variables(view, receipt)
-    for title in spec.get("variable_fields") or []:
-        checks.check(f"receipt variable {_short(title)}", bool({p for _, p in view.paths(title)} & variables))
-    texts = {app.text(key) or "" for c in _components(receipt) for key in text_key_bindings(c).values()}
-    checks.check("receipt text", any(spec.get("text", "") in text for text in texts))
+    checks.check("custom receipt on the form's data type", bool(receipt) and receipt.data_type == app.form_type)
+    read = app.shown_by(receipt)
+    for title in spec.fields:
+        checks.check(f"receipt shows {_short(title)}", bool(app.paths(title) & read))
+    variables = app.variables(receipt)
+    for title in spec.variable_fields:
+        checks.check(f"receipt variable {_short(title)}", bool({p for _, p in app.paths(title)} & variables))
+    texts = {app.text(key) or "" for c in folder_components(receipt) for key in text_key_bindings(c).values()}
+    checks.check("receipt text", any(spec.text in text for text in texts))
 
 
-def _pdf_page(view: _View, checks: Checks, titles: list[str]) -> None:
-    app = view.app
-    pdf_task = view.task_after("pdf")
+def _pdf_page(app: AppModel, checks: Checks, titles: list[str]) -> None:
+    pdf_task = app.task_after("pdf")
     folder = app.folder_for_task(pdf_task or "")
-    page = ((folder.settings.get("pages") or {}).get("pdfLayoutName") if folder else None) or ""
+    page = (folder.pdf_page if folder else None) or ""
     folder = folder if folder and page in folder.pages else None
     checks.check("PDF task has a pdfLayoutName page", folder is not None)
     node = app.process.nodes.get(pdf_task or "")
     checks.check("PDF task has no autoPdfTaskIds", bool(node) and not node.texts("pdfConfig/autoPdfTaskIds/taskId"))
-    read = _read_by(view, folder, page)
+    read = app.shown_by(folder, page)
     for title in titles:
-        checks.check(f"PDF page shows {_short(title)}", bool(view.paths(title) & read))
-    heading = "Heading" if view.v9 else "Header"
-    checks.check(f"PDF page has a {heading}", any(c.get("type") == heading for c in _components(folder, page)))
+        checks.check(f"PDF page shows {_short(title)}", bool(app.paths(title) & read))
+    heading = "Heading" if app.v9 else "Header"
+    checks.check(f"PDF page has a {heading}", any(c.get("type") == heading for c in folder_components(folder, page)))
 
 
-def _components(folder: UiFolder | None, page: str | None = None) -> list[dict[str, Any]]:
-    return folder.components(page) if folder else []
-
-
-def _read_by(view: _View, folder: UiFolder | None, page: str | None = None) -> set[tuple[str | None, str]]:
-    """The data model fields a folder or a page shows: its bindings, its summaries' targets and its text variables."""
-    by_id = {c.get("id"): (f, c) for f, _, c in view.app.all_components()}
-    read: set[tuple[str | None, str]] = set()
-    for component in _components(folder, page):
-        target = component.get("target")
-        target = target if isinstance(target, dict) else {}
-        shown = [(folder, component)] + [
-            by_id[r] for r in (component.get("componentRef"), target.get("id")) if r in by_id
-        ]
-        for owner, item in shown:
-            for key in item.get("dataModelBindings") or {}:
-                if (bound := binding(item, key)) is not None and owner:
-                    read.add((bound[0] or owner.data_type, bound[1]))
-    variables = _variables(view, folder, page)
-    return read | {(data_type, path) for path in variables for data_type in view.app.data_types()}
-
-
-def _variables(view: _View, folder: UiFolder | None, page: str | None = None) -> set[str]:
-    keys = {key for c in _components(folder, page) for key in text_key_bindings(c).values()}
-    entries = [view.app.texts.get(DEFAULT_LANGUAGE, {}).get(k) or {} for k in keys]
-    return {
-        v.get("key")
-        for entry in entries
-        for v in entry.get("variables") or []
-        if str(v.get("dataSource", "")).startswith("dataModel.")
-    }
-
-
-def _expressions(view: _View, checks: Checks) -> None:
-    app = view.app
-    for pair in view.rubric.conditional_fields:
-        label = f"{_short(pair['field'])} shows only for {pair['shown_for']} in {_short(pair['controller'])}"
-        checks.check(label, _shows_only_for(view, pair))
+def _expressions(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    for pair in rubric.conditional_fields:
+        label = f"{_short(pair.field)} shows only for {pair.shown_for} in {_short(pair.controller)}"
+        checks.check(label, _shows_only_for(app, pair))
     in_forms = _expressions_in([*(f.pages for f in app.folders.values()), *app.validation.values()])
     in_gateways = (e for flow in app.process.flows.values() for e in _expressions_in(flow.condition, expected=True))
-    missing = _missing_functions(in_forms, frozenset() if view.v9 else V8_LACKS | V8_FRONTEND_LACKS)
-    missing |= _missing_functions(in_gateways, frozenset() if view.v9 else V8_LACKS)
-    checks.none(f"every function exists in {view.template}", missing)
+    missing = _missing_functions(in_forms, frozenset() if app.v9 else V8_LACKS | V8_FRONTEND_LACKS)
+    missing |= _missing_functions(in_gateways, frozenset() if app.v9 else V8_LACKS)
+    checks.none(f"every function exists in v{app.version}", missing)
 
 
 def _missing_functions(found: Iterable[Any], lacking: frozenset[str]) -> set[str]:
@@ -383,57 +261,40 @@ def _missing_functions(found: Iterable[Any], lacking: frozenset[str]) -> set[str
     }
 
 
-def _shows_only_for(view: _View, pair: dict[str, str]) -> bool | None:
+def _shows_only_for(app: AppModel, pair: ConditionalField) -> bool | None:
     """Whether a hidden expression that can hide the field reads the controller and names the answer."""
-    controllers = view.app.fields(pair["controller"])
+    controllers = app.fields(pair.controller)
     if not controllers:
         return False
     folder, controller = controllers[0]
-    bound, options = binding(controller), view.options(controller)
+    bound, options = binding(controller), app.code_list(controller)
     if bound is None or not options:
         return None
-    answer = normalize_title(pair["shown_for"])
-    wanted = {_as_text(o.get("value")) for o in options if view.label(o) == answer}
-    wanted = wanted or {_as_text(o.get("value")) for o in options if answer in view.label(o).split()}
-    dependents = [c for f, c in view.app.fields(pair["field"]) if f is folder]
+    answer = normalize_title(pair.shown_for)
+    wanted = {_as_text(o.get("value")) for o in options if app.option_label(o) == answer}
+    wanted = wanted or {_as_text(o.get("value")) for o in options if answer in app.option_label(o).split()}
+    dependents = [c for f, c in app.fields(pair.field) if f is folder]
     if not wanted or not dependents:
         return False
     controller_refs = {controller.get("id"), bound[1]}
     return any(
         controller_refs & _reads(expression) and wanted & _literals(expression)
         for dependent in dependents
-        for expression in _hiding(folder, dependent)
+        for expression in folder.hiding(dependent)
     )
 
 
-def _hiding(folder: UiFolder, component: dict[str, Any]) -> list[Any]:
-    """The hidden expressions of the component, of the groups that list it in `children`, and of its page."""
-    # A multi-page repeating group lists its children as "page:id"
-    parents = {
-        child.split(":")[-1]: c
-        for c in folder.components()
-        for child in c.get("children") or []
-        if isinstance(child, str)
-    }
-    chain = [component]
-    while (parent := parents.get(chain[-1].get("id", ""))) is not None and parent not in chain:
-        chain.append(parent)
-    page = next((p for p in folder.pages if component in folder.components(p)), None)
-    page_hidden = (folder.pages[page].get("data") or {}).get("hidden") if page else None
-    return [e for e in (*(c.get("hidden") for c in chain), page_hidden) if e is not None]
+def _process(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    checks.check("process.bpmn parses", app.process_error is None)
+    _process_shape(app, checks)
+    pdf_task = app.task_after("pdf")
+    _pdf_task(app, checks, pdf_task)
+    if rubric.gateway:
+        _gateway(app, checks, pdf_task, rubric.gateway)
 
 
-def _process(view: _View, checks: Checks) -> None:
-    checks.check("process.bpmn parses", view.app.process_error is None)
-    _process_shape(view, checks)
-    pdf_task = view.task_after("pdf")
-    _pdf_task(view, checks, pdf_task)
-    if view.rubric.gateway:
-        _gateway(view, checks, pdf_task, view.rubric.gateway)
-
-
-def _process_shape(view: _View, checks: Checks) -> None:
-    process = view.app.process
+def _process_shape(app: AppModel, checks: Checks) -> None:
+    process = app.process
     nodes, flows = process.nodes, process.flows.values()
     checks.none("every flow joins two elements", (f.id for f in flows if {f.source, f.target} - set(nodes)))
     checks.none(
@@ -452,19 +313,18 @@ def _process_shape(view: _View, checks: Checks) -> None:
     checks.none("each element has a diagram shape", (set(nodes) | set(process.flows)) - process.shapes)
 
 
-def _pdf_task(view: _View, checks: Checks, pdf_task: str | None) -> None:
-    app = view.app
-    after_data = [f.target for f in app.process.outgoing(view.app.data_task or "")]
+def _pdf_task(app: AppModel, checks: Checks, pdf_task: str | None) -> None:
+    after_data = [f.target for f in app.process.outgoing(app.data_task or "")]
     checks.check("a PDF task follows the data task", after_data == [pdf_task])
     pdf = app.data_types().get(PDF_DATA_TYPE) or {}
     checks.check(f"{PDF_DATA_TYPE} allows a PDF", "application/pdf" in (pdf.get("allowedContentTypes") or []))
-    if not view.v9:
-        form = app.data_types().get(view.form_type or "") or {}
+    if not app.v9:
+        form = app.data_types().get(app.form_type or "") or {}
         checks.check("v8: enablePdfCreation false, so one PDF", form.get("enablePdfCreation") is False)
 
 
-def _gateway(view: _View, checks: Checks, pdf_task: str | None, spec: dict[str, Any]) -> None:
-    process = view.app.process
+def _gateway(app: AppModel, checks: Checks, pdf_task: str | None, spec: Gateway) -> None:
+    process = app.process
     nodes = process.nodes
     after_pdf = [nodes[f.target] for f in process.outgoing(pdf_task or "") if f.target in nodes]
     gateway = after_pdf[0] if after_pdf and after_pdf[0].kind == "exclusiveGateway" else None
@@ -480,10 +340,10 @@ def _gateway(view: _View, checks: Checks, pdf_task: str | None, spec: dict[str, 
         "the gateway names its data type",
         bool(gateway.text("connectedDataTypeId")) or (bool(data_types) and all(data_types)),
     )
-    paths = {p for _, p in view.paths(spec["field"])}
+    paths = {p for _, p in app.paths(spec.field)}
     conditions = [f.condition for f in outgoing]
-    checks.check(f"each condition reads {_short(spec['field'])}", all(paths & _reads(c) for c in conditions))
-    routes = spec["routes"]
+    checks.check(f"each condition reads {_short(spec.field)}", all(paths & _reads(c) for c in conditions))
+    routes = spec.routes
     amounts = sorted(routes, key=float)
     # The amounts on each side of the limit, such as 500000 and 500001
     limits = [a for pair in itertools.pairwise(amounts) if routes[pair[0]] != routes[pair[1]] for a in pair]
@@ -493,19 +353,18 @@ def _gateway(view: _View, checks: Checks, pdf_task: str | None, spec: dict[str, 
             all({float(a) for a in limits} & _numbers(c) for c in conditions),
         )
     wanted = set(routes.values())
-    checks.check(f"the flows go to {' and '.join(sorted(wanted))}", {_leads_to(view, f) for f in outgoing} == wanted)
+    checks.check(f"the flows go to {' and '.join(sorted(wanted))}", {_leads_to(app, f) for f in outgoing} == wanted)
 
 
-def _leads_to(view: _View, flow: Flow) -> str:
+def _leads_to(app: AppModel, flow: Flow) -> str:
     """ "signing" when a signing task is ahead of the flow, else "end"."""
-    process = view.app.process
+    process = app.process
     ahead = [flow.target, *process.reachable(flow.target)]
     return "signing" if any(process.is_task(n, "signing") for n in ahead) else "end"
 
 
-def _signing(view: _View, checks: Checks) -> None:
-    app = view.app
-    task = view.task_after("signing")
+def _signing(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    task = app.task_after("signing")
     checks.check("a signing task follows the data task", task is not None)
     if task is None:
         return
@@ -514,57 +373,40 @@ def _signing(view: _View, checks: Checks) -> None:
     checks.check("signing task lists sign", "sign" in node.texts("actions/action"))
     signed = node.texts("signatureConfig/dataTypesToSign/dataType")
     checks.check("dataTypesToSign exist", bool(signed) and all(s in types for s in signed))
-    for wanted in view.rubric.signs:
+    for wanted in rubric.signs:
         checks.check(f"signs {wanted}", wanted in signed)
     if PDF_DATA_TYPE in signed:
-        before = _always_before(view, task)
+        before = app.process.always_before(task)
         checks.check("a PDF task comes before signing", any(app.process.is_task(n, "pdf") for n in before))
     signature = types.get(node.text("signatureConfig/signatureDataType") or "") or {}
     checks.check("signatureDataType exists", bool(signature))
-    checks.check("signature data type is app-owned", _contributors(signature) == [APP_OWNED])
+    checks.check("signature data type is app-owned", contributors(signature) == [APP_OWNED])
     checks.check("signature data type holds JSON", signature.get("allowedContentTypes") == ["application/json"])
-    key = "taskIds" if view.v9 else "taskId"
-    checks.check(f"signature data type bound with {key}", task in view.task_ids(signature))
+    key = "taskIds" if app.v9 else "taskId"
+    checks.check(f"signature data type bound with {key}", task in app.tasks_of(signature))
     checks.check("signature data type has minCount", int(signature.get("minCount") or 0) >= 1)
     checks.check("runDefaultValidator is true", node.text("signatureConfig/runDefaultValidator") == "true")
     provider = node.text("signatureConfig/signeeProviderId") or node.text("signatureConfig/signeeStatesDataTypeId")
     checks.check("no signee provider for role signing", not provider)
-    components = _components(folder)
+    components = folder_components(folder)
     checks.check(
         "signing pages have SigningDocumentList", any(c.get("type") == "SigningDocumentList" for c in components)
     )
     # SigningActions offers the submit button only to users with write. An ActionButton that signs moves on by itself.
-    submits = any(c.get("type") == "SigningActions" for c in components) and _someone_may(view, "write", task)
+    submits = any(c.get("type") == "SigningActions" for c in components) and _someone_may(app, "write", task)
     signs_and_submits = any(c.get("type") == "ActionButton" and c.get("action") == "sign" for c in components)
     checks.check("SigningActions and a user who may write, or a sign ActionButton", submits or signs_and_submits)
 
 
-def _someone_may(view: _View, action: str, task: str) -> bool:
+def _someone_may(app: AppModel, action: str, task: str) -> bool:
     """Whether a subject other than the service owner may do `action` in `task`."""
     return any(
         action in rule.actions and rule.covers_task(task) and any(s[0] != SERVICE_OWNER for s in rule.subjects)
-        for rule in view.app.rules
+        for rule in app.rules
     )
 
 
-def _always_before(view: _View, target: str) -> set[str]:
-    """The elements every path from the start passes before `target`."""
-    process = view.app.process
-    paths: list[set[str]] = []
-
-    def walk(node: str, trail: list[str]) -> None:
-        if node == target:
-            paths.append(set(trail))
-        for flow in process.outgoing(node) if node != target else []:
-            if flow.target not in trail:
-                walk(flow.target, [*trail, node])
-
-    walk(process.start, [])
-    return set.intersection(*paths) if paths else set()
-
-
-def _policy(view: _View, checks: Checks) -> None:
-    app = view.app
+def _policy(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     checks.check("policy.xml parses", app.policy_error is None)
     if app.policy_error is not None:
         return
@@ -577,21 +419,16 @@ def _policy(view: _View, checks: Checks) -> None:
     obligations = app.policy_text.find("ObligationExpressions")
     ordered = obligations < 0 or app.policy_text.rfind("<xacml:Rule ") < obligations
     checks.check("rules before obligations, no comments", ordered and "<!--" not in app.policy_text)
-    tasks = {
-        "data": view.app.data_task,
-        "pdf": view.task_after("pdf"),
-        "signing": view.task_after("signing"),
-        "end": "end",
-    }
-    for right in view.rubric.rights:
-        task, subject = tasks.get(right["task"]), _subject(right["subject"])
-        who, where = subject[1], right["task"] or "the app"
-        for action in right["actions"]:
+    tasks = {"data": app.data_task, "pdf": app.task_after("pdf"), "signing": app.task_after("signing"), "end": "end"}
+    for right in rubric.rights:
+        task, subject = tasks[right.task] if right.task else None, _subject(right.subject)
+        who, where = subject[1], right.task or "the app"
+        for action in right.actions:
             checks.check(
                 f"{who} may {action} in {where}",
                 any(subject in r.subjects and action in r.actions and _covers(r, task) for r in app.rules),
             )
-        for action in right.get("only") or []:
+        for action in right.only:
             others = (
                 s[1]
                 for r in app.rules
@@ -612,8 +449,8 @@ def _covers(rule: Rule, task: str | None) -> bool:
     return rule.covers_end_event() if task == "end" else rule.covers_task(task)
 
 
-def _prefill(view: _View, checks: Checks) -> None:
-    app, types = view.app, view.app.data_types()
+def _prefill(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    types = app.data_types()
     parties = app.metadata.get("partyTypesAllowed") or {}
     for name, prefill in app.prefill.items():
         created = bool(((types.get(name) or {}).get("appLogic") or {}).get("autoCreate"))
@@ -626,29 +463,22 @@ def _prefill(view: _View, checks: Checks) -> None:
                 found = app.field_schema(name, str(target))
                 checks.check(f"{source}.{source_field} is a source field", source_field in PREFILL_SOURCES[source])
                 checks.check(f"{target} exists outside a list", bool(found) and not found[1])
-        if view.v9 and created:
+        if app.v9 and created:
             checks.check("v9: no UserProfile at task start", "UserProfile" not in prefill)
         if "ER" in prefill and any(parties.values()):
             checks.check("ER prefill, so no persons may start", not parties.get("person"))
-    version = view.app.version
-    for entry in view.rubric.prefill:
-        if version not in entry.get("versions", [version]):
+    for entry in rubric.prefill:
+        if entry.versions and app.version not in entry.versions:
             continue
-        paths = view.paths(entry["title"])
+        paths = app.paths(entry.title)
         sources = {
-            f
-            for name, p in app.prefill.items()
-            for f, t in (p.get(entry["source"]) or {}).items()
-            if (name, t) in paths
+            f for name, p in app.prefill.items() for f, t in (p.get(entry.source) or {}).items() if (name, t) in paths
         }
-        wanted = set(entry.get("fields") or [])
-        checks.check(
-            f"{entry['source']} fills {_short(entry['title'])}", wanted <= sources if wanted else bool(sources)
-        )
+        wanted = set(entry.fields)
+        checks.check(f"{entry.source} fills {_short(entry.title)}", wanted <= sources if wanted else bool(sources))
 
 
-def _settings(view: _View, checks: Checks) -> None:
-    app, rubric = view.app, view.rubric
+def _settings(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     allowed = app.metadata.get("partyTypesAllowed") or {}
     for party, wanted in rubric.party_types.items():
         checks.check(f"partyTypesAllowed.{party} is {wanted}", bool(allowed.get(party)) is wanted)
@@ -657,45 +487,41 @@ def _settings(view: _View, checks: Checks) -> None:
     attachments = [
         d
         for d in app.data_types().values()
-        if not d.get("appLogic") and d.get("id") != PDF_DATA_TYPE and APP_OWNED not in (_contributors(d) or [])
+        if not d.get("appLogic") and d.get("id") != PDF_DATA_TYPE and APP_OWNED not in (contributors(d) or [])
     ]
     checks.check("an attachment data type", bool(attachments))
     found = attachments[0] if attachments else {}
-    checks.check(
-        "attachment content types", sorted(found.get("allowedContentTypes") or []) == sorted(spec["content_types"])
-    )
-    checks.check(f"attachment maxSize {spec['max_size']}", found.get("maxSize") == spec["max_size"])
+    types = sorted(found.get("allowedContentTypes") or [])
+    checks.check("attachment content types", types == sorted(spec.content_types))
+    checks.check(f"attachment maxSize {spec.max_size}", found.get("maxSize") == spec.max_size)
     counts = (found.get("minCount"), found.get("maxCount"))
-    checks.check(
-        f"attachment counts {spec['min_count']}-{spec['max_count']}", counts == (spec["min_count"], spec["max_count"])
-    )
-    key = "taskIds" if view.v9 else "taskId"
-    bound = view.app.data_task is not None and view.app.data_task in view.task_ids(found)
+    checks.check(f"attachment counts {spec.min_count}-{spec.max_count}", counts == (spec.min_count, spec.max_count))
+    key = "taskIds" if app.v9 else "taskId"
+    bound = app.data_task is not None and app.data_task in app.tasks_of(found)
     checks.check(f"attachment bound with {key}", bound)
 
 
-def _validation(view: _View, checks: Checks) -> None:
-    app, rubric = view.app, view.rubric
+def _validation(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     for title in rubric.required_fields:
-        found = view.app.fields(title)
+        found = app.fields(title)
         checks.check(
             f"{_short(title)} is required",
             bool(found) and all(c.get("required") not in (None, False) for _, c in found),
         )
     for spec in rubric.patterns:
-        schemas = [app.field_schema(data_type, path) for data_type, path in view.paths(spec["field"])]
+        schemas = [app.field_schema(data_type, path) for data_type, path in app.paths(spec.field)]
         patterns = [schema[0].get("pattern") for schema in schemas if schema]
         ok = any(
-            p and all(re.search(p, v) for v in spec["accepts"]) and not any(re.search(p, v) for v in spec["rejects"])
+            p and all(re.search(p, v) for v in spec.accepts) and not any(re.search(p, v) for v in spec.rejects)
             for p in patterns
         )
-        checks.check(f"{_short(spec['field'])} has the right pattern", ok)
-    rules = _validation_rules(app.validation.get(view.form_type or "", {}))
+        checks.check(f"{_short(spec.field)} has the right pattern", ok)
+    rules = app.validation_rules(app.form_type)
     errors = [(path, rule) for path, rule in rules if (rule.get("severity") or "error") == "error"]
     # A rule reads its own field with ["argv", 0]
     read = [_reads(rule["condition"]) | {path} for path, rule in errors]
-    for titles in dict.fromkeys(tuple(case["values"]) for case in rubric.expression_validations):
-        wanted = [{p for _, p in view.paths(title)} for title in titles]
+    for titles in rubric.compared_fields:
+        wanted = [{p for _, p in app.paths(title)} for title in titles]
         checks.check(
             f"an error rule reads {' and '.join(_short(t) for t in titles)}",
             any(all(paths & reads for paths in wanted) for reads in read),
@@ -704,53 +530,29 @@ def _validation(view: _View, checks: Checks) -> None:
     for language in rubric.languages:
         checks.none(f"validation messages in {language}", (k for k in messages if k not in app.texts.get(language, {})))
     flags = [(app.appsettings.get("AppSettings") or {}).get(f) for f in ("RequiredValidation", "ExpressionValidation")]
-    if view.v9:
+    if app.v9:
         checks.check("v9: backend checks not turned off", False not in flags)
     else:
         checks.check("v8: backend checks turned on", flags == [True, True])
 
 
-def _validation_rules(config: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-    """(field, rule) for each rule of a validation file with a condition and a message, with its `ref` filled in."""
-    definitions: dict[str, dict[str, Any]] = {}
-    for name, definition in (config.get("definitions") or {}).items():
-        if isinstance(definition, dict):
-            definitions[name] = _with_ref(definition, definitions)
-    rules = []
-    for path, entries in (config.get("validations") or {}).items():
-        for entry in entries if isinstance(entries, list) else []:
-            rule = definitions.get(entry, {}) if isinstance(entry, str) else _with_ref(entry, definitions)
-            if "condition" in rule and "message" in rule:
-                rules.append((path, rule))
-    return rules
-
-
-def _with_ref(rule: Any, definitions: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    """A rule's own keys over those of the definition it names in `ref`."""
-    if not isinstance(rule, dict):
-        return {}
-    ref = rule.get("ref")
-    return {**(definitions.get(ref, {}) if isinstance(ref, str) else {}), **rule}
-
-
-def _code_lists(view: _View, checks: Checks) -> None:
-    app, rubric = view.app, view.rubric
+def _code_lists(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     if titles := rubric.shared_code_list:
-        shared = [c for title in titles for _, c in view.app.fields(title)]
+        shared = [c for title in titles for _, c in app.fields(title)]
         ids = {c.get("optionsId") for c in shared}
         checks.check(
             "yes/no questions share a code list file",
             len(shared) >= len(titles) and len(ids) == 1 and ids <= set(app.options),
         )
-        labels = sorted(view.label(o) for o in view.options(shared[0])) if shared else []
+        labels = sorted(app.option_label(o) for o in app.code_list(shared[0])) if shared else []
         checks.check("the shared list is Ja and Nei", labels == ["ja", "nei"])
     for title in rubric.code_list_files:
-        found = view.app.fields(title)
+        found = app.fields(title)
         checks.check(
             f"{_short(title)} has a code list file",
             bool(found) and all(c.get("optionsId") in app.options for _, c in found),
         )
-    labels = _option_labels(app)
+    labels = app.option_labels()
     for language in rubric.languages:
         checks.none(
             f"code list labels are texts in {language}",
@@ -758,8 +560,7 @@ def _code_lists(view: _View, checks: Checks) -> None:
         )
 
 
-def _data_model(view: _View, checks: Checks) -> None:
-    app = view.app
+def _data_model(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     tasks = {t.id for t in app.process.tasks()}
     for type_id, data_type in app.data_types().items():
         if class_ref := (data_type.get("appLogic") or {}).get("classRef"):
@@ -776,17 +577,16 @@ def _data_model(view: _View, checks: Checks) -> None:
                 f"{type_id}: C# has each field",
                 (n for n in names if not re.search(rf"\b{re.escape(n)}\b", source, re.IGNORECASE)),
             )
-        checks.none(f"{type_id}: its tasks exist", (t for t in view.task_ids(data_type) if t and t not in tasks))
-    for title in view.rubric.numeric_fields:
-        schemas = [app.field_schema(data_type, path) for data_type, path in view.paths(title)]
+        checks.none(f"{type_id}: its tasks exist", (t for t in app.tasks_of(data_type) if t and t not in tasks))
+    for title in rubric.numeric_fields:
+        schemas = [app.field_schema(data_type, path) for data_type, path in app.paths(title)]
         checks.check(
             f"{_short(title)} is a number",
             bool(schemas) and all(s and s[0].get("type") in ("number", "integer") for s in schemas),
         )
 
 
-def _references(view: _View, checks: Checks) -> None:
-    app = view.app
+def _references(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     checks.none(
         "every binding is in its data model",
         (
@@ -822,13 +622,13 @@ def _references(view: _View, checks: Checks) -> None:
     checks.none("every task a folder or rule names exists", (folders | policy) - tasks)
 
 
-def _schema_valid(view: _View, checks: Checks) -> None:
-    schemas = _schemas(view.app.version)
+def _schema_valid(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    schemas = _schemas(app.version)
     if schemas is None:
         checks.check("layout schema available", None)
         return
     (layout, settings), referenced = schemas
-    for folder in view.app.folders.values():
+    for folder in app.folders.values():
         for page, data in folder.pages.items():
             result = validate_layout_json(data, layout, referenced)
             checks.check(f"{folder.name}/{page} is valid", result.get("status") == "validation_passed")
@@ -846,14 +646,14 @@ def _schemas(version: int) -> Any:
         return None
 
 
-def _version_conformance(view: _View, checks: Checks) -> None:
+def _version_conformance(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     """The version's shape. A component of the other version fails bench_schema_valid."""
-    app, profile = view.app, get_app_version_profile(view.app.version)
+    profile = get_app_version_profile(app.version)
     types = list(app.data_types().values())
     if profile.forbidden_new_file_patterns:
         label = f"{profile.version_label}: no file the version does not have"
         checks.none(label, (f for f in app.files if profile.forbidden_file(f)))
-    if view.v9:
+    if app.v9:
         checks.check("v9: no taskId", not any("taskId" in d for d in types))
         checks.check(
             "v9: no enablePdfCreation or eFormidling",
@@ -871,9 +671,9 @@ def _version_conformance(view: _View, checks: Checks) -> None:
         checks.check("v8: no App/ui/Settings.json", "App/ui/Settings.json" not in app.files)
 
 
-def _scaffold_intact(view: _View, checks: Checks) -> None:
-    template = template_source(view.template)
-    root = view.app.root or Path()
+def _scaffold_intact(app: AppModel, rubric: Rubric, checks: Checks) -> None:
+    template = template_source(app.template or "")
+    root = app.root or Path()
     for relative in ("Dockerfile", "App.sln", "deployment/values.yaml"):
         checks.check(f"{relative} is the template's", _read(root / relative) == _read(template / relative))
     pattern = r'<(?:PackageReference Include="Altinn\.App\.[^"]+" Version="[^"]+"|TargetFramework>[^<]+)'
@@ -881,59 +681,33 @@ def _scaffold_intact(view: _View, checks: Checks) -> None:
     checks.check("App.csproj keeps its libraries and framework", project[0] == project[1])
 
 
-@dataclass(frozen=True)
-class Area:
-    """The checks behind one score, the component the manifest reports it under, and the skill they are about."""
-
-    check: Callable[[_View, Checks], None]
-    component: str
-    skill: str = ""
-    does: str = ""
-
-
+# The checks behind each score, and the component of the manifest that reports the score
 AREAS = {
-    "bench_version_conformance": Area(
-        _version_conformance, "app", "studio-app-development", "How the files of an app connect, in v8 and v9."
-    ),
-    "bench_scaffold_intact": Area(_scaffold_intact, "app"),
-    "bench_texts": Area(
-        _texts, "texts", "studio-text-resources", "Texts, translations, variables and the language selector."
-    ),
-    "bench_layouts": Area(
-        _layouts, "layouts", "studio-layouts", "UI folders, pages, the custom receipt and the PDF page."
-    ),
-    "bench_expressions": Area(
-        _expressions, "expressions", "studio-expressions", "Expressions that hide fields and route the process."
-    ),
-    "bench_process": Area(
-        _process, "process", "studio-process", "The tasks, the PDF task and the gateway in process.bpmn."
-    ),
-    "bench_signing": Area(_signing, "signing", "studio-signing", "The signing task, its data types and its pages."),
-    "bench_policy": Area(_policy, "policy", "studio-policy", "Who may do what, in which task."),
-    "bench_prefill": Area(_prefill, "prefill", "studio-prefill", "Data from Enhetsregisteret and the user profile."),
-    "bench_settings": Area(
-        _settings, "settings", "studio-app-settings", "Who may start the app, and the attachment's limits."
-    ),
-    "bench_validation": Area(
-        _validation, "validation", "studio-validation", "Required fields, patterns and expression validation."
-    ),
-    "bench_code_lists": Area(_code_lists, "codelists", "studio-code-lists", "Code list files and their texts."),
-    "bench_data_model": Area(
-        _data_model, "datamodel", "studio-data-model", "The schema, the C# class and the data types."
-    ),
-    "bench_references": Area(_references, "build"),
-    "bench_schema_valid": Area(_schema_valid, "build"),
+    "bench_version_conformance": (_version_conformance, "app"),
+    "bench_scaffold_intact": (_scaffold_intact, "app"),
+    "bench_texts": (_texts, "texts"),
+    "bench_layouts": (_layouts, "layouts"),
+    "bench_expressions": (_expressions, "expressions"),
+    "bench_process": (_process, "process"),
+    "bench_signing": (_signing, "signing"),
+    "bench_policy": (_policy, "policy"),
+    "bench_prefill": (_prefill, "prefill"),
+    "bench_settings": (_settings, "settings"),
+    "bench_validation": (_validation, "validation"),
+    "bench_code_lists": (_code_lists, "codelists"),
+    "bench_data_model": (_data_model, "datamodel"),
+    "bench_references": (_references, "build"),
+    "bench_schema_valid": (_schema_valid, "build"),
 }
-SCORE_NAMES = tuple(AREAS)
+SCORE_NAMES = (*evaluators.SCORE_NAMES, *AREAS)
 
 
-def evaluate(app: AppModel, rubric: SkillRubric, template: str) -> list[Score]:
-    """One score for each skill, for an app made from `template`."""
-    view = _View(app, rubric, template)
-    scores = []
-    for name, area in AREAS.items():
+def evaluate(app: AppModel, rubric: Rubric) -> list[Score]:
+    """The structural scores, and one score for each skill, of an app loaded with the template it was made from."""
+    scores = evaluators.evaluate(app, rubric)
+    for name, (check, _) in AREAS.items():
         checks = Checks(name)
-        area.check(view, checks)
+        check(app, rubric, checks)
         if (score := checks.score()) is not None:
             scores.append(score)
     return scores

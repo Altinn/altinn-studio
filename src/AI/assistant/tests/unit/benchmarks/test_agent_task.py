@@ -34,19 +34,15 @@ def task(monkeypatch, tmp_path):
     monkeypatch.setattr(agent_task, "start_agent", lambda *a, **k: None)
     monkeypatch.setattr(agent_task, "await_workflow", lambda *a, **k: {"status": "done", "success": True})
     monkeypatch.setattr(agent_task, "clone_result_branch", lambda app, s, w: tmp_path / "clone")
-    monkeypatch.setattr(agent_task, "load_app", lambda path: object())
+    monkeypatch.setattr(agent_task, "load_app", lambda path, template=None: object())
     monkeypatch.setattr(
-        agent_task,
-        "evaluate",
-        lambda app, rubric: [Score("bench_pages", 1.0, "BOOLEAN", "2/2")],
+        agent_task.app_checks, "evaluate", lambda app, rubric: [Score("bench_pages", 1.0, "BOOLEAN", "2/2")]
     )
-    monkeypatch.setattr(agent_task.app_checks, "evaluate", lambda app, rubric, template: [])
     monkeypatch.setattr(agent_task.preview_check, "is_enabled", lambda: False)
     return AgentTask(
         agent_base="http://agent",
         assets_dir=tmp_path,
         run_name="run-a",
-        template="v9",
         app=BenchApp("ttd", "bench", "v9"),
     )
 
@@ -127,7 +123,7 @@ class TestTheAgentTraceJoinsTheRun:
         assert task.experiment_context(_item()) == task.experiment_context(_item())
 
     def test_a_different_run_gets_a_different_id(self, task):
-        other = AgentTask(agent_base="http://agent", assets_dir=Path("."), run_name="run-b", template="v9")
+        other = AgentTask(agent_base="http://agent", assets_dir=Path("."), run_name="run-b", app=task.app)
 
         assert task.experiment_context(_item())["experimentId"] != other.experiment_context(_item())["experimentId"]
 
