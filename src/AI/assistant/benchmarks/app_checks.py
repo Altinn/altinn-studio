@@ -411,15 +411,15 @@ def _signing(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     checks.check("SigningActions and a user who may write, or a sign ActionButton", submits or signs_and_submits)
 
 
+def _may(app: AppModel, subject: tuple[str, str], action: str, task: str | None) -> bool:
+    """Whether the policy lets `subject` do `action` in `task`. It deny-overrides, so a matching Deny rule wins."""
+    matching = [r for r in app.rules if subject in r.subjects and action in r.actions and _covers(r, task)]
+    return bool(matching) and all(r.permit for r in matching)
+
+
 def _someone_may(app: AppModel, action: str, task: str) -> bool:
     """Whether a subject other than the service owner may do `action` in `task`."""
-    return any(
-        rule.permit
-        and action in rule.actions
-        and rule.covers_task(task)
-        and any(s[0] != SERVICE_OWNER for s in rule.subjects)
-        for rule in app.rules
-    )
+    return any(_may(app, s, action, task) for r in app.rules for s in r.subjects if s[0] != SERVICE_OWNER)
 
 
 def _policy(app: AppModel, rubric: Rubric, checks: Checks) -> None:
@@ -440,9 +440,7 @@ def _policy(app: AppModel, rubric: Rubric, checks: Checks) -> None:
         task, subject = tasks[right.task] if right.task else None, _subject(right.subject)
         who, where = subject[1], right.task or "the app"
         for action in right.actions:
-            # The policies deny-override, so a matching Deny rule takes the right away
-            matching = [r for r in app.rules if subject in r.subjects and action in r.actions and _covers(r, task)]
-            checks.check(f"{who} may {action} in {where}", bool(matching) and all(r.permit for r in matching))
+            checks.check(f"{who} may {action} in {where}", _may(app, subject, action, task))
         for action in right.only:
             others = (
                 s[1]

@@ -285,11 +285,9 @@ class AppModel:
 
     def _component(self, ref: Any, task: Any) -> tuple[UiFolder, dict[str, Any]] | None:
         """The component a summary names, in the folder of `task` when it names one, since IDs repeat across tasks."""
-        home = self.folder_for_task(task) if isinstance(task, str) else None
-        found = (
-            (f, c) for f, _, c in self.all_components() if ref and c.get("id") == ref and (home is None or f is home)
-        )
-        return next(found, None)
+        home = self.folder_for_task(task) if task is not None else None
+        matches = [(f, c) for f, _, c in self.all_components() if ref and c.get("id") == ref]
+        return next((m for m in matches if task is None or m[0] is home), None)
 
     def variables(self, folder: UiFolder | None, page: str | None = None) -> set[tuple[str | None, str]]:
         """(data type, path) of the text variables of a folder or a page. `dataModel.default` is the folder's type."""

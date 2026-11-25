@@ -138,8 +138,9 @@ class TestEvaluators:
         assert scores["bench_pages"] == 0.0
         assert scores["bench_field_coverage"] == scores["bench_input_count"] == 0.5
 
-    def test_a_title_the_rubric_lists_twice_needs_two_fields(self, tmp_path: Path):
-        rubric = {**build_rubric_from_dir(_golden(tmp_path / "golden")), "expected_titles": ["A.2 E-postadresse"] * 2}
+    def test_two_titles_that_only_numbers_tell_apart_need_two_fields(self, tmp_path: Path):
+        titles = ["A.2 E-postadresse", "B.4 E-postadresse"]
+        rubric = {**build_rubric_from_dir(_golden(tmp_path / "golden")), "expected_titles": titles}
         assert self._scores(_golden(tmp_path / "candidate"), rubric)["bench_field_coverage"] == 0.5
 
 

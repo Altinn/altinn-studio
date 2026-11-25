@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass
 
 from agents.altinn.layout.components import has_navigation
 
-from .app_model import AppModel
+from .app_model import AppModel, normalize_title
 from .rubric import Rubric
 
 
@@ -69,9 +68,11 @@ def _field_coverage(app: AppModel, rubric: Rubric) -> Score:
     expected_titles = [t for t in rubric.expected_titles if t]
     if not expected_titles:
         return Score("bench_field_coverage", 1.0, "NUMERIC", "rubric has no expected titles")
-    missing = [
-        title for title, count in Counter(expected_titles).items() for _ in range(count - len(app.fields(title)))
-    ]
+    # Titles that only their numbers tell apart, such as «A1. Navn» and «B2. Navn», need a field each
+    same: dict[str, list[str]] = {}
+    for title in expected_titles:
+        same.setdefault(normalize_title(title), []).append(title)
+    missing = [title for titles in same.values() for title in titles[len(app.fields(titles[0])) :]]
     covered = len(expected_titles) - len(missing)
     preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
     return Score(

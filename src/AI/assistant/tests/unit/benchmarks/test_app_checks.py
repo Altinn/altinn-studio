@@ -90,7 +90,7 @@ def _input(id_: str, type_: str = "Input", **extra: Any) -> dict[str, Any]:
     }
 
 
-def _rule(rule_id: int, subject: tuple[str, str], actions: list[str], tasks: list[str | None]) -> str:
+def _rule(rule_id: int, subject: tuple[str, str], actions: list[str], tasks: list[str | None], effect="Permit") -> str:
     def match(category: str, attribute: str, value: str) -> str:
         return (
             f'<xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal"><xacml:AttributeValue>{value}'
@@ -109,7 +109,7 @@ def _rule(rule_id: int, subject: tuple[str, str], actions: list[str], tasks: lis
         return app + (match(resource, "urn:altinn:task", task) if task else "")
 
     return (
-        f'<xacml:Rule RuleId="urn:altinn:example:ruleid:{rule_id}" Effect="Permit"><xacml:Target>'
+        f'<xacml:Rule RuleId="urn:altinn:example:ruleid:{rule_id}" Effect="{effect}"><xacml:Target>'
         f"<xacml:AnyOf><xacml:AllOf>{match(subject_category, *subject)}</xacml:AllOf></xacml:AnyOf>"
         f"<xacml:AnyOf>{''.join(f'<xacml:AllOf>{scope(t)}</xacml:AllOf>' for t in tasks)}</xacml:AnyOf>"
         f"<xacml:AnyOf>{''.join(f'<xacml:AllOf>{match(action, "urn:oasis:names:tc:xacml:1.0:action:action-id", a)}</xacml:AllOf>' for a in actions)}"
@@ -165,7 +165,7 @@ def _process() -> str:
 SIGNER_ACTIONS = ("read", "sign", "write")
 
 
-def _policy(signer_actions: tuple[str, ...] = SIGNER_ACTIONS) -> str:
+def _policy(signer_actions: tuple[str, ...] = SIGNER_ACTIONS, denied: tuple[str, ...] = ()) -> str:
     package = ("urn:altinn:accesspackage", "tilskudd-stotte-erstatning")
     rules = [
         _rule(1, package, ["read", "write"], ["Task_1", "PdfTask"]),
@@ -173,6 +173,7 @@ def _policy(signer_actions: tuple[str, ...] = SIGNER_ACTIONS) -> str:
         _rule(3, package, ["read"], ["EndEvent_1"]),
         _rule(4, ("urn:altinn:rolecode", "dagl"), list(signer_actions), ["Task_Signering"]),
         _rule(5, ("urn:altinn:org", "[org]"), ["read", "write", "complete"], [None]),
+        *([_rule(6, ("urn:altinn:rolecode", "dagl"), list(denied), ["Task_Signering"], "Deny")] if denied else []),
     ]
     return (
         '<xacml:Policy xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">'
@@ -386,6 +387,10 @@ def _added(component: dict[str, Any]) -> Change:
     return _layout(lambda components: components.insert(0, component))
 
 
+def _receipt_summary_of(task: str) -> Change:
+    return _replace("App/ui/CustomReceipt/layouts/Kvittering.json", '"taskId": "Task_1"', f'"taskId": "{task}"')
+
+
 def _paragraph(title: Any) -> dict[str, Any]:
     return {"id": "info", "type": "Paragraph", "textResourceBindings": {"title": title}}
 
@@ -419,6 +424,8 @@ BREAKS: dict[str, tuple[str, Change]] = {
         "bench_signing",
         _json(METADATA, lambda d: d["dataTypes"][-1].pop("allowedContributors")),
     ),
+    "a Deny next to the signer's Permit": ("bench_signing", lambda r: _write(r, POLICY, _policy(denied=("write",)))),
+    "a receipt summary of a task without a UI folder": ("bench_layouts", _receipt_summary_of("Task_ukjent")),
     "a Deny rule for the signer": (
         "bench_policy",
         _replace(POLICY, 'ruleid:4" Effect="Permit"', 'ruleid:4" Effect="Deny"'),
@@ -463,10 +470,7 @@ BREAKS: dict[str, tuple[str, Change]] = {
         "bench_layouts",
         _replace("App/config/texts/resource.nb.json", '"dataModel.model"', '"dataModel.annen"'),
     ),
-    "a receipt summary of a field in another task": (
-        "bench_layouts",
-        _replace("App/ui/CustomReceipt/layouts/Kvittering.json", '"taskId": "Task_1"', '"taskId": "Task_Signering"'),
-    ),
+    "a receipt summary of a field in another task": ("bench_layouts", _receipt_summary_of("Task_Signering")),
     "a changed library version": ("bench_scaffold_intact", _replace("App/App.csproj", 'Version="', 'Version="1')),
 }
 # A break of a rule of one version: the template, the score it lowers and the change
