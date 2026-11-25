@@ -1133,6 +1133,76 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResumeAndWaitForWorkflow_TransitionThatFailsAgainBeforeItsCommit_ReportsNoCommittedProcess()
+    {
+        // A transition's own workflow plans its first service task step after the commit. Failing before the
+        // commit, it holds that step unrun, and must not count as a workflow that only runs after a commit.
+        Guid workflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Failed));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    status: PersistentItemStatus.Failed,
+                    databaseId: workflowId,
+                    steps:
+                    [
+                        CreateStep("SomePreCommitStep", PersistentItemStatus.Failed),
+                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Enqueued),
+                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Enqueued),
+                    ]
+                ),
+            ]);
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            new TimeSkippingTimeProvider()
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, workflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.False(result.ProcessStateCommitted);
+    }
+
+    [Fact]
     public void ExtractCallbackErrorDetail_WhenMessageEmbedsProblemDetails_ReturnsTheDetail()
     {
         // The engine wraps a failed app callback as "<prose>: {ProblemDetails json}"; the embedded
