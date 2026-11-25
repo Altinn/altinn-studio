@@ -717,7 +717,6 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
                 ContentType = create.ContentType ?? content.ContentType,
                 Filename = create.Filename ?? content.Filename,
                 Size = content.Bytes.Length,
-                Locked = create.Locked ?? false,
                 LastChanged = DateTime.UtcNow,
             };
 
@@ -738,32 +737,24 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
                 cancellationToken
             );
 
-            if (update.ContentPartName is { } contentPartName)
-            {
-                StorageInstanceMutationContent content = contentParts[contentPartName];
-                await WriteDataBlob(
-                    org,
-                    app,
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    update.DataElementId,
-                    content.Bytes,
-                    cancellationToken
-                );
-                dataElement.ContentType = update.ContentType ?? content.ContentType;
-                dataElement.Filename = update.Filename ?? content.Filename;
-                dataElement.Size = content.Bytes.Length;
-                changedDataElementIds.Add(update.DataElementId);
-            }
+            StorageInstanceMutationContent content = contentParts[update.ContentPartName];
+            await WriteDataBlob(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                update.DataElementId,
+                content.Bytes,
+                cancellationToken
+            );
+            dataElement.ContentType = update.ContentType ?? content.ContentType;
+            dataElement.Filename = update.Filename ?? content.Filename;
+            dataElement.Size = content.Bytes.Length;
+            changedDataElementIds.Add(update.DataElementId);
 
             if (update.DeleteStatus is not null)
             {
                 dataElement.DeleteStatus = update.DeleteStatus;
-            }
-
-            if (update.Locked is not null)
-            {
-                dataElement.Locked = update.Locked.Value;
             }
 
             dataElement.LastChanged = DateTime.UtcNow;

@@ -188,7 +188,7 @@ public class ProcessController : ControllerBase
             if (returnInstance)
             {
                 // Reload the instance so data elements, dataValues, presentationTexts etc.
-                // reflect any mutations the process engine made (e.g. generated PDF, locked elements).
+                // reflect any mutations the process engine made (e.g. generated PDF).
                 instance = await _instanceClient.GetInstance(
                     app,
                     org,

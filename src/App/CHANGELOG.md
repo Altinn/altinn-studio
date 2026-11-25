@@ -21,6 +21,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - A form can change data of a data type with `taskIds` in the tasks it lists, whether or not the data element is locked, as Storage allows. Changes a data processor makes when that data is read are saved there too. Data of a data type without `taskIds` is still read-only while it is locked. ([#22099](https://github.com/Altinn/altinn-studio/pull/22099))
+- Breaking: The app no longer locks a task's data when the task ends or unlocks it when the task starts: the data type's `taskIds` decide where its data can change. Data locked before the upgrade stays locked. Code that reads `DataElement.Locked` to tell whether a task's data can still change should compare `taskIds` with the current task. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
+- Breaking: A process transition that has not passed its `LockTaskData` or `UnlockTaskData` step when the app is upgraded fails at that step, also when resumed. To finish it, resume it on the previous version. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
+- After a rollback to v8, data of tasks that ended under v9 is not locked, and v8 accepts changes to it from a later task's form unless `AppSettings:EnforceDataTypeTaskId` is on. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 
 ### Fixed
 
@@ -28,6 +31,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 - Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
 - A workflow step that is retried after the workflow engine accepted its enqueue no longer gets a conflict when the retry signs the state differently, such as after an app code rotation or a deploy of a newer app library. The retry joins the workflow its first attempt enqueued. ([#21609](https://github.com/Altinn/altinn-studio/pull/21609))
+
+### Removed
+
+- Breaking: `IProcessTaskDataLocker` is removed, as the app no longer locks a task's data. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 
 ## [9.0.0-preview.14] - 2026-11-20
 
