@@ -18,7 +18,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
-- `studioctl app upgrade v9` compiles apps that use C# 14 syntax, such as `extension` blocks and the `field` keyword, so its C# migrations keep using exact symbol information instead of falling back to syntax-based detection, which may over-report.
+- `studioctl app upgrade v9` compiles apps that use C# 14 syntax, such as `extension` blocks and the `field` keyword, so its C# migrations keep using exact symbol information instead of falling back to syntax-based detection, which may over-report. ([#22110](https://github.com/Altinn/altinn-studio/pull/22110))
 
 ## [0.1.0-preview.34] - 2026-11-20
 
