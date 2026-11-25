@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 
 from agents.altinn.layout.components import has_navigation
@@ -36,13 +37,14 @@ def evaluate(app: AppModel, rubric: Rubric) -> list[Score]:
 
 
 def _pages(app: AppModel, rubric: Rubric) -> Score:
-    expected = rubric.expected_pages
-    actual = len(app.page_order)
+    expected, actual = rubric.expected_pages, len(app.page_order)
     return Score(
         name="bench_pages",
-        value=1.0 if actual == expected else 0.0,
+        value=1.0 if expected in (None, actual) else 0.0,
         data_type="BOOLEAN",
-        comment=f"expected {expected} ordered pages, found {actual}",
+        comment=f"expected {expected} ordered pages, found {actual}"
+        if expected is not None
+        else "rubric has no page count",
     )
 
 
@@ -67,7 +69,9 @@ def _field_coverage(app: AppModel, rubric: Rubric) -> Score:
     expected_titles = [t for t in rubric.expected_titles if t]
     if not expected_titles:
         return Score("bench_field_coverage", 1.0, "NUMERIC", "rubric has no expected titles")
-    missing = [expected for expected in expected_titles if not app.fields(expected)]
+    missing = [
+        title for title, count in Counter(expected_titles).items() for _ in range(count - len(app.fields(title)))
+    ]
     covered = len(expected_titles) - len(missing)
     preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
     return Score(

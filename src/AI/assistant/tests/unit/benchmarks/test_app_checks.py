@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import shutil
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -32,7 +33,6 @@ TITLES = {
 }
 A1 = "A1. Søkervirksomhetens navn og organisasjonsnummer."
 RUBRIC: dict[str, Any] = {
-    "expected_pages": 1,
     "languages": ["nb", "nn", "en"],
     "language_selector": True,
     "conditional_fields": [
@@ -361,105 +361,142 @@ def _edit(root: Path, relative: str, change) -> None:
     _write(root, relative, data)
 
 
+FORM_PAGE = "App/ui/Task_1/layouts/Side1.json"
 SIGNING_PAGE = "App/ui/Task_Signering/layouts/Signering.json"
+METADATA = "App/config/applicationmetadata.json"
+POLICY = "App/config/authorization/policy.xml"
+PROCESS = "App/config/process/process.bpmn"
+Change = Callable[[Path], object]
+
+
+def _json(relative: str, change: Callable[[Any], Any]) -> Change:
+    return lambda root: _edit(root, relative, change)
+
+
+def _replace(relative: str, old: str, new: str) -> Change:
+    return lambda root: _write(root, relative, (root / relative).read_text(encoding="utf-8").replace(old, new))
+
+
+def _layout(change: Callable[[list[Any]], Any], page: str = FORM_PAGE) -> Change:
+    """A change to the components of a page, the form's page by default."""
+    return _json(page, lambda d: change(d["data"]["layout"]))
+
+
+def _added(component: dict[str, Any]) -> Change:
+    return _layout(lambda components: components.insert(0, component))
 
 
 def _paragraph(title: Any) -> dict[str, Any]:
     return {"id": "info", "type": "Paragraph", "textResourceBindings": {"title": title}}
 
 
-def _add(layout: dict[str, Any], component: dict[str, Any]) -> None:
-    layout["data"]["layout"].insert(0, component)
-
-
-BREAKS = {
+# Each break of the app and the score it lowers, in v8 and in v9
+BREAKS: dict[str, tuple[str, Change]] = {
     "a misspelled function in a hidden expression": (
         "bench_expressions",
-        lambda r, ui: _edit(
-            r,
-            f"App/ui/{ui}/layouts/Side1.json",
-            lambda d: d["data"]["layout"][6].update(hidden=["notEqual", ["component", "tidligere"], "ja"]),
-        ),
+        _layout(lambda c: c[6].update(hidden=["notEqual", ["component", "tidligere"], "ja"])),
     ),
-    "a text key that no language has": (
-        "bench_texts",
-        lambda r, ui: _edit(r, f"App/ui/{ui}/layouts/Side1.json", lambda d: _add(d, _paragraph("t.mangler"))),
-    ),
+    "a text key that no language has": ("bench_texts", _added(_paragraph("t.mangler"))),
+    "a text key in an expression that no language has": ("bench_texts", _added(_paragraph(["text", "t.mangler"]))),
     "SigningActions and nobody who may submit": (
         "bench_signing",
-        lambda r, ui: _write(r, "App/config/authorization/policy.xml", _policy(("read", "sign"))),
+        lambda r: _write(r, POLICY, _policy(("read", "sign"))),
     ),
     "an ActionButton that rejects instead of signing": (
         "bench_signing",
-        lambda r, ui: _edit(
-            r,
-            SIGNING_PAGE,
-            lambda d: d["data"]["layout"].__setitem__(1, {"id": "avvis", "type": "ActionButton", "action": "reject"}),
-        ),
+        _layout(lambda c: c.__setitem__(1, {"id": "avvis", "type": "ActionButton", "action": "reject"}), SIGNING_PAGE),
     ),
     "a hidden expression that reads another field": (
         "bench_expressions",
-        lambda r, ui: _edit(
-            r,
-            f"App/ui/{ui}/layouts/Side1.json",
-            lambda d: d["data"]["layout"][6].update(hidden=["notEquals", ["component", "typen"], "ja"]),
-        ),
+        _layout(lambda c: c[6].update(hidden=["notEquals", ["component", "typen"], "ja"])),
     ),
-    "a gateway with another limit": (
-        "bench_process",
-        lambda r, ui: _write(r, "App/config/process/process.bpmn", _process().replace("500000", "400000")),
-    ),
+    "a gateway with another limit": ("bench_process", _replace(PROCESS, "500000", "400000")),
     "a start event that leads to an element that does not exist": (
         "bench_process",
-        lambda r, ui: _write(
-            r, "App/config/process/process.bpmn", _process().replace('targetRef="Task_1"', 'targetRef="Task_2"')
-        ),
+        _replace(PROCESS, 'targetRef="Task_1"', 'targetRef="Task_2"'),
     ),
     "a signature data type that users can write": (
         "bench_signing",
-        lambda r, ui: _edit(
-            r, "App/config/applicationmetadata.json", lambda d: d["dataTypes"][-1].pop("allowedContributors")
-        ),
+        _json(METADATA, lambda d: d["dataTypes"][-1].pop("allowedContributors")),
+    ),
+    "a Deny rule for the signer": (
+        "bench_policy",
+        _replace(POLICY, 'ruleid:4" Effect="Permit"', 'ruleid:4" Effect="Deny"'),
     ),
     "a missing nynorsk text": (
         "bench_texts",
-        lambda r, ui: _edit(r, "App/config/texts/resource.nn.json", lambda d: d["resources"].pop(0)),
+        _json("App/config/texts/resource.nn.json", lambda d: d["resources"].pop(0)),
     ),
     "a validation rule that reads only its own field": (
         "bench_validation",
-        lambda r, ui: _edit(
-            r,
+        _json(
             "App/models/model.validation.json",
             lambda d: d["validations"]["belop"][0].update(condition=["greaterThan", ["dataModel", ["argv", 0]], 0]),
         ),
     ),
+    "a pattern that is not a regular expression": (
+        "bench_validation",
+        _json("App/models/model.schema.json", lambda d: d["properties"]["orgnr"].update(pattern="[")),
+    ),
+    "a prefill source that is a list": (
+        "bench_prefill",
+        _json("App/models/model.prefill.json", lambda d: d.update(ER=["Name"])),
+    ),
     "people may also start the app": (
         "bench_settings",
-        lambda r, ui: _edit(
-            r, "App/config/applicationmetadata.json", lambda d: d["partyTypesAllowed"].update(person=True)
-        ),
+        _json(METADATA, lambda d: d["partyTypesAllowed"].update(person=True)),
     ),
     "the yes/no list inline": (
         "bench_code_lists",
-        lambda r, ui: _edit(
-            r,
-            f"App/ui/{ui}/layouts/Side1.json",
-            lambda d: d["data"]["layout"][5].update(optionsId=None, options=[{"value": "ja", "label": "kode.ja"}]),
-        ),
+        _layout(lambda c: c[5].update(optionsId=None, options=[{"value": "ja", "label": "kode.ja"}])),
     ),
     "a binding outside the data model": (
         "bench_references",
-        lambda r, ui: _edit(
-            r,
-            f"App/ui/{ui}/layouts/Side1.json",
-            lambda d: d["data"]["layout"][0]["dataModelBindings"].update(simpleBinding="finnesIkke"),
-        ),
+        _layout(lambda c: c[0]["dataModelBindings"].update(simpleBinding="finnesIkke")),
     ),
-    "a changed library version": (
-        "bench_scaffold_intact",
-        lambda r, ui: _write(
-            r, "App/App.csproj", (r / "App/App.csproj").read_text(encoding="utf-8").replace('Version="', 'Version="1')
-        ),
+    "a page twice in pages.order": (
+        "bench_layouts",
+        _json("App/ui/Task_1/Settings.json", lambda d: d["pages"]["order"].append("Side1")),
+    ),
+    "a FileUpload for the form's own data type": ("bench_layouts", _layout(lambda c: c[10].update(id="model"))),
+    "a receipt variable from another data type": (
+        "bench_layouts",
+        _replace("App/config/texts/resource.nb.json", '"dataModel.model"', '"dataModel.annen"'),
+    ),
+    "a receipt summary of a field in another task": (
+        "bench_layouts",
+        _replace("App/ui/CustomReceipt/layouts/Kvittering.json", '"taskId": "Task_1"', '"taskId": "Task_Signering"'),
+    ),
+    "a changed library version": ("bench_scaffold_intact", _replace("App/App.csproj", 'Version="', 'Version="1')),
+}
+# A break of a rule of one version: the template, the score it lowers and the change
+VERSION_BREAKS: dict[str, tuple[str, str, Change]] = {
+    "layout-sets.json in v9": (
+        "v9",
+        "bench_version_conformance",
+        lambda r: _write(r, "App/ui/layout-sets.json", {"sets": []}),
+    ),
+    "a Header in v9": ("v9", "bench_schema_valid", _added({"id": "h", "type": "Header"})),
+    "formatNumber in v8": ("v8", "bench_expressions", _added(_paragraph(["formatNumber", ["dataModel", "belop"]]))),
+    "a list function in a v8 layout": (
+        "v8",
+        "bench_expressions",
+        _added(_paragraph(["concat", ["sum", ["dataModel", "belop"]]])),
+    ),
+    "UserProfile prefill at the start of a v9 task": (
+        "v9",
+        "bench_prefill",
+        _json("App/models/model.prefill.json", lambda d: d.update(UserProfile={"Email": "kontakt"})),
+    ),
+    "a second PDF in v8": (
+        "v8",
+        "bench_process",
+        _json(METADATA, lambda d: d["dataTypes"][1].update(enablePdfCreation=True)),
+    ),
+    "taskIds in v8": (
+        "v8",
+        "bench_version_conformance",
+        _json(METADATA, lambda d: d["dataTypes"][-1].update(taskIds=["Task_Signering"])),
     ),
 }
 
@@ -469,122 +506,47 @@ BREAKS = {
 def test_a_break_lowers_its_score(tmp_path, template, case):
     name, change = BREAKS[case]
     root = build_app(tmp_path, template)
-    change(root, "Task_1")
+    change(root)
     value, comment = scores(root, template)[name]
     assert value < 1, comment
 
 
-@pytest.mark.parametrize(
-    ("template", "name", "change"),
-    [
-        ("v9", "bench_version_conformance", lambda r: _write(r, "App/ui/layout-sets.json", {"sets": []})),
-        (
-            "v9",
-            "bench_schema_valid",
-            lambda r: _edit(r, "App/ui/Task_1/layouts/Side1.json", lambda d: _add(d, {"id": "h", "type": "Header"})),
-        ),
-        (
-            "v8",
-            "bench_expressions",
-            lambda r: _edit(
-                r,
-                "App/ui/Task_1/layouts/Side1.json",
-                lambda d: _add(d, _paragraph(["formatNumber", ["dataModel", "belop"]])),
-            ),
-        ),
-        (
-            "v8",
-            "bench_expressions",
-            lambda r: _edit(
-                r,
-                "App/ui/Task_1/layouts/Side1.json",
-                lambda d: _add(d, _paragraph(["concat", ["sum", ["dataModel", "belop"]]])),
-            ),
-        ),
-        (
-            "v9",
-            "bench_prefill",
-            lambda r: _edit(r, "App/models/model.prefill.json", lambda d: d.update(UserProfile={"Email": "kontakt"})),
-        ),
-        (
-            "v8",
-            "bench_process",
-            lambda r: _edit(
-                r, "App/config/applicationmetadata.json", lambda d: d["dataTypes"][1].update(enablePdfCreation=True)
-            ),
-        ),
-        (
-            "v8",
-            "bench_version_conformance",
-            lambda r: _edit(
-                r,
-                "App/config/applicationmetadata.json",
-                lambda d: d["dataTypes"][-1].update(taskIds=["Task_Signering"]),
-            ),
-        ),
-    ],
-)
-def test_a_version_rule_lowers_its_score(tmp_path, template, name, change):
+@pytest.mark.parametrize("case", sorted(VERSION_BREAKS))
+def test_a_version_rule_lowers_its_score(tmp_path, case):
+    template, name, change = VERSION_BREAKS[case]
     root = build_app(tmp_path, template)
     change(root)
     value, comment = scores(root, template)[name]
     assert value < 1, comment
 
 
-def test_an_answer_label_with_more_words_is_still_the_answer(tmp_path):
-    """Assistants often keep the PDF's «Annet – fyll inn» as the label of the answer «Annet»."""
-    root = build_app(tmp_path, "v9")
-    for language in ("nb", "nn", "en"):
-        _edit(
-            root,
-            f"App/config/texts/resource.{language}.json",
-            lambda d: [r.update(value="Annet – fyll inn") for r in d["resources"] if r["id"] == "kode.annet"],
-        )
-    value, comment = scores(root, "v9")["bench_expressions"]
-    assert value == 1, comment
+# Other ways to do what the rubric asks, which keep full marks in v8 and in v9
+ALSO_WORKS: dict[str, Change] = {
+    "a text in an expression": _added(_paragraph(["concat", ["text", "t.pdf"], ": ", ["dataModel", "navn"]])),
+    "an ActionButton that signs instead of SigningActions": _layout(
+        lambda c: c.__setitem__(1, {"id": "sign", "type": "ActionButton", "action": "sign", "buttonStyle": "primary"}),
+        SIGNING_PAGE,
+    ),
+    # Assistants often keep the PDF's «Annet – fyll inn» as the label of the answer «Annet»
+    "an answer label with more words": lambda r: [
+        _replace(f"App/config/texts/resource.{lang}.json", '"value": "Annet"', '"value": "Annet – fyll inn"')(r)
+        for lang in ("nb", "nn", "en")
+    ],
+    # The backend has the list functions in v8 too, and only the backend evaluates a gateway condition
+    "a list function in a gateway": _replace(
+        PROCESS, '["dataModel", "belop"], 500000]', '["sum", ["dataModel", "belop"]], 500000]'
+    ),
+}
 
 
 @pytest.mark.parametrize("template", ["v8", "v9"])
-@pytest.mark.parametrize(
-    "change",
-    [
-        pytest.param(
-            lambda r: _edit(
-                r,
-                "App/ui/Task_1/layouts/Side1.json",
-                lambda d: _add(d, _paragraph(["concat", ["text", "t.pdf"], ": ", ["dataModel", "navn"]])),
-            ),
-            id="a text from an expression",
-        ),
-        pytest.param(
-            lambda r: _edit(
-                r,
-                SIGNING_PAGE,
-                lambda d: d["data"]["layout"].__setitem__(
-                    1, {"id": "sign", "type": "ActionButton", "action": "sign", "buttonStyle": "primary"}
-                ),
-            ),
-            id="an ActionButton that signs instead of SigningActions",
-        ),
-    ],
-)
-def test_another_way_that_works_keeps_full_marks(tmp_path, template, change):
+@pytest.mark.parametrize("case", sorted(ALSO_WORKS))
+def test_another_way_that_works_keeps_full_marks(tmp_path, template, case):
     root = build_app(tmp_path, template)
-    change(root)
-    failing = {name: comment for name, (value, comment) in scores(root, template).items() if value < 1}
-    assert not failing
-
-
-def test_a_list_function_in_a_v8_gateway_is_allowed(tmp_path):
-    """The v8 backend has the list functions, and only the backend evaluates a gateway condition."""
-    root = build_app(tmp_path, "v8")
-    _write(
-        root,
-        "App/config/process/process.bpmn",
-        _process().replace('["greaterThan", ["dataModel", "belop"], 500000]', '["greaterThan", ["sum", 1], 500000]'),
-    )
-    value, comment = scores(root, "v8")["bench_expressions"]
-    assert value == 1, comment
+    ALSO_WORKS[case](root)
+    found = scores(root, template)
+    assert not {name: comment for name, (value, comment) in found.items() if value < 1}
+    assert set(found) == set(app_checks.SCORE_NAMES) - ({"bench_schema_valid"} if template == "v8" else set())
 
 
 def test_user_profile_prefill_from_the_user_s_own_party(tmp_path):

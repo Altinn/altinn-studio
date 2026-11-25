@@ -59,7 +59,7 @@ class UiFolder:
 
     def components(self, page: str | None = None) -> list[dict[str, Any]]:
         names = [page] if page else list(self.pages)
-        return [c for name in names for c in layout_components(self.pages.get(name)) or []]
+        return [c for name in names for c in layout_components(self.pages.get(name)) or [] if isinstance(c, dict)]
 
     def hiding(self, component: dict[str, Any]) -> list[Any]:
         """The hidden expressions of the component, of the groups that list it in `children`, and of its page."""
@@ -178,6 +178,7 @@ class Rule:
     resources: list[dict[str, str]]
     actions: set[str]
     any_of_count: int
+    permit: bool = True
 
     @property
     def scoped(self) -> list[dict[str, str]]:
@@ -252,9 +253,10 @@ class AppModel:
         return list(data_type.get("taskIds") or []) if self.v9 else [data_type.get("taskId")]
 
     def input_components(self) -> list[dict[str, Any]]:
-        """The form's components that collect input."""
-        components = self.form.components() if self.form else []
-        return [c for c in components if isinstance(c, dict) and c.get("type") in INPUT_COMPONENT_TYPES]
+        """The components that collect input on the pages in the form's order, so not on its PDF page."""
+        form = self.form
+        components = [c for page in form.order for c in form.components(page)] if form else []
+        return [c for c in components if c.get("type") in INPUT_COMPONENT_TYPES]
 
     def fields(self, title: str) -> list[tuple[UiFolder, dict[str, Any]]]:
         """The form's input components with this title. A field on the PDF page or the receipt is not one."""
@@ -269,30 +271,35 @@ class AppModel:
 
     def shown_by(self, folder: UiFolder | None, page: str | None = None) -> set[tuple[str | None, str]]:
         """The data model fields a folder or a page shows: its bindings, its summaries' targets and its text variables."""
-        by_id = {c.get("id"): (f, c) for f, _, c in self.all_components()}
         read: set[tuple[str | None, str]] = set()
         for component in folder_components(folder, page):
             target = component.get("target")
             target = target if isinstance(target, dict) else {}
-            shown = [(folder, component)] + [
-                by_id[r] for r in (component.get("componentRef"), target.get("id")) if r in by_id
-            ]
+            refs = ((component.get("componentRef"), None), (target.get("id"), target.get("taskId")))
+            shown = [(folder, component), *(found for ref, task in refs if (found := self._component(ref, task)))]
             for owner, item in shown:
                 for key in item.get("dataModelBindings") or {}:
                     if (bound := binding(item, key)) is not None and owner:
                         read.add((bound[0] or owner.data_type, bound[1]))
-        variables = self.variables(folder, page)
-        return read | {(data_type, path) for path in variables for data_type in self.data_types()}
+        return read | self.variables(folder, page)
 
-    def variables(self, folder: UiFolder | None, page: str | None = None) -> set[str]:
+    def _component(self, ref: Any, task: Any) -> tuple[UiFolder, dict[str, Any]] | None:
+        """The component a summary names, in the folder of `task` when it names one, since IDs repeat across tasks."""
+        home = self.folder_for_task(task) if isinstance(task, str) else None
+        found = (
+            (f, c) for f, _, c in self.all_components() if ref and c.get("id") == ref and (home is None or f is home)
+        )
+        return next(found, None)
+
+    def variables(self, folder: UiFolder | None, page: str | None = None) -> set[tuple[str | None, str]]:
+        """(data type, path) of the text variables of a folder or a page. `dataModel.default` is the folder's type."""
         keys = {key for c in folder_components(folder, page) for key in text_key_bindings(c).values()}
         entries = [self.texts.get(DEFAULT_LANGUAGE, {}).get(k) or {} for k in keys]
-        return {
-            v.get("key")
-            for entry in entries
-            for v in entry.get("variables") or []
-            if str(v.get("dataSource", "")).startswith("dataModel.")
-        }
+        found = [
+            (str(v.get("dataSource")).partition("."), v.get("key")) for e in entries for v in e.get("variables") or []
+        ]
+        default = folder.data_type if folder else None
+        return {(default if name == "default" else name, key) for (kind, _, name), key in found if kind == "dataModel"}
 
     def code_list(self, component: dict[str, Any]) -> list[dict[str, Any]]:
         found = component.get("options") or self.options.get(component.get("optionsId") or "")
@@ -336,8 +343,7 @@ class AppModel:
         for folder in self.folders.values():
             for page in folder.pages:
                 for component in folder.components(page):
-                    if isinstance(component, dict):
-                        yield folder, page, component
+                    yield folder, page, component
 
     def field_schema(self, data_type: str | None, path: str) -> tuple[dict[str, Any], bool] | None:
         """The schema of a data model field, and whether the path passes through a list."""
@@ -560,7 +566,9 @@ def _load_policy(model: AppModel, path: Path) -> None:
                     resources.append(matches)
                 elif category.endswith("action"):
                     actions.update(value.lower() for value in matches.values())
-        model.rules.append(Rule(rule.get("RuleId", ""), subjects, resources, actions, len(any_ofs)))
+        model.rules.append(
+            Rule(rule.get("RuleId", ""), subjects, resources, actions, len(any_ofs), rule.get("Effect") == "Permit")
+        )
 
 
 _WHITESPACE_RE = re.compile(r"\s+")

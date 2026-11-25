@@ -39,7 +39,7 @@ def _write_app(
     return root
 
 
-def _golden(root: Path) -> Path:
+def _golden(root: Path, order: list[str] | None = None) -> Path:
     return _write_app(
         root,
         pages={
@@ -52,6 +52,7 @@ def _golden(root: Path) -> Path:
                 _component("nav-two", "NavigationButtons"),
             ],
         },
+        order=order,
         resources={
             "app.field.navn": "A.1 Leverandørvirksomhetens navn",
             "app.field.epost": "A.2 E-postadresse",
@@ -131,28 +132,15 @@ class TestEvaluators:
         assert scores["bench_field_coverage"] == 0.5
         assert scores["bench_input_count"] == 0.5
 
-    def test_page_missing_from_order_flagged(self, tmp_path: Path):
+    def test_a_page_missing_from_the_order_is_not_counted(self, tmp_path: Path):
         rubric = build_rubric_from_dir(_golden(tmp_path / "golden"))
-        candidate = _write_app(
-            tmp_path / "candidate",
-            pages={
-                "Side1": [
-                    _component("name-input", "Input", "app.field.navn"),
-                    _component("nav-one", "NavigationButtons"),
-                ],
-                "Side2": [
-                    _component("email-input", "Input", "app.field.epost"),
-                    _component("nav-two", "NavigationButtons"),
-                ],
-            },
-            order=["Side1"],  # Side2 exists on disk but is not registered
-            resources={
-                "app.field.navn": "Leverandørvirksomhetens navn",
-                "app.field.epost": "E-postadresse",
-            },
-        )
-        scores = self._scores(candidate, rubric)
+        scores = self._scores(_golden(tmp_path / "candidate", order=["Side1"]), rubric)
         assert scores["bench_pages"] == 0.0
+        assert scores["bench_field_coverage"] == scores["bench_input_count"] == 0.5
+
+    def test_a_title_the_rubric_lists_twice_needs_two_fields(self, tmp_path: Path):
+        rubric = {**build_rubric_from_dir(_golden(tmp_path / "golden")), "expected_titles": ["A.2 E-postadresse"] * 2}
+        assert self._scores(_golden(tmp_path / "candidate"), rubric)["bench_field_coverage"] == 0.5
 
 
 def test_the_spec_field_count_leaves_out_headings_and_paragraphs():

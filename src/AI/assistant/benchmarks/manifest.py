@@ -548,10 +548,10 @@ BEHAVIORS = (
             kind="defect",
             title="Render every component type the agent writes",
             task=(
-                "1. Run `python -m benchmarks.components` to see which component types no item renders.\n"
-                "2. Add e2e items until each type the agent writes is rendered by one."
+                "1. List the component types in the layouts that the builds of a run committed.\n"
+                "2. Turn the render check on, and add e2e items until a run renders each type the agent writes."
             ),
-            acceptance="`benchmarks.components` reports no type that the items use and no run renders.",
+            acceptance="Each component type in the committed layouts of a run is on a page that the run rendered.",
         ),
         see=("actor.picks-allowed-tool",),
     ),

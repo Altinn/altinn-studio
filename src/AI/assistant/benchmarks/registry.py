@@ -71,7 +71,8 @@ class Eval:
         parts.append(f"Items: {item_count if item_count is not None else 'see below'}, edited in {where}.")
 
         if self.status == "live":
-            parts.append("Run: python -m benchmarks.runner check (see benchmarks/EVALS.md).")
+            flag = " --include-e2e" if self.kind == "e2e" else ""
+            parts.append(f"Run: python -m benchmarks.runner check{flag} (see benchmarks/EVALS.md).")
         else:
             parts.append(f"Not runnable: {self.status}.")
         if self.note:

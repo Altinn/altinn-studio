@@ -65,7 +65,7 @@ someone adds a score.
 The key's user must be able to create repositories in `BENCH_ORG`, which is `ttd` unless you set it.
 
 ```bash
-python -m benchmarks.dataset_sync --dataset Benchmarks/app-v9   # after a change to the item
+python -m benchmarks.dataset_sync                               # after a change to the item
 python -m benchmarks.runner check --include-e2e --label "what you changed"
 python -m benchmarks.runner check --include-e2e --only Benchmarks/app-v9
 ```

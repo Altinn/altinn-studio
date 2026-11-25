@@ -66,7 +66,7 @@ class Rubric(_Part):
     """What an item asks of the app, from its expectedOutput. A part the item leaves out turns its checks off."""
 
     rubric_version: int = RUBRIC_VERSION
-    expected_pages: int = 0
+    expected_pages: int | None = None
     min_input_components: int = 0
     expected_titles: list[str] = []
     navigation_required: bool = False

@@ -154,7 +154,9 @@ def clone_result_branch(app: BenchApp, session_id: str, workdir: Path) -> Path |
     try:
         return clone_branch(app.repo, branch, destination, _env("AGENT_DESIGNER_API_KEY"))
     except BenchAppError as error:
-        print(f"  {error}", file=sys.stderr)
+        # Only a missing branch is a build that committed nothing. A Git or Gitea failure fails the item instead.
+        if "not found in upstream" not in str(error):
+            raise
         return None
 
 

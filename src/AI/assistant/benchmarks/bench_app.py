@@ -234,7 +234,7 @@ def _git(tree: Path, args: list[str], api_key: str, failure: str) -> None:
 
 
 def _excerpt(response: httpx.Response, api_key: str) -> str:
-    return _redact(response.text[:300], api_key) or "no response body"
+    return _redact(response.text, api_key)[:300] or "no response body"
 
 
 def _redact(text: str, api_key: str) -> str:

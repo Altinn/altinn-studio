@@ -127,12 +127,10 @@ def _data_model_refs(expression: Any) -> list[tuple[str, str | None]]:
     return list(dict.fromkeys(refs))
 
 
-def _reads(expression: Any) -> set[str]:
-    """The component IDs and data model paths the expression reads."""
+def _reads(expression: Any, functions: tuple[str, ...] = ("component", "dataModel")) -> set[str]:
+    """The literal first argument of each call to `functions`: by default the component IDs and paths it reads."""
     return {
-        call[1]
-        for call in _calls(expression)
-        if call[0] in ("component", "dataModel") and len(call) > 1 and isinstance(call[1], str)
+        call[1] for call in _calls(expression) if call[0] in functions and len(call) > 1 and isinstance(call[1], str)
     }
 
 
@@ -179,6 +177,7 @@ def _read(path: Path | None) -> str:
 
 def _texts(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     used = {key for _, _, c in app.all_components() for key in text_key_bindings(c).values()} | app.option_labels()
+    used |= {key for e in _expressions_in([f.pages for f in app.folders.values()]) for key in _reads(e, ("text",))}
     for language in rubric.languages:
         texts = app.texts.get(language, {})
         checks.check(f"resource.{language}.json", app.text_files.get(language, {}).get("language") == language)
@@ -203,7 +202,8 @@ def _texts(app: AppModel, rubric: Rubric, checks: Checks) -> None:
 def _layouts(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     for folder in app.folders.values():
         loose = (set(folder.pages) ^ set(folder.order)) - {folder.pdf_page}
-        checks.check(f"{folder.name}: pages.order and files agree", not loose)
+        repeated = len(folder.order) > len(set(folder.order))
+        checks.check(f"{folder.name}: pages.order and files agree", not loose and not repeated)
         ids = [c.get("id") for c in folder.components()]
         checks.check(f"{folder.name}: unique component ids", len(ids) == len(set(ids)))
     if rubric.receipt:
@@ -211,8 +211,19 @@ def _layouts(app: AppModel, rubric: Rubric, checks: Checks) -> None:
     if rubric.pdf_page_fields:
         _pdf_page(app, checks, rubric.pdf_page_fields)
     if rubric.attachment:
-        uploads = {c.get("id") for c in folder_components(app.form) if c.get("type") == "FileUpload"}
-        checks.check("FileUpload for an attachment data type", bool(uploads & set(app.data_types())))
+        checks.check("FileUpload for an attachment data type", _attachment(app)[1])
+
+
+def _attachment(app: AppModel) -> tuple[dict[str, Any], bool]:
+    """The data type users upload to, the one a FileUpload in the form uses if any, and whether one uses it."""
+    uploads = {c.get("id") for c in folder_components(app.form) if c.get("type") == "FileUpload"} - {None}
+    types = [
+        d
+        for d in app.data_types().values()
+        if not d.get("appLogic") and d.get("id") != PDF_DATA_TYPE and APP_OWNED not in (contributors(d) or [])
+    ]
+    found = next((d for d in types if d.get("id") in uploads), types[0] if types else {})
+    return found, found.get("id") in uploads
 
 
 def _receipt(app: AppModel, checks: Checks, spec: Receipt) -> None:
@@ -223,7 +234,7 @@ def _receipt(app: AppModel, checks: Checks, spec: Receipt) -> None:
         checks.check(f"receipt shows {_short(title)}", bool(app.paths(title) & read))
     variables = app.variables(receipt)
     for title in spec.variable_fields:
-        checks.check(f"receipt variable {_short(title)}", bool({p for _, p in app.paths(title)} & variables))
+        checks.check(f"receipt variable {_short(title)}", bool(app.paths(title) & variables))
     texts = {app.text(key) or "" for c in folder_components(receipt) for key in text_key_bindings(c).values()}
     checks.check("receipt text", any(spec.text in text for text in texts))
 
@@ -357,10 +368,12 @@ def _gateway(app: AppModel, checks: Checks, pdf_task: str | None, spec: Gateway)
 
 
 def _leads_to(app: AppModel, flow: Flow) -> str:
-    """ "signing" when a signing task is ahead of the flow, else "end"."""
+    """ "signing" when a signing task is ahead of the flow, else "end" when an end event is, else "nowhere"."""
     process = app.process
     ahead = [flow.target, *process.reachable(flow.target)]
-    return "signing" if any(process.is_task(n, "signing") for n in ahead) else "end"
+    if any(process.is_task(n, "signing") for n in ahead):
+        return "signing"
+    return "end" if any(n in process.nodes and process.nodes[n].kind == "endEvent" for n in ahead) else "nowhere"
 
 
 def _signing(app: AppModel, rubric: Rubric, checks: Checks) -> None:
@@ -401,7 +414,10 @@ def _signing(app: AppModel, rubric: Rubric, checks: Checks) -> None:
 def _someone_may(app: AppModel, action: str, task: str) -> bool:
     """Whether a subject other than the service owner may do `action` in `task`."""
     return any(
-        action in rule.actions and rule.covers_task(task) and any(s[0] != SERVICE_OWNER for s in rule.subjects)
+        rule.permit
+        and action in rule.actions
+        and rule.covers_task(task)
+        and any(s[0] != SERVICE_OWNER for s in rule.subjects)
         for rule in app.rules
     )
 
@@ -424,15 +440,14 @@ def _policy(app: AppModel, rubric: Rubric, checks: Checks) -> None:
         task, subject = tasks[right.task] if right.task else None, _subject(right.subject)
         who, where = subject[1], right.task or "the app"
         for action in right.actions:
-            checks.check(
-                f"{who} may {action} in {where}",
-                any(subject in r.subjects and action in r.actions and _covers(r, task) for r in app.rules),
-            )
+            # The policies deny-override, so a matching Deny rule takes the right away
+            matching = [r for r in app.rules if subject in r.subjects and action in r.actions and _covers(r, task)]
+            checks.check(f"{who} may {action} in {where}", bool(matching) and all(r.permit for r in matching))
         for action in right.only:
             others = (
                 s[1]
                 for r in app.rules
-                if action in r.actions and _covers(r, task)
+                if r.permit and action in r.actions and _covers(r, task)
                 for s in r.subjects
                 if s[0] != SERVICE_OWNER and s != subject
             )
@@ -484,13 +499,8 @@ def _settings(app: AppModel, rubric: Rubric, checks: Checks) -> None:
         checks.check(f"partyTypesAllowed.{party} is {wanted}", bool(allowed.get(party)) is wanted)
     if not (spec := rubric.attachment):
         return
-    attachments = [
-        d
-        for d in app.data_types().values()
-        if not d.get("appLogic") and d.get("id") != PDF_DATA_TYPE and APP_OWNED not in (contributors(d) or [])
-    ]
-    checks.check("an attachment data type", bool(attachments))
-    found = attachments[0] if attachments else {}
+    found, _ = _attachment(app)
+    checks.check("an attachment data type", bool(found))
     types = sorted(found.get("allowedContentTypes") or [])
     checks.check("attachment content types", types == sorted(spec.content_types))
     checks.check(f"attachment maxSize {spec.max_size}", found.get("maxSize") == spec.max_size)
@@ -542,7 +552,7 @@ def _code_lists(app: AppModel, rubric: Rubric, checks: Checks) -> None:
         ids = {c.get("optionsId") for c in shared}
         checks.check(
             "yes/no questions share a code list file",
-            len(shared) >= len(titles) and len(ids) == 1 and ids <= set(app.options),
+            all(app.fields(title) for title in titles) and len(ids) == 1 and ids <= set(app.options),
         )
         labels = sorted(app.option_label(o) for o in app.code_list(shared[0])) if shared else []
         checks.check("the shared list is Ja and Nei", labels == ["ja", "nei"])
@@ -707,7 +717,10 @@ def evaluate(app: AppModel, rubric: Rubric) -> list[Score]:
     scores = evaluators.evaluate(app, rubric)
     for name, (check, _) in AREAS.items():
         checks = Checks(name)
-        check(app, rubric, checks)
+        try:
+            check(app, rubric, checks)
+        except Exception as error:  # A file the check cannot read fails this score and keeps the others
+            checks.check(f"the check stopped on {type(error).__name__}: {error}", False)
         if (score := checks.score()) is not None:
             scores.append(score)
     return scores

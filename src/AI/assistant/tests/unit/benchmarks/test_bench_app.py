@@ -11,7 +11,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from benchmarks import app_templates, bench_app
+from benchmarks import agent_task, app_templates, bench_app
 from benchmarks.bench_app import BenchApp, BenchAppError, app_name, build_app_tree, clone_branch, create_bench_app
 
 NOW = datetime(2026, 11, 25, 9, 30, 15, tzinfo=UTC)
@@ -137,9 +137,18 @@ def test_a_branch_of_the_app_clones(gitea, tmp_path):
     assert API_KEY not in str(raised.value)
 
 
+def test_a_session_without_a_branch_built_nothing_and_a_failed_clone_is_an_error(gitea, tmp_path, monkeypatch):
+    monkeypatch.setenv("AGENT_DESIGNER_API_KEY", API_KEY)
+    app = create_bench_app("v9", org="ttd", api_key=API_KEY, now=NOW)
+
+    assert agent_task.clone_result_branch(app, "0123456789", tmp_path) is None
+    with pytest.raises(BenchAppError):
+        agent_task.clone_result_branch(BenchApp("ttd", "finnes-ikke", "v9"), "0123456789", tmp_path / "other")
+
+
 @pytest.mark.parametrize(
     ("status", "body", "says"),
-    [(401, "", "AGENT_DESIGNER_API_KEY"), (403, "", "BENCH_ORG"), (500, f"error for key {API_KEY}", "HTTP 500")],
+    [(401, "", "AGENT_DESIGNER_API_KEY"), (403, "", "BENCH_ORG"), (500, f"{'x' * 290} key {API_KEY}", "HTTP 500")],
 )
 def test_a_failed_create_says_what_to_check_without_the_key(gitea, status, body, says):
     gitea.create_status, gitea.create_body = status, body
