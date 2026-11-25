@@ -27,6 +27,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
 - Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
 - A workflow step that is retried after the workflow engine accepted its enqueue no longer gets a conflict when the retry signs the state differently, such as after an app code rotation or a deploy of a newer app library. The retry joins the workflow its first attempt enqueued. ([#21609](https://github.com/Altinn/altinn-studio/pull/21609))
+- Creating an instance fails at once when the app's `IInstantiationProcessor.DataCreation` throws, as in v8. The request waited 100 seconds while the workflow engine retried for a day. The instance is kept, and the answer names the failed step and the `process/resume` endpoint. At a later task start the exception is still retried.
 
 ## [9.0.0-preview.14] - 2026-11-20
 

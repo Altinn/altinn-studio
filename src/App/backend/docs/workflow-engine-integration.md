@@ -65,6 +65,11 @@ and returns the re-signed state.
 - Every command is idempotent, because the engine retries steps.
 - A command reports a failure as a result. The callback does not catch a command's exception, so the engine gets a 500
   and retries it as transient.
+- `CommonTaskInitialization` runs the app's `IInstantiationProcessor.DataCreation`, which has no result to say whether
+  a retry would help. While an instance is created, an exception from it fails the step permanently. The request waits
+  for that step, the caller has no instance to follow, and a retry that succeeded later would finish an instance its
+  caller was told had failed. At a later task start the exception is retried like any other, since a deploy of fixed
+  code then lets the instance go on by itself.
 - Commands and app hooks stage changes on the instance data unit of work and never write to Storage. While the
   instance is processing, Storage rejects data and process writes that do not come from the workflow's own save.
 - A deferral saves nothing and returns the incoming state, so the next attempt starts where this one did. A deferring

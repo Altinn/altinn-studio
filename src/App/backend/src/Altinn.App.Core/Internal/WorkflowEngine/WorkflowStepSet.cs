@@ -75,7 +75,10 @@ internal sealed class WorkflowStepSet
             .AddStep(UnlockTaskData.Key, new TaskDataLockPayload(context.TaskId))
             .AddStep(CleanupGeneratedFromTask.Key)
             .AddHookStep(OnTaskStartingHook.Key, context.StartingHook)
-            .AddStep(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
+            .AddStep(
+                CommonTaskInitialization.Key,
+                new CommonTaskInitializationPayload(context.Prefill, context.IsInstantiation)
+            )
             .AddProcessTaskStages(StartTask.Key, context.StartPipeline);
 
         if (context.RegisterEvents)

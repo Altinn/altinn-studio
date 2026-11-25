@@ -1881,6 +1881,33 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal("value1", payload.Prefill["key1"]);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Create_InitialTaskStart_TellsCommonTaskInitializationWhetherAnInstanceIsBeingCreated(
+        bool isInstantiation
+    )
+    {
+        var factory = CreateFactory();
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            CreateInitialTaskStart(),
+            "test-process-next-idempotency-key",
+            SignedTestState,
+            isInstantiation: isInstantiation
+        );
+
+        AppCommandData? commonInitStep = bundle
+            .Request.Workflows[0]
+            .Steps.Where(s => s.Command.Type == "app" && s.Command.Data is not null)
+            .Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value))
+            .First(c => c?.CommandKey == CommonTaskInitialization.Key);
+
+        var payload = CommandPayloadSerializer.Deserialize<CommonTaskInitializationPayload>(commonInitStep?.Payload);
+        Assert.Equal(isInstantiation, payload?.IsInstantiation);
+    }
+
     [Fact]
     public async Task Create_SetsOperationIdIdempotencyKeyAndType()
     {

@@ -89,6 +89,13 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
         MailboxContinuation? mailboxContinuation = null
     ) => new(errorMessage, exceptionType, nonRetryable: true, mailboxContinuation: mailboxContinuation);
 
+    /// <summary>
+    /// Creates a non-retryable failure from a caught exception that no retry would get past, such as one from app
+    /// code that has no result to return.
+    /// </summary>
+    public static FailedWorkflowEngineCommandResult Permanent(Exception exception, string errorMessage) =>
+        new(errorMessage, exception.GetType().Name, nonRetryable: true, exception);
+
     private FailedWorkflowEngineCommandResult(
         string errorMessage,
         string? exceptionType,

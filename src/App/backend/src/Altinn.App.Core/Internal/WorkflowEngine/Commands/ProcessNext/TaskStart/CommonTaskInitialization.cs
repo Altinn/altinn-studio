@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.DataProcessing;
@@ -14,7 +15,14 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart
 /// Payload for the CommonTaskInitialization command.
 /// </summary>
 /// <param name="Prefill">Prefill data for the initial task start. Null for subsequent task transitions.</param>
-internal sealed record CommonTaskInitializationPayload(Dictionary<string, string>? Prefill) : CommandRequestPayload;
+/// <param name="IsInstantiation">
+/// Whether the step belongs to instance creation. Left out of the JSON when false, so that the payload of every other
+/// task start stays what it was before this was added.
+/// </param>
+internal sealed record CommonTaskInitializationPayload(
+    Dictionary<string, string>? Prefill,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool IsInstantiation = false
+) : CommandRequestPayload;
 
 internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<CommonTaskInitializationPayload>
 {
@@ -69,7 +77,22 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
 
             await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType.Id, data, payload.Prefill);
             var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-            await instantiationProcessor.DataCreation(instanceDataMutator, data, payload.Prefill);
+            try
+            {
+                await instantiationProcessor.DataCreation(instanceDataMutator, data, payload.Prefill);
+            }
+            // The request waits for this step and the caller has no instance to follow, and a retry that succeeded
+            // hours later would finish an instance its caller was told had failed. A later task start keeps its
+            // retries, since a deploy of fixed code then lets the instance go on by itself.
+            catch (Exception exception)
+                when (payload.IsInstantiation && !context.CancellationToken.IsCancellationRequested)
+            {
+                return FailedWorkflowEngineCommandResult.Permanent(
+                    exception,
+                    $"{nameof(IInstantiationProcessor)}.{nameof(IInstantiationProcessor.DataCreation)} failed for "
+                        + $"data type '{dataType.Id}': {exception.Message}"
+                );
+            }
 
             if (instanceDataMutator.AddFormDataElement(dataType.Id, data) is { } change)
             {

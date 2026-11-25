@@ -492,6 +492,88 @@ public class CommonTaskInitializationTests
         );
     }
 
+    private static (CommonTaskInitialization Command, Instance Instance) CreateCommandWithThrowingDataCreation()
+    {
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(new TestModel());
+
+        var instantiationProcessorMock = new Mock<IInstantiationProcessor>();
+        instantiationProcessorMock
+            .Setup(x =>
+                x.DataCreation(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<object>(),
+                    It.IsAny<Dictionary<string, string>?>()
+                )
+            )
+            .ThrowsAsync(new InvalidOperationException("The register has no such unit"));
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskIds = ["Task_1"],
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        return (
+            CreateCommand(
+                appMetadata,
+                appModelMock: appModelMock,
+                instantiationProcessorMock: instantiationProcessorMock
+            ),
+            CreateInstance("Task_1")
+        );
+    }
+
+    [Fact]
+    public async Task Execute_DataCreationThrowsDuringInstantiation_FailsPermanently()
+    {
+        var (command, instance) = CreateCommandWithThrowingDataCreation();
+        var (context, mutatorMock) = CreateContextWithMutator(
+            instance,
+            new CommonTaskInitializationPayload(null, IsInstantiation: true)
+        );
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal(nameof(InvalidOperationException), failed.ExceptionType);
+        Assert.IsType<InvalidOperationException>(failed.Exception);
+        Assert.Equal(
+            "IInstantiationProcessor.DataCreation failed for data type 'model': The register has no such unit",
+            failed.ErrorMessage
+        );
+        mutatorMock.Verify(x => x.AddFormDataElement(It.IsAny<string>(), It.IsAny<object>()), Times.Never());
+    }
+
+    [Fact]
+    public async Task Execute_DataCreationThrowsAtALaterTaskStart_LeavesTheExceptionToTheEnginesRetries()
+    {
+        var (command, instance) = CreateCommandWithThrowingDataCreation();
+        var (context, _) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => ((IWorkflowEngineCommand)command).Execute(context));
+    }
+
+    [Fact]
+    public void Payload_OutsideInstantiation_SerializesAsBeforeTheInstantiationMarker()
+    {
+        string? withoutMarker = CommandPayloadSerializer.Serialize(new CommonTaskInitializationPayload(null));
+        string? withMarker = CommandPayloadSerializer.Serialize(
+            new CommonTaskInitializationPayload(null, IsInstantiation: true)
+        );
+
+        Assert.Equal("""{"$type":"commonTaskInitialization","prefill":null}""", withoutMarker);
+        Assert.True(CommandPayloadSerializer.Deserialize<CommonTaskInitializationPayload>(withMarker)?.IsInstantiation);
+    }
+
     [Fact]
     public async Task Execute_NoMatchingDataTypes_ReturnsSuccessWithNoSideEffects()
     {
