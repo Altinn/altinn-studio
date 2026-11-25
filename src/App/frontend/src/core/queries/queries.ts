@@ -11,6 +11,7 @@ import { fetchAuthorizedOrganizationDetails, fetchSigneeList } from 'src/core/ap
 import { fetchSigningDocuments } from 'src/core/api-client/signingDocuments.api';
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { httpClient } from 'src/core/httpClient';
+import { frontendVersionsUrl } from 'src/features/devtools/components/VersionSwitcher/versionSwitcherUtils';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';
 import {
@@ -194,6 +195,10 @@ export function fetchExternalApi({
   const externalApiUrl = `${appPath}/instances/${instanceId}/api/external/${externalApiId}`;
   return httpGet(externalApiUrl);
 }
+
+/** The app frontend versions published on app-dist. */
+export const fetchAppFrontendVersions = async (): Promise<string[]> =>
+  (await httpClient.get<string[]>(frontendVersionsUrl)).data;
 
 export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
   const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;

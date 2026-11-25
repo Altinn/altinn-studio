@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
@@ -119,10 +120,14 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
+            string? frontendVersion = Request.Query[FrontendVersionOverride.QueryParameterName].FirstOrDefault();
             string? appFrontendAssetBaseUrlOverride =
-                _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
-                    ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
-                    : null;
+                FrontendVersionOverride.GetAssetBaseUrl(frontendVersion, AltinnEnvironments.GetHostingEnvironment(_env))
+                ?? (
+                    _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
+                        ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
+                        : null
+                );
 
             var appGlobalState = await _bootstrapGlobalService.GetGlobalState(_appId.Org, _appId.App, returnUrl, lang);
             var html = await _indexPageGenerator.Generate(
