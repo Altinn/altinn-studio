@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -19,6 +20,7 @@ export const CUSTOM_BUTTON_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/CustomButton',
   component: CustomButton,
+  decorators: [withComponentGrid],
   excludeStories: ['CUSTOM_BUTTON_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

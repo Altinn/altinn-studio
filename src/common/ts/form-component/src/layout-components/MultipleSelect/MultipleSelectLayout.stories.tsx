@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { useArgs } from 'storybook/preview-api';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
@@ -45,6 +46,7 @@ const spraak = [
 const meta = {
   title: 'LayoutComponents/MultipleSelect',
   component: MultipleSelect,
+  decorators: [withComponentGrid],
   // MULTIPLE_SELECT_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['MULTIPLE_SELECT_PROP_CATEGORIES'],
   parameters: {
