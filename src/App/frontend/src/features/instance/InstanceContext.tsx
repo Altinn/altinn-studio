@@ -216,5 +216,3 @@ export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
     });
   };
 };
-
-export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => T | undefined;

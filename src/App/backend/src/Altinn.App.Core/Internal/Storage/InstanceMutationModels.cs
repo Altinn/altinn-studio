@@ -62,9 +62,6 @@ internal sealed class StorageInstanceMutationCreateDataElement
 
     [JsonProperty(PropertyName = "tags")]
     public List<string>? Tags { get; init; }
-
-    [JsonProperty(PropertyName = "locked")]
-    public bool? Locked { get; init; }
 }
 
 internal sealed class StorageInstanceMutationUpdateDataElement
@@ -73,7 +70,7 @@ internal sealed class StorageInstanceMutationUpdateDataElement
     public required Guid DataElementId { get; init; }
 
     [JsonProperty(PropertyName = "contentPartName")]
-    public string? ContentPartName { get; init; }
+    public required string ContentPartName { get; init; }
 
     [JsonProperty(PropertyName = "expectedCurrentBlobVersion")]
     public string? ExpectedCurrentBlobVersion { get; init; }
@@ -101,18 +98,12 @@ internal sealed class StorageInstanceMutationUpdateDataElement
 
     [JsonProperty(PropertyName = "deleteStatus")]
     public DeleteStatus? DeleteStatus { get; init; }
-
-    [JsonProperty(PropertyName = "locked")]
-    public bool? Locked { get; init; }
 }
 
 internal sealed class StorageInstanceMutationDeleteDataElement
 {
     [JsonProperty(PropertyName = "dataElementId")]
     public required Guid DataElementId { get; init; }
-
-    [JsonProperty(PropertyName = "ignoreLock")]
-    public bool IgnoreLock { get; init; }
 }
 
 internal sealed class StorageInstanceMutationDeleteInstance

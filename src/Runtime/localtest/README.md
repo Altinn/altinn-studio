@@ -10,7 +10,26 @@ studioctl runs the newest Localtest image and supplies its configuration.
 configuration must keep working.
 
 - [Correspondence](docs/correspondence.md) covers the emulated Correspondence API and the Messages page.
-- [Notifications](src/Notifications/README.md) covers how the Notifications emulation is copied from the real service.
+- [Notifications](src/Notifications/README.md) covers what is specific to copying more of the Notifications service.
+
+## Code copied from the platform services
+
+Much of Localtest is code copied from the platform services and adjusted to run locally, which is why it keeps their
+namespaces, such as `Altinn.Platform.Storage`. When such a service gets something Localtest needs, such as a new
+Storage endpoint, copy the service's code and adjust the copy. Do not write it again from what it does. A copy keeps
+the service's checks, status codes and messages, so an app gets the same answers locally, and a later change in the
+service can be compared with it.
+
+- Copy models, helpers and services as they are.
+- Copy controllers, and change only what cannot work the same way locally, such as a call that Localtest's
+  authorization service does not have. Keep the structure, the names, the comments and the messages.
+- Do not copy persistence. Write a repository that stores the data on disk, and have it answer as the service's
+  repository does, such as with null for what is missing.
+- Remove what the disk storage cannot hold, and say so in a comment on what remains.
+- Name the commit you copied from in the pull request, and list what you changed.
+
+An emulation that Localtest wrote itself, such as [Correspondence](docs/correspondence.md), follows the service's
+contract instead.
 
 ## Test data
 

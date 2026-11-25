@@ -287,7 +287,7 @@ public class ProcessingStatusAcquirerTests
     [Theory]
     [InlineData("not json")]
     [InlineData("null")]
-    [InlineData("""{"$type":"taskDataLock","taskId":"Task_1"}""")]
+    [InlineData("""{"$type":"processTaskStage","stageIndex":0}""")]
     [InlineData("""{"$type":"acquireProcessingStatus"}""")]
     [InlineData("""{"$type":"acquireProcessingStatus","processStateChange":null}""")]
     [InlineData("""{"$type":"acquireProcessingStatus","processStateChange":{}}""")]
