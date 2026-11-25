@@ -33,7 +33,9 @@ public sealed record WorkflowRequest
     public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
-    /// Opaque state passed through from the app. The engine never inspects this.
+    /// Opaque state passed through from the app. The engine never inspects this, and it is not part of the enqueue
+    /// request's idempotency fingerprint: a replay may carry other state and still get the original workflows, which
+    /// keep the state they were created with.
     /// </summary>
     [JsonPropertyName("state")]
     public string? State { get; init; }

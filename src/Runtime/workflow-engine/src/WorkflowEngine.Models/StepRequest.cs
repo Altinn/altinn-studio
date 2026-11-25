@@ -26,7 +26,8 @@ public sealed record StepRequest
     public RetryStrategy? RetryStrategy { get; init; }
 
     /// <summary>
-    /// Optional key-value labels for this step. Stored and returned but not queryable.
+    /// Optional key-value labels for this step. Stored and returned but not queryable, and not part of the enqueue
+    /// request's idempotency fingerprint: a replay may carry other step labels and still get the original workflows.
     /// </summary>
     [JsonPropertyName("labels")]
     public Dictionary<string, string>? Labels { get; init; }

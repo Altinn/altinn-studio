@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -85,5 +86,142 @@ func TestAuthLoginWithTokenReadsFromInput(t *testing.T) {
 	}
 	if envCreds.ApiKey != authTestBotToken || envCreds.Username != authTestBotUser {
 		t.Fatalf("credentials = %+v, want bot token for bot-user", envCreds)
+	}
+}
+
+func TestAuthTokenPrintsStoredAPIKeyOnly(t *testing.T) {
+	home := t.TempDir()
+	creds := &authstore.Credentials{}
+	creds.Set(
+		"dev",
+		authstore.EnvCredentials{Host: "dev.altinn.studio", ApiKey: authTestBotToken, Username: authTestBotUser},
+	)
+	if err := authstore.SaveCredentials(home, creds); err != nil {
+		t.Fatalf("save credentials: %v", err)
+	}
+	var stdout, stderr strings.Builder
+	cmd := NewAuthCommand(&config.Config{Home: home}, ui.NewOutput(&stdout, &stderr, true))
+
+	if err := cmd.Run(context.Background(), []string{"token", "--env", "dev"}); err != nil {
+		t.Fatalf("auth token error = %v", err)
+	}
+	if stdout.String() != authTestBotToken+"\n" {
+		t.Fatalf("stdout = %q, want the API key and a newline", stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want nothing", stderr.String())
+	}
+}
+
+func TestAuthTokenNotLoggedInNamesEnvAndLoginCommand(t *testing.T) {
+	var stdout strings.Builder
+	cmd := NewAuthCommand(&config.Config{Home: t.TempDir()}, ui.NewOutput(&stdout, io.Discard, false))
+
+	err := cmd.Run(context.Background(), []string{"token", "--env", "staging"})
+	if !errors.Is(err, ErrNotLoggedIn) {
+		t.Fatalf("auth token error = %v, want ErrNotLoggedIn", err)
+	}
+	if !strings.Contains(err.Error(), "staging") || !strings.Contains(err.Error(), "auth login --env staging") {
+		t.Fatalf("auth token error = %q, want the env and the login command", err)
+	}
+	if stdout.Len() != 0 {
+		t.Fatalf("stdout = %q, want nothing", stdout.String())
+	}
+}
+
+func TestAuthTokenRejectsArguments(t *testing.T) {
+	cmd := NewAuthCommand(&config.Config{Home: t.TempDir()}, ui.NewOutput(io.Discard, io.Discard, false))
+
+	err := cmd.Run(context.Background(), []string{"token", "prod"})
+	if !errors.Is(err, ErrInvalidFlagValue) {
+		t.Fatalf("auth token error = %v, want ErrInvalidFlagValue", err)
+	}
+}
+
+func TestAuthSkipsUpdateCheckForMachineReadableSubcommands(t *testing.T) {
+	cmd := &AuthCommand{}
+
+	for _, args := range [][]string{{"token"}, {"token", "--env", "dev"}, {"git-credential", "get"}} {
+		if !cmd.SkipsUpdateCheck(args) {
+			t.Errorf("SkipsUpdateCheck(%q) = false, want true", args)
+		}
+	}
+	for _, args := range [][]string{nil, {"status"}, {"login"}} {
+		if cmd.SkipsUpdateCheck(args) {
+			t.Errorf("SkipsUpdateCheck(%q) = true, want false", args)
+		}
+	}
+}
+
+var errTestWriteFailed = errors.New("no space left on device")
+
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) { return 0, errTestWriteFailed }
+
+func saveTestCredentials(t *testing.T, env string, creds authstore.EnvCredentials) string {
+	t.Helper()
+	home := t.TempDir()
+	stored := &authstore.Credentials{}
+	stored.Set(env, creds)
+	if err := authstore.SaveCredentials(home, stored); err != nil {
+		t.Fatalf("save credentials: %v", err)
+	}
+	return home
+}
+
+func TestAuthTokenFailsWhenTheKeyCannotBeWritten(t *testing.T) {
+	home := saveTestCredentials(t, "prod", authstore.EnvCredentials{
+		Host:     "altinn.studio",
+		ApiKey:   authTestBotToken,
+		Username: authTestBotUser,
+	})
+	cmd := NewAuthCommand(&config.Config{Home: home}, ui.NewOutput(failingWriter{}, io.Discard, false))
+
+	err := cmd.Run(context.Background(), []string{"token"})
+	if !errors.Is(err, errTestWriteFailed) {
+		t.Fatalf("auth token error = %v, want the write error", err)
+	}
+}
+
+func TestAuthGitCredentialFailsWhenTheCredentialsCannotBeWritten(t *testing.T) {
+	home := saveTestCredentials(t, "prod", authstore.EnvCredentials{
+		Host:     "altinn.studio",
+		ApiKey:   authTestBotToken,
+		Username: authTestBotUser,
+	})
+	cmd := NewAuthCommand(&config.Config{Home: home}, ui.NewOutput(failingWriter{}, io.Discard, false))
+	request := strings.NewReader("protocol=https\nhost=altinn.studio\npath=repos/org/repo.git\n\n")
+
+	err := cmd.gitCredential([]string{"get"}, request)
+	if !errors.Is(err, errTestWriteFailed) {
+		t.Fatalf("auth git-credential error = %v, want the write error", err)
+	}
+}
+
+func TestAuthTokenFlagErrorsLeaveStdoutEmpty(t *testing.T) {
+	for _, args := range [][]string{{"token", "--env"}, {"token", "--unknown"}} {
+		var stdout strings.Builder
+		cmd := NewAuthCommand(&config.Config{Home: t.TempDir()}, ui.NewOutput(&stdout, io.Discard, false))
+
+		err := cmd.Run(context.Background(), args)
+		if err == nil {
+			t.Errorf("Run(%q) error = nil, want a flag error", args)
+		}
+		if stdout.Len() != 0 {
+			t.Errorf("Run(%q) stdout = %q, want nothing", args, stdout.String())
+		}
+	}
+}
+
+func TestAuthTokenHelpGoesToStdout(t *testing.T) {
+	var stdout strings.Builder
+	cmd := NewAuthCommand(&config.Config{Home: t.TempDir()}, ui.NewOutput(&stdout, io.Discard, false))
+
+	if err := cmd.Run(context.Background(), []string{"token", "--help"}); err != nil {
+		t.Fatalf("auth token --help error = %v", err)
+	}
+	if !strings.Contains(stdout.String(), "auth token [options]") {
+		t.Fatalf("stdout = %q, want the usage", stdout.String())
 	}
 }
