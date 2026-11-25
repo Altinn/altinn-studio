@@ -16,8 +16,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart
 /// </summary>
 /// <param name="Prefill">Prefill data for the initial task start. Null for subsequent task transitions.</param>
 /// <param name="IsInstantiation">
-/// Whether the step belongs to instance creation. Left out of the JSON when false, so that the payload of every other
-/// task start stays what it was before this was added.
+/// Whether the step belongs to the workflow that creates the instance. Left out of the JSON when false, so that every
+/// other task start keeps the payload the engine hashes.
 /// </param>
 internal sealed record CommonTaskInitializationPayload(
     Dictionary<string, string>? Prefill,
@@ -81,9 +81,9 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
             {
                 await instantiationProcessor.DataCreation(instanceDataMutator, data, payload.Prefill);
             }
-            // The request waits for this step and the caller has no instance to follow, and a retry that succeeded
-            // hours later would finish an instance its caller was told had failed. A later task start keeps its
-            // retries, since a deploy of fixed code then lets the instance go on by itself.
+            // A request waits for this step, and app code that throws here rarely gets past it on a retry, so the
+            // request gets its answer at once, as in v8. A later task start keeps its retries, since a deploy of
+            // fixed code then lets the instance go on by itself.
             catch (Exception exception)
                 when (payload.IsInstantiation && !context.CancellationToken.IsCancellationRequested)
             {

@@ -94,7 +94,13 @@ internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandR
     /// code that has no result to return.
     /// </summary>
     public static FailedWorkflowEngineCommandResult Permanent(Exception exception, string errorMessage) =>
-        new(errorMessage, exception.GetType().Name, nonRetryable: true, exception);
+        new(
+            errorMessage,
+            exception.GetType().Name,
+            nonRetryable: true,
+            exception,
+            serviceOwnerAuthorizationDenied: ServiceOwnerAuthorizationDiagnostics.IsAuthorizationDenied(exception)
+        );
 
     private FailedWorkflowEngineCommandResult(
         string errorMessage,

@@ -29,7 +29,8 @@ public class CommonTaskInitializationTests
 {
     private static WorkflowEngineCommandContext CreateContext(
         IInstanceDataMutator instanceDataMutator,
-        CommonTaskInitializationPayload payload
+        CommonTaskInitializationPayload payload,
+        CancellationToken cancellationToken = default
     )
     {
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
@@ -40,7 +41,7 @@ public class CommonTaskInitializationTests
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, Guid.NewGuid()),
             InstanceDataMutator = instanceDataMutator,
-            CancellationToken = CancellationToken.None,
+            CancellationToken = cancellationToken,
             Payload = new AppCallbackPayload
             {
                 CommandKey = CommonTaskInitialization.Key,
@@ -551,6 +552,23 @@ public class CommonTaskInitializationTests
             failed.ErrorMessage
         );
         mutatorMock.Verify(x => x.AddFormDataElement(It.IsAny<string>(), It.IsAny<object>()), Times.Never());
+    }
+
+    [Fact]
+    public async Task Execute_DataCreationThrowsInACancelledCallbackDuringInstantiation_IsNotAPermanentFailure()
+    {
+        var (command, instance) = CreateCommandWithThrowingDataCreation();
+        var mutatorMock = new Mock<IInstanceDataMutator>();
+        mutatorMock.Setup(x => x.Instance).Returns(instance);
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+        var context = CreateContext(
+            mutatorMock.Object,
+            new CommonTaskInitializationPayload(null, IsInstantiation: true),
+            cancellation.Token
+        );
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => ((IWorkflowEngineCommand)command).Execute(context));
     }
 
     [Fact]
