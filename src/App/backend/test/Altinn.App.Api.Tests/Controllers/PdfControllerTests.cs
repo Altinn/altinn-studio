@@ -373,6 +373,69 @@ public class PdfControllerTests
             );
     }
 
+    [Fact]
+    public async Task Preview_Of_A_Subform_Without_TaskId_Uses_The_Subform_Pdf_Task_Of_Its_Data_Type()
+    {
+        SetupSubformPdfTask();
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: null,
+            dataElementId: new Guid(SubformDataElementId)
+        );
+
+        result.Should().BeOfType<FileContentResult>();
+        RenderedUrl(requestBody)
+            .Should()
+            .EndWith(
+                $"/Task_SubformPdf?pdf=1&lang=nb&subformUiFolder=Subform&subformDataElementId={SubformDataElementId}"
+            );
+    }
+
+    [Theory]
+    [InlineData(ModelDataElementId, "No subform PDF service task renders data elements of type model")]
+    [InlineData(
+        "00000000-0000-0000-0000-000000000001",
+        "dataElementId must be the id of a data element in the instance"
+    )]
+    public async Task Preview_Of_A_Data_Element_Without_TaskId_And_Without_Its_Subform_Pdf_Task_Is_Rejected(
+        string dataElementId,
+        string expected
+    )
+    {
+        SetupSubformPdfTask();
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: null,
+            dataElementId: new Guid(dataElementId)
+        );
+
+        result.Should().BeOfType<BadRequestObjectResult>().Which.Value.Should().Be(expected);
+        requestBody.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Preview_Of_A_Subform_Without_TaskId_And_Several_Subform_Pdf_Tasks_Is_Rejected()
+    {
+        SetupSubformPdfTask();
+        _processReader
+            .Setup(x => x.GetProcessTasks())
+            .Returns([SubformPdfTask("Task_SubformPdf"), SubformPdfTask("Task_OtherSubformPdf")]);
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: null,
+            dataElementId: new Guid(SubformDataElementId)
+        );
+
+        result
+            .Should()
+            .BeOfType<BadRequestObjectResult>()
+            .Which.Value.Should()
+            .Be(
+                "Several subform PDF service tasks render data elements of type subform-model. Add taskId to choose one"
+            );
+        requestBody.Should().BeNull();
+    }
+
     [Theory]
     [InlineData("en", "lang=en")]
     [InlineData(null, "lang=nn")]
@@ -607,26 +670,25 @@ public class PdfControllerTests
         _appResources
             .Setup(x => x.GetLayoutSettingsForFolder("Subform"))
             .Returns(new LayoutSettings { DefaultDataType = subformDataType });
-        _processReader
-            .Setup(x => x.GetFlowElement("Task_SubformPdf"))
-            .Returns(
-                new ServiceTask
-                {
-                    Id = "Task_SubformPdf",
-                    ExtensionElements = new()
-                    {
-                        TaskExtension = new()
-                        {
-                            TaskType = "subformPdf",
-                            PdfConfiguration = autoPdfTaskIds is null
-                                ? null
-                                : new() { AutoPdfTaskIds = autoPdfTaskIds },
-                            SubformPdfConfiguration = new() { SubformUiFolder = "Subform" },
-                        },
-                    },
-                }
-            );
+        ServiceTask task = SubformPdfTask("Task_SubformPdf", autoPdfTaskIds);
+        _processReader.Setup(x => x.GetFlowElement("Task_SubformPdf")).Returns(task);
+        _processReader.Setup(x => x.GetProcessTasks()).Returns([task]);
     }
+
+    private static ServiceTask SubformPdfTask(string id, List<string>? autoPdfTaskIds = null) =>
+        new()
+        {
+            Id = id,
+            ExtensionElements = new()
+            {
+                TaskExtension = new()
+                {
+                    TaskType = "subformPdf",
+                    PdfConfiguration = autoPdfTaskIds is null ? null : new() { AutoPdfTaskIds = autoPdfTaskIds },
+                    SubformPdfConfiguration = new() { SubformUiFolder = "Subform" },
+                },
+            },
+        };
 
     private async Task<(ActionResult Result, string? RequestBody)> GetPdfPreview(
         string? taskId,
