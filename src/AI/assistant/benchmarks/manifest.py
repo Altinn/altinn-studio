@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from benchmarks import registry
+from benchmarks import app_checks, registry
 from benchmarks.bench_app import template_ids
 
 METRICS = ("rate", "mean")
@@ -140,21 +140,8 @@ class Behavior:
 
 
 # A skill is a component: the report groups the behaviors of a component, so each skill shows its v8 and v9
-# scores together.
-SKILLS = {
-    "app": ("studio-app-development", "_version_conformance", "How the files of an app connect, in v8 and v9."),
-    "texts": ("studio-text-resources", "_texts", "Texts, translations, variables and the language selector."),
-    "layouts": ("studio-layouts", "_layouts", "UI folders, pages, the custom receipt and the PDF page."),
-    "expressions": ("studio-expressions", "_expressions", "Expressions that hide fields and route the process."),
-    "process": ("studio-process", "_process", "The tasks, the PDF task and the gateway in process.bpmn."),
-    "signing": ("studio-signing", "_signing", "The signing task, its data types and its pages."),
-    "policy": ("studio-policy", "_policy", "Who may do what, in which task."),
-    "prefill": ("studio-prefill", "_prefill", "Data from Enhetsregisteret and the user profile."),
-    "settings": ("studio-app-settings", "_settings", "Who may start the app, and the attachment's limits."),
-    "validation": ("studio-validation", "_validation", "Required fields, patterns and expression validation."),
-    "codelists": ("studio-code-lists", "_code_lists", "Code list files and their texts."),
-    "datamodel": ("studio-data-model", "_data_model", "The schema, the C# class and the data types."),
-}
+# scores together. app_checks.AREAS names the skills and the score of each.
+SKILLS = {area.component: area for area in app_checks.AREAS.values() if area.skill}
 
 COMPONENTS = (
     Component(
@@ -200,8 +187,14 @@ COMPONENTS = (
         role="mixed",
     ),
     *(
-        Component(id=key, name=skill, where=f"benchmarks/app_checks.py::{check}", does=does, role="actor")
-        for key, (skill, check, does) in SKILLS.items()
+        Component(
+            id=key,
+            name=area.skill,
+            where=f"benchmarks/app_checks.py::{area.check.__name__}",
+            does=area.does,
+            role="actor",
+        )
+        for key, area in SKILLS.items()
     ),
 )
 
@@ -221,19 +214,20 @@ def _per_template(name: str, component: str, see: tuple[str, ...] = (), **fields
     )
 
 
-def _skill(component: str, name: str, text: str, evaluator: str, checks: str, blind: str, task: str) -> tuple:
+def _skill(score: str, name: str, text: str, checks: str, blind: str, task: str) -> tuple:
     """A skill behavior. Its score is the share of its checks that pass, on the app the item builds."""
+    component = app_checks.AREAS[score].component
     return _per_template(
         name,
         component,
         text=text,
-        evaluator=evaluator,
+        evaluator=score,
         metric="mean",
         checks=checks,
         blind=f"{blind} One item builds one app, so one failed check moves the score by a large step.",
         fix=Fix(
             kind="coverage",
-            title=f"The {SKILLS[component][0]} skill is measured on one app",
+            title=f"The {SKILLS[component].skill} skill is measured on one app",
             task=task,
             acceptance="Each check in the skill's 'Before you finish' list has a check here, on more than one app.",
         ),
@@ -609,11 +603,11 @@ BEHAVIORS = (
         "has-the-requested-fields",
         "build",
         text="Every field the request asks for is present",
-        checks="Each title the rubric expects matches the title of an input component.",
-        blind=(
-            "Titles only, and one title may contain the other. The type of the component is not read, so the "
-            "right title on the wrong component passes."
+        checks=(
+            "Each title the rubric expects matches the title of an input component in the form, as the skill checks "
+            "match titles: the same text, else the same field number, else the same words."
         ),
+        blind="Titles only. The type of the component is not read, so the right title on the wrong component passes.",
         evaluator="bench_field_coverage",
         metric="mean",
         fix=Fix(
@@ -701,32 +695,30 @@ BEHAVIORS = (
         see=("actor.recovers-from-tool-error",),
     ),
     *_skill(
-        "app",
+        "bench_version_conformance",
         "follows-its-version",
         "The app keeps the shape of its version",
-        "bench_version_conformance",
         (
-            "A v9 app has no layout-sets.json, rule files, Header, taskId, enablePdfCreation or eFormidling block, "
-            "and each UI folder has a defaultDataType. A v8 app has layout-sets.json for every folder, and no "
-            "Heading, taskIds or App/ui/Settings.json."
+            "A v9 app has none of the files that the assistant's v9 profile rules out, such as layout-sets.json and "
+            "rule files, and no Header, taskId, enablePdfCreation or eFormidling block. Each UI folder has a "
+            "defaultDataType. A v8 app has layout-sets.json for every folder, and no Heading, taskIds or "
+            "App/ui/Settings.json."
         ),
         "Only the rules the bench knows. A new rule in a version file needs a check here too.",
         "Add a check here for each rule a version file adds.",
     ),
     *_skill(
-        "app",
+        "bench_scaffold_intact",
         "keeps-the-scaffold",
         "The app keeps the template's build setup",
-        "bench_scaffold_intact",
         "The Dockerfile, App.sln, deployment/ and the library versions in App.csproj are the template's.",
         "A few files. A change to Program.cs passes.",
         "Add the files that an assistant must not change, if a run shows such a change.",
     ),
     *_skill(
-        "texts",
+        "bench_texts",
         "complete",
         "Every text is in every language, and the user can choose the language",
-        "bench_texts",
         (
             "Each language the item names has a resource file, each text key the app uses, a title and an appName. "
             "The language selector is on where the version reads it. Each {n} has a variable."
@@ -735,10 +727,9 @@ BEHAVIORS = (
         "Add an item in a language without built-in names, which needs language.full_name keys.",
     ),
     *_skill(
-        "layouts",
+        "bench_layouts",
         "complete",
         "The UI folders have the pages the process needs",
-        "bench_layouts",
         (
             "In each folder, pages.order and the files agree and the component IDs are unique. The custom receipt "
             "and the PDF page are where the version puts them and show the fields the item names. The form has a "
@@ -748,10 +739,9 @@ BEHAVIORS = (
         "Add items with subforms and repeating groups.",
     ),
     *_skill(
-        "expressions",
+        "bench_expressions",
         "behave",
         "Fields show and hide on the right answers",
-        "bench_expressions",
         (
             "For each field the item names, the bench fills in the controlling field with each of its options and "
             "with nothing. The field must show for one answer only. Each function the app uses exists in its "
@@ -765,10 +755,9 @@ BEHAVIORS = (
         "Add items with expressions in repeating groups and with required and readOnly expressions.",
     ),
     *_skill(
-        "process",
+        "bench_process",
         "complete",
         "The process has the tasks and the gateway the item asks for",
-        "bench_process",
         (
             "Each flow joins two elements, each task has one way out, a type on the right element and a diagram "
             "shape. A PDF task follows the data task, then a gateway. The gateway sends each amount the item names "
@@ -778,10 +767,9 @@ BEHAVIORS = (
         "Add items with other task types, such as confirmation and payment.",
     ),
     *_skill(
-        "signing",
+        "bench_signing",
         "configured",
         "The signing task is set up for role signing",
-        "bench_signing",
         (
             "The task lists sign, signs data that exists before it, and runs the default validator. The signature "
             "data type is app-owned JSON, bound to the task in the version's way. The pages have "
@@ -791,10 +779,9 @@ BEHAVIORS = (
         "Add an item with user-controlled signing.",
     ),
     *_skill(
-        "policy",
+        "bench_policy",
         "grants-per-task",
         "The policy gives each task to the right subjects",
-        "bench_policy",
         (
             "The file parses, every rule has a subject, a resource and an action, the RuleIds are unique and the "
             "rules come before the obligations. Each subject the item names has its actions in its task, and only "
@@ -804,10 +791,9 @@ BEHAVIORS = (
         "Add items with ER roles and with the delegation rule of user-controlled signing.",
     ),
     *_skill(
-        "prefill",
+        "bench_prefill",
         "configured",
         "Prefill fills the fields the item names, from sources that work",
-        "bench_prefill",
         (
             "Each prefill.json is named after a data type the app creates and sets allowOverwrite. Each source "
             "field is in the docs list, and each target is in the data model, outside a list. v9 does not use "
@@ -817,10 +803,9 @@ BEHAVIORS = (
         "Add an item with DSF and with query parameters in a stateless app.",
     ),
     *_skill(
-        "settings",
+        "bench_settings",
         "configured",
         "The app settings are the ones the item asks for",
-        "bench_settings",
         (
             "partyTypesAllowed allows the party types the item names. The attachment data type has the content "
             "types, size and counts the item names, and is bound to the data task in the version's way."
@@ -829,10 +814,9 @@ BEHAVIORS = (
         "Add items with a stateless start page and with auto-delete.",
     ),
     *_skill(
-        "validation",
+        "bench_validation",
         "configured",
         "The form rejects the values the item says it must reject",
-        "bench_validation",
         (
             "The fields the item names are required. A pattern accepts and rejects the item's values. The rules in "
             "the validation file fail and pass on the item's values, and their messages are in each language. "
@@ -842,10 +826,9 @@ BEHAVIORS = (
         "Add an item with a C# validator.",
     ),
     *_skill(
-        "codelists",
+        "bench_code_lists",
         "configured",
         "The choices come from the code lists the item asks for",
-        "bench_code_lists",
         (
             "The yes and no questions share one code list file with Ja and Nei. The other choices have their own "
             "files. Each label is a text key in each language."
@@ -854,10 +837,9 @@ BEHAVIORS = (
         "Add items with a library code list and with options from a repeating group.",
     ),
     *_skill(
-        "datamodel",
+        "bench_data_model",
         "consistent",
         "The data model's files agree with each other and with the process",
-        "bench_data_model",
         (
             "The schema, the C# class and the XSD are named after the data type. classRef names the class, the "
             "class has each field of the schema, and each task of a data type exists. The amounts are numbers."
@@ -876,6 +858,8 @@ def _check_integrity() -> None:
         assert behavior.component in components, f"{behavior.id}: unknown component"
         for other in behavior.see:
             assert other in ids, f"{behavior.id}: see references unknown behavior {other}"
+    unreported = set(app_checks.SCORE_NAMES) - {b.evaluator for b in BEHAVIORS}
+    assert not unreported, f"{sorted(unreported)}: a score that no behavior names is in no report"
     for component in COMPONENTS:
         assert any(b.component == component.id for b in BEHAVIORS), (
             f"{component.id}: a component with no declared behavior is not covered by anything, "

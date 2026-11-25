@@ -19,6 +19,9 @@ from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
+from agents.altinn.layout import get_layout_schema
+from shared.config.base_config import get_config
+
 
 class ExpressionError(Exception):
     """The expression is invalid, and the frontend and the backend both fail on it."""
@@ -428,39 +431,16 @@ _FUNCTIONS: dict[str, tuple[int, int | None, _Function]] = {
 
 SUPPORTED_FUNCTIONS = frozenset(_FUNCTIONS)
 
-# Every function app-frontend or the app backend implements. The rest are invalid in both.
-KNOWN_FUNCTIONS = SUPPORTED_FUNCTIONS | {
-    "_experimentalSelectAndMap",
-    "argv",
-    "authContext",
-    "average",
-    "compare",
-    "count",
-    "countDataElements",
-    "displayValue",
-    "divide",
-    "externalApi",
-    "formatDate",
-    "formatNumber",
-    "frontendSettings",
-    "instanceContext",
-    "jmespath",
-    "language",
-    "linkToComponent",
-    "linkToPage",
-    "list",
-    "lowerCaseFirst",
-    "minus",
-    "multiply",
-    "object",
-    "optionLabel",
-    "plus",
-    "round",
-    "stringIndexOf",
-    "stringReplace",
-    "stringSlice",
-    "sum",
-    "text",
-    "upperCaseFirst",
-    "value",
-}
+
+def _defined_functions() -> frozenset[str]:
+    """The functions the v9 expression schema defines: every function app-frontend or the app backend implements."""
+    schema = get_layout_schema(str(get_config().LAYOUT_SCHEMA_V9_DIR / "expression.schema.v1.json"))
+    return frozenset(
+        items[0]["const"]
+        for name, definition in schema["definitions"].items()
+        if name.startswith("func-") and isinstance(items := definition.get("items"), list) and "const" in items[0]
+    )
+
+
+# A function outside these is invalid in the frontend and the backend alike.
+KNOWN_FUNCTIONS = _defined_functions()

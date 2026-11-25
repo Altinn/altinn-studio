@@ -415,12 +415,11 @@ def _check_forbidden_new_files(ctx: LoopContext, changed: list[str]) -> _Result:
     An unfinished v9 upgrade keeps `layout-sets.json` and the rule files, and
     those must still be editable and deletable.
     """
-    forbidden_patterns = ctx.app_version_profile.forbidden_new_file_patterns
     notes = [
         f"{file_path}: {replacement}"
         for file_path in changed
-        for pattern, replacement in forbidden_patterns.items()
-        if PurePosixPath(file_path).match(pattern) and not git_ops.exists_in_head(ctx.repo_path, file_path)
+        if (replacement := ctx.app_version_profile.forbidden_file(file_path))
+        and not git_ops.exists_in_head(ctx.repo_path, file_path)
     ]
     return _Result(not notes, notes)
 

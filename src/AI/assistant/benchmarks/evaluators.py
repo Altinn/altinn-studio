@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .app_model import NAVIGATION_COMPONENT_TYPES, AppModel, titles_match
+from .app_model import NAVIGATION_COMPONENT_TYPES, AppModel
 
 
 @dataclass(frozen=True)
@@ -50,12 +50,13 @@ def _pages(app: AppModel, rubric: dict[str, Any]) -> Score:
 
 
 def _navigation(app: AppModel, rubric: dict[str, Any]) -> Score:
-    if not rubric.get("navigation_required") or len(app.page_order) < 2:
+    form = app.form
+    if form is None or not rubric.get("navigation_required") or len(form.order) < 2:
         return Score("bench_navigation", 1.0, "BOOLEAN", "single page — nothing to navigate")
     missing = [
         page
-        for page in app.page_order
-        if not any(c.get("type") in NAVIGATION_COMPONENT_TYPES for c in app.layouts.get(page, []))
+        for page in form.order
+        if not any(isinstance(c, dict) and c.get("type") in NAVIGATION_COMPONENT_TYPES for c in form.components(page))
     ]
     return Score(
         name="bench_navigation",
@@ -73,12 +74,7 @@ def _field_coverage(app: AppModel, rubric: dict[str, Any]) -> Score:
     expected_titles: list[str] = [t for t in rubric.get("expected_titles") or [] if t]
     if not expected_titles:
         return Score("bench_field_coverage", 1.0, "NUMERIC", "rubric has no expected titles")
-    candidate_titles = [t for t in (app.title_of(c) for c in app.input_components()) if t]
-    missing = [
-        expected
-        for expected in expected_titles
-        if not any(titles_match(expected, candidate) for candidate in candidate_titles)
-    ]
+    missing = [expected for expected in expected_titles if not app.fields(expected)]
     covered = len(expected_titles) - len(missing)
     preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
     return Score(

@@ -12,7 +12,7 @@ import json
 import re
 import unicodedata
 import xml.etree.ElementTree as ElementTree
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -118,6 +118,11 @@ class Process:
         """The id of the start event, or "" when there is none."""
         return next((n.id for n in self.nodes.values() if n.kind == "startEvent"), "")
 
+    def is_task(self, node_id: str, task_type: str) -> bool:
+        """Whether the element is a task of this type. A flow can point at an element that does not exist."""
+        node = self.nodes.get(node_id)
+        return node is not None and node.task_type == task_type
+
     def outgoing(self, node_id: str) -> list[Flow]:
         return [flow for flow in self.flows.values() if flow.source == node_id]
 
@@ -163,12 +168,6 @@ class Rule:
 class AppModel:
     """The files of one app that the scores read."""
 
-    page_order: list[str] = field(default_factory=list)
-    # page name -> flat component list of the folder with the longest page order
-    layouts: dict[str, list[dict]] = field(default_factory=dict)
-    # resource id -> value (from resource.nb.json)
-    resources: dict[str, str] = field(default_factory=dict)
-
     root: Path | None = None
     version: int = 8
     files: set[str] = field(default_factory=set)
@@ -189,21 +188,40 @@ class AppModel:
     validation: dict[str, dict[str, Any]] = field(default_factory=dict)
     appsettings: dict[str, Any] = field(default_factory=dict)
 
-    def ordered_components(self) -> list[dict]:
-        out: list[dict] = []
-        for page in self.page_order:
-            out.extend(self.layouts.get(page, []))
-        return out
+    @property
+    def data_task(self) -> str | None:
+        """The first data task after the start event."""
+        return next((n for n in self.process.reachable(self.process.start) if self.process.is_task(n, "data")), None)
 
-    def input_components(self) -> list[dict]:
-        return [c for c in self.ordered_components() if c.get("type") in INPUT_COMPONENT_TYPES]
+    @property
+    def form(self) -> UiFolder | None:
+        """The UI folder of the data task. Without one, the folder with the longest page order."""
+        found = self.folder_for_task(self.data_task or "")
+        return found or max(self.folders.values(), key=lambda f: len(f.order), default=None)
 
-    def title_of(self, component: dict) -> str | None:
-        """Resolve a component's title binding to its nb text, if any."""
+    @property
+    def page_order(self) -> list[str]:
+        return self.form.order if self.form else []
+
+    def input_components(self) -> list[dict[str, Any]]:
+        """The form's components that collect input."""
+        components = self.form.components() if self.form else []
+        return [c for c in components if isinstance(c, dict) and c.get("type") in INPUT_COMPONENT_TYPES]
+
+    def fields(self, title: str) -> list[tuple[UiFolder, dict[str, Any]]]:
+        """The form's input components with this title, as `match_title` finds it. A field on the PDF page or the
+        receipt is not a field of the form."""
+        form = self.form
+        if form is None:
+            return []
+        return match_title(title, ((self.title_of(c) or "", (form, c)) for c in self.input_components()))
+
+    def title_of(self, component: dict[str, Any]) -> str | None:
+        """The nb text of a component's title, or its text key when there is no text."""
         key = (component.get("textResourceBindings") or {}).get("title")
-        if not isinstance(key, str):
+        if not isinstance(key, str) or not key.strip():
             return None
-        return self.resources.get(key, key if key.strip() else None)
+        return self.text(key) or key
 
     def text(self, key: Any, language: str = "nb") -> str | None:
         if not isinstance(key, str):
@@ -319,7 +337,6 @@ def load_app(root: Path) -> AppModel:
             model.texts[language] = {
                 e["id"]: e for e in data.get("resources") or [] if isinstance(e, dict) and isinstance(e.get("id"), str)
             }
-    model.resources = {key: str(entry.get("value", "")) for key, entry in model.texts.get("nb", {}).items()}
 
     sets = _json(app_dir / "ui" / "layout-sets.json")
     model.layout_sets = sets if isinstance(sets, dict) else None
@@ -341,11 +358,6 @@ def load_app(root: Path) -> AppModel:
         else:
             folder = UiFolder(folder_dir.name, settings, pages, settings.get("defaultDataType"), (folder_dir.name,))
         model.folders[folder.name] = folder
-
-    main = max(model.folders.values(), key=lambda f: len(f.order), default=None)
-    if main is not None and main.order:
-        model.page_order = main.order
-        model.layouts = {name: [c for c in main.components(name) if isinstance(c, dict)] for name in main.pages}
 
     model.options = {
         p.stem: data for p in sorted((app_dir / "options").glob("*.json")) if (data := _json(p)) is not None
@@ -444,11 +456,39 @@ def normalize_title(text: str) -> str:
     return _WHITESPACE_RE.sub(" ", text).strip()
 
 
-def titles_match(expected: str, candidate: str) -> bool:
-    """One expected title matches a candidate when either normalized
-    form contains the other (runs disagree about prefixes/suffixes, not
-    about the core wording)."""
-    e, c = normalize_title(expected), normalize_title(candidate)
-    if not e or not c:
-        return False
-    return e in c or c in e
+# A title that has all the words of another matches it only when it is at least this share of the other's length,
+# so «Navn» does not match every title with a name in it.
+SIMILAR_TITLE_MIN_SHARE = 0.3
+
+
+def match_title[T](title: str, candidates: Iterable[tuple[str, T]]) -> list[T]:
+    """The candidates whose text is `title` after normalizing. Without one, those with the same field number, such as
+    «A5.», and else those whose words are all in the title or that have all its words. So the two fields a name and
+    number field is split into are both found."""
+    wanted, number = normalize_title(title), _field_number(title)
+    exact: list[T] = []
+    numbered: list[T] = []
+    similar: list[T] = []
+    for text, candidate in candidates:
+        have = normalize_title(text)
+        if not have or not wanted:
+            continue
+        share = min(len(have), len(wanted)) / max(len(have), len(wanted))
+        if have == wanted:
+            exact.append(candidate)
+        elif number and _field_number(text) == number:
+            numbered.append(candidate)
+        elif _same_words(have, wanted) and share >= SIMILAR_TITLE_MIN_SHARE:
+            similar.append(candidate)
+    return exact or numbered or similar
+
+
+def _field_number(title: str) -> str | None:
+    """The number a numbered form gives a field, such as "a5" in «A5. Kontaktinformasjon»."""
+    found = re.match(r"\s*([A-Za-z]?\d+(?:\.\d+)*)[.)]?\s", title)
+    return found.group(1).lower() if found else None
+
+
+def _same_words(have: str, wanted: str) -> bool:
+    """One title has all the words of the other."""
+    return set(have.split()) <= set(wanted.split()) or set(wanted.split()) <= set(have.split())

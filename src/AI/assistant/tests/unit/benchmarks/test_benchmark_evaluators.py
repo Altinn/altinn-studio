@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from benchmarks.app_model import load_app, normalize_title, titles_match
+from benchmarks.app_model import load_app, match_title, normalize_title
 from benchmarks.evaluators import evaluate
 from benchmarks.planner import spec_field_count
 from benchmarks.rubric import RUBRIC_VERSION, build_rubric_from_dir
@@ -64,8 +64,8 @@ class TestTitleMatching:
         assert normalize_title("A.1 Leverandørvirksomhetens navn:") == ("leverandørvirksomhetens navn")
 
     def test_titles_match_across_naming_styles(self):
-        assert titles_match("A.1 Leverandørvirksomhetens navn", "leverandørvirksomhetens navn")
-        assert not titles_match("E-postadresse", "Organisasjonsnummer")
+        assert match_title("A.1 Leverandørvirksomhetens navn", [("leverandørvirksomhetens navn", "found")]) == ["found"]
+        assert match_title("E-postadresse", [("Organisasjonsnummer", "found")]) == []
 
 
 class TestRubric:

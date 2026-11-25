@@ -413,6 +413,12 @@ BREAKS = {
             _process().replace("greaterThan", "greaterThanEq").replace('"lessThanEq"', '"lessThan"'),
         ),
     ),
+    "a start event that leads to an element that does not exist": (
+        "bench_process",
+        lambda r, ui: _write(
+            r, "App/config/process/process.bpmn", _process().replace('targetRef="Task_1"', 'targetRef="Task_2"')
+        ),
+    ),
     "a signature data type that users can write": (
         "bench_signing",
         lambda r, ui: _edit(

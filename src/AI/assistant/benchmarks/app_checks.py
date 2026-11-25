@@ -8,15 +8,14 @@ v9 keep each part, as the skills' version files describe, so a check works for a
 
 from __future__ import annotations
 
-import json
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any
 
 from . import expressions
-from .app_model import INPUT_COMPONENT_TYPES, AppModel, Flow, Rule, UiFolder, binding, normalize_title, property_names
+from .app_model import AppModel, Flow, Rule, UiFolder, binding, normalize_title, property_names
 from .bench_app import TEMPLATES_DIR
 from .evaluators import Score
 from .rubric import STRUCTURAL_KEYS
@@ -29,9 +28,6 @@ APP_OWNED = "app:owned"
 RECEIPT_TASK = "CustomReceipt"
 DEFAULT_LANGUAGE = "nb"
 
-# A title that has all the words of another matches it only when it is at least this share of the other's length,
-# so «Navn» does not match every title with a name in it.
-SIMILAR_TITLE_MIN_SHARE = 0.3
 # How much of a field title a check's label shows, and how many items a score's comment names.
 LABEL_LENGTH = 20
 COMMENT_FOUND = 4
@@ -147,56 +143,22 @@ class _View:
     def v9(self) -> bool:
         return self.version >= 9
 
-    @property
-    def data_task(self) -> str | None:
-        process = self.app.process
-        return next((n for n in process.reachable(process.start) if process.nodes[n].task_type == "data"), None)
-
     def task_after(self, kind: str) -> str | None:
         """The nearest task of a type after the data task."""
-        nodes = self.app.process.nodes
-        return next((n for n in self.app.process.reachable(self.data_task or "") if nodes[n].task_type == kind), None)
-
-    @property
-    def form(self) -> UiFolder | None:
-        return self.app.folder_for_task(self.data_task or "")
+        process = self.app.process
+        return next((n for n in process.reachable(self.app.data_task or "") if process.is_task(n, kind)), None)
 
     @property
     def form_type(self) -> str | None:
-        return self.form.data_type if self.form else None
+        return self.app.form.data_type if self.app.form else None
 
     def task_ids(self, data_type: dict[str, Any]) -> list[str | None]:
         """The tasks of a data type: the list `taskIds` in v9, the one `taskId` in v8."""
         return list(data_type.get("taskIds") or []) if self.v9 else [data_type.get("taskId")]
 
-    def fields(self, title: str) -> list[tuple[UiFolder, dict[str, Any]]]:
-        """The input components of the form with this title after normalizing. Without one, those with the same
-        field number, such as «A5.», and else those whose words are all in the title or that have all its words. So
-        the two fields a name and number field is split into are both found. A field on the PDF page or the receipt
-        is not a field of the form."""
-        wanted, number = normalize_title(title), _number(title)
-        exact, numbered, similar = [], [], []
-        for folder, _, component in self.app.all_components():
-            key = (component.get("textResourceBindings") or {}).get("title")
-            text = (self.app.text(key) or key) if isinstance(key, str) else ""
-            have = normalize_title(text)
-            if component.get("type") not in INPUT_COMPONENT_TYPES or not have or not wanted:
-                continue
-            if self.form is not None and folder is not self.form:
-                continue
-            found = (folder, component)
-            share = min(len(have), len(wanted)) / max(len(have), len(wanted))
-            if have == wanted:
-                exact.append(found)
-            elif number and _number(text) == number:
-                numbered.append(found)
-            elif _same_words(have, wanted) and share >= SIMILAR_TITLE_MIN_SHARE:
-                similar.append(found)
-        return exact or numbered or similar
-
     def paths(self, title: str) -> set[tuple[str | None, str]]:
         """(data type, path) of the fields with this title."""
-        return {(b[0] or f.data_type, b[1]) for f, c in self.fields(title) if (b := binding(c)) is not None}
+        return {(b[0] or f.data_type, b[1]) for f, c in self.app.fields(title) if (b := binding(c)) is not None}
 
     def options(self, component: dict[str, Any]) -> list[dict[str, Any]]:
         found = component.get("options") or self.app.options.get(component.get("optionsId") or "")
@@ -204,17 +166,6 @@ class _View:
 
     def label(self, option: dict[str, Any]) -> str:
         return normalize_title(self.app.text(option.get("label")) or str(option.get("label")))
-
-
-def _number(title: str) -> str | None:
-    """The number a numbered form gives a field, such as "a5" in «A5. Kontaktinformasjon»."""
-    found = re.match(r"\s*([A-Za-z]?\d+(?:\.\d+)*)[.)]?\s", title)
-    return found.group(1).lower() if found else None
-
-
-def _same_words(have: str, wanted: str) -> bool:
-    """One title has all the words of the other."""
-    return set(have.split()) <= set(wanted.split()) or set(wanted.split()) <= set(have.split())
 
 
 def _short(title: str) -> str:
@@ -334,7 +285,7 @@ def _layouts(view: _View, checks: Checks) -> None:
     if view.rubric.pdf_page_fields:
         _pdf_page(view, checks, view.rubric.pdf_page_fields)
     if view.rubric.attachment:
-        uploads = {c.get("id") for c in _components(view.form) if c.get("type") == "FileUpload"}
+        uploads = {c.get("id") for c in _components(view.app.form) if c.get("type") == "FileUpload"}
         checks.check("FileUpload for an attachment data type", bool(uploads & set(view.app.data_types())))
 
 
@@ -426,7 +377,7 @@ def _missing_functions(found: Iterable[Any], lacking: frozenset[str]) -> set[str
 def _shows_only_for(view: _View, pair: dict[str, str]) -> bool | None:
     """Fill in the controller with each of its options and with nothing, and see when the field shows. An invalid
     expression fails, as it does in the app."""
-    controllers = view.fields(pair["controller"])
+    controllers = view.app.fields(pair["controller"])
     if not controllers:
         return False
     folder, controller = controllers[0]
@@ -437,7 +388,7 @@ def _shows_only_for(view: _View, pair: dict[str, str]) -> bool | None:
     answer = normalize_title(pair["shown_for"])
     wanted = [str(o.get("value")) for o in options if view.label(o) == answer]
     wanted = wanted or [str(o.get("value")) for o in options if answer in view.label(o).split()]
-    dependents = [c for f, c in view.fields(pair["field"]) if f is folder]
+    dependents = [c for f, c in view.app.fields(pair["field"]) if f is folder]
     if not wanted or not dependents:
         return False
     others = [v for v in values if v != wanted[0]]
@@ -491,7 +442,7 @@ def _process_shape(view: _View, checks: Checks) -> None:
 
 def _pdf_task(view: _View, checks: Checks, pdf_task: str | None) -> None:
     app = view.app
-    after_data = [f.target for f in app.process.outgoing(view.data_task or "")]
+    after_data = [f.target for f in app.process.outgoing(view.app.data_task or "")]
     checks.check("a PDF task follows the data task", after_data == [pdf_task])
     pdf = app.data_types().get(PDF_DATA_TYPE) or {}
     checks.check(f"{PDF_DATA_TYPE} allows a PDF", "application/pdf" in (pdf.get("allowedContentTypes") or []))
@@ -528,9 +479,9 @@ def _route(view: _View, flows: list[Flow], paths: set[str], amount: float) -> st
     taken = [f for f in flows if paths and _evaluates(f.condition, context) is True]
     if len(taken) != 1:
         return None
-    nodes = view.app.process.nodes
-    ahead = [taken[0].target, *view.app.process.reachable(taken[0].target)]
-    return "signing" if any(n in nodes and nodes[n].task_type == "signing" for n in ahead) else "end"
+    process = view.app.process
+    ahead = [taken[0].target, *process.reachable(taken[0].target)]
+    return "signing" if any(process.is_task(n, "signing") for n in ahead) else "end"
 
 
 def _signing(view: _View, checks: Checks) -> None:
@@ -548,7 +499,7 @@ def _signing(view: _View, checks: Checks) -> None:
         checks.check(f"signs {wanted}", wanted in signed)
     if PDF_DATA_TYPE in signed:
         before = _always_before(view, task)
-        checks.check("a PDF task comes before signing", any(app.process.nodes[n].task_type == "pdf" for n in before))
+        checks.check("a PDF task comes before signing", any(app.process.is_task(n, "pdf") for n in before))
     signature = types.get(node.text("signatureConfig/signatureDataType") or "") or {}
     checks.check("signatureDataType exists", bool(signature))
     checks.check("signature data type is app-owned", _contributors(signature) == [APP_OWNED])
@@ -607,7 +558,12 @@ def _policy(view: _View, checks: Checks) -> None:
     obligations = app.policy_text.find("ObligationExpressions")
     ordered = obligations < 0 or app.policy_text.rfind("<xacml:Rule ") < obligations
     checks.check("rules before obligations, no comments", ordered and "<!--" not in app.policy_text)
-    tasks = {"data": view.data_task, "pdf": view.task_after("pdf"), "signing": view.task_after("signing"), "end": "end"}
+    tasks = {
+        "data": view.app.data_task,
+        "pdf": view.task_after("pdf"),
+        "signing": view.task_after("signing"),
+        "end": "end",
+    }
     for right in view.rubric.rights:
         task, subject = tasks.get(right["task"]), _subject(right["subject"])
         who, where = subject[1], right["task"] or "the app"
@@ -694,14 +650,14 @@ def _settings(view: _View, checks: Checks) -> None:
         f"attachment counts {spec['min_count']}-{spec['max_count']}", counts == (spec["min_count"], spec["max_count"])
     )
     key = "taskIds" if view.v9 else "taskId"
-    bound = view.data_task is not None and view.data_task in view.task_ids(found)
+    bound = view.app.data_task is not None and view.app.data_task in view.task_ids(found)
     checks.check(f"attachment bound with {key}", bound)
 
 
 def _validation(view: _View, checks: Checks) -> None:
     app, rubric = view.app, view.rubric
     for title in rubric.required_fields:
-        found = view.fields(title)
+        found = view.app.fields(title)
         checks.check(
             f"{_short(title)} is required",
             bool(found) and all(c.get("required") not in (None, False) for _, c in found),
@@ -747,7 +703,7 @@ def _validation_fails(view: _View, rules: list[expressions.ValidationRule], valu
 def _code_lists(view: _View, checks: Checks) -> None:
     app, rubric = view.app, view.rubric
     if titles := rubric.shared_code_list:
-        shared = [c for title in titles for _, c in view.fields(title)]
+        shared = [c for title in titles for _, c in view.app.fields(title)]
         ids = {c.get("optionsId") for c in shared}
         checks.check(
             "yes/no questions share a code list file",
@@ -756,7 +712,7 @@ def _code_lists(view: _View, checks: Checks) -> None:
         labels = sorted(view.label(o) for o in view.options(shared[0])) if shared else []
         checks.check("the shared list is Ja and Nei", labels == ["ja", "nei"])
     for title in rubric.code_list_files:
-        found = view.fields(title)
+        found = view.app.fields(title)
         checks.check(
             f"{_short(title)} has a code list file",
             bool(found) and all(c.get("optionsId") in app.options for _, c in found),
@@ -849,44 +805,31 @@ def _schema_valid(view: _View, checks: Checks) -> None:
         checks.check(f"{folder.name}/Settings.json is valid", result.get("status") == "validation_passed")
 
 
-_SCHEMAS: dict[int, Any] = {}
-
-
 def _schemas(version: int) -> Any:
-    """The layout and layout settings schemas the assistant uses for the version, and the expression schema they
-    refer to."""
-    if version in _SCHEMAS:
-        return _SCHEMAS[version]
-    import httpx
-
+    """The layout and layout settings schemas the assistant validates with for the version, and the schemas next to
+    them that they refer to."""
     from agents.altinn.app_version import get_app_version_profile
+    from agents.altinn.layout import get_layout_schema, get_referenced_schemas
 
     layout = get_app_version_profile(version).layout_schema_location
-
-    def load(name: str) -> Any:
-        location = layout.replace("layout.schema.v1.json", f"{name}.schema.v1.json")
-        if location.startswith("https://"):
-            return httpx.get(location, timeout=30).raise_for_status().json()
-        return json.loads(Path(location).read_text(encoding="utf-8"))
-
+    settings = layout.replace("layout.schema.v1.json", "layoutSettings.schema.v1.json")
     try:
-        expression = load("expression")
-        _SCHEMAS[version] = ((load("layout"), load("layoutSettings")), {expression.get("$id", ""): expression})
+        return (get_layout_schema(layout), get_layout_schema(settings)), get_referenced_schemas(layout)
     except Exception:  # An unreachable schema leaves the check unmeasured
-        _SCHEMAS[version] = None
-    return _SCHEMAS[version]
+        return None
 
 
 def _version_conformance(view: _View, checks: Checks) -> None:
+    from agents.altinn.app_version import get_app_version_profile
+
     app = view.app
     kinds = {c.get("type") for _, _, c in app.all_components()}
     types = list(app.data_types().values())
-    has_sets = "App/ui/layout-sets.json" in app.files
+    profile = get_app_version_profile(view.version)
+    if profile.forbidden_new_file_patterns:
+        label = f"{profile.version_label}: no file the version does not have"
+        checks.none(label, (f for f in app.files if profile.forbidden_file(f)))
     if view.v9:
-        checks.check("v9: no layout-sets.json", not has_sets)
-        checks.none(
-            "v9: no rule files", (f for f in app.files if f.endswith(("RuleConfiguration.json", "RuleHandler.js")))
-        )
         checks.none("v9: no v8 components", kinds & {"Header", "FileUploadWithTag"})
         checks.check("v9: no taskId", not any("taskId" in d for d in types))
         checks.check(
@@ -899,7 +842,7 @@ def _version_conformance(view: _View, checks: Checks) -> None:
         )
     else:
         sets = {s.get("id") for s in (app.layout_sets or {}).get("sets") or []}
-        checks.check("v8: has layout-sets.json", has_sets)
+        checks.check("v8: has layout-sets.json", "App/ui/layout-sets.json" in app.files)
         checks.none("v8: layout-sets.json lists each folder", set(app.folders) - sets)
         checks.none("v8: no v9 components", kinds & {"Heading"})
         checks.check("v8: no taskIds", not any("taskIds" in d for d in types))
@@ -916,22 +859,49 @@ def _scaffold_intact(view: _View, checks: Checks) -> None:
     checks.check("App.csproj keeps its libraries and framework", project[0] == project[1])
 
 
+@dataclass(frozen=True)
+class Area:
+    """The checks behind one score, and the component the manifest reports it under: the skill the checks are about,
+    or the build for the checks of the whole app. The first score of a skill names the skill and what it covers."""
+
+    check: Callable[[_View, Checks], None]
+    component: str
+    skill: str = ""
+    does: str = ""
+
+
 AREAS = {
-    "bench_texts": _texts,
-    "bench_layouts": _layouts,
-    "bench_expressions": _expressions,
-    "bench_process": _process,
-    "bench_signing": _signing,
-    "bench_policy": _policy,
-    "bench_prefill": _prefill,
-    "bench_settings": _settings,
-    "bench_validation": _validation,
-    "bench_code_lists": _code_lists,
-    "bench_data_model": _data_model,
-    "bench_references": _references,
-    "bench_schema_valid": _schema_valid,
-    "bench_version_conformance": _version_conformance,
-    "bench_scaffold_intact": _scaffold_intact,
+    "bench_version_conformance": Area(
+        _version_conformance, "app", "studio-app-development", "How the files of an app connect, in v8 and v9."
+    ),
+    "bench_scaffold_intact": Area(_scaffold_intact, "app"),
+    "bench_texts": Area(
+        _texts, "texts", "studio-text-resources", "Texts, translations, variables and the language selector."
+    ),
+    "bench_layouts": Area(
+        _layouts, "layouts", "studio-layouts", "UI folders, pages, the custom receipt and the PDF page."
+    ),
+    "bench_expressions": Area(
+        _expressions, "expressions", "studio-expressions", "Expressions that hide fields and route the process."
+    ),
+    "bench_process": Area(
+        _process, "process", "studio-process", "The tasks, the PDF task and the gateway in process.bpmn."
+    ),
+    "bench_signing": Area(_signing, "signing", "studio-signing", "The signing task, its data types and its pages."),
+    "bench_policy": Area(_policy, "policy", "studio-policy", "Who may do what, in which task."),
+    "bench_prefill": Area(_prefill, "prefill", "studio-prefill", "Data from Enhetsregisteret and the user profile."),
+    "bench_settings": Area(
+        _settings, "settings", "studio-app-settings", "Who may start the app, and the attachment's limits."
+    ),
+    "bench_validation": Area(
+        _validation, "validation", "studio-validation", "Required fields, patterns and expression validation."
+    ),
+    "bench_code_lists": Area(_code_lists, "codelists", "studio-code-lists", "Code list files and their texts."),
+    "bench_data_model": Area(
+        _data_model, "datamodel", "studio-data-model", "The schema, the C# class and the data types."
+    ),
+    "bench_references": Area(_references, "build"),
+    "bench_schema_valid": Area(_schema_valid, "build"),
 }
 SCORE_NAMES = tuple(AREAS)
 
@@ -942,7 +912,7 @@ def evaluate(app: AppModel, rubric: SkillRubric, template: str) -> list[Score]:
     scores = []
     for name, area in AREAS.items():
         checks = Checks(name)
-        area(view, checks)
+        area.check(view, checks)
         if (score := checks.score()) is not None:
             scores.append(score)
     return scores
