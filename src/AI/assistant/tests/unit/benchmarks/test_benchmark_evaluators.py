@@ -88,11 +88,9 @@ class TestEvaluators:
         scores = self._scores(golden, rubric)
         assert scores == {
             "bench_pages": 1.0,
-            "bench_order_integrity": 1.0,
             "bench_navigation": 1.0,
             "bench_field_coverage": 1.0,
             "bench_input_count": 1.0,
-            "bench_texts_bound": 1.0,
         }
 
     def test_different_page_and_field_names_still_score_perfect(self, tmp_path: Path):
@@ -155,30 +153,6 @@ class TestEvaluators:
         )
         scores = self._scores(candidate, rubric)
         assert scores["bench_pages"] == 0.0
-        assert scores["bench_order_integrity"] == 0.0
-
-    def test_unresolved_text_binding_lowers_texts_bound(self, tmp_path: Path):
-        rubric = build_rubric_from_dir(_golden(tmp_path / "golden"))
-        candidate = _write_app(
-            tmp_path / "candidate",
-            pages={
-                "Side1": [
-                    _component("name-input", "Input", "app.field.navn"),
-                    _component("email-input", "Input", "app.missing.key"),
-                    _component("nav-one", "NavigationButtons"),
-                ],
-                "Side2": [
-                    _component("other-input", "Input", "app.field.epost"),
-                    _component("nav-two", "NavigationButtons"),
-                ],
-            },
-            resources={
-                "app.field.navn": "Leverandørvirksomhetens navn",
-                "app.field.epost": "E-postadresse",
-            },
-        )
-        scores = self._scores(candidate, rubric)
-        assert scores["bench_texts_bound"] == round(2 / 3, 4)
 
 
 def test_the_spec_field_count_leaves_out_headings_and_paragraphs():

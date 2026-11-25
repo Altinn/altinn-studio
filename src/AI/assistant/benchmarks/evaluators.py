@@ -23,22 +23,18 @@ class Score:
 
 SCORE_NAMES = (
     "bench_pages",
-    "bench_order_integrity",
     "bench_navigation",
     "bench_field_coverage",
     "bench_input_count",
-    "bench_texts_bound",
 )
 
 
 def evaluate(app: AppModel, rubric: dict[str, Any]) -> list[Score]:
     return [
         _pages(app, rubric),
-        _order_integrity(app),
         _navigation(app, rubric),
         _field_coverage(app, rubric),
         _input_count(app, rubric),
-        _texts_bound(app),
     ]
 
 
@@ -50,25 +46,6 @@ def _pages(app: AppModel, rubric: dict[str, Any]) -> Score:
         value=1.0 if actual == expected else 0.0,
         data_type="BOOLEAN",
         comment=f"expected {expected} ordered pages, found {actual}",
-    )
-
-
-def _order_integrity(app: AppModel) -> Score:
-    ordered = set(app.page_order)
-    on_disk = set(app.layouts.keys())
-    missing_files = sorted(ordered - on_disk)
-    unlisted = sorted(on_disk - ordered)
-    ok = not missing_files and not unlisted
-    parts = []
-    if missing_files:
-        parts.append(f"in order but no layout file: {missing_files}")
-    if unlisted:
-        parts.append(f"layout file not in order: {unlisted}")
-    return Score(
-        name="bench_order_integrity",
-        value=1.0 if ok else 0.0,
-        data_type="BOOLEAN",
-        comment="; ".join(parts) or "pages.order and layout files agree",
     )
 
 
@@ -124,27 +101,4 @@ def _input_count(app: AppModel, rubric: dict[str, Any]) -> Score:
         value=value,
         data_type="NUMERIC",
         comment=f"{actual} input components (rubric expects at least {expected})",
-    )
-
-
-def _texts_bound(app: AppModel) -> Score:
-    """Every textResourceBindings value should resolve in resource.nb.json."""
-    referenced: list[str] = []
-    for component in app.ordered_components():
-        for key in (component.get("textResourceBindings") or {}).values():
-            if isinstance(key, str) and key.strip():
-                referenced.append(key)
-    if not referenced:
-        return Score("bench_texts_bound", 0.0, "NUMERIC", "no text resource bindings at all")
-    resolved = sum(1 for key in referenced if key in app.resources)
-    missing = sorted({key for key in referenced if key not in app.resources})
-    preview = "; ".join(missing[:8]) + ("; …" if len(missing) > 8 else "")
-    return Score(
-        name="bench_texts_bound",
-        value=round(resolved / len(referenced), 4),
-        data_type="NUMERIC",
-        comment=(
-            f"{resolved}/{len(referenced)} bindings resolve in resource.nb.json"
-            + (f" — missing: {preview}" if missing else "")
-        ),
     )

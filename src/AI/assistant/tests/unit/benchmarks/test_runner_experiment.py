@@ -110,7 +110,7 @@ class TestTheHandoverToTheSdk:
 class TestTheTaskMatchesTheDatasetKind:
     def test_an_e2e_dataset_builds_an_app(self, client):
         """The bug this covers: with no e2e branch, a build ran as a replay."""
-        _run_one(client, "Benchmarks/forms")
+        _run_one(client, "Benchmarks/app-v9")
         assert isinstance(client.last["task"], AgentTask)
 
     def test_a_gate_dataset_asks_the_decision_model(self, client):
@@ -142,7 +142,7 @@ class TestAnE2eBuildRunsOneItemAtATime:
     """It pushes to one repo and drives one browser preview, so items cannot overlap."""
 
     def test_concurrency_is_forced_to_one(self, client):
-        _run_one(client, "Benchmarks/forms", _args(max_concurrency=8))
+        _run_one(client, "Benchmarks/app-v9", _args(max_concurrency=8))
         assert check.E2E_MAX_CONCURRENCY == 1
         assert client.last["max_concurrency"] == check.E2E_MAX_CONCURRENCY
 
@@ -222,7 +222,7 @@ class TestTheMetadataAttributesAnE2eRunToTheAgent:
 
     def test_e2e_metadata_uses_the_agents_model_not_the_checkouts(self, client, monkeypatch):
         monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": "sentinel-agent-model"})
-        _run_one(client, "Benchmarks/forms")
+        _run_one(client, "Benchmarks/app-v9")
         metadata = client.last["metadata"]
         assert json.loads(metadata["models"])["actor"] == "sentinel-agent-model"
 
@@ -237,7 +237,7 @@ class TestTheStructuralScoresStillExist:
     def test_an_e2e_run_scores_with_the_structural_evaluator(self, client):
         from benchmarks.experiment import structural_evaluator
 
-        _run_one(client, "Benchmarks/forms")
+        _run_one(client, "Benchmarks/app-v9")
         assert client.last["evaluators"] == [structural_evaluator]
 
     def test_the_structural_score_names_are_declared(self):

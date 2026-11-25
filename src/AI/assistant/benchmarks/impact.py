@@ -70,6 +70,26 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "the structural rubric a built app is scored against",
     ),
     (
+        "benchmarks/app_checks.py",
+        "evaluators",
+        "the skill scores a built app gets",
+    ),
+    (
+        "benchmarks/app_model.py",
+        "evaluators",
+        "how a built app is read before it is scored",
+    ),
+    (
+        "benchmarks/expressions.py",
+        "evaluators",
+        "how the skill scores evaluate an expression",
+    ),
+    (
+        "benchmarks/bench_app.py",
+        "evaluators",
+        "the app an end-to-end item starts from",
+    ),
+    (
         "benchmarks/outputs.py",
         "evaluators",
         "what counts as an output change rather than a rewording",

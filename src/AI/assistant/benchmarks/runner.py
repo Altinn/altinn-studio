@@ -10,22 +10,19 @@ from pathlib import Path
 
 from shared.config.base_config import DEFAULT_ROLE, ROLE_MODEL_CONFIG_KEYS
 
-from . import impact, manifest, preview_check, runstore
+from . import app_checks, impact, manifest, preview_check, runstore
 from .lf_api import LangfuseApi
 from .rubric import build_rubric_from_dir
-
-DEFAULT_E2E_DATASET = "Benchmarks/forms"
 
 REPORTS_DIR = Path(__file__).parent / "reports"
 
 SCORE_CONFIG_SPECS: dict[str, dict] = {
     "bench_completed": {"dataType": "BOOLEAN"},
     "bench_pages": {"dataType": "BOOLEAN"},
-    "bench_order_integrity": {"dataType": "BOOLEAN"},
     "bench_navigation": {"dataType": "BOOLEAN"},
     "bench_field_coverage": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
     "bench_input_count": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
-    "bench_texts_bound": {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1},
+    **{name: {"dataType": "NUMERIC", "minValue": 0, "maxValue": 1} for name in app_checks.SCORE_NAMES},
 }
 
 PREVIEW_SCORE_CONFIG_SPECS: dict[str, dict] = {
@@ -284,9 +281,6 @@ def cmd_ensure_configs(_: argparse.Namespace) -> None:
 def cmd_rubric(args: argparse.Namespace) -> None:
     rubric = build_rubric_from_dir(Path(args.from_app))
     print(json.dumps(rubric, ensure_ascii=False, indent=2))
-    if args.update_item:
-        LangfuseApi().upsert_dataset_item(dataset_name=args.dataset, item_id=args.update_item, expected_output=rubric)
-        print(f"\nUpdated expectedOutput of item {args.update_item!r} in {args.dataset!r}")
 
 
 def cmd_fetch(args: argparse.Namespace) -> None:
@@ -434,7 +428,7 @@ CATALOGUE = (
     ),
     Entry(
         "rubric",
-        "Build an end-to-end rubric from a known-good app",
+        "Print the structural rubric of a known-good app, to copy into an end-to-end item",
         "when adding an end-to-end item",
         needs_input="a path to an app clone",
     ),
@@ -543,8 +537,6 @@ def _parser() -> argparse.ArgumentParser:
 
     rubric_parser = sub.add_parser("rubric", help=_describe("rubric"))
     rubric_parser.add_argument("--from-app", required=True, help="path to a golden app clone")
-    rubric_parser.add_argument("--update-item", help="dataset item id to update")
-    rubric_parser.add_argument("--dataset", default=DEFAULT_E2E_DATASET)
     rubric_parser.set_defaults(func=cmd_rubric)
 
     sub.add_parser("status", help=_describe("status")).set_defaults(func=cmd_status)

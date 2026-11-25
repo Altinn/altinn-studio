@@ -7,7 +7,6 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from urllib.parse import urlparse
 
 from agents.services.preview.render_check import (
     PageRenderResult,
@@ -15,7 +14,6 @@ from agents.services.preview.render_check import (
     render_check,
     swap_layout_in_preview_url,
 )
-from shared.utils.path_utils import repo_owner_and_app_name
 
 from .evaluators import Score
 
@@ -44,33 +42,33 @@ def is_enabled() -> bool:
     return os.environ.get(ENABLE_FLAG, "0") == "1"
 
 
-def run(session_branch: str, page_order: list[str]) -> list[Score]:
-    """Scores for every ordered page, or [] when the check could not run."""
-    results = collect(session_branch, page_order)
+def run(repo: str, session_branch: str, page_order: list[str]) -> list[Score]:
+    """Scores for every ordered page of `repo` (`org/app`), or [] when the check could not run."""
+    results = collect(repo, session_branch, page_order)
     return build_scores(results) if results is not None else []
 
 
-def collect(session_branch: str, page_order: list[str]) -> list[PageRenderResult] | None:
+def collect(repo: str, session_branch: str, page_order: list[str]) -> list[PageRenderResult] | None:
     """Per-page results, or None when infrastructure rather than the app under test
     prevented the check. Use instead of `run` when the failure details matter.
     """
     try:
-        return _in_worker_thread(session_branch, page_order)
+        return _in_worker_thread(repo, session_branch, page_order)
     except PreviewCheckUnavailable as reason:
         print(f"  preview check skipped: {reason}", file=sys.stderr)
         return None
 
 
-def _in_worker_thread(session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
+def _in_worker_thread(repo: str, session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
     """Playwright's sync API will not start on a thread with a running event loop."""
     from concurrent.futures import ThreadPoolExecutor
 
     with ThreadPoolExecutor(max_workers=1) as pool:
-        return pool.submit(_render_results, session_branch, page_order).result()
+        return pool.submit(_render_results, repo, session_branch, page_order).result()
 
 
-def _render_results(session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
-    repo_owner, app = repo_owner_and_app_name(os.environ["BENCH_REPO_URL"])
+def _render_results(repo: str, session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
+    repo_owner, _, app = repo.partition("/")
     return render_check(
         studio_base=os.environ.get("BENCH_STUDIO_BASE_URL", DEFAULT_STUDIO_BASE_URL),
         username=os.environ.get("BENCH_STUDIO_USER", DEFAULT_STUDIO_USERNAME),
@@ -127,11 +125,10 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
     return [pages_render] if entry_unmeasured else [renders, pages_render]
 
 
-def _clone_branch(branch: str, workdir: Path) -> Path:
+def _clone_branch(repo: str, branch: str, workdir: Path) -> Path:
     import subprocess
 
     clone_base = os.environ.get("BENCH_GITEA_CLONE_BASE", "http://localhost/repos").rstrip("/")
-    repo_path = urlparse(os.environ["BENCH_REPO_URL"]).path
     destination = workdir / "app"
     command = [
         "git",
@@ -142,7 +139,7 @@ def _clone_branch(branch: str, workdir: Path) -> Path:
         "1",
         "--branch",
         branch,
-        f"{clone_base}{repo_path}",
+        f"{clone_base}/{repo}.git",
         str(destination),
     ]
     result = subprocess.run(command, capture_output=True, text=True)
@@ -158,15 +155,16 @@ def _main() -> None:
     from .app_model import load_app
 
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", required=True, help="the bench app, e.g. ttd/bench-v9-20261125-101500")
     parser.add_argument("--branch", required=True, help="session branch, e.g. assistant_1a2b3c4d")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(prefix="altinity-preview-") as tmp:
-        page_order = load_app(_clone_branch(args.branch, Path(tmp))).page_order
+        page_order = load_app(_clone_branch(args.repo, args.branch, Path(tmp))).page_order
     if not page_order:
         sys.exit("no ordered pages found on that branch")
 
-    scores = run(args.branch, page_order)
+    scores = run(args.repo, args.branch, page_order)
     if not scores:
         sys.exit(1)
     for score in scores:

@@ -15,7 +15,7 @@ from typing import Any
 
 from .app_model import AppModel, load_app
 
-RUBRIC_VERSION = 2
+RUBRIC_VERSION = 3
 
 
 def build_rubric(app: AppModel) -> dict[str, Any]:

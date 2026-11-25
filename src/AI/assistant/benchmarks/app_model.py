@@ -1,8 +1,9 @@
-"""Load an Altinn app directory into a minimal structure for evaluation.
+"""Load an Altinn app directory for evaluation.
 
-The benchmark evaluates the app as committed to the session branch (a
-git clone), NOT a reconstruction from trace spans — traces truncate
-long payloads and don't carry every file, the repo is the ground truth.
+The benchmark evaluates the app as committed to the session branch (a git clone), not a reconstruction from trace
+spans. Traces cut long payloads and do not carry every file, so the repository is the ground truth. The loader reads
+v8 and v9 apps alike: a UI folder knows its data type and tasks from `layout-sets.json` in v8 and from its own
+`Settings.json` in v9.
 """
 
 from __future__ import annotations
@@ -10,8 +11,11 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
+import xml.etree.ElementTree as ElementTree
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 # Component types that collect user input.  Used both for counting
 # fields and for collecting the field titles the rubric matches on.
@@ -32,16 +36,146 @@ INPUT_COMPONENT_TYPES = {
 
 NAVIGATION_COMPONENT_TYPES = {"NavigationButtons", "NavigationBar"}
 
+BPMN = "{http://www.omg.org/spec/BPMN/20100524/MODEL}"
+BPMNDI = "{http://www.omg.org/spec/BPMN/20100524/DI}"
+ALTINN = "{http://altinn.no/process}"
+XACML = "{urn:oasis:names:tc:xacml:3.0:core:schema:wd-17}"
+
+
+@dataclass
+class UiFolder:
+    """One folder under `App/ui/`: a layout set in v8, a task's folder in v9."""
+
+    name: str
+    settings: dict[str, Any]
+    pages: dict[str, dict[str, Any]]
+    data_type: str | None = None
+    tasks: tuple[str, ...] = ()
+
+    @property
+    def order(self) -> list[str]:
+        order = (self.settings.get("pages") or {}).get("order")
+        return [page for page in order if isinstance(page, str)] if isinstance(order, list) else []
+
+    def components(self, page: str | None = None) -> list[dict[str, Any]]:
+        names = [page] if page else list(self.pages)
+        return [c for name in names for c in ((self.pages.get(name) or {}).get("data") or {}).get("layout") or []]
+
+
+@dataclass
+class Node:
+    """A start or end event, a task or a gateway in `process.bpmn`."""
+
+    id: str
+    kind: str
+    extension: ElementTree.Element | None
+    default: str | None = None
+
+    @property
+    def task_type(self) -> str | None:
+        return self.text("taskType")
+
+    def text(self, path: str) -> str | None:
+        found = self.find(path)
+        return found.text.strip() if found is not None and found.text else None
+
+    def find(self, path: str) -> ElementTree.Element | None:
+        if self.extension is None:
+            return None
+        return self.extension.find("/".join(f"{ALTINN}{part}" for part in path.split("/")))
+
+    def texts(self, path: str) -> list[str]:
+        if self.extension is None:
+            return []
+        found = self.extension.findall("/".join(f"{ALTINN}{part}" for part in path.split("/")))
+        return [element.text.strip() for element in found if element.text]
+
+
+@dataclass
+class Flow:
+    id: str
+    source: str
+    target: str
+    condition: Any = None
+    has_condition: bool = False
+
+
+@dataclass
+class Process:
+    nodes: dict[str, Node] = field(default_factory=dict)
+    flows: dict[str, Flow] = field(default_factory=dict)
+    shapes: set[str] = field(default_factory=set)
+
+    def tasks(self, task_type: str | None = None) -> list[Node]:
+        return [
+            n
+            for n in self.nodes.values()
+            if n.kind in ("task", "serviceTask") and (task_type is None or n.task_type == task_type)
+        ]
+
+    def outgoing(self, node_id: str) -> list[Flow]:
+        return [flow for flow in self.flows.values() if flow.source == node_id]
+
+    def reachable(self, start: str) -> list[str]:
+        """Node ids reachable from `start`, nearest first, `start` excluded."""
+        seen: list[str] = []
+        queue = [flow.target for flow in self.outgoing(start)]
+        while queue:
+            node = queue.pop(0)
+            if node in seen or node == start:
+                continue
+            seen.append(node)
+            queue.extend(flow.target for flow in self.outgoing(node))
+        return seen
+
+
+@dataclass
+class Rule:
+    """One XACML rule: who, on what, may do which actions."""
+
+    id: str
+    subjects: list[tuple[str, str]]
+    resources: list[dict[str, str]]
+    actions: set[str]
+    any_of_count: int
+
+    def covers_task(self, task: str | None) -> bool:
+        """A rule without a task or end event applies in every state of the instance."""
+        scoped = [r for r in self.resources if "urn:altinn:task" in r or "urn:altinn:end-event" in r]
+        if not scoped:
+            return True
+        return any(r.get("urn:altinn:task", "").lower() == (task or "").lower() for r in scoped if task)
+
 
 @dataclass
 class AppModel:
-    """One layout set + the app's Norwegian text resources."""
+    """The files of one app that the scores read."""
 
     page_order: list[str] = field(default_factory=list)
-    # page name -> flat component list (dicts as parsed from layout JSON)
+    # page name -> flat component list of the folder with the longest page order
     layouts: dict[str, list[dict]] = field(default_factory=dict)
     # resource id -> value (from resource.nb.json)
     resources: dict[str, str] = field(default_factory=dict)
+
+    root: Path | None = None
+    version: int = 8
+    files: set[str] = field(default_factory=set)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    texts: dict[str, dict[str, dict[str, Any]]] = field(default_factory=dict)
+    text_files: dict[str, dict[str, Any]] = field(default_factory=dict)
+    folders: dict[str, UiFolder] = field(default_factory=dict)
+    layout_sets: dict[str, Any] | None = None
+    ui_settings: dict[str, Any] = field(default_factory=dict)
+    process: Process = field(default_factory=Process)
+    process_error: str | None = None
+    rules: list[Rule] = field(default_factory=list)
+    policy_text: str = ""
+    policy_error: str | None = None
+    options: dict[str, Any] = field(default_factory=dict)
+    models: dict[str, dict[str, Any]] = field(default_factory=dict)
+    prefill: dict[str, dict[str, Any]] = field(default_factory=dict)
+    validation: dict[str, dict[str, Any]] = field(default_factory=dict)
+    appsettings: dict[str, Any] = field(default_factory=dict)
 
     def ordered_components(self) -> list[dict]:
         out: list[dict] = []
@@ -59,44 +193,206 @@ class AppModel:
             return None
         return self.resources.get(key, key if key.strip() else None)
 
+    def text(self, key: Any, language: str = "nb") -> str | None:
+        if not isinstance(key, str):
+            return None
+        entry = self.texts.get(language, {}).get(key)
+        return str(entry.get("value", "")) if entry else None
+
+    def data_types(self) -> dict[str, dict[str, Any]]:
+        return {d["id"]: d for d in self.metadata.get("dataTypes") or [] if isinstance(d, dict) and "id" in d}
+
+    def folder_for_task(self, task_id: str) -> UiFolder | None:
+        for folder in self.folders.values():
+            if task_id in folder.tasks:
+                return folder
+        return None
+
+    def all_components(self) -> Iterator[tuple[UiFolder, str, dict[str, Any]]]:
+        for folder in self.folders.values():
+            for page in folder.pages:
+                for component in folder.components(page):
+                    if isinstance(component, dict):
+                        yield folder, page, component
+
+    def field_schema(self, data_type: str | None, path: str) -> tuple[dict[str, Any], bool] | None:
+        """The schema of a data model field, and whether the path passes through a list."""
+        schema = self.models.get(data_type or "")
+        if schema is None:
+            return None
+        node = _resolve(schema, schema)
+        in_list = False
+        for part in re.sub(r"\[\d*\]", "", path).split("."):
+            while node.get("type") == "array" or "items" in node:
+                in_list = True
+                node = _resolve(schema, node.get("items") or {})
+            properties = node.get("properties") or {}
+            if part not in properties:
+                return None
+            node = _resolve(schema, properties[part])
+        return node, in_list
+
+
+def binding(component: dict[str, Any], key: str = "simpleBinding") -> tuple[str | None, str] | None:
+    """A data model binding as (data type, path). The data type is None for the folder's default."""
+    value = (component.get("dataModelBindings") or {}).get(key)
+    if isinstance(value, str):
+        return None, value
+    if isinstance(value, dict) and isinstance(value.get("field"), str):
+        return value.get("dataType"), value["field"]
+    return None
+
+
+def _resolve(root: dict[str, Any], node: Any) -> dict[str, Any]:
+    """Follow `$ref` and a single-entry `oneOf`/`allOf` to the schema they stand for."""
+    for _ in range(20):
+        if not isinstance(node, dict):
+            return {}
+        ref = node.get("$ref")
+        wrapped = node.get("oneOf") or node.get("allOf")
+        if isinstance(ref, str) and ref.startswith("#/"):
+            target: Any = root
+            for part in ref[2:].split("/"):
+                target = target.get(part, {}) if isinstance(target, dict) else {}
+            node = target
+        elif isinstance(wrapped, list) and len(wrapped) == 1 and "properties" not in node:
+            node = wrapped[0]
+        else:
+            return node
+    return {}
+
+
+def _json(path: Path) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except OSError, ValueError:
+        return None
+
 
 def load_app(root: Path) -> AppModel:
     """Load the app at `root` (repo root containing `App/`)."""
-    model = AppModel()
+    from agents.altinn.app_version import detect_app_major_version
 
-    best_order: list[str] = []
-    best_layouts_dir: Path | None = None
-    for settings_path in sorted((root / "App" / "ui").rglob("Settings.json")):
-        try:
-            settings = json.loads(settings_path.read_text(encoding="utf-8"))
-        except OSError, json.JSONDecodeError:
+    app_dir = root / "App"
+    model = AppModel(root=root, version=detect_app_major_version(str(root)))
+    model.files = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and ".git" not in p.parts}
+    model.metadata = _json(app_dir / "config" / "applicationmetadata.json") or {}
+    model.appsettings = _json(app_dir / "appsettings.json") or {}
+
+    for path in sorted((app_dir / "config" / "texts").glob("resource.*.json")):
+        data = _json(path)
+        if isinstance(data, dict):
+            language = path.name.split(".")[1]
+            model.text_files[language] = data
+            model.texts[language] = {
+                e["id"]: e for e in data.get("resources") or [] if isinstance(e, dict) and isinstance(e.get("id"), str)
+            }
+    model.resources = {key: str(entry.get("value", "")) for key, entry in model.texts.get("nb", {}).items()}
+
+    sets = _json(app_dir / "ui" / "layout-sets.json")
+    model.layout_sets = sets if isinstance(sets, dict) else None
+    # v9 ignores a leftover layout-sets.json, so only v8 reads its sets.
+    v8 = model.version < 9
+    model.ui_settings = (
+        ((model.layout_sets or {}).get("uiSettings") or {}) if v8 else (_json(app_dir / "ui" / "Settings.json") or {})
+    )
+    declared = {s.get("id"): s for s in (model.layout_sets or {}).get("sets") or [] if isinstance(s, dict)}
+    for settings_path in sorted((app_dir / "ui").glob("*/Settings.json")):
+        folder_dir = settings_path.parent
+        settings = _json(settings_path) or {}
+        pages = {
+            p.stem: data for p in sorted((folder_dir / "layouts").glob("*.json")) if (data := _json(p)) is not None
+        }
+        if v8:
+            entry = declared.get(folder_dir.name) or {}
+            folder = UiFolder(folder_dir.name, settings, pages, entry.get("dataType"), tuple(entry.get("tasks") or ()))
+        else:
+            folder = UiFolder(folder_dir.name, settings, pages, settings.get("defaultDataType"), (folder_dir.name,))
+        model.folders[folder.name] = folder
+
+    main = max(model.folders.values(), key=lambda f: len(f.order), default=None)
+    if main is not None and main.order:
+        model.page_order = main.order
+        model.layouts = {name: [c for c in main.components(name) if isinstance(c, dict)] for name in main.pages}
+
+    model.options = {
+        p.stem: data for p in sorted((app_dir / "options").glob("*.json")) if (data := _json(p)) is not None
+    }
+    for path in sorted((app_dir / "models").glob("*.json")):
+        name, _, kind = path.name.partition(".")
+        data = _json(path)
+        if not isinstance(data, dict):
             continue
-        order = (settings.get("pages") or {}).get("order")
-        if isinstance(order, list) and len(order) > len(best_order):
-            best_order = [p for p in order if isinstance(p, str)]
-            best_layouts_dir = settings_path.parent / "layouts"
+        {"schema.json": model.models, "prefill.json": model.prefill, "validation.json": model.validation}.get(kind, {})[
+            name
+        ] = data
 
-    model.page_order = best_order
-    if best_layouts_dir and best_layouts_dir.is_dir():
-        for layout_path in sorted(best_layouts_dir.glob("*.json")):
-            try:
-                parsed = json.loads(layout_path.read_text(encoding="utf-8"))
-            except OSError, json.JSONDecodeError:
-                continue
-            components = ((parsed.get("data") or {}).get("layout")) or []
-            if isinstance(components, list):
-                model.layouts[layout_path.stem] = [c for c in components if isinstance(c, dict)]
-
-    resource_path = root / "App" / "config" / "texts" / "resource.nb.json"
-    try:
-        resource = json.loads(resource_path.read_text(encoding="utf-8"))
-        for entry in resource.get("resources") or []:
-            if isinstance(entry, dict) and isinstance(entry.get("id"), str):
-                model.resources[entry["id"]] = str(entry.get("value", ""))
-    except OSError, json.JSONDecodeError:
-        pass
-
+    _load_process(model, app_dir / "config" / "process" / "process.bpmn")
+    _load_policy(model, app_dir / "config" / "authorization" / "policy.xml")
     return model
+
+
+def _load_process(model: AppModel, path: Path) -> None:
+    try:
+        tree = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError) as error:
+        model.process_error = str(error)
+        return
+    process = Process()
+    for element in tree.iter():
+        tag = element.tag
+        if not tag.startswith(BPMN):
+            if tag == f"{BPMNDI}BPMNShape" or tag == f"{BPMNDI}BPMNEdge":
+                process.shapes.add(element.get("bpmnElement", ""))
+            continue
+        kind = tag.removeprefix(BPMN)
+        if kind == "sequenceFlow":
+            condition = element.find(f"{BPMN}conditionExpression")
+            text = (condition.text or "").strip() if condition is not None else ""
+            try:
+                parsed = json.loads(text) if text else None
+            except ValueError:
+                parsed = text
+            process.flows[element.get("id", "")] = Flow(
+                element.get("id", ""), element.get("sourceRef", ""), element.get("targetRef", ""), parsed, bool(text)
+            )
+        elif kind in ("startEvent", "endEvent", "task", "serviceTask", "exclusiveGateway"):
+            extension = element.find(f"{BPMN}extensionElements")
+            inner = next(iter(extension), None) if extension is not None else None
+            process.nodes[element.get("id", "")] = Node(element.get("id", ""), kind, inner, element.get("default"))
+    model.process = process
+
+
+def _load_policy(model: AppModel, path: Path) -> None:
+    try:
+        model.policy_text = path.read_text(encoding="utf-8-sig")
+        root = ElementTree.fromstring(model.policy_text)
+    except (OSError, ElementTree.ParseError) as error:
+        model.policy_error = str(error)
+        return
+    for rule in root.iter(f"{XACML}Rule"):
+        subjects: list[tuple[str, str]] = []
+        resources: list[dict[str, str]] = []
+        actions: set[str] = set()
+        any_ofs = rule.findall(f"{XACML}Target/{XACML}AnyOf")
+        for any_of in any_ofs:
+            for all_of in any_of.findall(f"{XACML}AllOf"):
+                matches = {}
+                category = ""
+                for match in all_of.findall(f"{XACML}Match"):
+                    value = match.findtext(f"{XACML}AttributeValue", "").strip()
+                    designator = match.find(f"{XACML}AttributeDesignator")
+                    if designator is None:
+                        continue
+                    matches[designator.get("AttributeId", "")] = value
+                    category = designator.get("Category", "")
+                if category.endswith("access-subject"):
+                    subjects.extend((attribute, value.lower()) for attribute, value in matches.items())
+                elif category.endswith("resource"):
+                    resources.append(matches)
+                elif category.endswith("action"):
+                    actions.update(value.lower() for value in matches.values())
+        model.rules.append(Rule(rule.get("RuleId", ""), subjects, resources, actions, len(any_ofs)))
 
 
 _WHITESPACE_RE = re.compile(r"\s+")

@@ -83,6 +83,7 @@ def task_for(
             agent_base=agent_base,
             assets_dir=Path(getattr(args, "assets_dir", None) or ASSETS_DIR).expanduser(),
             run_name=run_name,
+            template=registry.by_name(dataset.name).app_template or "",
             role_models=role_models,
             description=f"End to end build for {dataset.name}",
         )
