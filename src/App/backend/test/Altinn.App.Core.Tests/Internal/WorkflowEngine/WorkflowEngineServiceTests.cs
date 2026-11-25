@@ -972,6 +972,76 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task ResumeAndWaitForWorkflow_ChainFailsDuringTheLastDelay_ReportsTheFailureNotATimeout()
+    {
+        Guid workflowId = Guid.NewGuid();
+        var instance = CreateInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+        var clock = new TimeSkippingTimeProvider();
+        DateTimeOffset deadline = clock.GetUtcNow().AddMilliseconds(500);
+        PersistentItemStatus StatusNow() =>
+            clock.GetUtcNow() >= deadline ? PersistentItemStatus.Failed : PersistentItemStatus.Processing;
+
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => CreateCollection(collectionKey, workflowId, StatusNow()));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+                [
+                    CreateWorkflowStatus(
+                        DateTimeOffset.UtcNow,
+                        status: StatusNow(),
+                        databaseId: workflowId,
+                        steps: [CreateStep(ExecuteServiceTask.Key, StatusNow())]
+                    ),
+                ]
+            );
+
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = new WorkflowEngineService(
+            processNextRequestFactory: null!,
+            client.Object,
+            instanceClient.Object,
+            new AppIdentifier(Org, App),
+            clock
+        )
+        {
+            WorkflowPollingTimeoutMs = 500,
+        };
+
+        ProcessNextWorkflowResult result = await service
+            .ResumeAndWaitForWorkflow(instance, workflowId, CancellationToken.None)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(result.WorkflowFailure);
+        Assert.Equal(WorkflowFailureKind.StepFailed, result.WorkflowFailure.Kind);
+        Assert.Equal(workflowId, result.WorkflowFailure.WorkflowId);
+    }
+
+    [Fact]
     public void ExtractCallbackErrorDetail_WhenMessageEmbedsProblemDetails_ReturnsTheDetail()
     {
         // The engine wraps a failed app callback as "<prose>: {ProblemDetails json}"; the embedded

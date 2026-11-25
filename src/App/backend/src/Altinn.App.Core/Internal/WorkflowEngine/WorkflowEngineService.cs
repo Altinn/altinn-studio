@@ -457,10 +457,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (_timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs))
-            {
-                return await CreatePollingTimeoutResult(instance, collectionKey, sinceWorkflowId, cancellationToken);
-            }
+            // Read before the poll, so that a chain that settled during the last delay is still reported as settled.
+            bool timedOut =
+                _timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs);
 
             WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
                 GetNamespace(),
@@ -534,6 +533,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         );
                     }
                 }
+            }
+
+            if (timedOut)
+            {
+                return await CreatePollingTimeoutResult(instance, collectionKey, sinceWorkflowId, cancellationToken);
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, cancellationToken);
