@@ -126,7 +126,8 @@ export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout,
 export const previewSessionsPath = (org, app) => `${apiBasePath}/${org}/${app}/preview-sessions`; // Post
 export const previewSessionInstancesPath = (org, app) => `${previewSessionsPath(org, app)}/instances`; // Post
 // A page of an instance in a preview session. The session's URL is the app's root on the preview service's domain.
-export const previewSessionPage = (sessionUrl, instanceId, taskId, selectedLayout) => `${sessionUrl}instance/${instanceId}/${taskId}/${selectedLayout}`;
+// Without a page, the app frontend shows the task's first.
+export const previewSessionPage = (sessionUrl, instanceId, taskId, selectedLayout) => `${sessionUrl}instance/${instanceId}/${taskId}${selectedLayout ? `/${selectedLayout}` : ''}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases

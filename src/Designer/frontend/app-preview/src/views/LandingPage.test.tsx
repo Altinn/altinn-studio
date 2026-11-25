@@ -11,14 +11,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor-v4/testing/layoutSetsMock';
 import { useParams } from 'react-router-dom';
-import { createPreviewInstance } from 'app-shared/api/mutations';
-
-const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
-vi.mock('app-shared/utils/previewAvailability', () => ({
-  get isPreviewDisabled() {
-    return previewAvailability.isPreviewDisabled;
-  },
-}));
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
@@ -32,26 +25,25 @@ vi.mock('react-router-dom', async () => ({
     layoutSet,
   })),
 }));
-vi.mock('app-shared/api/mutations', () => ({
-  createPreviewInstance: vi.fn().mockReturnValue(Promise.resolve({ id: 1 })),
-}));
-
 describe('LandingPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    previewAvailability.isPreviewDisabled = false;
   });
 
-  it('should inform that preview is temporarily disabled instead of loading it', async () => {
-    previewAvailability.isPreviewDisabled = true;
-    vi.mocked(createPreviewInstance).mockClear();
-    renderLandingPage();
+  it('should inform that preview is turned off for an app before v9, and start no session', async () => {
+    const startPreviewSession = vi.fn();
+    renderLandingPage({
+      getAppVersion: vi
+        .fn()
+        .mockResolvedValue({ frontendVersion: '4.0.0', backendVersion: '8.0.0' }),
+      startPreviewSession,
+    });
 
     await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
 
     expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
     expect(screen.queryByTitle(textMock('preview.title'))).not.toBeInTheDocument();
-    expect(createPreviewInstance).not.toHaveBeenCalled();
+    expect(startPreviewSession).not.toHaveBeenCalled();
   });
 
   it('should display a spinner initially when loading user', () => {
@@ -101,18 +93,28 @@ describe('LandingPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('should display the iframe with the correct src', async () => {
-    renderLandingPage();
+  it('should show the app from the preview service, in an instance at the task', async () => {
+    const createPreviewSessionInstance = vi.fn().mockResolvedValue({ instanceId: mockInstanceId });
+    renderLandingPage({ createPreviewSessionInstance });
 
-    await waitForElementToBeRemoved(screen.queryByLabelText(textMock('preview.loading_page')));
-
-    const iframe = screen.getByTitle(textMock('preview.title'));
+    const iframe = await screen.findByTitle(textMock('preview.title'));
     expect(iframe).toHaveAttribute(
       'src',
-      expect.stringContaining(
-        `/app-specific-preview/${org}/${app}?selectedLayoutSet=${layoutSet}#/instance/`,
-      ),
+      expect.stringMatching(`^${mockSessionUrl}instance/${mockInstanceId}/`),
     );
+    expect(createPreviewSessionInstance).toHaveBeenCalledWith(
+      org,
+      app,
+      mockSessionUrl,
+      expect.any(String),
+    );
+  });
+
+  it('should show an error when the preview service cannot start a session', async () => {
+    renderLandingPage({ startPreviewSession: vi.fn().mockRejectedValue(new Error()) });
+
+    expect(await screen.findByText(textMock('general.page_error_title'))).toBeInTheDocument();
+    expect(screen.queryByTitle(textMock('preview.title'))).not.toBeInTheDocument();
   });
 
   it('should display a warning message when previewing a subform', async () => {
@@ -135,6 +137,9 @@ describe('LandingPage', () => {
   });
 });
 
+const mockSessionUrl = 'https://preview.test/0123456789abcdef0123456789abcdef/ttd/app/';
+const mockInstanceId = '51001/7b1b0d6c-1d4e-4c1f-9d0a-2b9b8e1f2a3c';
+
 const renderLandingPage = async (
   queries: Partial<ServicesContextProps> = {},
   previewLayoutSet = layoutSet,
@@ -144,5 +149,14 @@ const renderLandingPage = async (
     app,
     layoutSet: previewLayoutSet,
   });
-  return renderWithProviders(queries)(<LandingPage />);
+  const defaultQueries: Partial<ServicesContextProps> = {
+    getAppVersion: vi.fn().mockResolvedValue({ frontendVersion: '9.0.0', backendVersion: '9.0.0' }),
+    startPreviewSession: vi.fn().mockResolvedValue({ url: mockSessionUrl }),
+    createPreviewSessionInstance: vi.fn().mockResolvedValue({ instanceId: mockInstanceId }),
+  };
+  // A client of its own, since the session and the instance are queries that would otherwise carry over.
+  return renderWithProviders(
+    { ...defaultQueries, ...queries },
+    createQueryClientMock(),
+  )(<LandingPage />);
 };
