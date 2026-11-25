@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
+import type { FC, KeyboardEvent } from 'react';
 
 import { Popover } from '@digdir/designsystemet-react';
 import { ClockIcon } from '@navikt/aksel-icons';
@@ -25,7 +26,7 @@ import type {
   TimeValue,
 } from './types';
 
-export const TimePicker: React.FC<TimePickerProps> = ({
+export const TimePicker: FC<TimePickerProps> = ({
   id,
   value,
   onChange,
@@ -324,7 +325,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   };
 
   // Handle keyboard navigation in dropdown
-  const handleDropdownKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleDropdownKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!dropdownFocus.isActive) {
       return;
     }
@@ -429,7 +430,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
               : { min: 0, max: 0, validValues: [] };
 
           return (
-            <React.Fragment key={segmentType}>
+            <Fragment key={segmentType}>
               {index > 0 && segmentType !== 'period' && (
                 <span className={styles.segmentSeparator}>:</span>
               )}
@@ -454,7 +455,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 aria-describedby={`${id}-label`}
                 autoFocus={index === 0}
               />
-            </React.Fragment>
+            </Fragment>
           );
         })}
       </div>

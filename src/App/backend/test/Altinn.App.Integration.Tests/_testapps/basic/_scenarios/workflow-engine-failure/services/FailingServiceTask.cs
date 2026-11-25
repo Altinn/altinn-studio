@@ -1,5 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +46,46 @@ public sealed class WorkflowEngineFailureEndpoints : IEndpointConfigurator
             }
         );
 
+        // Moves the instance into Task_Service the way v8 committed a transition into a service task whose run then
+        // failed: one process write with its events, and no process status, which v8 did not know.
+        app.MapPost(
+            "/test/workflow-engine-failure/park-in-service-task-as-v8/{instanceOwnerPartyId:int}/{instanceGuid:guid}",
+            async (int instanceOwnerPartyId, Guid instanceGuid, IAppMetadata appMetadata, IInstanceClient instances) =>
+            {
+                string[] appId = (await appMetadata.GetApplicationMetadata()).Id.Split('/');
+                Instance instance = await instances.GetInstance(
+                    appId[1],
+                    appId[0],
+                    instanceOwnerPartyId,
+                    instanceGuid,
+                    StorageAuthenticationMethod.ServiceOwner()
+                );
+                ProcessState left = instance.Process;
+                var entered = new ProcessState
+                {
+                    Started = left.Started,
+                    StartEvent = left.StartEvent,
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        Flow = left.CurrentTask.Flow + 1,
+                        Started = DateTime.UtcNow,
+                        ElementId = "Task_Service",
+                        Name = "Feilende service task",
+                        AltinnTaskType = "failing-service",
+                        FlowType = "CompleteCurrentMoveToNext",
+                    },
+                };
+                instance.Process = entered;
+                List<InstanceEvent> events =
+                [
+                    CreateEvent(instance, InstanceEventType.process_EndTask, left),
+                    CreateEvent(instance, InstanceEventType.process_StartTask, entered),
+                ];
+                await instances.UpdateProcessAndEvents(instance, events, StorageAuthenticationMethod.ServiceOwner());
+                return Results.Ok();
+            }
+        );
+
         app.MapPost(
             "/test/workflow-engine-failure/allow-service-task",
             () =>
@@ -48,6 +95,17 @@ public sealed class WorkflowEngineFailureEndpoints : IEndpointConfigurator
             }
         );
     }
+
+    private static InstanceEvent CreateEvent(Instance instance, InstanceEventType eventType, ProcessState process) =>
+        new()
+        {
+            InstanceId = instance.Id,
+            InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+            EventType = eventType.ToString(),
+            Created = DateTime.UtcNow,
+            User = new PlatformUser { OrgId = "ttd" },
+            ProcessInfo = process,
+        };
 }
 
 internal static class WorkflowEngineFailureState

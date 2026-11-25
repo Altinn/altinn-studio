@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 

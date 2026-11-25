@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 
 import {
   type DatePickerControlProps,
@@ -43,7 +44,7 @@ interface ModalDynamicFormProps {
   locale?: string;
   backdropClose?: boolean;
   onClose?: () => void;
-  modalRef?: React.RefObject<HTMLDialogElement | null>;
+  modalRef?: RefObject<HTMLDialogElement | null>;
   DropdownCaption: DatePickerControlProps['DropdownCaption'];
 }
 

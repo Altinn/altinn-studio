@@ -1300,6 +1300,7 @@ public sealed class CorrespondenceTests : IDisposable
                 },
                 ["isConfirmationNeeded"] = false,
                 ["isConfidential"] = false,
+                ["allowForwarding"] = false,
                 ["notification"] = notification,
             },
             ["recipients"] = recipients,

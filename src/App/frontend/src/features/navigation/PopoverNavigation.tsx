@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, RefObject } from 'react';
 
 import { useIsLgUp, useIsMobile } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
@@ -127,7 +127,7 @@ function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
   );
 }
 
-function useDynamicHeight(elementRef: React.RefObject<HTMLDivElement | null>, isActive: boolean): CSSProperties {
+function useDynamicHeight(elementRef: RefObject<HTMLDivElement | null>, isActive: boolean): CSSProperties {
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {

@@ -1,9 +1,9 @@
-import type React from 'react';
+import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
 
 import type { Position } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 type UseDragInteractionProps = {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   position: Position;
   onPositionChange: (newPosition: Position) => void;
 };
@@ -13,7 +13,7 @@ export const useDragInteraction = ({
   position,
   onPositionChange,
 }: UseDragInteractionProps) => {
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const handlePointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
 
     const canvas = canvasRef.current;

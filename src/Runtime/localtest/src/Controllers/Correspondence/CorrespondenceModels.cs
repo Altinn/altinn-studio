@@ -177,6 +177,9 @@ public sealed class CorrespondenceRequestDto
     [JsonPropertyName("isConfidential")]
     public bool IsConfidential { get; set; }
 
+    [JsonPropertyName("allowForwarding")]
+    public bool AllowForwarding { get; set; }
+
     [JsonPropertyName("notification")]
     public NotificationRequestDto? Notification { get; set; }
 }
@@ -380,6 +383,9 @@ public sealed class CorrespondenceDetailsResponseDto
 
     [JsonPropertyName("isConfidential")]
     public bool IsConfidential { get; set; }
+
+    [JsonPropertyName("allowForwarding")]
+    public bool AllowForwarding { get; set; }
 }
 
 /// <summary>A correspondence status change.</summary>

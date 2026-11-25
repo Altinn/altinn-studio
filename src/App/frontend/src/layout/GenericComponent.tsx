@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { FatalError, FatalErrorEmpty, Flex } from '@app/form-component';
+import { ComponentGridItem, FatalError, FatalErrorEmpty } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import classNames from 'classnames';
-import type { IGridStyling } from '@app/layout-contract/generated/common.generated';
 
 import { AppLanguageTranslatorProvider } from 'src/AppLanguageTranslatorProvider';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
@@ -60,7 +59,7 @@ function NonMemoGenericComponent<Type extends CompTypes = CompTypes>({
     </ComponentErrorBoundary>
   );
 }
-const MemoGenericComponent = React.memo(NonMemoGenericComponent);
+const MemoGenericComponent = memo(NonMemoGenericComponent);
 MemoGenericComponent.displayName = 'GenericComponent';
 export const GenericComponent = MemoGenericComponent as typeof NonMemoGenericComponent;
 
@@ -107,9 +106,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   const breakAfter = useEvalExpression(pageBreakUnresolved?.breakAfter, CommonExpressions.IPageBreak.breakAfter);
   const pageBreak = overrideItemProps?.pageBreak ?? { breakBefore, breakAfter };
   const nodeId = useIndexedId(baseComponentId);
-  const containerDivRef = React.useRef<HTMLDivElement | null>(null);
+  const containerDivRef = useRef<HTMLDivElement | null>(null);
   const handleFocusContainerMount = useHandleFocusComponent(nodeId, containerDivRef);
-  const focusContainerRef = React.useCallback(
+  const focusContainerRef = useCallback(
     (div: HTMLDivElement | null) => {
       containerDivRef.current = div;
       handleFocusContainerMount();
@@ -182,36 +181,22 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
   }
 
   return (
-    <Flex
+    <ComponentGridItem
       data-componentbaseid={baseComponentId}
       data-componentid={nodeId}
       data-componenttype={component.type}
       ref={focusContainerRef}
-      item
-      container
       size={grid}
+      labelGrid={grid?.labelGrid}
       key={`grid-${nodeId}`}
-      className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
+      className={classNames(pageBreakStyles(pageBreak))}
     >
       <AppLanguageTranslatorProvider>
         <RenderComponent {...componentProps} />
       </AppLanguageTranslatorProvider>
-    </Flex>
+    </ComponentGridItem>
   );
 }
-
-const gridToClasses = (labelGrid: IGridStyling | undefined, classes: { [key: string]: string }) => {
-  if (!labelGrid) {
-    return {};
-  }
-
-  return {
-    [classes.xs]: labelGrid.xs !== undefined && labelGrid.xs !== 'auto' && labelGrid.xs > 0 && labelGrid.xs < 12,
-    [classes.sm]: labelGrid.sm !== undefined && labelGrid.sm !== 'auto' && labelGrid.sm > 0 && labelGrid.sm < 12,
-    [classes.md]: labelGrid.md !== undefined && labelGrid.md !== 'auto' && labelGrid.md > 0 && labelGrid.md < 12,
-    [classes.lg]: labelGrid.lg !== undefined && labelGrid.lg !== 'auto' && labelGrid.lg > 0 && labelGrid.lg < 12,
-  };
-};
 
 export function ComponentErrorList({ baseComponentId, errors }: { baseComponentId: string; errors: string[] }) {
   if (!isDev()) {

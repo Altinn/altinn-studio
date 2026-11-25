@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Paragraph } from '@digdir/designsystemet-react';
@@ -6,8 +6,8 @@ import { Paragraph } from '@digdir/designsystemet-react';
 import classes from 'src/components/molecules/AltinnSubstatus.module.css';
 
 export interface IInformationPaperProps {
-  label: React.ReactNode;
-  description: React.ReactNode;
+  label: ReactNode;
+  description: ReactNode;
 }
 
 export function AltinnSubstatus({ label, description }: IInformationPaperProps) {

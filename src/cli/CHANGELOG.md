@@ -9,6 +9,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- `studioctl auth token [--env ENV]` prints the API key you logged in with, so scripts and other tools can call Studio as you, for example with `$(studioctl auth token)`. ([#21867](https://github.com/Altinn/altinn-studio/pull/21867))
+- `studioctl app upgrade v9` names the custom task types in your process, such as `sftp`. Keep each one's `Type` string when you port its task class, or instances started under v8 can't finish that task. ([#21979](https://github.com/Altinn/altinn-studio/pull/21979))
+- `studioctl app upgrade v9` sets `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` for apps whose eFormidling task, or Fiks Arkiv task with `markInstanceComplete` on, confirmed instances as complete in v8. The v9 tasks no longer confirm by themselves. The upgrade removes `markInstanceComplete` from `appsettings*.json`. ([#21944](https://github.com/Altinn/altinn-studio/pull/21944))
+
+### Fixed
+
+- `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
+
 ## [0.1.0-preview.34] - 2026-11-20
 
 ### Added
@@ -21,6 +31,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- `studioctl app upgrade v9` converts supported legacy JavaScript calculations to expressions, so calculated values update in the browser before saving. ([#21291](https://github.com/Altinn/altinn-studio/pull/21291))
 - `studioctl app upgrade v9` removes `applicationUrl` from the `App` profile in `Properties/launchSettings.json`, since studioctl gives the app its address when it runs it. ([#21818](https://github.com/Altinn/altinn-studio/issues/21818))
 - `studioctl app upgrade v9` now requires the stable .NET SDK 11.0.100 or newer. Release candidates of .NET 11 are no longer accepted. ([#21863](https://github.com/Altinn/altinn-studio/pull/21863))
 
@@ -30,6 +41,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - none when nothing in the app creates the task's data type
     - on the `sign` branch of a gateway after a signing task
     - a to-do instead for other gateways routing on `gatewayAction`
+- Apps upgraded with `studioctl app upgrade v9` show calculated totals and warnings for the current input instead of the previous edit. ([#21297](https://github.com/Altinn/altinn-studio/pull/21297))
+- `studioctl app upgrade v9` converts the remaining legacy calculations to readable C# methods on the app's data model, for the app developer to review and refine. ([#21291](https://github.com/Altinn/altinn-studio/pull/21291))
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21843](https://github.com/Altinn/altinn-studio/pull/21843))
 - Installing studioctl on Windows: ([#21832](https://github.com/Altinn/altinn-studio/pull/21832))
     - adds it to your PATH, so `studioctl` works in the PowerShell window you installed from and in new terminals. `studioctl self uninstall` removes it from your PATH

@@ -1,12 +1,11 @@
-import React from 'react';
-import type { HTMLProps } from 'react';
+import type { HTMLProps, ReactNode } from 'react';
 
 import cn from 'classnames';
 
 import classes from './FullWidthWrapper.module.css';
 
 export interface IFullWidthWrapperProps extends HTMLProps<HTMLDivElement> {
-  children?: React.ReactNode;
+  children?: ReactNode;
   isOnBottom?: boolean;
   isOnTop?: boolean;
   className?: string;

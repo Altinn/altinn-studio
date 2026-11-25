@@ -22,5 +22,5 @@ export const OptionalIndicator = ({
     return null;
   }
 
-  return <IndicatorTag color='info'>{langAsString('general.optional')}</IndicatorTag>;
+  return <IndicatorTag kind='optional'>{langAsString('general.optional')}</IndicatorTag>;
 };

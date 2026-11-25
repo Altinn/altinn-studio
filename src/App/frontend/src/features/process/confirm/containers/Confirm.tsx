@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { AltinnContentLoader } from '@app/form-component';
 
 import { useInstanceDataQuery } from 'src/core/queries/instance';

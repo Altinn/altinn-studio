@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { v4 as uuidv4 } from 'uuid';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { CompLikertExternal } from '@app/layout-contract/generated/components/Likert/config.generated';

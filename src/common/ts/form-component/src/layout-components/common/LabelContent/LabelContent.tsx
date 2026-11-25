@@ -17,6 +17,11 @@ export interface LabelContentProps {
   componentId: string;
   /** Text-resource key for the label text. */
   label?: string;
+  /**
+   * Text-resource key rendered before the label text, separated by a space. Likert rows use it to
+   * put the column header in front of the question.
+   */
+  labelPrefix?: string;
   /** Text-resource key for the description, rendered below the label text. */
   description?: string;
   /** Text-resource key for the help text, rendered as a tooltip next to the label text. */
@@ -41,6 +46,7 @@ export interface LabelContentProps {
 export function LabelContent({
   componentId,
   label,
+  labelPrefix,
   description,
   required,
   readOnly,
@@ -50,7 +56,7 @@ export function LabelContent({
   className,
   ref,
 }: LabelContentProps) {
-  const { lang } = useTranslation();
+  const { lang, langAsString } = useTranslation();
 
   if (renderLabel === false) {
     return null;
@@ -60,6 +66,7 @@ export function LabelContent({
     <span className={cn(classes.labelWrapper, className)} ref={ref}>
       <span className={classes.labelContainer}>
         <span className={classes.labelContent}>
+          {labelPrefix && <>{lang(labelPrefix)} </>}
           {lang(label)}
           <RequiredIndicator required={required} readOnly={readOnly} />
           <OptionalIndicator
@@ -68,7 +75,14 @@ export function LabelContent({
             showOptionalMarking={showOptionalMarking}
           />
         </span>
-        {help && <HelpTextContainer id={componentId} helpText={lang(help)} title={label} />}
+        {help && (
+          <HelpTextContainer
+            id={componentId}
+            helpText={lang(help)}
+            // The help button is named after the whole label, prefix included.
+            title={labelPrefix ? `${langAsString(labelPrefix)} ${langAsString(label)}` : label}
+          />
+        )}
       </span>
       {description && (
         <Description

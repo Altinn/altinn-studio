@@ -10,6 +10,24 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
+- `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
+- Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+
+### Changed
+
+- Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+
+### Fixed
+
+- An instance that v8 left in a failed service task runs that task again on `process/next` or `process/resume` after the upgrade, instead of moving on without its PDF, shipment or other work. The task starts again, so its start hooks run a second time. ([#21980](https://github.com/Altinn/altinn-studio/pull/21980))
+- A process transition no longer fails when a workflow engine callback reaches a pod still on v8 during a rolling deploy: the engine retries until a v9 pod answers. After a rollback to v8, redeploying v9 within a day lets those transitions continue. ([#21866](https://github.com/Altinn/altinn-studio/issues/21866))
+- Data elements that Storage has marked as deleted but not yet removed are no longer included in eFormidling shipments or other processing in the app. ([#22060](https://github.com/Altinn/altinn-studio/pull/22060))
+- A workflow step that is retried after the workflow engine accepted its enqueue no longer gets a conflict when the retry signs the state differently, such as after an app code rotation or a deploy of a newer app library. The retry joins the workflow its first attempt enqueued. ([#21609](https://github.com/Altinn/altinn-studio/pull/21609))
+
 ## [9.0.0-preview.14] - 2026-11-20
 
 ### Changed
@@ -32,6 +50,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Forms no longer keep saving and block navigation when a calculation returns `null`, for example after an input is cleared. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - A calculation for an item in a list at the top of the data model, such as `numbers[1]`, sets that item in the form. It made a separate field named `numbers[1]` before. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
 - A generated data model wrapper no longer writes through an item in a list of numbers or text when the path continues past it, such as `numbers[0].v`. ([#22001](https://github.com/Altinn/altinn-studio/pull/22001))
+- Typing an invalid or unfinished date, such as `32.13.2026` or `12.12`, into a `Datepicker` bound to a `DateTime` field shows an invalid date message instead of crashing the form. ([Altinn/app-frontend-react#4180](https://github.com/Altinn/app-frontend-react/issues/4180))
 
 ## [9.0.0-preview.13] - 2026-11-19
 

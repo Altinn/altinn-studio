@@ -20,6 +20,8 @@ import { useUserOrgPermissionsQuery } from 'app-shared/hooks/queries/useUserOrgP
 import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
 import type { CreateServiceFormError } from 'dashboard/pages/CreateService/CreateService';
 
+const V9_APP_TEMPLATE_ID = 'v9';
+
 type CancelButton = {
   onClick: () => void;
   type: 'button';
@@ -68,9 +70,13 @@ export const NewApplicationForm = ({
   const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
   const [selectedAppTemplate, setSelectedAppTemplate] = useState<AppTemplate>();
   const { data: appTemplates } = useAppTemplatesQuery({ enabled: shouldUseAppTemplate });
+  const isAppTemplateV9Enabled = useFeatureFlag(FeatureFlag.AppTemplateV9);
+  const availableAppTemplates: AppTemplate[] =
+    appTemplates?.filter(({ id }) => isAppTemplateV9Enabled || id !== V9_APP_TEMPLATE_ID) ?? [];
+  const shouldOfferAppTemplates = shouldUseAppTemplate && availableAppTemplates.length > 1;
   // Without a choice offered, the backend applies its configured default.
-  const effectiveAppTemplate: AppTemplate | undefined = shouldUseAppTemplate
-    ? (selectedAppTemplate ?? appTemplates?.[0])
+  const effectiveAppTemplate: AppTemplate | undefined = shouldOfferAppTemplates
+    ? (selectedAppTemplate ?? availableAppTemplates[0])
     : undefined;
   const { data: userOrgPermissions, isFetching } = useUserOrgPermissionsQuery(currentSelectedOrg, {
     enabled: Boolean(currentSelectedOrg),
@@ -146,9 +152,9 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      {shouldUseAppTemplate && appTemplates?.length > 0 && (
+      {shouldOfferAppTemplates && (
         <AppTemplateSelector
-          appTemplates={appTemplates}
+          appTemplates={availableAppTemplates}
           selectedAppTemplate={effectiveAppTemplate}
           onChange={setSelectedAppTemplate}
         />

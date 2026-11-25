@@ -1,6 +1,6 @@
-import React from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, JSX, MouseEvent as ReactMouseEvent, Ref, RefObject } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
 import cn from 'classnames';
@@ -17,7 +17,7 @@ export type IDropzoneProps = {
   id: string;
   maxFileSize?: MaxFileSize;
   readOnly: boolean;
-  onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onClick?: (event: ReactMouseEvent<HTMLElement, MouseEvent>) => void;
   onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void;
   onDragActiveChange?: (isDragActive: boolean) => void;
   hasValidationMessages: boolean;
@@ -25,7 +25,7 @@ export type IDropzoneProps = {
   labelId?: string;
   describedBy?: string;
   className?: string;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
+  inputRef?: RefObject<HTMLInputElement | null>;
 } & Pick<HTMLAttributes<HTMLDivElement>, 'children'>;
 
 const bytesInOneMB = 1048576;
@@ -45,7 +45,7 @@ export function Dropzone({
   describedBy,
   inputRef,
   ...rest
-}: IDropzoneProps): React.JSX.Element {
+}: IDropzoneProps): JSX.Element {
   const maxSizeLabelId = `file-upload-max-size-${id}`;
   const describedby =
     [describedBy, maxFileSize?.sizeInMB ? maxSizeLabelId : undefined].filter(Boolean).join(' ') ||
@@ -59,14 +59,14 @@ export function Dropzone({
   });
 
   const inputProps = getInputProps();
-  const dropzoneRef = (inputProps as { ref?: React.Ref<HTMLInputElement> }).ref;
-  const combinedRef = React.useMemo(
+  const dropzoneRef = (inputProps as { ref?: Ref<HTMLInputElement> }).ref;
+  const combinedRef = useMemo(
     () => RefsUtils.merge(dropzoneRef, inputRef),
     [dropzoneRef, inputRef],
   );
 
   // set drag active state in parent component if callback is provided
-  React.useEffect(() => {
+  useEffect(() => {
     if (onDragActiveChange) {
       onDragActiveChange(isDragActive);
     }

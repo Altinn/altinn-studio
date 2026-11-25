@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 
 import { NavigationButtons } from '@app/form-component';
@@ -125,7 +125,7 @@ function NavigationButtonsComponentInner({
 
   const attachmentsPending = AttachmentReadModel.useHasPendingAttachments();
 
-  const getScrollPosition = React.useCallback(
+  const getScrollPosition = useCallback(
     () => document.querySelector(`[data-componentid="${componentId}"]`)?.getClientRects().item(0)?.y,
     [componentId],
   );

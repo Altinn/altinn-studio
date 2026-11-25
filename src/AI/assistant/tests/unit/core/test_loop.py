@@ -136,6 +136,27 @@ class TestSourceCollection:
 
         assert len(ctx.extras["sources"]) == 1
 
+    async def test_a_page_under_two_titles_is_one_source(self, ctx):
+        class OnePageTool(SourcedTool):
+            async def run(self, args, ctx):
+                result = await super().run(args, ctx)
+                result.metadata["source"]["url"] = "https://docs.altinn.studio/nb/partytype/"
+                return result
+
+        registry = ToolRegistry()
+        registry.register(OnePageTool())
+        adapter = FakeAdapter(
+            [
+                AssistantMessage(content=[tool_use("sourced", text="partytype")], stop_reason="tool_use"),
+                AssistantMessage(content=[tool_use("sourced", text="Aktørtyper")], stop_reason="tool_use"),
+                AssistantMessage(content=[TextBlock(text="done")], stop_reason="end_turn"),
+            ]
+        )
+
+        await run_loop(user_message="aktørtyper?", system_prompt="sys", registry=registry, adapter=adapter, ctx=ctx)
+
+        assert [source["title"] for source in ctx.extras["sources"]] == ["partytype"]
+
     async def test_failed_lookup_records_no_source(self, ctx):
         adapter = FakeAdapter(
             [

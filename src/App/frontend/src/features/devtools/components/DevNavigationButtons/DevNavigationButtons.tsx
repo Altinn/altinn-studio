@@ -1,5 +1,3 @@
-import React from 'react';
-
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
 import { Chip, EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';

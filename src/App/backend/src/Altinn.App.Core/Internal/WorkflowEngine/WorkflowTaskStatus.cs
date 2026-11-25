@@ -17,7 +17,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <see cref="StartedAt"/> (also processing-only) is
 /// when the transition was enqueued, and <see cref="ResumedAt"/> when it was last resumed. Together with <see cref="CurrentTime"/>, sampled on the same
 /// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
-/// client and server clocks.
+/// client and server clocks. <see cref="ServiceTaskWithoutWorkflow"/> marks the failed status of an idle instance in a
+/// service task that no workflow runs, whose task process/next and process/resume start again.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
@@ -30,7 +31,8 @@ internal sealed record WorkflowTaskStatus(
     DateTimeOffset? CurrentTime = null,
     int FailedAttempts = 0,
     DateTimeOffset? ResumedAt = null,
-    DateTimeOffset? FirstFailedAt = null
+    DateTimeOffset? FirstFailedAt = null,
+    bool ServiceTaskWithoutWorkflow = false
 )
 {
     /// <summary>

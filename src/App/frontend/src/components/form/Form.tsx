@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
-import { Flex } from '@app/form-component';
+import { Flex, PageRow } from '@app/form-component';
 
 import classes from 'src/components/form/Form.module.css';
 import { ErrorReport, ErrorReportList } from 'src/components/message/ErrorReport';
@@ -93,11 +93,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
   return (
     <>
       <title>{`${getPageTitle(appName, hasSetCurrentPageId ? langAsString(currentPageId) : undefined, appOwner)}`}</title>
-      <Flex
-        container
-        spacing={6}
-        alignItems='flex-start'
-      >
+      <PageRow>
         {mainIds.map((id) => (
           <GenericComponent
             key={id}
@@ -127,7 +123,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
             ))}
           </ErrorReport>
         </Flex>
-      </Flex>
+      </PageRow>
       <ReadyForPrint type='load' />
       <HandleNavigationFocusComponent />
       <FocusComponentRequestFromUrl />
@@ -208,7 +204,7 @@ function HandleNavigationFocusComponent() {
   const navigate = useNavigate();
   const locationRef = useAsRef(useLocation());
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       // Replace URL if we have query params
       if (exitSubform || validate) {

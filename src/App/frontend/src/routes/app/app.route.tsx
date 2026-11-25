@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, ScrollRestoration } from 'react-router';
 import { Slide, ToastContainer } from 'react-toastify';
 

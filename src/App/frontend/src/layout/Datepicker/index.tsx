@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { formatISOString, getDateFormat } from '@app/form-component';
@@ -78,6 +78,28 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   }
 
   /**
+   * Hide the generic message for text that does not fit a date-time field only when the Datepicker's own invalid date
+   * message replaces it. Backend code can write a date to the field while the typed text is still invalid, such as
+   * when it fills an empty date with a default. The Datepicker then validates that date, and the generic message is
+   * all that tells the user.
+   */
+  private static invalidDataFormatFilter(
+    validation: BaseValidation,
+    _index: number,
+    validations: BaseValidation[],
+  ): boolean {
+    return !(
+      validation.source === FrontendValidationSource.InvalidData &&
+      validation.message.key === 'validation_errors.pattern' &&
+      validations.some(
+        (other) =>
+          other.source === FrontendValidationSource.Component &&
+          other.message.key === 'date_picker.invalid_date_message',
+      )
+    );
+  }
+
+  /**
    * Avoid duplicate validation message.
    */
   private static schemaFormatMinimumFilter(validation: BaseValidation): boolean {
@@ -98,7 +120,7 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
   }
 
   getValidationFilters(baseComponentId: string, layoutLookups: LayoutLookups): ValidationFilterFunction[] {
-    const filters = [Datepicker.schemaFormatFilter];
+    const filters = [Datepicker.schemaFormatFilter, Datepicker.invalidDataFormatFilter];
     const component = layoutLookups.getComponent(baseComponentId, 'Datepicker');
 
     if (component.minDate) {

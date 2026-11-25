@@ -1,6 +1,5 @@
-import React from 'react';
 import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactElement, ReactNode } from 'react';
 
 import { act, render as rtlRender, waitFor } from '@testing-library/react';
 import dotenv from 'dotenv';
@@ -38,8 +37,8 @@ import type { IComponentProps, PropsFromGenericComponent } from 'src/layout';
 import type { CompExternal, CompExternalExact, CompTypes } from 'src/layout/layout';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
-  renderer: (() => React.ReactElement) | React.ReactElement;
-  router?: (props: PropsWithChildren) => React.ReactNode;
+  renderer: (() => ReactElement) | ReactElement;
+  router?: (props: PropsWithChildren) => ReactNode;
   waitUntilLoaded?: boolean;
   queries?: Partial<AppQueries>;
   mutations?: Partial<AppMutations>;
@@ -365,7 +364,7 @@ export function StatelessRouter({
 interface ProvidersProps extends PropsWithChildren {
   queries: AppQueriesContext;
   queryClient: ReturnType<typeof createTestQueryClient>;
-  Router?: (props: PropsWithChildren) => React.ReactNode;
+  Router?: (props: PropsWithChildren) => ReactNode;
 }
 
 function DefaultProviders({ children, queries, queryClient, Router = DefaultRouter }: ProvidersProps) {
@@ -643,7 +642,7 @@ export const renderWithInstanceAndLayout = async ({
 export interface RenderGenericComponentTestProps<T extends CompTypes, InInstance extends boolean = true>
   extends Omit<ExtendedRenderOptions, 'renderer'>, Omit<InstanceRouterProps, 'routerRef'> {
   type: T;
-  renderer: (props: PropsFromGenericComponent<T>) => React.ReactElement;
+  renderer: (props: PropsFromGenericComponent<T>) => ReactElement;
   component?: Partial<CompExternalExact<T>>;
   genericProps?: Partial<PropsFromGenericComponent<T>>;
   inInstance?: InInstance;

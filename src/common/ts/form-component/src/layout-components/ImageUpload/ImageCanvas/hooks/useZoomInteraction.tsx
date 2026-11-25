@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from 'react';
-import type React from 'react';
+import type { RefObject } from 'react';
 
 import { MAX_ZOOM } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 interface UseZoomInteractionProps {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
   zoom: number;
   minAllowedZoom: number;
   onZoomChange: (newZoom: number) => void;

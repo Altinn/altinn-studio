@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { waitFor } from '@testing-library/react';
 
 import { KeepAliveProvider } from 'src/core/queries/auth';

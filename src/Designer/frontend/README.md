@@ -32,6 +32,8 @@ To run an app against the local stack, see [Running Designer locally](../develop
 - `yarn test <part of a path>` runs the unit tests in matching files.
 - `yarn lint` does not check formatting. CI checks it with `yarn codestyle:check`, and `yarn codestyle:fix` fixes
   it.
+- CI also runs `yarn typecheck`, `yarn strict-null-checks` and the whole suite with `yarn test:ci`. Run them before
+  you push.
 - The end-to-end tests are in [testing/playwright](testing/playwright/README.md).
 
 The [coding standards](docs/coding-standards.md) say how the frontend calls the backend and how we write unit tests.

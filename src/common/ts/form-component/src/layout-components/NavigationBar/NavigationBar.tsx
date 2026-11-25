@@ -1,4 +1,5 @@
-import React from 'react';
+import { forwardRef, memo, useCallback, useLayoutEffect, useRef } from 'react';
+import type { ButtonHTMLAttributes, Ref } from 'react';
 
 import { Flex } from '@app/form-component/app-components/Flex';
 import { Spinner } from '@app/form-component/app-components/Spinner';
@@ -25,14 +26,14 @@ export interface NavigationBarProps {
   onNavigate: (pageId: string) => void;
 }
 
-interface NavigationButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface NavigationButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   current: boolean;
   hidden?: boolean;
 }
 
-const NavigationButton = React.forwardRef(function NavigationButton(
+const NavigationButton = forwardRef(function NavigationButton(
   { onClick, hidden = false, children, current, className, ...rest }: NavigationButtonProps,
-  ref: React.Ref<HTMLButtonElement>,
+  ref: Ref<HTMLButtonElement>,
 ) {
   return (
     <button
@@ -64,14 +65,14 @@ interface NavigationPageButtonProps {
   showSpinner: boolean;
   loadingLabel: string;
   onNavigate: (pageId: string) => void;
-  buttonRef?: React.Ref<HTMLButtonElement>;
+  buttonRef?: Ref<HTMLButtonElement>;
 }
 
 /**
  * Memoized so that navigating between pages only re-renders the buttons whose props actually changed
  * (the previously- and newly-selected page), instead of the entire page list.
  */
-const NavigationPageButton = React.memo(function NavigationPageButton({
+const NavigationPageButton = memo(function NavigationPageButton({
   pageId,
   index,
   current,
@@ -82,7 +83,7 @@ const NavigationPageButton = React.memo(function NavigationPageButton({
   buttonRef,
 }: NavigationPageButtonProps) {
   const { lang } = useTranslation();
-  const handleClick = React.useCallback(() => onNavigate(pageId), [onNavigate, pageId]);
+  const handleClick = useCallback(() => onNavigate(pageId), [onNavigate, pageId]);
 
   return (
     <li className={classes.containerBase}>
@@ -110,12 +111,12 @@ export function NavigationBar({
 }: NavigationBarProps) {
   const { lang, langAsString } = useTranslation();
   const loadingLabel = langAsString('general.loading');
-  const firstPageLink = React.useRef<HTMLButtonElement | null>(null);
+  const firstPageLink = useRef<HTMLButtonElement | null>(null);
 
   const shouldShowMenu = !compact || compactMenuOpen;
   const currentIndex = pages.findIndex((page) => page.id === currentPageId);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const shouldFocusFirstItem = firstPageLink.current && compactMenuOpen;
     if (shouldFocusFirstItem) {
       firstPageLink.current?.focus();

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import cn from 'classnames';
 
 import classes from 'src/components/presentation/OrganisationLogo/OrganisationLogo.module.css';

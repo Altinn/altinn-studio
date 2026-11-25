@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';

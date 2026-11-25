@@ -1,4 +1,4 @@
-import React from 'react';
+import { useRef } from 'react';
 import { useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -18,7 +18,7 @@ export function NavigationFocusStateProvider({ children }: PropsWithChildren) {
   const { key } = useLocation();
 
   // We don't want to move focus on first render, so we mark the current navigation key as handled.
-  const handledNavigationKeyRef = React.useRef({ key });
+  const handledNavigationKeyRef = useRef({ key });
 
   const getHandledNavigationKey = (): string => handledNavigationKeyRef.current.key;
   const setHandledNavigationKey = (key: string): void => {

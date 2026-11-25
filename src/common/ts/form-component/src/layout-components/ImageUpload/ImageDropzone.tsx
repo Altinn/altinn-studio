@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import type { RefObject } from 'react';
 
 import { Dropzone } from '@app/form-component/app-components/Dropzone';
 import { useIsMobileOrTablet } from '@app/form-component/app-components/hooks';
@@ -13,7 +14,7 @@ type ImageDropzoneProps = {
   componentId: string;
   hasErrors: boolean;
   readOnly: boolean;
-  dropzoneInputRef?: React.RefObject<HTMLInputElement | null>;
+  dropzoneInputRef?: RefObject<HTMLInputElement | null>;
 } & Pick<IDropzoneProps, 'onDrop'>;
 
 export function ImageDropzone({
@@ -23,7 +24,7 @@ export function ImageDropzone({
   onDrop,
   dropzoneInputRef,
 }: ImageDropzoneProps) {
-  const [dragActive, setDragActive] = React.useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const { lang } = useTranslation();
   const isMobile = useIsMobileOrTablet();
   const descriptionId = getDescriptionId(componentId);

@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
 import { ApiTableSummary } from 'src/layout/SimpleTable/ApiTableSummary';
@@ -51,7 +52,7 @@ export class SimpleTable extends SimpleTableDef {
   isDataModelBindingsRequired() {
     return false;
   }
-  renderSummary2(props: Summary2Props): React.JSX.Element | null {
+  renderSummary2(props: Summary2Props): JSX.Element | null {
     const config = useComponentConfig(props.targetBaseComponentId, 'SimpleTable');
     const dataModelBindings = useDataModelBindingsFor(props.targetBaseComponentId, 'SimpleTable');
 
@@ -66,7 +67,7 @@ export class SimpleTable extends SimpleTableDef {
     return null;
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
-    function LayoutComponentTableRender(props, _): React.JSX.Element | null {
+    function LayoutComponentTableRender(props, _): JSX.Element | null {
       const config = useComponentConfig(props.baseComponentId, 'SimpleTable');
       const dataModelBindings = useDataModelBindingsFor(props.baseComponentId, 'SimpleTable');
       if (dataModelBindings) {
@@ -91,11 +92,11 @@ export class SimpleTable extends SimpleTableDef {
     },
   );
 
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'SimpleTable'>): React.JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'SimpleTable'>): JSX.Element | null {
     return <SimpleTableFeatureFlagLayoutValidator {...props} />;
   }
 
-  renderSummary(_: SummaryRendererProps): React.JSX.Element | null {
+  renderSummary(_: SummaryRendererProps): JSX.Element | null {
     return null;
   }
 }

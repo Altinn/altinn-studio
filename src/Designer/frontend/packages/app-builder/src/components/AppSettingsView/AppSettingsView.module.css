@@ -1,0 +1,8 @@
+.appSettingsView {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-5);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--ds-size-8) var(--ds-size-6);
+}

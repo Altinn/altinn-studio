@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 
 
 class TtlCache[V]:
-    """Values by key, each kept for `ttl_seconds` after it was stored."""
+    """Values by key, each kept for `ttl_seconds` after it was stored, as `clock` counts seconds."""
 
-    def __init__(self, ttl_seconds: float) -> None:
+    def __init__(self, ttl_seconds: float, *, clock: Callable[[], float] = time.monotonic) -> None:
         self._ttl_seconds = ttl_seconds
+        self._clock = clock
         self._entries: dict[str, tuple[float, V]] = {}
 
     def get(self, key: str) -> V | None:
@@ -18,9 +20,9 @@ class TtlCache[V]:
         if entry is None:
             return None
         stored_at, value = entry
-        if time.monotonic() - stored_at >= self._ttl_seconds:
+        if self._clock() - stored_at >= self._ttl_seconds:
             return None
         return value
 
     def put(self, key: str, value: V) -> None:
-        self._entries[key] = (time.monotonic(), value)
+        self._entries[key] = (self._clock(), value)

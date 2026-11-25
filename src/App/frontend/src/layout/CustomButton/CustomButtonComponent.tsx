@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback } from 'react';
 import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
@@ -158,7 +158,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { pageValidation } = usePageValidation(baseComponentId);
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
-  const getScrollPosition = React.useCallback(
+  const getScrollPosition = useCallback(
     () => document.querySelector(`[data-componentid="${componentId}"]`)?.getClientRects().item(0)?.y,
     [componentId],
   );

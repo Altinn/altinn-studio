@@ -1,4 +1,5 @@
-import React from 'react';
+import { useEffect } from 'react';
+import type { KeyboardEvent } from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
 import type { TimeSegmentProps } from '@app/form-component/app-components/Timepicker/types';
@@ -50,7 +51,7 @@ export function TimeSegment({
     }
   };
 
-  React.useEffect(syncExternalChangesWhenNotTyping, [
+  useEffect(syncExternalChangesWhenNotTyping, [
     value,
     type,
     format,
@@ -58,7 +59,7 @@ export function TimeSegment({
     typingBuffer,
   ]);
 
-  const handleCharacterTyping = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleCharacterTyping = (event: KeyboardEvent<HTMLInputElement>) => {
     const character = event.key;
 
     // First check if it's a special key
@@ -92,7 +93,7 @@ export function TimeSegment({
     }
   };
 
-  const handleSpecialKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSpecialKeys = (event: KeyboardEvent<HTMLInputElement>) => {
     const isDeleteOrBackspace = event.key === 'Delete' || event.key === 'Backspace';
 
     if (isDeleteOrBackspace) {

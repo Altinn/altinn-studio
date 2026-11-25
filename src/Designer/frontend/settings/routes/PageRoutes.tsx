@@ -13,6 +13,7 @@ import {
 } from './PageRouterErrorBoundary';
 import { ApiKeys } from '../features/user/pages/ApiKeys/ApiKeys';
 import { Privacy } from '../features/user/pages/Privacy/Privacy';
+import { ExperimentalFeatures } from '../features/user/pages/ExperimentalFeatures/ExperimentalFeatures';
 import { StudioctlAuth } from '../features/user/pages/StudioctlAuth/StudioctlAuth';
 import { BotAccounts } from '../features/orgs/pages/BotAccounts/BotAccounts';
 import { ContactPoints } from '../features/orgs/pages/ContactPoints/ContactPoints';
@@ -46,6 +47,11 @@ const router = createBrowserRouter(
           <Route
             path={UserRoutePaths.Privacy}
             element={<Privacy />}
+            errorElement={<RouteErrorBoundary />}
+          />
+          <Route
+            path={UserRoutePaths.ExperimentalFeatures}
+            element={<ExperimentalFeatures />}
             errorElement={<RouteErrorBoundary />}
           />
         </Route>

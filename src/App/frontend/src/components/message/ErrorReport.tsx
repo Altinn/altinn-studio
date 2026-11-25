@@ -1,5 +1,5 @@
-import React, { createContext, useContext } from 'react';
-import type { PropsWithChildren } from 'react';
+import { createContext, useContext } from 'react';
+import type { KeyboardEvent, MouseEvent, PropsWithChildren, ReactNode } from 'react';
 
 import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
@@ -23,7 +23,7 @@ import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/featu
 
 export interface IErrorReportProps extends PropsWithChildren {
   show: boolean;
-  errors: React.ReactNode | undefined;
+  errors: ReactNode | undefined;
 }
 
 const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" style="position: relative; top: 2px">
@@ -161,8 +161,8 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
 function ErrorWithLink({ error }: { error: NodeRefValidation }) {
   const navigateToComponent = useNavigateToComponent();
 
-  function handleErrorClick(ev: React.KeyboardEvent | React.MouseEvent) {
-    if (ev.type === 'keydown' && (ev as React.KeyboardEvent).key !== 'Enter') {
+  function handleErrorClick(ev: KeyboardEvent | MouseEvent) {
+    if (ev.type === 'keydown' && (ev as KeyboardEvent).key !== 'Enter') {
       return;
     }
     ev.preventDefault();

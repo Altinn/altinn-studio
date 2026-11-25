@@ -1,0 +1,15 @@
+{
+  "id": "tdd/bestilling",
+  "org": "tdd",
+  "title": { "nb": "Bestillingseksempelapp" },
+  "dataTypes": [],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": true,
+    "organisation": true,
+    "person": true,
+    "subUnit": true
+  },
+  "onProcessEnd": {
+    "confirm": true
+  }
+}

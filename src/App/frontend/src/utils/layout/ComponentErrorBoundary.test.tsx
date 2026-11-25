@@ -1,4 +1,5 @@
-import React from 'react';
+import { Component } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 import { render, screen } from '@testing-library/react';
 
@@ -11,10 +12,10 @@ vi.mock('src/features/form/FormContext', () => ({
 }));
 
 const failure = new Error('Component render failed');
-function BrokenComponent(): React.ReactNode {
+function BrokenComponent(): ReactNode {
   throw failure;
 }
-class DocumentBoundary extends React.Component<React.PropsWithChildren, { error?: Error }> {
+class DocumentBoundary extends Component<PropsWithChildren, { error?: Error }> {
   state: { error?: Error } = {};
   static getDerivedStateFromError(error: Error) {
     return { error };

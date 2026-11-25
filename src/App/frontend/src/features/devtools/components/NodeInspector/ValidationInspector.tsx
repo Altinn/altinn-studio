@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 
 import { isAttachmentUploaded } from 'src/features/attachments';

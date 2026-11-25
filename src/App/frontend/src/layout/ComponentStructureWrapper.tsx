@@ -1,5 +1,4 @@
-import React from 'react';
-import type { PropsWithChildren } from 'react';
+import type { CSSProperties, PropsWithChildren } from 'react';
 
 import { ComponentStructure } from '@app/form-component';
 
@@ -12,7 +11,7 @@ type ComponentStructureWrapperProps = {
   baseComponentId: string;
   label?: LabelProps;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 export function ComponentStructureWrapper({

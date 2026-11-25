@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { createMemoryRouter, LoaderFunctionArgs, RouterContextProvider, RouterProvider } from 'react-router';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 import { useAppMutations, useAppQueries, useAppQueryClient } from 'src/core/queries/AppQueriesProvider';
 import { instanceRoutes } from 'src/router';
@@ -10,7 +10,7 @@ import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 export const PageNavigationRouter =
   ({ currentPageId = 'layout1', currentTaskId = 'Task_1' } = {}) =>
   // eslint-disable-next-line react/display-name
-  ({ children }: { children: React.ReactNode }) => {
+  ({ children }: { children: ReactNode }) => {
     const router = createMemoryRouter(
       [
         {

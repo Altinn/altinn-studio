@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import type { HTMLAttributes } from 'react';
 
 import { BaseTable, ConditionalWrapper, useIsMobile, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -112,7 +113,7 @@ type PaginationComponentProps = {
   totalPages: number;
   pagesWithErrors: number[];
   setCurrentPage: (pageNumber: number) => void;
-} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> &
+} & Omit<HTMLAttributes<HTMLElement>, 'onChange'> &
   Pick<UsePaginationProps, 'onChange'>;
 
 function PaginationComponent({

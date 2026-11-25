@@ -1316,6 +1316,39 @@ public class ProcessControllerTests : ApiTestBase
         document.RootElement.GetProperty("processNextState").GetString().Should().Be("concurrentTransition");
     }
 
+    // process/resume now enqueues a workflow keyed like process/next on the instance version, so it meets the same
+    // engine idempotency conflict process/next answers as a 409 concurrentTransition.
+    [Fact]
+    public async Task ResumeCurrentTask_WhenEngineRejectsDifferentBodyForSameVersionKey_ReturnsConflict()
+    {
+        var processEngineMock = new Mock<Altinn.App.Core.Internal.Process.IProcessEngine>(MockBehavior.Strict);
+        processEngineMock
+            .Setup(engine =>
+                engine.ResumeCurrentTask(
+                    It.IsAny<Altinn.App.Core.Models.Process.ProcessNextRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(
+                Altinn.App.Core.Internal.WorkflowEngine.WorkflowSubmissionFailedException.NotAccepted(
+                    "Engine idempotency conflict.",
+                    HttpStatusCode.Conflict,
+                    _instanceGuid.ToString()
+                )
+            );
+        using HttpClient client = GetClientWithProcessEngine(processEngineMock);
+
+        using HttpResponseMessage response = await client.PostAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/resume",
+            null
+        );
+        string responseContent = await response.Content.ReadAsStringAsync();
+
+        response.Should().HaveStatusCode(HttpStatusCode.Conflict);
+        using JsonDocument document = JsonDocument.Parse(responseContent);
+        document.RootElement.GetProperty("processNextState").GetString().Should().Be("concurrentTransition");
+    }
+
     private HttpClient GetClientWithProcessEngine(
         Mock<Altinn.App.Core.Internal.Process.IProcessEngine> processEngineMock
     ) =>

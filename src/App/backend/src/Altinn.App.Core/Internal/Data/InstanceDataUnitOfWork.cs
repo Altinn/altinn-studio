@@ -63,7 +63,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private readonly ITranslationService _translationService;
     private readonly Telemetry? _telemetry;
 
-    // Cache for the most up-to-date form data (can be mutated or replaced with SetFormData(dataElementId, data))
+    // Cache for the most up-to-date form data (can be mutated, or replaced with IFormDataWrapper.ReplaceBackingData)
     private readonly DataElementCache<IFormDataWrapper> _formDataCache = new();
 
     // Cache for the binary content of the file as currently in storage before changes in this unit of work.
@@ -126,6 +126,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             _instanceGuid = Guid.Parse(splitId[1]);
         }
 
+        RemoveDeletedDataElements(instance);
         _instance = instance;
         _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(instance);
         _storageVersions = storageVersionMetadata;
@@ -1610,8 +1611,16 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             }
         }
 
+        RemoveDeletedDataElements(Instance);
         _instanceSnapshot = JsonSerializer.SerializeToUtf8Bytes(Instance);
     }
+
+    /// <summary>
+    /// Storage keeps data elements marked for delayed deletion for some days, and returns them to the service owner
+    /// but not to end users. The app must treat them as gone whichever identity read the instance.
+    /// </summary>
+    private static void RemoveDeletedDataElements(Instance instance) =>
+        instance.Data?.RemoveAll(dataElement => dataElement.DeleteStatus?.IsHardDeleted is true);
 
     private static StorageAuthenticationMethod ResolveAggregateAuthenticationMethod(
         IReadOnlyCollection<StorageAuthenticationMethod> methods,
@@ -1797,26 +1806,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             InstanceVersion: storageVersions.InstanceVersion,
             IdempotencyKey: idempotencyKey
         );
-
-    /// <summary>
-    /// Add or replace existing data element data in the cache
-    /// </summary>
-    internal void SetFormData(DataElementIdentifier dataElementIdentifier, IFormDataWrapper formDataWrapper)
-    {
-        ArgumentNullException.ThrowIfNull(formDataWrapper);
-        var dataType = this.GetDataType(dataElementIdentifier);
-        if (dataType.AppLogic?.ClassRef is not { } classRef)
-        {
-            throw new InvalidOperationException($"Data element {dataElementIdentifier.Id} don't have app logic");
-        }
-        if (formDataWrapper.BackingDataType.FullName != classRef)
-        {
-            throw new InvalidOperationException(
-                $"Data object registered for {dataElementIdentifier.Id} is not of type {classRef} as specified in application metadata for data type {dataType.Id}, but {formDataWrapper.BackingDataType.FullName}"
-            );
-        }
-        _formDataCache.Set(dataElementIdentifier, formDataWrapper);
-    }
 
     private DataType GetDataTypeByString(string dataTypeString)
     {

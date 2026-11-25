@@ -4,6 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
@@ -1761,7 +1762,7 @@ public class WorkflowEngineServiceTests
             );
 
         var service = new WorkflowEngineService(
-            processNextRequestFactory: null!,
+            CreateRequestFactory(),
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
             new AppIdentifier(Org, App)
@@ -1772,6 +1773,134 @@ public class WorkflowEngineServiceTests
         Assert.Equal(WorkflowActivityStatus.Idle, result.Status);
         client.Verify(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()), Times.Once);
         client.VerifyNoOtherCalls(); // crucially, ListWorkflows was NOT called for the settled case
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Completed")]
+    [InlineData("Abandoned")]
+    public async Task ResolveWorkflowTaskStatus_IdleInAServiceTaskNoWorkflowRuns_ReportsTheTaskAsFailed(
+        string? settledHead
+    )
+    {
+        // v8 left an instance whose service task failed idle in the task, with no workflow. Reporting the task as
+        // failed shows the frontend's retry, which resumes it.
+        PersistentItemStatus? headStatus = settledHead is null ? null : Enum.Parse<PersistentItemStatus>(settledHead);
+        Instance instance = CreateServiceTaskInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(headStatus is { } status ? CreateCollection(collectionKey, Guid.NewGuid(), status) : null);
+        WorkflowEngineService service = CreateService(
+            client,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            serviceTask: new ServiceTaskRunWithoutWorkflow()
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance);
+
+        Assert.Equal(WorkflowActivityStatus.Failed, result.Status);
+        Assert.Equal("Task_Service", result.TargetTask);
+        Assert.Null(result.Failure);
+        Assert.True(result.ServiceTaskWithoutWorkflow);
+        AppProcessWorkflowStatus wire = result.ToAppProcessWorkflowStatus();
+        Assert.Equal(WorkflowActivityStatus.Failed, wire.Status);
+        Assert.Equal("Task_Service", wire.TargetTask);
+    }
+
+    [Theory]
+    [InlineData(ProcessStatus.Processing, ServiceTaskWithoutWorkflowType)]
+    [InlineData(ProcessStatus.Idle, "data")]
+    [InlineData(null, "data")]
+    public async Task ResolveWorkflowTaskStatus_WithoutAWorkflowOutsideAnIdleServiceTask_ReportsIdle(
+        ProcessStatus? processStatus,
+        string taskType
+    )
+    {
+        Instance instance = CreateServiceTaskInstance(Guid.NewGuid());
+        instance.Process.Status = processStatus;
+        instance.Process.CurrentTask.AltinnTaskType = taskType;
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((WorkflowCollectionDetailResponse?)null);
+        WorkflowEngineService service = CreateService(
+            client,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            serviceTask: new ServiceTaskRunWithoutWorkflow()
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance);
+
+        Assert.Equal(WorkflowActivityStatus.Idle, result.Status);
+        Assert.False(result.ServiceTaskWithoutWorkflow);
+    }
+
+    [Fact]
+    public async Task ResolveWorkflowTaskStatus_IdleInAServiceTaskWithAFailedWorkflow_ReportsThatWorkflow()
+    {
+        Instance instance = CreateServiceTaskInstance(Guid.NewGuid());
+        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
+        Guid failedId = Guid.NewGuid();
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateCollection(collectionKey, failedId, PersistentItemStatus.Failed));
+        client
+            .Setup(c =>
+                c.ListWorkflows(
+                    Namespace,
+                    collectionKey,
+                    It.IsAny<Dictionary<string, string>?>(),
+                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                CreateFailedWorkflow(
+                    failedId,
+                    ProcessingStatusAcquirer.Key,
+                    processingOrder: 0,
+                    httpStatusCode: 422,
+                    wasRetryable: false
+                ),
+            ]);
+        WorkflowEngineService service = CreateService(
+            client,
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            serviceTask: new ServiceTaskRunWithoutWorkflow()
+        );
+
+        WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance);
+
+        Assert.Equal(WorkflowActivityStatus.Failed, result.Status);
+        Assert.False(result.ServiceTaskWithoutWorkflow);
+        Assert.Equal(failedId, result.Failure?.WorkflowId);
+    }
+
+    private const string ServiceTaskWithoutWorkflowType = "service-without-workflow";
+
+    // Idle in its service task, as v8 left it.
+    private static Instance CreateServiceTaskInstance(Guid instanceGuid)
+    {
+        Instance instance = CreateInstance(instanceGuid);
+        instance.Process.CurrentTask = new ProcessElementInfo
+        {
+            ElementId = "Task_Service",
+            AltinnTaskType = ServiceTaskWithoutWorkflowType,
+            Flow = 3,
+        };
+        return instance;
+    }
+
+    private sealed class ServiceTaskRunWithoutWorkflow : IServiceTask
+    {
+        public string Type => ServiceTaskWithoutWorkflowType;
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }
 
     private static Instance CreateInstanceOnTask(string elementId, Guid? instanceGuid = null) =>
@@ -1890,10 +2019,11 @@ public class WorkflowEngineServiceTests
         Mock<IWorkflowEngineClient> client,
         IInstanceClientWithStorageMetadata instanceClient,
         Authenticated? authentication = null,
-        TimeProvider? timeProvider = null
+        TimeProvider? timeProvider = null,
+        IServiceTask? serviceTask = null
     ) =>
         new(
-            CreateRequestFactory(authentication),
+            CreateRequestFactory(authentication, serviceTask),
             client.Object,
             instanceClient,
             new AppIdentifier(Org, App),
@@ -1919,10 +2049,17 @@ public class WorkflowEngineServiceTests
         }
     }
 
-    private static ProcessNextRequestFactory CreateRequestFactory(Authenticated? currentAuthentication = null)
+    private static ProcessNextRequestFactory CreateRequestFactory(
+        Authenticated? currentAuthentication = null,
+        IServiceTask? serviceTask = null
+    )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
+        if (serviceTask is not null)
+        {
+            services.AddSingleton(serviceTask);
+        }
         ServiceProvider serviceProvider = services.BuildServiceProvider();
         var authentication = new Mock<IAuthenticationContext>(MockBehavior.Strict);
         authentication
@@ -1942,7 +2079,8 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App),
             Options.Create(new AppSettings()),
             callbackTokenGenerator.Object,
-            new ProcessStepOptionsResolver([])
+            new ProcessStepOptionsResolver([]),
+            Mock.Of<IAppMetadata>(metadata => metadata.ApplicationMetadata == new ApplicationMetadata(Namespace))
         );
     }
 

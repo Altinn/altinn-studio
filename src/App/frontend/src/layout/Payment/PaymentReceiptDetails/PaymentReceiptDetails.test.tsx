@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, within } from '@testing-library/react';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';

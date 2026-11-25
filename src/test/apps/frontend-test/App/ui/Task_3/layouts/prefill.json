@@ -62,6 +62,19 @@
         ]
       },
       {
+        "id": "show-calculations",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Calculation examples"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CalculationExamples"
+        },
+        "options": [
+          { "label": "Show calculation examples", "value": "show" }
+        ]
+      },
+      {
         "id": "nav-buttons-prefill",
         "type": "NavigationButtons",
         "textResourceBindings": {

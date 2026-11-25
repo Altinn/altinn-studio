@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';

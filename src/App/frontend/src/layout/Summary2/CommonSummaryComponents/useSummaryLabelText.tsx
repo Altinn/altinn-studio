@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import { useId } from 'react';
 
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 

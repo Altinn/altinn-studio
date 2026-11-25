@@ -1,9 +1,11 @@
+import type { ComponentProps } from 'react';
+
 import { render, screen } from '@testing-library/react';
 
 import { BaseTable } from './BaseTable';
 import classes from './BaseTable.module.css';
 
-function renderTable(props: React.ComponentProps<typeof BaseTable> = {}) {
+function renderTable(props: ComponentProps<typeof BaseTable> = {}) {
   return render(
     <BaseTable data-testid='table' {...props}>
       <BaseTable.Head>

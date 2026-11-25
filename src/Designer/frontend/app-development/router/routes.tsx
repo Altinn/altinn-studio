@@ -13,6 +13,7 @@ const AppSettings = lazy(() => import('app-development/features/appSettings/AppS
 const TextEditor = lazy(() => import('app-development/features/textEditor/TextEditor'));
 const AiAssistant = lazy(() => import('app-development/features/aiAssistant/AiAssistant'));
 const UiEditor = lazy(() => import('app-development/features/uiEditor/UiEditor'));
+const AppBuilder = lazy(() => import('app-development/features/appBuilder/AppBuilder'));
 
 interface RouterRoute {
   path: string;
@@ -55,5 +56,9 @@ export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.AiAssistant,
     subapp: AiAssistant,
+  },
+  {
+    path: RoutePaths.AppBuilder,
+    subapp: AppBuilder,
   },
 ];

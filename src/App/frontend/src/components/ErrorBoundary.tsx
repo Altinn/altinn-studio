@@ -1,4 +1,5 @@
-import React from 'react';
+import { Component } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 
@@ -6,8 +7,8 @@ interface IErrorBoundary {
   lastError?: Error;
 }
 
-export class ErrorBoundary extends React.Component<React.PropsWithChildren, IErrorBoundary> {
-  constructor(props: React.PropsWithChildren) {
+export class ErrorBoundary extends Component<PropsWithChildren, IErrorBoundary> {
+  constructor(props: PropsWithChildren) {
     super(props);
     this.state = { lastError: undefined };
   }
