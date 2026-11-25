@@ -275,7 +275,7 @@ internal sealed class Engine(
 
         try
         {
-            var hash = request.ComputeHash();
+            var hash = request.ComputeHash(metadata.CollectionKey);
             var outcome = await writeBuffer.Enqueue(request, metadata, hash, cancellationToken);
 
             // Decided inside the flush under the mailbox row lock, and carrying no workflow ids — which is why
@@ -322,7 +322,7 @@ internal sealed class Engine(
                 errorMessage: $"Idempotency conflict for key '{metadata.IdempotencyKey}'"
             );
             return new WorkflowEnqueueResponse.Rejected.Duplicate(
-                $"Idempotency conflict: the key '{metadata.IdempotencyKey}' was already used with a different request body."
+                $"Idempotency conflict: the key '{metadata.IdempotencyKey}' was already used with a different request body or collection key."
             );
         }
         catch (InvalidWorkflowReferenceException ex)

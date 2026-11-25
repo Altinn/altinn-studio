@@ -98,7 +98,7 @@ public class WorkflowWriteBufferTests
         };
 
         var metadata = new WorkflowRequestMetadata("test-ns", $"idem-{key}", null, DateTimeOffset.UtcNow, null);
-        var hash = request.ComputeHash();
+        var hash = request.ComputeHash(metadata.CollectionKey);
         return (request, metadata, hash);
     }
 
