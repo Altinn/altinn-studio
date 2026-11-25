@@ -469,7 +469,8 @@ describe('Group', () => {
 
     cy.gotoNavPage('repeating (store endringer)');
     cy.get('[data-validation="currentValue2-5"]').should('contain.text', 'Det er teit å endre fra 88889');
-    cy.get('[data-validation="currentValue2-5"]').findByRole('link', { name: 'Trykk for å endre det' }).click();
+    // The message is shown once, in the row's validation panel. Its copy in the cell is only for screen readers.
+    cy.get('[data-testid="table-row-validation-messages"] a').contains('Trykk for å endre det').click();
 
     // The openByDefault setting should have no effect here, as we
     // are navigating to a different component via linkToComponent.
@@ -478,7 +479,7 @@ describe('Group', () => {
 
     cy.gotoNavPage('repeating (store endringer)');
     cy.get('[data-validation="newValue2-5"]').should('contain.text', 'Det er teit å endre til 55554');
-    cy.get('[data-validation="newValue2-5"]').findByRole('link', { name: 'Trykk for å gjøre noe helt annet' }).click();
+    cy.get('[data-testid="table-row-validation-messages"] a').contains('Trykk for å gjøre noe helt annet').click();
 
     // Now we should have focussed outside the repeating group
     cy.get('#reduxOptions-expressions-radiobuttons').find('input[type="radio"]').first().should('be.focused');

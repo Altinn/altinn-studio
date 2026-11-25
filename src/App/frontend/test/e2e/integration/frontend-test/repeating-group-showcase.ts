@@ -208,6 +208,61 @@ describe('Repeating group validation showcase', () => {
     cy.get('#validation-default-name-0').should('have.focus');
   });
 
+  it('shows field messages once to sighted users while screen readers read the cell copy', () => {
+    interceptAltinnAppGlobalData((data) => {
+      data.textResources?.resources.push({
+        id: 'row.link',
+        value: 'Kontroller <a href="https://www.altinn.no/">registeret</a>.',
+      });
+    });
+    cy.intercept('POST', '**/actions*', (req) => {
+      req.on('response', (res) => {
+        const action: ActionResult = res.body;
+        for (const groups of Object.values(action.updatedValidationIssues ?? {})) {
+          for (const issue of Object.values(groups).flat()) {
+            if (issue.componentId === 'validation-table-age' && issue.rowIndexes?.[0] === 4) {
+              issue.customTextKey = 'row.link';
+            }
+          }
+        }
+        res.send(action);
+      });
+    });
+    setup();
+    const cellCopy = '[data-validation="validation-table-name-4"]';
+    const linkedCellCopy = '[data-validation="validation-table-age-4"]';
+    const panel = () => cy.get(row('table', 4)).next();
+
+    // A table-only row: the panel only repeats what the cells say, so assistive tech skips it.
+    cy.get(cellCopy).should('contain.text', 'Oppgi navnet slik det står i registeret.');
+    cy.get(cellCopy).should('have.css', 'clip-path', 'inset(50%)');
+    cy.get(cellCopy).should(($copy) => expect($copy[0].getBoundingClientRect().width).to.be.at.most(1));
+    cy.get(cellCopy).closest('[aria-hidden]').should('not.exist');
+    panel().should('have.attr', 'aria-hidden', 'true');
+    panel().contains('Oppgi navnet slik det står i registeret.').should('be.visible');
+    panel().find('li').should('have.length', 2).and('have.attr', 'aria-hidden', 'true');
+    cy.testWcag();
+
+    // A link in a field message is clickable in the panel, but only reachable by keyboard in the cell copy.
+    panel().find('a').should('have.length', 1).and('have.attr', 'tabindex', '-1').and('be.visible');
+    cy.get(`${linkedCellCopy} a`).should('not.have.attr', 'tabindex', '-1').focus();
+    cy.get(linkedCellCopy).should('have.css', 'clip-path', 'none');
+    cy.get(linkedCellCopy).should(($copy) => expect($copy[0].getBoundingClientRect().width).to.be.greaterThan(50));
+    cy.get(`${linkedCellCopy} a`).blur();
+    cy.get(linkedCellCopy).should('have.css', 'clip-path', 'inset(50%)');
+
+    // A row-object message has no cell copy, so it stays readable in the panel next to the hidden field messages.
+    cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
+    cy.waitUntilSaved();
+    panel().should('not.have.attr', 'aria-hidden');
+    panel()
+      .contains('li', 'Denne meldingen gjelder opplysningene om kjæledyret samlet.')
+      .should('be.visible')
+      .and('not.have.attr', 'aria-hidden');
+    panel().contains('li', 'Oppgi navnet slik det står i registeret.').should('have.attr', 'aria-hidden', 'true');
+    cy.testWcag();
+  });
+
   it('preserves configured edit labels, rich message links and keyboard navigation while rows are open', () => {
     interceptAltinnAppGlobalData((data) => {
       data.textResources?.resources.push({

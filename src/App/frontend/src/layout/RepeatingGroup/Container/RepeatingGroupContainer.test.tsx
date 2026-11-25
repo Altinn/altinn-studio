@@ -522,31 +522,80 @@ describe('RepeatingGroupContainer', () => {
     expect(screen.queryByRole('button', { name: /Rett feil her: Side 1/i })).not.toBeInTheDocument();
   });
 
-  it('shows a table field message in the row panel and leaves only the aria description in the cell', async () => {
-    await render({
-      numRows: 1,
-      showField1Validations: true,
-      container: { edit: { ...mockContainer.edit, mode: 'onlyTable' } },
-      validationIssues: [
-        {
-          customTextKey: 'Feltet er feil',
-          field: 'Group[0].prop1',
-          dataElementId: defaultMockDataElementId,
-          severity: BackendValidationSeverity.Error,
-          source: 'custom',
-        },
-      ],
+  describe('row panel messages and screen readers', () => {
+    const fieldIssue: BackendValidationIssue = {
+      customTextKey: 'Feltet er feil',
+      field: 'Group[0].prop1',
+      dataElementId: defaultMockDataElementId,
+      severity: BackendValidationSeverity.Error,
+      source: 'custom',
+    };
+    const rowObjectIssue: BackendValidationIssue = {
+      customTextKey: 'Raden er feil',
+      field: 'Group[0]',
+      dataElementId: defaultMockDataElementId,
+      severity: BackendValidationSeverity.Error,
+      source: 'custom',
+    };
+    const onlyTable = { edit: { ...mockContainer.edit, mode: 'onlyTable' as const } };
+
+    it('shows a field message in a screen-reader-hidden panel item and keeps the cell copy for screen readers', async () => {
+      await render({ numRows: 1, showField1Validations: true, container: onlyTable, validationIssues: [fieldIssue] });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      const panelMessage = within(panel).getByText(/Feltet er feil/);
+      expect(panelMessage.closest('li')).toHaveAttribute('aria-hidden', 'true');
+
+      const cellCopy = document.querySelector('[data-validation]');
+      expect(cellCopy).toHaveTextContent('Feltet er feil');
+      expect(panel).not.toContainElement(cellCopy as HTMLElement);
+      expect(cellCopy?.closest('[aria-hidden]')).toBeNull();
+      expect(screen.getAllByText(/Feltet er feil/)).toHaveLength(2);
     });
 
-    const panel = await screen.findByTestId('table-row-validation-messages');
-    expect(within(panel).getAllByText(/Feltet er feil/)).toHaveLength(1);
+    it('keeps a row-object message in the panel readable and hides its field message', async () => {
+      await render({
+        numRows: 1,
+        showField1Validations: true,
+        container: onlyTable,
+        validationIssues: [fieldIssue, rowObjectIssue],
+      });
 
-    // The cell keeps one copy as the description of its input. CSS hides it visually, which jsdom cannot check.
-    const describedBy = screen.getByRole('textbox', { name: 'Title1' }).getAttribute('aria-describedby');
-    const cellMessages = document.getElementById(describedBy ?? '');
-    expect(cellMessages).toHaveAttribute('data-validation');
-    expect(panel).not.toContainElement(cellMessages);
-    expect(screen.getAllByText(/Feltet er feil/)).toHaveLength(2);
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      expect(
+        within(panel)
+          .getByText(/Raden er feil/)
+          .closest('li'),
+      ).not.toHaveAttribute('aria-hidden');
+      expect(
+        within(panel)
+          .getByText(/Feltet er feil/)
+          .closest('li'),
+      ).toHaveAttribute('aria-hidden', 'true');
+      expect(panel).not.toHaveAttribute('aria-hidden');
+    });
+
+    it('takes links in a hidden panel message out of the tab order but leaves the cell copy focusable', async () => {
+      await render({
+        numRows: 1,
+        showField1Validations: true,
+        container: onlyTable,
+        validationIssues: [{ ...fieldIssue, customTextKey: 'Les [mer](https://www.altinn.no/)' }],
+      });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      const panelLink = panel.querySelector('a');
+      expect(panelLink).toHaveAttribute('tabindex', '-1');
+      const cellLink = document.querySelector('[data-validation] a');
+      expect(cellLink).not.toHaveAttribute('tabindex', '-1');
+    });
+
+    it('hides a message row with only field messages from screen readers', async () => {
+      await render({ numRows: 1, showField1Validations: true, container: onlyTable, validationIssues: [fieldIssue] });
+
+      const panel = await screen.findByTestId('table-row-validation-messages');
+      expect(panel).toHaveAttribute('aria-hidden', 'true');
+    });
   });
 
   it('should notify screen readers via a live region when a row is deleted', async () => {
