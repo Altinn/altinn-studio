@@ -325,6 +325,10 @@ internal sealed class WorkflowStepSet
     /// </summary>
     internal const string StepNameLabel = "stepName";
 
+    /// <summary>
+    /// A step's OperationId starts with its command key, alone or followed by <c>": "</c> and an index. The waits in
+    /// <see cref="WorkflowEngineService"/> read a workflow's steps by it, so keep the key first.
+    /// </summary>
     private static PlannedStep CreateStep(
         string commandKey,
         CommandRequestPayload? payload = null,
