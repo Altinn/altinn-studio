@@ -6,22 +6,16 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupRowValidation.module.css';
 import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
+import { useRowAriaLabel } from 'src/layout/RepeatingGroup/Table/useRowAriaLabel';
 import { getHighestSeverity, validationSeverityPresentation } from 'src/layout/RepeatingGroup/Table/validationSeverity';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 
-export function RepeatingGroupRowValidation({
-  validations,
-  index,
-}: {
-  validations: NodeRefValidation[];
-  index: number;
-}) {
+export function RepeatingGroupRowValidation({ validations }: { validations: NodeRefValidation[] }) {
   const severity = getHighestSeverity(validations);
   return severity ? (
     <RowValidationPopover
       validations={validations}
-      index={index}
       severity={severity}
     />
   ) : null;
@@ -29,11 +23,9 @@ export function RepeatingGroupRowValidation({
 
 function RowValidationPopover({
   validations,
-  index,
   severity,
 }: {
   validations: NodeRefValidation[];
-  index: number;
   severity: ValidationSeverity;
 }) {
   const [open, setOpen] = useState(false);
@@ -60,7 +52,7 @@ function RowValidationPopover({
   }, [open]);
 
   const { Icon, color } = validationSeverityPresentation[severity];
-  const label = langAsString(`group.row_validation_${severity}`, [index + 1]);
+  const label = useRowAriaLabel(langAsString(`group.row_validation_${severity}`));
 
   return (
     <Popover.TriggerContext>

@@ -476,7 +476,7 @@ describe('RepeatingGroupContainer', () => {
     expect(screen.getAllByRole('button', { name: /Rediger/i })).toHaveLength(2);
     await userEvent.click(screen.getByRole('button', { name: /New open text/i }));
     await userEvent.click(screen.getByRole('button', { name: /New close text/i }));
-    expect(await screen.findByRole('button', { name: /Feil i rad 1. Vis meldinger/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Vis feil value1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /New close text/i })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.queryByRole('button', { name: /Rett feil her/i })).not.toBeInTheDocument();
   });
@@ -619,8 +619,8 @@ describe('RepeatingGroupContainer', () => {
     it('labels each row by its most severe message and leaves a row without messages alone', async () => {
       await render({ numRows: 3, showField1Validations: true, validationIssues: mixedSeverities });
 
-      expect(await screen.findByRole('button', { name: 'Feil i rad 1. Vis meldinger' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Informasjon i rad 2. Vis meldinger' })).toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Vis feil value1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Vis informasjon value2' })).toBeInTheDocument();
       expect(screen.getAllByTestId('row-validation-indicator')).toHaveLength(2);
     });
 
@@ -670,7 +670,7 @@ describe('RepeatingGroupContainer', () => {
     ])('keeps the indicator when the row has $name', async ({ edit }) => {
       await render({ numRows: 1, showField1Validations: true, container: { edit }, validationIssues: mixedSeverities });
 
-      expect(await screen.findByRole('button', { name: 'Feil i rad 1. Vis meldinger' })).toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Vis feil value1' })).toBeInTheDocument();
     });
   });
 

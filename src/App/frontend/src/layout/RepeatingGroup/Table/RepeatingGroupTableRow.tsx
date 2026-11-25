@@ -12,7 +12,7 @@ import type {
 
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
-import { useDisplayData, useDisplayDataFor } from 'src/features/displayData/useDisplayData';
+import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -34,8 +34,8 @@ import {
   RepeatingGroupMessagePanel,
   RepeatingGroupTableField,
 } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
+import { useRowAriaLabel } from 'src/layout/RepeatingGroup/Table/useRowAriaLabel';
 import { getHighestSeverity } from 'src/layout/RepeatingGroup/Table/validationSeverity';
-import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -253,12 +253,7 @@ export function RepeatingGroupTableRow({
           verticalLayout={useVerticalButtonLayout}
           displayEditColumn={displayEditColumn}
           displayDeleteColumn={displayDeleteColumn}
-          validationIndicator={
-            <RepeatingGroupRowValidation
-              validations={rowValidations}
-              index={index}
-            />
-          }
+          validationIndicator={<RepeatingGroupRowValidation validations={rowValidations} />}
           editElement={editElement}
           deleteElement={deleteElement}
         />
@@ -397,7 +392,7 @@ function EditElement({
   buttonRef?: (node: HTMLButtonElement | null) => void;
   disabled?: boolean;
 }) {
-  const ariaLabel = useAriaLabel(editButtonText);
+  const ariaLabel = useRowAriaLabel(editButtonText);
   const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
   return (
     <Button
@@ -449,7 +444,7 @@ function DeleteElement({
     cancelChange,
     handleChange: handleDelete,
   } = useAlertOnChange(alertOnDelete, deleteRow);
-  const ariaLabel = useAriaLabel(deleteButtonText);
+  const ariaLabel = useRowAriaLabel(deleteButtonText);
   return (
     <>
       {alertOnDelete && (
@@ -546,13 +541,4 @@ function TableTitle({ baseComponentId }: { baseComponentId: string; compType: Co
 
 function DisplayData({ baseComponentId }: { baseComponentId: string }) {
   return useDisplayData(baseComponentId);
-}
-
-function useAriaLabel(prefix: string) {
-  const baseComponentId = useRepeatingGroupComponentId();
-  const rawTableIds = useTableComponentIds(baseComponentId);
-  const displayData = useDisplayDataFor(rawTableIds);
-  const firstCellData = Object.values(displayData).find((c) => !!c) ?? '';
-
-  return firstCellData ? `${prefix} ${firstCellData}` : prefix;
 }
