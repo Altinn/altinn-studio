@@ -115,19 +115,19 @@ class _View:
         return task in (data_type.get("taskIds") or []) if self.v9 else data_type.get("taskId") == task
 
     def fields(self, title: str) -> list[tuple[UiFolder, dict[str, Any]]]:
-        """The input components with this title after normalizing. Without one, those whose title contains it or
-        is part of it, such as the two fields a combined name and number field is often split into."""
+        """The input components of the form with this title after normalizing. Without one, those whose words are
+        all in the title or that have all its words, such as the two fields a name and number field is split into.
+        A field on the PDF page or the receipt is not a field of the form."""
         wanted = normalize_title(title)
         ranked = []
         for folder, _, component in self.app.all_components():
             key = (component.get("textResourceBindings") or {}).get("title")
             have = normalize_title(self.app.text(key) or key) if isinstance(key, str) else ""
-            if (
-                component.get("type") in INPUT_COMPONENT_TYPES
-                and have
-                and wanted
-                and (have in wanted or wanted in have)
-            ):
+            if component.get("type") not in INPUT_COMPONENT_TYPES or not have or not wanted:
+                continue
+            if self.form is not None and folder is not self.form:
+                continue
+            if set(have.split()) <= set(wanted.split()) or set(wanted.split()) <= set(have.split()):
                 ranked.append((min(len(have), len(wanted)) / max(len(have), len(wanted)), folder, component))
         exact = [(f, c) for rank, f, c in ranked if rank == 1]
         return exact or [(f, c) for rank, f, c in ranked if rank >= 0.3]
@@ -312,7 +312,9 @@ def _shows_only_for(view: _View, pair: dict[str, str]) -> bool | None:
     if bound is None or not options:
         return None
     values = [str(o.get("value")) for o in options]
-    wanted = [str(o.get("value")) for o in options if view.label(o) == normalize_title(pair["shown_for"])]
+    answer = normalize_title(pair["shown_for"])
+    wanted = [str(o.get("value")) for o in options if view.label(o) == answer]
+    wanted = wanted or [str(o.get("value")) for o in options if answer in view.label(o).split()]
     dependents = [c for f, c in view.fields(pair["field"]) if f is folder]
     if not wanted or not dependents:
         return False
@@ -525,9 +527,9 @@ def _prefill(view: _View, checks: Checks) -> None:
 
 def _settings(view: _View, checks: Checks) -> None:
     app, rubric = view.app, view.rubric
-    if (parties := rubric.get("party_types")) is not None:
-        allowed = sorted(k for k, v in (app.metadata.get("partyTypesAllowed") or {}).items() if v)
-        checks.check(f"partyTypesAllowed is {parties}", allowed == sorted(parties))
+    allowed = app.metadata.get("partyTypesAllowed") or {}
+    for party, wanted in (rubric.get("party_types") or {}).items():
+        checks.check(f"partyTypesAllowed.{party} is {wanted}", bool(allowed.get(party)) is wanted)
     if not (spec := rubric.get("attachment")):
         return
     attachments = [
@@ -559,7 +561,7 @@ def _validation(view: _View, checks: Checks) -> None:
         )
     for spec in rubric.get("patterns") or []:
         patterns = [s[0].get("pattern") for dt, p in view.paths(spec["field"]) if (s := app.field_schema(dt, p))]
-        ok = bool(patterns) and all(
+        ok = any(
             p and all(re.search(p, v) for v in spec["accepts"]) and not any(re.search(p, v) for v in spec["rejects"])
             for p in patterns
         )

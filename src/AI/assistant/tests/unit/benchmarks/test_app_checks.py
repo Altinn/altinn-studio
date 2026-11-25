@@ -39,7 +39,7 @@ RUBRIC: dict[str, Any] = {
     "code_list_files": [TITLES["typen"]],
     "required_fields": [A1, TITLES["prosjekt"], TITLES["belop"]],
     "numeric_fields": [TITLES["belop"], TITLES["kostnad"]],
-    "patterns": [{"field": "Organisasjonsnummer", "accepts": ["123456789"], "rejects": ["12345678", "12345678a"]}],
+    "patterns": [{"field": A1, "accepts": ["123456789"], "rejects": ["12345678", "12345678a"]}],
     "expression_validations": [
         {"values": {TITLES["belop"]: 600000, TITLES["kostnad"]: 500000}, "fails": True},
         {"values": {TITLES["belop"]: 400000, TITLES["kostnad"]: 500000}, "fails": False},
@@ -48,7 +48,7 @@ RUBRIC: dict[str, Any] = {
         {"source": "ER", "fields": ["Name", "OrgNumber"], "title": A1},
         {"source": "UserProfile", "title": TITLES["kontakt"], "versions": [8]},
     ],
-    "party_types": ["organisation"],
+    "party_types": {"organisation": True, "person": False},
     "attachment": {"content_types": ["application/pdf"], "max_size": 10, "min_count": 1, "max_count": 1},
     "gateway": {"field": TITLES["belop"], "routes": {"500000": "end", "500001": "signing"}},
     "pdf_page_fields": [A1, TITLES["belop"]],
@@ -464,3 +464,16 @@ def test_a_version_rule_lowers_its_score(tmp_path, template, name, change):
     change(root)
     value, comment = scores(root, template)[name]
     assert value < 1, comment
+
+
+def test_an_answer_label_with_more_words_is_still_the_answer(tmp_path):
+    """Assistants often keep the PDF's «Annet – fyll inn» as the label of the answer «Annet»."""
+    root = build_app(tmp_path, "v9")
+    for language in ("nb", "nn", "en"):
+        _edit(
+            root,
+            f"App/config/texts/resource.{language}.json",
+            lambda d: [r.update(value="Annet – fyll inn") for r in d["resources"] if r["id"] == "kode.annet"],
+        )
+    value, comment = scores(root, "v9")["bench_expressions"]
+    assert value == 1, comment
