@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -21,13 +22,14 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
-public class WorkflowEngineServiceTests
+public partial class WorkflowEngineServiceTests
 {
     private const string Org = "ttd";
     private const string App = "test-app";
@@ -86,16 +88,21 @@ public class WorkflowEngineServiceTests
                     Workflows = [new WorkflowResult { DatabaseId = acquireId, Namespace = Namespace }],
                 }
             );
-        int polls = 0;
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() =>
+        // The skipping clock spends the budget only on the wait's and the stream's own timers, not on a busy
+        // runner's scheduling, so the wait always reaches its second snapshot before timing out.
+        var time = new TimeSkippingTimeProvider();
+        int snapshots = 0;
+        ServeEventStream(
+            client,
+            collectionKey,
+            () =>
                 CreateCollection(
                     collectionKey,
                     continuationId,
-                    ++polls == 1 ? PersistentItemStatus.Processing : continuationStatus
-                )
-            );
+                    ++snapshots == 1 ? PersistentItemStatus.Processing : continuationStatus
+                ),
+            time
+        );
         client
             .Setup(c =>
                 c.ListWorkflows(
@@ -117,11 +124,9 @@ public class WorkflowEngineServiceTests
                 )
             )
             .ReturnsAsync(new InstanceWithStorageMetadata(instance, versions));
-        // The skipping clock spends the budget only on the service's own poll delays, not on a busy runner's
-        // scheduling, so the wait always reaches its second poll before timing out.
-        var service = CreateService(client, instanceClient.Object, timeProvider: new TimeSkippingTimeProvider());
-        service.WorkflowPollingTimeoutMs = 500;
-        // Fails instead of hanging if a poll delay ever bypasses the clock, since the budget would never run out.
+        var service = CreateService(client, instanceClient.Object, timeProvider: time);
+        service.WorkflowWaitTimeoutMs = 500;
+        // Fails instead of hanging if a delay ever bypasses the clock, since the budget would never run out.
         var result = await service
             .EnqueueAndWaitForProcessNext(
                 instance,
@@ -131,17 +136,17 @@ public class WorkflowEngineServiceTests
                 language: null
             )
             .WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.True(result.ProcessStateCommitted);
         Assert.Equal(continuationStatus == PersistentItemStatus.Waiting, result.Parked);
-        Assert.True(polls >= 2);
+        Assert.True(snapshots >= 2);
         switch (continuationStatus)
         {
             case PersistentItemStatus.Completed:
-                Assert.Null(result.WorkflowFailure);
+                Assert.Null(result.Failure);
                 break;
             case PersistentItemStatus.Failed:
-                Assert.Equal(WorkflowFailureKind.StepFailed, result.WorkflowFailure!.Kind);
-                Assert.Equal(continuationId, result.WorkflowFailure.WorkflowId);
+                Assert.Equal(WorkflowFailureKind.StepFailed, result.Failure!.WorkflowFailure.Kind);
+                Assert.Equal(continuationId, result.Failure.WorkflowFailure.WorkflowId);
+                Assert.True(result.Failure.ProcessStateCommitted);
                 Assert.DoesNotContain(continuation.Steps, step => step.OperationId == ProcessingStatusAcquirer.Key);
                 continuationStatus = PersistentItemStatus.Completed;
                 continuation = continuation with
@@ -168,8 +173,7 @@ public class WorkflowEngineServiceTests
                     .Setup(c => c.ResumeWorkflow(Namespace, continuationId, true, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(new ResumeWorkflowResponse(continuationId, DateTimeOffset.UtcNow, []));
                 var resumed = await service.ResumeAndWaitForWorkflow(instance, continuationId);
-                Assert.Null(resumed.WorkflowFailure);
-                Assert.True(resumed.ProcessStateCommitted);
+                Assert.Null(resumed.Failure);
                 client.Verify(
                     c => c.ResumeWorkflow(Namespace, continuationId, true, It.IsAny<CancellationToken>()),
                     Times.Once
@@ -187,7 +191,8 @@ public class WorkflowEngineServiceTests
                 );
                 break;
             case PersistentItemStatus.Processing:
-                Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure!.Kind);
+                Assert.Equal(WorkflowFailureKind.Timeout, result.Failure!.WorkflowFailure.Kind);
+                Assert.True(result.Failure.ProcessStateCommitted);
                 client.Verify(
                     c =>
                         c.ListWorkflows(
@@ -201,9 +206,9 @@ public class WorkflowEngineServiceTests
                 );
                 break;
             case PersistentItemStatus.Waiting:
-                // The deferring task parks the chain, and the wait releases on the first poll that sees it.
-                Assert.Null(result.WorkflowFailure);
-                Assert.Equal(2, polls);
+                // The deferring task parks the chain, and the wait releases on the first snapshot that shows it.
+                Assert.Null(result.Failure);
+                Assert.Equal(2, snapshots);
                 break;
         }
     }
@@ -580,36 +585,11 @@ public class WorkflowEngineServiceTests
                         }
                     )
             );
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = collectionKey,
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Completed },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
-        client
-            .Setup(c => c.ListWorkflows(Namespace, collectionKey, null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([
-                new WorkflowStatusResponse
-                {
-                    DatabaseId = workflowId,
-                    OperationId = "Process next",
-                    IdempotencyKey = $"process-next-operation-{instanceGuid:N}-{versions.InstanceVersion}",
-                    Namespace = Namespace,
-                    CollectionKey = collectionKey,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    OverallStatus = PersistentItemStatus.Completed,
-                    Role = WorkflowRole.Primary,
-                    Steps = [],
-                },
-            ]);
+        ServeEventStream(
+            client,
+            collectionKey,
+            () => CreateCollection(collectionKey, workflowId, PersistentItemStatus.Completed)
+        );
         var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
         instanceClient
             .Setup(c =>
@@ -641,13 +621,13 @@ public class WorkflowEngineServiceTests
         else
         {
             ProcessNextWorkflowResult first = await Submit();
-            Assert.Null(first.WorkflowFailure);
+            Assert.Null(first.Failure);
             Assert.Same(refreshedInstance, first.Instance);
             Assert.Equal(refreshedVersions, first.InstanceVersions);
         }
         ProcessNextWorkflowResult retry = await Submit();
 
-        Assert.Null(retry.WorkflowFailure);
+        Assert.Null(retry.Failure);
         Assert.Same(refreshedInstance, retry.Instance);
         Assert.Equal(refreshedVersions, retry.InstanceVersions);
         Assert.Equal(2, keys.Count);
@@ -675,20 +655,11 @@ public class WorkflowEngineServiceTests
         client
             .Setup(c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = collectionKey,
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus { DatabaseId = workflowId, Status = PersistentItemStatus.Failed },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
+        ServeEventStream(
+            client,
+            collectionKey,
+            () => CreateCollection(collectionKey, workflowId, PersistentItemStatus.Failed)
+        );
         client
             .Setup(c =>
                 c.ListWorkflows(
@@ -714,8 +685,8 @@ public class WorkflowEngineServiceTests
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(instance, workflowId);
 
-        Assert.Equal(WorkflowFailureKind.StepFailed, result.WorkflowFailure?.Kind);
-        Assert.Equal("resumeWorkflow", result.WorkflowFailure?.RetryAction);
+        Assert.Equal(WorkflowFailureKind.StepFailed, result.Failure?.WorkflowFailure.Kind);
+        Assert.Equal("resumeWorkflow", result.Failure?.WorkflowFailure.RetryAction);
     }
 
     [Fact]
@@ -731,52 +702,12 @@ public class WorkflowEngineServiceTests
             .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
 
-        // Collection head is already terminal (Completed) so the wait loop exits immediately.
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new WorkflowCollectionDetailResponse
-                {
-                    Key = collectionKey,
-                    Namespace = Namespace,
-                    Heads =
-                    [
-                        new CollectionHeadStatus
-                        {
-                            DatabaseId = workflowId,
-                            Status = PersistentItemStatus.Completed,
-                            StepsCompleted = 12,
-                            StepsTotal = 12,
-                        },
-                    ],
-                    CreatedAt = DateTimeOffset.UtcNow,
-                }
-            );
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([
-                // The anchored wait requires the resumed workflow to be visible and terminal
-                // before the wait concludes.
-                new WorkflowStatusResponse
-                {
-                    DatabaseId = workflowId,
-                    OperationId = "op",
-                    IdempotencyKey = workflowId.ToString(),
-                    Namespace = Namespace,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    OverallStatus = PersistentItemStatus.Completed,
-                    Role = WorkflowRole.Primary,
-                    Steps = [],
-                },
-            ]);
+        // Collection head is already terminal (Completed) so the wait exits on the first snapshot.
+        ServeEventStream(
+            client,
+            collectionKey,
+            () => CreateCollection(collectionKey, workflowId, PersistentItemStatus.Completed)
+        );
 
         var versions = new StorageVersionMetadata(InstanceVersion: 17, ProcessStateVersion: 9);
         var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
@@ -795,7 +726,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             instanceClient.Object,
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         // Act
@@ -806,7 +738,7 @@ public class WorkflowEngineServiceTests
         );
 
         // Assert
-        Assert.Null(result.WorkflowFailure);
+        Assert.Null(result.Failure);
         Assert.Equal(versions, result.InstanceVersions);
         client.Verify(
             c => c.ResumeWorkflow(Namespace, workflowId, true, It.IsAny<CancellationToken>()),
@@ -831,9 +763,11 @@ public class WorkflowEngineServiceTests
         client
             .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting));
+        ServeEventStream(
+            client,
+            collectionKey,
+            () => CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting)
+        );
         client
             .Setup(c =>
                 c.ListWorkflows(
@@ -872,7 +806,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             instanceClient.Object,
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
@@ -881,8 +816,7 @@ public class WorkflowEngineServiceTests
             CancellationToken.None
         );
 
-        Assert.Null(result.WorkflowFailure);
-        Assert.True(result.ProcessStateCommitted);
+        Assert.Null(result.Failure);
         Assert.True(result.Parked);
         client.Verify(
             c =>
@@ -896,9 +830,9 @@ public class WorkflowEngineServiceTests
             Times.Once
         );
         client.Verify(
-            c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()),
+            c => c.StreamCollectionEvents(Namespace, collectionKey, It.IsAny<CancellationToken>()),
             Times.Once,
-            "a parked chain releases on the first poll that observes it, without waiting"
+            "a parked chain releases on the first snapshot that shows it, without waiting"
         );
     }
 
@@ -916,9 +850,11 @@ public class WorkflowEngineServiceTests
         client
             .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting));
+        ServeEventStream(
+            client,
+            collectionKey,
+            () => CreateCollection(collectionKey, workflowId, PersistentItemStatus.Waiting)
+        );
         client
             .Setup(c =>
                 c.ListWorkflows(
@@ -953,10 +889,11 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             instanceClient.Object,
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         )
         {
-            WorkflowPollingTimeoutMs = 500,
+            WorkflowWaitTimeoutMs = 500,
         };
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
@@ -965,9 +902,9 @@ public class WorkflowEngineServiceTests
             CancellationToken.None
         );
 
-        Assert.NotNull(result.WorkflowFailure);
-        Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
-        Assert.False(result.ProcessStateCommitted);
+        Assert.NotNull(result.Failure);
+        Assert.Equal(WorkflowFailureKind.Timeout, result.Failure.WorkflowFailure.Kind);
+        Assert.False(result.Failure.ProcessStateCommitted);
         Assert.False(result.Parked);
     }
 
@@ -1173,7 +1110,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -1230,7 +1168,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -1297,7 +1236,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -1360,7 +1300,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -1415,7 +1356,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -1425,85 +1367,6 @@ public class WorkflowEngineServiceTests
         Assert.False(result.Retrying);
         Assert.Null(result.Failure);
         Assert.Null(result.WaitingReason);
-    }
-
-    [Fact]
-    public async Task ResumeAndWaitForWorkflow_HeldWorkflowInTheChain_KeepsTheChainUnsettled()
-    {
-        // Heads can look inactive while the chain is unsettled — the anchored-chain guard's case. Observable
-        // because a settled read returns at once where an unsettled one polls to timeout.
-        Guid primaryWorkflowId = Guid.NewGuid();
-        Guid receiverWorkflowId = Guid.NewGuid();
-        var instance = CreateInstance(Guid.NewGuid());
-        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
-
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c => c.ResumeWorkflow(Namespace, primaryWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(primaryWorkflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, primaryWorkflowId, PersistentItemStatus.Completed));
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([
-                // Primary workflow explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created
-                // strictly after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
-                CreateWorkflowStatus(
-                    DateTimeOffset.UtcNow.AddSeconds(-1),
-                    status: PersistentItemStatus.Completed,
-                    databaseId: primaryWorkflowId,
-                    steps:
-                    [
-                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
-                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
-                    ]
-                ),
-                CreateWorkflowStatus(
-                    DateTimeOffset.UtcNow,
-                    status: PersistentItemStatus.Held,
-                    databaseId: receiverWorkflowId,
-                    steps: [CreateStep(ExecuteServiceTask.Key, PersistentItemStatus.Enqueued)]
-                ),
-            ]);
-
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, new StorageVersionMetadata()));
-
-        var service = new WorkflowEngineService(
-            processNextRequestFactory: null!,
-            client.Object,
-            instanceClient.Object,
-            new AppIdentifier(Org, App)
-        )
-        {
-            WorkflowPollingTimeoutMs = 500,
-        };
-
-        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
-            instance,
-            primaryWorkflowId,
-            CancellationToken.None
-        );
-
-        Assert.NotNull(result.WorkflowFailure);
-        Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
     }
 
     [Fact]
@@ -1520,9 +1383,31 @@ public class WorkflowEngineServiceTests
         client
             .Setup(c => c.ResumeWorkflow(Namespace, primaryWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResumeWorkflowResponse(primaryWorkflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
+        IReadOnlyList<WorkflowStatusResponse> workflows =
+        [
+            // Primary workflow explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created
+            // strictly after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
+            CreateWorkflowStatus(
+                DateTimeOffset.UtcNow.AddSeconds(-1),
+                status: PersistentItemStatus.Completed,
+                databaseId: primaryWorkflowId,
+                steps:
+                [
+                    CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
+                    CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
+                ]
+            ),
+            CreateWorkflowStatus(
+                DateTimeOffset.UtcNow,
+                status: PersistentItemStatus.Held,
+                databaseId: receiverWorkflowId,
+                steps: [CreateStep(ExecuteServiceTask.Key, PersistentItemStatus.Enqueued)]
+            ),
+        ];
+        ServeEventStream(
+            client,
+            collectionKey,
+            () =>
                 new WorkflowCollectionDetailResponse
                 {
                     Key = collectionKey,
@@ -1542,7 +1427,7 @@ public class WorkflowEngineServiceTests
                     ],
                     CreatedAt = DateTimeOffset.UtcNow,
                 }
-            );
+        );
         client
             .Setup(c =>
                 c.ListWorkflows(
@@ -1553,26 +1438,7 @@ public class WorkflowEngineServiceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([
-                // Primary workflow explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created
-                // strictly after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
-                CreateWorkflowStatus(
-                    DateTimeOffset.UtcNow.AddSeconds(-1),
-                    status: PersistentItemStatus.Completed,
-                    databaseId: primaryWorkflowId,
-                    steps:
-                    [
-                        CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
-                        CreateStep($"{ExecuteServiceTask.Key}: 0", PersistentItemStatus.Completed),
-                    ]
-                ),
-                CreateWorkflowStatus(
-                    DateTimeOffset.UtcNow,
-                    status: PersistentItemStatus.Held,
-                    databaseId: receiverWorkflowId,
-                    steps: [CreateStep(ExecuteServiceTask.Key, PersistentItemStatus.Enqueued)]
-                ),
-            ]);
+            .ReturnsAsync(workflows);
 
         var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
         instanceClient
@@ -1589,10 +1455,11 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             instanceClient.Object,
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         )
         {
-            WorkflowPollingTimeoutMs = 500,
+            WorkflowWaitTimeoutMs = 500,
         };
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
@@ -1601,8 +1468,7 @@ public class WorkflowEngineServiceTests
             CancellationToken.None
         );
 
-        Assert.Null(result.WorkflowFailure);
-        Assert.True(result.ProcessStateCommitted);
+        Assert.Null(result.Failure);
         Assert.True(result.Parked);
     }
 
@@ -1675,7 +1541,8 @@ public class WorkflowEngineServiceTests
             processNextRequestFactory: null!,
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -1765,7 +1632,8 @@ public class WorkflowEngineServiceTests
             CreateRequestFactory(),
             client.Object,
             Mock.Of<IInstanceClientWithStorageMetadata>(),
-            new AppIdentifier(Org, App)
+            new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance
         );
 
         WorkflowTaskStatus result = await service.ResolveWorkflowTaskStatus(instance, CancellationToken.None);
@@ -2015,6 +1883,51 @@ public class WorkflowEngineServiceTests
         };
     }
 
+    /// <summary>
+    /// Serves the collection's event stream as the engine does with <c>until=Settled</c>: a snapshot of
+    /// <paramref name="heads"/> at once and another every sweep, until one in which every head is terminal.
+    /// </summary>
+    private static void ServeEventStream(
+        Mock<IWorkflowEngineClient> client,
+        string collectionKey,
+        Func<WorkflowCollectionDetailResponse> heads,
+        TimeProvider? timeProvider = null
+    )
+    {
+        client
+            .Setup(c => c.StreamCollectionEvents(Namespace, collectionKey, It.IsAny<CancellationToken>()))
+            .Returns((string _, string _, CancellationToken cancellationToken) => Snapshots(cancellationToken));
+
+        async IAsyncEnumerable<WorkflowCollectionDetailResponse> Snapshots(
+            [EnumeratorCancellation] CancellationToken cancellationToken
+        )
+        {
+            while (true)
+            {
+                WorkflowCollectionDetailResponse snapshot = heads();
+                yield return snapshot;
+                if (
+                    snapshot.Heads.Count > 0
+                    && snapshot.Heads.All(head =>
+                        head.Status
+                            is not (
+                                PersistentItemStatus.Enqueued
+                                or PersistentItemStatus.Processing
+                                or PersistentItemStatus.Requeued
+                                or PersistentItemStatus.Waiting
+                                or PersistentItemStatus.Held
+                            )
+                    )
+                )
+                {
+                    yield break;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(5), timeProvider ?? TimeProvider.System, cancellationToken);
+            }
+        }
+    }
+
     private static WorkflowEngineService CreateService(
         Mock<IWorkflowEngineClient> client,
         IInstanceClientWithStorageMetadata instanceClient,
@@ -2027,14 +1940,15 @@ public class WorkflowEngineServiceTests
             client.Object,
             instanceClient,
             new AppIdentifier(Org, App),
+            NullLogger<WorkflowEngineService>.Instance,
             timeProvider ?? TimeProvider.System
         );
 
     /// <summary>
     /// A fake clock that jumps to each timer's due time as the timer is created, so a delay has already
-    /// elapsed by the time it is awaited. A polling wait then runs its whole delay schedule synchronously, and
-    /// the polls that happen before its deadline follow from the schedule alone, not from how quickly a busy
-    /// test runner resumes after a real delay.
+    /// elapsed by the time it is awaited. A wait then runs its whole delay schedule synchronously, and what
+    /// happens before its deadline follows from the schedule alone, not from how quickly a busy test runner
+    /// resumes after a real delay.
     /// </summary>
     private sealed class TimeSkippingTimeProvider : FakeTimeProvider
     {
