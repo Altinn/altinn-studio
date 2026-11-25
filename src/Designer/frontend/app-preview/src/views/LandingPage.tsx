@@ -4,12 +4,16 @@ import { useAppVersionQuery, useRepoMetadataQuery, useUserQuery } from 'app-shar
 import { useLocalStorage, useMediaQuery } from '@designer/hooks';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { previewSessionPage } from 'app-shared/api/paths';
+import { previewSessionHashPage, previewSessionPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
-import { MEDIA_QUERY_MAX_WIDTH, NEXT_V9_VERSION } from 'app-shared/constants';
+import {
+  MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+  MEDIA_QUERY_MAX_WIDTH,
+  NEXT_V9_VERSION,
+} from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
@@ -47,8 +51,12 @@ export const LandingPage = () => {
 
   const currentLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
   const isSubform = currentLayoutSet?.type === 'subform';
-  // The preview service shows v9 apps. Older apps keep the notice that preview is turned off.
+  // The preview service shows v8 and v9 apps. Older apps keep the notice that preview is turned off.
   const isV9 = !!version && !isBelowSupportedVersion(version.frontendVersion, NEXT_V9_VERSION);
+  const isV8 =
+    !!version &&
+    !isV9 &&
+    !isBelowSupportedVersion(version.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION);
 
   const handleChangeLayoutSet = (set: string) => {
     navigate(`/${org}/${app}/${set}`);
@@ -76,7 +84,7 @@ export const LandingPage = () => {
         </StudioPageHeader.Sub>
       </StudioPageHeader>
       <div className={classes.previewArea}>
-        {isV9 ? (
+        {isV9 || isV8 ? (
           <>
             <PreviewControlHeader
               setViewSize={setPreviewViewSize}
@@ -90,6 +98,7 @@ export const LandingPage = () => {
                 taskId={taskId}
                 selectedFormLayoutName={selectedFormLayoutName}
                 viewSize={previewViewSize}
+                pageUrl={isV9 ? previewSessionPage : previewSessionHashPage}
               />
             </div>
           </>
@@ -105,10 +114,16 @@ type PreviewFrameProps = {
   taskId: string;
   selectedFormLayoutName: string | undefined;
   viewSize: PreviewAsViewSize;
+  pageUrl: (
+    sessionUrl: string,
+    instanceId: string,
+    taskId: string,
+    selectedFormLayoutName: string | undefined,
+  ) => string;
 };
 
 // The preview service shows the developer's working copy on a domain of its own, in one session for the page.
-const PreviewFrame = ({ taskId, selectedFormLayoutName, viewSize }: PreviewFrameProps) => {
+const PreviewFrame = ({ taskId, selectedFormLayoutName, viewSize, pageUrl }: PreviewFrameProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: session, isError: isSessionError } = usePreviewSessionQuery(org, app);
@@ -138,7 +153,7 @@ const PreviewFrame = ({ taskId, selectedFormLayoutName, viewSize }: PreviewFrame
   return (
     <iframe
       title={t('preview.title')}
-      src={previewSessionPage(session.url, instance.instanceId, taskId, selectedFormLayoutName)}
+      src={pageUrl(session.url, instance.instanceId, taskId, selectedFormLayoutName)}
       className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
     />
   );
