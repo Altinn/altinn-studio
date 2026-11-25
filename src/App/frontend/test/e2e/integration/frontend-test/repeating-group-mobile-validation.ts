@@ -80,7 +80,6 @@ describe('Repeating-group validation on mobile', () => {
       cy.get(row('table', 6)).should('contain.text', 'Navnet mangler i registeret.');
       cy.get(row('table', 6)).should('contain.text', 'Kontroller at navnet er skrevet riktig.');
       cy.get(row('table', 5)).find(indicator).should('not.exist');
-      cy.get('#validation-table-age-4').should('have.attr', 'aria-describedby').and('include', 'validations');
       cy.get(row('table', 4))
         .find('button')
         .each(($button) => {

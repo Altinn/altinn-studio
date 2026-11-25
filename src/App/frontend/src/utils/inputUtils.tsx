@@ -36,10 +36,7 @@ export function buildAriaDescribedBy({
   validationsId,
   hasValidations,
 }: BuildAriaDescribedByArgs): string | undefined {
-  if (renderedInTable) {
-    return hasValidations ? validationsId : undefined;
-  }
-  if (!hasTitle) {
+  if (renderedInTable === true || !hasTitle) {
     return undefined;
   }
 

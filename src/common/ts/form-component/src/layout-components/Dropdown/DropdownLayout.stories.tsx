@@ -33,7 +33,6 @@ export const DROPDOWN_PROP_CATEGORIES = {
   renderedInTable: 'runtime',
   renderLabel: 'runtime',
   validationMessages: 'runtime',
-  validationMessagesId: 'runtime',
 } satisfies PropCategories<DropdownProps>;
 
 const land = [

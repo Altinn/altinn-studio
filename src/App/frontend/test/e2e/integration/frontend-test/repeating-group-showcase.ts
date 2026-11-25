@@ -121,14 +121,6 @@ describe('Repeating group validation showcase', () => {
     cy.get('#validation-table-name-0').should('have.attr', 'aria-invalid', 'true');
     cy.get('[data-validation="validation-table-name-0"]').should('have.css', 'clip-path', 'inset(50%)');
     cy.get('[data-validation="validation-table-name-0"]').should('have.attr', 'aria-live', 'assertive');
-    cy.get('#validation-table-name-0')
-      .should('have.attr', 'aria-describedby')
-      .and('include', 'validation-table-name-0-validations');
-    cy.get('#validation-table-species-1').should(
-      'have.attr',
-      'aria-describedby',
-      'validation-table-species-1-validations',
-    );
     cy.get('#group-validation-table-table-body > [data-for-row="0"]')
       .should('contain.text', 'Navnet stemmer ikke med opplysningene i registeret.')
       .find('td')
