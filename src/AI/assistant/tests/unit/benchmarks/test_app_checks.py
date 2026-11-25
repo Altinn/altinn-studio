@@ -161,6 +161,24 @@ def _process() -> str:
     )
 
 
+SIGNER_ACTIONS = ("read", "sign", "write")
+
+
+def _policy(signer_actions: tuple[str, ...] = SIGNER_ACTIONS) -> str:
+    package = ("urn:altinn:accesspackage", "tilskudd-stotte-erstatning")
+    rules = [
+        _rule(1, package, ["read", "write"], ["Task_1", "PdfTask"]),
+        _rule(2, package, ["instantiate"], [None]),
+        _rule(3, package, ["read"], ["EndEvent_1"]),
+        _rule(4, ("urn:altinn:rolecode", "dagl"), list(signer_actions), ["Task_Signering"]),
+        _rule(5, ("urn:altinn:org", "[org]"), ["read", "write", "complete"], [None]),
+    ]
+    return (
+        '<xacml:Policy xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">'
+        f"{''.join(rules)}<xacml:ObligationExpressions /></xacml:Policy>"
+    )
+
+
 def build_app(root: Path, template: str) -> Path:
     """A small app that does everything RUBRIC asks, as the version's skills say."""
     v9 = template == "v9"
@@ -307,19 +325,7 @@ def build_app(root: Path, template: str) -> Path:
     ]
     _write(root, "App/config/applicationmetadata.json", metadata)
     _write(root, "App/config/process/process.bpmn", _process())
-    rules = [
-        _rule(1, ("urn:altinn:accesspackage", "tilskudd-stotte-erstatning"), ["read", "write"], ["Task_1", "PdfTask"]),
-        _rule(2, ("urn:altinn:accesspackage", "tilskudd-stotte-erstatning"), ["instantiate"], [None]),
-        _rule(3, ("urn:altinn:accesspackage", "tilskudd-stotte-erstatning"), ["read"], ["EndEvent_1"]),
-        _rule(4, ("urn:altinn:rolecode", "dagl"), ["read", "sign", "write"], ["Task_Signering"]),
-        _rule(5, ("urn:altinn:org", "[org]"), ["read", "write", "complete"], [None]),
-    ]
-    _write(
-        root,
-        "App/config/authorization/policy.xml",
-        '<xacml:Policy xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17">'
-        f"{''.join(rules)}<xacml:ObligationExpressions /></xacml:Policy>",
-    )
+    _write(root, "App/config/authorization/policy.xml", _policy())
     if not v9:
         settings = json.loads((root / "App/appsettings.json").read_text(encoding="utf-8"))
         settings["AppSettings"] |= {"RequiredValidation": True, "ExpressionValidation": True}
@@ -328,14 +334,15 @@ def build_app(root: Path, template: str) -> Path:
 
 
 def scores(root: Path, template: str) -> dict[str, tuple[float, str]]:
-    return {s.name: (s.value, s.comment) for s in app_checks.evaluate(load_app(root), RUBRIC, template)}
+    rubric = app_checks.SkillRubric.parse(RUBRIC)
+    return {s.name: (s.value, s.comment) for s in app_checks.evaluate(load_app(root), rubric, template)}
 
 
 @pytest.fixture(autouse=True)
 def _offline_v8_schema(monkeypatch):
     """The v8 layout schema is on altinncdn.no, so a unit test leaves it unmeasured."""
     real = app_checks._schemas
-    monkeypatch.setattr(app_checks, "_schemas", lambda v9: real(v9) if v9 else None)
+    monkeypatch.setattr(app_checks, "_schemas", lambda version: real(version) if version >= 9 else None)
 
 
 @pytest.mark.parametrize("template", ["v8", "v9"])
@@ -354,7 +361,42 @@ def _edit(root: Path, relative: str, change) -> None:
     _write(root, relative, data)
 
 
+SIGNING_PAGE = "App/ui/Task_Signering/layouts/Signering.json"
+
+
+def _paragraph(title: Any) -> dict[str, Any]:
+    return {"id": "info", "type": "Paragraph", "textResourceBindings": {"title": title}}
+
+
+def _add(layout: dict[str, Any], component: dict[str, Any]) -> None:
+    layout["data"]["layout"].insert(0, component)
+
+
 BREAKS = {
+    "a misspelled function in a hidden expression": (
+        "bench_expressions",
+        lambda r, ui: _edit(
+            r,
+            f"App/ui/{ui}/layouts/Side1.json",
+            lambda d: d["data"]["layout"][6].update(hidden=["notEqual", ["component", "tidligere"], "ja"]),
+        ),
+    ),
+    "a text key that no language has": (
+        "bench_texts",
+        lambda r, ui: _edit(r, f"App/ui/{ui}/layouts/Side1.json", lambda d: _add(d, _paragraph("t.mangler"))),
+    ),
+    "SigningActions and nobody who may submit": (
+        "bench_signing",
+        lambda r, ui: _write(r, "App/config/authorization/policy.xml", _policy(("read", "sign"))),
+    ),
+    "an ActionButton that rejects instead of signing": (
+        "bench_signing",
+        lambda r, ui: _edit(
+            r,
+            SIGNING_PAGE,
+            lambda d: d["data"]["layout"].__setitem__(1, {"id": "avvis", "type": "ActionButton", "action": "reject"}),
+        ),
+    ),
     "a hidden expression that hides for the wrong answer": (
         "bench_expressions",
         lambda r, ui: _edit(
@@ -437,6 +479,24 @@ def test_a_break_lowers_its_score(tmp_path, template, case):
     [
         ("v9", "bench_version_conformance", lambda r: _write(r, "App/ui/layout-sets.json", {"sets": []})),
         (
+            "v8",
+            "bench_expressions",
+            lambda r: _edit(
+                r,
+                "App/ui/Task_1/layouts/Side1.json",
+                lambda d: _add(d, _paragraph(["formatNumber", ["dataModel", "belop"]])),
+            ),
+        ),
+        (
+            "v8",
+            "bench_expressions",
+            lambda r: _edit(
+                r,
+                "App/ui/Task_1/layouts/Side1.json",
+                lambda d: _add(d, _paragraph(["concat", ["sum", ["dataModel", "belop"]]])),
+            ),
+        ),
+        (
             "v9",
             "bench_prefill",
             lambda r: _edit(r, "App/models/model.prefill.json", lambda d: d.update(UserProfile={"Email": "kontakt"})),
@@ -477,3 +537,64 @@ def test_an_answer_label_with_more_words_is_still_the_answer(tmp_path):
         )
     value, comment = scores(root, "v9")["bench_expressions"]
     assert value == 1, comment
+
+
+@pytest.mark.parametrize("template", ["v8", "v9"])
+@pytest.mark.parametrize(
+    "change",
+    [
+        pytest.param(
+            lambda r: _edit(
+                r,
+                "App/ui/Task_1/layouts/Side1.json",
+                lambda d: _add(d, _paragraph(["concat", ["text", "t.pdf"], ": ", ["dataModel", "navn"]])),
+            ),
+            id="a text from an expression",
+        ),
+        pytest.param(
+            lambda r: _edit(
+                r,
+                SIGNING_PAGE,
+                lambda d: d["data"]["layout"].__setitem__(
+                    1, {"id": "sign", "type": "ActionButton", "action": "sign", "buttonStyle": "primary"}
+                ),
+            ),
+            id="an ActionButton that signs instead of SigningActions",
+        ),
+    ],
+)
+def test_another_way_that_works_keeps_full_marks(tmp_path, template, change):
+    root = build_app(tmp_path, template)
+    change(root)
+    failing = {name: comment for name, (value, comment) in scores(root, template).items() if value < 1}
+    assert not failing
+
+
+def test_a_list_function_in_a_v8_gateway_is_allowed(tmp_path):
+    """The v8 backend has the list functions, and only the backend evaluates a gateway condition."""
+    root = build_app(tmp_path, "v8")
+    _write(
+        root,
+        "App/config/process/process.bpmn",
+        _process().replace('["greaterThan", ["dataModel", "belop"], 500000]', '["greaterThan", ["sum", 1], 500000]'),
+    )
+    value, comment = scores(root, "v8")["bench_expressions"]
+    assert value == 1, comment
+
+
+def test_user_profile_prefill_from_the_user_s_own_party(tmp_path):
+    root = build_app(tmp_path, "v8")
+    _edit(root, "App/models/model.prefill.json", lambda d: d.update(UserProfile={"Party.Person.FirstName": "kontakt"}))
+    value, comment = scores(root, "v8")["bench_prefill"]
+    assert value == 1, comment
+
+
+def test_a_misspelled_rubric_key_fails_before_the_build():
+    with pytest.raises(ValueError, match="language_selectr"):
+        app_checks.SkillRubric.parse({**RUBRIC, "language_selectr": True})
+
+
+def test_the_bench_items_rubrics_parse():
+    path = Path(app_checks.__file__).parent / "datasets" / "app_build.jsonl"
+    for line in path.read_text(encoding="utf-8").splitlines():
+        app_checks.SkillRubric.parse(json.loads(line)["expectedOutput"])

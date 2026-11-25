@@ -36,5 +36,8 @@ def build_rubric(app: AppModel) -> dict[str, Any]:
     }
 
 
+STRUCTURAL_KEYS = frozenset(build_rubric(AppModel()))
+
+
 def build_rubric_from_dir(root: Path) -> dict[str, Any]:
     return build_rubric(load_app(root))

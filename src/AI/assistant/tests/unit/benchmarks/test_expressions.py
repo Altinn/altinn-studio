@@ -1,4 +1,5 @@
-"""The expression evaluator agrees with app-frontend and the app backend on the expression tests they share."""
+"""The expression evaluator agrees with app-frontend and the app backend on the expression and validation tests they
+share."""
 
 from __future__ import annotations
 
@@ -19,10 +20,13 @@ from benchmarks.expressions import (
     data_model_refs,
     evaluate,
     functions_used,
+    validation_rules,
 )
 
 _REPO = next(p for p in Path(__file__).resolve().parents if (p / "src/common/expression-tests").is_dir())
 _EVALUATION = _REPO / "src/common/expression-tests/evaluation"
+# evaluation/context-lists checks which rows of repeating groups the app finds, which the evaluator leaves out
+_VALIDATION = _REPO / "src/common/expression-tests/validation"
 # The frontend cannot evaluate gatewayAction, so only the backend runs these
 _BACKEND_GATEWAY_ACTION = (
     _REPO
@@ -64,6 +68,7 @@ _FLOORS = {
     "unknown": 3,
     "upperCase": 5,
 }
+_VALIDATION_FLOOR = 4
 
 
 class _Case(NamedTuple):
@@ -138,11 +143,57 @@ def test_agrees_with_the_shared_case(test: dict[str, Any], case: dict[str, Any])
         assert _same(result, case["expects"]), f"got {result!r}, expected {case['expects']!r}"
 
 
+def _validation_skip_reason(test: dict[str, Any]) -> str | None:
+    if test.get("disabledFrontend") or test.get("disabledBackend"):
+        return "a known difference between the frontend and the backend"
+    if any(_in_rows(test["formData"], path) for path in test["validationConfig"].get("validations") or {}):
+        return "validates the rows of a repeating group"
+    rules = validation_rules(test["validationConfig"])
+    used = {name for rule in rules for name in functions_used(rule.condition) | functions_used(rule.message)}
+    if unsupported := used & KNOWN_FUNCTIONS - SUPPORTED_FUNCTIONS - {"argv"}:
+        return f"uses {', '.join(sorted(unsupported))}"
+    return None
+
+
+def _in_rows(data: Any, path: str) -> bool:
+    """Whether the path passes through a list, so that the field is in each row of a repeating group."""
+    for part in path.split("."):
+        if isinstance(data, list):
+            return True
+        data = data.get(part) if isinstance(data, dict) else None
+    return isinstance(data, list)
+
+
+_VALIDATION_CASES = [
+    (path.stem, test, _validation_skip_reason(test))
+    for path in sorted(_VALIDATION.glob("*.json"))
+    if (test := json.loads(path.read_text(encoding="utf-8")))
+]
+
+
+@pytest.mark.parametrize(
+    "test",
+    [
+        pytest.param(test, id=name, marks=[pytest.mark.skip(reason=skip)] if skip else [])
+        for name, test, skip in _VALIDATION_CASES
+    ],
+)
+def test_validates_as_the_shared_case(test: dict[str, Any]):
+    context = _context({"dataModel": test["formData"], "layouts": test["layouts"]})
+    rules = validation_rules(test["validationConfig"])
+    found = [
+        {"field": r.field, "message": r.text(context), "severity": r.severity} for r in rules if r.reports(context)
+    ]
+    expected = [{key: issue[key] for key in ("field", "message", "severity")} for issue in test["expects"]]
+    assert sorted(found, key=json.dumps) == sorted(expected, key=json.dumps)
+
+
 def test_runs_most_shared_cases():
     runnable = Counter(c.folder for c in _CASES if c.skip is None)
     too_few = {folder: runnable[folder] for folder, floor in _FLOORS.items() if runnable[folder] < floor}
     assert not too_few, f"runs fewer shared cases than expected: {too_few}"
     assert _FLOORS.keys() == _FOLDERS.keys() - {"gatewayAction"}
+    assert sum(skip is None for _, _, skip in _VALIDATION_CASES) >= _VALIDATION_FLOOR
 
 
 def test_knows_every_function_the_shared_tests_cover():
@@ -236,3 +287,26 @@ def test_walkers_find_nothing_in_a_literal():
     assert functions_used(True) == set()
     assert data_model_refs("soknad.belop") == []
     assert component_refs(None) == []
+
+
+def test_a_validation_rule_takes_its_definition_and_changes_it():
+    config = {
+        "definitions": {"tom": {"message": "m.tom", "condition": ["equals", ["dataModel", ["argv", 0]], "x"]}},
+        "validations": {"navn": ["tom", {"ref": "tom", "severity": "warning"}, {"message": "m.uten"}]},
+    }
+    rules = validation_rules(config)
+    assert [(r.field, r.message, r.severity) for r in rules] == [
+        ("navn", "m.tom", "error"),
+        ("navn", "m.tom", "warning"),
+    ]
+    assert rules[0].reports(FormContext(data={"default": {"navn": "x"}}))
+
+
+def test_an_empty_or_hidden_field_is_not_validated():
+    rule = validation_rules({"validations": {"navn": [{"message": "m", "condition": True}]}})[0]
+    assert not rule.reports(FormContext(data={"default": {}}))
+    hidden = {
+        "Side1": [{"id": "navn", "type": "Input", "dataModelBindings": {"simpleBinding": "navn"}, "hidden": True}]
+    }
+    assert not rule.reports(FormContext(data={"default": {"navn": "x"}}, layouts=hidden))
+    assert rule.reports(FormContext(data={"default": {"navn": "x"}}))

@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 
 from benchmarks import registry
+from benchmarks.bench_app import template_ids
 
 METRICS = ("rate", "mean")
 
@@ -138,8 +139,6 @@ class Behavior:
         return f"{self.evaluator}, a deterministic check in code."
 
 
-TEMPLATES = ("v8", "v9")
-
 # A skill is a component: the report groups the behaviors of a component, so each skill shows its v8 and v9
 # scores together.
 SKILLS = {
@@ -218,7 +217,7 @@ def _per_template(name: str, component: str, see: tuple[str, ...] = (), **fields
             see=tuple(other.format(v=v) for other in see),
             **fields,
         )
-        for v in TEMPLATES
+        for v in template_ids()
     )
 
 
@@ -630,8 +629,8 @@ BEHAVIORS = (
         "build",
         text="Every generated component satisfies its schema",
         checks=(
-            "Each layout file and Settings.json is valid against the layout schema of the version: the v8 schema "
-            "of app frontend 4.37.2, and the v9 schema in src/common/ts/layout-contract."
+            "Each layout file and Settings.json is valid against the layout schema the assistant uses for the "
+            "version: the v8 schema of app frontend 4, and the v9 schema in src/common/ts/layout-contract."
         ),
         blind=(
             "The schemas mark few properties as required, so a component can be valid and still fail when it "
@@ -755,11 +754,13 @@ BEHAVIORS = (
         "bench_expressions",
         (
             "For each field the item names, the bench fills in the controlling field with each of its options and "
-            "with nothing. The field must show for one answer only. Each function the app uses exists."
+            "with nothing. The field must show for one answer only. Each function the app uses exists in its "
+            "version, and in v8 a layout uses only the functions the v8 frontend has."
         ),
         (
-            "The bench evaluator supports a part of the functions, and its tests run the shared expression tests. "
-            "An expression with another function, or options from a library or from C#, is not measured."
+            "The bench evaluator supports a part of the functions and no repeating group rows. Its tests run the "
+            "shared expression and validation tests that fit. An expression with another function, or options from "
+            "a library or from C#, is not measured."
         ),
         "Add items with expressions in repeating groups and with required and readOnly expressions.",
     ),
@@ -784,7 +785,7 @@ BEHAVIORS = (
         (
             "The task lists sign, signs data that exists before it, and runs the default validator. The signature "
             "data type is app-owned JSON, bound to the task in the version's way. The pages have "
-            "SigningDocumentList and SigningActions."
+            "SigningDocumentList, and SigningActions with a user who may write or an ActionButton that signs."
         ),
         "Role signing only. Nothing signs, so a failure at runtime is not seen.",
         "Add an item with user-controlled signing.",

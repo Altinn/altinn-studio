@@ -15,6 +15,7 @@ from agents.services.preview.render_check import (
     swap_layout_in_preview_url,
 )
 
+from .bench_app import clone_base
 from .evaluators import Score
 
 RENDERS_SCORE_NAME = "bench_renders"
@@ -128,7 +129,6 @@ def build_scores(results: list[PageRenderResult]) -> list[Score]:
 def _clone_branch(repo: str, branch: str, workdir: Path) -> Path:
     import subprocess
 
-    clone_base = os.environ.get("BENCH_GITEA_CLONE_BASE", "http://localhost/repos").rstrip("/")
     destination = workdir / "app"
     command = [
         "git",
@@ -139,7 +139,7 @@ def _clone_branch(repo: str, branch: str, workdir: Path) -> Path:
         "1",
         "--branch",
         branch,
-        f"{clone_base}/{repo}.git",
+        f"{clone_base()}/{repo}.git",
         str(destination),
     ]
     result = subprocess.run(command, capture_output=True, text=True)

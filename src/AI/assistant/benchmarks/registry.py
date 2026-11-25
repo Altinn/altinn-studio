@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from .bench_app import template_ids
+
 DATASETS_DIR = Path(__file__).parent / "datasets"
 
 # prompt: one message. decision: the request gate. generation: a replayed trace. planner: a file. e2e: tools run.
@@ -147,7 +149,7 @@ EVALS = (
                 "runs tools and pushes a branch. The scores read the committed app: one score for each skill."
             ),
         )
-        for template in ("v8", "v9")
+        for template in template_ids()
     ),
     Eval(
         name="Redteam/indirect-injection",

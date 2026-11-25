@@ -113,6 +113,11 @@ class Process:
             if n.kind in ("task", "serviceTask") and (task_type is None or n.task_type == task_type)
         ]
 
+    @property
+    def start(self) -> str:
+        """The id of the start event, or "" when there is none."""
+        return next((n.id for n in self.nodes.values() if n.kind == "startEvent"), "")
+
     def outgoing(self, node_id: str) -> list[Flow]:
         return [flow for flow in self.flows.values() if flow.source == node_id]
 
@@ -139,12 +144,19 @@ class Rule:
     actions: set[str]
     any_of_count: int
 
+    @property
+    def scoped(self) -> list[dict[str, str]]:
+        """The resources that name a task or an end event. A rule without them applies in every state."""
+        return [r for r in self.resources if "urn:altinn:task" in r or "urn:altinn:end-event" in r]
+
     def covers_task(self, task: str | None) -> bool:
-        """A rule without a task or end event applies in every state of the instance."""
-        scoped = [r for r in self.resources if "urn:altinn:task" in r or "urn:altinn:end-event" in r]
-        if not scoped:
+        """Whether the rule applies in `task`. None asks for a rule without a task, which instantiate needs."""
+        if not self.scoped:
             return True
-        return any(r.get("urn:altinn:task", "").lower() == (task or "").lower() for r in scoped if task)
+        return any(r.get("urn:altinn:task", "").lower() == (task or "").lower() for r in self.scoped if task)
+
+    def covers_end_event(self) -> bool:
+        return not self.scoped or any("urn:altinn:end-event" in r for r in self.scoped)
 
 
 @dataclass
@@ -243,9 +255,29 @@ def binding(component: dict[str, Any], key: str = "simpleBinding") -> tuple[str 
     return None
 
 
+def property_names(schema: dict[str, Any]) -> set[str]:
+    """The name of every property in a data model schema, at any depth."""
+    names: set[str] = set()
+    stack, seen = [_resolve(schema, schema)], []
+    while stack:
+        node = stack.pop()
+        if node in seen:
+            continue
+        seen.append(node)
+        for name, child in (node.get("properties") or {}).items():
+            names.add(name)
+            resolved = _resolve(schema, child)
+            stack.append(_resolve(schema, resolved["items"]) if "items" in resolved else resolved)
+    return names
+
+
+# A $ref chain longer than this is a cycle
+_MAX_REF_DEPTH = 20
+
+
 def _resolve(root: dict[str, Any], node: Any) -> dict[str, Any]:
     """Follow `$ref` and a single-entry `oneOf`/`allOf` to the schema they stand for."""
-    for _ in range(20):
+    for _ in range(_MAX_REF_DEPTH):
         if not isinstance(node, dict):
             return {}
         ref = node.get("$ref")

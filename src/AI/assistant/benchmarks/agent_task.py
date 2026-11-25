@@ -245,8 +245,9 @@ class AgentTask:
         if rubric.get("rubric_version") != RUBRIC_VERSION:
             raise ValueError(
                 f"item {item_id} expectedOutput is not a v{RUBRIC_VERSION} rubric; "
-                "run `rubric --from-app … --update-item …` first"
+                "write it as datasets/README.md says, with `rubric --from-app …` for the structural part"
             )
+        skill_rubric = app_checks.SkillRubric.parse(rubric)
 
         app = self.bench_app()
         session_id = str(uuid.uuid4())
@@ -275,7 +276,7 @@ class AgentTask:
             clone = clone_result_branch(app, session_id, Path(tmp))
             scores.append(_built_score(clone is not None, status))
             if clone is not None:
-                scores.extend(self._score_app(clone, rubric, session_id, Path(tmp)))
+                scores.extend(self._score_app(clone, rubric, skill_rubric, session_id, Path(tmp)))
 
         for score in scores:
             print(f"  {score.name} = {score.value}  ({score.comment[:80]})")
@@ -304,9 +305,11 @@ class AgentTask:
         app = self.bench_app()
         return f"{app.org}/{app.app}"
 
-    def _score_app(self, clone: Path, rubric: dict, session_id: str, workdir: Path) -> list[Score]:
+    def _score_app(
+        self, clone: Path, rubric: dict, skill_rubric: app_checks.SkillRubric, session_id: str, workdir: Path
+    ) -> list[Score]:
         app = load_app(clone)
-        scores = [*evaluate(app, rubric), *app_checks.evaluate(app, rubric, self.template)]
+        scores = [*evaluate(app, rubric), *app_checks.evaluate(app, skill_rubric, self.template)]
         if not preview_check.is_enabled():
             return scores
         results = preview_check.collect(self._repo, session_branch(session_id), app.page_order)

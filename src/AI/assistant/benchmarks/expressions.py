@@ -1,8 +1,9 @@
 """Evaluate Altinn layout expressions, so the bench can score what an expression does.
 
 Some scores need more than what an expression reads: a `hidden` expression must hide a field for every answer but
-one, and the conditions on an exclusive gateway must send each amount down the right flow. The bench sets values
-in a data model and evaluates the expression here. Only a subset of the functions is supported. It casts, compares
+one, the conditions on an exclusive gateway must send each amount down the right flow, and a validation file must
+reject the right values. The bench sets values in a data model and evaluates the expression here. Only a subset of
+the functions is supported. It casts, compares
 and handles null as app-frontend and the app backend do, which the tests check against the expression tests both of
 them run (`src/common/expression-tests`). Where the expression uses a function outside the subset, or a value the
 two treat differently, evaluation raises `Unsupported`, so the caller can leave the check unmeasured instead of
@@ -88,6 +89,18 @@ class FormContext:
         """Whether the component, a group it is in or its page is hidden."""
         return self._hidden(*self._locate(component_id))
 
+    def binds_hidden(self, path: str) -> bool:
+        """Whether a hidden component binds the field or an object that holds it. The backend compares the paths as
+        strings, so this does too."""
+        for components in self.layouts.values():
+            for component in components:
+                bindings = (component.get("dataModelBindings") or {}).values()
+                bound = [b.get("field") if isinstance(b, dict) else b for b in bindings]
+                binds = any(isinstance(b, str) and path.startswith(b) for b in bound)
+                if binds and isinstance(component.get("id"), str) and self.is_hidden(component["id"]):
+                    return True
+        return False
+
     def _locate(self, component_id: str) -> tuple[str, list[dict[str, Any]]]:
         """The component's page, and the component followed by the groups it is in, innermost first."""
         found = {c.get("id"): (page, c) for page, components in self.layouts.items() for c in components}
@@ -143,6 +156,62 @@ def component_refs(expression: Any) -> list[str]:
         call[1] for call in _calls(expression) if call[0] == "component" and len(call) > 1 and isinstance(call[1], str)
     ]
     return list(dict.fromkeys(refs))
+
+
+@dataclass(frozen=True)
+class ValidationRule:
+    """One rule of a validation file, with the definition it names in `ref` filled in."""
+
+    field: str
+    condition: Any
+    message: Any
+    severity: str
+
+    def reports(self, context: FormContext) -> bool:
+        """Whether the rule reports its field, as the backend decides it on submit: an empty field, or one that a
+        hidden component binds, is not checked. `["argv", 0]` is the field's path."""
+        if context.data_model(self.field, None) is None or context.binds_hidden(self.field):
+            return False
+        result = evaluate(_with_argv(self.condition, self.field), context)
+        if not isinstance(result, bool):
+            raise Unsupported("The backend fails on a condition that is not a boolean, and the frontend reads false")
+        return result
+
+    def text(self, context: FormContext) -> Any:
+        return evaluate(_with_argv(self.message, self.field), context)
+
+
+def validation_rules(config: Mapping[str, Any]) -> list[ValidationRule]:
+    """The rules of a validation file, in order. A rule without a condition or a message is left out, as both sides
+    leave it out."""
+    definitions: dict[str, dict[str, Any]] = {}
+    for name, definition in (config.get("definitions") or {}).items():
+        if isinstance(definition, Mapping):
+            definitions[name] = _with_ref(definition, definitions)
+    rules = []
+    for path, entries in (config.get("validations") or {}).items():
+        for entry in entries if isinstance(entries, list) else []:
+            rule = definitions.get(entry, {}) if isinstance(entry, str) else _with_ref(entry, definitions)
+            if "condition" in rule and "message" in rule:
+                rules.append(ValidationRule(path, rule["condition"], rule["message"], rule.get("severity") or "error"))
+    return rules
+
+
+def _with_ref(rule: Any, definitions: Mapping[str, dict[str, Any]]) -> dict[str, Any]:
+    """A rule's own keys over those of the definition it names in `ref`."""
+    if not isinstance(rule, Mapping):
+        return {}
+    ref = rule.get("ref")
+    return {
+        **(definitions.get(ref, {}) if isinstance(ref, str) else {}),
+        **{k: v for k, v in rule.items() if k != "ref"},
+    }
+
+
+def _with_argv(expression: Any, path: str) -> Any:
+    if isinstance(expression, list):
+        return path if expression[:2] == ["argv", 0] else [_with_argv(item, path) for item in expression]
+    return expression
 
 
 def _calls(expression: Any) -> Iterator[list[Any]]:
