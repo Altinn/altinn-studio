@@ -170,8 +170,10 @@ public sealed class DataControllerGetBlobVersionTests
         Assert.IsType<NotFoundObjectResult>(result);
     }
 
-    [Fact]
-    public async Task GetBlobVersion_WhenBlobIsMissing_ReturnsNotFound()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetBlobVersion_WhenBlobIsMissing_ReturnsNotFound(bool withItsDirectory)
     {
         await using var storage = new LocalStorageFixture();
         Instance instance = await storage.CreateInstance();
@@ -182,7 +184,14 @@ public sealed class DataControllerGetBlobVersionTests
             created.BlobStoragePath
         );
         Assert.True(File.Exists(blobPath));
-        File.Delete(blobPath);
+        if (withItsDirectory)
+        {
+            Directory.Delete(Path.GetDirectoryName(blobPath)!, recursive: true);
+        }
+        else
+        {
+            File.Delete(blobPath);
+        }
 
         ActionResult result = await GetBlobVersion(storage, instance, created, created.BlobVersionId);
 

@@ -37,14 +37,15 @@ public class BlobRepository : IBlobRepository
         CancellationToken cancellationToken = default
     )
     {
-        string filePath = GetFilePath(blobStoragePath);
-        if (!File.Exists(filePath))
+        try
+        {
+            return await ReadFileAsStream(GetFilePath(blobStoragePath));
+        }
+        catch (IOException ioException) when (ioException is FileNotFoundException or DirectoryNotFoundException)
         {
             // Returning null because the blob does not exist.
             return null;
         }
-
-        return await ReadFileAsStream(filePath);
     }
 
     public async Task<(long ContentLength, DateTimeOffset LastModified)> WriteBlob(
