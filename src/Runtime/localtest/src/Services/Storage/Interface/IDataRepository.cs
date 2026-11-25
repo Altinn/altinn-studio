@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
 
 namespace Altinn.Platform.Storage.Repository;
 
@@ -35,7 +36,7 @@ public interface IDataRepository
     /// <param name="instanceGuid">the instance guid as partitionKey</param>
     /// <param name="dataElementId">The data element guid</param>
     /// <param name="cancellationToken">A cancellation token to pass to async operations</param>
-    /// <returns>The identified data element.</returns>
+    /// <returns>The identified data element, or null when there is none.</returns>
     Task<DataElement> Read(
         Guid instanceGuid,
         Guid dataElementId,
@@ -45,6 +46,7 @@ public interface IDataRepository
     /// <summary>
     /// Atomically reads data element metadata and its authoritative current blob version.
     /// </summary>
+    /// <returns>The read, with a null data element when there is none.</returns>
     Task<DataElementReadResult> ReadWithCurrentBlobVersion(
         Guid instanceGuid,
         Guid dataElementId,
@@ -157,6 +159,18 @@ public interface IDataRepository
     Task<IReadOnlyList<string>> ReadDetachedBlobVersions(
         Guid instanceGuid,
         Guid dataElementId,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Reads one blob version of a data element: the current one, one that new content replaced, or one that a
+    /// deleted element left.
+    /// </summary>
+    /// <returns>The blob version, or null when the data element has no such version.</returns>
+    Task<DataElementBlobVersion> ReadBlobVersion(
+        Guid instanceGuid,
+        Guid dataElementId,
+        string blobVersionId,
         CancellationToken cancellationToken = default
     );
 

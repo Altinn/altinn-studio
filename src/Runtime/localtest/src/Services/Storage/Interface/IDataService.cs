@@ -93,4 +93,18 @@ public interface IDataService
         int? storageAccountNumber,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Deletes the blob without a version of a data element whose metadata has already been deleted, best-effort.
+    /// </summary>
+    /// <remarks>
+    /// Aggregate mutations use this instead of <see cref="CleanupDeletedDataElementBlobs"/>, so that the blob
+    /// versions of the element stay readable for a workflow step that runs again. Storage removes those versions
+    /// seven days later. LocalTest never does, as it never removes a version that new content replaced.
+    /// </remarks>
+    Task DeleteLegacyDataElementBlob(
+        Instance instance,
+        DataElement dataElement,
+        int? storageAccountNumber
+    );
 }

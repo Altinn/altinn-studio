@@ -412,6 +412,121 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
+    /// Gets the content of one blob version of a data element, for the instance's own service owner.
+    /// </summary>
+    /// <remarks>
+    /// The version may be the current one, one that new content replaced, or one that a deleted element left. An
+    /// aggregate mutation keeps the versions of an element it deletes; other deletes remove them at once. Reading a
+    /// version requires the same access to its data type as reading the element.
+    /// </remarks>
+    /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+    /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
+    /// <param name="dataGuid">The id of the data element.</param>
+    /// <param name="blobVersionId">The blob version to retrieve.</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>The content of the blob version.</returns>
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+    [HttpGet("data/{dataGuid:guid}/versions/{blobVersionId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetBlobVersion(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        string blobVersionId,
+        CancellationToken cancellationToken
+    )
+    {
+        (Instance instance, _, ActionResult instanceError) = await GetInstanceAsync(
+            instanceGuid,
+            instanceOwnerPartyId,
+            false,
+            cancellationToken
+        );
+        if (instance == null)
+        {
+            return instanceError;
+        }
+
+        if (User.GetOrg() != instance.Org)
+        {
+            return Forbid();
+        }
+
+        DataElementBlobVersion blobVersion = await _dataRepository.ReadBlobVersion(
+            instanceGuid,
+            dataGuid,
+            blobVersionId,
+            cancellationToken
+        );
+        if (blobVersion?.DataType is null)
+        {
+            return NotFound(
+                $"Unable to find blob version {blobVersionId} of data element {dataGuid}."
+            );
+        }
+
+        (Application application, ActionResult applicationError) = await GetApplicationAsync(
+            instance.AppId,
+            instance.Org,
+            cancellationToken
+        );
+        if (application == null)
+        {
+            return applicationError;
+        }
+
+        (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(
+            instance,
+            blobVersion.DataType,
+            application,
+            cancellationToken
+        );
+        if (dataTypeDefinition == null)
+        {
+            return dataTypeError;
+        }
+
+        if (
+            await dataTypeDefinition.CanRead(_authorizationService, instance, cancellationToken)
+            is not true
+        )
+        {
+            return Forbid();
+        }
+
+        Stream dataStream;
+        try
+        {
+            dataStream = await _blobRepository.ReadBlob(
+                instance.Org,
+                BlobRepository.GetVersionedBlobPath(
+                    instance.AppId,
+                    instanceGuid.ToString(),
+                    blobVersionId
+                ),
+                application.StorageAccountNumber,
+                cancellationToken
+            );
+        }
+        catch (IOException exception)
+            when (exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            dataStream = null;
+        }
+
+        if (dataStream == null)
+        {
+            return NotFound(
+                $"Unable to read blob version {blobVersionId} of data element {dataGuid}."
+            );
+        }
+
+        return File(dataStream, "application/octet-stream");
+    }
+
+    /// <summary>
     /// Returns a list of data elements of an instance.
     /// </summary>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>

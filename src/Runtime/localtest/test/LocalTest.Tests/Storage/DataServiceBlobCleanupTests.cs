@@ -1,5 +1,6 @@
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Services;
 using Moq;
@@ -103,6 +104,55 @@ public sealed class DataServiceBlobCleanupTests
                     null
                 ),
             Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task DeleteLegacyDataElementBlob_LeavesTheBlobVersions()
+    {
+        await using var storage = new LocalStorageFixture();
+        Instance instance = await storage.CreateInstance();
+        Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+        Guid dataElementId = Guid.NewGuid();
+        string blobVersionId = await storage.DataRepository.CreateBlobVersionId(
+            instanceGuid,
+            dataElementId,
+            instance.AppId,
+            instance.Org,
+            storageAccountNumber: null
+        );
+        DataElement dataElement = await CreateAndDelete(
+            storage,
+            instanceGuid,
+            dataElementId,
+            BlobRepository.GetVersionedBlobPath(
+                instance.AppId,
+                instanceGuid.ToString(),
+                blobVersionId
+            )
+        );
+        Mock<IBlobRepository> blobRepository = CreateBlobRepository();
+
+        await CreateDataService(storage, blobRepository)
+            .DeleteLegacyDataElementBlob(instance, dataElement, storageAccountNumber: null);
+
+        blobRepository.Verify(
+            repository =>
+                repository.DeleteBlob(
+                    instance.Org,
+                    DataElementHelper.DataFileName(
+                        instance.AppId,
+                        instanceGuid.ToString(),
+                        dataElementId.ToString()
+                    ),
+                    null
+                ),
+            Times.Once
+        );
+        blobRepository.VerifyNoOtherCalls();
+        Assert.Equal(
+            new DataElementBlobVersion(blobVersionId, dataElement.DataType),
+            await storage.DataRepository.ReadBlobVersion(instanceGuid, dataElementId, blobVersionId)
         );
     }
 

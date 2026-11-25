@@ -133,7 +133,7 @@ namespace LocalTest.Services.Storage.Implementation
             return result.DataElement;
         }
 
-        public Task<DataElementReadResult> ReadWithCurrentBlobVersion(
+        public async Task<DataElementReadResult> ReadWithCurrentBlobVersion(
             Guid instanceGuid,
             Guid dataElementId,
             CancellationToken cancellationToken = default
@@ -141,13 +141,21 @@ namespace LocalTest.Services.Storage.Implementation
         {
             string instanceId = instanceGuid.ToString();
             string dataId = dataElementId.ToString();
-            return ReadSnapshot(
-                instanceId,
-                dataId,
-                GetDataPath(instanceId, dataId),
-                stampBlobVersionId: true,
-                cancellationToken
-            );
+            try
+            {
+                return await ReadSnapshot(
+                    instanceId,
+                    dataId,
+                    GetDataPath(instanceId, dataId),
+                    stampBlobVersionId: true,
+                    cancellationToken
+                );
+            }
+            catch (IOException exception)
+                when (exception is FileNotFoundException or DirectoryNotFoundException)
+            {
+                return new DataElementReadResult(null, null);
+            }
         }
 
         public Task<List<DataElement>> ReadAll(
@@ -410,6 +418,7 @@ namespace LocalTest.Services.Storage.Implementation
                 dataElement.Id
             );
             metadata.CurrentBlobVersion = null;
+            metadata.DataType = dataElement.DataType;
             await WriteBlobVersionMetadata(dataElement.InstanceGuid, dataElement.Id, metadata);
         }
 
@@ -943,6 +952,41 @@ namespace LocalTest.Services.Storage.Implementation
             return metadata.BlobVersions.ToList();
         }
 
+        public async Task<DataElementBlobVersion> ReadBlobVersion(
+            Guid instanceGuid,
+            Guid dataElementId,
+            string blobVersionId,
+            CancellationToken cancellationToken = default
+        )
+        {
+            string instanceId = instanceGuid.ToString();
+            string dataId = dataElementId.ToString();
+            using IDisposable dataElementLock = await _dataElementLocks.Lock(
+                GetDataElementLockKey(instanceId, dataId),
+                cancellationToken: cancellationToken
+            );
+
+            DataElementBlobVersionMetadata metadata = await ReadBlobVersionMetadata(
+                instanceId,
+                dataId,
+                cancellationToken
+            );
+            if (!metadata.BlobVersions.Contains(blobVersionId, StringComparer.Ordinal))
+            {
+                return null;
+            }
+
+            string dataType = metadata.DataType;
+            string dataPath = GetDataPath(instanceId, dataId);
+            if (dataType is null && File.Exists(dataPath))
+            {
+                string content = await ReadFileAsString(dataPath, cancellationToken);
+                dataType = JsonConvert.DeserializeObject<DataElement>(content).DataType;
+            }
+
+            return new DataElementBlobVersion(blobVersionId, dataType);
+        }
+
         public async Task<string> ReadCurrentBlobVersion(
             Guid instanceGuid,
             Guid dataElementId,
@@ -1084,6 +1128,12 @@ namespace LocalTest.Services.Storage.Implementation
             public string CurrentBlobVersion { get; set; }
 
             public List<string> BlobVersions { get; set; } = new List<string>();
+
+            /// <summary>
+            /// The data type of the element, kept from when the element was deleted so that a read of the
+            /// versions it left can still be authorized.
+            /// </summary>
+            public string DataType { get; set; }
         }
     }
 }
