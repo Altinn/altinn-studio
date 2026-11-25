@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Button, Spinner } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
