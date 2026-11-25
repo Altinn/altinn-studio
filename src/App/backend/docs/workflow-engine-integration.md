@@ -125,12 +125,14 @@ The gateways also run as the service owner, through the data accessor they are g
 
 - The acquire workflow is keyed on the instance version alone, not the action or target. Two different transitions
   from the same version collide, and a repeated identical request joins the first.
-- The engine leaves the workflow context out of its idempotency hash. Requests that differ only in actor or language
-  share the acquire workflow, and the first request's language applies to the whole chain.
+- The engine leaves the workflow context, the state and the labels of workflows and steps out of its idempotency
+  hash. Requests that differ only in actor or language share the acquire workflow, and the first request's language
+  applies to the whole chain.
 - A retried callback can enqueue its continuation with different signed state, such as after an app code rotation or a
-  Storage replay. The engine answers 409, and the app accepts the existing continuation when exactly one matches its
-  key, source task visit and parent. A service task's receive and continuation workflows recover the same way, by key,
-  operation ID and parent.
+  Storage replay. The retry joins the workflow its first attempt enqueued, which keeps the state of that attempt.
+- If a retry differs in anything else under the same key, such as its steps, the engine answers 409. For the
+  continuation of a transition, the app accepts the existing one when exactly one matches its key, source task visit
+  and parent.
 
 ## Concurrent requests
 
@@ -296,5 +298,7 @@ app does not guard against it. Names would not help either, since a redeploy can
 - An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
   after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
   workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).
+- The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox
+  exchange.
 - If a service task's type is missing from dependency injection, its mint and service task steps fail as retryable
   and never succeed.
