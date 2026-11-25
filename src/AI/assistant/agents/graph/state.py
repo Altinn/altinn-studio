@@ -101,10 +101,10 @@ class FormSpec(BaseModel):
         return sum(len(p.fields) for p in self.pages)
 
     @staticmethod
-    def _sanitize(text: str, max_length: int = 200) -> str:
-        """Strip control characters and truncate to prevent prompt injection."""
-        clean = text.replace("\r", " ").replace("\n", " ").replace("\t", " ")
-        return clean[:max_length]
+    def _sanitize(text: str) -> str:
+        """Keep each value on one line. The text stays whole: the actor builds the form from this summary alone, and
+        the prompt marks the summary as untrusted data."""
+        return text.replace("\r", " ").replace("\n", " ").replace("\t", " ")
 
     def to_summary(self) -> str:
         """Compact summary for inclusion in prompts."""
@@ -112,7 +112,7 @@ class FormSpec(BaseModel):
         lines = [f'FORM SPEC: "{safe_title}" ({self.language}), {self.total_pages} pages, {self.field_count()} fields']
         for page in self.pages:
             safe_page_title = self._sanitize(page.title)
-            section = f" (Section {self._sanitize(page.section_id, 20)})" if page.section_id else ""
+            section = f" (Section {self._sanitize(page.section_id)})" if page.section_id else ""
             lines.append(f'\n  Page: {page.page_name}{section} — "{safe_page_title}"')
             for f in page.fields:
                 label = self._sanitize(f.label)
@@ -120,9 +120,7 @@ class FormSpec(BaseModel):
                 opts = (
                     (
                         " ["
-                        + ", ".join(
-                            f"{self._sanitize(o.label, 60)} ({self._sanitize(o.value, 40)})" for o in f.options[:20]
-                        )
+                        + ", ".join(f"{self._sanitize(o.label)} ({self._sanitize(o.value)})" for o in f.options[:20])
                         + "]"
                     )
                     if f.options
