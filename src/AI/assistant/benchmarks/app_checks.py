@@ -789,7 +789,7 @@ def _version_conformance(view: _View, checks: Checks) -> None:
         )
     else:
         sets = {s.get("id") for s in (app.layout_sets or {}).get("sets") or []}
-        checks.check("v8: layout-sets.json lists each folder", has_sets)
+        checks.check("v8: has layout-sets.json", has_sets)
         checks.none("v8: layout-sets.json lists each folder", set(app.folders) - sets)
         checks.none("v8: no v9 components", kinds & {"Heading"})
         checks.check("v8: no taskIds", not any("taskIds" in d for d in types))
