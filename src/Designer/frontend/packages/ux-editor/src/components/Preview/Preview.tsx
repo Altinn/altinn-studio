@@ -13,8 +13,6 @@ import {
   StudioValidationMessage,
 } from '@designer/components';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
-import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
 import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
@@ -55,7 +53,6 @@ type PreviewContentProps = {
 };
 
 const PreviewContent = ({ noPageSelected }: PreviewContentProps) => {
-  if (isPreviewDisabled) return <PreviewDisabledInfo className={classes.alert} />;
   if (noPageSelected) return <NoSelectedPageMessage />;
   return <PreviewFrame />;
 };
