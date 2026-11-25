@@ -521,7 +521,6 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowStepSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
-                        TaskId = taskId,
                         StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
                         StartingHook = FindTaskHook<IOnTaskStartingHandler>(
@@ -540,7 +539,6 @@ internal sealed class ProcessNextRequestFactory
             {
                 string taskId = GetRequiredEventTaskId(instanceEvent, eventType);
                 return WorkflowStepSet.GetTaskEndSteps(
-                    taskId,
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End),
                     FindTaskHook<IOnTaskEndingHandler>(taskId, (hook, id) => hook.ShouldRunForTask(id))
                 );

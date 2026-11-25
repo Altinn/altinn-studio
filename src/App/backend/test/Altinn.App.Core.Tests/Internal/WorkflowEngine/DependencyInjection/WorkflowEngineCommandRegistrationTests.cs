@@ -41,7 +41,6 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -55,7 +54,6 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -70,7 +68,6 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -86,7 +83,6 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
                     StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -101,7 +97,6 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
                     StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -112,7 +107,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowStepSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline(), Mock.Of<IOnTaskEndingHandler>()),
+            WorkflowStepSet.GetTaskEndSteps(CreateLifecyclePipeline(), Mock.Of<IOnTaskEndingHandler>()),
             keys
         );
         CollectCommandKeys(

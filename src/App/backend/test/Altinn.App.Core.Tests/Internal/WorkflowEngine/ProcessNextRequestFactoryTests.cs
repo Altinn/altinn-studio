@@ -827,11 +827,9 @@ public class ProcessNextRequestFactoryTests
             EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
-            LockTaskData.Key,
             // CommitProcessState (commit boundary, between end and start)
             CommitProcessState.Key,
             // Task start commands
-            UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
@@ -872,11 +870,9 @@ public class ProcessNextRequestFactoryTests
             (EndTask.Key, "Task_1"),
             (CommonTaskFinalization.Key, "Task_1"),
             (OnTaskEndingHook.Key, "Task_1"),
-            (LockTaskData.Key, "Task_1"),
             // The transition's own steps belong to neither element.
             (CommitProcessState.Key, null),
             // Task start commands run for the task being entered.
-            (UnlockTaskData.Key, "Task_2"),
             (CleanupGeneratedFromTask.Key, "Task_2"),
             (OnTaskStartingHook.Key, "Task_2"),
             (CommonTaskInitialization.Key, "Task_2"),
@@ -916,7 +912,6 @@ public class ProcessNextRequestFactoryTests
             (EndTask.Key, "Task_1"),
             (CommonTaskFinalization.Key, "Task_1"),
             (OnTaskEndingHook.Key, "Task_1"),
-            (LockTaskData.Key, "Task_1"),
             // A process end has no current task, so the end event is the element these steps run for.
             (CommitProcessState.Key, null),
             (OnProcessEndedHook.Key, null),
@@ -950,45 +945,6 @@ public class ProcessNextRequestFactoryTests
         List<(string CommandKey, string? Element)> pairs = ExtractCommandElements(bundle.Request.Workflows[0]);
         Assert.Equal((ExecuteServiceTask.Key, null), pairs[^1]);
         Assert.Equal("Task_2", pairs.Single(p => p.CommandKey == CommonTaskInitialization.Key).Element);
-    }
-
-    [Fact]
-    public async Task Create_TaskToTaskTransition_LockCommandsUseCurrentTaskDataLockPayloads()
-    {
-        var factory = CreateFactory();
-        var stateChange = CreateTaskToTaskTransition("Task_1", "Task_2");
-
-        WorkflowEnqueueEnvelope bundle = await factory.CreateChainInitiating(
-            TestInstance,
-            stateChange,
-            "test-process-next-idempotency-key",
-            "{}"
-        );
-
-        List<AppCommandData> commands = bundle
-            .Request.Workflows[0]
-            .Steps.Where(step => step.Command.Type == "app" && step.Command.Data is not null)
-            .Select(step => JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value))
-            .OfType<AppCommandData>()
-            .ToList();
-        AppCommandData lockCommand = Assert.Single(commands, command => command.CommandKey == LockTaskData.Key);
-        AppCommandData unlockCommand = Assert.Single(commands, command => command.CommandKey == UnlockTaskData.Key);
-
-        AssertTaskDataLockPayload(lockCommand.Payload, "Task_1");
-        AssertTaskDataLockPayload(unlockCommand.Payload, "Task_2");
-    }
-
-    private static void AssertTaskDataLockPayload(string? serializedPayload, string expectedTaskId)
-    {
-        Assert.NotNull(serializedPayload);
-        using var document = JsonDocument.Parse(serializedPayload);
-        Assert.Equal("taskDataLock", document.RootElement.GetProperty("$type").GetString());
-        Assert.Equal(expectedTaskId, document.RootElement.GetProperty("taskId").GetString());
-
-        TaskDataLockPayload payload = Assert.IsType<TaskDataLockPayload>(
-            CommandPayloadSerializer.Deserialize<CommandRequestPayload>(serializedPayload)
-        );
-        Assert.Equal(expectedTaskId, payload.TaskId);
     }
 
     [Fact]
@@ -1046,9 +1002,7 @@ public class ProcessNextRequestFactoryTests
         {
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
-            LockTaskData.Key,
             CommitProcessState.Key,
-            UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
@@ -1093,7 +1047,6 @@ public class ProcessNextRequestFactoryTests
             EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
-            LockTaskData.Key,
             // CommitProcessState saves the ended state and keeps processing
             CommitProcessState.Key,
             // Process end commands (post-commit)
@@ -1186,7 +1139,6 @@ public class ProcessNextRequestFactoryTests
             // CommitProcessState, with no task-end commands before it
             CommitProcessState.Key,
             // Task start commands
-            UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
@@ -1251,7 +1203,6 @@ public class ProcessNextRequestFactoryTests
             // CommitProcessState
             CommitProcessState.Key,
             // Task start commands
-            UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,

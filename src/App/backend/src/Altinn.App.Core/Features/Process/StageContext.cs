@@ -14,7 +14,7 @@ public sealed record StageContext
     /// every later stage. A
     /// <em>deferring</em> attempt is stateless: nothing is saved, and data changes made before a
     /// deferral are rejected (see <see cref="ServiceTaskResult.Defer"/>). Keep in mind that data
-    /// elements from previous tasks are locked.
+    /// of a type whose <c>taskIds</c> do not list this task cannot be changed.
     /// </remarks>
     public required IInstanceDataMutator InstanceDataMutator { get; init; }
 

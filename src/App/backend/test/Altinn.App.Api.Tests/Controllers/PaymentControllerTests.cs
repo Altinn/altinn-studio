@@ -757,119 +757,7 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task GetPaymentInformation_PersistFailsWithLockedDataElement_FallsBackToReadOnly()
-    {
-        // Reproduces the production race: a concurrent webhook advanced the process and locked the payment
-        // data element, so the persisting write fails with 409/Conflict — yet this request still reads the
-        // payment task as current (the locked state becomes visible before the current-task change does).
-        // The endpoint must degrade to a read-only result, not surface a 500. The current task is left
-        // unchanged here on purpose, so the refreshed locked state — not a moved task or response text —
-        // proves the benign race.
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
-
-        _services.Services.RemoveAll<IPaymentService>();
-
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    It.IsAny<string?>()
-                )
-            )
-            .Callback(() =>
-            {
-                _instance.Data =
-                [
-                    new DataElement
-                    {
-                        Id = "00000000-0000-0000-0000-000000000abc",
-                        DataType = "paymentDataType",
-                        Locked = true,
-                    },
-                ];
-            })
-            .ThrowsAsync(
-                new PlatformHttpException(
-                    HttpStatusCode.Conflict,
-                    "409 - Conflict - data element is locked and cannot be updated"
-                )
-            );
-
-        var fallbackResult = new PaymentInformation
-        {
-            TaskId = "currentTask",
-            Status = PaymentStatus.Paid,
-            OrderDetails = _orderDetails,
-        };
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckPaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    "currentTask",
-                    It.IsAny<string?>()
-                )
-            )
-            .ReturnsAsync(fallbackResult);
-
-        await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-
-        var result = await controller.GetPaymentInformation(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            CancellationToken.None
-        );
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var info = Assert.IsType<PaymentInformation>(ok.Value);
-        Assert.Equal(PaymentStatus.Paid, info.Status);
-
-        Assert.Equal(2, InstanceGetRequestCount());
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckPaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        "currentTask",
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task GetPaymentInformation_LegacyConflictWithIdleCurrentTaskAndUnlockedData_RethrowsConflict()
+    public async Task GetPaymentInformation_LegacyConflictWithIdleCurrentTask_RethrowsConflict()
     {
         SetupAltinnTaskExtensionMock(
             "currentTask",
@@ -895,18 +783,6 @@ public class PaymentControllerTests
                     It.IsAny<string?>()
                 )
             )
-            .Callback(() =>
-            {
-                _instance.Data =
-                [
-                    new DataElement
-                    {
-                        Id = "00000000-0000-0000-0000-000000000abc",
-                        DataType = "paymentDataType",
-                        Locked = false,
-                    },
-                ];
-            })
             .ThrowsAsync(storageException);
 
         await using var sp = _services.BuildServiceProvider();

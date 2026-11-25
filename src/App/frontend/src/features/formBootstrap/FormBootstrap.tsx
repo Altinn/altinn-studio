@@ -3,7 +3,6 @@ import { useCallback, useMemo } from 'react';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiFolderSettings } from 'src/features/form/ui';
 
@@ -39,19 +38,7 @@ export const formBootstrapHooks = {
   },
   useWritableDataTypes: () => {
     const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);
-    return (
-      useInstanceDataQuery({
-        select: (instance) =>
-          Object.keys(dataModels).filter((dataType) => {
-            const elementId = dataModels[dataType]?.dataElementId;
-            if (!elementId) {
-              throw new Error(`Data element id not found for data type: ${dataType}`);
-            }
-
-            return instance.data.find((item) => item.id === elementId)?.locked !== true;
-          }),
-      }).data ?? Object.keys(dataModels)
-    );
+    return useMemo(() => Object.keys(dataModels).filter((dataType) => dataModels[dataType].writable), [dataModels]);
   },
   useSchemaLookup: () => {
     const dataModels = FormStore.raw.useSelector((s) => s.bootstrap.dataModels);

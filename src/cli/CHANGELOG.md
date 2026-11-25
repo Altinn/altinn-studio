@@ -17,6 +17,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Localtest lets apps delete locked data, and change locked data of a data type with `taskIds`, as Altinn Storage does. A change outside the data type's tasks is still refused with `409 Conflict`. ([#22098](https://github.com/Altinn/altinn-studio/pull/22098))
+- `studioctl app upgrade v9` reports `ProcessTaskDataLocker` and `IProcessTaskDataLocker` as removed in v9. Before, it pointed code that used the class to the interface. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 - `studioctl app upgrade v9` writes service tasks and process tasks for the current v9 pipeline API ([#22104](https://github.com/Altinn/altinn-studio/pull/22104)):
     - run again, it rewrites code written for an earlier v9 preview, such as `Finally` and `ConcludeOnReplies` to `Stage` and `ExternalStage`, and reports what it cannot rewrite
     - the `DefineStart`, `DefineEnd` or `DefineAbandon` it adds for v8 work takes `PipelineBuilder.Lifecycle`
@@ -24,6 +26,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - `studioctl app upgrade v9` changes `pdf`, `subformPdf`, `eFormidling` and `fiksArkiv` tasks declared as `<bpmn:task>` in `process.bpmn` to the `<bpmn:serviceTask>` element v9 requires. Before, the app did not build after the upgrade. ([#21266](https://github.com/Altinn/altinn-studio/pull/21266))
+- `studioctl app upgrade v9` compiles apps that use C# 14 or C# 15 syntax, such as `extension` blocks, the `field` keyword and unions, so its C# migrations keep using exact symbol information instead of falling back to syntax-based detection, which may over-report. ([#22110](https://github.com/Altinn/altinn-studio/pull/22110))
 
 ## [0.1.0-preview.34] - 2026-11-20
 

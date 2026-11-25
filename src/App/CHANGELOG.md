@@ -12,20 +12,36 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
-- `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
-- Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - Build check `ALTINNAPP0704` reports a process task method named after an `IProcessTask` member that it does not implement, such as `DefineStart(PipelineBuilder.ServiceTask pipeline)`, which would never run. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 
 ### Changed
 
-- Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - Breaking: A service task composes `Stage` and `ExternalStage` calls on `PipelineBuilder.ServiceTask` in `DefineExecute`, which returns `void`. Any step can end the task with `ServiceTaskResult.EndTask(action)`, and otherwise the task ends after its last stage. `Finally`, `HandleReplies`, `ConcludeOnReplies` and `ServiceTaskResult.Success` are removed, and `SuccessfulServiceTaskResult` is renamed `EndedServiceTaskResult`, which only `EndTask` creates. Rerun `studioctl app upgrade v9` to rewrite preview code. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Breaking: `ExternalStage(send, onReply, timeout, onTimeout)` replaces mailbox stages and handles. The send gets a `ReplyAddress`, reply handlers return `ServiceTaskReplyResult`, and the timeout defaults to 7 days. Without `onTimeout`, the task fails when the replies stop coming. A failed step no longer closes the reply address. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Breaking: `DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder.Lifecycle` and return `void`, and `Build()` is removed. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Breaking: `IServiceTaskReplyForwarder.ForwardReply` takes `replyAddressId`, `ServiceTaskReplyForwardException.MailboxId` is renamed `ReplyAddressId`, and `ServiceTaskReplyForwardOutcome.MailboxFull` is renamed `TooManyReplies`. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
 - Each stage of a service task runs in a workflow of its own, listed as `Service task stage` after the first in the workflow engine and Studio's admin panel. A task no longer stalls when a redeploy adds a stage while it runs. ([#22101](https://github.com/Altinn/altinn-studio/pull/22101))
+
+### Removed
+
+- Build checks `ALTINNAPP0702` and `ALTINNAPP0703`, since there are no mailbox handles left to check. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+
+## [9.0.0-preview.15] - 2026-11-25
+
+### Added
+
+- Data processors, process hooks and service tasks can replace a form's whole data model with `await dataMutator.ReplaceFormData(element, model)`. The model is not copied: later reads and data processors get it, and changes to it are saved. ([#22029](https://github.com/Altinn/altinn-studio/pull/22029))
+- `PlatformFrontendSettings:Development` set to `true` turns on the app frontend's developer tools, layout checks and error details, so set it only where developers test. Without it, TT02 and LocalTest still show them. ([#21860](https://github.com/Altinn/altinn-studio/pull/21860))
+- Apps can confirm an instance as complete for the service owner when the process ends: set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json`. The app owner needs the `complete` action, which the app template's policy grants. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+
+### Changed
+
+- Breaking: The eFormidling and Fiks Arkiv tasks no longer confirm the instance as complete for the service owner, and the Fiks Arkiv setting `successHandling.markInstanceComplete` is removed. Set `"onProcessEnd": { "confirm": true }` in `applicationmetadata.json` to confirm when the process ends. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
 - An app with Fiks Arkiv no longer requests a service owner token at startup. Maskinporten credentials that are present but rejected no longer stop the app from starting; as in other apps, they fail the first request that needs the token. ([#21718](https://github.com/Altinn/altinn-studio/pull/21718))
+- A form can change data of a data type with `taskIds` in the tasks it lists, whether or not the data element is locked, as Storage allows. Changes a data processor makes when that data is read are saved there too. Data of a data type without `taskIds` is still read-only while it is locked. ([#22099](https://github.com/Altinn/altinn-studio/pull/22099))
+- Breaking: The app no longer locks a task's data when the task ends or unlocks it when the task starts: the data type's `taskIds` decide where its data can change. Data locked before the upgrade stays locked. Code that reads `DataElement.Locked` to tell whether a task's data can still change should compare `taskIds` with the current task. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
+- Breaking: A process transition that has not passed its `LockTaskData` or `UnlockTaskData` step when the app is upgraded fails at that step, also when resumed. To finish it, resume it on the previous version. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
+- After a rollback to v8, data of tasks that ended under v9 is not locked, and v8 accepts changes to it from a later task's form unless `AppSettings:EnforceDataTypeTaskId` is on. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 
 ### Fixed
 
@@ -36,7 +52,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
-- Build checks `ALTINNAPP0702` and `ALTINNAPP0703`, since there are no mailbox handles left to check. ([#22104](https://github.com/Altinn/altinn-studio/pull/22104))
+- Breaking: `IProcessTaskDataLocker` is removed, as the app no longer locks a task's data. ([#22100](https://github.com/Altinn/altinn-studio/pull/22100))
 
 ## [9.0.0-preview.14] - 2026-11-20
 
@@ -86,6 +102,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - New setting `hideOptionalIndicator` in `Settings.json` hides the "Valgfritt" (optional) marking on fields, either for the whole app or per task. It defaults to `false`, which we recommend because the marking makes it explicit which fields are optional. A component's own `labelSettings.optionalIndicator` overrides it. ([#21758](https://github.com/Altinn/altinn-studio/issues/21758))
 - List tables can configure column widths using `tableColumns`. ([#21815](https://github.com/Altinn/altinn-studio/pull/21815))
+- In test environments, add `?frontendVersion=` to an app's address, such as `?frontendVersion=9.0.0-preview.10`, to run the app with that published app frontend version, or choose it under "Frontend versjon" in the app's dev tools. Production ignores it. ([#21397](https://github.com/Altinn/altinn-studio/issues/21397))
 - System users can use an app whose `policy.xml` requires authentication level 4 when the policy lowers the requirement for system users with the `urn:altinn:minimum-authenticationlevel-systemuser` obligation. ([Altinn/app-lib-dotnet#1855](https://github.com/Altinn/app-lib-dotnet/issues/1855))
 - Calculations in `models/<dataType>.calculation.json` can set a list or object field when the expression returns one, such as `["dataModel", "some.list"]`. An object sets the properties the result contains and keeps the others; rows in a list of objects are matched by position and keep their `altinnRowId`, unless the result row brings one, as a row copied from another group does. Calculations also run on the data elements an instance is created with, so a new instance stores the same values the form calculates when it loads. ([#21928](https://github.com/Altinn/altinn-studio/pull/21928), [Altinn/app-lib-dotnet#1821](https://github.com/Altinn/app-lib-dotnet/pull/1821))
 

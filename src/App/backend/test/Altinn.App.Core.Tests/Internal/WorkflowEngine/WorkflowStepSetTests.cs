@@ -39,7 +39,6 @@ public class WorkflowStepSetTests
         var stepSet = WorkflowStepSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                TaskId = "Task_1",
                 StartPipeline = SingleStagePipeline(),
                 ServiceTask = new ResolvedServiceTask("pdf", SingleStageServiceTaskPipeline()),
                 StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -51,13 +50,7 @@ public class WorkflowStepSetTests
         );
 
         Assert.Equal(
-            [
-                UnlockTaskData.Key,
-                CleanupGeneratedFromTask.Key,
-                OnTaskStartingHook.Key,
-                CommonTaskInitialization.Key,
-                StartTask.Key,
-            ],
+            [CleanupGeneratedFromTask.Key, OnTaskStartingHook.Key, CommonTaskInitialization.Key, StartTask.Key],
             Keys(stepSet.LifecycleSteps)
         );
 
@@ -77,7 +70,6 @@ public class WorkflowStepSetTests
         var stepSet = WorkflowStepSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                TaskId = "Task_1",
                 StartPipeline = SingleStagePipeline(),
                 ServiceTask = null,
                 StartingHook = null,
@@ -105,12 +97,9 @@ public class WorkflowStepSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitSteps()
     {
-        var stepSet = WorkflowStepSet.GetTaskEndSteps("Task_1", SingleStagePipeline(), Mock.Of<IOnTaskEndingHandler>());
+        var stepSet = WorkflowStepSet.GetTaskEndSteps(SingleStagePipeline(), Mock.Of<IOnTaskEndingHandler>());
 
-        Assert.Equal(
-            [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(stepSet.LifecycleSteps)
-        );
+        Assert.Equal([EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key], Keys(stepSet.LifecycleSteps));
         Assert.Empty(stepSet.PrimaryPostCommitSteps);
         Assert.Empty(stepSet.AuxiliarySteps);
     }
@@ -131,7 +120,6 @@ public class WorkflowStepSetTests
         var start = WorkflowStepSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                TaskId = "Task_1",
                 StartPipeline = SingleStagePipeline(),
                 ServiceTask = null,
                 StartingHook = null,
@@ -139,13 +127,13 @@ public class WorkflowStepSetTests
             }
         );
         Assert.Equal(
-            [UnlockTaskData.Key, CleanupGeneratedFromTask.Key, CommonTaskInitialization.Key, StartTask.Key],
+            [CleanupGeneratedFromTask.Key, CommonTaskInitialization.Key, StartTask.Key],
             Keys(start.LifecycleSteps)
         );
 
         Assert.Equal(
-            [EndTask.Key, CommonTaskFinalization.Key, LockTaskData.Key],
-            Keys(WorkflowStepSet.GetTaskEndSteps("Task_1", SingleStagePipeline(), endingHook: null).LifecycleSteps)
+            [EndTask.Key, CommonTaskFinalization.Key],
+            Keys(WorkflowStepSet.GetTaskEndSteps(SingleStagePipeline(), endingHook: null).LifecycleSteps)
         );
         Assert.Equal(
             [AbandonTask.Key],
@@ -168,7 +156,6 @@ public class WorkflowStepSetTests
         var stepSet = WorkflowStepSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                TaskId = "Task_1",
                 StartPipeline = new PipelineBuilder.Lifecycle()
                     .Stage(_ => Task.FromResult(StageResult.Completed()), options)
                     .ToPipeline(),
@@ -191,7 +178,6 @@ public class WorkflowStepSetTests
         var stepSet = WorkflowStepSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                TaskId = "Task_1",
                 StartPipeline = ThreeStagePipeline(middleOptions),
                 ServiceTask = null,
                 StartingHook = Mock.Of<IOnTaskStartingHandler>(),
@@ -201,7 +187,6 @@ public class WorkflowStepSetTests
 
         Assert.Equal(
             [
-                UnlockTaskData.Key,
                 CleanupGeneratedFromTask.Key,
                 OnTaskStartingHook.Key,
                 CommonTaskInitialization.Key,
@@ -225,12 +210,8 @@ public class WorkflowStepSetTests
     public void GetTaskEndAndAbandonSteps_MultiStagePipeline_PlanStagesBeforeTheHooks()
     {
         Assert.Equal(
-            [EndTask.Key, EndTask.Key, EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(
-                WorkflowStepSet
-                    .GetTaskEndSteps("Task_1", ThreeStagePipeline(), Mock.Of<IOnTaskEndingHandler>())
-                    .LifecycleSteps
-            )
+            [EndTask.Key, EndTask.Key, EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key],
+            Keys(WorkflowStepSet.GetTaskEndSteps(ThreeStagePipeline(), Mock.Of<IOnTaskEndingHandler>()).LifecycleSteps)
         );
         Assert.Equal(
             [AbandonTask.Key, AbandonTask.Key, AbandonTask.Key, OnTaskAbandonHook.Key],
@@ -248,7 +229,6 @@ public class WorkflowStepSetTests
         var stepSet = WorkflowStepSet.GetTaskStartSteps(
             new TaskStartContext
             {
-                TaskId = "Task_1",
                 StartPipeline = new PipelineBuilder.Lifecycle().ToPipeline(),
                 ServiceTask = null,
                 StartingHook = null,
@@ -285,7 +265,7 @@ public class WorkflowStepSetTests
             .ToPipeline();
 
         List<PlannedStep> stageSteps = WorkflowStepSet
-            .GetTaskEndSteps("Task_1", pipeline, endingHook: null)
+            .GetTaskEndSteps(pipeline, endingHook: null)
             .LifecycleSteps.Where(step => step.CommandKey == EndTask.Key)
             .ToList();
 

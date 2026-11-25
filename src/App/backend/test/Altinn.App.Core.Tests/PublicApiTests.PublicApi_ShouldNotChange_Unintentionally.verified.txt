@@ -783,6 +783,8 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("schema")]
         public required object Schema { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("writable")]
+        public required bool Writable { get; init; }
     }
     public sealed class FormBootstrapResponse
     {
@@ -3726,11 +3728,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         void DefineEnd(Altinn.App.Core.Features.Process.PipelineBuilder.Lifecycle pipeline);
         void DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder.Lifecycle pipeline);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
-    }
-    public interface IProcessTaskDataLocker
-    {
-        System.Threading.Tasks.Task Lock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task Unlock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
     }
 }
 namespace Altinn.App.Core.Internal.Profile

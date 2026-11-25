@@ -15,7 +15,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 [JsonDerivedType(typeof(ExecuteServiceTaskPayload), typeDiscriminator: "executeServiceTask")]
 [JsonDerivedType(typeof(ProcessStateChangePayload), typeDiscriminator: "processStateChange")]
 [JsonDerivedType(typeof(CommonTaskInitializationPayload), typeDiscriminator: "commonTaskInitialization")]
-[JsonDerivedType(typeof(TaskDataLockPayload), typeDiscriminator: "taskDataLock")]
 [JsonDerivedType(
     typeof(NotifyInstanceOwnerOnInstantiationPayload),
     typeDiscriminator: "notifyInstanceOwnerOnInstantiation"
@@ -24,8 +23,6 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
 [JsonDerivedType(typeof(ProcessTaskStagePayload), typeDiscriminator: "processTaskStage")]
 internal abstract record CommandRequestPayload;
-
-internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
 
 /// <summary>
 /// Selects the one stage of a process task's lifecycle pipeline a <c>StartTask</c>, <c>EndTask</c> or
@@ -48,7 +45,6 @@ internal sealed record AcquireProcessingStatusPayload(ProcessStateChange Process
 [JsonSerializable(typeof(ExecuteServiceTaskPayload))]
 [JsonSerializable(typeof(ProcessStateChangePayload))]
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]
-[JsonSerializable(typeof(TaskDataLockPayload))]
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
 [JsonSerializable(typeof(EnqueueAuxiliaryWorkflowsPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
