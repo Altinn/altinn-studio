@@ -115,22 +115,28 @@ class _View:
         return task in (data_type.get("taskIds") or []) if self.v9 else data_type.get("taskId") == task
 
     def fields(self, title: str) -> list[tuple[UiFolder, dict[str, Any]]]:
-        """The input components of the form with this title after normalizing. Without one, those whose words are
-        all in the title or that have all its words, such as the two fields a name and number field is split into.
-        A field on the PDF page or the receipt is not a field of the form."""
-        wanted = normalize_title(title)
-        ranked = []
+        """The input components of the form with this title after normalizing. Without one, those with the same
+        field number, such as «A5.», and else those whose words are all in the title or that have all its words. So
+        the two fields a name and number field is split into are both found. A field on the PDF page or the receipt
+        is not a field of the form."""
+        wanted, number = normalize_title(title), _number(title)
+        exact, numbered, similar = [], [], []
         for folder, _, component in self.app.all_components():
             key = (component.get("textResourceBindings") or {}).get("title")
-            have = normalize_title(self.app.text(key) or key) if isinstance(key, str) else ""
+            text = (self.app.text(key) or key) if isinstance(key, str) else ""
+            have = normalize_title(text)
             if component.get("type") not in INPUT_COMPONENT_TYPES or not have or not wanted:
                 continue
             if self.form is not None and folder is not self.form:
                 continue
-            if set(have.split()) <= set(wanted.split()) or set(wanted.split()) <= set(have.split()):
-                ranked.append((min(len(have), len(wanted)) / max(len(have), len(wanted)), folder, component))
-        exact = [(f, c) for rank, f, c in ranked if rank == 1]
-        return exact or [(f, c) for rank, f, c in ranked if rank >= 0.3]
+            found = (folder, component)
+            if have == wanted:
+                exact.append(found)
+            elif number and _number(text) == number:
+                numbered.append(found)
+            elif _same_words(have, wanted) and min(len(have), len(wanted)) / max(len(have), len(wanted)) >= 0.3:
+                similar.append(found)
+        return exact or numbered or similar
 
     def paths(self, title: str) -> set[tuple[str | None, str]]:
         """(data type, path) of the fields with this title."""
@@ -142,6 +148,17 @@ class _View:
 
     def label(self, option: dict[str, Any]) -> str:
         return normalize_title(self.app.text(option.get("label")) or str(option.get("label")))
+
+
+def _number(title: str) -> str | None:
+    """The number a numbered form gives a field, such as "a5" in «A5. Kontaktinformasjon»."""
+    found = re.match(r"\s*([A-Za-z]?\d+(?:\.\d+)*)[.)]?\s", title)
+    return found.group(1).lower() if found else None
+
+
+def _same_words(have: str, wanted: str) -> bool:
+    """One title has all the words of the other."""
+    return set(have.split()) <= set(wanted.split()) or set(wanted.split()) <= set(have.split())
 
 
 def _nest(values: dict[str, Any]) -> dict[str, Any]:
