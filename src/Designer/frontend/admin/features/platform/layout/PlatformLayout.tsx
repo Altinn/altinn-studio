@@ -8,7 +8,7 @@ import { RoutePaths } from 'admin/routes/RoutePaths';
 import classes from './PlatformLayout.module.css';
 
 /** The environments the nightly collection covers; the test environments are left out on purpose. */
-export const PLATFORM_ENVIRONMENTS = ['production', 'tt02'];
+export const PLATFORM_ENVIRONMENTS = ['production', 'tt02', 'at22'];
 
 export type PlatformOutletContext = {
   environment: string;

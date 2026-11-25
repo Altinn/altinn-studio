@@ -21,7 +21,7 @@ public static class AppDailyMetricsCollectionJobConstants
     /// The environments whose metrics the admin pages show. The test environments are left out: nobody follows
     /// KPIs for them, and each would cost one Storage call per org per night.
     /// </summary>
-    public static readonly string[] TargetEnvironments = ["production", "prod", "tt02"];
+    public static readonly string[] TargetEnvironments = ["production", "prod", "tt02", "at22"];
 
     public static bool IsTargetEnvironment(string environment) =>
         Array.Exists(
