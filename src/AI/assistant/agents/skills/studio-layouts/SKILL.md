@@ -18,8 +18,6 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
   navigation menu instead, with an `order` in each group. Set one of them, never both.
 - The backend throws when it loads a folder whose list names a page without a file. A page that no list names is not
   part of the form.
-- Settings for the whole app, such as `taskNavigation` and `showLanguageSelector`, live outside the task folders. The
-  version files say where.
 - `App/ui/footer.json` holds the footer of every page.
 
 ## Read the schema before you write a component
@@ -67,7 +65,6 @@ To add a page:
    URL is the right one. Studio allows letters, digits, `-` and `_` in a new page name.
 2. Add the name to `pages.order`, or to the `order` of a group when the folder uses `pages.groups`.
 3. In a task with more than one page, give every page a `NavigationButtons` component. Studio adds one to each page.
-   Whether it shows a back button by default differs between the versions.
 4. Give the last page of a data task a `Button`. It submits the task and moves the process on. A confirmation task
    with a UI folder submits with a `Button` too. Without a folder it shows the frontend's built-in confirmation page.
    Signing and payment tasks use components of their own, which the `studio-signing` and `studio-payment` skills
@@ -76,9 +73,6 @@ To add a page:
 To hide a page, set `data.hidden` in its layout file to a boolean expression. The app leaves a hidden page out of the
 navigation and the PDF, and does not validate its components. The `studio-expressions` skill covers expressions.
 Do not hide pages from C# with `IPageOrder`, which the frontend no longer calls.
-
-The navigation docs cover page groups, task navigation and the progress indicator. Validation when the user changes
-page is in the `studio-validation` skill.
 
 A custom receipt replaces the built-in receipt after the process ends. Its pages live in a folder of their own, which
 the version files describe. Its data type needs a data element on the instance from an earlier task. Without one, the
@@ -93,8 +87,7 @@ frontend shows the built-in receipt.
 - A `RepeatingGroup` binds `dataModelBindings.group` to a list of objects in the data model. Each child binds the full
   path from the model root, starting with the group's path: group `Ansatte`, child `Ansatte.Navn`. The frontend adds
   the row index.
-- `minCount` and `maxCount` on the component limit the rows. `validateOnSaveRow` takes a list of validation types,
-  such as `["All"]`. The `studio-validation` skill covers it.
+- `minCount` and `maxCount` on the component limit the rows.
 - Choose a repeating group when each row has a few fields. Choose a subform when each entry needs many fields, pages
   of its own, or its own PDF.
 
@@ -147,8 +140,6 @@ components cannot bind to the subform's data model. A PDF for each entry needs a
   the task's pages. Both go in the task's `Settings.json`.
 - `pages.pdfLayoutName` names a page that the PDF shows instead of the task's pages. Leave that page out of
   `pages.order`, so users never see it.
-- A PDF task that lists the task in `autoPdfTaskIds` ignores the task's `pdfLayoutName`. Which PDFs read these
-  settings differs between the versions, as the version files say.
 - PDF tasks, and the pages of a PDF task's own folder: the `studio-process` skill.
 
 ## Owned by other skills

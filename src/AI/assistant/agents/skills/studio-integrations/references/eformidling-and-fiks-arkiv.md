@@ -1,8 +1,7 @@
 # eFormidling and Fiks Arkiv
 
 Both send the instance's data from a service task: `eFormidling` through the eFormidling integration point, and
-`fiksArkiv` through Fiks IO to a municipal archive. The `studio-process` skill places the task in the process. This
-file covers what the app needs around it. The version files say how to register each one, and what differs.
+`fiksArkiv` through Fiks IO to a municipal archive. The version files say how to register each one, and what differs.
 
 ## eFormidling
 

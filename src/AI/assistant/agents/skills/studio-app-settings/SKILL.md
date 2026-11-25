@@ -51,9 +51,9 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
 - `messageBoxConfig.hideSettings` hides instances in the inbox: `hideAlways: true`, or `hideOnTask` with a list of
   task IDs. It also applies to existing instances. `messageBoxConfig.syncAdapterSettings` turns off parts of the sync
   to Dialogporten.
-- `presentationFields` copy values from form data to the instance, and the inbox shows them with the title.
-  `dataFields` copy values to the instance's `dataValues`. Each entry has an `id`, a `path` in the data model and a
-  `dataTypeId`. Give each entry for a data type its own `id`.
+- `presentationFields` copy values from form data to the instance, and the inbox shows them with the title. `dataFields`
+  copy values to the instance's `dataValues`. Each entry has an `id`, a `path` in the data model and a `dataTypeId` that
+  names a data type. Give each entry for a data type its own `id`.
 - `copyInstanceSettings.enabled: true` lets users make a new instance from an archived one. The app copies only the
   data types bound to the first task. The other keys exclude data types or fields, or copy attachments, the
   due date, `dataValues` and presentation texts.
@@ -68,7 +68,7 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
   `description`, `contactPoints` and `access`. Before a build, Studio warns when `title`, `description` or
   `rightDescription` lacks `nb`, `nn` or `en`, when `delegable` or `visible` is missing, when a delegable app has no
   `rightDescription`, and when there is no contact point.
-- `logo` sets the logo in the app's header. See the logo page for your version in the docs.
+- `logo` sets the logo in the app's header. The version files link the docs.
 
 ### Data types
 

@@ -37,7 +37,6 @@ an empty field shows an error before the user has started.
 - The built-in message is "Du må fylle ut {0}", where `{0}` is the component's `shortName` text or, without one, its
   `title`. Set `textResourceBindings.requiredValidation` to a text key to replace it. The app fills `{0}` only into its
   built-in texts, so write the field name into your own text.
-- Whether the backend checks required fields depends on the `RequiredValidation` setting. See the version file.
 
 ## Data model constraints
 
@@ -122,24 +121,24 @@ them. What matters for the user:
   one. Otherwise it calls `process/next`, and shows the errors the backend returns.
 - The frontend checks pages when the user moves between them only when `validationOnNavigation`, `validateOnNext`,
   `validateOnPrevious`, `validateOnForward`, `validateOnBackward` or `validation` on a `CustomButton` action is set.
-  The navigation page that the version file links says where each key goes and which one wins.
 - `validateOnSaveRow` on a `RepeatingGroup` makes the frontend check a row when the user saves it. It takes a list of
   validation types, such as `["All"]`, not a boolean.
 - The frontend never shows messages on hidden components, and they do not stop the user in the browser. The backend
   still gives a C# validator the data of hidden fields, unless the validator sets `ShouldRunAfterRemovingHiddenData`
   to `true`. An error it reports on a hidden field stops `process/next`, and the user sees it only in the error
-  summary. The version file says how the data model check treats hidden fields.
+  summary. With `RemoveHiddenData` on, the backend skips the C# attributes on fields that hidden components bind, and
+  the app deletes their data when the task ends. With it off, the backend checks those attributes too. A value the
+  user entered before the field was hidden can then stop the submit, and the user sees that error only in the error
+  summary.
 
 ## What the backend checks on process/next
 
 On `process/next` the backend runs every validator for the task, not only those that run on save: the app's own C#
-validators, and the built-in checks in the table under "Validering på serveren" on the validation page that the
-version file links. The table says which setting turns each check on or off.
+validators and the built-in checks.
 
 Any issue with severity `error` stops the process with `409 Conflict`, and the response lists the issues. Warnings do
 not stop it. The backend skips all validation in two cases only: the action is `reject` and the task allows it, or
-the task is a service task. A caller cannot turn off single validators. A rule that runs only in the browser does not
-protect data that an API client sends.
+the task is a service task. A caller cannot turn off single validators.
 
 ## Before you finish
 

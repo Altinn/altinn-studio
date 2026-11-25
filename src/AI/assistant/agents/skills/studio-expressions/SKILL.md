@@ -40,9 +40,11 @@ cast to. The ones you meet most:
 ## Where expressions run
 
 - The frontend evaluates every expression in the layouts again whenever the data it reads changes.
-- The backend evaluates `hidden`, `hiddenRow`, `required` and `removeWhenHidden` when it checks required fields and
-  removes hidden data. It also evaluates validation files and gateway conditions. Which of these
-  are on by default differs between the versions.
+- Settings under `AppSettings` in `App/appsettings.json` decide what the backend evaluates, and their defaults differ
+  between the versions. With `RemoveHiddenData`, it evaluates `hidden`, `hiddenRow` and `removeWhenHidden`, and removes
+  the data of hidden components when the task ends. With `RequiredValidation`, it evaluates `required` and `hidden`, and
+  checks required fields on `process/next`. With `ExpressionValidation`, it runs the validation files. It evaluates
+  gateway conditions too.
 - The backend never evaluates `readOnly`, texts or option properties. `readOnly` does not stop an API client from
   writing the field. Check it in C# when it matters.
 - The backend lacks these frontend functions: `displayValue`, `formatNumber`, `optionLabel`, `linkToPage`,
@@ -113,7 +115,6 @@ which functions differ, and links the function reference for that version.
 - A component that is required only when shown. Hidden components are never required, so set both `required` and
   `hidden` rather than repeating the condition in `required`.
 - `equals` against a boolean when the data holds `1`, `"yes"` or a code value. Compare with the value the data holds.
-- A frontend-only function where the backend evaluates the expression.
 - Copying a long condition to many components. Hide the group or the page that holds them instead.
 
 ## Computed values
@@ -121,8 +122,6 @@ which functions differ, and links the function reference for that version.
 Expressions in layouts never change the data. To store a computed value in the data model, give the field an
 expression in `App/models/<dataTypeId>.calculation.json`. The version file has the format. Write C# only for what an
 expression cannot compute. The `studio-app-lib` skill covers `IDataWriteProcessor`.
-
-- Never add rules to `RuleConfiguration.json` or `RuleHandler.js`. The version files say why.
 
 ## Before you finish
 

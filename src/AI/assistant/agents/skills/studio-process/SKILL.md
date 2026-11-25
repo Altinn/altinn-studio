@@ -59,9 +59,10 @@ The text of `<bpmn:conditionExpression>` is an Altinn expression, the same langu
   </bpmn:sequenceFlow>
   ```
 
-- `["dataModel", "Path.To.Field"]` reads the data type in the gateway's `connectedDataTypeId`. Without it, the app
-  uses the data type of the UI of the task being left. A service task usually has no such data type, so a gateway
-  right after a PDF or eFormidling task fails to read the data model unless you connect a data type:
+- `["dataModel", "Path.To.Field"]` reads the data type in the gateway's `connectedDataTypeId`. Without it, the app uses
+  the data type of the UI of the task being left: the `dataType` of its layout set in v8, and `defaultDataType` in its
+  `Settings.json` in v9. A service task usually has no such data type, so a gateway right after a PDF or eFormidling
+  task fails to read the data model unless you connect a data type:
 
   ```xml
   <bpmn:exclusiveGateway id="Gateway_1">
@@ -105,9 +106,8 @@ type is in [references/task-types.md](references/task-types.md), and for signing
 | the `Type` of your own `IProcessTask` | user task | `bpmn:task` | an action named after the type |
 | the `Type` of your own `IServiceTask` | service task | `bpmn:serviceTask` | see the version file |
 
-The app checks the action on the task the instance is in, so a policy rule scoped to one task does not cover the
-next. On a service task, a user needs the action to run the task in v8 and to retry it in v9. Who needs which action
-is for the `studio-policy` skill.
+The app checks the action on the task the instance is in, so a policy rule scoped to one task does not cover the next.
+Who needs which action is for the `studio-policy` skill.
 
 ## Actions
 

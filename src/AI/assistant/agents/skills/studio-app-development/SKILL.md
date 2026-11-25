@@ -5,10 +5,9 @@ description: "Start here to change an Altinn Studio app: how the files under App
 
 ## App version
 
-The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the
-app's version. A few apps get the
-package through another package. In those, the file `App/ui/layout-sets.json` means v8, and a v9 app has none. The
-skills cover v8 and v9 apps. For an older app, tell the user that the skills may not apply.
+The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the app's
+version. A few apps get the package through another package. In those, the file `App/ui/layout-sets.json` means v8, and
+a v9 app has none. The skills cover v8 and v9 apps. For an older app, tell the user that the skills may not apply.
 
 The versions differ in these places. The skill for each topic has the details.
 

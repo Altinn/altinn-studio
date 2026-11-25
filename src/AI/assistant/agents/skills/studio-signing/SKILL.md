@@ -145,13 +145,10 @@ The `studio-policy` skill covers how to write rules. Scope these rules to the si
 
 ## Notifications through Correspondence
 
-- In user-controlled signing, the app sends each signee a Correspondence message when the task starts. With a
-  `correspondenceResource`, every kind of signing sends each signer a receipt after they sign.
 - `correspondenceResource` is the ID of a Correspondence resource that the service owner creates in Altinn's resource
-  registry. The `studio-integrations` skill says what the resource's policy must grant. Several
-  `correspondenceResource` elements with `env` attributes give each environment its own resource.
+  registry. Several `correspondenceResource` elements with `env` attributes give each environment its own resource.
 - The app sends as the service owner through Maskinporten, which needs the Correspondence scopes. The
-  `studio-integrations` skill covers Maskinporten and Correspondence.
+  `studio-integrations` skill covers Maskinporten and Correspondence, including what the resource's policy must grant.
 - When a receipt fails, the app only logs it, and the signature stands.
 - The text keys `signing.correspondence_receipt_title`, `signing.correspondence_receipt_summary` and
   `signing.correspondence_receipt_body` override the receipt texts for every signer.

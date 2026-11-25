@@ -47,7 +47,8 @@ version file describes:
   Users can change the data during that task. Other tasks can only read it.
 - With `appLogic.autoCreate: true`, the app creates the data element when the task starts. Without it, something
   else creates the element, such as a user who adds a subform entry. A stateless form's model names no task.
-- Several data types can share a task. The version file says which one is the default for the task's pages.
+- Several data types can share a task. The version file says which one is the default for the task's pages. Bindings,
+  text variables and expressions without a data type id read the default.
 - The `studio-app-settings` skill covers the other data type settings.
 
 ## Change the schema, then the C# class and the XSD

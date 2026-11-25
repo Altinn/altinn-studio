@@ -3,8 +3,6 @@ name: studio-text-resources
 description: "Texts in the resource files in App/config/texts/, such as resource.nb.json: text keys and the files that use them, variables from the data model and other sources, translations, adding a language and the language selector."
 ---
 
-Other files refer to a text by its key, so a change to a key reaches every file that uses it.
-
 ## App version
 
 The major version of the `Altinn.App.Api` package (or `Altinn.App.Api.Experimental`) in `App/App.csproj` is the

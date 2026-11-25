@@ -1,16 +1,13 @@
 # Task configuration by type
 
-This file shows the XML each task type needs, except signing and payment, which have skills of their own. The
-examples leave out `<bpmn:incoming>` and `<bpmn:outgoing>`, which every task has. Every element under `altinn:` is
-in `http://altinn.no/process`. Where v8 and v9 differ, the section says so.
+This file shows the XML each task type needs, except signing and payment, which have skills of their own. The examples
+leave out `<bpmn:incoming>` and `<bpmn:outgoing>`, which every task has. Where v8 and v9 differ, the section says so.
 
 ## Contents
 
 - data
 - confirmation
 - feedback
-- signing
-- payment
 - pdf
 - subformPdf
 - eFormidling
@@ -30,8 +27,7 @@ in `http://altinn.no/process`. Where v8 and v9 differ, the section says so.
 </bpmn:task>
 ```
 
-A data task usually has pages, and a data type bound to the task: its `taskId` is the task's id in v8, and its
-`taskIds` lists the task's id in v9.
+A data task usually has pages, and a data type bound to the task.
 
 ## confirmation
 
@@ -48,22 +44,10 @@ A data task usually has pages, and a data type bound to the task: its `taskId` i
 </bpmn:task>
 ```
 
-Without `confirm` in the list, the frontend disables the submit button.
-
 ## feedback
 
 Like `data`, with `<altinn:taskType>feedback</altinn:taskType>` and no actions. The frontend waits on the task. An
 external system or the service owner moves the process on with `PUT .../process/next`, which needs `write`.
-
-## signing
-
-The `studio-signing` skill has the XML for a signing task, and the signee providers, Correspondence, data types,
-pages and policy that go with it.
-
-## payment
-
-The `studio-payment` skill has the XML for a payment task, and the data types, payment processor, pages and policy
-that go with it.
 
 ## pdf
 
@@ -84,9 +68,8 @@ that go with it.
 ```
 
 - `autoPdfTaskIds` renders the pages of the listed tasks in summary mode.
-- For a PDF of your own pages, leave out `autoPdfTaskIds` and give the PDF task UI of its own with
-  `pages.pdfLayoutName` in its `Settings.json`. In v8 that is a layout set that lists the PDF task. In v9 it is
-  `ui/<pdfTaskId>/`.
+- For a PDF of your own pages, leave out `autoPdfTaskIds` and give the PDF task UI of its own with `pages.pdfLayoutName`
+  in its `Settings.json`, as the version file describes.
 - The app stores the PDF in the data type `ref-data-as-pdf`, which must exist with
   `"allowedContentTypes": ["application/pdf"]`.
 
@@ -159,8 +142,7 @@ services and settings the app needs.
 
 The task holds only its type. The settings are in `FiksArkivSettings` in `appsettings.json`, which the
 `studio-integrations` skill covers. The app must call `services.AddFiksArkiv()` from the `Altinn.App.Clients.Fiks`
-package. In v9 an exclusive gateway with at least two outgoing flows must follow the task, as the v9 version file
-explains.
+package.
 
 ```xml
 <bpmn:serviceTask id="Task_FiksArkiv" name="Fiks Arkiv">
