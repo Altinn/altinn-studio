@@ -843,13 +843,13 @@ public class InstanceMutationsController(
                 );
             }
 
+            // Preserve versioned blobs for workflow retries. LocalTest has no orphan cleanup to reclaim them.
             foreach (DataElement dataElement in postCommitBlobCleanupDataElements)
             {
-                await _dataService.CleanupDeletedDataElementBlobs(
+                await _dataService.DeleteLegacyDataElementBlob(
                     updatedInstance,
                     dataElement,
-                    application.StorageAccountNumber,
-                    CancellationToken.None
+                    application.StorageAccountNumber
                 );
             }
         }
