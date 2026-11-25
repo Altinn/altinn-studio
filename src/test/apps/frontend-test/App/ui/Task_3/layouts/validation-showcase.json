@@ -113,6 +113,7 @@
       {
         "id": "validation-mixed",
         "type": "RepeatingGroup",
+        "validateOnSaveRow": ["CustomBackend"],
         "hidden": [
           "not",
           [
