@@ -254,20 +254,21 @@ public class MintMailboxTests
     }
 
     /// <summary>
-    /// A stage that gives no timeout still opens an address with one: 14 days, a literal here so that changing the
-    /// default is a decision this test has to be told about.
+    /// A stage that gives no timeout still opens an address with one, the default, counted from the step's reference
+    /// time.
     /// </summary>
     [Fact]
-    public async Task Execute_ForAStageThatGivesNoTimeout_MintsWithTheDefaultOf14Days()
+    public async Task Execute_ForAStageThatGivesNoTimeout_MintsWithTheDefaultTimeout()
     {
         var minter = new RecordingMailboxMinter();
         var carry = new WorkflowCallbackStateCarry();
+        WorkflowEngineCommandContext context = CreateContext(carry: carry);
 
-        await CreateCommand(new DefaultTimeoutTask(), minter).Execute(CreateContext(carry: carry), Payload());
+        await CreateCommand(new DefaultTimeoutTask(), minter).Execute(context, Payload());
 
-        Assert.Equal(TimeSpan.FromDays(14), Assert.Single(minter.Mints).Request.Timeout);
+        Assert.Equal(PipelineBuilder.ServiceTask.DefaultReplyTimeout, Assert.Single(minter.Mints).Request.Timeout);
         Assert.Equal(
-            new DateTimeOffset(2026, 9, 2, 10, 0, 0, TimeSpan.Zero),
+            context.Payload.ExecutionReferenceTime + PipelineBuilder.ServiceTask.DefaultReplyTimeout,
             carry.FindMailbox(SendStageIndex)?.Deadline
         );
     }

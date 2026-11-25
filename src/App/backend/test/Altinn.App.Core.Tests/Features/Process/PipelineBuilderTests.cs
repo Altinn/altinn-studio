@@ -127,7 +127,7 @@ public class PipelineBuilderTests
     }
 
     [Fact]
-    public void ServiceTask_ExternalStageWithoutTimeoutOrOnTimeout_WaitsFourteenDaysAndHasNoTimeoutHandler()
+    public void ServiceTask_ExternalStageWithoutTimeoutOrOnTimeout_GetsTheDefaultTimeoutAndNoTimeoutHandler()
     {
         var stage = Assert.IsType<ServiceTaskItem.ExternalStage>(
             Assert.Single(
@@ -135,7 +135,6 @@ public class PipelineBuilderTests
             )
         );
 
-        Assert.Equal(TimeSpan.FromDays(14), stage.Timeout);
         Assert.Equal(PipelineBuilder.ServiceTask.DefaultReplyTimeout, stage.Timeout);
         Assert.Null(stage.OnTimeout);
         Assert.Null(stage.StepOptions);
@@ -151,7 +150,7 @@ public class PipelineBuilderTests
             .ToPipeline();
 
         Assert.Equal(
-            [TimeSpan.FromDays(14), TimeSpan.FromDays(1)],
+            [PipelineBuilder.ServiceTask.DefaultReplyTimeout, TimeSpan.FromDays(1)],
             pipeline.Items.Select(item => Assert.IsType<ServiceTaskItem.ExternalStage>(item).Timeout)
         );
     }

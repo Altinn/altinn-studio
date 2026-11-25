@@ -62,7 +62,10 @@ public abstract class PipelineBuilder
         /// <summary>
         /// How long an external stage's reply address accepts replies when its composition gives no timeout.
         /// </summary>
-        internal static readonly TimeSpan DefaultReplyTimeout = TimeSpan.FromDays(14);
+        // Replies come within minutes; the wait rides out an outage on the other side, such as one over a holiday
+        // weekend. Longer leaves an instance with a broken integration waiting unseen. Shorter fails tasks for good on
+        // ordinary outages, since a closed address refuses late replies.
+        internal static readonly TimeSpan DefaultReplyTimeout = TimeSpan.FromDays(7);
 
         /// <summary>
         /// The longest timeout an external stage may give: the workflow engine's default <c>MaxMailboxTimeout</c>.
@@ -114,7 +117,7 @@ public abstract class PipelineBuilder
         /// <see cref="ServiceTaskReplyResult.Completed"/> to carry on with the next item.
         /// </param>
         /// <param name="timeout">
-        /// How long the reply address accepts replies, from when it is opened. Defaults to 14 days, and may be at
+        /// How long the reply address accepts replies, from when it is opened. Defaults to 7 days, and may be at
         /// most 21 days.
         /// </param>
         /// <param name="onTimeout">

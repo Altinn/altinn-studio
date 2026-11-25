@@ -192,7 +192,7 @@ address. The workflow engine calls a reply address a _mailbox_, so its logs, adm
   accepted, each starting from the state its predecessor saved. Return `AwaitNextReply()` to wait for the next
   reply, `Completed()` when done with the replies, or `EndTask(action)` to end the task. `Completed()` and
   `EndTask` close the address first, so no later reply can land after the stage is done.
-- **The timeout.** `timeout` runs from when the address opens, defaults to 14 days, and may be at most 21 days, the
+- **The timeout.** `timeout` runs from when the address opens, defaults to 7 days, and may be at most 21 days, the
   workflow engine's default `MaxMailboxTimeout`. An engine configured with a lower cap refuses to open the address,
   which app startup cannot check, and the step that opens it fails before the send runs. When the address closes
   before a reply handler is done, because the timeout ran out or an operator closed it, `onTimeout` runs.
