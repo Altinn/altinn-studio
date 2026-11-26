@@ -39,6 +39,9 @@ namespace Altinn.App.Api.Tests;
 /// The consequence worth knowing is that a workflow never actually rests in
 /// <see cref="PersistentItemStatus.Waiting"/> here, so the early release of a parked
 /// <c>process/next</c> is not covered — that needs the integration suite and a real engine.
+/// A mailbox receive workflow does rest in <see cref="PersistentItemStatus.Held"/>, as the engine's does: it takes the
+/// next position in the receivers log when it is enqueued, and runs once the delivery at that position arrives or the
+/// mailbox closes. <see cref="ExpireMailbox"/> stands in for the deadline sweep.
 /// </remarks>
 internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 {
@@ -51,10 +54,15 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     /// minutes, so only a genuinely unbounded wait trips it.
     /// </summary>
     private const int MaxDeferralsPerStep = 1000;
+    private const int MaxRetriesOfAThrowingStep = 10;
+
+    /// <summary>The engine's default <c>MaxMailboxLogLength</c>: deliveries a mailbox accepts in its lifetime.</summary>
+    private const int MaxMailboxLogLength = 100;
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<Guid, StoredWorkflow> _workflows = new();
     private readonly ConcurrentDictionary<string, Guid[]> _workflowsByIdempotencyKey = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, string> _fingerprintsByIdempotencyKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, List<Guid>> _collectionHeadsByKey = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, MailboxResponse> _mailboxesByIdempotencyKey = new(
         StringComparer.Ordinal
@@ -62,8 +70,14 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
     private readonly ConcurrentDictionary<string, MailboxDeliveryResponse> _deliveriesByKey = new(
         StringComparer.Ordinal
     );
+    private readonly ConcurrentDictionary<(Guid MailboxId, long Idx), StoredDelivery> _deliveriesByPosition = new();
     private readonly object _gate = new();
     private bool _isProcessing;
+    private Func<FakeStepRun, bool>? _loseNextAnswer;
+    private Func<WorkflowEnqueueRequest, bool>? _failNextEnqueue;
+    private Func<FakeStepRun, bool>? _overlapNextRun;
+    private Func<Task>? _runTheStepAgain;
+    private IActionResult? _overlappingAnswer;
 
     public FakeWorkflowEngineClient(
         IServiceProvider serviceProvider,
@@ -82,9 +96,31 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        if (_failNextEnqueue is { } failEnqueue && failEnqueue(request))
+        {
+            _failNextEnqueue = null;
+            FailedEnqueues++;
+            throw new HttpRequestException(
+                "The engine could not be reached.",
+                inner: null,
+                HttpStatusCode.ServiceUnavailable
+            );
+        }
+
         string batchKey = CreateBatchKey(ns, idempotencyKey);
+        string fingerprint = CreateFingerprint(collectionKey, request);
         if (_workflowsByIdempotencyKey.TryGetValue(batchKey, out Guid[]? existingWorkflowIds))
         {
+            if (_fingerprintsByIdempotencyKey[batchKey] != fingerprint)
+            {
+                // What the engine answers when a used key comes with other work.
+                throw new HttpRequestException(
+                    $"Idempotency key {idempotencyKey} was used for another request.",
+                    inner: null,
+                    HttpStatusCode.Conflict
+                );
+            }
+
             return new WorkflowEnqueueResponse.Accepted
             {
                 Workflows = existingWorkflowIds.Select(workflowId => ToWorkflowResult(_workflows[workflowId])).ToList(),
@@ -113,6 +149,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 refMap[workflow.Ref] = databaseId;
             }
 
+            long? mailboxSeq = workflow.Mailbox is { } mailboxReference ? TakeReceiverSeq(mailboxReference.Id) : null;
+            bool held = workflow.Mailbox is { } receiverMailbox && !CanReceive(receiverMailbox.Id, mailboxSeq ?? 0);
             bool isCollectionRoot = workflow.DependsOn is null || workflow.DependsOn.All(dependency => dependency.IsId);
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
             // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
@@ -166,6 +204,9 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         .ToList(),
                     CreatedAt = createdAt,
                     UpdatedAt = createdAt,
+                    MailboxId = workflow.Mailbox?.Id,
+                    MailboxSeq = mailboxSeq,
+                    Status = held ? PersistentItemStatus.Held : PersistentItemStatus.Enqueued,
                 }
             );
         }
@@ -176,6 +217,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         _workflowsByIdempotencyKey[batchKey] = createdWorkflows.Select(workflow => workflow.DatabaseId).ToArray();
+        _fingerprintsByIdempotencyKey[batchKey] = fingerprint;
         if (!string.IsNullOrWhiteSpace(collectionKey))
         {
             UpdateCollectionHeads(ns, collectionKey, currentCollectionHeads, createdWorkflows);
@@ -185,6 +227,70 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         return new WorkflowEnqueueResponse.Accepted { Workflows = createdWorkflows.Select(ToWorkflowResult).ToList() };
     }
+
+    /// <summary>
+    /// Loses the answer of the next step run that <paramref name="step"/> matches, once that run's callback has saved and
+    /// relayed, so the step runs again with the same payload, as the engine retries a step whose answer it never got.
+    /// </summary>
+    public void LoseNextAnswer(Func<FakeStepRun, bool> step) => _loseNextAnswer = step;
+
+    /// <summary>How many step answers <see cref="LoseNextAnswer"/> lost.</summary>
+    public int LostAnswers { get; private set; }
+
+    /// <summary>Answers the next enqueue that <paramref name="request"/> matches as an engine that cannot be reached.</summary>
+    public void FailNextEnqueue(Func<WorkflowEnqueueRequest, bool> request) => _failNextEnqueue = request;
+
+    /// <summary>How many enqueues <see cref="FailNextEnqueue"/> failed.</summary>
+    public int FailedEnqueues { get; private set; }
+
+    /// <summary>
+    /// Lets <see cref="RunTheStepAgainNow"/> start a second run of the next step run that <paramref name="step"/>
+    /// matches, with the same payload, while the first is still in its callback, as the engine does when it times out a
+    /// run and retries the step. The engine takes the second run's answer, whatever the first answers.
+    /// </summary>
+    public void OverlapNextRun(Func<FakeStepRun, bool> step) => _overlapNextRun = step;
+
+    /// <summary>Runs the step that <see cref="OverlapNextRun"/> matched again, to the end of its callback.</summary>
+    public Task RunTheStepAgainNow() =>
+        (_runTheStepAgain ?? throw new InvalidOperationException("No step run is open to overlap."))();
+
+    /// <summary>How many step runs <see cref="RunTheStepAgainNow"/> overlapped.</summary>
+    public int OverlappedRuns { get; private set; }
+
+    /// <summary>Whether a workflow failed, or could not run because one it depends on failed.</summary>
+    public bool HasFailedWorkflow =>
+        _workflows.Values.Any(workflow =>
+            workflow.Status is PersistentItemStatus.Failed or PersistentItemStatus.DependencyFailed
+        );
+
+    /// <summary>
+    /// The work an enqueue request is checked against when its key was used before, as the engine computes it: the
+    /// collection, steps, commands, dependencies and schedule, without the state, context and labels.
+    /// </summary>
+    private static string CreateFingerprint(string? collectionKey, WorkflowEnqueueRequest request) =>
+        JsonSerializer.Serialize(
+            new
+            {
+                collectionKey,
+                Workflows = request.Workflows.Select(workflow => new
+                {
+                    workflow.Ref,
+                    workflow.OperationId,
+                    Steps = workflow.Steps.Select(step => new
+                    {
+                        step.OperationId,
+                        step.Command,
+                        step.RetryStrategy,
+                    }),
+                    workflow.StartAt,
+                    workflow.DependsOn,
+                    workflow.Links,
+                    workflow.DependsOnHeads,
+                    workflow.IsHead,
+                    workflow.Mailbox,
+                }),
+            }
+        );
 
     public Task<WorkflowCollectionDetailResponse?> GetCollection(
         string ns,
@@ -221,6 +327,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     {
                         DatabaseId = headId,
                         Status = workflow.Status,
+                        Labels = workflow.Labels is null ? null : new Dictionary<string, string>(workflow.Labels),
                         StepsCompleted = workflow.Steps.Count(step => step.Status == PersistentItemStatus.Completed),
                         StepsTotal = workflow.Steps.Count,
                     };
@@ -393,6 +500,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 DisposedAt = DateTimeOffset.UtcNow,
             };
             _mailboxesByIdempotencyKey.TryUpdate(key, closed, mailbox);
+            MarkReceiversRunnable(mailboxId);
             return Task.FromResult<MailboxResponse?>(closed);
         }
 
@@ -401,9 +509,10 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
     /// <summary>
     /// Models the engine's response matrix: <c>404</c> unknown, <c>409</c> closed, <c>200</c> replay (even
-    /// after closure), <c>202</c> appended. Stores the delivery but wakes nobody.
+    /// after closure), <c>429</c> past the log limit, <c>202</c> appended. An appended delivery runs the receiver held
+    /// at its position.
     /// </summary>
-    public Task<MailboxDeliveryResult> DeliverToMailbox(
+    public async Task<MailboxDeliveryResult> DeliverToMailbox(
         string ns,
         Guid mailboxId,
         MailboxDeliveryRequest request,
@@ -415,7 +524,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         // The idempotency lookup runs before the closed check, exactly as the engine's does.
         if (_deliveriesByKey.TryGetValue(deliveryKey, out MailboxDeliveryResponse? existing))
         {
-            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null));
+            return new MailboxDeliveryResult(HttpStatusCode.OK, existing, ErrorDetail: null);
         }
 
         foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
@@ -427,12 +536,19 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
             if (mailbox.Status == MailboxStatus.Disposed)
             {
-                return Task.FromResult(
-                    new MailboxDeliveryResult(
-                        HttpStatusCode.Conflict,
-                        Body: null,
-                        ErrorDetail: $"Mailbox {mailboxId} is closed and no longer accepts deliveries."
-                    )
+                return new MailboxDeliveryResult(
+                    HttpStatusCode.Conflict,
+                    Body: null,
+                    ErrorDetail: $"Mailbox {mailboxId} is closed and no longer accepts deliveries."
+                );
+            }
+
+            if (mailbox.NextIdx >= MaxMailboxLogLength)
+            {
+                return new MailboxDeliveryResult(
+                    HttpStatusCode.TooManyRequests,
+                    Body: null,
+                    ErrorDetail: $"Mailbox {mailboxId} has taken {MaxMailboxLogLength} messages."
                 );
             }
 
@@ -444,12 +560,119 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 AcceptedAt = DateTimeOffset.UtcNow,
             };
             _deliveriesByKey[deliveryKey] = delivery;
+            _deliveriesByPosition[(mailboxId, delivery.Idx)] = new StoredDelivery(delivery, request.Payload);
             _mailboxesByIdempotencyKey.TryUpdate(key, mailbox with { NextIdx = mailbox.NextIdx + 1 }, mailbox);
 
-            return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.Accepted, delivery, ErrorDetail: null));
+            await WakeReceivers(mailboxId, cancellationToken);
+            return new MailboxDeliveryResult(HttpStatusCode.Accepted, delivery, ErrorDetail: null);
         }
 
-        return Task.FromResult(new MailboxDeliveryResult(HttpStatusCode.NotFound, Body: null, ErrorDetail: null));
+        return new MailboxDeliveryResult(HttpStatusCode.NotFound, Body: null, ErrorDetail: null);
+    }
+
+    /// <summary>
+    /// Closes the mailbox as the engine's deadline sweep does, and runs the receiver that waits on it with the closing
+    /// signal.
+    /// </summary>
+    public async Task ExpireMailbox(Guid mailboxId, CancellationToken cancellationToken = default)
+    {
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id == mailboxId && mailbox.Status != MailboxStatus.Disposed)
+            {
+                _mailboxesByIdempotencyKey.TryUpdate(
+                    key,
+                    mailbox with
+                    {
+                        Status = MailboxStatus.Disposed,
+                        DisposedReason = MailboxDisposedReason.Deadline,
+                        DisposedAt = DateTimeOffset.UtcNow,
+                    },
+                    mailbox
+                );
+            }
+        }
+
+        await WakeReceivers(mailboxId, cancellationToken);
+    }
+
+    /// <summary>The receiver position the next receive workflow for the mailbox gets, as the engine assigns it.</summary>
+    private long TakeReceiverSeq(Guid mailboxId)
+    {
+        foreach ((string key, MailboxResponse mailbox) in _mailboxesByIdempotencyKey)
+        {
+            if (mailbox.Id == mailboxId)
+            {
+                _mailboxesByIdempotencyKey.TryUpdate(key, mailbox with { NextSeq = mailbox.NextSeq + 1 }, mailbox);
+                return mailbox.NextSeq;
+            }
+        }
+
+        throw new InvalidOperationException($"A receive workflow names mailbox {mailboxId}, which does not exist.");
+    }
+
+    /// <summary>Whether the receiver at <paramref name="seq"/> has its delivery, or the mailbox has closed.</summary>
+    private bool CanReceive(Guid mailboxId, long seq) =>
+        _deliveriesByPosition.ContainsKey((mailboxId, seq))
+        || _mailboxesByIdempotencyKey.Values.Any(mailbox =>
+            mailbox.Id == mailboxId && mailbox.Status == MailboxStatus.Disposed
+        );
+
+    private async Task WakeReceivers(Guid mailboxId, CancellationToken cancellationToken)
+    {
+        MarkReceiversRunnable(mailboxId);
+        await ProcessAvailableWorkflows(cancellationToken);
+    }
+
+    private void MarkReceiversRunnable(Guid mailboxId)
+    {
+        lock (_gate)
+        {
+            foreach (StoredWorkflow receiver in _workflows.Values)
+            {
+                if (
+                    receiver is { Status: PersistentItemStatus.Held, MailboxSeq: { } seq }
+                    && receiver.MailboxId == mailboxId
+                    && CanReceive(mailboxId, seq)
+                )
+                {
+                    receiver.Status = PersistentItemStatus.Enqueued;
+                    receiver.UpdatedAt = DateTimeOffset.UtcNow;
+                }
+            }
+        }
+    }
+
+    /// <summary>What the receiver's first step is told: its delivery, or that none can come.</summary>
+    private AppCallbackMailbox? CreateRendezvous(StoredWorkflow workflow)
+    {
+        if (workflow is not { MailboxId: { } mailboxId, MailboxSeq: { } seq })
+        {
+            return null;
+        }
+
+        if (_deliveriesByPosition.TryGetValue((mailboxId, seq), out StoredDelivery? delivery))
+        {
+            return new AppCallbackMailbox
+            {
+                Id = mailboxId,
+                Seq = seq,
+                Delivery = new AppCallbackMailboxDelivery
+                {
+                    IdempotencyKey = delivery.Response.IdempotencyKey,
+                    Payload = delivery.Payload,
+                    AcceptedAt = delivery.Response.AcceptedAt,
+                },
+            };
+        }
+
+        MailboxResponse mailbox = _mailboxesByIdempotencyKey.Values.Single(candidate => candidate.Id == mailboxId);
+        return new AppCallbackMailbox
+        {
+            Id = mailboxId,
+            Seq = seq,
+            DisposedReason = mailbox.DisposedReason,
+        };
     }
 
     private async Task ProcessAvailableWorkflows(CancellationToken cancellationToken)
@@ -545,12 +768,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
 
         string? currentState = workflow.State;
 
-        var controller = new WorkflowEngineCallbackController(
-            _serviceProvider,
-            _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
-            _serviceProvider.GetService<Telemetry>()
-        );
-
         foreach (StoredStep step in workflow.Steps)
         {
             if (step.Status == PersistentItemStatus.Completed)
@@ -605,6 +822,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         ? null
                         : attemptStartedAt + (waitBudget - step.WaitElapsed),
                     IsFinalWaitCheck = step.FirstDeferredAt is not null && step.WaitElapsed >= waitBudget,
+                    Mailbox = step.ProcessingOrder == 0 ? CreateRendezvous(workflow) : null,
                 };
 
                 if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
@@ -624,23 +842,26 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     workflow.UpdatedAt = DateTimeOffset.UtcNow;
                     return;
                 }
-                controller.ControllerContext = new ControllerContext
+                var run = new FakeStepRun(workflow.OperationId, appCommandData.CommandKey, payload.Mailbox);
+                if (_overlapNextRun is { } overlap && overlap(run))
                 {
-                    HttpContext = CreateCallbackRequest(workflow, appCommandData.CommandKey, principal),
-                };
-                IActionResult result = await WorkflowCallbackHttpContextAccessor.RunCallback(
-                    controller.HttpContext,
-                    () =>
-                        controller.ExecuteCommand(
-                            workflow.Context.Org,
-                            workflow.Context.App,
-                            workflow.Context.InstanceOwnerPartyId,
-                            workflow.Context.InstanceGuid,
-                            appCommandData.CommandKey,
-                            payload,
-                            cancellationToken
-                        )
-                );
+                    _overlapNextRun = null;
+                    AppCallbackPayload retried = payload with { RetryCount = payload.RetryCount + 1 };
+                    _runTheStepAgain = async () =>
+                    {
+                        _runTheStepAgain = null;
+                        _overlappingAnswer = await Callback(workflow, retried, principal, cancellationToken);
+                    };
+                }
+
+                IActionResult result = await Callback(workflow, payload, principal, cancellationToken);
+                _runTheStepAgain = null;
+                if (_overlappingAnswer is { } overlappingAnswer)
+                {
+                    _overlappingAnswer = null;
+                    OverlappedRuns++;
+                    result = overlappingAnswer;
+                }
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
                 {
@@ -691,9 +912,53 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                         continue;
                     }
 
+                    if (_loseNextAnswer is { } loseAnswer && loseAnswer(run))
+                    {
+                        // What the engine does with an answer that never arrived: an error, and the step runs again
+                        // from the state it was given.
+                        _loseNextAnswer = null;
+                        LostAnswers++;
+                        step.ErrorHistory.Add(
+                            new ErrorEntry(
+                                DateTimeOffset.UtcNow,
+                                "The answer was lost.",
+                                (int)HttpStatusCode.GatewayTimeout,
+                                WasRetryable: true
+                            )
+                        );
+                        step.RetryCount++;
+                        continue;
+                    }
+
                     currentState = response.State;
                     MarkStepCompleted(step, response.State);
                     break;
+                }
+
+                if (
+                    result is ObjectResult { StatusCode: StatusCodes.Status500InternalServerError, Value: string error }
+                )
+                {
+                    // What the engine does with a 500 for an exception the callback did not handle: its default retry
+                    // strategy runs the step again from the state it was given.
+                    step.ErrorHistory.Add(
+                        new ErrorEntry(
+                            DateTimeOffset.UtcNow,
+                            error,
+                            StatusCodes.Status500InternalServerError,
+                            WasRetryable: true
+                        )
+                    );
+                    step.RetryCount++;
+                    if (step.RetryCount > MaxRetriesOfAThrowingStep)
+                    {
+                        throw new InvalidOperationException(
+                            $"Step '{step.OperationId}' threw on {step.RetryCount} runs: {error}. This fake retries an "
+                                + "unhandled exception without waiting, so one that keeps coming loops here."
+                        );
+                    }
+
+                    continue;
                 }
 
                 if (result is ObjectResult { Value: ProblemDetails problem })
@@ -736,6 +1001,47 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         workflow.State = currentState;
         workflow.Status = PersistentItemStatus.Completed;
         workflow.UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    private async Task<IActionResult> Callback(
+        StoredWorkflow workflow,
+        AppCallbackPayload payload,
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken
+    )
+    {
+        var controller = new WorkflowEngineCallbackController(
+            _serviceProvider,
+            _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
+            _serviceProvider.GetService<Telemetry>()
+        )
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = CreateCallbackRequest(workflow, payload.CommandKey, principal),
+            },
+        };
+        try
+        {
+            return await WorkflowCallbackHttpContextAccessor.RunCallback(
+                controller.HttpContext,
+                () =>
+                    controller.ExecuteCommand(
+                        workflow.Context.Org,
+                        workflow.Context.App,
+                        workflow.Context.InstanceOwnerPartyId,
+                        workflow.Context.InstanceGuid,
+                        payload.CommandKey,
+                        payload,
+                        cancellationToken
+                    )
+            );
+        }
+        catch (HttpRequestException exception)
+        {
+            // A call to the engine that failed inside the callback is an unhandled exception: a bare 500.
+            return new ObjectResult(exception.Message) { StatusCode = StatusCodes.Status500InternalServerError };
+        }
     }
 
     private static void MarkStepCompleted(StoredStep step, string? stateOut)
@@ -1009,7 +1315,18 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         public string? State { get; set; }
 
         public PersistentItemStatus Status { get; set; } = PersistentItemStatus.Enqueued;
+
+        /// <summary>The mailbox a receive workflow receives from.</summary>
+        public Guid? MailboxId { get; init; }
+
+        /// <summary>The receive workflow's position in its mailbox's receivers log.</summary>
+        public long? MailboxSeq { get; init; }
     }
+
+    private sealed record StoredDelivery(MailboxDeliveryResponse Response, string Payload);
+
+    /// <summary>A step run whose callback answered: its workflow, its command, and the message it was given, if any.</summary>
+    internal sealed record FakeStepRun(string WorkflowOperationId, string CommandKey, AppCallbackMailbox? Mailbox);
 
     private sealed class StoredStep
     {

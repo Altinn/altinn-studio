@@ -1,15 +1,16 @@
-#nullable disable
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
+using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
-using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
@@ -17,143 +18,161 @@ namespace Altinn.App.Core.Tests.Features.Action;
 
 public class PaymentUserActionTests
 {
-    private readonly Mock<IDataService> _dataServiceMock = new();
-    private readonly Mock<IPaymentService> _paymentServiceMock = new();
+    private const string TaskId = "Task2";
+    private static readonly StorageVersionMetadata _readVersions = new(InstanceVersion: 7, ProcessStateVersion: 3);
+
+    private readonly MockedServiceCollection _fixture = new();
+    private readonly Mock<IPaymentService> _paymentService = new(MockBehavior.Strict);
+    private readonly Mock<IProcessEngine> _processEngine = new(MockBehavior.Strict);
+    private readonly Instance _instance = new()
+    {
+        Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
+        AppId = "ttd/mocked-app",
+        InstanceOwner = new InstanceOwner { PartyId = "500000" },
+        Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = TaskId } },
+        Data = [],
+    };
+
+    public PaymentUserActionTests() => _fixture.Storage.AddInstance(_instance);
 
     [Fact]
-    public async Task HandleAction_returns_redirect_result_correctly()
+    public async Task Pay_StartsThePaymentAttemptFromTheVersionsTheRequestRead()
     {
-        // Arrange
-        Instance instance = CreateInstance();
+        SetupStart(new ActionPipelineOutcome.Moved(After()));
 
-        PaymentInformation paymentInformation = new()
-        {
-            TaskId = instance.Process.CurrentTask.ElementId,
-            Status = PaymentStatus.Created,
-            OrderDetails = new OrderDetails
-            {
-                PaymentProcessorId = "paymentProcessorId",
-                Currency = "NOK",
-                OrderLines = [],
-                Receiver = new PaymentReceiver(),
-            },
-            PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com" },
-        };
+        await Pay();
 
-        var userActionContext = new UserActionContext(instance, 1337);
-
-        _paymentServiceMock
-            .Setup(x =>
-                x.StartPayment(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>(), It.IsAny<string>())
-            )
-            .ReturnsAsync((paymentInformation, false));
-
-        // Act
-        PaymentUserAction userAction = CreatePaymentUserAction();
-        UserActionResult result = await userAction.HandleAction(userActionContext);
-
-        // Assert
-        result
-            .Should()
-            .BeEquivalentTo(UserActionResult.RedirectResult(new Uri(paymentInformation.PaymentDetails.RedirectUrl)));
+        _processEngine.Verify(engine =>
+            engine.StartActionPipeline(_instance, _readVersions, "pay", "en", It.IsAny<CancellationToken>())
+        );
     }
 
-    [Fact]
-    public async Task HandleAction_returns_success_result_when_no_redirect_url()
+    // What pay answers for each way the attempt can leave the instance, always with the instance the attempt left.
+    [Theory]
+    [InlineData("open", PaymentStatus.Created, "redirect", null, null)]
+    [InlineData("open", PaymentStatus.Authorized, "success", null, null)]
+    [InlineData("moved", null, "success", null, null)]
+    [InlineData("released", null, "failure", "PaymentNotStarted", ProcessErrorType.Internal)]
+    [InlineData("concurrentTransition", null, "failure", "ConcurrentTransition", ProcessErrorType.Conflict)]
+    [InlineData("workflowFailed", null, "failure", "WorkflowFailed", ProcessErrorType.Internal)]
+    public async Task Pay_AnswersHowTheAttemptLeftTheInstance(
+        string start,
+        PaymentStatus? recordStatus,
+        string resultType,
+        string? errorCode,
+        ProcessErrorType? errorType
+    )
     {
-        // Arrange
-        Instance instance = CreateInstance();
-
-        PaymentInformation paymentInformation = new()
-        {
-            TaskId = instance.Process.CurrentTask.ElementId,
-            Status = PaymentStatus.Skipped,
-            OrderDetails = new OrderDetails
+        InstanceWithStorageMetadata after = After();
+        SetupStart(
+            start switch
             {
-                PaymentProcessorId = "paymentProcessorId",
-                Currency = "NOK",
-                OrderLines = [],
-                Receiver = new PaymentReceiver(),
-            },
-            PaymentDetails = new PaymentDetails { PaymentId = null, RedirectUrl = null },
-        };
-
-        var userActionContext = new UserActionContext(instance, 1337);
-
-        _paymentServiceMock
-            .Setup(x =>
-                x.StartPayment(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>(), It.IsAny<string>())
-            )
-            .ReturnsAsync((paymentInformation, false));
-
-        // Act
-        PaymentUserAction userAction = CreatePaymentUserAction();
-        UserActionResult result = await userAction.HandleAction(userActionContext);
-
-        // Assert
-        result.Should().BeEquivalentTo(UserActionResult.SuccessResult());
-    }
-
-    [Fact]
-    public async Task HandleAction_returns_failure_result_when_already_paid()
-    {
-        // Arrange
-        Instance instance = CreateInstance();
-
-        PaymentInformation paymentInformation = new()
+                "open" => new ActionPipelineOutcome.Open(after),
+                "moved" => new ActionPipelineOutcome.Moved(after),
+                "released" => new ActionPipelineOutcome.Released(after),
+                "concurrentTransition" => new ActionPipelineOutcome.Refused(
+                    new ProcessChangeResult(after.Instance, after.Metadata)
+                    {
+                        Success = false,
+                        ErrorType = ProcessErrorType.Conflict,
+                        ProcessNextState = ProcessNextState.ConcurrentTransition,
+                    }
+                ),
+                "workflowFailed" => new ActionPipelineOutcome.Refused(
+                    new ProcessChangeResult(after.Instance, after.Metadata)
+                    {
+                        Success = false,
+                        ErrorType = ProcessErrorType.Internal,
+                        WorkflowFailure = new WorkflowFailure { Kind = WorkflowFailureKind.StepFailed },
+                    }
+                ),
+                _ => throw new ArgumentOutOfRangeException(nameof(start), start, null),
+            }
+        );
+        if (recordStatus is { } status)
         {
-            TaskId = instance.Process.CurrentTask.ElementId,
-            Status = PaymentStatus.Skipped,
-            OrderDetails = new OrderDetails
-            {
-                PaymentProcessorId = "paymentProcessorId",
-                Currency = "NOK",
-                OrderLines = [],
-                Receiver = new PaymentReceiver(),
-            },
-            PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com" },
-        };
-
-        var userActionContext = new UserActionContext(instance, 1337);
-
-        _paymentServiceMock
-            .Setup(x =>
-                x.StartPayment(It.IsAny<Instance>(), It.IsAny<ValidAltinnPaymentConfiguration>(), It.IsAny<string>())
-            )
-            .ReturnsAsync((paymentInformation, true));
-
-        // Act
-        PaymentUserAction userAction = CreatePaymentUserAction();
-        UserActionResult result = await userAction.HandleAction(userActionContext);
-
-        // Assert
-        result
-            .Should()
-            .BeEquivalentTo(
-                UserActionResult.FailureResult(
-                    error: new ActionError { Code = "PaymentAlreadyCompleted", Message = "Payment already completed." },
-                    errorType: ProcessErrorType.Conflict
+            _paymentService
+                .Setup(s =>
+                    s.GetPaymentInformation(
+                        after.Instance,
+                        It.IsAny<ValidAltinnPaymentConfiguration>(),
+                        TaskId,
+                        "en",
+                        It.IsAny<CancellationToken>()
+                    )
                 )
-            );
+                .ReturnsAsync(
+                    new PaymentInformation
+                    {
+                        TaskId = TaskId,
+                        Status = status,
+                        OrderDetails = new OrderDetails
+                        {
+                            PaymentProcessorId = "paymentProcessorId",
+                            Currency = "NOK",
+                            OrderLines = [],
+                            Receiver = new PaymentReceiver(),
+                        },
+                        PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://checkout" },
+                    }
+                );
+        }
+
+        UserActionResult result = await Pay();
+
+        string actualType = result switch
+        {
+            { ResultType: ResultType.Failure } => "failure",
+            { RedirectUrl: not null } => "redirect",
+            _ => "success",
+        };
+        Assert.Equal(resultType, actualType);
+        Assert.Equal(errorCode, result.Error?.Code);
+        Assert.Equal(errorType, result.ResultType == ResultType.Failure ? result.ErrorType : null);
+        Assert.Same(after.Instance, result.UpdatedInstance?.Instance);
+        if (actualType == "redirect")
+        {
+            Assert.Equal(new Uri("https://checkout"), result.RedirectUrl);
+        }
     }
 
-    private PaymentUserAction CreatePaymentUserAction(string testBpmnFilename = "payment-task-process.bpmn")
+    private InstanceWithStorageMetadata After() =>
+        new(
+            new Instance { Id = _instance.Id, Process = _instance.Process },
+            _readVersions with
+            {
+                InstanceVersion = 9,
+            }
+        );
+
+    private void SetupStart(ActionPipelineOutcome start) =>
+        _processEngine
+            .Setup(engine =>
+                engine.StartActionPipeline(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageVersionMetadata>(),
+                    "pay",
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(start);
+
+    private async Task<UserActionResult> Pay()
     {
+        await using WrappedServiceProvider sp = _fixture.BuildServiceProvider();
+        InstanceDataUnitOfWork dataMutator = await sp.GetRequiredService<InstanceDataUnitOfWorkInitializer>()
+            .Init(_instance, _readVersions, TaskId, "en");
         IProcessReader processReader = ProcessTestUtils.SetupProcessReader(
-            testBpmnFilename,
+            "payment-task-process.bpmn",
             Path.Join("Features", "Action", "TestData")
         );
-        return new PaymentUserAction(processReader, _paymentServiceMock.Object, NullLogger<PaymentUserAction>.Instance);
-    }
-
-    private static Instance CreateInstance()
-    {
-        return new Instance()
-        {
-            Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new InstanceOwner { PartyId = "5000" },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task2" } },
-            Data = [new DataElement { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }],
-        };
+        var userAction = new PaymentUserAction(
+            processReader,
+            _paymentService.Object,
+            _processEngine.Object,
+            NullLogger<PaymentUserAction>.Instance
+        );
+        return await userAction.HandleAction(new UserActionContext(dataMutator, 1337, language: "en"));
     }
 }

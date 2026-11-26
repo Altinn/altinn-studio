@@ -1,6 +1,6 @@
 using Altinn.App.Core.Features.Payment.Models;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Internal.Storage;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Payment.Services;
@@ -11,40 +11,48 @@ namespace Altinn.App.Core.Features.Payment.Services;
 internal interface IPaymentService
 {
     /// <summary>
-    /// Start payment for an instance. Will clean up any existing non-completed payment before starting a new payment.
-    /// An existing payment the payment processor refuses to terminate, because it has gone through, is stored and
-    /// reported as already paid; if the stored record changed since <paramref name="instance"/> was read, the save fails
-    /// with a conflict and the newer record stays.
+    /// Opens a payment attempt: creates the payment at the payment processor and stores it with the attempt's
+    /// mailbox, or adopts a payment an earlier visit to the task left. Anything that stops the payment from being
+    /// created releases the instance, so it is not held while the engine retries the create.
     /// </summary>
-    Task<(PaymentInformation paymentInformation, bool alreadyPaid)> StartPayment(
-        Instance instance,
+    Task<ServiceTaskOpeningStageResult> StartAttempt(
+        StageContext context,
+        ServiceTaskMailbox mailbox,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    );
+
+    /// <summary>
+    /// Answers a message to an open payment attempt, from the verdict for what the payment processor reports.
+    /// </summary>
+    Task<ServiceTaskExchangeResult> HandleAttemptMessage(
+        StageContext context,
+        ServiceTaskReply reply,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    );
+
+    /// <summary>
+    /// Ends a payment attempt whose mailbox closed, from the verdict for what the payment processor reports.
+    /// </summary>
+    Task<ServiceTaskResult> SettleAtDeadline(
+        StageContext context,
+        ValidAltinnPaymentConfiguration paymentConfiguration
+    );
+
+    /// <summary>
+    /// Asks the payment processor about a stored payment the record does not show as paid, and stages what it reports
+    /// on <paramref name="dataMutator"/>, for the caller to save.
+    /// </summary>
+    Task RefreshUnpaidPayment(
+        IInstanceDataMutator dataMutator,
         ValidAltinnPaymentConfiguration paymentConfiguration,
-        string? language,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Check updated payment information from payment provider and store the updated data.
-    /// Operates on the instance's current task.
+    /// The stored payment record of <paramref name="taskId"/>, or an <see cref="PaymentStatus.Uninitialized"/> one with
+    /// the calculated order details when there is none. Asks the payment processor nothing.
     /// </summary>
-    /// <remarks>
-    /// Stores only a change, and only if neither the stored record nor the process has changed since
-    /// <paramref name="fetchedInstance"/> was read. If either has, such as when the webhook stored the payment first,
-    /// the request answers 409 and the form asks again, since what is stored is newer than the processor's answer to
-    /// this call.
-    /// </remarks>
-    Task<PaymentInformation> CheckAndStorePaymentStatus(
-        InstanceWithStorageMetadata fetchedInstance,
-        ValidAltinnPaymentConfiguration paymentConfiguration,
-        string? language,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Check updated payment information from the payment provider for the given task without persisting any changes.
-    /// Use when reading payment status for a task that is not the instance's current task.
-    /// </summary>
-    Task<PaymentInformation> CheckPaymentStatus(
+    Task<PaymentInformation> GetPaymentInformation(
         Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
         string taskId,
@@ -53,22 +61,21 @@ internal interface IPaymentService
     );
 
     /// <summary>
-    /// Handle webhook callback from the payment provider indicating that the payment is completed.
-    /// Calls the provider for status, not trusting the webhook alone.
+    /// The status the payment processor reports for the stored payment, without storing it.
     /// </summary>
-    /// <remarks>
-    /// Stores the status on condition that nothing changed since <paramref name="fetchedInstance"/> was read, and starts
-    /// over once from a fresh read if something did. When the payment is paid and the instance is in its payment task,
-    /// the process moves on as if the service owner had confirmed the task, and this returns once the transition has
-    /// started. It starts the transition once more if a change to the instance stopped it from starting. It throws, so
-    /// that the payment processor calls again, if it would have to start over a second time, if the transition does
-    /// not start, or if another call started a different transition from the same version of the instance.
-    /// </remarks>
-    /// <returns>A string with info about the callback success. Can be used for logging or return
-    /// </returns>
-    Task<string> HandlePaymentCompletedWebhook(
-        InstanceWithStorageMetadata fetchedInstance,
-        ValidAltinnPaymentConfiguration paymentConfiguration,
+    Task<PaymentStatus> GetProcessorStatus(
+        Instance instance,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// The payment record, of any payment task in the process, that holds the processor's payment
+    /// <paramref name="paymentId"/>, read as the service owner. Null when no record holds it.
+    /// </summary>
+    Task<PaymentInformation?> FindPaymentRecord(
+        Instance instance,
+        string paymentId,
         CancellationToken cancellationToken = default
     );
 
@@ -85,15 +92,6 @@ internal interface IPaymentService
     /// <returns>Whether the payment has gone through.</returns>
     Task<bool> PrepareAbandon(
         IInstanceDataMutator dataMutator,
-        ValidAltinnPaymentConfiguration paymentConfiguration,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Get our internal payment status. Will only check the local status and will not get updated status from the payment provider.
-    /// </summary>
-    Task<PaymentStatus> GetPaymentStatus(
-        Instance instance,
         ValidAltinnPaymentConfiguration paymentConfiguration,
         CancellationToken cancellationToken = default
     );

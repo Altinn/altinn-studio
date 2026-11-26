@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -109,52 +108,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             cancellationToken
         );
 
-    public async Task<AcquireWorkflowResult> EnqueueAndWaitForAcquire(
-        Instance instance,
-        StorageVersionMetadata instanceVersions,
-        string state,
-        ProcessStateChange processStateChange,
-        Actor actor,
-        CancellationToken cancellationToken = default
-    )
-    {
-        (Guid acquireWorkflowId, _) = await SubmitWorkflow(
-            () =>
-                Task.FromResult(
-                    _processNextRequestFactory.CreateAcquire(
-                        instance,
-                        new AcquireProcessingStatusPayload(processStateChange),
-                        processStateChange.NewProcessState?.CurrentTask?.ElementId,
-                        state,
-                        CreateProcessNextIdempotencyKey(instance, instanceVersions),
-                        actor
-                    )
-                ),
-            cancellationToken
-        );
-
-        WorkflowStatusResponse? acquireWorkflow = await WaitForWorkflowToFinish(acquireWorkflowId, cancellationToken);
-        if (acquireWorkflow is null || IsActiveWorkflowStatus(acquireWorkflow))
-        {
-            return new AcquireWorkflowResult.NotCompleted(new WorkflowFailure { Kind = WorkflowFailureKind.Timeout });
-        }
-
-        // Only a completed acquire compared the instance. One that failed, such as one the acquirer rejected or one
-        // condemned by an earlier failed workflow, says nothing about whether the instance changed.
-        if (BuildWorkflowFailure([acquireWorkflow]) is { } failure)
-        {
-            return new AcquireWorkflowResult.NotCompleted(failure);
-        }
-
-        return new AcquireWorkflowResult.Completed(
-            await _instanceClient.GetInstanceWithStorageMetadata(
-                instance,
-                StorageAuthenticationMethod.ServiceOwner(),
-                cancellationToken
-            )
-        );
-    }
-
     public async Task<ProcessNextWorkflowResult> EnqueueAndWaitForActionPipeline(
         Instance instance,
         StorageVersionMetadata instanceVersions,
@@ -202,6 +155,18 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return collection?.Heads.FirstOrDefault(IsActiveCollectionHeadStatus)?.DatabaseId;
     }
 
+    public async Task<bool> IsMailboxOfInstance(
+        InstanceIdentifier instanceId,
+        Guid mailboxId,
+        CancellationToken cancellationToken = default
+    ) =>
+        (await _workflowEngineClient.GetMailbox(GetNamespace(), mailboxId, cancellationToken))?.CollectionKey
+        == ProcessNextRequestFactory.CreateCollectionKey(instanceId);
+
+    public async Task<bool> IsMailboxOpen(Guid mailboxId, CancellationToken cancellationToken = default) =>
+        (await _workflowEngineClient.GetMailbox(GetNamespace(), mailboxId, cancellationToken))?.Status
+        == MailboxStatus.Open;
+
     public Task<ProcessNextWorkflowResult> WaitForActionPipelineMessage(
         Instance instance,
         Guid sinceWorkflowId,
@@ -238,25 +203,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
         CancellationToken cancellationToken,
         ParkedIsFinal? parkedIsFinal = null
-    )
-    {
-        (Guid enqueuedWorkflowId, string collectionKey) = await SubmitWorkflow(createEnvelope, cancellationToken);
-
-        return await WaitForWorkflowCollectionAndRefetchInstance(
-            instance,
-            collectionKey,
-            sinceWorkflowId: enqueuedWorkflowId,
-            cancellationToken,
-            parkedIsFinal
-        );
-    }
-
-    /// <summary>
-    /// Builds and submits the workflow, and returns once the engine has accepted it.
-    /// </summary>
-    private async Task<(Guid WorkflowId, string CollectionKey)> SubmitWorkflow(
-        Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
-        CancellationToken cancellationToken
     )
     {
         WorkflowEnqueueEnvelope bundle;
@@ -305,7 +251,13 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             );
         }
 
-        return (enqueuedWorkflowId, collectionKey);
+        return await WaitForWorkflowCollectionAndRefetchInstance(
+            instance,
+            collectionKey,
+            sinceWorkflowId: enqueuedWorkflowId,
+            cancellationToken,
+            parkedIsFinal
+        );
     }
 
     public async Task<Guid> EnqueueDependentProcessNext(
@@ -732,53 +684,15 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             }
 
             await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, cancellationToken);
-            currentDelayMs = GetNextPollDelayMs(startedAt, currentDelayMs);
+            currentDelayMs =
+                _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
+                    ? InitialWorkflowPollingDelayMs
+                    : Math.Min(
+                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
+                        MaxWorkflowPollingDelayMs
+                    );
         }
     }
-
-    /// <summary>
-    /// Polls one workflow until it is no longer active, or until <see cref="WorkflowPollingTimeoutMs"/> has passed.
-    /// </summary>
-    /// <returns>The workflow as the last poll read it, or null if the engine did not find it.</returns>
-    private async Task<WorkflowStatusResponse?> WaitForWorkflowToFinish(
-        Guid workflowId,
-        CancellationToken cancellationToken
-    )
-    {
-        long startedAt = _timeProvider.GetTimestamp();
-        int currentDelayMs = InitialWorkflowPollingDelayMs;
-
-        while (true)
-        {
-            WorkflowStatusResponse? workflow = await _workflowEngineClient.GetWorkflow(
-                GetNamespace(),
-                workflowId,
-                cancellationToken
-            );
-            if (
-                (workflow is not null && !IsActiveWorkflowStatus(workflow))
-                || _timeProvider.GetElapsedTime(startedAt) >= TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs)
-            )
-            {
-                return workflow;
-            }
-
-            await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, cancellationToken);
-            currentDelayMs = GetNextPollDelayMs(startedAt, currentDelayMs);
-        }
-    }
-
-    /// <summary>
-    /// The delay before the next poll of a wait that started at <paramref name="startedAt"/>, following the ladder at
-    /// the top of this class.
-    /// </summary>
-    private int GetNextPollDelayMs(long startedAt, int currentDelayMs) =>
-        _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
-            ? InitialWorkflowPollingDelayMs
-            : Math.Min(
-                currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
-                MaxWorkflowPollingDelayMs
-            );
 
     private async Task<ProcessNextWorkflowResult> CreatePollingTimeoutResult(
         Instance instance,

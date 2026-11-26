@@ -9,7 +9,7 @@ namespace Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 /// <summary>
 /// This class is a fake payment processor that can be used for testing purposes.
 /// </summary>
-internal sealed class FakePaymentProcessor : IPaymentProcessor
+internal sealed class FakePaymentProcessor : IPaymentProcessor, IPaymentAttemptProcessor
 {
     private readonly GeneralSettings _generalSettings;
     public string PaymentProcessorId => "Fake Payment Processor";
@@ -30,6 +30,20 @@ internal sealed class FakePaymentProcessor : IPaymentProcessor
             new PaymentDetails { PaymentId = "fake-payment-id", RedirectUrl = GetAltinnAppUrl(instance) }
         );
     }
+
+    public Task<PaymentDetails> StartPayment(
+        Instance instance,
+        OrderDetails orderDetails,
+        string? language,
+        Guid mailboxId,
+        CancellationToken cancellationToken
+    ) => StartPayment(instance, orderDetails, language, cancellationToken);
+
+    public Task<bool> CancelReservation(
+        Instance instance,
+        PaymentInformation paymentInformation,
+        CancellationToken cancellationToken
+    ) => Task.FromResult(true);
 
     public Task<bool> TerminatePayment(
         Instance instance,

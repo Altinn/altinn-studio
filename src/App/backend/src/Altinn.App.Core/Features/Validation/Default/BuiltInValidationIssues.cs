@@ -266,7 +266,7 @@ internal static class BuiltInValidationIssues
         Code = "PaymentNotCompleted",
         Severity = ValidationIssueSeverity.Error,
         Description =
-            "The stored status of a payment task's payment is neither paid nor skipped, so the task cannot be completed.",
+            "Raised by `PUT …/process/next` on a payment task with any action but `reject`: only the payment attempt that `pay` starts moves the task on.",
         TextResource = new()
         {
             Key = "validation_errors.payment_not_completed",

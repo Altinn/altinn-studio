@@ -2043,6 +2043,7 @@ namespace Altinn.App.Core.Features.Payment.Models
     {
         public PaymentInformation() { }
         public string? Language { get; set; }
+        public System.Guid? MailboxId { get; set; }
         public required Altinn.App.Core.Features.Payment.Models.OrderDetails OrderDetails { get; set; }
         public Altinn.App.Core.Features.Payment.Models.PaymentDetails? PaymentDetails { get; set; }
         public required Altinn.App.Core.Features.Payment.Models.PaymentStatus Status { get; set; }

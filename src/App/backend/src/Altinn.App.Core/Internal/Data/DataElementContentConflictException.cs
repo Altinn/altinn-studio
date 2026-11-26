@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.Data;
 /// </summary>
 internal sealed class DataElementContentConflictException : InstanceStateConflictException
 {
-    public DataElementContentConflictException(string instanceId, Guid dataElementId, Exception innerException)
+    public DataElementContentConflictException(string instanceId, Guid dataElementId, Exception? innerException = null)
         : base(
             $"Data element {dataElementId} for instance {instanceId} changed after the instance was loaded.",
             innerException

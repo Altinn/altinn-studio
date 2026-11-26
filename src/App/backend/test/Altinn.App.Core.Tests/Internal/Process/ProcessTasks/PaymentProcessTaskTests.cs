@@ -115,6 +115,15 @@ public class PaymentProcessTaskTests
         _pdfServiceMock = new Mock<IPdfService>();
         _processReaderMock = new Mock<IProcessReader>();
         _paymentServiceMock = new Mock<IPaymentService>(MockBehavior.Strict);
+        _paymentServiceMock
+            .Setup(x =>
+                x.RefreshUnpaidPayment(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<ValidAltinnPaymentConfiguration>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(Task.CompletedTask);
         _translationServiceMock = new Mock<ITranslationService>();
 
         _paymentProcessTask = new PaymentProcessTask(
@@ -218,6 +227,37 @@ public class PaymentProcessTaskTests
                 It.IsAny<List<KeyValueEntry>?>()
             )
         );
+    }
+
+    [Fact]
+    public async Task End_RefreshesAnUnpaidPaymentInAStageOfItsOwn_BeforeTheReceipt()
+    {
+        // The receipt is made from the record in Storage, so what the refresh stages must be saved first.
+        var dataMutator = CreateDataMutator(CreateInstance());
+        SetupPaymentConfiguration();
+        ProcessTaskPipeline pipeline = _paymentProcessTask.DefineEnd(new PipelineBuilder());
+
+        StageResult result = await pipeline
+            .Stages[0]
+            .Work(
+                new StageContext
+                {
+                    InstanceDataMutator = dataMutator.Object,
+                    WorkflowId = Guid.NewGuid(),
+                    StepId = Guid.NewGuid(),
+                }
+            );
+
+        Assert.IsType<CompletedStageResult>(result);
+        Assert.Equal(2, pipeline.Stages.Count);
+        _paymentServiceMock.Verify(x =>
+            x.RefreshUnpaidPayment(
+                dataMutator.Object,
+                It.Is<ValidAltinnPaymentConfiguration>(c => c.PaymentDataType == "paymentDataType"),
+                It.IsAny<CancellationToken>()
+            )
+        );
+        _pdfServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -395,6 +435,23 @@ public class PaymentProcessTaskTests
         Func<Task> act = () => RunEnd(CreateDataMutator(CreateInstance()).Object);
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentConfig is missing*");
+    }
+
+    [Fact]
+    public void PayStartsAPaymentAttempt_WhoseMailboxWaitsTwentyFourHours()
+    {
+        ServiceTaskPipeline pipeline = _paymentProcessTask.ResolveActionPipeline();
+
+        Assert.Equal("pay", _paymentProcessTask.StartAction);
+        Assert.Collection(
+            pipeline.Items,
+            item =>
+                Assert.Equal(
+                    TimeSpan.FromHours(24),
+                    Assert.IsType<PipelineStage.MailboxOpening>(item).Declaration.Timeout
+                ),
+            item => Assert.IsType<PipelineConclusion.ReplyExchange>(item)
+        );
     }
 
     [Fact]

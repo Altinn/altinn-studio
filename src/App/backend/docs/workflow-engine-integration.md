@@ -149,23 +149,6 @@ and the enqueue. Its own workflow's outcome answers it. Each answer below is a 4
 An enqueue that gets no answer from the engine fails without knowing whether the workflow exists. A retry from the
 same version reuses the key and joins the workflow if it exists.
 
-## Transitions the app starts
-
-The app can move the process on without a request, through `IProcessEngine.EnqueueNextForApp`. The Nets payment
-webhook uses it once Nets has reported the payment as paid.
-
-- It runs what `process/next` runs before the transition, but with no policy check and no action handler, since no
-  caller asked for it. It reads data as the service owner, and the workflows run as the actor it is given, in that
-  actor's language. A caller must not pass it anything a request controls.
-- It enqueues under `process/next`'s idempotency key. On the same version as a user's request it joins that request's
-  workflow, or throws for a different transition.
-- It waits for the acquire workflow only, not for the transition, and as long as `process/next` waits. Only a
-  completed acquire workflow says whether the instance changed: a superseded one answers `instanceChanged` with the
-  instance as it is now. A failed acquire workflow, or one still running when the wait ends, answers a workflow
-  failure.
-- The webhook starts over once after `instanceChanged`. When it cannot tell that the process moves on, it answers with
-  an error, so Nets calls again.
-
 ## Callback state and authentication
 
 The engine stores the callback state and passes it to each callback, so a callback never reads the process from
@@ -342,9 +325,11 @@ app does not guard against it. Names would not help either, since a redeploy can
   resume. Signing's delegate and notify stages do this with the signee-state element, so the callback state carries
   the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), and
   `RestoreState` preloads them while the blob version still matches; the retried stage then reads its input from the
-  state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
-  fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
-  committed.
+  state and its save reaches replay. Each step of a payment attempt stores its step id and ending in the payment
+  record instead; a run that cannot read the record reloads the instance from Storage, as a replayed save does, and
+  returns the ending the record names. No other built-in command reads an element again, but an app's service task
+  can. A general fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the
+  step had committed.
 - An ended process reports `idle` without asking the engine, and `process/resume` refuses it with a 409. A failure
   after the commit of the final transition therefore shows only in the failure alert, and an operator resumes the
   workflow with the engine's [resume API](../../../Runtime/workflow-engine/docs/technical-guide.md#resume).

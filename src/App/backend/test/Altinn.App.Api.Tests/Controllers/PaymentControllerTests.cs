@@ -1,3 +1,5 @@
+using System.Net;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -9,17 +11,28 @@ using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
+using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Storage;
-using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
+using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
@@ -84,6 +97,7 @@ public class PaymentControllerTests
         _services.Services.AddSingleton(Options.Create(_netsPaymentSettings));
         _services.Services.Configure<AppCodesSettings>(s => s.PaymentsCallback = _paymentsCallbackCodes);
         _services.Services.AddSingleton<INetsWebhookSecretProvider, NetsWebhookSecretProvider>();
+        RegisterWorkflowEngine(_services);
 
         // Add default instance to mocked storage
         _services.Storage.AddInstance(_instance);
@@ -134,7 +148,7 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task GetPaymentInformation_PaymentTaskWithoutPaymentInfo_DoesNotCreateNewPayment()
+    public async Task GetPaymentInformation_WithoutARecord_ReturnsUninitializedWithTheOrderDetails_AndStoresNothing()
     {
         SetupAltinnTaskExtensionMock(
             "currentTask",
@@ -161,11 +175,11 @@ public class PaymentControllerTests
         );
 
         // Assert
-        Assert.IsType<OkObjectResult>(result);
+        var payment = Assert.IsType<PaymentInformation>(Assert.IsType<OkObjectResult>(result).Value);
+        Assert.Equal(PaymentStatus.Uninitialized, payment.Status);
+        Assert.Equal(_orderDetails.PaymentProcessorId, payment.OrderDetails.PaymentProcessorId);
 
         var (instance, _) = _services.Storage.GetInstanceAndData(PartyId, _instanceGuid);
-
-        // Ensure that no payment object is created. Maybe it should?
         Assert.DoesNotContain(instance.Data, d => d.DataType == "paymentDataType");
 
         _services.VerifyMocks();
@@ -245,6 +259,7 @@ public class PaymentControllerTests
                 "app",
                 PartyId,
                 _instanceGuid,
+                mailboxId: null,
                 new()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -268,11 +283,7 @@ public class PaymentControllerTests
         AddPaymentsCallbackCode("current-key", id: "current");
         var previousDerived = AddPaymentsCallbackCode("previous-key", id: "previous");
 
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension() { PaymentConfiguration = null },
-            Times.Once()
-        );
+        SetupPaymentTasks();
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
         var result = await controller.PaymentWebhookListener(
@@ -280,6 +291,7 @@ public class PaymentControllerTests
             "app",
             PartyId,
             _instanceGuid,
+            mailboxId: null,
             new()
             {
                 Id = Guid.NewGuid().ToString(),
@@ -291,8 +303,8 @@ public class PaymentControllerTests
             previousDerived,
             CancellationToken.None
         );
-        // Reaching past the auth gate is sufficient — the not-a-payment-task path returns Ok.
-        Assert.IsType<OkObjectResult>(result);
+        // Reaching past the auth gate is sufficient: no payment attempt holds the payment, so it answers Ok.
+        Assert.IsType<OkResult>(result);
         _services.VerifyMocks();
     }
 
@@ -308,6 +320,7 @@ public class PaymentControllerTests
             "app",
             PartyId,
             _instanceGuid,
+            mailboxId: null,
             new()
             {
                 Id = Guid.NewGuid().ToString(),
@@ -324,199 +337,437 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task PaymentWebhookListener_ProcessHasEnded_ReturnsOk()
+    public async Task PaymentWebhookListener_WithAMailboxId_ForwardsTheEventUnderItsIdWithoutReadingStorage()
     {
-        // Nets' other webhook for the payment, after the first one moved the process on from its last task.
-        _instance.Process.CurrentTask = null;
-        _instance.Process.Ended = DateTime.UtcNow;
-        var callbackKey = AddPaymentsCallbackCode("validkey");
-
+        string callbackKey = AddPaymentsCallbackCode("validkey");
+        _services.Mock<IInstanceClient>();
+        SetupMailboxOfInstance(true);
+        MailboxDeliveryRequest? delivered = null;
+        _services
+            .Mock<IWorkflowEngineClient>()
+            .Setup(c =>
+                c.DeliverToMailbox(
+                    $"{MockedServiceCollection.Org}/{MockedServiceCollection.App}",
+                    _mailboxId,
+                    It.IsAny<MailboxDeliveryRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, Guid, MailboxDeliveryRequest, CancellationToken>(
+                (_, _, request, _) => delivered = request
+            )
+            .ReturnsAsync(
+                new MailboxDeliveryResult(
+                    HttpStatusCode.Accepted,
+                    new MailboxDeliveryResponse
+                    {
+                        MailboxId = _mailboxId,
+                        Idx = 0,
+                        IdempotencyKey = "nets-event-id",
+                        AcceptedAt = DateTimeOffset.UtcNow,
+                    },
+                    ErrorDetail: null
+                )
+            );
         await using var sp = _services.BuildServiceProvider();
 
-        var controller = sp.GetRequiredService<PaymentController>();
-        var result = await controller.PaymentWebhookListener(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            new()
-            {
-                Id = Guid.NewGuid().ToString(),
-                Data = new() { PaymentId = Guid.NewGuid().ToString() },
-                EventName = "payment.charge.created.v2",
-                Timestamp = DateTime.UtcNow,
-                MerchantId = 222,
-            },
-            callbackKey,
-            CancellationToken.None
-        );
-        // Anything else makes Nets call again for days.
-        var response = Assert.IsType<OkObjectResult>(result);
-        Assert.Contains("has ended", Assert.IsType<ProblemDetails>(response.Value).Detail);
+        IActionResult result = await PostWebhook(sp, "payment.checkout.completed", _mailboxId, callbackKey);
 
-        _services.VerifyMocks();
+        Assert.IsType<OkResult>(result);
+        Assert.Equal("nets-event-id", delivered?.IdempotencyKey);
+        MailboxDelivery opened = sp.GetRequiredService<MailboxDeliveryEnvelope>()
+            .Unwrap(
+                delivered!.Payload,
+                _mailboxId,
+                PipelineId.ActionPipeline(AltinnTaskTypes.Payment, "pay"),
+                "nets-event-id"
+            );
+        Assert.Equal(PaymentAttemptMessage.NetsEvent("payment.checkout.completed"), opened.Body);
+        Assert.Null(opened.Sender);
+    }
+
+    // An event after the attempt ended is an error only when it says that a payment went through which the stored
+    // payment does not show as paid.
+    [Theory]
+    [InlineData("payment.checkout.completed", PaymentStatus.Created, LogLevel.Error)]
+    [InlineData("payment.charge.created.v2", PaymentStatus.Cancelled, LogLevel.Error)]
+    [InlineData("payment.charge.created.v2", null, LogLevel.Error)]
+    [InlineData("payment.charge.created.v2", PaymentStatus.Paid, LogLevel.Information)]
+    [InlineData("payment.charge.failed", PaymentStatus.Created, LogLevel.Information)]
+    public async Task PaymentWebhookListener_ToAClosedMailbox_AnswersOkAndLogsByWhatTheRecordShows(
+        string eventName,
+        PaymentStatus? recordStatus,
+        LogLevel logLevel
+    )
+    {
+        string callbackKey = AddPaymentsCallbackCode("validkey");
+        SetupMailboxOfInstance(true);
+        SetupDelivery(HttpStatusCode.Conflict);
+        SetupPaymentTasks();
+        if (recordStatus is { } status)
+        {
+            StorePaymentInformation(status, _mailboxId);
+        }
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await PostWebhook(sp, eventName, _mailboxId, callbackKey);
+
+        Assert.IsType<OkResult>(result);
+        Assert.Equal(logLevel, GetEventLogLevel(sp, "reached no open payment attempt"));
     }
 
     [Fact]
-    public async Task PaymentWebhookListener_TaskIsNotPaymentTask_ReturnsOkRequest()
+    public async Task PaymentWebhookListener_ToAMailboxThatIsNotTheInstances_AnswersOkAndLogsAnErrorWithoutForwarding()
     {
-        var callbackKey = AddPaymentsCallbackCode("validkey");
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension() { PaymentConfiguration = null },
-            Times.Once()
-        );
+        string callbackKey = AddPaymentsCallbackCode("validkey");
+        _services.Mock<IInstanceClient>();
+        SetupMailboxOfInstance(false);
         await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-        var result = await controller.PaymentWebhookListener(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            new()
-            {
-                Id = Guid.NewGuid().ToString(),
-                Data = new() { PaymentId = Guid.NewGuid().ToString() },
-                EventName = "PaymentCreated",
-                Timestamp = DateTime.UtcNow,
-                MerchantId = 222,
-            },
-            callbackKey,
-            CancellationToken.None
-        );
-        var response = Assert.IsType<OkObjectResult>(result);
-        var responseString = JsonSerializer.Serialize(response.Value);
-        Assert.Contains("Payment configuration not found", responseString);
-        _services.VerifyMocks();
+
+        IActionResult result = await PostWebhook(sp, "payment.checkout.completed", _mailboxId, callbackKey);
+
+        Assert.IsType<OkResult>(result);
+        Assert.Equal(LogLevel.Error, GetEventLogLevel(sp, "Dropped Nets event"));
+        _services.Mock<IWorkflowEngineClient>().VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task PaymentWebhookListener_ValidRequestWithPaymentInfo_ReturnsOkRequest()
+    public async Task PaymentWebhookListener_WhenTheWorkflowEngineIsUnavailable_FailsSoNetsCallsAgain()
     {
-        var callbackKey = AddPaymentsCallbackCode("validkey");
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension()
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
+        string callbackKey = AddPaymentsCallbackCode("validkey");
+        SetupMailboxOfInstance(true);
+        SetupDelivery(HttpStatusCode.ServiceUnavailable);
+        await using var sp = _services.BuildServiceProvider();
+
+        var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
+            PostWebhook(sp, "payment.checkout.completed", _mailboxId, callbackKey)
         );
+        Assert.Equal(ServiceTaskReplyForwardOutcome.EngineUnavailable, exception.Outcome);
+    }
 
-        _services
-            .Mock<IPaymentProcessor>()
-            .SetupGet(pp => pp.PaymentProcessorId)
-            .Returns("Nets Easy")
-            .Verifiable(Times.AtLeastOnce());
+    // A payment created without a mailbox id that no attempt holds is logged by the same rule as an event after the
+    // attempt ended.
+    [Theory]
+    [InlineData("payment.checkout.completed", PaymentStatus.Created, LogLevel.Error)]
+    [InlineData("payment.charge.created.v2", PaymentStatus.Paid, LogLevel.Information)]
+    public async Task PaymentWebhookListener_WithoutAMailboxId_ForPaymentNoAttemptHolds_LogsByWhatTheRecordShowsWithoutForwarding(
+        string eventName,
+        PaymentStatus recordStatus,
+        LogLevel logLevel
+    )
+    {
+        string callbackKey = AddPaymentsCallbackCode("validkey");
+        _services.Mock<IWorkflowEngineClient>();
+        SetupPaymentTasks();
+        StorePaymentInformation(recordStatus, mailboxId: null);
+        await using var sp = _services.BuildServiceProvider();
 
+        IActionResult result = await PostWebhook(sp, eventName, mailboxId: null, callbackKey);
+
+        Assert.IsType<OkResult>(result);
+        Assert.Equal(logLevel, GetEventLogLevel(sp, "reached no open payment attempt"));
+        _services.Mock<IWorkflowEngineClient>().VerifyNoOtherCalls();
+    }
+
+    // How cancel and check answer a message the attempt's mailbox did not take while the attempt is open.
+    [Theory]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.MailboxFull,
+        StatusCodes.Status409Conflict,
+        "payment-attempt-message-limit"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.PayloadTooLarge,
+        StatusCodes.Status409Conflict,
+        "payment-attempt-message-limit"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.Rejected,
+        StatusCodes.Status409Conflict,
+        "payment-attempt-message-limit"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.EngineUnavailable,
+        StatusCodes.Status503ServiceUnavailable,
+        "workflow-engine-unavailable"
+    )]
+    [InlineData(
+        ServiceTaskReplyForwardOutcome.SigningUnavailable,
+        StatusCodes.Status503ServiceUnavailable,
+        "workflow-engine-unavailable"
+    )]
+    public async Task CancelPaymentAttempt_MessageTheMailboxDidNotTake_AnswersByWhy(
+        ServiceTaskReplyForwardOutcome outcome,
+        int statusCode,
+        string? problemType
+    )
+    {
+        PrepareOpenAttempt();
         _services
-            .Mock<IPaymentProcessor>()
-            .Setup(pp =>
-                pp.GetPaymentStatus(
+            .Mock<IProcessEngine>()
+            .Setup(engine =>
+                engine.SendToActionPipeline(
                     It.IsAny<Instance>(),
-                    It.IsAny<string>(),
+                    _mailboxId,
+                    PaymentAttemptMessage.Cancel,
+                    "cancel",
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new ServiceTaskReplyForwardException(outcome, _mailboxId, "cancel", "Not taken."));
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await CreateController(sp)
+            .CancelPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(statusCode, GetStatusCode(result));
+        Assert.Equal(problemType, (GetValue(result) as ProblemDetails)?.Type);
+    }
+
+    [Fact]
+    public async Task CheckPaymentAttempt_SendsTheStatusItFound_KeyedOnThatStatus()
+    {
+        PrepareOpenAttempt();
+        AllowAction("pay");
+        _services.Mock<IPaymentProcessor>().Setup(p => p.PaymentProcessorId).Returns("Nets Easy");
+        _services
+            .Mock<IPaymentProcessor>()
+            .Setup(p =>
+                p.GetPaymentStatus(
+                    It.IsAny<Instance>(),
+                    "some-payment-id",
                     It.IsAny<decimal>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync((PaymentStatus.Paid, new PaymentDetails { PaymentId = "some-payment-id" }))
-            .Verifiable(Times.Once());
-
-        _services.Storage.AddData(
-            _instance,
-            "paymentDataType",
-            "application/json",
-            JsonSerializer.SerializeToUtf8Bytes(
-                new PaymentInformation()
-                {
-                    TaskId = "currentTask",
-                    Status = PaymentStatus.Created,
-                    OrderDetails = _orderDetails,
-                    PaymentDetails = new PaymentDetails { PaymentId = "some-payment-id" },
-                }
-            )
-        );
-
-        // A paid payment moves the process on in the app itself, as the service owner
+            .ReturnsAsync((PaymentStatus.Paid, new PaymentDetails { PaymentId = "some-payment-id" }));
+        SetupAttemptHoldsTheTask(true);
         _services
             .Mock<IProcessEngine>()
             .Setup(engine =>
-                engine.EnqueueNextForApp(
-                    It.Is<Instance>(instance => instance.Id == _instance.Id),
-                    It.IsAny<StorageVersionMetadata>(),
-                    "confirm",
-                    It.Is<Actor>(actor => actor.OrgId != null && actor.UserId == null),
+                engine.SendToActionPipeline(
+                    It.IsAny<Instance>(),
+                    _mailboxId,
+                    PaymentAttemptMessage.Check,
+                    "check:Paid",
+                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() })
+            .ReturnsAsync(
+                new ActionPipelineOutcome.Open(new InstanceWithStorageMetadata(_instance, StorageVersionMetadata.Empty))
+            )
             .Verifiable(Times.Once());
-
         await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-        var result = await controller.PaymentWebhookListener(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            new()
-            {
-                Id = Guid.NewGuid().ToString(),
-                Data = new() { PaymentId = Guid.NewGuid().ToString() },
-                EventName = "PaymentCreated",
-                Timestamp = DateTime.UtcNow,
-                MerchantId = 222,
-            },
-            callbackKey,
-            CancellationToken.None
-        );
-        var response = Assert.IsType<OkObjectResult>(result);
-        Assert.Contains("Payment status is Paid for instance 12345", response.Value?.ToString());
-        _services.VerifyMocks();
+
+        IActionResult result = await CreateController(sp)
+            .CheckPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status200OK, GetStatusCode(result));
+        _services.Mock<IProcessEngine>().Verify();
+    }
+
+    [Theory]
+    [InlineData(WorkflowFailureKind.Timeout, StatusCodes.Status504GatewayTimeout)]
+    [InlineData(WorkflowFailureKind.StepFailed, StatusCodes.Status500InternalServerError)]
+    public async Task CancelPaymentAttempt_ThatTheAttemptFailedToHandle_AnswersTheWorkflowFailure(
+        WorkflowFailureKind kind,
+        int statusCode
+    )
+    {
+        PrepareOpenAttempt();
+        _services
+            .Mock<IProcessEngine>()
+            .Setup(engine =>
+                engine.SendToActionPipeline(
+                    It.IsAny<Instance>(),
+                    _mailboxId,
+                    PaymentAttemptMessage.Cancel,
+                    "cancel",
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new ActionPipelineOutcome.Refused(
+                    new ProcessChangeResult
+                    {
+                        Success = false,
+                        ErrorType = ProcessErrorType.Internal,
+                        WorkflowFailure = new WorkflowFailure { Kind = kind },
+                    }
+                )
+            );
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await CreateController(sp)
+            .CancelPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(statusCode, GetStatusCode(result));
+        var problem = Assert.IsType<ProblemDetails>(GetValue(result));
+        Assert.Equal(kind, Assert.IsType<WorkflowFailure>(problem.Extensions["workflowFailure"]).Kind);
+        Assert.Equal("Something went wrong while the payment attempt handled the request.", problem.Title);
     }
 
     [Fact]
-    public async Task PaymentWebhookListener_ValidRequestWithoutPaymentInfo_ReturnsOkRequest()
+    public async Task CheckPaymentAttempt_WhenTheEngineCannotTellWhetherAnAttemptHoldsTheTask_AnswersServiceUnavailable()
     {
-        var callbackKey = AddPaymentsCallbackCode("validkey");
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension()
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
+        PrepareOpenAttempt();
+        AllowAction("pay");
+        _services
+            .Mock<IWorkflowEngineService>()
+            .Setup(service => service.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("No route to the engine.", null, HttpStatusCode.BadGateway));
+        _services.Mock<IPaymentProcessor>();
         await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-        var result = await controller.PaymentWebhookListener(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            new()
-            {
-                Id = Guid.NewGuid().ToString(),
-                Data = new() { PaymentId = Guid.NewGuid().ToString() },
-                EventName = "PaymentCreated",
-                Timestamp = DateTime.UtcNow,
-                MerchantId = 222,
-            },
-            callbackKey,
-            CancellationToken.None
-        );
-        var response = Assert.IsType<OkObjectResult>(result);
-        Assert.Contains("No payment information stored yet for instance", response.Value?.ToString());
-        _services.VerifyMocks();
+
+        IActionResult result = await CreateController(sp)
+            .CheckPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, GetStatusCode(result));
+        Assert.Equal("workflow-engine-unavailable", (GetValue(result) as ProblemDetails)?.Type);
+        _services.Mock<IPaymentProcessor>().VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task CheckPaymentAttempt_OnAnIdleTask_ReturnsTheStoredRecordWithoutAskingTheEngine()
+    {
+        PrepareOpenAttempt();
+        _instance.Process.Status = null;
+        AllowAction("pay");
+        _services
+            .Mock<IWorkflowEngineService>()
+            .Setup(service => service.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException("No route to the engine.", null, HttpStatusCode.BadGateway));
+        _services.Mock<IPaymentProcessor>();
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await CreateController(sp)
+            .CheckPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status200OK, GetStatusCode(result));
+        Assert.Equal(PaymentStatus.Created, Assert.IsType<PaymentInformation>(GetValue(result)).Status);
+        _services.Mock<IPaymentProcessor>().VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task CancelPaymentAttempt_WhenTheEngineCannotBeReached_AnswersServiceUnavailable()
+    {
+        PrepareOpenAttempt();
+        _services
+            .Mock<IProcessEngine>()
+            .Setup(engine =>
+                engine.SendToActionPipeline(
+                    It.IsAny<Instance>(),
+                    _mailboxId,
+                    PaymentAttemptMessage.Cancel,
+                    "cancel",
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new HttpRequestException("No route to the engine.", null, HttpStatusCode.BadGateway));
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await CreateController(sp)
+            .CancelPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, GetStatusCode(result));
+        Assert.Equal("workflow-engine-unavailable", (GetValue(result) as ProblemDetails)?.Type);
+    }
+
+    // While the instance is processing, a check asks only when a payment attempt holds the task, as awaitingMessages
+    // tells: not while the attempt's transition, release or a new attempt's opening stage runs.
+    [Fact]
+    public async Task CheckPaymentAttempt_WhenNoAttemptHoldsTheTask_AsksNothingAndSendsNothing()
+    {
+        PrepareOpenAttempt();
+        AllowAction("pay");
+        SetupAttemptHoldsTheTask(false);
+        _services.Mock<IPaymentProcessor>();
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await CreateController(sp)
+            .CheckPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(StatusCodes.Status200OK, GetStatusCode(result));
+        Assert.Equal(PaymentStatus.Created, Assert.IsType<PaymentInformation>(GetValue(result)).Status);
+        _services.Mock<IPaymentProcessor>().VerifyNoOtherCalls();
+        _services.Mock<IProcessEngine>().VerifyNoOtherCalls();
+    }
+
+    // A cancel answers from the payment stored once its message was handled, or once the attempt turned out to have
+    // ended. Only an attempt that still holds the task refuses a reserved payment; an ended one may still be
+    // transitioning or releasing, and its record may be reserved if a step that saved it ran again.
+    [Theory]
+    [InlineData("open", PaymentStatus.Created, StatusCodes.Status200OK, null)]
+    [InlineData("open", PaymentStatus.Authorized, StatusCodes.Status409Conflict, "payment-authorized")]
+    [InlineData("moved", PaymentStatus.Authorized, StatusCodes.Status200OK, null)]
+    [InlineData("released", PaymentStatus.Authorized, StatusCodes.Status200OK, null)]
+    [InlineData("notOpen", PaymentStatus.Authorized, StatusCodes.Status200OK, null)]
+    [InlineData("late", PaymentStatus.Authorized, StatusCodes.Status200OK, null)]
+    [InlineData("unroutable", PaymentStatus.Authorized, StatusCodes.Status200OK, null)]
+    public async Task CancelPaymentAttempt_RefusesAReservedPaymentOnlyWhileTheAttemptHoldsTheTask(
+        string after,
+        PaymentStatus storedAfter,
+        int statusCode,
+        string? problemType
+    )
+    {
+        PrepareOpenAttempt();
+        var current = new InstanceWithStorageMetadata(_instance, StorageVersionMetadata.Empty);
+        _services
+            .Mock<IProcessEngine>()
+            .Setup(engine =>
+                engine.SendToActionPipeline(
+                    It.IsAny<Instance>(),
+                    _mailboxId,
+                    PaymentAttemptMessage.Cancel,
+                    "cancel",
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => ReplacePaymentInformation(storedAfter))
+            .Returns(() =>
+                after switch
+                {
+                    "open" => Task.FromResult<ActionPipelineOutcome>(new ActionPipelineOutcome.Open(current)),
+                    "moved" => Task.FromResult<ActionPipelineOutcome>(new ActionPipelineOutcome.Moved(current)),
+                    "released" => Task.FromResult<ActionPipelineOutcome>(new ActionPipelineOutcome.Released(current)),
+                    "notOpen" => Task.FromResult<ActionPipelineOutcome>(new ActionPipelineOutcome.NotOpen(current)),
+                    "late" => throw new ServiceTaskReplyForwardException(
+                        ServiceTaskReplyForwardOutcome.Late,
+                        _mailboxId,
+                        "cancel",
+                        "The mailbox is closed."
+                    ),
+                    "unroutable" => throw new ServiceTaskReplyForwardException(
+                        ServiceTaskReplyForwardOutcome.Unroutable,
+                        _mailboxId,
+                        "cancel",
+                        "The mailbox is gone."
+                    ),
+                    _ => throw new ArgumentOutOfRangeException(nameof(after), after, null),
+                }
+            );
+        await using var sp = _services.BuildServiceProvider();
+
+        IActionResult result = await CreateController(sp)
+            .CancelPaymentAttempt("org", "app", PartyId, _instanceGuid, CancellationToken.None);
+
+        Assert.Equal(statusCode, GetStatusCode(result));
+        object? body = GetValue(result);
+        if (problemType is null)
+        {
+            Assert.Equal(storedAfter, Assert.IsType<PaymentInformation>(body).Status);
+        }
+        else
+        {
+            Assert.Equal(problemType, Assert.IsType<ProblemDetails>(body).Type);
+        }
     }
 
     [Fact]
@@ -527,6 +778,7 @@ public class PaymentControllerTests
         services.Mock<IProcessEngine>();
         services.Services.AddSingleton<IPaymentService, PaymentService>();
         services.Services.AddSingleton<PaymentController>();
+        RegisterWorkflowEngine(services);
         // Deliberately not registering INetsWebhookSecretProvider
         services.Storage.AddInstance(_instance);
 
@@ -545,6 +797,7 @@ public class PaymentControllerTests
         services.Mock<IProcessEngine>();
         services.Services.AddSingleton<IPaymentService, PaymentService>();
         services.Services.AddSingleton<PaymentController>();
+        RegisterWorkflowEngine(services);
         // Deliberately not registering INetsWebhookSecretProvider
         services.Storage.AddInstance(_instance);
 
@@ -557,6 +810,7 @@ public class PaymentControllerTests
                 "app",
                 PartyId,
                 _instanceGuid,
+                mailboxId: null,
                 new()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -571,6 +825,205 @@ public class PaymentControllerTests
         );
         Assert.Contains("INetsWebhookSecretProvider", exception.Message);
     }
+
+    /// <summary>What the controller forwards messages through, with the engine itself mocked.</summary>
+    private static void RegisterWorkflowEngine(MockedServiceCollection services)
+    {
+        AppCode callbackCode = new()
+        {
+            Id = "callback",
+            Code = "test-callback-code-long-enough-for-hmac",
+            IssuedAt = DateTimeOffset.UtcNow.AddDays(-1),
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(30),
+        };
+        services.Mock<IWorkflowCallbackSecretProvider>().Setup(p => p.GetSigningSecret()).Returns(callbackCode);
+        services.Mock<IWorkflowCallbackSecretProvider>().Setup(p => p.GetValidationSecrets()).Returns([callbackCode]);
+        services.Services.AddSingleton<WorkflowStateSigner>();
+        services.Services.AddSingleton<MailboxDeliveryEnvelope>();
+        services.Services.AddSingleton<ServiceTaskReplyForwarder>();
+        services.Services.AddSingleton<PaymentAttemptRequests>();
+        services.Mock<IWorkflowEngineClient>();
+        services.Mock<IWorkflowEngineService>();
+        services.Mock<IAuthorizationService>();
+    }
+
+    private static readonly Guid _mailboxId = Guid.Parse("3f1c9a2e-7b4d-4e6f-8a1b-2c3d4e5f6a7b");
+
+    private static PaymentController CreateController(WrappedServiceProvider sp)
+    {
+        var controller = sp.GetRequiredService<PaymentController>();
+        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+        return controller;
+    }
+
+    private static Task<IActionResult> PostWebhook(
+        WrappedServiceProvider sp,
+        string eventName,
+        Guid? mailboxId,
+        string callbackKey
+    ) =>
+        sp.GetRequiredService<PaymentController>()
+            .PaymentWebhookListener(
+                "org",
+                "app",
+                PartyId,
+                _instanceGuid,
+                mailboxId,
+                new()
+                {
+                    Id = "nets-event-id",
+                    Data = new() { PaymentId = "some-payment-id" },
+                    EventName = eventName,
+                    Timestamp = DateTime.UtcNow,
+                    MerchantId = 222,
+                },
+                callbackKey,
+                CancellationToken.None
+            );
+
+    private void SetupMailboxOfInstance(bool isTheInstances) =>
+        _services
+            .Mock<IWorkflowEngineService>()
+            .Setup(service =>
+                service.IsMailboxOfInstance(
+                    It.Is<InstanceIdentifier>(id =>
+                        id.InstanceOwnerPartyId == PartyId && id.InstanceGuid == _instanceGuid
+                    ),
+                    _mailboxId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(isTheInstances);
+
+    private void SetupAttemptHoldsTheTask(bool holds) =>
+        _services
+            .Mock<IWorkflowEngineService>()
+            .Setup(service => service.ResolveWorkflowTaskStatus(It.IsAny<Instance>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new WorkflowTaskStatus(
+                    WorkflowActivityStatus.Processing,
+                    "currentTask",
+                    Failure: null,
+                    AwaitingMessages: holds
+                )
+            );
+
+    private void SetupDelivery(HttpStatusCode status) =>
+        _services
+            .Mock<IWorkflowEngineClient>()
+            .Setup(c =>
+                c.DeliverToMailbox(
+                    It.IsAny<string>(),
+                    _mailboxId,
+                    It.IsAny<MailboxDeliveryRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MailboxDeliveryResult(status, Body: null, ErrorDetail: null));
+
+    private void SetupPaymentTasks() =>
+        _services
+            .Mock<IProcessReader>()
+            .Setup(pr => pr.GetProcessTasks())
+            .Returns([
+                new ProcessTask
+                {
+                    Id = "currentTask",
+                    ExtensionElements = new ExtensionElements
+                    {
+                        TaskExtension = new AltinnTaskExtension
+                        {
+                            PaymentConfiguration = new AltinnPaymentConfiguration
+                            {
+                                PaymentDataType = "paymentDataType",
+                            },
+                        },
+                    },
+                },
+            ]);
+
+    /// <summary>An attempt holds the current payment task, and its payment is stored as created.</summary>
+    private void PrepareOpenAttempt()
+    {
+        _instance.Process.Status = ProcessStatus.Processing;
+        SetupAltinnTaskExtensionMock(
+            "currentTask",
+            new AltinnTaskExtension()
+            {
+                PaymentConfiguration = new()
+                {
+                    PaymentDataType = "paymentDataType",
+                    PaymentReceiptPdfDataType = "paymentPdfDataType",
+                },
+            },
+            Times.AtLeastOnce()
+        );
+        AllowAction("reject");
+        StorePaymentInformation(PaymentStatus.Created, _mailboxId);
+    }
+
+    private void AllowAction(string action) =>
+        _services
+            .Mock<IAuthorizationService>()
+            .Setup(a =>
+                a.AuthorizeAction(
+                    It.IsAny<AppIdentifier>(),
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<ClaimsPrincipal>(),
+                    action,
+                    "currentTask",
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(true);
+
+    private void StorePaymentInformation(PaymentStatus status, Guid? mailboxId) =>
+        _services.Storage.AddData(
+            _instance,
+            "paymentDataType",
+            "application/json",
+            JsonSerializer.SerializeToUtf8Bytes(
+                new PaymentInformation()
+                {
+                    TaskId = "currentTask",
+                    Status = status,
+                    OrderDetails = _orderDetails,
+                    PaymentDetails = new PaymentDetails { PaymentId = "some-payment-id" },
+                    MailboxId = mailboxId,
+                },
+                new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            )
+        );
+
+    /// <summary>Replaces the stored payment record with a new data element, as the attempt's steps may.</summary>
+    private void ReplacePaymentInformation(PaymentStatus status)
+    {
+        _instance.Data.RemoveAll(dataElement => dataElement.DataType == "paymentDataType");
+        StorePaymentInformation(status, _mailboxId);
+    }
+
+    private static LogLevel? GetEventLogLevel(WrappedServiceProvider sp, string messageFragment) =>
+        sp
+            .Logs.SingleOrDefault(log =>
+                log.CategoryName == typeof(PaymentAttemptRequests).FullName
+                && (log.Body ?? log.FormattedMessage ?? "").Contains(messageFragment, StringComparison.Ordinal)
+            )
+            ?.LogLevel;
+
+    private static int? GetStatusCode(IActionResult result) =>
+        result switch
+        {
+            IStatusCodeActionResult { StatusCode: { } statusCode } => statusCode,
+            _ => null,
+        };
+
+    private static object? GetValue(IActionResult result) =>
+        result switch
+        {
+            ObjectResult objectResult => objectResult.Value,
+            JsonResult jsonResult => jsonResult.Value,
+            _ => null,
+        };
 
     private void SetupAltinnTaskExtensionMock(string taskId, AltinnTaskExtension? taskExtension, Times times)
     {

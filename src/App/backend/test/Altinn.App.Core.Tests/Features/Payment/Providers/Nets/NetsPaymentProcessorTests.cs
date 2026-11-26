@@ -7,6 +7,7 @@ using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Models;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -22,6 +23,7 @@ public class NetsPaymentProcessorTests
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions(
         JsonSerializerDefaults.Web
     );
+    private static readonly Guid MailboxId = Guid.Parse("3f1c9a2e-7b4d-4e6f-8a1b-2c3d4e5f6a7b");
     private readonly MockedServiceCollection _fixture = new();
 
     private readonly NetsPaymentSettings _netsPaymentSettings = new NetsPaymentSettings
@@ -83,7 +85,13 @@ public class NetsPaymentProcessorTests
         // Act
         await using var serviceProvider = _fixture.BuildServiceProvider();
         var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
-        PaymentDetails result = await processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
+        PaymentDetails result = await processor.StartPayment(
+            instance,
+            orderDetails,
+            LanguageConst.Nb,
+            MailboxId,
+            CancellationToken.None
+        );
 
         // Assert
         result.Should().NotBeNull();
@@ -147,7 +155,13 @@ public class NetsPaymentProcessorTests
         // Act
         await using var serviceProvider = _fixture.BuildServiceProvider();
         var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
-        PaymentDetails result = await processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
+        PaymentDetails result = await processor.StartPayment(
+            instance,
+            orderDetails,
+            LanguageConst.Nb,
+            MailboxId,
+            CancellationToken.None
+        );
 
         // Assert
         result.Should().NotBeNull();
@@ -191,7 +205,9 @@ public class NetsPaymentProcessorTests
         // Act & Assert
         using var serviceProvider = _fixture.BuildServiceProvider();
         var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
-        await Assert.ThrowsAsync<PaymentException>(() => processor.StartPayment(instance, orderDetails, null));
+        await Assert.ThrowsAsync<PaymentException>(() =>
+            processor.StartPayment(instance, orderDetails, null, MailboxId, CancellationToken.None)
+        );
     }
 
     [Fact]
@@ -333,7 +349,7 @@ public class NetsPaymentProcessorTests
     }
 
     [Fact]
-    public async Task StartPayment_SubscribesToCheckoutAndChargeWebhooks()
+    public async Task StartPayment_SubscribesTheAttemptsMailboxToCheckoutAndChargeWebhooks()
     {
         // Arrange
         Instance instance = CreateInstance();
@@ -353,7 +369,7 @@ public class NetsPaymentProcessorTests
         // Act
         await using var serviceProvider = _fixture.BuildServiceProvider();
         var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
-        await processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
+        await processor.StartPayment(instance, orderDetails, LanguageConst.Nb, MailboxId, CancellationToken.None);
 
         // Assert
         var request = Assert.Single(_fixture.FakeHttpMessageHandler.RequestResponses);
@@ -364,14 +380,14 @@ public class NetsPaymentProcessorTests
         );
         List<NetsWebHook> webHooks = capturedNetsCreatePayment?.Notifications?.WebHooks ?? [];
         Assert.Equal(
-            ["payment.checkout.completed", "payment.charge.created.v2"],
+            ["payment.checkout.completed", "payment.charge.created.v2", "payment.charge.failed"],
             webHooks.Select(webHook => webHook.EventName)
         );
         Assert.All(
             webHooks,
             webHook =>
             {
-                Assert.EndsWith($"/instances/{instance.Id}/payment/nets-webhook-listener", webHook.Url);
+                Assert.EndsWith($"/instances/{instance.Id}/payment/nets-webhook-listener/{MailboxId:D}", webHook.Url);
                 Assert.False(string.IsNullOrEmpty(webHook.Authorization));
             }
         );
@@ -432,6 +448,100 @@ public class NetsPaymentProcessorTests
             processor.GetPaymentStatus(instance, paymentReference, expectedTotalIncVat, null)
         );
     }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NoContent, true)]
+    [InlineData(HttpStatusCode.BadRequest, false)]
+    public async Task CancelReservation_PostsTheWholeAmountToCancels(HttpStatusCode netsStatus, bool cancelled)
+    {
+        Instance instance = CreateInstance();
+        PaymentInformation paymentInformation = new()
+        {
+            TaskId = "taskId",
+            Status = PaymentStatus.Authorized,
+            OrderDetails = new OrderDetails
+            {
+                PaymentProcessorId = "paymentProcessorId",
+                Currency = "NOK",
+                OrderLines =
+                [
+                    new PaymentOrderLine
+                    {
+                        Id = "1",
+                        Name = "Item 1",
+                        PriceExVat = 500,
+                        VatPercent = 25,
+                    },
+                ],
+                Receiver = new PaymentReceiver(),
+            },
+            PaymentDetails = new PaymentDetails { PaymentId = "paymentReference", RedirectUrl = "redirectUrl" },
+        };
+        _fixture.FakeHttpMessageHandler.RegisterEndpoint(
+            HttpMethod.Post,
+            "https://api.nets.eu/v1/payments/paymentReference/cancels",
+            netsStatus,
+            "application/json",
+            ""
+        );
+
+        await using var serviceProvider = _fixture.BuildServiceProvider();
+        var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
+        bool result = await processor.CancelReservation(instance, paymentInformation, CancellationToken.None);
+
+        Assert.Equal(cancelled, result);
+        var request = Assert.Single(_fixture.FakeHttpMessageHandler.RequestResponses);
+        Assert.Equal(HttpMethod.Post, request.RequestMethod);
+        Assert.Equal("""{"amount":62500}""", request.RequestContent);
+    }
+
+    // Nets accepts a webhook URL of up to 256 characters.
+    [Theory]
+    [InlineData(256, true)]
+    [InlineData(257, false)]
+    public async Task StartPayment_CreatesThePaymentOnlyWhenNetsAcceptsTheWebhookUrlsLength(int urlLength, bool created)
+    {
+        Instance instance = CreateInstance();
+        int lengthWithOneLetterApp = WebhookUrl(instance, "a").Length;
+        instance.AppId = $"ttd/{new string('a', 1 + urlLength - lengthWithOneLetterApp)}";
+        Assert.Equal(urlLength, WebhookUrl(instance, instance.AppId.Split('/')[1]).Length);
+        var orderDetails = new OrderDetails
+        {
+            PaymentProcessorId = "paymentProcessorId",
+            Currency = "NOK",
+            OrderLines = [],
+            Receiver = new PaymentReceiver(),
+        };
+        _fixture.FakeHttpMessageHandler.RegisterJsonEndpoint(
+            HttpMethod.Post,
+            "https://api.nets.eu/v1/payments",
+            new NetsCreatePaymentSuccess { HostedPaymentPageUrl = "https://payment-url.com", PaymentId = "12345" }
+        );
+
+        await using var serviceProvider = _fixture.BuildServiceProvider();
+        var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
+        Task start = processor.StartPayment(
+            instance,
+            orderDetails,
+            LanguageConst.Nb,
+            MailboxId,
+            CancellationToken.None
+        );
+
+        if (created)
+        {
+            await start;
+            Assert.Single(_fixture.FakeHttpMessageHandler.RequestResponses);
+        }
+        else
+        {
+            await Assert.ThrowsAsync<PaymentException>(() => start);
+            Assert.Empty(_fixture.FakeHttpMessageHandler.RequestResponses);
+        }
+    }
+
+    private string WebhookUrl(Instance instance, string app) =>
+        $"{_fixture.GeneralSettings.FormattedExternalAppBaseUrl(new AppIdentifier($"ttd/{app}"))}instances/{instance.Id}/payment/nets-webhook-listener/{MailboxId:D}";
 
     private static Instance CreateInstance()
     {
