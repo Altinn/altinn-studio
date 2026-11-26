@@ -129,6 +129,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             );
         }
 
+        EnsureChainStartClaimsTheInstance(bundle.Request);
+
         string? collectionKey = bundle.CollectionKey;
         if (string.IsNullOrWhiteSpace(collectionKey))
         {
@@ -684,6 +686,27 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             ?? workflows.OrderByDescending(candidate => candidate.CreatedAt).FirstOrDefault();
 
         return ExtractTargetTask(workflow?.Labels);
+    }
+
+    /// <summary>
+    /// Refuses a chain start whose primary workflow does not claim the instance first. Only a callback of the chain
+    /// that holds the instance may enqueue other work on it; see <c>AGENTS.md</c> in this folder.
+    /// </summary>
+    internal static void EnsureChainStartClaimsTheInstance(WorkflowEnqueueRequest request)
+    {
+        foreach (WorkflowRequest workflow in request.Workflows.Where(static workflow => workflow.IsHead is not false))
+        {
+            string? firstCommand = workflow.Steps.FirstOrDefault()?.Command is { Type: "app", Data: { } data }
+                ? data.Deserialize<AppCommandData>()?.CommandKey
+                : null;
+            if (firstCommand != ProcessingStatusAcquirer.Key)
+            {
+                throw new InvalidOperationException(
+                    $"Workflow '{workflow.OperationId}' would start a chain on the instance without "
+                        + $"{ProcessingStatusAcquirer.Key} as its first step."
+                );
+            }
+        }
     }
 
     /// <summary>

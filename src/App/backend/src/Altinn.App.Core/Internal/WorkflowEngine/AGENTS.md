@@ -8,6 +8,11 @@
 - Keep each item of a service task's pipeline the last step of its own workflow, with nothing before it but a
   mailbox-opening stage's `MintMailbox` step. Each item's completion enqueues the next item's workflow, so an item
   that shares a workflow with the next one runs that one twice.
+- A primary workflow either starts with `AcquireProcessingStatus`, which claims the instance from `idle`, or is
+  enqueued from a callback of the chain that holds the instance, with that callback's state. Never capture state
+  from a read while the instance is `processing` and enqueue with it: its versions would let it run between a
+  service task's stages. `WorkflowEngineService` refuses a chain start that does not claim first, and
+  `WorkflowEnqueueRulesTests` lists the places that enqueue; check a new one against this rule before adding it.
 - After you change the steps a transition plans, the callbacks or the mailbox relay, run the
   [integration tests](README.md).
 
