@@ -10,9 +10,7 @@ For how to run it, refer to [benchmarks/EVALS.md](../../benchmarks/EVALS.md). Fo
 
 Code: `src/AI/assistant/benchmarks/manifest.py`, `src/AI/assistant/benchmarks/registry.py`
 
-`manifest.py` declares what the agent must do, as components and behaviors. A behavior is **pinned** when a dataset and an evaluator score it. A behavior that nothing scores is a **gap**. The report shows the gaps on purpose, so that a person sees what no eval checks. Each behavior also states what its eval cannot see, and a fix task with acceptance criteria. The report turns these into a prompt for a coding agent. `python -m benchmarks.runner behaviors` prints the current list.
-
-`src/AI/assistant/benchmarks/registry.py` lists each eval and its kind.
+`manifest.py` declares what the agent must do, as components and behaviors. A behavior is **pinned** when a dataset and an evaluator score it. A behavior that nothing scores is a **gap**, and the report shows it. Each skill of the assistant is a component with one behavior for each app template, so the report shows the v8 and v9 scores of a skill together. `registry.py` lists each eval and its kind.
 
 ## Five kinds of eval
 
@@ -30,14 +28,14 @@ flowchart LR
 
 _From the fastest kind to the most complete kind. An e2e item takes minutes. A decision or prompt item takes seconds._
 
-The e2e eval compares the committed app with a structural rubric: the number of pages, the minimum number of input components, the expected field titles and the navigation. The rubric does not list file names, because two correct runs can use different IDs. The browser render check and the render-fix loop are off by default (`BENCH_PREVIEW_CHECK`, `BENCH_RENDER_FIX`).
+There is one e2e eval for each app template in `src/App/template`. Each run makes a new app from the template, as Designer does (`bench_app.py`), and the assistant builds on it. `app_checks.py` then gives the committed app one score for each skill, from a rubric that finds fields by title, so two correct runs can use different IDs. The checks read the files and do not run the app. The browser render check and the render-fix loop are off by default (`BENCH_PREVIEW_CHECK`, `BENCH_RENDER_FIX`).
 
 ```mermaid
 flowchart TD
-  A["Clone the session branch"] --> B["Load the app model"]
-  B --> C["Structural scores against the rubric"]
+  T["Copy the template, do Designer's steps, push"] --> A["The assistant builds and pushes a session branch"]
+  A --> B["Clone the branch and load the app"]
+  B --> C["Structural scores and one score for each skill"]
   C --> D["Optional: render each page in Chromium"]
-  D --> E["Optional: send failures back to the agent, check again"]
 ```
 
 _How `AgentTask` scores one built app. The committed repository is the ground truth, not the trace._
@@ -80,7 +78,7 @@ _The main verdicts. Two more exist: NOT ADOPTABLE (a pinned behavior got no scor
 
 Code: `src/AI/assistant/benchmarks/datasets/`, `src/AI/assistant/benchmarks/dataset_sync.py`, `src/AI/assistant/benchmarks/harvest.py`
 
-The items are JSONL files in the repository, so a reviewer can read each case in a diff. Each item must have a note that tells why the case exists. `dataset_sync` copies the files to the Langfuse datasets. An experiment runs the Langfuse copy, and the runner warns when the two have a different number of items. Nobody writes `loop_traces.jsonl` by hand. `harvest.py` makes it from production traces. The e2e items and their rubrics live only in Langfuse.
+The items are JSONL files in the repository, so a reviewer can read each case in a diff. Each item must have a note that tells why the case exists. `dataset_sync` copies the files to the Langfuse datasets. An experiment runs the Langfuse copy, and the runner warns when the two have a different number of items. Nobody writes `loop_traces.jsonl` by hand. `harvest.py` makes it from production traces.
 
 ```mermaid
 flowchart LR

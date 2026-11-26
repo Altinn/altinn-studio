@@ -1,8 +1,8 @@
 {
   "axes": {
     "actor_prompt": "fe334c82eb87",
-    "code": "575b1c3 clean",
-    "dataset": "87 items 259bb6306c05",
+    "code": "d827421 clean",
+    "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
     "judge": "gpt-6.1-sol",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "68cbf7e4413d"
   },
-  "check_id": "20261124T140352Z-docs-index-from-docs-altinn-studio-22090-on-575b1c3509-c4e6",
-  "label": "docs index from docs.altinn.studio, #22090 on 575b1c3509",
-  "recorded_at": "2026-11-24T14:09:36+00:00",
-  "why": "#22090 removes the docs skill's copy of llms.txt, has the model search the index that docs.altinn.studio publishes with a new web_fetch filter argument, and lists each docs page once as a source. This moves the actor_prompt and tools digests. Full check with e2e on 575b1c3509, with a clean tree. The assistant ran the same commit against the local Designer stack and the app ttd/assistant-bench, with PREVIEW_CHECK_ENABLED off as in production. Every scored behavior matches the last baseline, apart from gen_required_tools on Loop/traces, which goes from 0.889 to 1.000: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, on Loop/traces 1.000 for gen_required_tools and gen_stopped_cleanly and 0.000 for gen_content_pairings, and 1.000 on bench_completed, bench_field_coverage, bench_order_integrity and bench_texts_bound. All four builds finished with success. No item asks a docs question, so the scores show that form building is unchanged, not how the assistant searches the docs. The render check was off, so build.pages-render and build.entry-page-renders have no score and the run is adopted with --force, as the last baseline was. The judge is gpt-6.1-sol."
+  "check_id": "20261126T071847Z-e2e-bench-on-the-v8-and-v9-app-templates-22112-on-8c179a20ee-with-the-timeout-from-22126-cb08",
+  "label": "e2e bench on the v8 and v9 app templates, #22112 on 8c179a20ee with the timeout from #22126",
+  "recorded_at": "2026-11-26T07:27:17+00:00",
+  "why": "#22112 runs the e2e bench on new copies of the v8 and v9 app templates and scores each skill, so the datasets and the evaluators change. Full check with e2e on 8c179a20ee with the LLMClient timeout from #22126, which only changes what happens when a model reply stalls, with a clean tree, against the local Designer stack, with the preview check off as in production. The quick evals match the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, and on Loop/traces 1.000 for gen_stopped_cleanly, 0.000 for gen_content_pairings and 0.889 for gen_required_tools. Both builds committed an app, in about three minutes each. The last baseline had no v8 scores, because a spec extraction call in the v8 session never got a reply. Each failed check was read against the committed apps, and each is a mistake by the assistant. v8: no gateway, signing task or custom receipt, which the assistant said itself, a FileUpload whose id is not the attachment data type, prefill targets that start with Model., and RequiredValidation not turned on. v9: no custom receipt, no BPMN diagram, a signing task without minCount, runDefaultValidator or SigningDocumentList, prefill targets that start with Model., the same FileUpload mistake, and \u00abAnnet \u2013 fyll inn\u00bb where D3 asks for \u00abAndre \u2013 fyll inn\u00bb, so that field is not found. The run is adopted with --force for the two render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }

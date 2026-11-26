@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 
 
 @dataclass(frozen=True)
@@ -20,3 +21,8 @@ class AppVersionProfile:
     @property
     def version_label(self) -> str:
         return f"v{self.major_version}"
+
+    def forbidden_file(self, path: str) -> str | None:
+        """Why the version has no file at `path` and what it has instead, or None when it may have one."""
+        patterns = self.forbidden_new_file_patterns.items()
+        return next((instead for pattern, instead in patterns if PurePosixPath(path).match(pattern)), None)

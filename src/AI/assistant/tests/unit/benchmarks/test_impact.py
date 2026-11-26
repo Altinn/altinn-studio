@@ -383,7 +383,7 @@ class TestComponentCoverage:
         coverage = components.Coverage(
             universe=("Datepicker", "Input"),
             by_dataset={"Loop/traces": ("Datepicker", "Input")},
-            unavailable=("Benchmarks/forms",),
+            unavailable=("Benchmarks/app-v9",),
         )
         assert coverage.rendered == ()
         assert coverage.replay_only == ("Datepicker", "Input")
@@ -396,18 +396,11 @@ class TestComponentCoverage:
 
         coverage = components.Coverage(
             universe=("Datepicker",),
-            by_dataset={"Benchmarks/forms": ("Datepicker",)},
+            by_dataset={"Benchmarks/app-v9": ("Datepicker",)},
             unavailable=(),
         )
         assert coverage.rendered == ("Datepicker",)
         assert coverage.replay_only == ()
-
-    def test_it_says_when_the_only_rendering_eval_has_no_items_here(self):
-        from benchmarks import components
-
-        lines = "\n".join(components.render(components.collect()))
-        assert "Benchmarks/forms has no items in the repo" in lines
-        assert "the only kind that renders" in lines
 
     def test_no_schemas_degrades_rather_than_crashing(self, monkeypatch):
         from benchmarks import components
