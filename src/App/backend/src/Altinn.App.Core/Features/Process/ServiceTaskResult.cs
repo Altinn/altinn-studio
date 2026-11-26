@@ -69,20 +69,16 @@ public abstract record ServiceTaskResult : ServiceTaskReplyResult
 /// <summary>
 /// A service task step that is done. Created via <see cref="ServiceTaskResult.Completed"/>.
 /// </summary>
-public sealed record CompletedServiceTaskResult : ServiceTaskResult
+internal sealed record CompletedServiceTaskResult : ServiceTaskResult
 {
     internal static readonly CompletedServiceTaskResult Instance = new();
-
-    internal CompletedServiceTaskResult() { }
 }
 
 /// <summary>
 /// A service task step that ends the task. Created via <see cref="ServiceTaskResult.EndTask"/>.
 /// </summary>
-public sealed record EndedServiceTaskResult : ServiceTaskResult
+internal sealed record EndedServiceTaskResult : ServiceTaskResult
 {
-    internal EndedServiceTaskResult() { }
-
     /// <summary>
     /// Optional process action that picks the next flow (e.g. "reject"). When null, the default flow is used.
     /// </summary>
@@ -93,7 +89,7 @@ public sealed record EndedServiceTaskResult : ServiceTaskResult
 /// A service task step that ran without error but is still waiting for an external outcome.
 /// Created via <see cref="ServiceTaskResult.Defer"/>.
 /// </summary>
-public sealed record DeferredServiceTaskResult : ServiceTaskResult
+internal sealed record DeferredServiceTaskResult : ServiceTaskResult
 {
     /// <summary>
     /// How long to wait before running the step again.
@@ -110,10 +106,8 @@ public sealed record DeferredServiceTaskResult : ServiceTaskResult
 /// A failed service task step. Created via <see cref="ServiceTaskResult.FailedRetryable"/> or
 /// <see cref="ServiceTaskResult.FailedPermanent"/>.
 /// </summary>
-public sealed record FailedServiceTaskResult : ServiceTaskResult
+internal sealed record FailedServiceTaskResult : ServiceTaskResult
 {
-    internal FailedServiceTaskResult() { }
-
     /// <summary>
     /// Human-readable error message describing the failure.
     /// </summary>

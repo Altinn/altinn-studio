@@ -2144,22 +2144,7 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets
 }
 namespace Altinn.App.Core.Features.Process
 {
-    public sealed class CompletedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.CompletedServiceTaskResult> { }
-    public sealed class DeferredServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.DeferredServiceTaskResult>
-    {
-        public DeferredServiceTaskResult() { }
-        public required System.TimeSpan Delay { get; init; }
-        public string? Reason { get; init; }
-    }
-    public sealed class EndedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.EndedServiceTaskResult>
-    {
-        public string? Action { get; init; }
-    }
     public sealed class FailedHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHandlerResult>
-    {
-        public required string ErrorMessage { get; init; }
-    }
-    public sealed class FailedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedServiceTaskResult>
     {
         public required string ErrorMessage { get; init; }
     }
@@ -2287,7 +2272,6 @@ namespace Altinn.App.Core.Features.Process
         public required System.DateTimeOffset Deadline { get; init; }
         public required System.Guid Id { get; init; }
     }
-    public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskReplyResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
     public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
     {
         public ServiceTaskReply() { }

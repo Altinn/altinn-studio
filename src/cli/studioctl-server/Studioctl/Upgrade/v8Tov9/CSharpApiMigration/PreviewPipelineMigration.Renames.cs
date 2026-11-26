@@ -80,8 +80,6 @@ internal sealed partial class PreviewPipelineMigration
         public static readonly Dictionary<string, string> RenamedTypes = new(StringComparer.Ordinal)
         {
             ["ServiceTaskMailbox"] = "ReplyAddress",
-            [SuccessfulServiceTaskResult] = "EndedServiceTaskResult",
-            ["StageAwaitNextReplyResult"] = "ServiceTaskAwaitNextReplyResult",
         };
 
         public static readonly MemberRename[] RenamedMembers =
@@ -90,15 +88,6 @@ internal sealed partial class PreviewPipelineMigration
             new("ServiceTaskReplyForwardOutcome", "MailboxFull", "TooManyReplies"),
             new(ForwardException, "MailboxId", "ReplyAddressId", OnInstance: true),
         ];
-
-        /// <summary>
-        /// The previews' types that code could create with <c>new</c>, where the types they were renamed to cannot
-        /// be, and what creates one now.
-        /// </summary>
-        public static readonly Dictionary<string, string> CreatedThrough = new(StringComparer.Ordinal)
-        {
-            [SuccessfulServiceTaskResult] = $"{PipelineApi.ServiceTaskResult}.{PipelineApi.EndTask}(action)",
-        };
 
         public static readonly ParameterRename[] RenamedParameters =
         [
@@ -124,6 +113,17 @@ internal sealed partial class PreviewPipelineMigration
             [ProcessTaskPipeline] =
                 "DefineStart, DefineEnd and DefineAbandon return nothing, and a method that composes part of one "
                 + "returns PipelineBuilder.Lifecycle",
+            [SuccessfulServiceTaskResult] =
+                $"Create the result with {PipelineApi.ServiceTaskResult}.{PipelineApi.EndTask}(action), and compare "
+                + $"results by value, as in result == {PipelineApi.ServiceTaskResult}.{PipelineApi.EndTask}(\"reject\")",
+            ["StageAwaitNextReplyResult"] =
+                "A reply handler returns ServiceTaskReplyResult.AwaitNextReply(), and results compare by value, as in "
+                + "result == ServiceTaskReplyResult.AwaitNextReply()",
+            ["FailedServiceTaskResult"] =
+                $"Create the result with {PipelineApi.ServiceTaskResult}.FailedPermanent or FailedRetryable, and "
+                + "compare results by value",
+            ["DeferredServiceTaskResult"] =
+                $"Create the result with {PipelineApi.ServiceTaskResult}.Defer, and compare results by value",
         };
 
         private static readonly string _types = Words(RemovedTypes.Keys.Concat(RenamedTypes.Keys));
@@ -329,26 +329,6 @@ internal sealed partial class PreviewPipelineMigration
                 && names.IsAltinn(node, model)
             )
             {
-                if (
-                    PreviewApi.CreatedThrough.TryGetValue(node.Identifier.ValueText, out var factory)
-                    && (
-                        node.Parent is QualifiedNameSyntax qualified && qualified.Right == node
-                            ? qualified.Parent
-                            : node.Parent
-                    )
-                        is ObjectCreationExpressionSyntax creation
-                )
-                {
-                    Left.Add(
-                        (
-                            creation,
-                            $"{renamed} cannot be created with new, so this {node.Identifier.ValueText} was left as "
-                                + $"it is. Create it with {factory}."
-                        )
-                    );
-                    return node;
-                }
-
                 Renamed.Add($"{node.Identifier.ValueText} is {renamed}");
                 return node.WithIdentifier(SyntaxFactory.Identifier(renamed).WithTriviaFrom(node.Identifier));
             }
@@ -382,8 +362,7 @@ internal sealed partial class PreviewPipelineMigration
                             call,
                             $"{rename.Type}.{rename.Member} returned the {returned} this code holds, so it was left as "
                                 + $"it is. {rename.Type}.{rename.Renamed} returns a {rename.Type}: keep what you read "
-                                + "from the result in a variable of its own, or match the result with is "
-                                + $"{PreviewApi.RenamedTypes.GetValueOrDefault(returned, returned)}."
+                                + "from the result in a variable of its own."
                         )
                     );
                     return visited;

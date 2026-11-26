@@ -71,9 +71,7 @@ public abstract record ServiceTaskReplyResult
 /// A reply handler handled its reply and waits for the next. Created via
 /// <see cref="ServiceTaskReplyResult.AwaitNextReply"/>.
 /// </summary>
-public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult
+internal sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult
 {
     internal static readonly ServiceTaskAwaitNextReplyResult Instance = new();
-
-    internal ServiceTaskAwaitNextReplyResult() { }
 }

@@ -217,10 +217,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                         ServiceTaskResult.FailedPermanent(errorMessage);
                 }
 
-                public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult
-                {
-                    internal ServiceTaskAwaitNextReplyResult() { }
-                }
+                internal sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskReplyResult;
 
                 public abstract record ServiceTaskResult : ServiceTaskReplyResult
                 {
@@ -241,28 +238,22 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                         new FailedServiceTaskResult { ErrorMessage = errorMessage };
                 }
 
-                public sealed record CompletedServiceTaskResult : ServiceTaskResult
-                {
-                    internal CompletedServiceTaskResult() { }
-                }
+                internal sealed record CompletedServiceTaskResult : ServiceTaskResult;
 
-                public sealed record EndedServiceTaskResult : ServiceTaskResult
+                internal sealed record EndedServiceTaskResult : ServiceTaskResult
                 {
-                    internal EndedServiceTaskResult() { }
-
                     public string? Action { get; init; }
                 }
 
-                public sealed record DeferredServiceTaskResult : ServiceTaskResult
+                internal sealed record DeferredServiceTaskResult : ServiceTaskResult
                 {
                     public required TimeSpan Delay { get; init; }
 
                     public string? Reason { get; init; }
                 }
 
-                public sealed record FailedServiceTaskResult : ServiceTaskResult
+                internal sealed record FailedServiceTaskResult : ServiceTaskResult
                 {
-                    internal FailedServiceTaskResult() { }
 
                     public required string ErrorMessage { get; init; }
                 }
@@ -2697,10 +2688,6 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
 
                 public static Task<ServiceTaskResult> Publish(ServiceTaskMailbox mailbox) =>
                     Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success("published"));
-
-                public static bool Ended(ServiceTaskResult result) => result is SuccessfulServiceTaskResult { Action: null };
-
-                public static bool Waits(object result) => result is StageAwaitNextReplyResult;
             }
             """
         );
@@ -2712,9 +2699,7 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             Path.Combine("logic", "ReplyEndpoint.cs")
                 + ": ForwardReply's mailboxId is replyAddressId, ServiceTaskMailbox is ReplyAddress, "
                 + "ServiceTaskReplyForwardException.MailboxId is ReplyAddressId, ServiceTaskReplyForwardOutcome.MailboxFull "
-                + "is TooManyReplies, ServiceTaskResult.Success is EndTask, StageAwaitNextReplyResult is "
-                + "ServiceTaskAwaitNextReplyResult, SuccessfulServiceTaskResult is EndedServiceTaskResult, as the current "
-                + "API names them.",
+                + "is TooManyReplies, ServiceTaskResult.Success is EndTask, as the current API names them.",
             Assert.Single(Oks(result))
         );
         AssertCompilesAgainstCurrent();
@@ -2725,8 +2710,6 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("ex is ServiceTaskReplyForwardException { ReplyAddressId: var mailbox }", migrated);
         Assert.Contains("public static Task<ServiceTaskResult> Publish(ReplyAddress mailbox) =>", migrated);
         Assert.Contains("ServiceTaskResult.EndTask(\"published\")", migrated);
-        Assert.Contains("result is EndedServiceTaskResult { Action: null }", migrated);
-        Assert.Contains("result is ServiceTaskAwaitNextReplyResult;", migrated);
     }
 
     [Theory]
@@ -2851,10 +2834,10 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             [
                 $"{file}:14: ServiceTaskResult.Success returned the SuccessfulServiceTaskResult this code holds, so it "
                     + "was left as it is. ServiceTaskResult.EndTask returns a ServiceTaskResult: keep what you read from "
-                    + "the result in a variable of its own, or match the result with is EndedServiceTaskResult.",
+                    + "the result in a variable of its own.",
                 $"{file}:15: ServiceTaskResult.Success returned the SuccessfulServiceTaskResult this code holds, so it "
                     + "was left as it is. ServiceTaskResult.EndTask returns a ServiceTaskResult: keep what you read from "
-                    + "the result in a variable of its own, or match the result with is EndedServiceTaskResult.",
+                    + "the result in a variable of its own.",
             ],
             result.Todos
         );
@@ -2867,34 +2850,51 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task SuccessfulResultCreatedWithNew_IsReported_AndNamedAsAType_IsRenamed(bool semantic)
+    public async Task ResultCasesNamedInCode_AreReportedAtTheirLines_AndLeftAsTheyAre(bool semantic)
     {
         var task = Write(
-            "logic/CreatedResults.cs",
+            "logic/NamedResults.cs",
             """
-            public static class CreatedResults
+            public static class NamedResults
             {
                 public static ServiceTaskResult Reject() => new SuccessfulServiceTaskResult { Action = "reject" };
 
                 public static bool Rejected(ServiceTaskResult result) =>
                     result is SuccessfulServiceTaskResult { Action: "reject" };
+
+                public static bool Waits(object result) => result is StageAwaitNextReplyResult;
+
+                public static bool Failed(ServiceTaskResult result) => result is FailedServiceTaskResult;
+
+                public static bool Deferred(ServiceTaskResult result) => result is DeferredServiceTaskResult;
             }
             """
         );
 
         var result = Migrate(semantic);
 
+        var file = Path.Combine("logic", "NamedResults.cs");
+        const string ended =
+            "SuccessfulServiceTaskResult was removed. Create the result with ServiceTaskResult.EndTask(action), and "
+            + "compare results by value, as in result == ServiceTaskResult.EndTask(\"reject\").";
         Assert.Equal(
             [
-                $"{Path.Combine("logic", "CreatedResults.cs")}:8: EndedServiceTaskResult cannot be created with new, so "
-                    + "this SuccessfulServiceTaskResult was left as it is. Create it with "
-                    + "ServiceTaskResult.EndTask(action).",
+                $"{file}:8: {ended}",
+                $"{file}:11: {ended}",
+                $"{file}:13: StageAwaitNextReplyResult was removed. A reply handler returns "
+                    + "ServiceTaskReplyResult.AwaitNextReply(), and results compare by value, as in "
+                    + "result == ServiceTaskReplyResult.AwaitNextReply().",
+                $"{file}:15: FailedServiceTaskResult was removed. Create the result with "
+                    + "ServiceTaskResult.FailedPermanent or FailedRetryable, and compare results by value.",
+                $"{file}:17: DeferredServiceTaskResult was removed. Create the result with ServiceTaskResult.Defer, "
+                    + "and compare results by value.",
             ],
             result.Todos
         );
         var migrated = await ReadMigrated(task);
         Assert.Contains("=> new SuccessfulServiceTaskResult { Action = \"reject\" };", migrated);
-        Assert.Contains("result is EndedServiceTaskResult { Action: \"reject\" };", migrated);
+        Assert.Contains("result is SuccessfulServiceTaskResult { Action: \"reject\" };", migrated);
+        Assert.Contains("result is StageAwaitNextReplyResult;", migrated);
     }
 
     [Theory]
@@ -3423,12 +3423,6 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
             var declaration = Declaration(type, method);
             Assert.Contains($" {renamed},", declaration, StringComparison.Ordinal);
             Assert.DoesNotContain($" {parameter}", declaration, StringComparison.Ordinal);
-        }
-
-        foreach (var created in PreviewPipelineMigration.PreviewApi.CreatedThrough.Keys)
-        {
-            var renamed = PreviewPipelineMigration.PreviewApi.RenamedTypes[created];
-            Assert.False(HasMember(renamed, renamed), $"{renamed} has a public constructor");
         }
     }
 
