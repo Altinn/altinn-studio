@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
@@ -8,7 +9,8 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 /// <remarks>
 /// A name binds to a type or member, so asking the semantic model about every name, creation, attribute and operator
 /// finds the uses. Some code calls members it does not name, such as <c>foreach</c>, <c>await</c>, deconstruction,
-/// collection initializers and query expressions, so those ask the semantic model what they bind to. A type
+/// positional patterns, collection initializers and query expressions, so those ask the semantic model what they bind
+/// to. A type
 /// declaration adds what it inherits, implements and overrides, since an app that implements an interface depends on
 /// all of its members, called or not.
 /// </remarks>
@@ -32,7 +34,8 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
             or ElementAccessExpressionSyntax
             or ConstructorInitializerSyntax
             or PrimaryConstructorBaseTypeSyntax
-            or SelectOrGroupClauseSyntax:
+            or SelectOrGroupClauseSyntax
+            or OrderingSyntax:
                 ReportBound(node);
                 break;
         }
@@ -93,6 +96,10 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
                     ReportMember(model.GetCollectionInitializerSymbolInfo(element).Symbol, element.GetLocation());
                 }
 
+                break;
+            case RecursivePatternSyntax { PositionalPatternClause: not null } pattern
+                when model.GetOperation(pattern) is IRecursivePatternOperation recursive:
+                ReportMember(recursive.DeconstructSymbol, location);
                 break;
             case QueryClauseSyntax clause:
                 QueryClauseInfo query = model.GetQueryClauseInfo(clause);

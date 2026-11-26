@@ -241,6 +241,106 @@ public sealed class AnalysisRunnerTests
         }
     }
 
+    [Fact]
+    public async Task Run_WithTheSameAnalysisTwice_RunsItOnce()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        var analysis = new FakeAnalysis();
+        using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
+
+        List<AnalysisRunResult> results = await new AnalysisRunner(
+            context.Store,
+            database,
+            [analysis, analysis],
+            new InProcessExecutor()
+        ).Run(
+            new AnalysisOptions { Environments = [FleetTestContext.Prod] },
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(("fake", 1, 1, 0, 0, 0), Counts(Assert.Single(results)));
+    }
+
+    [Fact]
+    public async Task OpenAndPrepare_FromTwoConnectionsAtOnce_BothSucceed()
+    {
+        using var context = new FleetTestContext();
+        string path = DatabasePath(context);
+
+        await Task.WhenAll(
+            Enumerable
+                .Range(0, 4)
+                .Select(_ =>
+                    Task.Run(
+                        () =>
+                        {
+                            using AnalysisDatabase database = AnalysisDatabase.Open(path);
+                            database.Prepare(new FakeAnalysis());
+                        },
+                        TestContext.Current.CancellationToken
+                    )
+                )
+        );
+
+        Assert.Equal(
+            [
+                ["fake_apps"],
+            ],
+            Query(context, "SELECT name FROM sqlite_master WHERE name = 'fake_apps'")
+        );
+    }
+
+    [Fact]
+    public void Open_AFileFromAnotherSchemaVersion_Throws()
+    {
+        using var context = new FleetTestContext();
+        string path = DatabasePath(context);
+        using (var connection = new SqliteConnection($"Data Source={path};Pooling=False"))
+        {
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText =
+                "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT); INSERT INTO meta VALUES ('schema_version', '1');";
+            command.ExecuteNonQuery();
+        }
+
+        FleetException ex = Assert.Throws<FleetException>(() => AnalysisDatabase.Open(path));
+
+        Assert.Contains("another version of fleet", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ChildProcessExecutor_KeepsOnlyTheEndOfALongOutput()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "Runs sh");
+        string root = Folder.CreateTemporary();
+        try
+        {
+            var executor = new ChildProcessExecutor(
+                ["sh", "-c", "head -c 5000000 /dev/zero | tr '\\0' x >&2; echo END >&2; exit 1"],
+                TimeSpan.FromSeconds(30)
+            );
+
+            string? failure = await executor.Run(
+                new FakeAnalysis(),
+                root,
+                Path.Join(root, "result"),
+                TestContext.Current.CancellationToken
+            );
+
+            Assert.NotNull(failure);
+            Assert.True(failure.Length < 2200, $"{failure.Length} characters");
+            Assert.EndsWith("END", failure, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static (string, int, int, int, int, int) Counts(AnalysisRunResult r) =>
         (r.Analysis, r.Apps, r.Analyzed, r.Unchanged, r.Failed, r.Removed);
 

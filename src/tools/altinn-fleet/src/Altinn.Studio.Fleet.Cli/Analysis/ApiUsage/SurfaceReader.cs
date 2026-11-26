@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
@@ -60,6 +61,8 @@ internal static class SurfaceReader
             }
         });
         var entries = new Dictionary<string, SurfaceEntry>(StringComparer.Ordinal);
+        // A project that targets several frameworks loads once per framework, and each can expose more.
+        var seenProjects = new HashSet<string>(StringComparer.Ordinal);
         var seenAssemblies = new HashSet<string>(StringComparer.Ordinal);
         foreach (string projectFile in projectFiles)
         {
@@ -71,13 +74,19 @@ internal static class SurfaceReader
                 throw new FleetException($"Could not restore {projectFile}: {restoreError}");
             }
 
-            Project project = await workspace.OpenProjectAsync(
-                Path.GetFullPath(projectFile),
-                cancellationToken: cancellationToken
-            );
-            IEnumerable<Project> projects = fromReferences ? [project] : project.Solution.Projects;
+            // A project that an earlier one references is loaded already, and opening it again throws.
+            string fullPath = Path.GetFullPath(projectFile);
+            Project project =
+                workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == fullPath)
+                ?? await workspace.OpenProjectAsync(fullPath, cancellationToken: cancellationToken);
+            IEnumerable<Project> projects = fromReferences ? [project] : workspace.CurrentSolution.Projects;
             foreach (Project current in projects)
             {
+                if (!seenProjects.Add($"{current.FilePath}|{current.Name}"))
+                {
+                    continue;
+                }
+
                 Compilation compilation =
                     await current.GetCompilationAsync(cancellationToken)
                     ?? throw new FleetException($"{current.FilePath} has no compilation.");
@@ -87,22 +96,32 @@ internal static class SurfaceReader
                     : compilation
                         .GetDiagnostics(cancellationToken)
                         .FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
-                if (loadFailures.Count > 0 || error is not null)
+                string? failure =
+                    loadFailures.FirstOrDefault()
+                    ?? error?.ToString()
+                    ?? (fromReferences ? null : await Generators.FindFailure(current, compilation, cancellationToken));
+                if (failure is not null)
                 {
-                    throw new FleetException(
-                        $"{current.FilePath} did not load or compile: {loadFailures.FirstOrDefault() ?? error?.ToString()}"
-                    );
+                    throw new FleetException($"{current.FilePath} did not load or compile: {failure}");
                 }
 
-                IEnumerable<IAssemblySymbol> assemblies = fromReferences
-                    ? compilation.References.Select(compilation.GetAssemblyOrModuleSymbol).OfType<IAssemblySymbol>()
-                    : [compilation.Assembly];
-                foreach (IAssemblySymbol assembly in assemblies)
+                if (fromReferences)
                 {
-                    if (LibrarySymbols.IsLibraryAssembly(assembly.Name) && seenAssemblies.Add(assembly.Name))
+                    foreach (
+                        IAssemblySymbol assembly in compilation
+                            .References.Select(compilation.GetAssemblyOrModuleSymbol)
+                            .OfType<IAssemblySymbol>()
+                    )
                     {
-                        new Visitor(entries, sourceRoot).Visit(assembly.GlobalNamespace);
+                        if (LibrarySymbols.IsLibraryAssembly(assembly.Name) && seenAssemblies.Add(assembly.Name))
+                        {
+                            new Visitor(entries, sourceRoot).Visit(assembly.GlobalNamespace);
+                        }
                     }
+                }
+                else if (LibrarySymbols.IsLibraryAssembly(compilation.Assembly.Name))
+                {
+                    new Visitor(entries, sourceRoot).Visit(compilation.Assembly.GlobalNamespace);
                 }
             }
         }
@@ -113,6 +132,46 @@ internal static class SurfaceReader
         }
 
         return [.. entries.Values.OrderBy(e => e.Symbol, StringComparer.Ordinal)];
+    }
+
+    /// <summary>Reads one assembly's types and members, such as a compiled app library.</summary>
+    internal static List<SurfaceEntry> ReadAssembly(IAssemblySymbol assembly, string? sourceRoot)
+    {
+        var entries = new Dictionary<string, SurfaceEntry>(StringComparer.Ordinal);
+        new Visitor(entries, sourceRoot).Visit(assembly.GlobalNamespace);
+        return [.. entries.Values.OrderBy(e => e.Symbol, StringComparer.Ordinal)];
+    }
+
+    /// <summary>
+    /// The packages that a restore says do not exist at the version asked for, or <c>null</c> when it failed for
+    /// another reason too.
+    /// </summary>
+    internal static HashSet<string>? MissingPackages(string restoreError)
+    {
+        var missing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (
+            string line in restoreError.Split(
+                '\n',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            )
+        )
+        {
+            // NuGet continues these messages on lines of their own, such as the versions it did find.
+            if (s_missingPackage.Match(line) is { Success: true } match)
+            {
+                missing.Add(match.Groups["package"].Value);
+            }
+            else if (
+                line.Contains("error", StringComparison.OrdinalIgnoreCase)
+                && !line.Contains("NU1101", StringComparison.Ordinal)
+                && !line.Contains("NU1102", StringComparison.Ordinal)
+            )
+            {
+                return null;
+            }
+        }
+
+        return missing.Count == 0 ? null : missing;
     }
 
     /// <summary>
@@ -127,25 +186,27 @@ internal static class SurfaceReader
         try
         {
             string projectFile = Path.Join(folder, "Surface.csproj");
-            string? error = null;
-            foreach (
-                string[] packages in (string[][])
-                    [
-                        [ApiPackage, CorePackage, FiksPackage],
-                        [ApiPackage, CorePackage],
-                        [ApiPackage],
-                    ]
-            )
+            List<string> packages = [ApiPackage, CorePackage, FiksPackage];
+            while (true)
             {
                 await File.WriteAllTextAsync(projectFile, ReferencingProject(packages, version), cancellationToken);
-                error = await Dotnet.Restore(projectFile, cancellationToken);
-                if (error is null)
+                if (await Dotnet.Restore(projectFile, cancellationToken) is not { } error)
                 {
                     return await Read([projectFile], fromReferences: true, sourceRoot: null, cancellationToken);
                 }
-            }
 
-            throw new FleetException($"Could not restore the app library packages of version {version}: {error}");
+                // Only a package that does not exist at this version is left out. Any other failure, such as a feed
+                // that did not answer or a missing dependency, would make the surface silently smaller.
+                HashSet<string>? missing = MissingPackages(error);
+                if (missing is null || missing.Contains(ApiPackage) || !missing.IsSubsetOf(packages))
+                {
+                    throw new FleetException(
+                        $"Could not restore the app library packages of version {version}: {error}"
+                    );
+                }
+
+                packages.RemoveAll(missing.Contains);
+            }
         }
         finally
         {
@@ -158,6 +219,12 @@ internal static class SurfaceReader
     private const string CorePackage = "Altinn.App.Core";
 
     private const string FiksPackage = "Altinn.App.Clients.Fiks";
+
+    // NuGet's "Unable to find package X with version (= V)" (NU1102), or "Unable to find package X" (NU1101).
+    private static readonly Regex s_missingPackage = new(
+        @"NU110[12]: Unable to find package (?<package>[^\s]+?)\.?(?:\s|$)",
+        RegexOptions.CultureInvariant
+    );
 
     // The newest target framework reads packages for every older one.
     private static string ReferencingProject(IEnumerable<string> packages, string version) =>
@@ -214,15 +281,30 @@ internal static class SurfaceReader
             }
         }
 
-        // Accessors are reached through their property or event, and the compiler's own members are not API,
-        // apart from the default constructor that code calls.
+        // Accessors are reached through their property or event. The members the compiler writes, such as a record's
+        // Equals and Deconstruct or a delegate's Invoke, come with their type rather than being decisions of their
+        // own, so they are left out the same way from source, where they are implicitly declared, and from
+        // packages, where they carry [CompilerGenerated]. A class's default constructor is listed, since code
+        // calls it.
         private static bool IsListed(ISymbol member) =>
             member switch
             {
                 IMethodSymbol { AssociatedSymbol: not null } => false,
-                IMethodSymbol { MethodKind: MethodKind.Constructor } => true,
-                _ => !member.IsImplicitlyDeclared,
+                { ContainingType.TypeKind: TypeKind.Delegate } => false,
+                // The implicit constructor is a class's default one, or a record's copy constructor.
+                IMethodSymbol { MethodKind: MethodKind.Constructor } constructor => constructor.IsImplicitlyDeclared
+                    ? constructor.Parameters.IsEmpty && !constructor.ContainingType.IsValueType
+                    : !IsCompilerGenerated(constructor),
+                _ => !member.IsImplicitlyDeclared && !IsCompilerGenerated(member),
             };
+
+        private static bool IsCompilerGenerated(ISymbol member) =>
+            member
+                .GetAttributes()
+                .Any(a =>
+                    a.AttributeClass is { Name: "CompilerGeneratedAttribute" } attribute
+                    && attribute.ContainingNamespace.ToDisplayString() == "System.Runtime.CompilerServices"
+                );
 
         private static bool IsVisible(ISymbol symbol)
         {

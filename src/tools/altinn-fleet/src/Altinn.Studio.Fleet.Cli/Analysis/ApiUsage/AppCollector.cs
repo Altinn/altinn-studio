@@ -42,6 +42,7 @@ internal static class AppCollector
         var uses = new UseCollector(appDir);
         var errors = new List<Diagnostic>();
         var references = new List<AssemblyIdentity>();
+        string? generatorFailure = null;
 
         // The app project, and the app's own library projects that it references: some apps reach the app library
         // only through those.
@@ -64,6 +65,7 @@ internal static class AppCollector
             errors.AddRange(
                 compilation.GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Error)
             );
+            generatorFailure ??= await Generators.FindFailure(current, compilation, cancellationToken);
             HashSet<string> documents = DocumentPaths(current);
             await uses.Walk(
                 compilation,
@@ -90,6 +92,16 @@ internal static class AppCollector
                     ?? await workspace.OpenProjectAsync(testProjectFile, cancellationToken: cancellationToken);
                 if (await testProject.GetCompilationAsync(cancellationToken) is { } compilation)
                 {
+                    // A test project that does not compile is noted, not a failure: tests are the weaker signal,
+                    // and an app with stale tests would otherwise be analyzed again on every run.
+                    int testErrors = compilation
+                        .GetDiagnostics(cancellationToken)
+                        .Count(d => d.Severity == DiagnosticSeverity.Error);
+                    if (testErrors > 0)
+                    {
+                        loadFailures.Add($"{relative}: {testErrors} compile errors, so some of its uses are missing");
+                    }
+
                     HashSet<string> documents = DocumentPaths(testProject);
                     await uses.Walk(
                         compilation,
@@ -111,13 +123,17 @@ internal static class AppCollector
             .OrderBy(a => a.Name == "Altinn.App.Core" ? 0 : 1)
             .FirstOrDefault()
             ?.Version.ToString();
-        // Uses in code that does not compile are missing, so a run with errors is a failure, and the next run tries the
-        // app again. A restore that failed for a moment, such as a feed that did not answer, looks the same.
+        // Uses in code that does not compile, or that a generator did not write, are missing. So a run with errors is a
+        // failure, with the uses that were found, and the next run tries the app again. A restore that failed for a
+        // moment, such as a feed that did not answer, is one too, even when what it left compiles.
         string? failure =
             libraryVersion is null ? "The app does not compile against the app library."
             : errors.Count > 0
                 ? $"The app has {errors.Count} compile errors{(restoreError is null ? "" : " after a failed restore")}, "
                     + "so uses in the code that does not compile are missing."
+            : restoreError is not null ? "The restore failed, so the app may have compiled against other packages."
+            : generatorFailure is not null
+                ? $"A source generator failed, so uses in the code it did not write are missing: {generatorFailure}"
             : null;
         return new AppUsage(
             project,

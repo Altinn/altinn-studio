@@ -62,13 +62,16 @@ public sealed class AnalysisRunner(
 {
     private readonly Lock _databaseGate = new();
 
+    // An analysis named twice would run twice on the same copy of each app.
+    private readonly List<IAppAnalysis> _analyses = [.. analyses.DistinctBy(analysis => analysis.Name)];
+
     public async Task<List<AnalysisRunResult>> Run(
         AnalysisOptions options,
         ISyncObserver? observer,
         CancellationToken cancellationToken
     )
     {
-        foreach (IAppAnalysis analysis in analyses)
+        foreach (IAppAnalysis analysis in _analyses)
         {
             database.Prepare(analysis);
         }
@@ -110,7 +113,7 @@ public sealed class AnalysisRunner(
         HashSet<AppIdentifier> running = [.. apps.Select(app => app.App)];
         var jobs = new List<(IAppAnalysis Analysis, StoredApp App)>();
         var removed = new Dictionary<string, int>();
-        foreach (IAppAnalysis analysis in analyses)
+        foreach (IAppAnalysis analysis in _analyses)
         {
             Dictionary<AppIdentifier, AnalyzedApp> earlier = database.ReadApps(analysis, environment);
 
@@ -139,7 +142,7 @@ public sealed class AnalysisRunner(
 
         var analyzed = new Dictionary<string, int>();
         var failed = new Dictionary<string, int>();
-        foreach (IAppAnalysis analysis in analyses)
+        foreach (IAppAnalysis analysis in _analyses)
         {
             analyzed[analysis.Name] = jobs.Count(job => job.Analysis == analysis);
             failed[analysis.Name] = 0;
@@ -168,7 +171,7 @@ public sealed class AnalysisRunner(
 
         return
         [
-            .. analyses.Select(analysis => new AnalysisRunResult(
+            .. _analyses.Select(analysis => new AnalysisRunResult(
                 environment,
                 analysis.Name,
                 apps.Count,

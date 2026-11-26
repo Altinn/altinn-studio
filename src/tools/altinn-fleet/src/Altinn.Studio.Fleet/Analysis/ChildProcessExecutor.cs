@@ -37,8 +37,8 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
         using Process process =
             Process.Start(start) ?? throw new InvalidOperationException($"{command[0]} did not start.");
         using var reading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        Task<string> stdout = process.StandardOutput.ReadToEndAsync(reading.Token);
-        Task<string> stderr = process.StandardError.ReadToEndAsync(reading.Token);
+        Task<string> stdout = ReadTail(process.StandardOutput, reading.Token);
+        Task<string> stderr = ReadTail(process.StandardError, reading.Token);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(timeout);
         try
@@ -75,8 +75,30 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
             errors = "Processes that the analysis started still held its output when the time was up.";
         }
 
-        string tail = errors.Length > MaxErrorLength ? errors[^MaxErrorLength..] : errors;
-        return $"The analysis exited with code {process.ExitCode} without a result. {tail}".Trim();
+        return $"The analysis exited with code {process.ExitCode} without a result. {errors}".Trim();
+    }
+
+    /// <summary>
+    /// Reads a stream to its end and keeps only its last <see cref="MaxErrorLength"/> characters, since a child can
+    /// write without limit until the deadline.
+    /// </summary>
+    private static async Task<string> ReadTail(StreamReader reader, CancellationToken cancellationToken)
+    {
+        var tail = new System.Text.StringBuilder();
+        char[] buffer = new char[4096];
+        int read;
+        while ((read = await reader.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            tail.Append(buffer, 0, read);
+            if (tail.Length > 2 * MaxErrorLength)
+            {
+                tail.Remove(0, tail.Length - MaxErrorLength);
+            }
+        }
+
+        return tail.Length > MaxErrorLength
+            ? tail.ToString(tail.Length - MaxErrorLength, MaxErrorLength)
+            : tail.ToString();
     }
 
     /// <summary>Stops reading output that may never end, and observes how the reads end.</summary>

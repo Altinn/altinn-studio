@@ -98,18 +98,20 @@ fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || ap
 ```
 
 `api-usage surface` records the types and members a version of the app library exposes, under a label, to compare
-with what the apps use. `--source` restores and compiles the projects, and records nothing when they do not compile,
-so a good surface is never replaced with part of one. `--version` reads the packages of exactly that version and
-leaves out those it did not publish.
+with what the apps use. `--source` restores and compiles the projects, and records nothing when they do not compile
+or a source generator fails, so a good surface is never replaced with part of one. `--version` reads the packages of
+exactly that version, and leaves out only those NuGet says it did not publish.
 [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
 
 - It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
-  An app that cannot be restored or compiled is recorded as failed with the reason, and tried again on the next run.
-  The uses found in an app with compile errors are kept, but those in the code that does not compile are missing.
+  An app whose restore, compilation or source generators fail is recorded as failed with the reason, and tried again
+  on the next run. The uses found are kept, but those in the code that does not compile are missing. A test project
+  that does not compile is noted in `load_failures` instead.
 - Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
   since a test project that uses a type is a weaker reason to keep it public than the app itself.
 - Members that code calls without naming them count too, such as `GetEnumerator` in a `foreach`, `GetAwaiter` in an
   `await`, `Deconstruct` and a collection initializer's `Add`.
 - Third-party packages that the apps use and that are built on the app library are read from the IL of their
-  implementation assemblies, whatever the package is named. IL references are not bound, so a member that a package
-  uses stands for every overload of that name.
+  implementation assemblies, including packages named `Altinn.App.*`. The app library's own assemblies are not read,
+  whatever package carries them, and neither are packages named `Microsoft.*`, `System.*` or `runtime.*`. IL
+  references are not bound, so a member that a package uses stands for every overload of that name.

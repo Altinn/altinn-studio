@@ -76,30 +76,45 @@ internal static class BinaryReferences
     }
 
     /// <summary>
-    /// A package's assemblies. The runtime ones come first: a reference assembly, under <c>ref/</c>, has no method
-    /// bodies, so it does not show what the package's code calls.
+    /// A package's assemblies. The runtime ones come first, including those for one platform only, since a reference
+    /// assembly, under <c>ref/</c>, has no method bodies and so does not show what the package's code calls. One
+    /// copy of each assembly is read.
     /// </summary>
     private static List<string> Assemblies(JsonElement library)
     {
-        foreach (string assets in (string[])["runtime", "compile"])
+        var runtime = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (library.TryGetProperty("runtime", out JsonElement files))
         {
-            if (library.TryGetProperty(assets, out JsonElement files))
-            {
-                List<string> dlls =
-                [
-                    .. files
-                        .EnumerateObject()
-                        .Select(file => file.Name)
-                        .Where(file => file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)),
-                ];
-                if (dlls.Count > 0)
-                {
-                    return dlls;
-                }
-            }
+            AddDlls(runtime, files.EnumerateObject().Select(file => file.Name));
         }
 
-        return [];
+        if (library.TryGetProperty("runtimeTargets", out JsonElement targets))
+        {
+            AddDlls(
+                runtime,
+                targets
+                    .EnumerateObject()
+                    .Where(file =>
+                        file.Value.TryGetProperty("assetType", out JsonElement type) && type.GetString() == "runtime"
+                    )
+                    .Select(file => file.Name)
+            );
+        }
+
+        if (runtime.Count == 0 && library.TryGetProperty("compile", out JsonElement compile))
+        {
+            AddDlls(runtime, compile.EnumerateObject().Select(file => file.Name));
+        }
+
+        return [.. runtime.Values];
+    }
+
+    private static void AddDlls(Dictionary<string, string> byName, IEnumerable<string> files)
+    {
+        foreach (string file in files.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+        {
+            byName.TryAdd(Path.GetFileName(file), file);
+        }
     }
 
     /// <summary>What an assembly references of the app library, or <c>null</c> when it references none of it.</summary>

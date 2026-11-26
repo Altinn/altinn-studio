@@ -1,5 +1,7 @@
 using System.Xml.Linq;
 using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Altinn.Studio.Fleet.Tests.Analysis.ApiUsage;
 
@@ -54,6 +56,9 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                 $"call M:{Ns}.Pair.Deconstruct(System.Int32@,System.Int32@)",
                 $"call M:{Ns}.Bag.Add(System.Int32)",
                 $"call M:{Ns}.Later.GetAwaiter",
+                $"call M:{Ns}.Point.Deconstruct(System.Int32@,System.Int32@)",
+                $"call M:{Ns}.Seq.OrderBy(System.Func{{System.Int32,System.Int32}})",
+                $"call M:{Ns}.Seq.ThenBy(System.Func{{System.Int32,System.Int32}})",
             },
             uses
         );
@@ -79,6 +84,10 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
             string lib = Path.Join(packages, "altinn.app.extra", "1.0.0", "lib", "net8.0");
             Directory.CreateDirectory(lib);
             File.Copy(fixture.PackageAssembly, Path.Join(lib, "Altinn.App.Extra.dll"));
+            // A package with an implementation for one platform only, beside its reference assembly.
+            string rid = Path.Join(packages, "rid.package", "2.0.0", "runtimes", "linux-x64", "lib", "net8.0");
+            Directory.CreateDirectory(rid);
+            File.Copy(fixture.PackageAssembly, Path.Join(rid, "Rid.Package.dll"));
             // A preview build of the app library, in a package of its own name, is the library, not a package on it.
             string preview = Path.Join(packages, "altinn.app.api.experimental", "1.0.0-pr.1", "lib", "net8.0");
             Directory.CreateDirectory(preview);
@@ -102,12 +111,21 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                       "Altinn.App.Api.Experimental/1.0.0-pr.1": {
                         "type": "package",
                         "runtime": { "lib/net8.0/Altinn.App.Api.dll": {} }
+                      },
+                      "Rid.Package/2.0.0": {
+                        "type": "package",
+                        "compile": { "ref/net8.0/Rid.Package.dll": {} },
+                        "runtime": { "lib/net8.0/_._": {} },
+                        "runtimeTargets": {
+                          "runtimes/linux-x64/lib/net8.0/Rid.Package.dll": { "assetType": "runtime", "rid": "linux-x64" }
+                        }
                       }
                     }
                   },
                   "libraries": {
                     "Altinn.App.Extra/1.0.0": { "path": "altinn.app.extra/1.0.0" },
                     "Altinn.App.Api.Experimental/1.0.0-pr.1": { "path": "altinn.app.api.experimental/1.0.0-pr.1" },
+                    "Rid.Package/2.0.0": { "path": "rid.package/2.0.0" },
                     "Altinn.App.Core/1.0.0": { "path": "altinn.app.core/1.0.0" }
                   },
                   "packageFolders": { {{System.Text.Json.JsonSerializer.Serialize(
@@ -117,10 +135,20 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                 """
             );
 
-            PackageUse package = Assert.Single(BinaryReferences.Scan(root));
+            List<PackageUse> found = BinaryReferences.Scan(root);
 
-            Assert.Equal(("Altinn.App.Extra", "1.0.0"), (package.Package, package.Version));
-            Assert.Contains(new PackageReferenceUse($"M:{Ns}.DataClient.Get", UseKinds.Call), package.References);
+            Assert.Equal(
+                [("Altinn.App.Extra", "1.0.0"), ("Rid.Package", "2.0.0")],
+                found.Select(p => (p.Package, p.Version)).Order()
+            );
+            Assert.All(
+                found,
+                package =>
+                    Assert.Contains(
+                        new PackageReferenceUse($"M:{Ns}.DataClient.Get", UseKinds.Call),
+                        package.References
+                    )
+            );
         }
         finally
         {
@@ -152,6 +180,77 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
         {
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    [Fact]
+    public async Task Read_ListsTheSameMembersFromSourceAsFromTheCompiledLibrary()
+    {
+        List<SurfaceEntry> source = await SurfaceReader.Read(
+            [fixture.LibraryProject],
+            fromReferences: false,
+            fixture.Root,
+            TestContext.Current.CancellationToken
+        );
+        MetadataReference library = MetadataReference.CreateFromFile(fixture.LibraryAssembly);
+        var compilation = CSharpCompilation.Create(
+            "Probe",
+            references:
+            [
+                library,
+                .. ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+                    .Split(Path.PathSeparator)
+                    .Select(path => MetadataReference.CreateFromFile(path)),
+            ]
+        );
+        var assembly = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(library)!;
+
+        List<SurfaceEntry> compiled = SurfaceReader.ReadAssembly(assembly, sourceRoot: null);
+
+        Assert.Equal(
+            source.Where(e => e.Visible).Select(e => e.Symbol),
+            compiled.Where(e => e.Visible).Select(e => e.Symbol)
+        );
+        Assert.Contains(source, e => e.Symbol == $"M:{Ns}.Pair.#ctor(System.Int32,System.Int32)");
+        Assert.DoesNotContain(source, e => e.Symbol.StartsWith($"M:{Ns}.Pair.Deconstruct", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Read_WithAProjectBeforeOneItReferences_ReadsBoth()
+    {
+        List<SurfaceEntry> surface = await SurfaceReader.Read(
+            [fixture.PackageProject, fixture.LibraryProject],
+            fromReferences: false,
+            fixture.Root,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Contains(surface, e => e.Symbol == $"T:{Ns}.DataClient");
+    }
+
+    [Theory]
+    [InlineData(
+        "error NU1102: Unable to find package Altinn.App.Clients.Fiks with version (= 7.0.0)",
+        "Altinn.App.Clients.Fiks"
+    )]
+    [InlineData(
+        "/x/Surface.csproj : error NU1101: Unable to find package Altinn.App.Core. No packages exist.",
+        "Altinn.App.Core"
+    )]
+    [InlineData(
+        "/x/Surface.csproj : error NU1102: Unable to find package Altinn.App.Core with version (= 6.0.0)\n"
+            + "/x/Surface.csproj : error NU1102:   - Found 59 version(s) in nuget.org [ Nearest version: 7.0.0 ]",
+        "Altinn.App.Core"
+    )]
+    [InlineData("error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json.", null)]
+    [InlineData(
+        "error NU1102: Unable to find package Altinn.App.Clients.Fiks with version (= 7.0.0)\nerror NU1301: Unable to load the service index",
+        null
+    )]
+    public void MissingPackages_NamesOnlyPackagesThatDoNotExist(string error, string? package)
+    {
+        HashSet<string>? missing = SurfaceReader.MissingPackages(error.Replace("\\n", "\n", StringComparison.Ordinal));
+
+        Assert.Equal(package is null ? null : [package], missing?.ToArray());
     }
 
     [Fact]

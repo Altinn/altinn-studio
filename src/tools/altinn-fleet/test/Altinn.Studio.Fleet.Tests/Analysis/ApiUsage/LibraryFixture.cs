@@ -32,6 +32,11 @@ public sealed class LibraryFixture : IAsyncLifetime
 
     public string PackageAssembly => Path.Join(Root, "package-build", "Some.Package.dll");
 
+    /// <summary>The library, compiled, as a package would carry it.</summary>
+    public string LibraryAssembly => Path.Join(Root, "package-build", "Altinn.App.Core.dll");
+
+    public string PackageProject => Path.Join(Root, "package", "Some.Package", "Some.Package.csproj");
+
     public async ValueTask InitializeAsync()
     {
         Write("lib/Altinn.App.Core/Altinn.App.Core.csproj", Project("<Nullable>enable</Nullable>", references: []));
@@ -93,6 +98,17 @@ public sealed class LibraryFixture : IAsyncLifetime
             }
 
             public sealed record Pair(int Left, int Right);
+
+            public sealed record Point(int X, int Y);
+
+            public sealed class Seq
+            {
+                public Seq Select(Func<int, int> selector) => this;
+
+                public Seq OrderBy(Func<int, int> key) => this;
+
+                public Seq ThenBy(Func<int, int> key) => this;
+            }
 
             public sealed class Bag : System.Collections.IEnumerable
             {
@@ -172,6 +188,12 @@ public sealed class LibraryFixture : IAsyncLifetime
                     }
 
                     var (left, right) = new Pair(1, 2);
+                    if (new Point(1, 2) is (1, var y))
+                    {
+                        sum += y;
+                    }
+
+                    _ = from x in new Seq() orderby x, x select x;
                     _ = new Bag { 1, 2 };
                     await new Later();
                     return sum + left + right;

@@ -28,7 +28,11 @@ public sealed record AnalysisOutcome(string? Failure, string? ResultFile, double
 /// </remarks>
 public sealed class AnalysisDatabase : IDisposable
 {
-    public const int SchemaVersion = 1;
+    /// <summary>
+    /// The version of the tables below. 2 records which tables each analysis created, and how api-usage records
+    /// incomplete compilations, so files from before are not read.
+    /// </summary>
+    public const int SchemaVersion = 2;
 
     private const string Schema = """
         CREATE TABLE meta (
@@ -79,13 +83,14 @@ public sealed class AnalysisDatabase : IDisposable
         try
         {
             database.Execute(null, "PRAGMA journal_mode = DELETE;", []);
-            string? version = database.ReadMeta("schema_version");
+            // The transaction takes the write lock before the version is read, so that two commands creating the same
+            // file one after the other do not both create the tables.
+            using SqliteTransaction transaction = connection.BeginTransaction(deferred: false);
+            string? version = database.ReadMeta("schema_version", transaction);
             if (version is null)
             {
-                using SqliteTransaction transaction = connection.BeginTransaction();
                 database.Execute(transaction, Schema, []);
                 database.SetMeta("schema_version", Invariant(SchemaVersion), transaction);
-                transaction.Commit();
             }
             else if (version != Invariant(SchemaVersion))
             {
@@ -93,6 +98,8 @@ public sealed class AnalysisDatabase : IDisposable
                     $"{path} was written by another version of fleet. Delete it, or give another --out."
                 );
             }
+
+            transaction.Commit();
 
             return database;
         }
@@ -117,15 +124,18 @@ public sealed class AnalysisDatabase : IDisposable
     {
         string versionKey = $"analysis.{analysis.Name}.version";
         string tablesKey = $"analysis.{analysis.Name}.tables";
-        string? recorded = ReadMeta(versionKey);
-        if (recorded == Invariant(analysis.Version))
+        // As in Open, the write lock comes before the version is read.
+        using SqliteTransaction transaction = _connection.BeginTransaction(deferred: false);
+        if (ReadMeta(versionKey, transaction) == Invariant(analysis.Version))
         {
             return;
         }
 
         string prefix = TablePrefix(analysis);
-        string[] earlierTables = (ReadMeta(tablesKey) ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        using SqliteTransaction transaction = _connection.BeginTransaction();
+        string[] earlierTables = (ReadMeta(tablesKey, transaction) ?? "").Split(
+            '\n',
+            StringSplitOptions.RemoveEmptyEntries
+        );
         foreach (string table in earlierTables)
         {
             Execute(transaction, $"DROP TABLE IF EXISTS {Quote(table)}", []);
@@ -328,11 +338,11 @@ public sealed class AnalysisDatabase : IDisposable
             [("$key", key), ("$value", value)]
         );
 
-    private string? ReadMeta(string key)
+    private string? ReadMeta(string key, SqliteTransaction transaction)
     {
         try
         {
-            using SqliteCommand command = Command(null, "SELECT value FROM meta WHERE key = $key");
+            using SqliteCommand command = Command(transaction, "SELECT value FROM meta WHERE key = $key");
             command.Parameters.AddWithValue("$key", key);
             return command.ExecuteScalar() as string;
         }
