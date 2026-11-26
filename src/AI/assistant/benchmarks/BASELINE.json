@@ -1,7 +1,7 @@
 {
   "axes": {
-    "actor_prompt": "fe334c82eb87",
-    "code": "d827421 clean",
+    "actor_prompt": "0f3e7fbcdbe6",
+    "code": "b13cbfd clean",
     "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
@@ -9,10 +9,10 @@
     "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "68cbf7e4413d"
+    "tools": "be6a2325e8a0"
   },
-  "check_id": "20261126T071847Z-e2e-bench-on-the-v8-and-v9-app-templates-22112-on-8c179a20ee-with-the-timeout-from-22126-cb08",
-  "label": "e2e bench on the v8 and v9 app templates, #22112 on 8c179a20ee with the timeout from #22126",
-  "recorded_at": "2026-11-26T07:27:17+00:00",
-  "why": "#22112 runs the e2e bench on new copies of the v8 and v9 app templates and scores each skill, so the datasets and the evaluators change. Full check with e2e on 8c179a20ee with the LLMClient timeout from #22126, which only changes what happens when a model reply stalls, with a clean tree, against the local Designer stack, with the preview check off as in production. The quick evals match the last baseline: gate_verdict 1.000 on Gates/scope and Gates/security, 1.000 on Planner/intake and Planner/spec, and on Loop/traces 1.000 for gen_stopped_cleanly, 0.000 for gen_content_pairings and 0.889 for gen_required_tools. Both builds committed an app, in about three minutes each. The last baseline had no v8 scores, because a spec extraction call in the v8 session never got a reply. Each failed check was read against the committed apps, and each is a mistake by the assistant. v8: no gateway, signing task or custom receipt, which the assistant said itself, a FileUpload whose id is not the attachment data type, prefill targets that start with Model., and RequiredValidation not turned on. v9: no custom receipt, no BPMN diagram, a signing task without minCount, runDefaultValidator or SigningDocumentList, prefill targets that start with Model., the same FileUpload mistake, and \u00abAnnet \u2013 fyll inn\u00bb where D3 asks for \u00abAndre \u2013 fyll inn\u00bb, so that field is not found. The run is adopted with --force for the two render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
+  "check_id": "20261126T092817Z-skills-rewrite-21793-on-b13cbfdb67-fd7c",
+  "label": "skills rewrite #21793 on b13cbfdb67",
+  "recorded_at": "2026-11-26T09:36:57+00:00",
+  "why": "Altinn/altinn-studio-docs#3383 moved the v9 Komponenter page, so studio-layouts links its new address. Only the skill text changes. Full check with e2e on b13cbfdb67 with a clean tree, against the local Designer stack, with the preview check off as in production. The scores match the last baseline: both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9. actor.picks-allowed-tool stays at 0.889, from the replay build-verifies-before-committing, and actor.writes-usable-component-content stays at 0.000. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }
