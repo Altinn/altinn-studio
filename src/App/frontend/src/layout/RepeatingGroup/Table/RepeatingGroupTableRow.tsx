@@ -16,6 +16,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { getRowObjectIndex } from 'src/features/validation/repeatingGroupRowValidations';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -290,8 +291,7 @@ function getPanelMessages({
     if (!mobileView && editableIds.has(validation.baseComponentId)) {
       return [{ validation, renderedInTableCell: true }];
     }
-    const isRowObjectMessage =
-      showsRowObjectMessages && validation.nodeId === groupNodeId && validation.repeatingGroupRow;
+    const isRowObjectMessage = showsRowObjectMessages && getRowObjectIndex(validation, groupNodeId) !== undefined;
     return isRowObjectMessage ? [{ validation, renderedInTableCell: false }] : [];
   });
 }

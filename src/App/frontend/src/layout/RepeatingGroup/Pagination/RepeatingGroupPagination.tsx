@@ -8,6 +8,7 @@ import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { getRowObjectIndex } from 'src/features/validation/repeatingGroupRowValidations';
 import { useVisibleValidationsDeep } from 'src/features/validation/validationHooks';
 import classes from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination.module.css';
 import {
@@ -206,13 +207,10 @@ function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: st
     }
 
     const { depth } = splitDashedKey(indexedId);
-    // Row-object validations of this group carry the group's own node id, so only their row context names the row.
     // Nested groups' row-object validations carry the nested group's id, whose depth already holds this group's row.
     const rowsWithErrors = new Set<number>(
-      deepValidations.map((v) =>
-        v.nodeId === indexedId && v.repeatingGroupRow
-          ? v.repeatingGroupRow.rowIndex
-          : splitDashedKey(v.nodeId).depth.slice(depth.length)[0],
+      deepValidations.map(
+        (v) => getRowObjectIndex(v, indexedId) ?? splitDashedKey(v.nodeId).depth.slice(depth.length)[0],
       ),
     );
 

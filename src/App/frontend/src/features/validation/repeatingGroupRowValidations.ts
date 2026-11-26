@@ -144,6 +144,14 @@ export function getRepeatingGroupRowValidations(
   });
 }
 
+/**
+ * Returns the row index when the validation belongs to one of this group's row objects, such as `Pets[2]`.
+ * Such a validation carries the group's own node id, so only its row context names the row.
+ */
+export function getRowObjectIndex(validation: NodeRefValidation, groupNodeId: string): number | undefined {
+  return validation.nodeId === groupNodeId ? validation.repeatingGroupRow?.rowIndex : undefined;
+}
+
 export function hasRepeatingGroupRowErrors(derived: DerivedValidationState, rowId: string, mask: NodeVisibility) {
   for (const rows of derived.repeatingGroupRowsByNode.values()) {
     const row = rows.find(({ context }) => context.rowId === rowId);
