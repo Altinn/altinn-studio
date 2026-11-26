@@ -9,6 +9,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import classes from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation.module.css';
 import { RepeatingGroupValidationMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupValidationMessage';
 import { getHighestSeverity, validationSeverityPresentation } from 'src/layout/RepeatingGroup/Table/validationSeverity';
+import utilClasses from 'src/styles/utils.module.css';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 
@@ -35,7 +36,8 @@ export function RepeatingGroupTableField({
       className={classes.field}
       data-validation-field={baseComponentId}
     >
-      <div className={classes.control}>
+      {/* The panel under the row shows sighted users the message. Screen readers read the cell's copy instead. */}
+      <div className={cn(classes.control, utilClasses.visuallyHiddenValidations)}>
         <GenericComponent
           baseComponentId={baseComponentId}
           overrideDisplay={{
