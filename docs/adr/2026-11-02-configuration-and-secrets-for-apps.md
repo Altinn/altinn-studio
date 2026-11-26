@@ -80,8 +80,11 @@ The app's configuration is layered from lowest to highest:
   source after them, and names it.
 - How the libraries set this up does not depend on the order of calls in the app's `Program.cs`, since that file is
   the app's and v9 writes it once.
-- v9 drops `appsettings.Local.json` and user secrets. A local run gets app secrets from studioctl, and values we own
-  from studioctl's files.
+- v9 drops `appsettings.Local.json` and user secrets. The app libraries stop loading `appsettings.Local.json`, which
+  they load last in every environment today, and the template and the upgrade remove the app's `UserSecretsId`. A
+  developer stores local secrets, and local values for the app's own configuration that should not be committed,
+  with studioctl, which writes them into `app-secrets/`. Values we own come from studioctl's files, and nothing on
+  the developer's machine overrides them.
 
 ### Runtime configuration
 
@@ -228,15 +231,31 @@ not settled yet>`. The collectors are shared with our own services, with a pipel
   the deploy, which reject an unknown field or a field we own.
 - The fields the upgrade writes have to be right when v9 is stable. They carry over what apps set in
   `deployment/values*.yaml` today:
-  - `replicas`: the minimum and maximum the app scales between, equal for a fixed number, and the CPU use that
-    autoscaling aims for
+  - `scaling`: either a fixed number of replicas, or autoscaling with a minimum, a maximum and the CPU use it aims
+    for. The schema accepts one or the other, never both.
   - `resources`: requests and limits
   - `environments`: the same fields for one environment, in place of `values.<environment>.yaml`
   - `secrets`: `names` and `all`, as [App secrets](#app-secrets) describes
+- A field that an environment sets replaces the same field for all environments as a whole. An environment can then
+  switch between a fixed number and autoscaling, and does not inherit half of a `resources` block.
+
+  ```yaml
+  spec:
+    scaling:
+      autoscaling: { min: 2, max: 10, cpuUtilization: 75 }
+    environments:
+      tt02:
+        scaling:
+          replicas: 1
+  ```
+
 - In production on 25.11.2026, 161 apps set `autoscaling`, 139 set `replicaCount` and 15 set `resources`. The app
-  chart uses `replicaCount` only when autoscaling is off. 32 apps turn it off and run a fixed number of replicas, 31
-  of them one, so the upgrade carries that over as an equal minimum and maximum. No app in production has a
-  `values.<environment>.yaml` yet. In `tt02`, 83 apps from 2 service owners have one.
+  chart uses `replicaCount` only when autoscaling is off:
+  - 32 apps turn autoscaling off and run a fixed number of replicas, 31 of them one. The upgrade writes a fixed
+    `scaling.replicas` for them.
+  - 107 apps set `replicaCount` while autoscaling is on, so it has no effect. The upgrade drops it and says so.
+- No app in production has a `values.<environment>.yaml` yet. In `tt02`, 83 apps from 2 service owners have one,
+  which sets autoscaling and resources for `tt02` or production.
 - A field the upgrade does not write can come later, since an app without it gets our default. The telemetry levels
   in [#19775](https://github.com/Altinn/altinn-studio/issues/19775) are one.
 - The upgrade drops what we own, such as the probes, the `datakeys`, `accesstoken` and `altinn-appsettings-secret`
