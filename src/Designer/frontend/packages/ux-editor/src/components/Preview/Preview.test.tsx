@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Preview } from './Preview';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@designer/testing/mocks/i18nMock';
@@ -13,6 +13,44 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 describe('Preview', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('starts over with a new instance at the task, in the same session', async () => {
+    const user = userEvent.setup();
+    const startPreviewSession = vi.fn().mockResolvedValue({ url: mockSessionUrl });
+    const createPreviewSessionInstance = vi
+      .fn()
+      .mockResolvedValueOnce({ instanceId: mockInstanceId })
+      .mockResolvedValueOnce({ instanceId: newInstanceId });
+    render({ queries: { startPreviewSession, createPreviewSessionInstance } });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.preview.options') }));
+    await user.click(
+      screen.getByRole('menuitem', { name: textMock('ux_editor.preview.start_over') }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTitle(textMock('ux_editor.preview'))).toHaveAttribute(
+        'src',
+        previewSessionPage(
+          mockSessionUrl,
+          newInstanceId,
+          layoutSet,
+          appContextMock.selectedFormLayoutName,
+        ),
+      ),
+    );
+    expect(createPreviewSessionInstance).toHaveBeenCalledTimes(2);
+    expect(createPreviewSessionInstance).toHaveBeenLastCalledWith(
+      org,
+      app,
+      mockSessionUrl,
+      layoutSet,
+    );
+    expect(startPreviewSession).toHaveBeenCalledTimes(1);
   });
 
   it('Renders an iframe with the ref from AppContext', async () => {
@@ -170,6 +208,7 @@ describe('Preview', () => {
 const collapseToggle = vi.fn();
 const mockSessionUrl = 'https://preview.test/0123456789abcdef0123456789abcdef/ttd/app/';
 const mockInstanceId = '51001/7b1b0d6c-1d4e-4c1f-9d0a-2b9b8e1f2a3c';
+const newInstanceId = '51001/0f4e2a1d-8c3b-4b6e-a5d7-9e1c2b3a4f5d';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
   const defaultQueries = {
