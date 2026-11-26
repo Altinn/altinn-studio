@@ -181,13 +181,17 @@ describe('Repeating group attachments', () => {
     });
 
   /**
-   * Records the IDs of data elements deleted from the instance. Returns the (live) list of IDs.
+   * Records the IDs of data elements successfully deleted from the instance. Returns the (live) list of IDs.
    */
   const interceptDataElementDeletion = () => {
     const deletedIds: string[] = [];
     cy.intercept('DELETE', getInstanceIdRegExp({ prefix: 'instances', postfix: 'data/[a-f0-9-]+' }), (req) => {
       const dataElementId = new URL(req.url).pathname.split('/').pop();
-      dataElementId && deletedIds.push(dataElementId);
+      req.on('response', (res) => {
+        if (dataElementId && res.statusCode >= 200 && res.statusCode < 300) {
+          deletedIds.push(dataElementId);
+        }
+      });
     }).as('deleteDataElement');
     return deletedIds;
   };
@@ -626,11 +630,12 @@ describe('Repeating group attachments', () => {
         cy.wrap([...rowIds, ...nestedIds]).as('lastRowAttachmentIds');
       });
     });
-    cy.intercept('POST', '**/instances/**/data/*', (req) => {
-      req.on('response', (res) => {
-        res.setDelay(3000);
-      });
-    }).as('slowUpload');
+    // The upload request is held back until the row deletion has started
+    let releaseUpload: () => void = () => undefined;
+    const uploadReleased = new Promise<void>((resolve) => {
+      releaseUpload = resolve;
+    });
+    cy.intercept('POST', '**/instances/**/data/*', () => uploadReleased).as('slowUpload');
 
     cy.get(appFrontend.group.row(0).editBtn).click();
     gotoSecondPage();
@@ -639,6 +644,7 @@ describe('Repeating group attachments', () => {
       force: true,
     });
     cy.get(appFrontend.group.row(0).deleteBtn).click();
+    cy.then(() => releaseUpload());
 
     cy.wait('@slowUpload').then(({ response }) => {
       // Newer backends reply with a DataPostResponse, older ones with the new data element itself

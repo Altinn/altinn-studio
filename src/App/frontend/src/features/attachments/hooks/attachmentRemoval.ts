@@ -20,9 +20,13 @@ export const AttachmentRemoval = {
     const { lang } = useLanguage();
     const setLeafValue = FormStore.data.useSetLeafValue();
     const removeValueFromList = FormStore.data.useRemoveValueFromList();
+    // Deleting a data element changes the instance, so it must not run at the same time as a form data save. The
+    // backend would reject whichever of them finishes last, as the instance changed since it was read.
+    const lock = FormStore.data.useLocking('__attachment__remove__');
 
     return useCallback(
       async ({ attachment, dataModelBindings, nodeId }: AttachmentActionRemove) => {
+        const { unlock } = await lock();
         try {
           await removeAttachment({ nodeId, dataElementId: attachment.data.id });
           if (dataModelBindings && 'list' in dataModelBindings) {
@@ -34,9 +38,11 @@ export const AttachmentRemoval = {
         } catch {
           toast(lang('form_filler.file_uploader_validation_error_delete'), { type: 'error' });
           return false;
+        } finally {
+          unlock();
         }
       },
-      [lang, removeAttachment, removeValueFromList, setLeafValue],
+      [lang, lock, removeAttachment, removeValueFromList, setLeafValue],
     );
   },
 };
