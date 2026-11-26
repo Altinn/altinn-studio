@@ -1,5 +1,6 @@
-using Altinn.Studio.Fleet.ApiUsage;
+using Altinn.Studio.Fleet.Analysis;
 using Altinn.Studio.Fleet.Cli;
+using Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 
 namespace Altinn.Studio.Fleet.Tests;
 
@@ -88,13 +89,14 @@ public sealed class CliTests
     [InlineData("query")]
     [InlineData("query", "--env", "all", "SELECT 1")]
     [InlineData("query", "--json", "--tsv", "SELECT 1")]
-    [InlineData("query", "--db", "usage.sqlite", "--env", "prod", "SELECT 1")]
-    [InlineData("api-usage", "collect", "--timeout", "1")]
-    [InlineData("api-usage", "collect", "--parallel", "0")]
-    [InlineData("api-usage", "surface", "main")]
-    [InlineData("api-usage", "surface", "main", "--version", "9.0.0", "--source", "Core.csproj")]
-    [InlineData("api-usage", "surface", "main", "--source", "missing.csproj")]
-    [InlineData("api-usage", "frobnicate")]
+    [InlineData("query", "--db", "analysis.sqlite", "--env", "prod", "SELECT 1")]
+    [InlineData("analysis", "run", "--timeout", "1")]
+    [InlineData("analysis", "run", "--parallel", "0")]
+    [InlineData("analysis", "run", "api-usage,frobnicate")]
+    [InlineData("analysis", "api-usage", "surface", "main")]
+    [InlineData("analysis", "api-usage", "surface", "main", "--version", "9.0.0", "--source", "Core.csproj")]
+    [InlineData("analysis", "api-usage", "surface", "main", "--source", "missing.csproj")]
+    [InlineData("analysis", "frobnicate")]
     public async Task InvalidArguments_ExitWithUsageError(params string[] args)
     {
         using var context = new FleetTestContext();
@@ -106,18 +108,18 @@ public sealed class CliTests
     }
 
     [Fact]
-    public async Task ApiUsageCollect_WritesAFileThatQueryReadsWithTheIndexes()
+    public async Task AnalysisRun_WritesAFileThatQueryReadsWithTheIndexes()
     {
         using var context = new FleetTestContext();
         context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
         await context.SyncProd();
-        string file = Path.Join(context.Root, "usage.sqlite");
+        string file = Path.Join(context.Root, "analysis.sqlite");
 
         (int exit, string output, _) = await Run(
             context,
-            new SingleUseAnalyzer(),
-            "api-usage",
-            "collect",
+            new CannedApiUsage(),
+            "analysis",
+            "run",
             "--out",
             file,
             "--store",
@@ -131,12 +133,13 @@ public sealed class CliTests
             file,
             "--store",
             context.Root,
-            "SELECT r.app, a.version, u.symbol FROM runs r JOIN prod.apps a USING (org, app) JOIN uses u USING (org, app)"
+            "SELECT r.app, a.version, u.symbol FROM runs r JOIN prod.apps a USING (org, app) "
+                + "JOIN api_usage_uses u USING (env, org, app)"
         );
 
         Assert.Equal(0, exit);
         Assert.StartsWith(
-            "prod  1 apps · 1 analyzed · 0 unchanged · 0 removed · 0 failed",
+            "prod  api-usage  1 apps · 1 analyzed · 0 unchanged · 0 removed · 0 failed",
             output,
             StringComparison.Ordinal
         );
@@ -164,7 +167,7 @@ public sealed class CliTests
 
     private static async Task<(int Exit, string Output, string Error)> Run(
         FleetTestContext context,
-        IAppAnalyzer? analyzer,
+        IAnalysisExecutor? executor,
         params string[] args
     )
     {
@@ -177,37 +180,50 @@ public sealed class CliTests
             TestContext.Current.CancellationToken,
             context.Credentials,
             context.Altinn,
-            analyzer
+            executor
         );
         return (exit, output.ToString(), error.ToString());
     }
 
-    private sealed class SingleUseAnalyzer : IAppAnalyzer
+    /// <summary>Writes the result of an api-usage analysis without building the app.</summary>
+    private sealed class CannedApiUsage : IAnalysisExecutor
     {
-        public Task<AppUsage> Analyze(string appDir, CancellationToken cancellationToken) =>
-            Task.FromResult(
-                new AppUsage(
-                    "App/App.csproj",
-                    "8.5.0.0",
-                    null,
-                    null,
-                    [],
-                    0,
-                    [],
-                    [],
-                    1,
-                    [
-                        new SymbolUse(
-                            "T:Altinn.App.Core.Features.IDataProcessor",
-                            "Altinn.App.Core",
-                            UseKinds.Implement,
-                            UseSources.App,
-                            1,
-                            "App/logic/DataProcessor.cs:10"
-                        ),
-                    ],
-                    []
-                )
+        public async Task<string?> Run(
+            IAppAnalysis analysis,
+            string appDir,
+            string resultFile,
+            CancellationToken cancellationToken
+        )
+        {
+            var usage = new AppUsage(
+                "App/App.csproj",
+                "8.5.0.0",
+                null,
+                null,
+                [],
+                0,
+                [],
+                [],
+                [
+                    new SymbolUse(
+                        "T:Altinn.App.Core.Features.IDataProcessor",
+                        "Altinn.App.Core",
+                        UseKinds.Implement,
+                        UseSources.App,
+                        1,
+                        "App/logic/DataProcessor.cs:10"
+                    ),
+                ],
+                []
             );
+            await using FileStream stream = File.Create(resultFile);
+            await System.Text.Json.JsonSerializer.SerializeAsync(
+                stream,
+                usage,
+                ApiUsageJsonContext.Default.AppUsage,
+                cancellationToken
+            );
+            return null;
+        }
     }
 }

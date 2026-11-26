@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace Altinn.Studio.Fleet.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 
 /// <summary>Which assemblies are the app library, and how a bound symbol is reduced to its declaration.</summary>
 internal static class LibrarySymbols

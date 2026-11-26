@@ -1,10 +1,9 @@
-using System.Diagnostics;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace Altinn.Studio.Fleet.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 
 /// <summary>
 /// Restores and compiles one app against the app library version it references, and records the app library symbols
@@ -20,12 +19,11 @@ internal static class AppCollector
 
     public static async Task<AppUsage> Collect(string appDir, CancellationToken cancellationToken)
     {
-        var timer = Stopwatch.StartNew();
         appDir = Path.GetFullPath(appDir);
         string? projectFile = FindAppProject(appDir);
         if (projectFile is null)
         {
-            return AppUsage.Failed("No project references the app library.", timer.Elapsed.TotalSeconds);
+            return AppUsage.Failed("No project references the app library.");
         }
 
         string project = Relative(appDir, projectFile);
@@ -122,7 +120,6 @@ internal static class AppCollector
             errors.Count,
             [.. errors.Take(SampleErrorCount).Select(e => e.ToString())],
             testProjects,
-            timer.Elapsed.TotalSeconds,
             uses.ToList(),
             BinaryReferences.Scan(Path.GetDirectoryName(projectFile) ?? appDir)
         );

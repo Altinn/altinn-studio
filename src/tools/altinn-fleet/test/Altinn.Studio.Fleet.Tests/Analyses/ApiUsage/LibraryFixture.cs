@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Altinn.Studio.Fleet.ApiUsage;
+using Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 
-namespace Altinn.Studio.Fleet.Tests.ApiUsage;
+namespace Altinn.Studio.Fleet.Tests.Analyses.ApiUsage;
 
 /// <summary>Registers MSBuild before any test compiles code that uses it.</summary>
 internal static class MSBuildRegistration

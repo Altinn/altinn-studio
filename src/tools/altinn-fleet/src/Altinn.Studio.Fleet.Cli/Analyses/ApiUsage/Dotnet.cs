@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Build.Locator;
 
-namespace Altinn.Studio.Fleet.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 
 /// <summary>Registers MSBuild for Roslyn's MSBuild workspace, once per process.</summary>
 internal static class MSBuildSetup
@@ -85,19 +85,46 @@ internal static class Dotnet
 
     /// <summary>
     /// The environment for a process that builds an app: without MSBuildLocator's variables, without hooks such as
-    /// Husky.Net's that some apps run on restore, and without MSBuild nodes that outlive it. Several analyzes run at
+    /// Husky.Net's that some apps run on restore, and without MSBuild nodes that outlive it. Several analyses run at
     /// once, and a restore can wait forever on a reused node that another one holds.
     /// </summary>
     public static void PrepareEnvironment(IDictionary<string, string?> environment)
     {
+        foreach ((string name, string? value) in Variables())
+        {
+            if (value is null)
+            {
+                environment.Remove(name);
+            }
+            else
+            {
+                environment[name] = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gives this process the environment of <see cref="PrepareEnvironment"/>, so that the processes MSBuild and Roslyn
+    /// start for it inherit it. Call it before MSBuild is registered.
+    /// </summary>
+    public static void PrepareProcess()
+    {
+        foreach ((string name, string? value) in Variables())
+        {
+            Environment.SetEnvironmentVariable(name, value);
+        }
+    }
+
+    private static IEnumerable<(string Name, string? Value)> Variables()
+    {
         foreach (string name in s_msbuildVariables)
         {
-            environment.Remove(name);
+            yield return (name, null);
         }
 
-        environment["HUSKY"] = "0";
-        environment["MSBUILDDISABLENODEREUSE"] = "1";
-        environment["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0";
+        yield return ("HUSKY", "0");
+        yield return ("MSBUILDDISABLENODEREUSE", "1");
+        yield return ("DOTNET_CLI_USE_MSBUILD_SERVER", "0");
     }
 
     private static async Task Copy(StreamReader reader, StringBuilder output)

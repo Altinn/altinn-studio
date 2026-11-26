@@ -66,7 +66,7 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive) : ISy
             SyncStage.Resolving => "looking up releases",
             SyncStage.Fetching => "downloading",
             SyncStage.Indexing => "indexing",
-            SyncStage.Analyzing => "analyzing app library usage",
+            SyncStage.Analyzing => "analyzing",
             _ => stage.ToString(),
         };
 }

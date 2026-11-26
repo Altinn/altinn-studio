@@ -123,7 +123,7 @@ public static class FleetStoreReader
     }
 
     /// <summary>
-    /// Opens another SQLite file for queries, such as the one <c>fleet api-usage</c> writes, with every environment the
+    /// Opens another SQLite file for queries, such as the one <c>fleet analysis</c> writes, with every environment the
     /// store has attached under its name, so that a query can join its tables with <c>prod.apps</c>.
     /// </summary>
     /// <exception cref="FleetException">There is no such file.</exception>

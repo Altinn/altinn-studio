@@ -6,7 +6,7 @@
   <ItemGroup>
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="11.0.0" />
 
-    <!-- fleet api-usage compiles apps with Roslyn -->
+    <!-- The api-usage analysis compiles apps with Roslyn -->
     <PackageVersion Include="Microsoft.Build" Version="18.9.6" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="18.9.6" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.11.2" />

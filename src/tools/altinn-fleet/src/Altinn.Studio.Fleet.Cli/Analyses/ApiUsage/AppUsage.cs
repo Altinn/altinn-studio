@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Altinn.Studio.Fleet.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 
 /// <summary>What one app uses of the app library, or why that could not be found out.</summary>
 /// <param name="Project">The app's project, relative to the app's folder.</param>
@@ -11,7 +11,6 @@ namespace Altinn.Studio.Fleet.ApiUsage;
 /// <param name="CompileErrors">How many errors the compilation has. Uses in code that does not bind are missing.</param>
 /// <param name="SampleErrors">The first of those errors.</param>
 /// <param name="TestProjects">The app's test projects that were analyzed, relative to the app's folder.</param>
-/// <param name="Seconds">How long the analysis took.</param>
 /// <param name="Uses">The app library symbols the app's code binds to.</param>
 /// <param name="Packages">The third-party packages the app uses that reference the app library.</param>
 internal sealed record AppUsage(
@@ -23,17 +22,12 @@ internal sealed record AppUsage(
     int CompileErrors,
     IReadOnlyList<string> SampleErrors,
     IReadOnlyList<string> TestProjects,
-    double Seconds,
     IReadOnlyList<SymbolUse> Uses,
     IReadOnlyList<PackageUse> Packages
 )
 {
-    public static AppUsage Failed(
-        string failure,
-        double seconds,
-        string? project = null,
-        string? restoreError = null
-    ) => new(project, null, failure, restoreError, [], 0, [], [], seconds, [], []);
+    public static AppUsage Failed(string failure, string? project = null, string? restoreError = null) =>
+        new(project, null, failure, restoreError, [], 0, [], [], [], []);
 }
 
 /// <summary>An app library symbol that the app's code binds to.</summary>

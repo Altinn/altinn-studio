@@ -1,7 +1,8 @@
 using Altinn.Studio.Common.Domain;
 using Altinn.Studio.Fleet;
-using Altinn.Studio.Fleet.ApiUsage;
+using Altinn.Studio.Fleet.Analysis;
 using Altinn.Studio.Fleet.Cli;
+using Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
 using Altinn.Studio.Fleet.Http;
 using Altinn.Studio.Fleet.Store;
 using Altinn.Studio.Fleet.Sync;
@@ -35,11 +36,15 @@ namespace Altinn.Studio.Fleet.Cli
               query "<sql>"    Run a read-only SQL query against the index of --env, where prod.apps or tt02.apps
                                name another environment's tables
               index rebuild    Build an environment's index again from the files on disk, without downloading
-              api-usage collect
-                               Compile each app of --env against the app library it references, and record in --out
-                               which app library types and members its code and its packages use
-              api-usage surface LABEL
+              analysis run [NAMES]
+                               Run analyses on a copy of each app of --env, and record what they find in --out.
+                               NAMES lists analyses, separated by commas (default: all of them)
+              analysis api-usage surface LABEL
                                Record the types and members of an app library version in --out, under LABEL
+
+            Analyses:
+              api-usage        Which app library types and members each app's code and packages use. Compiles each
+                               app against the app library version it references
 
             Options:
               --store PATH     The store's folder (default: ~/altinn-fleet)
@@ -54,18 +59,18 @@ namespace Altinn.Studio.Fleet.Cli
             query:
               --tsv            Write tab-separated values
               --json           Write a JSON array of objects
-              --db PATH        Query this SQLite file, such as api-usage's, with every environment's index attached
-                               as prod and tt02
+              --db PATH        Query this SQLite file, such as analysis.sqlite, with every environment's index
+                               attached as prod and tt02
 
-            api-usage:
-              --out PATH       The SQLite file to write (default: api-usage.sqlite)
-              --org ORGS       collect: only these service owners, separated by commas
-              --parallel N     collect: apps compiled at a time (default: 4)
-              --timeout S      collect: seconds one app may take (default: 900)
-              --force          collect: analyze every app again, also those analyzed at their deployed version
+            analysis:
+              --out PATH       The SQLite file to write (default: analysis.sqlite)
+              --org ORGS       run: only these service owners, separated by commas
+              --parallel N     run: apps analyzed at a time (default: 4)
+              --timeout S      run: seconds one analysis of one app may take (default: 900)
+              --force          run: analyze every app again, also those analyzed at their deployed version
               --source PROJECTS
-                               surface: the app library's projects, separated by commas
-              --version V      surface: a published app library version, read from its packages
+                               api-usage surface: the app library's projects, separated by commas
+              --version V      api-usage surface: a published app library version, read from its packages
 
             fleet asks studioctl for the Altinn Studio API keys, with `studioctl auth token`.
             """;
@@ -87,7 +92,7 @@ namespace Altinn.Studio.Fleet.Cli
             CancellationToken cancellationToken,
             IStudioCredentials? credentials = null,
             HttpMessageHandler? handler = null,
-            IAppAnalyzer? analyzer = null
+            IAnalysisExecutor? executor = null
         )
         {
             try
@@ -122,26 +127,34 @@ namespace Altinn.Studio.Fleet.Cli
                         new FleetOptions(),
                         cancellationToken
                     ),
-                    ["api-usage", "collect"] => await ApiUsageCommands.Collect(
+                    ["analysis", "run"] => await AnalysisCommands.Run(
                         parsed,
+                        null,
                         store,
                         output,
                         error,
-                        analyzer,
+                        executor,
                         cancellationToken
                     ),
-                    ["api-usage", "surface", string label] => await ApiUsageCommands.Surface(
+                    ["analysis", "run", string names] => await AnalysisCommands.Run(
                         parsed,
+                        names,
+                        store,
+                        output,
+                        error,
+                        executor,
+                        cancellationToken
+                    ),
+                    ["analysis", "api-usage", "surface", string label] => await ApiUsageCommands.Surface(
+                        parsed,
+                        (ApiUsageAnalysis)AnalysisCommands.Find("api-usage"),
                         label,
                         output,
                         cancellationToken
                     ),
-                    // Run by `api-usage collect` for each app, in a process of its own.
-                    ["api-usage", "collect-app", string appDir, string resultFile] => await ApiUsageCommands.CollectApp(
-                        appDir,
-                        resultFile,
-                        cancellationToken
-                    ),
+                    // Run by `analysis run` for each app, in a process of its own.
+                    ["analysis", "run-app", string name, string appDir, string resultFile] =>
+                        await AnalysisCommands.RunApp(name, appDir, resultFile, error, cancellationToken),
                     _ => throw new UsageException($"Unknown command: {string.Join(' ', parsed.Positionals)}"),
                 };
             }

@@ -52,33 +52,55 @@ In an Agent, the copies are in `/home/agent/code/.reference/altinn-apps/prod` an
 `--store /home/agent/code/.reference/altinn-apps` to `fleet query`. Where a copy is missing, `fleet sync` with the same
 `--store` fetches it.
 
-## What apps use of the app library
+## Analyses
 
-`fleet api-usage collect` compiles each app of `--env` against the app library version it references, with Roslyn,
-and records in an SQLite file which app library types and members the app uses and how: called, implemented,
-overridden, constructed or named. It is for deciding what the app library can stop making public, and for finding
-the apps a change to it affects.
+`fleet analysis run` runs analyses on each app of `--env` and records what they find in an SQLite file,
+`analysis.sqlite` by default. An analysis works on a copy of each app and may build it, to find out what the files
+alone do not say, such as which app library APIs the app uses.
 
 ```sh
-fleet api-usage collect --env prod --out api-usage.sqlite
-fleet api-usage surface v8 --version 8.12.17 --out api-usage.sqlite
-fleet api-usage surface main --out api-usage.sqlite \
+fleet analysis run --env prod
+fleet query --db analysis.sqlite "SELECT analysis, count(*) AS apps, count(failure) AS failed FROM runs
+                                  GROUP BY analysis"
+```
+
+The file is separate from the environments' indexes. An index is derived from the files in the store and can be
+rebuilt from them at any time, and the store may be a read-only copy. An analysis can take minutes per app and needs
+packages from the network, so its results are kept app by app. `fleet query --db` reads the file with every
+environment's index attached, so a query can join it with `prod.apps`.
+
+- The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and analyzed there.
+- Each analysis of an app runs in a process of its own, `fleet analysis run-app`, because it may keep state in the
+  process and can hang. `--timeout` ends one that takes too long.
+- An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only analyzes what changed.
+  An app that failed is tried again, and `--force` analyzes every app again.
+- `runs` has a row for each app each analysis looked at, with its deployed version and why the analysis failed when
+  it did. Each analysis has tables of its own, named after it, such as `api_usage_uses`.
+- An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs) and is listed in
+  [AnalysisCommands.cs](src/Altinn.Studio.Fleet.Cli/AnalysisCommands.cs). A new version of an analysis replaces its
+  tables, so every app is analyzed again.
+
+### api-usage: what apps use of the app library
+
+The `api-usage` analysis compiles each app against the app library version it references, with Roslyn, and records
+which app library types and members the app uses and how: called, implemented, overridden, constructed or named. It
+is for deciding what the app library can stop making public, and for finding the apps a change to it affects.
+
+```sh
+fleet analysis run api-usage --env prod
+fleet analysis api-usage surface v8 --version 8.12.17
+fleet analysis api-usage surface main \
     --source src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj,src/App/backend/src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj
-fleet query --db api-usage.sqlite "SELECT symbol, count(DISTINCT org || '/' || app) AS apps FROM uses
-                                   GROUP BY symbol ORDER BY apps DESC"
+fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || app) AS apps FROM api_usage_uses
+                                  GROUP BY symbol ORDER BY apps DESC"
 ```
 
 `api-usage surface` records the types and members a version of the app library exposes, under a label, to compare
-with what the apps use. [UsageDatabase.cs](src/Altinn.Studio.Fleet.ApiUsage/UsageDatabase.cs) has the file's schema,
-and `fleet query --db` reads it with every environment's index attached, so a query can join it with `prod.apps`.
+with what the apps use. [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analyses/ApiUsage/ApiUsageAnalysis.cs) has
+the analysis's tables.
 
 - It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
-  An app that cannot be restored or compiled is recorded with the reason, and the next run tries it again.
-- The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and built there.
-- Each app is analyzed in a process of its own, `fleet api-usage collect-app`, because a build keeps state in the
-  process and can hang. `--timeout` ends one that takes too long.
-- An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only builds what changed.
-  `--force` analyzes every app again.
+  An app that cannot be restored or compiled is recorded with the reason.
 - Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
   since a test project that uses a type is a weaker reason to keep it public than the app itself.
 - Third-party packages that the apps use and that are built on the app library are read from their IL. IL
