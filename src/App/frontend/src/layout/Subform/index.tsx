@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX, ReactNode } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';

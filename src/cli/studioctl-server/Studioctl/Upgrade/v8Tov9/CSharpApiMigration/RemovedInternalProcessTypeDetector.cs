@@ -5,11 +5,12 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// in-process process orchestration was replaced by the external workflow engine's command model.
 /// These live under <c>Altinn.App.Core.Internal.Process.*</c> and are not part of the app-facing
 /// extensibility surface, so app references are rare - but an app that did reach into them will no
-/// longer compile, so we report (never rewrite) any references for manual rework.
+/// longer compile, so we report (never rewrite) any references for manual rework. The types that locked
+/// a task's data are reported with their own guidance: v9 does not lock it, so no handler replaces them.
 /// </summary>
 internal sealed class RemovedInternalProcessTypeDetector
 {
-    private static readonly IReadOnlySet<string> _removedTypes = new HashSet<string>(StringComparer.Ordinal)
+    private static readonly IReadOnlySet<string> _handlerTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         // Removed handler interfaces
         "IProcessEventDispatcher",
@@ -30,11 +31,23 @@ internal sealed class RemovedInternalProcessTypeDetector
         "EndEventEventHandler",
     };
 
-    private const string Summary =
+    private static readonly IReadOnlySet<string> _dataLockerTypes = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "IProcessTaskDataLocker",
+        "ProcessTaskDataLocker",
+    };
+
+    private const string HandlerSummary =
         "This app references internal in-process engine handler types that were removed in v9 (the in-process "
         + "process orchestration was replaced by the external workflow engine's command pipeline). These were "
         + "never part of the supported app API and have no drop-in replacement; rework the logic against the "
         + "supported task lifecycle handlers in Altinn.App.Core.Features.Process. References found:";
+
+    private const string DataLockerSummary =
+        "This app references the types that locked a task's data when the task ended and unlocked it when the "
+        + "task started. v9 does neither, and nothing replaces the types: the data type's taskIds in "
+        + "applicationmetadata.json decide in which tasks its data can change. Remove the code that uses them. "
+        + "References found:";
 
     private readonly CSharpSourceScanner _scanner;
 
@@ -43,14 +56,14 @@ internal sealed class RemovedInternalProcessTypeDetector
         _scanner = scanner;
     }
 
-    public MigrationResult Detect()
-    {
-        var matches = _scanner.Files.SelectMany(file =>
-            CSharpSyntaxQueries
-                .TypesImplementing(file, _removedTypes)
-                .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedTypes))
+    public MigrationResult Detect() =>
+        WarnOnlyDetector.Combine(
+            WarnOnlyDetector.Report(HandlerSummary, UsesOf(_handlerTypes)),
+            WarnOnlyDetector.Report(DataLockerSummary, UsesOf(_dataLockerTypes))
         );
 
-        return WarnOnlyDetector.Report(Summary, matches);
-    }
+    private IEnumerable<CSharpApiMatch> UsesOf(IReadOnlySet<string> types) =>
+        _scanner.Files.SelectMany(file =>
+            CSharpSyntaxQueries.TypesImplementing(file, types).Concat(CSharpSyntaxQueries.TypeReferences(file, types))
+        );
 }

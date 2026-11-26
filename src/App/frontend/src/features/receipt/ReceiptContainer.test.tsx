@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
@@ -105,11 +103,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         {children}
       </InstanceRouter>
     ),
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }),
-      },
-    },
+    queries: { getInstance: async () => ({ ...buildInstance(hasPdf), process: getProcessDataMock() }) },
   });
 };
 

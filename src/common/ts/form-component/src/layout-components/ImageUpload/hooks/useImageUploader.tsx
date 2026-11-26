@@ -1,4 +1,4 @@
-import type React from 'react';
+import type { RefObject } from 'react';
 
 import {
   calculateMinZoom,
@@ -10,7 +10,7 @@ type UseImageUploaderProps = {
   cropArea: CropInternal;
   updateImageState: (args: { minZoom: number; img: HTMLImageElement }) => void;
   setValidationErrors: (errors: string[]) => void;
-  imageTypeRef: React.RefObject<string | null>;
+  imageTypeRef: RefObject<string | null>;
 };
 
 export function useImageUploader({

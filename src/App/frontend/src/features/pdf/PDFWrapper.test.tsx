@@ -1,5 +1,6 @@
-import React from 'react';
+import { Component } from 'react';
 import { Form } from 'react-router';
+import type { PropsWithChildren } from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
 
@@ -79,15 +80,11 @@ const render = async (
       </InstanceRouter>
     ),
     queries: {
+      getInstance: getInstanceMock,
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           obj.layouts = layouts;
         }),
-    },
-    apis: {
-      instanceApi: {
-        getInstance: getInstanceMock,
-      },
     },
   });
 };
@@ -235,7 +232,7 @@ describe('PDFWrapper', () => {
   describe('subform entry', () => {
     const subformId = 'aaaaaaaa-1111-2222-3333-444444444444';
 
-    class ErrorCatcher extends React.Component<React.PropsWithChildren, { error?: Error }> {
+    class ErrorCatcher extends Component<PropsWithChildren, { error?: Error }> {
       state: { error?: Error } = {};
       static getDerivedStateFromError(error: Error) {
         return { error };
@@ -278,8 +275,7 @@ describe('PDFWrapper', () => {
           </InstanceRouter>
         ),
         waitUntilLoaded: false,
-        queries: { fetchFormBootstrapForInstance },
-        apis: { instanceApi: { getInstance: async () => instance } },
+        queries: { fetchFormBootstrapForInstance, getInstance: async () => instance },
       });
       return { result, fetchFormBootstrapForInstance };
     };

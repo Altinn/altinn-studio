@@ -1,18 +1,11 @@
-.listContainer {
-  padding: 0;
-  list-style: none;
-}
-
-.content {
-  padding: var(--ds-size-3);
-}
-
 .trigger {
   position: absolute;
   top: var(--ds-size-3);
   right: var(--ds-size-3);
 }
 
-.linkButton {
-  margin-left: var(--ds-size-4);
+.linkContent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
 }

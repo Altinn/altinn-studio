@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -58,8 +56,7 @@ async function render({ otherSubform = false }: { otherSubform?: boolean } = {})
   return await renderWithoutInstanceAndLayout({
     renderer: () => <PDFGeneratorPreviewSection />,
     router: ({ children }) => <InstanceRouter initialPage=''>{children}</InstanceRouter>,
-    queries: { fetchLayouts },
-    apis: { instanceApi: { getInstance: async () => instance } },
+    queries: { fetchLayouts, getInstance: async () => instance },
   });
 }
 

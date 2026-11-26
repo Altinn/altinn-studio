@@ -20,11 +20,35 @@ public sealed class V8CompilationLoaderTests
         }
         """;
 
+    private static readonly Lazy<IReadOnlyList<MetadataReference>> _runtimeReferences = new(static () =>
+        (
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string
+            ?? throw new InvalidOperationException("TRUSTED_PLATFORM_ASSEMBLIES not available")
+        )
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            .Select(static path => (MetadataReference)MetadataReference.CreateFromFile(path))
+            .ToList()
+    );
+
     private static Compilation Compile(params string[] sources) =>
         CSharpCompilation.Create(
             "Altinn.Application",
             sources.Select(static source => CSharpSyntaxTree.ParseText(source)),
             references: null,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        );
+
+    private static Compilation CompileWithRuntime(CSharpParseOptions parseOptions, params string[] sources) =>
+        CSharpCompilation.Create(
+            "Altinn.Application",
+            sources.Select(source =>
+                CSharpSyntaxTree.ParseText(
+                    source,
+                    parseOptions,
+                    cancellationToken: TestContext.Current.CancellationToken
+                )
+            ),
+            _runtimeReferences.Value,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
 
@@ -88,22 +112,8 @@ public sealed class V8CompilationLoaderTests
     [Fact]
     public void UsableCompilation_IsReturned()
     {
-        var trustedAssemblies =
-            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string
-            ?? throw new InvalidOperationException("TRUSTED_PLATFORM_ASSEMBLIES not available");
-        var runtimeReferences = trustedAssemblies
-            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
-            .Select(static path => (MetadataReference)MetadataReference.CreateFromFile(path));
-
-        var compilation = CSharpCompilation.Create(
-            "Altinn.Application",
-            [CSharpSyntaxTree.ParseText(ProbeTypeSource, cancellationToken: TestContext.Current.CancellationToken)],
-            runtimeReferences,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
-
         var result = V8CompilationLoader.EvaluateCompilation(
-            compilation,
+            CompileWithRuntime(CSharpParseOptions.Default, ProbeTypeSource),
             [],
             null,
             TestContext.Current.CancellationToken
@@ -111,6 +121,52 @@ public sealed class V8CompilationLoaderTests
 
         Assert.NotNull(result.Compilation);
         Assert.Null(result.UnavailableReason);
+    }
+
+    [Fact]
+    public void CSharp14Syntax_Compiles_SoDetectionStaysSemantic()
+    {
+        // Apps on net10.0 default to C# 14, and the loader compiles them with the Roslyn the server
+        // ships, not with the app's SDK. A shipped Roslyn older than the app's language rejects these
+        // constructs although `dotnet build` passes, and every C# migration quietly degrades to syntax.
+        const string source = """
+            public class Counter
+            {
+                public int Count
+                {
+                    get => field;
+                    set => field = value < 0 ? 0 : value;
+                }
+
+                public Counter Next { get; set; }
+            }
+
+            public static class CounterExtensions
+            {
+                extension(Counter counter)
+                {
+                    public int Doubled => counter.Count * 2;
+
+                    public void Reset() => counter.Count = 0;
+                }
+
+                public static void ClearNext(Counter counter) => counter?.Next = null;
+            }
+            """;
+
+        var result = V8CompilationLoader.EvaluateCompilation(
+            CompileWithRuntime(
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14),
+                ProbeTypeSource,
+                source
+            ),
+            [],
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Null(result.UnavailableReason);
+        Assert.NotNull(result.Compilation);
     }
 
     [Fact]

@@ -32,13 +32,6 @@ public interface ISourceControl
     );
 
     /// <summary>
-    /// Stores a App token for user
-    /// </summary>
-    /// <param name="token">The token from GITEA</param>
-    /// <param name="developer">The developer username</param>
-    void StoreAppTokenForUser(string token, string developer);
-
-    /// <summary>
     /// Returns the local repo location
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>
@@ -78,6 +71,20 @@ public interface ISourceControl
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext);
+
+    /// <summary>
+    /// Fetches the remote and makes the local repository match a remote branch, with that branch checked out. Local
+    /// commits, changes and untracked files are discarded.
+    /// </summary>
+    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+    /// <param name="branchName">The name of the branch</param>
+    /// <param name="localPath">Path to local clone of repository</param>
+    /// <exception cref="Exceptions.SourceControl.BranchNotFoundException">The remote has no such branch.</exception>
+    void ResetToRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName,
+        string localPath
+    );
 
     /// <summary>
     /// List Git status for an app repo

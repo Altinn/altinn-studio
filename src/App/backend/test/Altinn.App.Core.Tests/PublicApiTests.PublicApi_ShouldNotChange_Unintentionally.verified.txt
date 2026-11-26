@@ -11,7 +11,6 @@ namespace Altinn.App.Core.Configuration
         public int CacheResourceLifeTimeInSeconds { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
-        public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
         public string FormLayoutJSONFileName { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
@@ -770,7 +769,7 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public DataModelInfo() { }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("calculationConfig")]
-        public object? CalculationConfig { get; init; }
+        public Altinn.App.Core.Models.Calculation.CalculationConfig? CalculationConfig { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
         public string? DataElementId { get; init; }
@@ -784,6 +783,8 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("schema")]
         public required object Schema { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("writable")]
+        public required bool Writable { get; init; }
     }
     public sealed class FormBootstrapResponse
     {
@@ -863,6 +864,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public class CorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest Build() { }
+        public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder builder) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment attachment) { }
         public Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachments(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment> attachments) { }
@@ -972,6 +974,7 @@ namespace Altinn.App.Core.Features.Correspondence.Builder
     public interface ICorrespondenceRequestBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderContent, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderRecipients, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderResourceId, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilderSendersReference
     {
         Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest Build();
+        Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAllowForwarding(bool allowForwarding);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder builder);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachment(Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment attachment);
         Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceRequestBuilder WithAttachments(System.Collections.Generic.IEnumerable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceAttachment> attachments);
@@ -1311,6 +1314,7 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class CorrespondenceRequest : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.CorrespondenceRequest>
     {
         public CorrespondenceRequest() { }
+        public bool? AllowForwarding { get; init; }
         public required Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContent Content { get; init; }
         public System.DateTimeOffset? DueDateTime { get; init; }
         public System.Collections.Generic.IReadOnlyList<System.Guid>? ExistingAttachments { get; init; }
@@ -1362,6 +1366,8 @@ namespace Altinn.App.Core.Features.Correspondence.Models
     public sealed class GetCorrespondenceStatusResponse : System.IEquatable<Altinn.App.Core.Features.Correspondence.Models.GetCorrespondenceStatusResponse>
     {
         public GetCorrespondenceStatusResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("allowForwarding")]
+        public bool AllowForwarding { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("content")]
         public Altinn.App.Core.Features.Correspondence.Models.CorrespondenceContentResponse? Content { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("correspondenceId")]
@@ -1493,6 +1499,7 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Features.IInstanceDataAccessor GetCleanAccessor(Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption = 1);
         Altinn.Platform.Storage.Interface.Models.DataElement GetDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         System.Threading.Tasks.Task<object> GetFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper> GetFormDataWrapper(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         void OverrideAuthenticationMethod(Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.App.Core.Features.StorageAuthenticationMethod method);
     }
     public static class IInstanceDataAccessorExtensions
@@ -1544,6 +1551,10 @@ namespace Altinn.App.Core.Features
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
+    }
+    public static class IInstanceDataMutatorExtensions
+    {
+        public static System.Threading.Tasks.Task ReplaceFormData(this Altinn.App.Core.Features.IInstanceDataMutator dataMutator, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model) { }
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -2201,27 +2212,35 @@ namespace Altinn.App.Core.Features.Process
         public OnProcessEndedContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskAbandoningContext
     {
         public OnTaskAbandoningContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskEndingContext
     {
         public OnTaskEndingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
         public required string TaskId { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
     public sealed class PipelineBuilder
     {
@@ -2886,7 +2905,7 @@ namespace Altinn.App.Core.Internal.App
     }
     public interface IAppResources
     {
-        string? GetCalculationConfiguration(string dataTypeId);
+        Altinn.App.Core.Models.Calculation.CalculationConfig? GetCalculationConfig(string dataTypeId);
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
         Altinn.App.Core.Models.GlobalPageSettings? GetGlobalUiSettings();
@@ -3080,6 +3099,7 @@ namespace Altinn.App.Core.Internal.Data
         Altinn.Platform.Storage.Interface.Models.DataElement? DataElement { get; }
         Altinn.Platform.Storage.Interface.Models.DataType DataType { get; }
         System.ReadOnlySpan<char> AddIndexToPath(System.ReadOnlySpan<char> path, System.ReadOnlySpan<int> rowIndexes, System.Span<char> buffer);
+        bool AddRow(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
         T BackingData<T>()
             where T :  class;
         Altinn.App.Core.Internal.Data.IFormDataWrapper Copy();
@@ -3087,6 +3107,7 @@ namespace Altinn.App.Core.Internal.Data
         void InitializeAltinnRowIds();
         void RemoveAltinnRowIds();
         void RemoveField(System.ReadOnlySpan<char> path, Altinn.App.Core.Helpers.RowRemovalOption rowRemovalOption);
+        void ReplaceBackingData(object dataModel);
         bool Set(System.ReadOnlySpan<char> path, Altinn.App.Core.Internal.Expressions.ExpressionValue value);
     }
 }
@@ -3111,7 +3132,7 @@ namespace Altinn.App.Core.Internal.Expressions
         public ExpressionEvaluatorTypeErrorException(string msg) { }
         public ExpressionEvaluatorTypeErrorException(string msg, System.Exception innerException) { }
     }
-    [System.Diagnostics.DebuggerDisplay("{ToString(),nq}")]
+    [System.Diagnostics.DebuggerDisplay("{ToStringForText(),nq}")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Internal.Expressions.ExpressionTypeUnionConverter))]
     public readonly struct ExpressionValue : System.IEquatable<Altinn.App.Core.Internal.Expressions.ExpressionValue>
     {
@@ -3725,11 +3746,6 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
-    public interface IProcessTaskDataLocker
-    {
-        System.Threading.Tasks.Task Lock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-        System.Threading.Tasks.Task Unlock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
 }
 namespace Altinn.App.Core.Internal.Profile
 {
@@ -4004,6 +4020,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Logo? Logo { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="onEntry")]
         public new Altinn.App.Core.Models.OnEntry? OnEntry { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="onProcessEnd")]
+        public Altinn.App.Core.Models.OnProcessEnd? OnProcessEnd { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="promptForParty")]
         public string? PromptForParty { get; set; }
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -4093,6 +4111,7 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.BinaryDataChange> BinaryDataChanges { get; }
         public System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.FormDataChange> FormDataChanges { get; }
     }
+    [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.DataElementIdentifier.DataElementIdentifierConverter))]
     public readonly struct DataElementIdentifier : System.IEquatable<Altinn.App.Core.Models.DataElementIdentifier>
     {
         public DataElementIdentifier(Altinn.Platform.Storage.Interface.Models.DataElement dataElement) { }
@@ -4144,6 +4163,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("hideCloseButton")]
         public bool HideCloseButton { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("hideOptionalIndicator")]
+        public bool HideOptionalIndicator { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("navigationTitle")]
         public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("showExpandWidthButton")]
@@ -4154,6 +4175,8 @@ namespace Altinn.App.Core.Models
         public bool ShowProgress { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("taskNavigation")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("validateOnBackToSummary")]
+        public Altinn.App.Core.Models.PageValidation? ValidateOnBackToSummary { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("validationOnNavigation")]
         public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
@@ -4312,6 +4335,12 @@ namespace Altinn.App.Core.Models
         [Newtonsoft.Json.JsonProperty(PropertyName="instanceSelection")]
         public Altinn.App.Core.Models.InstanceSelection? InstanceSelection { get; set; }
     }
+    public class OnProcessEnd
+    {
+        public OnProcessEnd() { }
+        [Newtonsoft.Json.JsonProperty(PropertyName="confirm")]
+        public bool Confirm { get; set; }
+    }
     public readonly struct OrganizationNumber : System.IEquatable<Altinn.App.Core.Models.OrganizationNumber>
     {
         public bool Equals(Altinn.App.Core.Models.OrganizationNumber other) { }
@@ -4376,6 +4405,7 @@ namespace Altinn.App.Core.Models
     public class PageGroup
     {
         public PageGroup() { }
+        public bool? ExpandedByDefault { get; set; }
         public bool? MarkWhenCompleted { get; set; }
         public string? Name { get; set; }
         public required System.Collections.Generic.List<string> Order { get; set; }
@@ -4406,13 +4436,18 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<string>? ExcludeFromPdf { get; set; }
         public bool? ExpandedWidth { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }
+        public Altinn.App.Core.Models.Expressions.Expression? HideAppNameInPdf { get; set; }
         public bool? HideCloseButton { get; set; }
+        public bool? HideOptionalIndicator { get; set; }
+        public Altinn.App.Core.Models.Expressions.Expression? NavigationTitle { get; set; }
         public System.Collections.Generic.List<string>? Order { get; set; }
         public string? PdfLayoutName { get; set; }
         public bool? ShowExpandWidthButton { get; set; }
         public bool? ShowLanguageSelector { get; set; }
         public bool? ShowProgress { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
+        public Altinn.App.Core.Models.PageValidation? ValidateOnBackToSummary { get; set; }
+        public Altinn.App.Core.Models.PageValidation? ValidationOnNavigation { get; set; }
     }
     public class QueryResponse<T>
     {
@@ -4482,6 +4517,27 @@ namespace Altinn.App.Core.Models
         AllExceptRequired = 5,
         [System.Text.Json.Serialization.JsonStringEnumMemberName("All")]
         All = 6,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("Invalid")]
+        Invalid = 7,
+    }
+}
+namespace Altinn.App.Core.Models.Calculation
+{
+    public class CalculationConfig : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public const string Schema = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/calculation/calc" +
+            "ulation.schema.v1.json";
+        public CalculationConfig() { }
+        [System.Text.Json.Serialization.JsonPropertyName("calculations")]
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.Calculation.CalculationItem> Calculations { get; init; }
+    }
+    public class CalculationItem : System.Text.Json.Serialization.IJsonOnDeserialized
+    {
+        public CalculationItem() { }
+        [System.Text.Json.Serialization.JsonPropertyName("expression")]
+        public required Altinn.App.Core.Models.Expressions.Expression Expression { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("field")]
+        public required string Field { get; init; }
     }
 }
 namespace Altinn.App.Core.Models.Expressions
@@ -5384,12 +5440,6 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Validation.FrontendSeverityConverter?))]
         public Altinn.App.Core.Models.Validation.ValidationIssueSeverity? Severity { get; set; }
     }
-    public class ValidationException : Altinn.App.Core.Exceptions.AltinnException
-    {
-        public ValidationException() { }
-        public ValidationException(string message) { }
-        public ValidationException(string message, System.Exception inner) { }
-    }
     public class ValidationIssue
     {
         public ValidationIssue() { }
@@ -5441,7 +5491,6 @@ namespace Altinn.App.Core.Models.Validation
             public static string DataElementFileInfected { get; }
             public static string DataElementFileScanPending { get; }
             public static string DataElementTooLarge { get; }
-            public static string DataElementValidatedAtWrongTask { get; }
             public static string InvalidFileNameFormat { get; }
             public static string InvalidSignatureHash { get; }
             public static string MissingContentType { get; }

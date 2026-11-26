@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type React from 'react';
+import type { KeyboardEvent } from 'react';
 
 import type { Position } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
@@ -15,7 +15,7 @@ export const useKeyboardNavigation = ({
   const MOVE_AMOUNT = 10;
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLCanvasElement>) => {
+    (e: KeyboardEvent<HTMLCanvasElement>) => {
       const keyMap: Record<string, () => void> = {
         ArrowUp: () => onPositionChange({ ...position, y: position.y - MOVE_AMOUNT }),
         ArrowDown: () => onPositionChange({ ...position, y: position.y + MOVE_AMOUNT }),

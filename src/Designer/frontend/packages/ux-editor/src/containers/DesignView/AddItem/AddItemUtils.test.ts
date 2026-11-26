@@ -15,6 +15,8 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../../../testing/layoutMock';
 
 const buttonGroupId = 'button-group';
+const unconfiguredContainerId = 'unconfigured-container';
+const unconfiguredContainerType = 'UnconfiguredContainer' as ComponentType;
 
 const createContainer = (id: string, type: ComponentType): FormContainer =>
   ({ id, type }) as FormContainer;
@@ -24,10 +26,12 @@ const layout: IInternalLayout = {
   containers: {
     [BASE_CONTAINER_ID]: createContainer(BASE_CONTAINER_ID, ComponentType.Group),
     [buttonGroupId]: createContainer(buttonGroupId, ComponentType.ButtonGroup),
+    [unconfiguredContainerId]: createContainer(unconfiguredContainerId, unconfiguredContainerType),
   },
   order: {
     [BASE_CONTAINER_ID]: [],
     [buttonGroupId]: [],
+    [unconfiguredContainerId]: [],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -88,6 +92,15 @@ describe('AddItemUtils', () => {
           formItemConfigs[ComponentType.ButtonGroup].validChildTypes,
         );
         expect(Object.keys(availableComponents)).toEqual(['button']);
+      });
+
+      it('offers nothing for a container without a Designer config', () => {
+        const { quickAddComponents, availableComponents } = getComponentSelection(
+          layout,
+          unconfiguredContainerId,
+        );
+        expect(quickAddComponents).toEqual([]);
+        expect(availableComponents).toEqual({});
       });
     });
 

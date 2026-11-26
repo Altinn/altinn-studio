@@ -24,6 +24,15 @@ public static class Diagnostics
             "HttpContextAccessor dangerous usage",
             "IHttpContextAccessor.HttpContext should not be accessed in a constructor, see guidance at: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-8.0#httpcontext-isnt-thread-safe"
         );
+
+        // '{0}' is "Method 'Name'", "Local function 'Name'" or "This lambda".
+        public static readonly DiagnosticDescriptor AsyncVoid = Error(
+            "ALTINNAPP0502",
+            Category.CodeSmells,
+            "Async method returns void",
+            "{0} is async but returns void. Nothing can await it, so the caller carries on before it finishes, and an "
+                + "exception it throws cannot be caught and stops the app. Return Task instead, and await it."
+        );
     }
 
     public static class FormDataWrapperGenerator
@@ -309,14 +318,13 @@ public static class Diagnostics
         );
 
         // A warning, since keeping a data type for a task that was removed is legitimate: old instances still hold
-        // its data.
+        // its data. '{1}' is the quoted task id or null, '{2}' says why it is not a task, and '{3}' what follows.
         public static readonly DiagnosticDescriptor DataTypeTaskNotFound = Warning(
             "ALTINNAPP1017",
             Category.Process,
             "Data type belongs to a task that does not exist",
-            "Data type '{0}' has the taskId '{1}', but {2}. The process never stops there, so users cannot change "
-                + "the data type's data through the app, and its minCount and validation never apply. Set taskId to "
-                + "the task the data belongs to, or remove it."
+            "Data type '{0}' has {1} in its taskIds, but {2}. The process never stops there, so {3}. Correct the "
+                + "entry, or remove it from taskIds."
         );
 
         // A warning, since nothing fails: the runtime filters by these ids, so one that matches nothing is skipped.
@@ -386,6 +394,22 @@ public static class Diagnostics
                 + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
         );
 
+        // A gateway after a service task gets the action the service task concludes with
+        // (ProcessNextContinuation), not the user's, and a failed service task can only be resumed, not left through
+        // process/next with an action. The types this rule names never conclude with one; fiksArkiv and an app's own
+        // service task types may. '{1}' names the conditions that read the action, and '{3}' is the task's type.
+        public static readonly DiagnosticDescriptor GatewayActionAfterServiceTask = Error(
+            "ALTINNAPP1030",
+            Category.Process,
+            "Exclusive gateway routes on gatewayAction right after a service task that returns no action",
+            "Exclusive gateway '{0}' reads [\"gatewayAction\"] in {1}, but directly follows service task '{2}'. A "
+                + "gateway after a service task sees the action the service task returns, and a '{3}' task returns "
+                + "none, so [\"gatewayAction\"] is always null there: not the action of the task before, and not "
+                + "'reject', since a failed service task can only be retried. Move service task '{2}' after the "
+                + "gateway, onto the branch that needs it, or remove the gateway if it only takes the user back from "
+                + "a failed service task."
+        );
+
         // The app never evaluates the default's condition, and also fails to start on one, so a condition that
         // seems to work in a test does not decide anything.
         public static readonly DiagnosticDescriptor GatewayDefaultHasCondition = Error(
@@ -425,6 +449,23 @@ public static class Diagnostics
                 + "the app backend. Name the subform's UI folder in <altinn:subformUiFolder> instead: the app renders "
                 + "the entries from that folder and takes their data type from its defaultDataType. "
                 + "'studioctl app upgrade v9' makes this change."
+        );
+
+        // An error, since the app would otherwise run with the data type bound to no task, which nothing else
+        // reports.
+        public static readonly DiagnosticDescriptor TaskId = Error(
+            "ALTINNAPP0603",
+            Category.Deprecation,
+            "taskId is not supported",
+            "'taskId' on dataType '{0}' is no longer supported by this version of the app backend, so the data type is bound to no task: it is not auto-created or validated in '{1}', and users can change its data in every task. Replace it with \"taskIds\": [\"{1}\"]; studioctl app upgrade v9 does this."
+        );
+
+        // A warning, since the app works as taskIds says, whatever task the taskId names.
+        public static readonly DiagnosticDescriptor TaskIdNextToTaskIds = Warning(
+            "ALTINNAPP0604",
+            Category.Deprecation,
+            "taskId next to taskIds is ignored",
+            "'taskId' on dataType '{0}' is no longer supported by this version of the app backend and is ignored, so the data type is bound only to the tasks in its taskIds. Remove the taskId '{1}', and list every task the data belongs to in taskIds."
         );
     }
 

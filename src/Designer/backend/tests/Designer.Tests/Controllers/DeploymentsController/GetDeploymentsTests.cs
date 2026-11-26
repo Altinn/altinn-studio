@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -11,6 +12,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Services.Runtime;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Designer.Tests.Controllers.ApiTests;
@@ -60,72 +62,95 @@ public class GetDeployments
     {
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234"));
-        SetupRunning("at22", new RunningAppDeployment("6.1", null));
+        SetupRunning("tt02", new RunningAppDeployment("8", "142287", "prod", "updating", null));
+        SetupRunning("at22", new RunningAppDeployment("6.1", null, null, "ready", null));
         SetupRunning("production", null);
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
+        DateTime? FinishedOf(string buildId) =>
+            actual.PipelineDeploymentList.Single(deployment => deployment.Build.Id == buildId).Build.Finished;
 
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
-        foreach (DeploymentEntity entity in actual.PipelineDeploymentList)
+        foreach (DeploymentEntity deployment in actual.PipelineDeploymentList)
         {
-            Assert.Equal(DateTimeKind.Utc, entity.Created.Kind);
-            Assert.Equal(DateTimeKind.Utc, entity.Build.Started!.Value.Kind);
-            Assert.Equal(DateTimeKind.Utc, entity.Build.Finished!.Value.Kind);
+            Assert.Equal(DateTimeKind.Utc, deployment.Created.Kind);
+            Assert.Equal(DateTimeKind.Utc, deployment.Build.Started!.Value.Kind);
+            Assert.Equal(DateTimeKind.Utc, deployment.Build.Finished!.Value.Kind);
         }
         Assert.Equivalent(
             new[]
             {
-                new RunningApp
+                new AppInEnvironment
                 {
                     Environment = "tt02",
-                    Version = "8",
-                    BuildId = "1234",
+                    State = AppInEnvironmentState.Running,
+                    RunningApp = new RunningApp
+                    {
+                        Environment = "tt02",
+                        Version = "8",
+                        BuildId = "142287",
+                        Status = AppStatus.Updating,
+                        CanRestart = true,
+                        // The deploy whose build runs.
+                        PublishedAt = FinishedOf("142287"),
+                    },
                 },
-                new RunningApp { Environment = "at22", Version = "6.1" },
+                new AppInEnvironment
+                {
+                    Environment = "at22",
+                    State = AppInEnvironmentState.Running,
+                    RunningApp = new RunningApp
+                    {
+                        Environment = "at22",
+                        Version = "6.1",
+                        Status = AppStatus.Ready,
+                        CanRestart = true,
+                        // Without a build id, the latest deploy of the tag.
+                        PublishedAt = FinishedOf("142224"),
+                    },
+                },
+                new AppInEnvironment { Environment = "production", State = AppInEnvironmentState.NotRunning },
             },
-            actual.RunningAppList,
+            actual.EnvironmentList,
             strict: true
         );
+
+        // A limited list still tells when what runs was published.
+        DeploymentsResponse newestOnly = JsonSerializer.Deserialize<DeploymentsResponse>(
+            await GetDeploymentsJson("&top=1"),
+            JsonSerializerOptions
+        );
+        Assert.Single(newestOnly.PipelineDeploymentList);
+        Assert.Equivalent(actual.EnvironmentList, newestOnly.EnvironmentList, strict: true);
     }
 
     [Fact]
-    public async Task GetDeployments_LeavesOutEnvironmentsWhereTheAppIsNotKnownToRun()
+    public async Task GetDeployments_WhenAnEnvironmentCannotTell_SaysItIsUnknown()
     {
-        SetupRunning("tt02", new RunningAppDeployment("8", null));
+        SetupRunning("tt02", new RunningAppDeployment("8", null, null, "ready", null));
         SetupRunning("at22", null);
         SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
 
-        Assert.Equal("tt02", Assert.Single(actual.RunningAppList).Environment);
-    }
-
-    [Fact]
-    public async Task GetDeployments_StillServesWhatOlderFrontendsRead()
-    {
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234"));
-        SetupRunning("at22", null);
-        SetupRunning("production", null);
-
-        using JsonDocument response = JsonDocument.Parse(await GetDeploymentsJson());
-
-        // A frontend loaded before runningAppList existed reads kubernetesDeploymentList, and fails without it.
-        JsonElement legacy = Assert.Single(
-            response.RootElement.GetProperty("kubernetesDeploymentList").EnumerateArray()
+        Assert.Equal(
+            [
+                ("tt02", AppInEnvironmentState.Running),
+                ("at22", AppInEnvironmentState.NotRunning),
+                ("production", AppInEnvironmentState.Unknown),
+            ],
+            actual.EnvironmentList.Select(environment => (environment.Environment, environment.State))
         );
-        Assert.Equal("tt02", legacy.GetProperty("envName").GetString());
-        Assert.Equal("8", legacy.GetProperty("version").GetString());
     }
 
     private async Task<DeploymentsResponse> GetDeploymentsResponse() =>
         JsonSerializer.Deserialize<DeploymentsResponse>(await GetDeploymentsJson(), JsonSerializerOptions);
 
-    private async Task<string> GetDeploymentsJson()
+    private async Task<string> GetDeploymentsJson(string extraQuery = "")
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
-            $"{VersionPrefix(Org, App)}?sortDirection=Descending"
+            $"{VersionPrefix(Org, App)}?sortDirection=Descending{extraQuery}"
         );
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

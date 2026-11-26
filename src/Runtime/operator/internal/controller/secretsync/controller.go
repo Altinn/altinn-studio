@@ -3,6 +3,7 @@ package secretsync
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 
@@ -295,7 +296,7 @@ func (r *SecretSyncReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := ctrl.NewControllerManagedBy(mgr).
 		Named("secretsync").
 		For(&corev1.Secret{}, builder.WithPredicates(r.secretPredicate())).
-		Complete(r); err != nil {
+		Complete(telemetry.QuietOnCancel(r)); err != nil {
 		return fmt.Errorf("complete SecretSync controller builder: %w", err)
 	}
 	return nil
@@ -325,7 +326,7 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 	)
 	defer span.End()
 
-	var lastErr error
+	var syncErr error
 	for _, mapping := range r.mappings {
 		_, err := r.Reconcile(ctx, reconcile.Request{
 			NamespacedName: client.ObjectKey{
@@ -334,18 +335,24 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 			},
 		})
 		if err != nil {
-			r.logger.Error(err, "failed to sync mapping",
-				"sourceName", mapping.SourceName,
-				"sourceNamespace", mapping.SourceNamespace,
-			)
-			lastErr = err
+			syncErr = errors.Join(syncErr, err)
+			if !errors.Is(err, context.Canceled) {
+				r.logger.Error(err, "failed to sync mapping",
+					"sourceName", mapping.SourceName,
+					"sourceNamespace", mapping.SourceNamespace,
+				)
+			}
+			// The run was stopped, so the remaining mappings would fail the same way.
+			if ctx.Err() != nil {
+				break
+			}
 		}
 	}
 
-	if lastErr != nil {
-		commontelemetry.SetError(span, "sync_mappings", lastErr)
+	if syncErr != nil {
+		commontelemetry.SetError(span, "sync_mappings", syncErr)
 	}
-	return lastErr
+	return syncErr
 }
 
 func copyLabels(src map[string]string) map[string]string {

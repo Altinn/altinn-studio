@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../../test/testUtils';
 import { build, pipelineDeployment, runningApp } from 'app-shared/mocks/mocks';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 const deploy = (buildId: string, finished: string): PipelineDeployment => ({
   ...pipelineDeployment,
@@ -16,7 +16,7 @@ const deploy = (buildId: string, finished: string): PipelineDeployment => ({
 });
 
 describe('DeploymentEnvironment', () => {
-  it('shows when the running build was published, though its tag was deployed again since', () => {
+  it('shows when the deploy that runs was published, though the tag was deployed again since', () => {
     renderWithProviders(
       <DeploymentEnvironment
         pipelineDeploymentList={[
@@ -28,6 +28,7 @@ describe('DeploymentEnvironment', () => {
           environment: 'tt02',
           version: '2',
           buildId: '100',
+          publishedAt: '2026-10-01T12:00:00Z',
         }}
         envName='tt02'
         isProduction={false}

@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './PropertiesHeader.module.css';
-import { formItemConfigs } from '../../../data/formItemConfig';
+import { getFormItemConfig } from '../../../data/formItemConfig';
 import {
   getComponentHelperTextByComponentType,
   getTitleByComponentType,
@@ -14,7 +14,7 @@ import { ComponentMainConfig } from './ComponentMainConfig';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import { TextResourceMainConfig } from './TextResourceMainConfig';
 import { DataModelMainConfig } from './DataModelMainConfig';
-import { StudioAlert } from '@studio/components';
+import { StudioAlert } from '@designer/components';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { getComponentDefinition } from '../../../data/componentCatalog';
 import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
@@ -41,7 +41,7 @@ export const PropertiesHeader = ({
           .map(([key]) => key)
       : [];
 
-  const Icon = formItemConfigs[formItem.type]?.icon;
+  const Icon = getFormItemConfig(formItem.type).icon;
 
   const hideMainConfig = formItem.type === ComponentType.Subform && !formItem['layoutSet'];
 

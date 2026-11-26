@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.Notifications.Future;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.DependencyInjection;
 
@@ -40,9 +41,9 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -53,9 +54,9 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     RegisterEvents = true,
@@ -67,9 +68,9 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     Notification = new InstantiationNotification(),
@@ -82,9 +83,9 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -96,18 +97,34 @@ public class WorkflowEngineCommandRegistrationTests
             WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
-                    TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
             ),
             keys
         );
-        CollectCommandKeys(WorkflowStepSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
-        CollectCommandKeys(WorkflowStepSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
-        CollectCommandKeys(WorkflowStepSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }), keys);
+        CollectCommandKeys(
+            WorkflowStepSet.GetTaskEndSteps(CreateLifecyclePipeline(), Mock.Of<IOnTaskEndingHandler>()),
+            keys
+        );
+        CollectCommandKeys(
+            WorkflowStepSet.GetTaskAbandonSteps(CreateLifecyclePipeline(), Mock.Of<IOnTaskAbandoningHandler>()),
+            keys
+        );
+        CollectCommandKeys(
+            WorkflowStepSet.GetProcessEndSteps(
+                new ProcessEndContext
+                {
+                    ProcessEndedHook = Mock.Of<IOnProcessEndedHandler>(),
+                    RegisterEvents = true,
+                    ConfirmComplete = true,
+                }
+            ),
+            keys
+        );
 
         // ProcessNextRequestFactory adds these around the step sets.
         keys.Add(CommitProcessState.Key);

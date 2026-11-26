@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -8,8 +6,9 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
-import { doProcessNext } from 'src/queries/queries';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { queryPromiseMock, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+
+const { mock: doProcessNext } = queryPromiseMock('doProcessNext');
 
 describe('ErrorReport', () => {
   const render = async (validationIssues: BackendValidationIssue[] = []) => {
@@ -60,6 +59,7 @@ describe('ErrorReport', () => {
             };
           }),
       },
+      mutations: { doProcessNext },
     });
   };
 
@@ -73,7 +73,7 @@ describe('ErrorReport', () => {
     vi.mocked(doProcessNext).mockImplementationOnce(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = new Error('Request failed with status code 409') as any;
-      error.name = 'AxiosError';
+      error.name = 'HttpError';
       error.response = {
         status: 409,
         data: {
@@ -107,7 +107,7 @@ describe('ErrorReport', () => {
     vi.mocked(doProcessNext).mockImplementationOnce(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = new Error('Request failed with status code 409') as any;
-      error.name = 'AxiosError';
+      error.name = 'HttpError';
       error.response = {
         status: 409,
         data: {
@@ -160,7 +160,7 @@ describe('ErrorReport', () => {
     vi.mocked(doProcessNext).mockImplementationOnce(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = new Error('Request failed with status code 409') as any;
-      error.name = 'AxiosError';
+      error.name = 'HttpError';
       error.response = { status: 409, data: { validationIssues } };
       throw error;
     });

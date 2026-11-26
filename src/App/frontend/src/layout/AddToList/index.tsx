@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { AddToListComponent } from 'src/layout/AddToList/AddToList';
@@ -11,7 +11,7 @@ export class AddToList extends AddToListDef {
   validateDataModelBindings(_baseComponentId: string, _bindings: IDataModelBindings<'AddToList'>): string[] {
     return [];
   }
-  renderLayoutValidators(props: ComponentLayoutValidationProps<'AddToList'>): React.JSX.Element | null {
+  renderLayoutValidators(props: ComponentLayoutValidationProps<'AddToList'>): JSX.Element | null {
     return <AddToListFeatureFlagLayoutValidator {...props} />;
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'AddToList'>>(

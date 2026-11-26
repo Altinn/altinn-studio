@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router';
 
 import { AppTable, Description, HelpTextContainer } from '@app/form-component';
@@ -6,9 +5,9 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { Heading } from '@digdir/designsystemet-react';
 
 import captionClasses from 'src/components/form/caption/Caption.module.css';
+import { useSigneeList } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';

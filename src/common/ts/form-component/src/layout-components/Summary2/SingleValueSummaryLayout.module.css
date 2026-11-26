@@ -1,0 +1,84 @@
+.summaryItem {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--ds-size-2);
+}
+
+.summaryItemWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  break-inside: avoid;
+}
+
+.labelValueWrapper:not(.compact) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.labelValueWrapper.compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--ds-size-2);
+  row-gap: var(--ds-size-2);
+}
+
+.formValue {
+  font-weight: 500;
+}
+
+.emptyValue {
+  color: var(--ds-color-neutral-text-subtle);
+  font-style: italic;
+}
+
+.summaryValue {
+  width: -moz-fit-content;
+  width: fit-content;
+  overflow-wrap: anywhere;
+}
+
+.error {
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
+}
+
+/* The edit button, which the app passes in */
+.summaryItem > .labelValueWrapper ~ * {
+  margin-left: auto;
+  min-width: unset;
+}
+
+.multiline {
+  white-space: pre-wrap;
+}
+
+/* The label with its help text and description, as a summary shows it */
+.labelWrapper {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  align-items: stretch;
+  min-width: 0;
+}
+
+.labelContainer {
+  display: flex;
+  gap: var(--ds-size-1);
+  align-items: center;
+}
+
+.labelContainer > :nth-child(2) {
+  flex-shrink: 0;
+}
+
+.labelContent {
+  word-break: break-word;
+}
+
+.description {
+  padding-bottom: 0;
+  font-weight: normal;
+}

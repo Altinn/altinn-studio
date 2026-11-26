@@ -168,18 +168,6 @@ def test_a_dataset_edited_but_not_synced_is_reported(capsys):
     assert "dataset_sync" in warned
 
 
-def test_an_eval_with_no_items_in_the_repo_cannot_be_stale(capsys):
-    """The e2e items live only in Langfuse, so there is nothing to disagree with."""
-    from benchmarks import check as checker
-    from benchmarks import registry
-
-    entry = registry.by_name("Benchmarks/forms")
-
-    assert checker.local_item_count(entry) is None
-    checker._warn_if_stale(entry, 4)
-    assert capsys.readouterr().out == ""
-
-
 def test_the_agents_own_models_win_over_the_local_configuration():
     """On an end to end eval the agent does the work in its own container, so the
     harness's local settings are not what produced the result."""
@@ -217,23 +205,23 @@ class TestTheReportShowsWhatWasMeasured:
             provenance=_provenance(),
             behaviors=(
                 BehaviorResult(
-                    behavior="scope.declines-in-users-language",
-                    evaluator="gate_decline_language",
+                    behavior="scope.declines-out-of-scope",
+                    evaluator="gate_verdict",
                     score=0.5,
                     items=(
                         ItemResult(
                             item_id="declined-in-english",
-                            scores={"gate_decline_language": 1.0, "gate_verdict": 1.0},
+                            scores={"gate_verdict": 1.0, "gate_required_keys": 1.0},
                             comments={
-                                "gate_decline_language": "declined in en, expected en",
-                                "gate_verdict": "in_scope=False, expected False",
+                                "gate_verdict": "declined in en, expected en",
+                                "gate_required_keys": "in_scope=False, expected False",
                             },
                             expected='{"decline_language": "en"}',
                         ),
                         ItemResult(
                             item_id="declined-in-the-wrong-language",
-                            scores={"gate_decline_language": 0.0},
-                            comments={"gate_decline_language": "declined in nb, expected en"},
+                            scores={"gate_verdict": 0.0},
+                            comments={"gate_verdict": "declined in nb, expected en"},
                         ),
                         ItemResult(item_id="nothing-to-decline", scores={}),
                     ),
@@ -246,7 +234,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_the_denominator_is_the_items_that_were_scored(self, tmp_path):
         """Three items ran and two were applicable, so the score is out of two."""
         self._run_with_items(tmp_path)
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.item_count == 3
         assert view.scored_count == 2
@@ -254,9 +242,7 @@ class TestTheReportShowsWhatWasMeasured:
 
     def test_an_item_the_evaluator_skipped_is_not_a_failure(self, tmp_path):
         self._run_with_items(tmp_path)
-        rows = {
-            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
-        }
+        rows = {r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-out-of-scope").rows()}
 
         assert rows["nothing-to-decline"].state == "not-applicable"
         assert rows["declined-in-the-wrong-language"].state == "fail"
@@ -265,9 +251,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_every_row_carries_what_the_evaluator_computed(self, tmp_path):
         """The evaluators already write this; dropping it was the whole problem."""
         self._run_with_items(tmp_path)
-        rows = {
-            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
-        }
+        rows = {r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-out-of-scope").rows()}
 
         assert rows["declined-in-the-wrong-language"].said == "declined in nb, expected en"
         expected = rows["declined-in-english"].expected
@@ -340,34 +324,24 @@ class TestTheReportShowsWhatWasMeasured:
         assert report.readable("just a sentence") == "just a sentence"
         assert report.readable(None) is None
 
-    def test_a_trace_link_needs_only_the_host(self, monkeypatch):
+    def test_a_trace_link_needs_only_the_host(self):
         """The short form redirects to the project-scoped URL, so a project id is
         one more setting that could be missing for nothing."""
-        monkeypatch.setenv("LANGFUSE_HOST", "https://langfuse.example/")
-
-        assert report.trace_url("abc123") == "https://langfuse.example/trace/abc123"
+        assert report.trace_url("abc123") == "https://langfuse.digdir.cloud/trace/abc123"
         assert report.trace_url(None) is None
-
-    def test_no_host_means_no_link_rather_than_a_broken_one(self, monkeypatch):
-        monkeypatch.delenv("LANGFUSE_HOST", raising=False)
-        monkeypatch.delenv("LANGFUSE_BASE_URL", raising=False)
-
-        assert report.trace_url("abc123") is None
 
     def test_a_sibling_score_on_the_same_item_is_kept(self, tmp_path):
         """A sibling usually explains the claimed score, so it travels with it."""
         self._run_with_items(tmp_path)
-        rows = {
-            r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-in-users-language").rows()
-        }
+        rows = {r.item_id: r for r in _view(report.build(directory=tmp_path), "scope.declines-out-of-scope").rows()}
 
-        assert rows["declined-in-english"].siblings == (("gate_verdict", 1.0, "in_scope=False, expected False"),)
+        assert rows["declined-in-english"].siblings == (("gate_required_keys", 1.0, "in_scope=False, expected False"),)
         assert rows["nothing-to-decline"].siblings == ()
 
     def test_the_page_states_the_resolution_of_the_score(self, tmp_path):
         """Two scored items means steps of half, so the noise floor suppresses nothing."""
         self._run_with_items(tmp_path)
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.item_weight == 0.5
         assert not view.floor_applies
@@ -382,7 +356,7 @@ class TestTheReportShowsWhatWasMeasured:
     def test_a_coarse_score_is_flagged_whatever_its_scale(self, tmp_path):
         """The warning follows the step size."""
         self._run_with_items(tmp_path)
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.coarse and view.scale == "rate"
 
@@ -395,12 +369,12 @@ class TestTheReportShowsWhatWasMeasured:
             provenance=_provenance(),
             behaviors=(
                 BehaviorResult(
-                    behavior="scope.declines-in-users-language",
-                    evaluator="gate_decline_language",
+                    behavior="scope.declines-out-of-scope",
+                    evaluator="gate_verdict",
                     score=0.5,
                     items=(
-                        ItemResult(item_id="a", scores={"gate_decline_language": 1.0}),
-                        ItemResult(item_id="b", scores={"gate_decline_language": 0.0}),
+                        ItemResult(item_id="a", scores={"gate_verdict": 1.0}),
+                        ItemResult(item_id="b", scores={"gate_verdict": 0.0}),
                     ),
                 ),
             ),
@@ -410,7 +384,7 @@ class TestTheReportShowsWhatWasMeasured:
         # A one-behavior run has holes, which the guard refuses; the denominator is the point.
         runstore.set_baseline(base.name, directory=tmp_path, why="because", force=True)
 
-        view = _view(report.build(directory=tmp_path), "scope.declines-in-users-language")
+        view = _view(report.build(directory=tmp_path), "scope.declines-out-of-scope")
 
         assert view.scored_in("baseline") == 2
         assert view.scored_in("current") == 2
@@ -467,13 +441,13 @@ class TestTheReportShowsWhatWasMeasured:
     def test_the_detail_survives_a_round_trip_to_disk(self, tmp_path):
         run = self._run_with_items(tmp_path)
         reloaded = runstore.load(run.name, directory=tmp_path)
-        behavior = reloaded.behavior("scope.declines-in-users-language")
+        behavior = reloaded.behavior("scope.declines-out-of-scope")
         assert behavior is not None
         item = behavior.item("declined-in-english")
 
         assert item is not None
-        assert item.comments["gate_decline_language"] == "declined in en, expected en"
-        assert item.value("gate_decline_language") == 1.0
+        assert item.comments["gate_verdict"] == "declined in en, expected en"
+        assert item.value("gate_verdict") == 1.0
         assert item.value("nothing_emitted_this") is None
 
 
@@ -857,11 +831,11 @@ def test_movement_inside_the_noise_floor_is_not_a_regression():
 
 def test_a_zero_on_both_runs_reads_as_failing_not_as_no_change():
     """The defect class in #225: two models score identically because it never worked."""
-    scores = {**HOLDING, "build.pages-render": 0.0}
+    scores = {**HOLDING, "build.pages-render-v9": 0.0}
     base = _run("20260909T100000Z-baseline", "baseline", scores)
     cand = _run("20260909T110000Z-cand", "candidate", scores)
     comparison = diff.compare(base, cand)
-    change = next(c for c in comparison.changes if c.behavior == "build.pages-render")
+    change = next(c for c in comparison.changes if c.behavior == "build.pages-render-v9")
     assert change.verdict == "failing"
     assert change.delta == 0
     assert any("reports no change" in line for line in change.evidence())
@@ -874,7 +848,7 @@ def test_output_can_change_while_the_score_holds():
         "baseline",
         HOLDING,
         outputs={
-            "build.pages-render": json.dumps(
+            "build.pages-render-v9": json.dumps(
                 {"component": "FileUpload", "displayMode": "list", "label": "Last opp vedlegg"}
             )
         },
@@ -884,7 +858,7 @@ def test_output_can_change_while_the_score_holds():
         "candidate",
         HOLDING,
         outputs={
-            "build.pages-render": json.dumps(
+            "build.pages-render-v9": json.dumps(
                 {
                     "component": "FileUploadWithTag",
                     "displayMode": "simple",
@@ -895,7 +869,7 @@ def test_output_can_change_while_the_score_holds():
         },
     )
     comparison = diff.compare(base, cand)
-    change = next(c for c in comparison.changes if c.behavior == "build.pages-render")
+    change = next(c for c in comparison.changes if c.behavior == "build.pages-render-v9")
     assert change.verdict == "output-changed"
     assert change.delta == 0
     assert change.silent_items
@@ -1061,8 +1035,8 @@ def test_every_prompt_in_the_report_carries_computed_evidence(tmp_path):
 
 
 def test_open_work_is_ordered_worst_first(tmp_path):
-    scores = {**HOLDING, "build.pages-render": 0.0, "spec.covers-every-label": 0.5}
-    base = _run("20260909T100000Z-baseline", "baseline", {**HOLDING, "build.pages-render": 0.0})
+    scores = {**HOLDING, "build.pages-render-v9": 0.0, "spec.covers-every-label": 0.5}
+    base = _run("20260909T100000Z-baseline", "baseline", {**HOLDING, "build.pages-render-v9": 0.0})
     cand = _run("20260909T110000Z-cand", "candidate", scores)
     for run in (base, cand):
         runstore.save(run, directory=tmp_path)
@@ -1140,14 +1114,14 @@ def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
 
     behaviors = []
     for behavior in manifest.BEHAVIORS:
-        if behavior.id == "confidence.band-matches-outcome":
+        if behavior.id == "safety.flags-injection-in-message":
             assert behavior.evaluator
             behaviors.append(
                 BehaviorResult(
                     behavior.id,
                     behavior.evaluator,
                     0.714,
-                    (ItemResult("conf-1", {behavior.evaluator: 1.0}),),
+                    (ItemResult("safety-1", {behavior.evaluator: 1.0}),),
                 )
             )
         elif behavior.is_pinned:
@@ -1174,7 +1148,7 @@ def test_a_filtered_run_reads_as_not_run_rather_than_as_a_regression(tmp_path):
 def test_a_first_run_is_recorded_rather_than_holding(tmp_path):
     """Counting a first run as holding read every score as all-clear, whatever it
     was: a behavior at 0.53 with no baseline reported as green."""
-    run = _run("20260909T100000Z-first", "first", {**HOLDING, "confidence.band-matches-outcome": 0.53})
+    run = _run("20260909T100000Z-first", "first", {**HOLDING, "safety.flags-injection-in-message": 0.53})
     runstore.save(run, directory=tmp_path)
 
     built = report.build(directory=tmp_path)
@@ -1182,7 +1156,7 @@ def test_a_first_run_is_recorded_rather_than_holding(tmp_path):
     assert built.counts()["holding"] == 0
     assert built.counts()["recorded"] == len(list(manifest.pinned()))
     weakest = built.short_of_full_marks()
-    assert weakest and weakest[0].behavior.id == "confidence.band-matches-outcome"
+    assert weakest and weakest[0].behavior.id == "safety.flags-injection-in-message"
 
 
 def test_a_behavior_that_never_moves_is_still_reported_as_weak(tmp_path):
@@ -1202,13 +1176,13 @@ def test_a_behavior_that_never_moves_is_still_reported_as_weak(tmp_path):
 
 def test_a_first_run_scoring_zero_is_failing_not_holding(tmp_path):
     """With no baseline there is no delta, and a permanent failure must still show."""
-    run = _run("20260909T100000Z-first", "first run", {**HOLDING, "build.pages-render": 0.0})
+    run = _run("20260909T100000Z-first", "first run", {**HOLDING, "build.pages-render-v9": 0.0})
     runstore.save(run, directory=tmp_path)
     built = report.build(directory=tmp_path)
-    view = next(v for v in built.behaviors if v.behavior.id == "build.pages-render")
+    view = next(v for v in built.behaviors if v.behavior.id == "build.pages-render-v9")
     assert view.verdict == "failing"
     assert built.counts()["failing"] == 1
-    assert built.open_work()[0].behavior.id == "build.pages-render"
+    assert built.open_work()[0].behavior.id == "build.pages-render-v9"
 
 
 def test_a_behavior_that_ran_and_scored_nothing_is_never_holding(tmp_path):

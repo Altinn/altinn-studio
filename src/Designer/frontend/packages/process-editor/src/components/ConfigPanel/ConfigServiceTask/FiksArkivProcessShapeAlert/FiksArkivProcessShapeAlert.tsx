@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioParagraph } from '@designer/components';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnDiagramVersion } from '../../../../hooks/useBpmnDiagramVersion';
 import { getFiksArkivProcessShapeIssue } from './fiksArkivProcessShape';

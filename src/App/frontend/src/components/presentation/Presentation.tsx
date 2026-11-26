@@ -1,5 +1,5 @@
-import React, { useLayoutEffect } from 'react';
-import type { PropsWithChildren } from 'react';
+import { useLayoutEffect } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Flex } from '@app/form-component';
 import cn from 'classnames';
@@ -12,19 +12,19 @@ import { NavBar } from 'src/components/presentation/NavBar';
 import classes from 'src/components/presentation/Presentation.module.css';
 import { Progress } from 'src/components/presentation/Progress';
 import { createContext } from 'src/core/contexts/context';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { SideBarNavigation } from 'src/features/navigation/SidebarNavigation';
 import { useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 
 export interface IPresentationProvidedProps extends PropsWithChildren {
-  header?: React.ReactNode;
+  header?: ReactNode;
   showNavbar?: boolean;
   showNavigation?: boolean;
 }

@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -13,8 +15,11 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Calculation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -106,7 +111,8 @@ public class CommonTaskInitializationTests
         Mock<IPrefill>? prefillMock = null,
         Mock<IAppModel>? appModelMock = null,
         Mock<IInstantiationProcessor>? instantiationProcessorMock = null,
-        IInstantiationProcessor? instantiationProcessor = null
+        IInstantiationProcessor? instantiationProcessor = null,
+        IAppResources? appResources = null
     )
     {
         var appMetadataMock = new Mock<IAppMetadata>();
@@ -117,9 +123,16 @@ public class CommonTaskInitializationTests
 
         instantiationProcessor ??= (instantiationProcessorMock ?? new Mock<IInstantiationProcessor>()).Object;
 
+        var accessChecker = new Mock<IDataElementAccessChecker>();
+        accessChecker.Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>())).ReturnsAsync(true);
+
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
         services.AddSingleton(instantiationProcessor);
+        services.AddSingleton(appResources ?? Mock.Of<IAppResources>());
+        services.AddSingleton(accessChecker.Object);
+        services.AddSingleton(NullLogger<DataModelFieldCalculator>.Instance as ILogger<DataModelFieldCalculator>);
+        services.AddTransient<DataModelFieldCalculator>();
         var sp = services.BuildServiceProvider();
 
         return new CommonTaskInitialization(appMetadataMock.Object, prefillMock.Object, appModelMock.Object, sp);
@@ -145,7 +158,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -187,7 +200,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = mainClassRef },
                 },
@@ -237,6 +250,68 @@ public class CommonTaskInitializationTests
     }
 
     [Fact]
+    public async Task Execute_CalculatesTheDataElementsItCreates()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        instance.Id = "1337/2b3e9260-24d9-4c0a-8b93-ef2c9c7dcbde";
+        string mainClassRef = typeof(TestModel).FullName!;
+
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create(mainClassRef)).Returns(() => new TestModel());
+        appModelMock.Setup(x => x.GetModelType(mainClassRef)).Returns(typeof(TestModel));
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskIds = ["Task_1"],
+                    AllowedContentTypes = ["application/json"],
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = mainClassRef },
+                },
+            ],
+        };
+        var appResources = new Mock<IAppResources>();
+        appResources
+            .Setup(x => x.GetCalculationConfig("model"))
+            .Returns(
+                JsonSerializer.Deserialize<CalculationConfig>(
+                    """{ "calculations": [{ "field": "Name", "expression": ["concat", "Hello ", "world"] }] }"""
+                )
+            );
+        var unitOfWork = new InstanceDataUnitOfWork(
+            instance,
+            StorageVersionMetadata.Empty,
+            Mock.Of<IDataClientWithStorageMetadata>(),
+            Mock.Of<IInstanceMutationClient>(),
+            Mock.Of<IInstanceClientWithStorageMetadata>(),
+            appMetadata,
+            Mock.Of<ITranslationService>(),
+            new ModelSerializationService(appModelMock.Object),
+            appResources.Object,
+            Options.Create(new FrontEndSettings()),
+            taskId: "Task_1",
+            language: null
+        );
+
+        var command = CreateCommand(appMetadata, appModelMock: appModelMock, appResources: appResources.Object);
+        var context = CreateContext(unitOfWork, new CommonTaskInitializationPayload(null));
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert: the created element is calculated before it is saved, so the form loads with the value
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        DataElementChanges changes = unitOfWork.GetDataElementChanges(initializeAltinnRowId: false);
+        FormDataChange change = Assert.Single(changes.FormDataChanges);
+        Assert.Equal(ChangeType.Created, change.Type);
+        Assert.Equal("Hello world", Assert.IsType<TestModel>(change.CurrentFormData).Name);
+    }
+
+    [Fact]
     public async Task Execute_DirectDataClientCallInsideDataCreationSucceeds()
     {
         // Arrange
@@ -266,7 +341,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -306,7 +381,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -322,6 +397,43 @@ public class CommonTaskInitializationTests
         Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         appModelMock.Verify(x => x.Create(It.IsAny<string>()), Times.Never);
         mutatorMock.Verify(x => x.AddFormDataElement(It.IsAny<string>(), It.IsAny<object>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("Task_2", true)]
+    [InlineData("Task_3", true)]
+    [InlineData("Task_1", false)]
+    public async Task Execute_AutoCreatesDataElementsAtEveryTaskInTaskIds(string currentTaskId, bool created)
+    {
+        // Arrange
+        var instance = CreateInstance(currentTaskId);
+        var testData = new TestModel();
+
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskIds = ["Task_2", "Task_3"],
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        var command = CreateCommand(appMetadata, appModelMock: appModelMock);
+        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), created ? Times.Once() : Times.Never());
     }
 
     [Fact]
@@ -345,7 +457,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -393,7 +505,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_2", // Different task
+                    TaskIds = ["Task_2"], // Different task
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],

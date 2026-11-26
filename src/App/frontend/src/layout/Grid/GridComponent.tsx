@@ -1,9 +1,14 @@
-import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, useIsMobile } from '@app/form-component';
+import {
+  BaseTable,
+  ConditionalWrapper,
+  Fieldset,
+  FullWidthWrapper,
+  HelpTextContainer,
+  useIsMobile,
+} from '@app/form-component';
 import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type {
   GridCell,
@@ -28,6 +33,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
+import { getLabelSettings } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
@@ -60,9 +66,17 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
       condition={shouldHaveFullWidth}
       wrapper={(child) => <FullWidthWrapper>{child}</FullWidthWrapper>}
     >
-      <Table
+      <BaseTable
         id={indexedId}
-        className={css.table}
+        shadow
+        topBorderOnSmallScreens
+        headerBackground='gray'
+        headerDivider='light'
+        headerPadding='large'
+        rowDivider='light'
+        cellPadding='medium'
+        lookReachesNestedTables='all'
+        fullWidth={!isNested}
       >
         {title && (
           <Caption
@@ -82,10 +96,9 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
         )}
         <GridRowsRenderer
           rows={grid.visibleRows()}
-          isNested={isNested}
           mutableColumnSettings={columnSettings}
         />
-      </Table>
+      </BaseTable>
     </ConditionalWrapper>
   );
 }
@@ -93,18 +106,11 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
 interface GridRowsProps {
   rows: GridRowLayout[];
   extraCells?: GridCell[];
-  isNested: boolean;
   mutableColumnSettings: ITableColumnFormatting;
   bodyClassName?: string;
 }
 
-export function GridRowsRenderer({
-  rows,
-  extraCells = [],
-  isNested,
-  mutableColumnSettings,
-  bodyClassName,
-}: GridRowsProps) {
+export function GridRowsRenderer({ rows, extraCells = [], mutableColumnSettings, bodyClassName }: GridRowsProps) {
   const batches: { type: 'header' | 'body'; rows: GridRowLayout[] }[] = [];
 
   for (const row of rows) {
@@ -120,7 +126,7 @@ export function GridRowsRenderer({
   return (
     <>
       {batches.map((batch, batchIdx) => {
-        const WrapperComponent = batch.type === 'header' ? Table.Head : Table.Body;
+        const WrapperComponent = batch.type === 'header' ? BaseTable.Head : BaseTable.Body;
 
         return (
           <WrapperComponent
@@ -132,7 +138,6 @@ export function GridRowsRenderer({
                 key={rowIdx}
                 row={row}
                 extraCells={extraCells}
-                isNested={isNested}
                 mutableColumnSettings={mutableColumnSettings}
               />
             ))}
@@ -147,7 +152,7 @@ interface GridRowProps extends Omit<GridRowsProps, 'rows'> {
   row: GridRowLayout;
 }
 
-function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = [] }: GridRowProps) {
+function GridRowRenderer({ row, mutableColumnSettings, extraCells = [] }: GridRowProps) {
   const lastCell = row.cells.at(-1);
   const extraColumnStart = lastCell ? lastCell.columnIndex + lastCell.colSpan : 0;
   const cells = [
@@ -156,17 +161,10 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
   ];
 
   return (
-    <Table.Row className={row.readOnly ? css.rowReadOnly : undefined}>
-      {cells.map(({ cell, columnIndex: cellIdx, colSpan }, visibleIdx) => {
-        const isFirst = visibleIdx === 0;
-        const isLast = visibleIdx === cells.length - 1;
-        const className = cn({
-          [css.fullWidthCellFirst]: isFirst && !isNested,
-          [css.fullWidthCellLast]: isLast && !isNested,
-        });
-
+    <BaseTable.Row className={row.readOnly ? css.rowReadOnly : undefined}>
+      {cells.map(({ cell, columnIndex: cellIdx, colSpan }) => {
         if (row.header && cell && 'columnOptions' in cell && cell.columnOptions) {
-          // eslint-disable-next-line react-compiler/react-compiler
+          // eslint-disable-next-line react-hooks/immutability
           mutableColumnSettings[cellIdx] = cell.columnOptions;
         }
 
@@ -181,7 +179,6 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
             return (
               <CellWithText
                 key={`${cell.text}/${cellIdx}`}
-                className={className}
                 help={cell?.help}
                 isHeader={row.header}
                 columnStyleOptions={textCellSettings}
@@ -195,7 +192,6 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
           return (
             <CellWithLabel
               key={`${cell.labelFrom}/${cellIdx}`}
-              className={className}
               isHeader={row.header}
               columnStyleOptions={textCellSettings}
               labelFrom={cell.labelFrom}
@@ -206,11 +202,10 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
 
         const baseComponentId = isGridCellNode(cell) ? cell.component : undefined;
         if (!baseComponentId) {
-          const CellComponent = row.header ? Table.HeaderCell : Table.Cell;
+          const CellComponent = row.header ? BaseTable.HeaderCell : BaseTable.Cell;
           return (
             <CellComponent
               key={cellIdx}
-              className={className}
               colSpan={colSpan}
             />
           );
@@ -231,18 +226,16 @@ function GridRowRenderer({ row, isNested, mutableColumnSettings, extraCells = []
             key={`${baseComponentId}/${cellIdx}`}
             baseComponentId={baseComponentId}
             isHeader={row.header}
-            className={className}
             columnStyleOptions={componentCellSettings}
             colSpan={colSpan}
           />
         );
       })}
-    </Table.Row>
+    </BaseTable.Row>
   );
 }
 
 interface CellProps {
-  className?: string;
   columnStyleOptions?: GridColumnOptions;
   isHeader?: boolean;
   rowReadOnly?: boolean;
@@ -265,20 +258,20 @@ interface CellWithLabelProps extends CellProps {
 
 function CellWithComponent({
   baseComponentId,
-  className,
   columnStyleOptions,
   isHeader = false,
   rowReadOnly,
   colSpan,
 }: CellWithComponentProps) {
   const isHidden = useIsHidden(baseComponentId);
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
 
   if (!isHidden) {
     const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
     return (
       <CellComponent
-        className={cn(css.tableCellFormatting, className)}
+        columnWidth
+        className={css.tableCellFormatting}
         style={columnStyles}
         colSpan={colSpan}
       >
@@ -295,22 +288,18 @@ function CellWithComponent({
     );
   }
 
-  return (
-    <CellComponent
-      className={className}
-      colSpan={colSpan}
-    />
-  );
+  return <CellComponent colSpan={colSpan} />;
 }
 
-function CellWithText({ children, className, columnStyleOptions, help, isHeader = false, colSpan }: CellWithTextProps) {
+function CellWithText({ children, columnStyleOptions, help, isHeader = false, colSpan }: CellWithTextProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const { elementAsString } = useLanguage();
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
 
   return (
     <CellComponent
-      className={cn(css.tableCellFormatting, className)}
+      columnWidth
+      className={css.tableCellFormatting}
       style={columnStyles}
       colSpan={colSpan}
     >
@@ -332,7 +321,7 @@ function CellWithText({ children, className, columnStyleOptions, help, isHeader 
   );
 }
 
-function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = false, colSpan }: CellWithLabelProps) {
+function CellWithLabel({ columnStyleOptions, labelFrom, isHeader = false, colSpan }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(labelFrom);
   const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
@@ -340,14 +329,15 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
-  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const labelSettings = getLabelSettings(config);
   const required = useComponentIsRequired(config);
 
-  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  const CellComponent = isHeader ? BaseTable.HeaderCell : BaseTable.Cell;
 
   return (
     <CellComponent
-      className={cn(css.tableCellFormatting, className)}
+      columnWidth
+      className={css.tableCellFormatting}
       style={columnStyles}
       colSpan={colSpan}
     >

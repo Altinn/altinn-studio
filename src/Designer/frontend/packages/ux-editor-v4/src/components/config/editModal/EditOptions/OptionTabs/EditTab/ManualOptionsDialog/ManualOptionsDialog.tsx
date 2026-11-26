@@ -17,7 +17,7 @@ import {
   StudioCodeListEditorWithTextResources,
   StudioDialog,
   StudioHeading,
-} from '@studio/components';
+} from '@designer/components';
 
 export type ManualOptionsDialogProps = {
   textResources: ITextResources;

@@ -18,19 +18,16 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
     private readonly IAppMetadata _appMetadata;
     private readonly FiksArkivSettings _fiksArkivSettings;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IFiksArkivInstanceClient _fiksArkivInstanceClient;
 
     public FiksArkivConfigValidationService(
         IOptions<FiksArkivSettings> fiksArkivSettings,
         AppImplementationFactory appImplementationFactory,
-        IFiksArkivInstanceClient fiksArkivInstanceClient,
         IProcessReader processReader,
         IAppMetadata appMetadata
     )
     {
         _fiksArkivSettings = fiksArkivSettings.Value;
         _appImplementationFactory = appImplementationFactory;
-        _fiksArkivInstanceClient = fiksArkivInstanceClient;
         _processReader = processReader;
         _appMetadata = appMetadata;
     }
@@ -52,8 +49,6 @@ internal sealed class FiksArkivConfigValidationService : IHostedService
         IFiksArkivPayloadGenerator payloadGenerator =
             _appImplementationFactory.GetRequired<IFiksArkivPayloadGenerator>();
         await payloadGenerator.ValidateConfiguration(appMetadata.DataTypes, processTasks);
-
-        await _fiksArkivInstanceClient.GetServiceOwnerToken(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

@@ -1,30 +1,18 @@
-import React from 'react';
-
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { SummaryRepeatingGroup } from 'src/layout/RepeatingGroup/Summary/SummaryRepeatingGroup';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => {
-  const actual = await vi.importActual<TextResourcesProviderImport>(
-    'src/features/language/textResources/TextResourcesProvider',
-  );
-  return {
-    ...actual,
-    useTextResources: vi.fn(() => ({
-      mockGroupTitle: { value: 'Mock group' },
-      mockField1: { value: 'Mock field 1' },
-      mockField2: { value: 'Mock field 2' },
-    })),
-  };
-});
-
 describe('SummaryRepeatingGroup', () => {
   let mockHandleDataChange: () => void;
 
   beforeEach(() => {
+    window.altinnAppGlobalData.textResources!.resources = [
+      { id: 'mockGroupTitle', value: 'Mock group' },
+      { id: 'mockField1', value: 'Mock field 1' },
+      { id: 'mockField2', value: 'Mock field 2' },
+    ];
     mockHandleDataChange = vi.fn();
   });
 

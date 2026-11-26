@@ -736,6 +736,84 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_ConfirmCompleteOnProcessEnd_CommitsTheConfirmationAndKeepsProcessing()
+    {
+        var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            new ConfirmCompleteOnProcessEnd(),
+            (_, instance) =>
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                }
+        );
+
+        IActionResult result = await setup.Execute(ConfirmCompleteOnProcessEnd.Key, Guid.NewGuid());
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
+        Assert.True(mutation.AddCompleteConfirmation);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Null(mutation.ProcessState);
+        Instance confirmed = setup.DeserializeState(response.State!).Instance;
+        Assert.Equal(ProcessStatus.Processing, confirmed.Process?.Status);
+        CompleteConfirmation confirmation = Assert.Single(confirmed.CompleteConfirmations);
+        Assert.Equal(MockedServiceCollection.Org, confirmation.StakeholderId);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_ConfirmThenRelease_WithAutoDeleteOnProcessEnd_ConfirmsWithoutDeletingAndTheReleaseHardDeletes()
+    {
+        var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AppMetadata.AutoDeleteOnProcessEnd = true;
+                services.Services.AddSingleton<IWorkflowEngineCommand>(new ConfirmCompleteOnProcessEnd());
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ReleaseProcessingStatus(
+                    serviceProvider.GetRequiredService<IAppMetadata>()
+                ));
+            },
+            (_, instance) =>
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                }
+        );
+
+        Guid confirmStepId = Guid.NewGuid();
+        Guid releaseStepId = Guid.NewGuid();
+
+        IActionResult confirmResult = await setup.Execute(ConfirmCompleteOnProcessEnd.Key, confirmStepId);
+        var confirmResponse = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(confirmResult).Value);
+        IActionResult releaseResult = await (setup with { State = confirmResponse.State! }).Execute(
+            ReleaseProcessingStatus.Key,
+            releaseStepId
+        );
+
+        Assert.IsType<OkObjectResult>(releaseResult);
+        Dictionary<string, StorageInstanceMutationRequest> mutationsByStep = GetMutationRequests(setup.Services)
+            .ToDictionary(
+                request =>
+                    request.RequestHeaders.GetValues(StoragePreconditionHeaders.IdempotencyKeyHeaderName).Single(),
+                request => DeserializeMutationRequest(request.RequestBody!)
+            );
+        Assert.Equal(2, mutationsByStep.Count);
+        StorageInstanceMutationRequest confirmation = mutationsByStep[confirmStepId.ToString()];
+        Assert.True(confirmation.AddCompleteConfirmation);
+        Assert.Null(confirmation.DeleteInstance);
+        StorageInstanceMutationRequest release = mutationsByStep[releaseStepId.ToString()];
+        Assert.False(release.AddCompleteConfirmation);
+        Assert.True(release.DeleteInstance?.Hard);
+        Assert.Equal(ProcessStatus.Idle, release.ProcessState?.State?.Status);
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsStoragePreconditionFailed_ReturnsNonRetryableProblem()
     {
         await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
@@ -1044,9 +1122,9 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesLockedDataAndKeepsProcessing()
+    public async Task ExecuteCommand_DeleteDataOnProcessEnd_DeletesDataAndKeepsProcessing()
     {
-        Guid lockedDataElementId = Guid.NewGuid();
+        Guid dataElementId = Guid.NewGuid();
         var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
         await using ControllerSetup setup = CreateSetup(
             services =>
@@ -1068,18 +1146,17 @@ public class WorkflowEngineCallbackControllerTests
                 instance.Data.Add(
                     new DataElement
                     {
-                        Id = lockedDataElementId.ToString(),
+                        Id = dataElementId.ToString(),
                         InstanceGuid = GetInstanceGuid(instance).ToString(),
                         DataType = DataTypeId,
                         ContentType = ContentType,
-                        Filename = "locked.json",
-                        Locked = true,
+                        Filename = "data.json",
                         BlobVersionId = StorageClientInterceptor.CreateBlobVersionId(1),
                     }
                 );
                 services.Storage.AddDataRaw(
-                    lockedDataElementId,
-                    """{"locked":true}"""u8.ToArray(),
+                    dataElementId,
+                    """{"value":1}"""u8.ToArray(),
                     StorageClientInterceptor.CreateBlobVersionId(1)
                 );
             }
@@ -1097,8 +1174,7 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
         Assert.Null(mutation.ProcessState);
         var delete = Assert.Single(mutation.DeleteDataElements);
-        Assert.Equal(lockedDataElementId, delete.DataElementId);
-        Assert.True(delete.IgnoreLock);
+        Assert.Equal(dataElementId, delete.DataElementId);
         Assert.Null(mutation.DeleteInstance);
         Assert.Empty(mutation.CreateDataElements);
         Assert.Empty(mutation.UpdateDataElements);
@@ -1170,6 +1246,86 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
     }
 
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterAddingADataElement_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(mutator =>
+            mutator.AddBinaryDataElement(DataTypeId, ContentType, "added.json", "{}"u8.ToArray())
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingADataValue_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(mutator =>
+            (mutator.Instance.DataValues ??= [])["status"] = "sent"
+        );
+
+    [Fact]
+    public Task ExecuteCommand_ServiceTaskDefersAfterSettingAPresentationText_ReturnsNonRetryableProblem() =>
+        AssertDeferralAfterStagingReturnsNonRetryableProblem(mutator =>
+            (mutator.Instance.PresentationTexts ??= [])["status"] = "Sent"
+        );
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task ExecuteCommand_ServiceTaskSetsADerivedDataValue_ReturnsNonRetryableProblem(bool defer) =>
+        AssertServiceTaskReturnsNonRetryableProblem(
+            mutator => (mutator.Instance.DataValues ??= [])["derived"] = "set",
+            defer,
+            "Instance Change Not Savable"
+        );
+
+    private static Task AssertDeferralAfterStagingReturnsNonRetryableProblem(
+        Action<IInstanceDataMutator> stageChange
+    ) => AssertServiceTaskReturnsNonRetryableProblem(stageChange, defer: true, "Deferral With Data Changes");
+
+    private static async Task AssertServiceTaskReturnsNonRetryableProblem(
+        Action<IInstanceDataMutator> stageChange,
+        bool defer,
+        string expectedTitle
+    )
+    {
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.AppMetadata.DataFields =
+                [
+                    new DataField
+                    {
+                        Id = "derived",
+                        DataTypeId = DataTypeId,
+                        Path = "status",
+                    },
+                ];
+                services.Services.AddSingleton<IServiceTask>(new ChangingServiceTask(stageChange, defer));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = ChangingServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        string payload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(ChangingServiceTask.ServiceTaskType, ItemIndex: 0)
+        )!;
+
+        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal(expectedTitle, problem.Title);
+        Assert.Equal(true, problem.Extensions["nonRetryable"]);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
         CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
 
@@ -1189,7 +1345,7 @@ public class WorkflowEngineCallbackControllerTests
             new DataType
             {
                 Id = DataTypeId,
-                TaskId = "Task_1",
+                TaskIds = ["Task_1"],
                 AllowedContentTypes = [ContentType],
                 MaxCount = 10,
             }
@@ -1379,6 +1535,23 @@ public class WorkflowEngineCallbackControllerTests
                 "{}"u8.ToArray()
             );
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
+        }
+    }
+
+    private sealed class ChangingServiceTask(Action<IInstanceDataMutator> stageChange, bool defer) : IServiceTask
+    {
+        public const string ServiceTaskType = "ChangeForCallbackTest";
+
+        public string Type => ServiceTaskType;
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
+        {
+            stageChange(context.InstanceDataMutator);
+            return Task.FromResult<ServiceTaskResult>(
+                defer ? ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)) : ServiceTaskResult.Success()
+            );
         }
     }
 

@@ -11,6 +11,29 @@ using Newtonsoft.Json;
 namespace Altinn.App.Models
 {
   public class NestedGroup{
+    [JsonPropertyName("CalculationExamples")]
+    public string? CalculationExamples { get; set; }
+    [JsonPropertyName("CalculateAnnualWork")]
+    public bool CalculateAnnualWork { get; set; }
+    [JsonPropertyName("Persons")]
+    public decimal? Persons { get; set; }
+    [JsonPropertyName("AnnualWork")]
+    public decimal? AnnualWork { get; set; }
+    [JsonPropertyName("CalculatedAnnualWork")]
+    public decimal? CalculatedAnnualWork { get; set; }
+    [JsonPropertyName("AllocationCategories")]
+    public string? AllocationCategories { get; set; }
+    [JsonPropertyName("FeedAllocation")]
+    public decimal? FeedAllocation { get; set; }
+    [JsonPropertyName("CompostAllocation")]
+    public decimal? CompostAllocation { get; set; }
+    [JsonPropertyName("AllocationHelper")]
+    public string? AllocationHelper { get; set; }
+    [JsonPropertyName("RemainingAllocation")]
+    public decimal RemainingAllocation { get; set; } = 100;
+    [JsonPropertyName("IncompleteAllocation")]
+    public bool IncompleteAllocation { get; set; }
+
     [Range(Int32.MinValue,Int32.MaxValue)]
     [XmlAttribute("skjemanummer")]
     [BindNever]
@@ -111,6 +134,52 @@ namespace Altinn.App.Models
     [JsonProperty("PetsUseOptionComponent")]
     [JsonPropertyName("PetsUseOptionComponent")]
     public bool? PetsUseOptionComponent { get; set; }
+
+    [XmlElement("ChangeList")]
+    [JsonProperty("ChangeList")]
+    [JsonPropertyName("ChangeList")]
+    public List<decimal>? ChangeList { get; set; }
+
+    [XmlElement("ChangeSummary")]
+    [JsonProperty("ChangeSummary")]
+    [JsonPropertyName("ChangeSummary")]
+    public ChangeSummary? ChangeSummary { get; set; }
+
+    [XmlElement("ChangeRows")]
+    [JsonProperty("ChangeRows")]
+    [JsonPropertyName("ChangeRows")]
+    public List<ChangeRow>? ChangeRows { get; set; }
+  }
+
+  public class ChangeRow
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid AltinnRowId { get; set; }
+
+    public bool AltinnRowIdSpecified()
+    {
+      return AltinnRowId == default;
+    }
+
+    [XmlElement("Change")]
+    [JsonProperty("Change")]
+    [JsonPropertyName("Change")]
+    public decimal Change { get; set; }
+  }
+
+  public class ChangeSummary
+  {
+    [XmlElement("Total")]
+    [JsonProperty("Total")]
+    [JsonPropertyName("Total")]
+    public decimal Total { get; set; }
+
+    [XmlElement("Rows")]
+    [JsonProperty("Rows")]
+    [JsonPropertyName("Rows")]
+    public int Rows { get; set; }
   }
 
   public class Pet

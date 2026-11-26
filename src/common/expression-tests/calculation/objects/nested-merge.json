@@ -1,0 +1,28 @@
+{
+  "name": "A nested object in an object result is merged too",
+  "dataModel": {
+    "object": {
+      "text": "old",
+      "nested": {
+        "text": "n",
+        "decimal": 2
+      }
+    }
+  },
+  "calculations": [
+    {
+      "field": "object",
+      "expression": ["object", "decimal", 7, "nested", ["object", "decimal", 3]]
+    }
+  ],
+  "expects": {
+    "object": {
+      "text": "old",
+      "decimal": 7,
+      "nested": {
+        "text": "n",
+        "decimal": 3
+      }
+    }
+  }
+}

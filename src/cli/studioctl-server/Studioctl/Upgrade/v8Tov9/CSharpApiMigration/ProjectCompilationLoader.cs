@@ -46,13 +46,13 @@ internal static class ProjectCompilationLoader
         try
         {
             var loadFailures = new List<string>();
-            workspace.WorkspaceFailed += (_, args) =>
+            workspace.RegisterWorkspaceFailedHandler(args =>
             {
                 if (args.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
                 {
                     loadFailures.Add(args.Diagnostic.Message);
                 }
-            };
+            });
 
             var project = await workspace.OpenProjectAsync(projectFile, cancellationToken: cancellationToken);
             return new LoadedProject(project, loadFailures, restoreError);

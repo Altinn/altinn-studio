@@ -23,7 +23,7 @@ public static class MimeTypeMap
             { ".3gp", new("video/3gpp", "audio/3gpp") },
             { ".3gp2", new("video/3gpp2") },
             { ".3gpp", new("video/3gpp") },
-            { ".7z", new("application/x-7z-compressed") },
+            { ".7z", new("application/x-7z-compressed", "application/x-compressed") },
             { ".aa", new("audio/audible") },
             { ".AAC", new("audio/aac") },
             { ".aaf", new("application/octet-stream") },

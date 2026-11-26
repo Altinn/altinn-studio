@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ComponentProps } from 'react';
 import type { MonthCaptionProps } from 'react-day-picker';
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -24,7 +25,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Wrapper = (args: React.ComponentProps<typeof DynamicForm>) => {
+const Wrapper = (args: ComponentProps<typeof DynamicForm>) => {
   const [data, setData] = useState<FormDataObject>(args.initialData ?? {});
   return <DynamicForm {...args} initialData={data} onChange={(next) => setData(next)} />;
 };

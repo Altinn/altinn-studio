@@ -94,6 +94,18 @@ export default defineConfig([
         { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/consistent-type-imports': ['warn'],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "ImportDeclaration[source.value='react'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)",
+          message: "Import what you need by name, such as `import { useState } from 'react'`.",
+        },
+        {
+          selector: "TSQualifiedName[left.name='React']",
+          message: "Import the type by name, such as `import type { ReactNode } from 'react'`.",
+        },
+      ],
 
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],
@@ -186,6 +198,33 @@ export default defineConfig([
               regex: '@app/form-component/(?!app-components)',
               message:
                 'app-components should not import from outside @app/form-component/app-components/. Keep these components self-contained.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/app-components/Table/BaseTable.tsx'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: [
+                'Table',
+                'TableHead',
+                'TableBody',
+                'TableFoot',
+                'TableRow',
+                'TableHeaderCell',
+                'TableCell',
+              ],
+              message:
+                'Use BaseTable, so that every table differs from the designsystem in one place.',
             },
           ],
         },

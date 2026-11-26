@@ -3,15 +3,14 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Constants;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
-public class InstancesController_GetTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
+public class InstancesController_GetTests : ApiTestBase
 {
-    public InstancesController_GetTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper)
+    public InstancesController_GetTests(ITestOutputHelper outputHelper)
+        : base(outputHelper)
     {
         OverrideServicesForAllTests = (services) => { };
     }

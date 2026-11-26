@@ -1,5 +1,4 @@
-import React from 'react';
-import type { HtmlHTMLAttributes } from 'react';
+import type { HtmlHTMLAttributes, ReactNode } from 'react';
 
 import { Description, HelpTextContainer, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
@@ -8,15 +7,16 @@ import type { ILabelSettings } from '@app/layout-contract/generated/common.gener
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/form/caption/Caption.module.css';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 
 type HelpTextProps = {
-  text?: React.ReactNode;
+  text?: ReactNode;
   accessibleTitle?: string;
 };
 
 export type CaptionProps = {
-  title: React.ReactNode;
-  description?: React.ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
   helpText?: HelpTextProps;
   required?: boolean;
   labelSettings?: ILabelSettings;
@@ -33,42 +33,45 @@ export const Caption = ({
   helpText,
   designSystemLabelProps,
   ...rest
-}: CaptionProps) => (
-  <caption
-    {...rest}
-    id={id}
-    className={cn(classes.tableCaption, className)}
-  >
-    <div className={classes.titleAndHelpWrapper}>
-      <DesignsystemetLabel
-        asChild
-        className={classes.captionTitle}
-        {...designSystemLabelProps}
-      >
-        <div>
-          {title}
-          <RequiredIndicator required={required} />
-          <OptionalIndicator
-            readOnly={false}
-            required={required}
-            showOptionalMarking={labelSettings?.optionalIndicator !== false}
+}: CaptionProps) => {
+  const showOptionalMarking = useShowOptionalIndicator(labelSettings);
+  return (
+    <caption
+      {...rest}
+      id={id}
+      className={cn(classes.tableCaption, className)}
+    >
+      <div className={classes.titleAndHelpWrapper}>
+        <DesignsystemetLabel
+          asChild
+          className={classes.captionTitle}
+          {...designSystemLabelProps}
+        >
+          <div>
+            {title}
+            <RequiredIndicator required={required} />
+            <OptionalIndicator
+              readOnly={false}
+              required={required}
+              showOptionalMarking={showOptionalMarking}
+            />
+          </div>
+        </DesignsystemetLabel>
+        {helpText && (
+          <HelpTextContainer
+            id={id}
+            helpText={helpText.text}
+            title={helpText.accessibleTitle}
           />
-        </div>
-      </DesignsystemetLabel>
-      {helpText && (
-        <HelpTextContainer
-          id={id}
-          helpText={helpText.text}
-          title={helpText.accessibleTitle}
+        )}
+      </div>
+      {description && (
+        <Description
+          className={classes.description}
+          componentId={id}
+          description={description}
         />
       )}
-    </div>
-    {description && (
-      <Description
-        className={classes.description}
-        componentId={id}
-        description={description}
-      />
-    )}
-  </caption>
-);
+    </caption>
+  );
+};

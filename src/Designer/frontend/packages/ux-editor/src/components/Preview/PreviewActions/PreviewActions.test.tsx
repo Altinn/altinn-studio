@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../testing/mocks';
 
 import { PreviewActions, type PreviewActionsProps } from './PreviewActions';
@@ -40,6 +40,24 @@ describe('PreviewActions', () => {
     });
     expect(previewLinkButton).toBeInTheDocument();
     expect(previewLinkButton).toHaveAttribute('target', '_blank');
+  });
+
+  it('has no menu when preview cannot start over', () => {
+    renderPreviewActions({});
+    expect(
+      screen.queryByRole('button', { name: textMock('ux_editor.preview.options') }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('starts preview over from its menu', async () => {
+    const user = userEvent.setup();
+    const onStartOver = vi.fn();
+    renderPreviewActions({ onStartOver });
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.preview.options') }));
+    await user.click(
+      screen.getByRole('menuitem', { name: textMock('ux_editor.preview.start_over') }),
+    );
+    expect(onStartOver).toHaveBeenCalledTimes(1);
   });
 });
 

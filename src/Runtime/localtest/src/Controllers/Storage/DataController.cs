@@ -172,6 +172,11 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: true) is { } conflict)
+        {
+            return conflict;
+        }
+
         (VersionPreconditions preconditions, ActionResult versionError) =
             VersionPreconditionHelper.TryParse(Request);
         if (versionError is not null)
@@ -404,6 +409,128 @@ public class DataController : ControllerBase
     }
 
     /// <summary>
+    /// Gets the content of one blob version of a data element, for the instance's own service owner.
+    /// </summary>
+    /// <remarks>
+    /// The version may be current, superseded, or belong to a deleted element. LocalTest has no orphan cleanup, so
+    /// detached versions remain readable. Aggregate mutations keep a deleted element's versions; other deletes remove
+    /// them immediately. Reading a version requires the same access to its data type as reading the element, using
+    /// the application's current metadata.
+    /// </remarks>
+    /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+    /// <param name="instanceGuid">The id of the instance that the data element is associated with.</param>
+    /// <param name="dataGuid">The id of the data element.</param>
+    /// <param name="blobVersionId">The blob version to retrieve.</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>The content of the blob version.</returns>
+    [Authorize]
+    [HttpGet("data/{dataGuid:guid}/versions/{blobVersionId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetBlobVersion(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataGuid,
+        string blobVersionId,
+        CancellationToken cancellationToken
+    )
+    {
+        (Instance instance, _, ActionResult instanceError) = await GetInstanceAsync(
+            instanceGuid,
+            instanceOwnerPartyId,
+            false,
+            cancellationToken
+        );
+        if (instance is null)
+        {
+            return instanceError;
+        }
+
+        if (
+            User.GetOrg() != instance.Org
+            || await _authorizationService.AuthorizeInstanceAction(
+                instance,
+                "read",
+                instance.Process?.CurrentTask?.ElementId,
+                cancellationToken
+            )
+                is false
+        )
+        {
+            return Forbid();
+        }
+
+        DataElementBlobVersion blobVersion = await _dataRepository.ReadBlobVersion(
+            instanceGuid,
+            dataGuid,
+            blobVersionId,
+            cancellationToken
+        );
+        if (blobVersion is null)
+        {
+            return NotFound(
+                $"Unable to find blob version {blobVersionId} of data element {dataGuid}."
+            );
+        }
+
+        // The repository supplies the data type of a live element, or the one recorded when the element was
+        // deleted. A version has none when its element was deleted before LocalTest recorded data types.
+        string dataTypeId = blobVersion.DataType;
+        if (dataTypeId is null)
+        {
+            (DataElement dataElement, ActionResult dataElementError) = await GetDataElementAsync(
+                instanceGuid,
+                dataGuid,
+                cancellationToken
+            );
+            if (dataElement is null)
+            {
+                return dataElementError;
+            }
+
+            dataTypeId = dataElement.DataType;
+        }
+
+        (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(
+            instance,
+            dataTypeId,
+            cancellationToken: cancellationToken
+        );
+        if (dataTypeDefinition is null)
+        {
+            return dataTypeError;
+        }
+
+        if (
+            await dataTypeDefinition.CanRead(_authorizationService, instance, cancellationToken)
+            is not true
+        )
+        {
+            return Forbid();
+        }
+
+        Stream dataStream = await _blobRepository.ReadBlob(
+            blobVersion.BlobStorageOrg,
+            BlobRepository.GetVersionedBlobPath(
+                blobVersion.AppId,
+                instanceGuid.ToString(),
+                blobVersionId
+            ),
+            blobVersion.StorageAccountNumber,
+            cancellationToken
+        );
+        if (dataStream is null)
+        {
+            return NotFound(
+                $"Unable to read blob version {blobVersionId} of data element {dataGuid}."
+            );
+        }
+
+        return File(dataStream, "application/octet-stream");
+    }
+
+    /// <summary>
     /// Returns a list of data elements of an instance.
     /// </summary>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
@@ -517,6 +644,11 @@ public class DataController : ControllerBase
         )
         {
             return Forbid();
+        }
+
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false) is { } conflict)
+        {
+            return conflict;
         }
 
         (VersionPreconditions preconditions, ActionResult versionError) =
@@ -700,6 +832,14 @@ public class DataController : ControllerBase
             );
         }
 
+        // Storage reads the versions with the instance. Here they are two reads, and the versions come
+        // first so that they are never newer than the instance the checks use: a transition after this
+        // read stops the write.
+        InstanceVersionResult snapshotVersions = await _instanceRepository.ReadVersions(
+            instanceGuid,
+            cancellationToken
+        );
+
         (Instance instance, _, ActionResult instanceError) = await GetInstanceAsync(
             instanceGuid,
             instanceOwnerPartyId,
@@ -750,7 +890,13 @@ public class DataController : ControllerBase
             return Forbid();
         }
 
-        if (dataElement.Locked)
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false) is { } conflict)
+        {
+            return conflict;
+        }
+
+        bool taskBound = dataTypeDefinition.IsTaskBound();
+        if (dataElement.Locked && !taskBound)
         {
             return Conflict($"Data element {dataGuid} is locked and cannot be updated");
         }
@@ -765,6 +911,20 @@ public class DataController : ControllerBase
         if (versionError is not null)
         {
             return versionError;
+        }
+
+        if (
+            preconditions.ProcessStateVersion is not null
+            && preconditions.ProcessStateVersion != snapshotVersions.ProcessStateVersion
+        )
+        {
+            return VersionPreconditionHelper.VersionMismatch(
+                Response,
+                new ProcessStateVersionMismatchException(
+                    snapshotVersions.InstanceVersion,
+                    snapshotVersions.ProcessStateVersion
+                )
+            );
         }
 
         string currentBlobVersion = await _dataRepository.ReadCurrentBlobVersion(
@@ -902,10 +1062,12 @@ public class DataController : ControllerBase
                 updatedProperties,
                 new DataElementUpdateContext
                 {
-                    IgnoreLock = false,
+                    IgnoreLock = taskBound,
                     ExpectedCurrentBlobVersion = expectedCurrentBlobVersion,
                     ExpectedInstanceVersion = preconditions.InstanceVersion,
-                    ExpectedProcessStateVersion = preconditions.ProcessStateVersion,
+                    ExpectedProcessStateVersion = taskBound
+                        ? snapshotVersions.ProcessStateVersion
+                        : preconditions.ProcessStateVersion,
                 },
                 cancellationToken
             );
@@ -994,6 +1156,7 @@ public class DataController : ControllerBase
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [Produces("application/json")]
     public async Task<ActionResult<DataElement>> Update(
         int instanceOwnerPartyId,
@@ -1022,9 +1185,27 @@ public class DataController : ControllerBase
             return instanceError;
         }
 
+        (DataElement storedDataElement, ActionResult dataElementError) = await GetDataElementAsync(
+            instanceGuid,
+            dataGuid,
+            cancellationToken
+        );
+        if (storedDataElement == null)
+        {
+            return dataElementError;
+        }
+
+        if (dataElement.DataType != storedDataElement.DataType)
+        {
+            return Problem(
+                detail: "You can't change dataElement.DataType in an update request",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+        }
+
         (DataType dataTypeDefinition, ActionResult dataTypeError) = await GetDataTypeAsync(
             instance,
-            dataElement.DataType,
+            storedDataElement.DataType,
             cancellationToken: cancellationToken
         );
         if (dataTypeDefinition is null)
@@ -1038,6 +1219,11 @@ public class DataController : ControllerBase
         )
         {
             return Forbid();
+        }
+
+        if (dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false) is { } conflict)
+        {
+            return conflict;
         }
 
         (VersionPreconditions preconditions, ActionResult versionError) =

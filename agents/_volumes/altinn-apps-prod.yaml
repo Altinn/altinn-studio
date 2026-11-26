@@ -1,0 +1,8 @@
+# The apps that run in prod, as `fleet sync` keeps them on the host. See src/tools/altinn-fleet/README.md.
+apiVersion: agents.platform/v1alpha1
+kind: Volume
+metadata:
+  name: altinn-apps-prod
+spec:
+  type: copy
+  source: ~/altinn-fleet/prod

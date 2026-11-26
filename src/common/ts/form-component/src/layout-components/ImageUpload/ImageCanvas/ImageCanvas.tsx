@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
+import type { RefObject } from 'react';
 
 import { useTranslation } from '@app/form-component/LanguageTranslatorProvider';
 import { useCanvasDraw } from '@app/form-component/layout-components/ImageUpload/ImageCanvas/hooks/useCanvasDraw';
@@ -16,7 +17,7 @@ import {
 import classes from './ImageCanvas.module.css';
 
 interface ImageCanvasProps {
-  imageRef: React.RefObject<HTMLImageElement | null>;
+  imageRef: RefObject<HTMLImageElement | null>;
   zoom: number;
   minAllowedZoom: number;
   position: Position;
@@ -25,7 +26,7 @@ interface ImageCanvasProps {
   imageUrl?: string;
   setPosition: (newPosition: Position) => void;
   onZoomChange: (newZoom: number) => void;
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
 }
 
 const CANVAS_HEIGHT = 320;

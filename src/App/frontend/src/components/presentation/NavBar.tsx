@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { BackNavigationButton } from 'src/components/presentation/BackNavigationButton';
 import { ExpandWidthButton } from 'src/components/presentation/ExpandWidthButton';
 import classes from 'src/components/presentation/NavBar.module.css';

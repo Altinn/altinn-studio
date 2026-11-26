@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../../types/global';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormItemContext } from '../../FormItemContext';
@@ -7,7 +7,7 @@ import { getItem } from '../../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '../../../hooks';
 import { ItemType } from '../../../components/Properties/ItemType';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
+import { FeatureFlag, useFeatureFlag } from '@designer/feature-flags';
 
 export type FormTreeProps = {
   layout: IInternalLayout;

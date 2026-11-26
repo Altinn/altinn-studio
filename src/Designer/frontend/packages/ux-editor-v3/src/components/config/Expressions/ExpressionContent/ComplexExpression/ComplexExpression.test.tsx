@@ -9,7 +9,7 @@ import { renderWithMockStore } from '../../../../../testing/mocks';
 import type { ComplexExpressionProps } from './ComplexExpression';
 import { ComplexExpression } from './ComplexExpression';
 import { stringifyData } from '../../../../../utils/jsonUtils';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 describe('ComplexExpression', () => {
   it('displays textArea with complex expression as value', () => {

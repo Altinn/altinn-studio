@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { RenderStart } from 'src/core/ui/RenderStart';
@@ -10,7 +10,7 @@ import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 
 export interface IInstantiateContainerProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function InstantiationContainer({ children }: IInstantiateContainerProps) {

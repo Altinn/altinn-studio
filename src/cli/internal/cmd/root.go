@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"altinn.studio/devenv/pkg/container/dockerapi"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
@@ -110,7 +111,7 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 		c.out.Error(runErr.Error())
 	}
 
-	c.notifyUpdateAvailable(ctx, cmdName)
+	c.notifyUpdateAvailable(ctx, cmd, args[1:])
 
 	if runErr != nil {
 		return 1
@@ -118,11 +119,19 @@ func (c *CLI) Run(ctx context.Context, args []string) int {
 	return 0
 }
 
+// updateCheckSkipper is implemented by commands that have subcommands the update check must not run after.
+type updateCheckSkipper interface {
+	SkipsUpdateCheck(args []string) bool
+}
+
 // notifyUpdateAvailable prints a notice when a newer studioctl release exists.
 // It is skipped for the 'self' command so it does not interfere with a self
 // update or uninstall the user is already performing.
-func (c *CLI) notifyUpdateAvailable(ctx context.Context, cmdName string) {
-	if cmdName == "self" {
+func (c *CLI) notifyUpdateAvailable(ctx context.Context, cmd Command, args []string) {
+	if cmd.Name() == "self" {
+		return
+	}
+	if skipper, ok := cmd.(updateCheckSkipper); ok && skipper.SkipsUpdateCheck(args) {
 		return
 	}
 	updatecheck.New(c.cfg, c.out).Run(ctx)
@@ -338,6 +347,7 @@ func Main() int {
 		fmt.Fprintf(os.Stderr, "%v%s", err, osutil.LineBreak)
 		return 1
 	}
+	dockerapi.SetUserAgent(cfg.Version.UserAgent())
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

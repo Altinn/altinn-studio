@@ -219,6 +219,60 @@ public class ChatServiceTests
     }
 
     [Fact]
+    public async Task CreateMessageInDeveloperThreadAsync_SavesTheMessage_WhenTheDeveloperCreatedTheThread()
+    {
+        var thread = CreateThreadEntity();
+        var request = new CreateChatMessageRequest(
+            Role: Role.Assistant,
+            Content: "Svar",
+            AllowAppChanges: null,
+            AttachmentFileNames: null,
+            FilesChanged: null,
+            Sources: null,
+            EventId: "event-1"
+        );
+        _repositoryMock
+            .Setup(r => r.GetDeveloperThreadAsync(thread.Id, thread.CreatedBy, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(thread);
+        _repositoryMock
+            .Setup(r => r.CreateMessageAsync(It.IsAny<ChatMessageEntity>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ChatMessageEntity m, CancellationToken _) => m);
+
+        var result = await _chatService.CreateMessageInDeveloperThreadAsync(thread.Id, thread.CreatedBy, request);
+
+        Assert.Equal(thread.Id, result.ThreadId);
+        Assert.Equal(request.Content, result.Content);
+        Assert.Equal(request.EventId, result.EventId);
+    }
+
+    [Fact]
+    public async Task CreateMessageInDeveloperThreadAsync_ReturnsNull_WhenTheDeveloperHasNoSuchThread()
+    {
+        _repositoryMock
+            .Setup(r => r.GetDeveloperThreadAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(default(ChatThreadEntity));
+
+        var result = await _chatService.CreateMessageInDeveloperThreadAsync(
+            Guid.NewGuid(),
+            "otherUser",
+            new CreateChatMessageRequest(
+                Role: Role.Assistant,
+                Content: "Svar",
+                AllowAppChanges: null,
+                AttachmentFileNames: null,
+                FilesChanged: null,
+                Sources: null
+            )
+        );
+
+        Assert.Null(result);
+        _repositoryMock.Verify(
+            r => r.CreateMessageAsync(It.IsAny<ChatMessageEntity>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task DeleteMessageAsync_DelegatesToRepository()
     {
         var thread = CreateThreadEntity();

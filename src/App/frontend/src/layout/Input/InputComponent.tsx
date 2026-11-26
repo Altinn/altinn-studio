@@ -1,4 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
+import type { ClipboardEvent, FunctionComponent } from 'react';
 
 import { FormattedInput, getDescriptionId, getLabelId, Input, Label, NumericInput } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -135,7 +136,7 @@ const InputVariant = ({
   } = useDataModelBindings(dataModelBindings, config.saveWhileTyping);
   const { langAsString } = useLanguage();
   const characterLimit = useCharacterLimit(config.maxLength);
-  const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
+  const [localValue, setLocalValue] = useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
   const reactNumberFormatConfig = useMapToReactNumberConfig(useResolvedFormatting(config.formatting), formValue);
   const variant = getVariantWithFormat(config.variant, reactNumberFormatConfig?.number);
@@ -242,7 +243,7 @@ const InputVariant = ({
               }
             });
           }}
-          onPaste={(event: React.ClipboardEvent<HTMLInputElement>) => {
+          onPaste={(event: ClipboardEvent<HTMLInputElement>) => {
             /* This is a workaround for a react-number-format bug that
              * removes the decimal on paste.
              * We should be able to remove it when this issue gets fixed:
@@ -261,7 +262,7 @@ const InputVariant = ({
   }
 };
 
-export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'Input'>> = ({
+export const InputComponent: FunctionComponent<PropsFromGenericComponent<'Input'>> = ({
   baseComponentId,
   overrideDisplay,
 }) => {

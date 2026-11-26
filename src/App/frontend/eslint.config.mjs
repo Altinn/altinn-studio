@@ -10,7 +10,6 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
-import reactCompiler from 'eslint-plugin-react-compiler';
 import reactHooks from 'eslint-plugin-react-hooks';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -18,6 +17,8 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
 
+import { noQueryMocks } from './eslint-rules/no-query-mocks.mjs';
+import { noTanStackReexports } from './eslint-rules/no-tanstack-reexports.mjs';
 import { langKey } from './src/language/eslint.js';
 
 export default defineConfig([
@@ -27,6 +28,7 @@ export default defineConfig([
   ...fixupConfigRules(pluginImport.flatConfigs.typescript),
   jsxA11y.flatConfigs.recommended,
   ...fixupConfigRules(reactPlugin.configs.flat.recommended),
+  ...fixupConfigRules(reactPlugin.configs.flat['jsx-runtime']),
   ...tsPlugin.configs['flat/recommended'],
   eslintPluginPrettierRecommended,
 
@@ -39,11 +41,12 @@ export default defineConfig([
       'unused-imports': unusedImports,
       '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks,
-      'react-compiler': reactCompiler,
       sonarjs,
       local: {
         rules: {
           'language-key': langKey,
+          'no-tanstack-reexports': noTanStackReexports,
+          'no-query-mocks': noQueryMocks,
         },
       },
     },
@@ -76,6 +79,7 @@ export default defineConfig([
     },
     rules: {
       'local/language-key': ['error'],
+      'local/no-tanstack-reexports': 'error',
       curly: ['error', 'all'],
       'object-shorthand': ['error', 'always'],
       'arrow-body-style': ['error', 'as-needed'],
@@ -89,6 +93,15 @@ export default defineConfig([
         {
           selector: "ExportNamedDeclaration[source.type='Literal']",
           message: 'Do not re-exports already exported symbols',
+        },
+        {
+          selector:
+            "ImportDeclaration[source.value='react'] > :matches(ImportDefaultSpecifier, ImportNamespaceSpecifier)",
+          message: "Import what you need by name, such as `import { useState } from 'react'`.",
+        },
+        {
+          selector: "TSQualifiedName[left.name='React']",
+          message: "Import the type by name, such as `import type { ReactNode } from 'react'`.",
         },
       ],
 
@@ -108,6 +121,8 @@ export default defineConfig([
 
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],
+      'react-hooks/hooks': 'error',
+      'react-hooks/immutability': 'error',
       'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
       'react/jsx-fragments': ['error'],
@@ -130,8 +145,6 @@ export default defineConfig([
       'no-relative-import-paths/no-relative-import-paths': ['warn', { allowSameFolder: false }],
 
       'preferred-import-path/preferred-import-path': ['warn', { '^/src': 'src', '^/test/': 'test/' }],
-
-      'react-compiler/react-compiler': 'error',
 
       'simple-import-sort/imports': [
         'error',
@@ -216,30 +229,6 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: [
-      'src/core/**',
-      'src/routes/**',
-      'src/test/**',
-      'src/queries/**',
-      'src/routerContexts/**',
-      'src/appQueryClient.ts',
-    ],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'warn',
-        {
-          paths: [
-            {
-              name: '@tanstack/react-query',
-              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
     // Route modules must default-export their component - that is React Router's Route Module API.
     files: ['src/routes/**/*.route.tsx'],
     rules: {
@@ -247,17 +236,18 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/routes/**/*.{ts,tsx}', 'src/router.tsx'],
-    ignores: ['src/routes/**/*.test.ts'],
+    // The table restriction above, for the query directory that block ignores
+    files: ['src/core/queries/**/*.{js,cjs,mjs,jsx,ts,tsx}'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
-        'warn',
+        'error',
         {
           paths: [
             {
-              name: '@tanstack/react-query',
-              message: 'Import hooks from src/core/queries/ instead of using React Query directly.',
-              allowTypeImports: true,
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table', 'TableHead', 'TableBody', 'TableFoot', 'TableRow', 'TableHeaderCell', 'TableCell'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
             },
           ],
         },
@@ -265,15 +255,31 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/core/**'],
+    files: ['**/*.{js,cjs,mjs,jsx,ts,tsx}'],
+    ignores: ['src/core/queries/**'],
     rules: {
-      'no-restricted-imports': [
-        'warn',
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
         {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Table', 'TableHead', 'TableBody', 'TableFoot', 'TableRow', 'TableHeaderCell', 'TableCell'],
+              message:
+                'Use BaseTable from @app/form-component, so that every table differs from the designsystem in one place.',
+            },
+          ],
           patterns: [
             {
-              regex: 'src/core/queries/[^/]+/(?!index$)',
+              regex: '^@tanstack/(react-query(?:-devtools)?|query-core)(/|$)',
+              message: 'Import domain hooks from src/core/queries/ instead of using TanStack Query directly.',
+            },
+            {
+              group: ['src/core/queries/mutationResult', 'src/core/queries/*.queries*'],
+              message: 'Keep generic query adapters inside src/core/queries/. Use domain operations instead.',
+            },
+            {
+              regex: 'src/core/queries/[^/]+/(?!index(?:\\.[cm]?[jt]sx?)?$)',
               message:
                 'Only import from the index.ts of each src/core/queries/ module. Do not import internal files directly.',
             },
@@ -281,5 +287,9 @@ export default defineConfig([
         },
       ],
     },
+  },
+  {
+    files: ['src/**/*test*.{ts,tsx}', 'src/**/*TestUtils.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'src/setupTests.ts'],
+    rules: { 'local/no-query-mocks': 'error' },
   },
 ]);

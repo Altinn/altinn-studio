@@ -1,11 +1,10 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { FormStore } from 'src/features/form/FormContext';
@@ -116,13 +115,16 @@ describe('Expressions shared context tests', () => {
         await renderWithInstanceAndLayout({
           renderer: () => <TestContexts />,
           queries: {
+            ...(instance
+              ? {
+                  getInstance: async () => ({ ...instance, process: instance.process ?? getProcessDataMock() }),
+                }
+              : {}),
             fetchFormBootstrapForInstance: async () =>
               getFormBootstrapMock((obj) => {
                 obj.layouts = layouts!;
                 obj.dataModels[defaultDataTypeMock].initialData = dataModel ?? {};
               }),
-            ...(instance ? { fetchInstanceData: async () => instance } : {}),
-            ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
           },
         });
 

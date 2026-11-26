@@ -1,8 +1,9 @@
-import React, { createContext, useContext } from 'react';
-import type { PropsWithChildren } from 'react';
+import { createContext, useContext } from 'react';
+import type { KeyboardEvent, MouseEvent, PropsWithChildren, ReactNode } from 'react';
 
 import { Flex, FullWidthWrapper, useIsMobile } from '@app/form-component';
 import { ErrorSummary } from '@digdir/designsystemet-react';
+import { isHttpError } from '@studio/http-client';
 
 import classes from 'src/components/message/ErrorReport.module.css';
 import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
@@ -14,7 +15,6 @@ import {
 import { Lang, LangReference } from 'src/features/language/Lang';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useNavigateToComponent } from 'src/hooks/useNavigatePage';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
@@ -23,7 +23,7 @@ import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/featu
 
 export interface IErrorReportProps extends PropsWithChildren {
   show: boolean;
-  errors: React.ReactNode | undefined;
+  errors: ReactNode | undefined;
 }
 
 const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" style="position: relative; top: 2px">
@@ -125,7 +125,7 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
     return <ErrorListForClosedInstantiation reason={closedReason ?? { reason: 'closed' }} />;
   }
 
-  if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
+  if (isHttpError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
     if (isInstantiationValidationResult(error.response.data)) {
       return (
         <ErrorReportListItem>
@@ -161,8 +161,8 @@ export function ErrorListFromInstantiation({ error }: { error: unknown }) {
 function ErrorWithLink({ error }: { error: NodeRefValidation }) {
   const navigateToComponent = useNavigateToComponent();
 
-  function handleErrorClick(ev: React.KeyboardEvent | React.MouseEvent) {
-    if (ev.type === 'keydown' && (ev as React.KeyboardEvent).key !== 'Enter') {
+  function handleErrorClick(ev: KeyboardEvent | MouseEvent) {
+    if (ev.type === 'keydown' && (ev as KeyboardEvent).key !== 'Enter') {
       return;
     }
     ev.preventDefault();

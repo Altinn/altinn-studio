@@ -1,7 +1,7 @@
-import React from 'react';
+import type { HTMLAttributes } from 'react';
 
-import { Label, Table } from '@digdir/designsystemet-react';
-import cn from 'classnames';
+import { BaseTable } from '@app/form-component';
+import { Label } from '@digdir/designsystemet-react';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
@@ -13,7 +13,7 @@ type PaymentDetailsTableProps = {
   tableTitle?: string;
   description?: string;
   help?: string;
-} & React.HTMLAttributes<HTMLTableElement>;
+} & HTMLAttributes<HTMLTableElement>;
 
 export const PaymentDetailsTable = ({
   orderDetails,
@@ -22,10 +22,7 @@ export const PaymentDetailsTable = ({
   help,
   ...rest
 }: PaymentDetailsTableProps) => (
-  <Table
-    {...rest}
-    className={cn(classes.orderDetailsTable, rest.className)}
-  >
+  <BaseTable {...rest}>
     {tableTitle && (
       <Caption
         title={<Lang id={tableTitle} />}
@@ -34,54 +31,54 @@ export const PaymentDetailsTable = ({
       />
     )}
 
-    <Table.Head>
-      <Table.Row>
-        <Table.HeaderCell>
+    <BaseTable.Head>
+      <BaseTable.Row>
+        <BaseTable.HeaderCell>
           <Lang id='payment.component.description' />
-        </Table.HeaderCell>
-        <Table.HeaderCell align='right'>
+        </BaseTable.HeaderCell>
+        <BaseTable.HeaderCell align='right'>
           <Lang id='payment.component.quantity' />
-        </Table.HeaderCell>
-        <Table.HeaderCell align='right'>
+        </BaseTable.HeaderCell>
+        <BaseTable.HeaderCell align='right'>
           <Lang id='payment.component.price' />
-        </Table.HeaderCell>
-      </Table.Row>
-    </Table.Head>
-    <Table.Body>
+        </BaseTable.HeaderCell>
+      </BaseTable.Row>
+    </BaseTable.Head>
+    <BaseTable.Body>
       {orderDetails?.orderLines.map((orderLine) => (
-        <Table.Row
+        <BaseTable.Row
           key={orderLine.id}
           className={classes.tableRow}
         >
-          <Table.Cell>{orderLine.name}</Table.Cell>
-          <Table.Cell align='right'>{orderLine.quantity}</Table.Cell>
-          <Table.Cell align='right'>
+          <BaseTable.Cell>{orderLine.name}</BaseTable.Cell>
+          <BaseTable.Cell align='right'>{orderLine.quantity}</BaseTable.Cell>
+          <BaseTable.Cell align='right'>
             {orderLine.priceExVat * orderLine.quantity} {orderDetails?.currency}
-          </Table.Cell>
-        </Table.Row>
+          </BaseTable.Cell>
+        </BaseTable.Row>
       ))}
       {!!orderDetails?.totalVat && orderDetails.totalVat > 0 && (
-        <Table.Row className={classes.tableRow}>
-          <Table.Cell colSpan={2}>
+        <BaseTable.Row className={classes.tableRow}>
+          <BaseTable.Cell colSpan={2}>
             <Label>
               <Lang id='payment.component.vat' />
             </Label>
-          </Table.Cell>
-          <Table.Cell align='right'>
+          </BaseTable.Cell>
+          <BaseTable.Cell align='right'>
             {orderDetails?.totalVat} {orderDetails?.currency}
-          </Table.Cell>
-        </Table.Row>
+          </BaseTable.Cell>
+        </BaseTable.Row>
       )}
-      <Table.Row className={classes.tableRow}>
-        <Table.Cell colSpan={2}>
+      <BaseTable.Row className={classes.tableRow}>
+        <BaseTable.Cell colSpan={2}>
           <Label>
             <Lang id='payment.component.total' />
           </Label>
-        </Table.Cell>
-        <Table.Cell align='right'>
+        </BaseTable.Cell>
+        <BaseTable.Cell align='right'>
           {orderDetails?.totalPriceIncVat} {orderDetails?.currency}
-        </Table.Cell>
-      </Table.Row>
-    </Table.Body>
-  </Table>
+        </BaseTable.Cell>
+      </BaseTable.Row>
+    </BaseTable.Body>
+  </BaseTable>
 );

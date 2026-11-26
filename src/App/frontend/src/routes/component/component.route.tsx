@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Loader } from 'src/core/loading/Loader';
 import { FormStore } from 'src/features/form/FormContext';
 import { useNavigationParam } from 'src/hooks/navigation';

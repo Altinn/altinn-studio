@@ -1,5 +1,6 @@
-import React from 'react';
+import { useState } from 'react';
 import { useMatch, useNavigate } from 'react-router';
+import type { ChangeEvent } from 'react';
 
 import { Button, Flex, Input } from '@app/form-component';
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
@@ -8,6 +9,7 @@ import cn from 'classnames';
 
 import { AltinnParty } from 'src/components/altinnParty';
 import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
@@ -20,7 +22,6 @@ import {
   useSetHasSelectedParty,
   useSetSelectedParty,
 } from 'src/features/party/PartiesProvider';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
@@ -49,10 +50,10 @@ export const PartySelection = () => {
   const partiesSettingsUrl = platformLinkHref('ArbeidsflatePartiesUrl');
   const { langAsString } = useLanguage();
 
-  const [filterString, setFilterString] = React.useState('');
-  const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
-  const [showSubUnits, setShowSubUnits] = React.useState(true);
-  const [showDeleted, setShowDeleted] = React.useState(defaultShowDeleted);
+  const [filterString, setFilterString] = useState('');
+  const [numberOfPartiesShown, setNumberOfPartiesShown] = useState(4);
+  const [showSubUnits, setShowSubUnits] = useState(true);
+  const [showDeleted, setShowDeleted] = useState(defaultShowDeleted);
   const navigate = useNavigate();
 
   const appName = useAppName();
@@ -124,7 +125,7 @@ export const PartySelection = () => {
     );
   }
 
-  const onFilterStringChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onFilterStringChange = (event: ChangeEvent<HTMLInputElement>) => {
     setFilterString(event.target.value);
   };
 

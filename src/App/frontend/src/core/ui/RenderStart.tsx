@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { DevTools } from 'src/features/devtools/DevTools';

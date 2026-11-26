@@ -131,14 +131,14 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetRunning_WhenNoDeployment_ReturnsNotFound()
+    public async Task GetRunning_WhenNoDeployment_ReturnsNoContent()
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "missing-" + Guid.NewGuid().ToString("N")[..5];
 
         var response = await _httpClient.GetAsync(RunningUri(app), ct);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
     [Fact]

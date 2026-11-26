@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
 import { screen, waitFor } from '@testing-library/react';
@@ -10,13 +9,14 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { statelessDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { InstanceApi } from 'src/core/api-client/instance.api';
+import type { AppMutations } from 'src/core/queries/types';
 
 const render = async (
-  createWithPrefill: InstanceApi['createWithPrefill'],
+  createWithPrefill: AppMutations['createInstanceWithPrefill'],
   queryParameters?: IQueryParameters,
   validity: { validFrom?: string; validTo?: string } = {},
 ) => {
@@ -64,11 +64,7 @@ const render = async (
           obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock({ initialData: { name: 'Ada' } });
         }),
     },
-    apis: {
-      instanceApi: {
-        createWithPrefill,
-      },
-    },
+    mutations: { createInstanceWithPrefill: createWithPrefill },
   });
 };
 
@@ -128,9 +124,7 @@ describe('InstantiationButton', () => {
 
   it('should explain that the service cannot be started, and disable the button, after a 410 response', async () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
-    const createWithPrefill = vi
-      .fn()
-      .mockRejectedValue(Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }));
+    const createWithPrefill = vi.fn().mockRejectedValue(createHttpErrorMock(410, undefined, 'Gone'));
     await render(createWithPrefill);
 
     await userEvent.click(screen.getByRole('button', { name: 'Instantiate' }));

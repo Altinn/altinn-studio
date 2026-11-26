@@ -6,7 +6,7 @@ import {
   StudioPageSpinner,
   StudioParagraph,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { SchemaEditorWithToolbar } from './SchemaEditorWithToolbar';
 import { useDataModelsJsonQuery, useDataModelsXsdQuery } from 'app-shared/hooks/queries';
 import { useParams } from 'react-router-dom';

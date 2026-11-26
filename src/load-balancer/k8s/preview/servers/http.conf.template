@@ -1,0 +1,14 @@
+# Preview's host over plain HTTP, which only an address typed by hand uses, since Designer hands out HTTPS URLs.
+# Without this server, Studio's redirect would answer, and send the session ID on to Studio's host and its access log.
+# Like preview's own server, it neither logs nor traces the URI.
+server {
+  listen 80;
+  server_name ${PREVIEW_SERVER_NAME};
+
+  access_log off;
+  error_log /var/log/nginx/error.log crit;
+  otel_trace off;
+  otel_trace_context ignore;
+
+  return 301 https://${PREVIEW_SERVER_NAME}$request_uri;
+}

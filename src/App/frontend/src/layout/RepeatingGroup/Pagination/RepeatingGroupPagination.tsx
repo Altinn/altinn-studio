@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import type { HTMLAttributes } from 'react';
 
-import { ConditionalWrapper, useIsMobile, useIsMobileOrTablet } from '@app/form-component';
+import { BaseTable, ConditionalWrapper, useIsMobile, useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Pagination, Table, usePagination } from '@digdir/designsystemet-react';
+import { Pagination, usePagination } from '@digdir/designsystemet-react';
 import type { UsePaginationProps } from '@digdir/designsystemet-react';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
@@ -80,11 +81,11 @@ function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
     <ConditionalWrapper
       condition={inTable}
       wrapper={(children) => (
-        <Table.Body>
-          <Table.Row className={!isTablet ? classes.row : undefined}>
-            <Table.Cell colSpan={100}>{children}</Table.Cell>
-          </Table.Row>
-        </Table.Body>
+        <BaseTable.Body>
+          <BaseTable.Row background={!isTablet ? 'tinted' : undefined}>
+            <BaseTable.Cell colSpan={100}>{children}</BaseTable.Cell>
+          </BaseTable.Row>
+        </BaseTable.Body>
       )}
     >
       <PaginationComponent
@@ -112,7 +113,7 @@ type PaginationComponentProps = {
   totalPages: number;
   pagesWithErrors: number[];
   setCurrentPage: (pageNumber: number) => void;
-} & Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> &
+} & Omit<HTMLAttributes<HTMLElement>, 'onChange'> &
   Pick<UsePaginationProps, 'onChange'>;
 
 function PaginationComponent({

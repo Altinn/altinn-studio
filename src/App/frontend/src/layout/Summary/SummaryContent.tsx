@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ElementType } from 'react';
 
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
@@ -17,7 +17,7 @@ import { useEvalExpression, useEvalOptionalTrb } from 'src/utils/layout/useEvalE
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
 interface SummaryContentProps extends SummaryRendererProps {
-  RenderSummary: React.ElementType<SummaryRendererProps>;
+  RenderSummary: ElementType<SummaryRendererProps>;
 }
 
 export function SummaryContent({

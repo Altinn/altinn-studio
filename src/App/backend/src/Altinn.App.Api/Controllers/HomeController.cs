@@ -2,6 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Internal.App;
@@ -118,10 +120,14 @@ public class HomeController : Controller
                 return PartialView("Index");
             }
 
+            string? frontendVersion = Request.Query[FrontendVersionOverride.QueryParameterName].FirstOrDefault();
             string? appFrontendAssetBaseUrlOverride =
-                _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
-                    ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
-                    : null;
+                FrontendVersionOverride.GetAssetBaseUrl(frontendVersion, AltinnEnvironments.GetHostingEnvironment(_env))
+                ?? (
+                    _env.IsDevelopment() && !string.IsNullOrWhiteSpace(_appSettings.AppFrontendAssetBaseUrl)
+                        ? _appSettings.AppFrontendAssetBaseUrl.Trim().TrimEnd('/')
+                        : null
+                );
 
             var appGlobalState = await _bootstrapGlobalService.GetGlobalState(_appId.Org, _appId.App, returnUrl, lang);
             var html = await _indexPageGenerator.Generate(
@@ -189,7 +195,7 @@ public class HomeController : Controller
             var prefillJson = _appResources.GetPrefillJson(dataType.Id);
             if (prefillJson is null)
                 continue;
-            using var jsonDoc = JsonDocument.Parse(prefillJson);
+            using var jsonDoc = JsonDocument.Parse(prefillJson, AppFileJson.DocumentOptions);
             if (!jsonDoc.RootElement.TryGetProperty("QueryParameters", out var allowedQueryParams))
                 continue;
             if (allowedQueryParams.ValueKind != JsonValueKind.Object)
@@ -367,7 +373,7 @@ public class HomeController : Controller
         }
 
         return application.DataTypes.Find(d => d.Id == layoutSettings.DefaultDataType)
-            ?? application.DataTypes.Find(d => d.TaskId == onEntryFolderId && d.AppLogic?.ClassRef is not null)
+            ?? application.DataTypes.Find(d => d.IsBoundToTask(onEntryFolderId) && d.AppLogic?.ClassRef is not null)
             ?? application.DataTypes.Find(d => d.AppLogic?.ClassRef is not null);
     }
 }

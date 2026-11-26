@@ -1,0 +1,37 @@
+{
+  "name": "An object result for every row reads the fields of the row it is calculated for",
+  "dataModel": {
+    "rows": [
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000001", "decimal": 2 },
+      { "altinnRowId": "a0000000-0000-4000-8000-000000000002", "decimal": 3 }
+    ]
+  },
+  "calculations": [
+    {
+      "field": "rows[]",
+      "expression": [
+        "object",
+        "total",
+        ["multiply", ["dataModel", "rows.decimal"], 10],
+        "text",
+        "set"
+      ]
+    }
+  ],
+  "expects": {
+    "rows": [
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000001",
+        "decimal": 2,
+        "total": 20,
+        "text": "set"
+      },
+      {
+        "altinnRowId": "a0000000-0000-4000-8000-000000000002",
+        "decimal": 3,
+        "total": 30,
+        "text": "set"
+      }
+    ]
+  }
+}

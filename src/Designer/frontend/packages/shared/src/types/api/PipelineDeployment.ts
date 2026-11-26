@@ -1,5 +1,4 @@
 import { BuildResult, type Build } from '../Build';
-import type { RunningApp } from './RunningApp';
 
 export interface PipelineDeployment {
   id: string;
@@ -111,19 +110,4 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
   } else {
     return deployment?.build?.result;
   }
-};
-
-/**
- * The deploy whose build runs in the environment. Every Studio environment queues its deploys in the same Azure
- * DevOps organization, whose build ids are unique, so another Studio environment's deploy matches none. Without a
- * build id, the tag is the best match there is, though the same tag can have been deployed more than once.
- */
-export const findRunningPipelineDeployment = (
-  pipelineDeployments: PipelineDeployment[],
-  runningApp: RunningApp | undefined,
-): PipelineDeployment | undefined => {
-  if (runningApp?.buildId) {
-    return pipelineDeployments.find((item) => item.build?.id === runningApp.buildId);
-  }
-  return pipelineDeployments.find((item) => item.tagName === runningApp?.version);
 };

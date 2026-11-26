@@ -1,7 +1,10 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 
@@ -13,6 +16,11 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// The faithful equivalent is a <c>pdf</c> service task inserted immediately after that task:
 /// <c>T --flow--> X</c> becomes <c>T --flow--> PdfTask_T --newFlow--> X</c>. How the service task
 /// renders the PDF depends on the task's UI settings; see <see cref="SourceTaskPdfLayout"/>.
+///
+/// A gateway that routes on <c>gatewayAction</c> right after the task is the exception: after a service task a
+/// gateway sees the service task's action instead of the user's. After a signing task with a plain sign and reject
+/// split, the pdf task goes on the sign branch: v8 made the PDF when the task ended, and rejecting abandons the task
+/// instead. Any other such task is left for the developer.
 ///
 /// We rely on <c>sequenceFlow</c> <c>sourceRef</c>/<c>targetRef</c> (what the process engine uses),
 /// and treat the informational <c>&lt;incoming&gt;</c>/<c>&lt;outgoing&gt;</c> child elements as
@@ -27,11 +35,13 @@ internal sealed class PdfProcessRewriter
     private readonly XNamespace _dcNs = "http://www.omg.org/spec/DD/20100524/DC";
     private readonly XNamespace _diNs = "http://www.omg.org/spec/DD/20100524/DI";
     private readonly List<string> _warnings = new();
+    private readonly List<string> _infos = new();
     private readonly List<string> _skippedTasks = new();
     private readonly List<string> _insertedTasks = new();
     private readonly bool _sourceHadBom;
     private readonly string _newline;
     private readonly bool _hadTrailingNewline;
+    private bool _addedShapes;
 
     // Standard bpmn.io task shape size and the vertical gap below the source task.
     private const int PdfShapeWidth = 100;
@@ -51,6 +61,12 @@ internal sealed class PdfProcessRewriter
     }
 
     public IReadOnlyList<string> GetWarnings() => _warnings;
+
+    /// <summary>What the rewriter did that needs no action.</summary>
+    public IReadOnlyList<string> GetInfos() => _infos;
+
+    /// <summary>The process as read, before <see cref="InsertPdfServiceTasks"/> changes it.</summary>
+    public XDocument Document => _doc;
 
     /// <summary>Whether any insertion actually changed the document; false means nothing to write.</summary>
     public bool HasChanges { get; private set; }
@@ -82,8 +98,8 @@ internal sealed class PdfProcessRewriter
     }
 
     /// <summary>
-    /// Inserts a pdf service task after each of the given tasks. The paired dataType id (the task's
-    /// form data model) is used to pin <c>connectedDataTypeId</c> on any downstream gateway whose
+    /// Inserts a pdf service task after each of the given tasks. The paired data type id, the data model a gateway
+    /// after the task read in v8, is pinned as <c>connectedDataTypeId</c> on any downstream gateway whose
     /// expressions previously inferred their data model from the data task. Changes are held in
     /// memory until <see cref="Write"/> is called.
     /// </summary>
@@ -97,6 +113,9 @@ internal sealed class PdfProcessRewriter
         IReadOnlySet<string> tasksWithOwnUiFolder
     )
     {
+        if (tasks.Count == 0)
+            return;
+
         List<XElement> processes = _doc.Root?.Elements().Where(e => e.Name.LocalName == "process").ToList() ?? [];
         if (processes.Count != 1)
         {
@@ -117,12 +136,12 @@ internal sealed class PdfProcessRewriter
             InsertPdfServiceTaskAfter(process, plane, taskId, dataTypeId, tasksWithOwnUiFolder.Contains(taskId));
         }
 
-        if (plane is not null && HasChanges)
+        if (_addedShapes)
         {
             _warnings.Add(
                 "The process has a BPMN diagram. Diagram shapes for the inserted PDF service task(s) were "
-                    + "added below their source tasks with best-effort placement - open the process in Altinn "
-                    + "Studio Designer to auto-arrange the layout if desired."
+                    + "added below the task or gateway each follows, with best-effort placement - open the process "
+                    + "in Altinn Studio Designer to auto-arrange the layout if desired."
             );
         }
     }
@@ -180,14 +199,8 @@ internal sealed class PdfProcessRewriter
             return;
         }
 
-        var flow = outgoingFlows[0];
-        var flowId = flow.Attribute("id")?.Value ?? throw new InvalidOperationException("sequenceFlow missing id");
-        var originalTarget =
-            flow.Attribute("targetRef")?.Value
-            ?? throw new InvalidOperationException($"sequenceFlow '{flowId}' missing targetRef");
-
+        var taskFlow = outgoingFlows[0];
         var pdfTaskId = PdfTaskIdFor(taskId);
-        var newFlowId = $"Flow_{pdfTaskId}_to_{originalTarget}";
 
         var existingPdfElement = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == pdfTaskId);
         if (existingPdfElement is not null)
@@ -212,6 +225,40 @@ internal sealed class PdfProcessRewriter
             return;
         }
 
+        // The flow the pdf task goes on: the task's own, or the sign branch of the gateway after a signing task.
+        var flow = taskFlow;
+        var routing = FindGatewayActionRouting(process, task, taskFlow);
+        switch (routing)
+        {
+            case GatewayActionRouting.SignBranch signBranch:
+                flow = signBranch.SignFlow;
+                break;
+            case GatewayActionRouting.Unsupported unsupported:
+                // autoPdfTaskIds renders an automatic summary, not the custom PDF layout the task had.
+                var renders = hasOwnUiFolder
+                    ? $"with the layout set Altinn Studio uses for a custom PDF ({V9MigrationDocs.Pdf}), not "
+                        + "autoPdfTaskIds,"
+                    : $"with autoPdfTaskIds '{taskId}'";
+                _warnings.Add(
+                    $"Gateway '{unsupported.GatewayId}' after task '{taskId}' routes on gatewayAction, which a PDF "
+                        + "service task between them would replace with its own action. Skipped PDF service task "
+                        + $"insertion - add a 'pdf' service task '{pdfTaskId}' {renders} on the "
+                        + $"branch of '{unsupported.GatewayId}' that should produce the PDF."
+                );
+                _skippedTasks.Add(taskId);
+                return;
+        }
+
+        var flowId = flow.Attribute("id")?.Value ?? throw new InvalidOperationException("sequenceFlow missing id");
+        var flowSource =
+            flow.Attribute("sourceRef")?.Value
+            ?? throw new InvalidOperationException($"sequenceFlow '{flowId}' missing sourceRef");
+        var originalTarget =
+            flow.Attribute("targetRef")?.Value
+            ?? throw new InvalidOperationException($"sequenceFlow '{flowId}' missing targetRef");
+
+        var newFlowId = $"Flow_{pdfTaskId}_to_{originalTarget}";
+
         if (process.Elements().Any(e => e.Attribute("id")?.Value == newFlowId))
         {
             // Inserting a second element with this id would produce invalid (non-unique-id) BPMN.
@@ -223,12 +270,21 @@ internal sealed class PdfProcessRewriter
             return;
         }
 
-        // 1) Redirect the task's existing outgoing flow to the new pdf task.
+        if (routing is GatewayActionRouting.SignBranch { GatewayId: var signGatewayId })
+        {
+            _infos.Add(
+                $"Put PDF service task '{pdfTaskId}' on the sign branch of gateway '{signGatewayId}', which "
+                    + $"routes on gatewayAction after signing task '{taskId}'. As in v8, signing makes the PDF and "
+                    + "rejecting does not."
+            );
+        }
+
+        // 1) Redirect the flow to the new pdf task.
         HasChanges = true;
         _insertedTasks.Add(taskId);
         flow.SetAttributeValue("targetRef", pdfTaskId);
 
-        // 2) Create the pdf service task (T --flow--> PdfTask_T --newFlow--> X). New elements use the
+        // 2) Create the pdf service task (S --flow--> PdfTask_T --newFlow--> X). New elements use the
         // document's own BPMN namespace so they stay part of the process even if it is nonstandard.
         var bpmnNs = process.Name.Namespace;
         var pdfTask = new XElement(
@@ -267,18 +323,19 @@ internal sealed class PdfProcessRewriter
         );
 
         flow.AddAfterSelf(newFlow);
-        task.AddAfterSelf(pdfTask);
+        var source = ElementById(process, flowSource) ?? task;
+        source.AddAfterSelf(pdfTask);
 
         // 4) Best-effort: repoint the original target's <incoming> hint from the old flow to the new one.
-        var target = process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == originalTarget);
+        var target = ElementById(process, originalTarget);
         var incomingHint = target?.Elements().FirstOrDefault(e => e.Name.LocalName == "incoming" && e.Value == flowId);
         incomingHint?.SetValue(newFlowId);
 
         // 5) Preserve gateway expression evaluation. Downstream exclusive gateways used to infer their
         // default data model from the data task's UI configuration (the process engine falls back to the
         // *current* task when no connectedDataTypeId is set) - with the pdf task in between, the current
-        // task at evaluation time is the pdf task, which has no UI configuration. Pin the data task's
-        // form data model explicitly on each gateway reachable through gateways from here.
+        // task at evaluation time is the pdf task, which has no UI configuration. Pin that data model
+        // explicitly on each gateway reachable through gateways from here.
         if (target is not null)
         {
             EnsureGatewayDataTypes(process, target, taskId, dataTypeId, visited: []);
@@ -287,9 +344,141 @@ internal sealed class PdfProcessRewriter
         // 6) Keep the diagram complete: add a shape for the pdf task and edges for both flows.
         if (plane is not null)
         {
-            AddDiagramForPdfTask(plane, taskId, pdfTaskId, flowId, newFlowId, originalTarget);
+            AddDiagramForPdfTask(plane, source, pdfTaskId, flowId, newFlowId, originalTarget);
         }
     }
+
+    /// <summary>How a gateway routing on <c>gatewayAction</c> after a task decides where its pdf task goes.</summary>
+    private abstract record GatewayActionRouting
+    {
+        /// <summary>No gateway after the task routes on <c>gatewayAction</c>.</summary>
+        public sealed record None : GatewayActionRouting;
+
+        /// <summary>
+        /// A signing task is followed by gateway <paramref name="GatewayId"/>, which only splits on
+        /// <c>sign</c> and <c>reject</c>: the pdf task goes on <paramref name="SignFlow"/>.
+        /// </summary>
+        public sealed record SignBranch(string GatewayId, XElement SignFlow) : GatewayActionRouting;
+
+        /// <summary>
+        /// Gateway <paramref name="GatewayId"/> routes on <c>gatewayAction</c> in a shape the upgrade cannot place a
+        /// pdf task in.
+        /// </summary>
+        public sealed record Unsupported(string GatewayId) : GatewayActionRouting;
+    }
+
+    /// <summary>
+    /// Finds a gateway that routes on <c>gatewayAction</c> after <paramref name="task"/>, and whether it is a signing
+    /// task's plain sign and reject split, with nothing else entering the gateway.
+    /// </summary>
+    private static GatewayActionRouting FindGatewayActionRouting(XElement process, XElement task, XElement taskFlow)
+    {
+        var target = ElementById(process, taskFlow.Attribute("targetRef")?.Value);
+        if (FindGatewayActionGateway(process, target, visited: []) is not { } gateway)
+            return new GatewayActionRouting.None();
+
+        var gatewayId = gateway.Attribute("id")?.Value ?? "";
+        if (
+            gateway == target
+            && TaskTypeOf(task) == "signing"
+            && gateway.Attribute("default") is null
+            && FlowsWhere(process, "targetRef", gatewayId).Count == 1
+            && FlowsWhere(process, "sourceRef", gatewayId) is { Count: 2 } flows
+            && flows.Find(flow => HasCondition(flow, "sign")) is { } signFlow
+            && flows.Exists(flow => flow != signFlow && HasCondition(flow, "reject"))
+            && FindGatewayActionGateway(process, ElementById(process, signFlow.Attribute("targetRef")?.Value), [])
+                is null
+        )
+        {
+            return new GatewayActionRouting.SignBranch(gatewayId, signFlow);
+        }
+
+        return new GatewayActionRouting.Unsupported(gatewayId);
+    }
+
+    /// <summary>
+    /// The first exclusive gateway that routes on <c>gatewayAction</c> from <paramref name="element"/> through
+    /// consecutive exclusive gateways, which all evaluate with the action of the task before them.
+    /// </summary>
+    private static XElement? FindGatewayActionGateway(XElement process, XElement? element, HashSet<string> visited)
+    {
+        if (element?.Name.LocalName != "exclusiveGateway" || element.Attribute("id")?.Value is not { } gatewayId)
+            return null;
+        if (!visited.Add(gatewayId))
+            return null;
+
+        var outgoing = FlowsWhere(process, "sourceRef", gatewayId);
+        if (outgoing.Exists(flow => ConditionOf(flow) is { } condition && ReferencesGatewayAction(condition)))
+            return element;
+
+        return outgoing
+            .Select(flow =>
+                FindGatewayActionGateway(process, ElementById(process, flow.Attribute("targetRef")?.Value), visited)
+            )
+            .FirstOrDefault(found => found is not null);
+    }
+
+    /// <summary>
+    /// Whether the flow's condition is exactly <c>["equals",["gatewayAction"],"<paramref name="action"/>"]</c>.
+    /// </summary>
+    private static bool HasCondition(XElement flow, string action)
+    {
+        var expected = new JsonArray("equals", new JsonArray("gatewayAction"), action);
+        return ConditionOf(flow) is { } condition
+            && TryParseJson(condition) is { } parsed
+            && JsonNode.DeepEquals(parsed, expected);
+    }
+
+    /// <summary>
+    /// Whether an expression reads <c>["gatewayAction"]</c>. One that is not valid JSON counts when it mentions
+    /// gatewayAction, since it is then unknown what it reads.
+    /// </summary>
+    private static bool ReferencesGatewayAction(string condition) =>
+        TryParseJson(condition) is { } parsed
+            ? ReadsGatewayAction(parsed)
+            : condition.Contains("gatewayAction", StringComparison.Ordinal);
+
+    private static bool ReadsGatewayAction(JsonNode? node)
+    {
+        if (node is not JsonArray array)
+            return false;
+        if (
+            array.Count > 0
+            && array[0] is JsonValue first
+            && first.TryGetValue<string>(out var name)
+            && name == "gatewayAction"
+        )
+            return true;
+
+        return array.Any(ReadsGatewayAction);
+    }
+
+    private static JsonNode? TryParseJson(string text)
+    {
+        try
+        {
+            return JsonNode.Parse(text);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static string? ConditionOf(XElement flow) =>
+        flow.Elements().FirstOrDefault(e => e.Name.LocalName == "conditionExpression")?.Value;
+
+    private static string? TaskTypeOf(XElement task) =>
+        task.Descendants().FirstOrDefault(e => e.Name.LocalName == "taskType")?.Value.Trim();
+
+    private static List<XElement> FlowsWhere(XElement process, string attribute, string elementId) =>
+        process
+            .Elements()
+            .Where(e => e.Name.LocalName == "sequenceFlow" && e.Attribute(attribute)?.Value == elementId)
+            .ToList();
+
+    private static XElement? ElementById(XElement process, string? id) =>
+        id is null ? null : process.Elements().FirstOrDefault(e => e.Attribute("id")?.Value == id);
 
     /// <summary>
     /// Walks from <paramref name="element"/> through consecutive exclusive gateways and pins
@@ -383,26 +572,28 @@ internal sealed class PdfProcessRewriter
     }
 
     /// <summary>
-    /// Adds a BPMNShape for the pdf task (placed below its source task) and BPMNEdges for the
-    /// redirected and new sequence flows, so the diagram stays complete and valid. Placement is
+    /// Adds a BPMNShape for the pdf task (placed below the task or gateway it follows) and BPMNEdges for
+    /// the redirected and new sequence flows, so the diagram stays complete and valid. Placement is
     /// best-effort; the layout can be auto-arranged in Designer.
     /// </summary>
     private void AddDiagramForPdfTask(
         XElement plane,
-        string sourceTaskId,
+        XElement source,
         string pdfTaskId,
         string flowId,
         string newFlowId,
         string targetId
     )
     {
-        var sourceBounds = GetBounds(FindShape(plane, sourceTaskId));
+        var sourceId = source.Attribute("id")?.Value ?? "";
+        var sourceBounds = GetBounds(FindShape(plane, sourceId));
         if (sourceBounds is null)
         {
+            var kind = source.Name.LocalName == "exclusiveGateway" ? "gateway" : "task";
             _warnings.Add(
-                $"Could not find a diagram shape for task '{sourceTaskId}'; skipped adding a shape for "
-                    + $"'{pdfTaskId}'. The process is valid but the diagram is incomplete - regenerate the "
-                    + "layout in Designer."
+                $"Could not find a diagram shape for {kind} '{sourceId}', so the diagram in process.bpmn is out of "
+                    + $"date; skipped adding a shape for '{pdfTaskId}'. The process is valid but the diagram is "
+                    + "incomplete - regenerate the layout in Designer."
             );
             return;
         }
@@ -412,6 +603,7 @@ internal sealed class PdfProcessRewriter
         int pdfY = (int)Math.Round(sy + sh + PdfShapeVerticalGap);
 
         // Shape for the pdf task.
+        _addedShapes = true;
         plane.Add(
             new XElement(
                 _bpmndiNs + "BPMNShape",

@@ -1,4 +1,4 @@
-import { isAxiosError } from 'axios';
+import { isHttpError } from 'app-shared/utils/networking';
 import type {
   CollectionWorkflowCounts,
   WorkflowCollectionListResponse,
@@ -110,7 +110,7 @@ export function activeWorkflowCount(counts: CollectionWorkflowCounts): number {
  * came with them.
  */
 export function isEngineUnavailableError(error: unknown): boolean {
-  if (!isAxiosError(error)) {
+  if (!isHttpError(error)) {
     return false;
   }
   const problemType = (error.response?.data as { type?: unknown } | undefined)?.type;
@@ -127,7 +127,7 @@ export function isEngineUnavailableError(error: unknown): boolean {
 export function isShownInPlaceError(error: unknown): boolean {
   return (
     isEngineUnavailableError(error) ||
-    (isAxiosError(error) && error.response?.status === HTTP_FORBIDDEN)
+    (isHttpError(error) && error.response?.status === HTTP_FORBIDDEN)
   );
 }
 

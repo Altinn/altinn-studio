@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { Caption } from 'src/components/form/caption/Caption';
@@ -36,6 +34,19 @@ describe('Caption', () => {
     await render({ required: false, labelSettings: { optionalIndicator: false } });
     expect(screen.queryByRole('table', { name: /valgfritt/i })).not.toBeInTheDocument();
     expect(screen.getByRole('table', { name: /title test description test/i })).toBeInTheDocument();
+  });
+
+  it('hides the optional indicator when the app hides it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render({ required: false });
+    expect(screen.queryByRole('table', { name: /valgfritt/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('table', { name: /title test description test/i })).toBeInTheDocument();
+  });
+
+  it('shows the optional indicator when the app hides it but the table shows it', async () => {
+    window.altinnAppGlobalData.ui.settings!.hideOptionalIndicator = true;
+    await render({ required: false, labelSettings: { optionalIndicator: true } });
+    expect(screen.getByRole('table', { name: /title test valgfritt description test/i })).toBeInTheDocument();
   });
 
   it('provides no indicator when the table has no notion of being required', async () => {

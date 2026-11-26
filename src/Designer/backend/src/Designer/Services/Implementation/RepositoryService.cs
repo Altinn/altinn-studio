@@ -654,6 +654,15 @@ public class RepositoryService : IRepository
                         cancellationToken
                     );
 
+                    if (string.IsNullOrWhiteSpace(result.Identifier))
+                    {
+                        result.Identifier = Regex.Replace(
+                            Path.GetFileNameWithoutExtension(resourceFile.Name),
+                            "_resource$",
+                            string.Empty
+                        );
+                    }
+
                     sw.Stop();
                     // Structured log: file path, file name and elapsed ms
                     _logger.LogInformation(
@@ -675,7 +684,18 @@ public class RepositoryService : IRepository
                         resourceFile.Name,
                         sw.ElapsedMilliseconds
                     );
-                    throw;
+                    return new ServiceResource()
+                    {
+                        Title = new Dictionary<string, string>()
+                        {
+                            { "nb", $"Kunne ikke lese ressursfil {resourceFile.Name}" },
+                        },
+                        Identifier = Regex.Replace(
+                            Path.GetFileNameWithoutExtension(resourceFile.Name),
+                            "_resource$",
+                            string.Empty
+                        ),
+                    };
                 }
             }
             finally

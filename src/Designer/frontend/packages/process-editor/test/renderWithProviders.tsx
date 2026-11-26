@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import type { QueryClient } from '@tanstack/react-query';
-import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { TestAppRouter } from '@designer/testing/testRoutingUtils';
 import {
   ServicesContextProvider,
   type ServicesContextProps,

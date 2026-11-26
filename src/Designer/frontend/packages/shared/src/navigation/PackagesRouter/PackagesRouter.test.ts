@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PackagesRouter } from './PackagesRouter';
-import { app, org } from '@studio/testing/testids';
+import { app, org } from '@designer/testing/testids';
 
 describe('PackagesRouter', () => {
   describe('constructor', () => {

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Fieldset, ToggleGroup } from '@digdir/designsystemet-react';
 
 import { fontKeys, getCurrentFont, getFontName, isFont, setFont } from 'src/features/devtools/utils/devFont';
 
 const description =
-  'Legg til ?font=inter i adressen for å beholde valget ved ny lasting. «Generer PDF» følger ikke valget.';
+  'Legg til ?font=altinn-din i adressen for å beholde valget ved ny lasting. «Generer PDF» følger ikke valget.';
 
 export function DevFontSelector() {
   const [font, setSelectedFont] = useState(getCurrentFont);

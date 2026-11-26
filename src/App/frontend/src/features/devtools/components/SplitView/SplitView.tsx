@@ -1,11 +1,12 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import React, { Children, createRef, useEffect, useMemo, useState } from 'react';
+import { Children, createRef, Fragment, useEffect, useMemo, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode, RefObject } from 'react';
 
 import classes from 'src/features/devtools/components/SplitView/SplitView.module.css';
 
 interface SplitViewProps {
   direction: 'row' | 'column';
-  children: React.ReactNode;
+  children: ReactNode;
   sizes?: number[];
   minContent?: boolean;
 }
@@ -14,7 +15,7 @@ export const SplitView = ({ direction, children, sizes: defaultSizes, minContent
   const childArray = Children.toArray(children);
   const nPanels = childArray.length;
   const isRow = direction === 'row';
-  const [panelRefs, setPanelRefs] = useState<React.RefObject<HTMLDivElement>[]>([]);
+  const [panelRefs, setPanelRefs] = useState<RefObject<HTMLDivElement>[]>([]);
   const realDefaultSizes = useMemo(() => defaultSizes ?? Array(nPanels - 1).fill(100), [defaultSizes, nPanels]);
   const [sizes, setSizes] = useState<number[]>(realDefaultSizes);
   const minContentCss = minContent ? { minWidth: 'min-content', minHeight: 'min-content' } : {};
@@ -28,7 +29,7 @@ export const SplitView = ({ direction, children, sizes: defaultSizes, minContent
   }, [nPanels]);
 
   // onMouseDown event that handles resizing the panels
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>, index: number) => {
+  const handleMouseDown = (event: ReactMouseEvent<HTMLDivElement>, index: number) => {
     event.preventDefault();
     const { screenX: x1, screenY: y1 } = event;
     const startSize = panelRefs[index + 1].current?.getBoundingClientRect()[isRow ? 'width' : 'height'] ?? sizes[index];
@@ -57,7 +58,7 @@ export const SplitView = ({ direction, children, sizes: defaultSizes, minContent
       style={{ flexDirection: direction }}
     >
       {childArray.map((child, index, { length }) => (
-        <React.Fragment key={index}>
+        <Fragment key={index}>
           <div
             ref={panelRefs[index]}
             className={classes.panel}
@@ -79,7 +80,7 @@ export const SplitView = ({ direction, children, sizes: defaultSizes, minContent
               <div className={classes.handle} />
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
       ))}
     </div>
   );

@@ -1,4 +1,6 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Prefill;
@@ -24,6 +26,7 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
     private readonly IPrefill _prefillService;
     private readonly IAppModel _appModel;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IServiceProvider _serviceProvider;
 
     public CommonTaskInitialization(
         IAppMetadata appMetadata,
@@ -36,6 +39,7 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         _prefillService = prefillService;
         _appModel = appModel;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _serviceProvider = serviceProvider;
     }
 
     public override async Task<WorkflowEngineCommandResult> Execute(
@@ -47,10 +51,11 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         IInstanceDataMutator instanceDataMutator = context.InstanceDataMutator;
         Instance instance = instanceDataMutator.Instance;
         string taskId = instance.Process.CurrentTask.ElementId;
+        var created = new List<DataElementChange>();
 
         foreach (
             DataType dataType in applicationMetadata.DataTypes.Where(dt =>
-                dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true
+                dt.IsBoundToTask(taskId) && dt.AppLogic?.AutoCreate == true
             )
         )
         {
@@ -66,7 +71,18 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
             var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
             await instantiationProcessor.DataCreation(instanceDataMutator, data, payload.Prefill);
 
-            instanceDataMutator.AddFormDataElement(dataType.Id, data);
+            if (instanceDataMutator.AddFormDataElement(dataType.Id, data) is { } change)
+            {
+                created.Add(change);
+            }
+        }
+
+        if (created.Count > 0)
+        {
+            // The elements are calculated here, as task start saves them without running the data write processors,
+            // so the form loads with the values it would calculate itself
+            var calculator = _serviceProvider.GetRequiredService<DataModelFieldCalculator>();
+            await calculator.Calculate(instanceDataMutator, taskId, new DataElementChanges(created));
         }
 
         return new SuccessfulWorkflowEngineCommandResult();

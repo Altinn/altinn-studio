@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router';
 import type { PropsWithChildren, ReactElement } from 'react';
 
@@ -10,9 +9,9 @@ import { nb } from 'date-fns/locale/nb';
 
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
+import { type SigneeState, useSigneeList } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
 import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';

@@ -2,6 +2,8 @@
 
 using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Storage.Extensions;
 
@@ -47,5 +49,59 @@ public static class DataTypeExtensions
             task ?? instance.Process?.CurrentTask?.ElementId,
             cancellationToken
         );
+    }
+
+    /// <summary>
+    /// Whether <see cref="GetTaskBindingConflict"/> restricts data of this type to the tasks in
+    /// <see cref="DataType.TaskIds"/>. Storage ignores the lock on elements of such a data type.
+    /// </summary>
+    public static bool IsTaskBound(this DataType dataType) => dataType.TaskIds is { Count: > 0 };
+
+    /// <summary>
+    /// Returns the conflict response explaining why data of this type may not be written in the instance's current task,
+    /// or null when it may.
+    /// </summary>
+    /// <remarks>
+    /// Neither the caller's identity nor a process transition plays any part: the workflow engine stores the task it
+    /// moves to before that task starts, so every write it makes is checked against the task the write belongs to.
+    /// The one write made without a current task is the deletion <see cref="ApplicationLogic.AutoDeleteOnProcessEnd"/>
+    /// asks for, which is allowed once the process has ended.
+    /// </remarks>
+    /// <param name="instance">The instance as loaded before the write.</param>
+    /// <param name="isDelete">Whether the write deletes an element of the data type.</param>
+    public static JsonResult GetTaskBindingConflict(this DataType dataType, Instance instance, bool isDelete)
+    {
+        if (!dataType.IsTaskBound())
+        {
+            return null;
+        }
+
+        string currentTask = instance.Process?.CurrentTask?.ElementId;
+        if (currentTask is not null && dataType.TaskIds.Contains(currentTask))
+        {
+            return null;
+        }
+
+        if (isDelete && dataType.AppLogic?.AutoDeleteOnProcessEnd == true && instance.Process?.Ended is not null)
+        {
+            return null;
+        }
+
+        string boundTasks = string.Join(", ", dataType.TaskIds);
+        return new JsonResult(
+            new ProblemDetails
+            {
+                Type = "task_binding_conflict",
+                Title = "Task binding conflict",
+                Status = StatusCodes.Status409Conflict,
+                Detail = currentTask is null
+                    ? $"Data element of type {dataType.Id} can only be modified in {boundTasks} (no current task)"
+                    : $"Data element of type {dataType.Id} can only be modified in {boundTasks} (current task {currentTask})",
+            }
+        )
+        {
+            ContentType = "application/problem+json",
+            StatusCode = StatusCodes.Status409Conflict,
+        };
     }
 }

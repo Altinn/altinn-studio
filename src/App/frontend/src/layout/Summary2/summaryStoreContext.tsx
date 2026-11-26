@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import type { ISummaryOverridesCommon } from '@app/layout-contract/generated/common.generated';

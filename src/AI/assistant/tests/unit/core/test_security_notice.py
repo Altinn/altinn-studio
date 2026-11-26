@@ -71,6 +71,7 @@ def _completion_events(
     history: list | None = None,
     *,
     with_attachment: bool = True,
+    unsaved_files: tuple[str, ...] = (),
 ) -> list:
     sent: list = []
     recorded = history if history is not None else []
@@ -96,7 +97,9 @@ def _completion_events(
         messages=[],
     )
     ctx = SimpleNamespace(extras={"sources": []})
-    _emit_workflow_completion(cast(AgentState, state), result, cast(LoopContext, ctx))
+    _emit_workflow_completion(
+        cast(AgentState, state), result, cast(LoopContext, ctx), unsaved_files=list(unsaved_files)
+    )
     return sent
 
 
@@ -113,6 +116,15 @@ class TestEmittedEvent:
         message = next(e for e in sent if e.type == "assistant_message")
 
         assert _NOTICE not in json.dumps(message.data, ensure_ascii=False)
+
+    def test_the_unsaved_files_come_after_the_summary_without_the_notice(self, monkeypatch):
+        sent = _completion_events(
+            monkeypatch, f"{_SUMMARY}\n\nSECURITY_NOTICE: {_NOTICE}", unsaved_files=("App/ui/a.json",)
+        )
+        message = next(e for e in sent if e.type == "assistant_message")
+
+        assert message.data["content"] == f"{_SUMMARY}\n\nEndringene i `App/ui/a.json` er ikke lagret."
+        assert message.data["attachmentInstructionFlagged"] is True
 
     def test_no_flag_on_an_ordinary_run(self, monkeypatch):
         sent = _completion_events(monkeypatch, _SUMMARY)

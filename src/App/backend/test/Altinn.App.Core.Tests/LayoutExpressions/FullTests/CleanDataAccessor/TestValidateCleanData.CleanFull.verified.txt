@@ -72,7 +72,9 @@
                 DisallowUserCreate: false,
                 DisallowUserDelete: false
               },
-              TaskId: Task_1-access,
+              TaskIds: [
+                Task_1-access
+              ],
               MinCount: 0,
               EnableFileScan: false,
               ValidationErrorOnPendingFileScan: false
@@ -86,7 +88,9 @@
                 DisallowUserCreate: false,
                 DisallowUserDelete: false
               },
-              TaskId: Task_1-access,
+              TaskIds: [
+                Task_1-access
+              ],
               MaxCount: 0,
               MinCount: 0,
               EnableFileScan: false,

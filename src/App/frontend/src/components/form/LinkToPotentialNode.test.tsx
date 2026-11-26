@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ReactElement } from 'react';
 
 import { screen } from '@testing-library/react';
 
@@ -20,7 +20,7 @@ function Links({ links }: { links: LinkSpec[] }) {
   return parseAndCleanText(`<ul>${items.join('')}</ul>`);
 }
 
-const render = (element: React.ReactElement) =>
+const render = (element: ReactElement) =>
   renderWithInstanceAndLayout({
     renderer: element,
     queries: {

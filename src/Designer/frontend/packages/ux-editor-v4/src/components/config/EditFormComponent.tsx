@@ -4,7 +4,7 @@ import { FormComponentConfig } from './FormComponentConfig';
 import type { FormItem } from '../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
-import { StudioFieldset } from '@studio/components';
+import { StudioFieldset } from '@designer/components';
 
 export interface IEditFormComponentProps<T extends ComponentType = ComponentType> {
   editFormId: string;

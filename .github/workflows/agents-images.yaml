@@ -6,12 +6,7 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
   push:
     branches:
@@ -19,12 +14,7 @@ on:
     paths:
       - agents/**
       - .github/workflows/agents-images.yaml
-      - '!**/AGENTS.md'
-      - '!**/README.md'
-      - '!**/readme.md'
-      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
-      - '!**/CONTRIBUTING.md'
-      - '!**/CHANGELOG.md'
+      - '!**/*.md'
       - '!**/docs/**'
 
 permissions:
@@ -53,9 +43,9 @@ jobs:
         arch: [amd64, arm64]
         include:
           - arch: amd64
-            runner: ubuntu-latest
+            runner: ubuntu-26.04
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
           - variant: minimal
             repository: ghcr.io/altinn/altinn-studio/agent-minimal
           # The desktop image is one stage on top of minimal, so it warms its build from that image's
@@ -70,18 +60,6 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             agents
-
-      # The containerd image store keeps the image the build step pushes, so the smoke test runs it
-      # without a second copy on the runner's disk.
-      - name: Set up Docker
-        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
-        with:
-          daemon-config: |
-            {
-              "features": {
-                "containerd-snapshotter": true
-              }
-            }
 
       - name: Login to GHCR
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository

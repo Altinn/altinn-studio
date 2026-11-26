@@ -64,12 +64,15 @@ public class InstanceMutationsController(
     /// <remarks>
     /// Idempotent replay is admitted after the request body is parsed and the current instance is
     /// read, but before delete authorization and current-state data element validation. Replayed
-    /// responses use the instance snapshot returned by LocalTest's mutation repository.
+    /// responses use the instance snapshot returned by LocalTest's mutation repository. A version
+    /// precondition that differs from the instance's versions is answered with 412 next, before
+    /// delete, confirmation, process and data-type authorization.
     /// Delete-instance mutations check instance existence before delete authorization, so a missing
     /// instance returns 404 before a possible delete-policy 403. A complete confirmation is subject
     /// to the <c>InstanceComplete</c> policy and is recorded for the calling organization only; an
     /// organization that already has a confirmation keeps the one it has, and the remaining
-    /// operations commit either way.
+    /// operations commit either way. A mutation that sets the process state cannot also create,
+    /// update, or delete data elements (400), so every data element write is made in the current task.
     /// </remarks>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPost]
@@ -128,6 +131,12 @@ public class InstanceMutationsController(
             return deleteInstanceRequestError;
         }
 
+        ObjectResult processStateRequestError = ValidateProcessStateRequest(mutationRequest);
+        if (processStateRequestError is not null)
+        {
+            return processStateRequestError;
+        }
+
         ActionResult instanceEventError = ValidateMutationInstanceEvents(
             mutationRequest,
             instanceOwnerPartyId,
@@ -137,6 +146,14 @@ public class InstanceMutationsController(
         {
             return instanceEventError;
         }
+
+        // Storage reads the versions with the instance. Here they are two reads, and the versions come
+        // first so that they are never newer than the instance the checks use: a transition after this
+        // read stops the write.
+        InstanceVersionResult snapshotVersions = await _instanceRepository.ReadVersions(
+            instanceGuid,
+            cancellationToken
+        );
 
         (Instance instance, long instanceInternalId) = await _instanceRepository.GetOne(
             instanceGuid,
@@ -150,14 +167,10 @@ public class InstanceMutationsController(
             );
         }
 
-        InstanceVersionResult currentVersions = await _instanceRepository.ReadVersions(
-            instanceGuid,
-            cancellationToken
-        );
         if (
             !string.IsNullOrWhiteSpace(idempotencyKey)
             && preconditions.InstanceVersion is { } expectedInstanceVersion
-            && expectedInstanceVersion != currentVersions.InstanceVersion
+            && expectedInstanceVersion != snapshotVersions.InstanceVersion
         )
         {
             try
@@ -166,8 +179,8 @@ public class InstanceMutationsController(
                     await _instanceMutationRepository.TryReplayAdmission(
                         instanceGuid,
                         expectedInstanceVersion,
-                        currentVersions.InstanceVersion,
-                        currentVersions.ProcessStateVersion,
+                        snapshotVersions.InstanceVersion,
+                        snapshotVersions.ProcessStateVersion,
                         idempotencyKey,
                         cancellationToken
                     );
@@ -181,6 +194,34 @@ public class InstanceMutationsController(
             {
                 return StatusCode((int)exception.StatusCodeSuggestion.Value, exception.Message);
             }
+        }
+
+        if (
+            preconditions.InstanceVersion is not null
+            && preconditions.InstanceVersion != snapshotVersions.InstanceVersion
+        )
+        {
+            return VersionPreconditionHelper.VersionMismatch(
+                Response,
+                new InstanceVersionMismatchException(
+                    snapshotVersions.InstanceVersion,
+                    snapshotVersions.ProcessStateVersion
+                )
+            );
+        }
+
+        if (
+            preconditions.ProcessStateVersion is not null
+            && preconditions.ProcessStateVersion != snapshotVersions.ProcessStateVersion
+        )
+        {
+            return VersionPreconditionHelper.VersionMismatch(
+                Response,
+                new ProcessStateVersionMismatchException(
+                    snapshotVersions.InstanceVersion,
+                    snapshotVersions.ProcessStateVersion
+                )
+            );
         }
 
         ActionResult deleteInstanceAuthorizationError = await AuthorizeDeleteInstanceMutation(
@@ -216,6 +257,22 @@ public class InstanceMutationsController(
             return NotFound($"Cannot find application {instance.AppId} in storage");
         }
 
+        Dictionary<Guid, DataElement> existingDataElements = (instance.Data ?? []).ToDictionary(
+            e => new Guid(e.Id),
+            e => e
+        );
+        ActionResult dataTypeAuthorizationError = await AuthorizeDataTypeWrites(
+            mutationRequest,
+            instance,
+            existingDataElements,
+            application,
+            cancellationToken
+        );
+        if (dataTypeAuthorizationError is not null)
+        {
+            return dataTypeAuthorizationError;
+        }
+
         if (mutationRequest.DeleteInstance is not null)
         {
             instance.Status ??= new InstanceStatus();
@@ -240,10 +297,17 @@ public class InstanceMutationsController(
             return ProcessStatusConflict(exception);
         }
 
-        Dictionary<Guid, DataElement> existingDataElements = (instance.Data ?? []).ToDictionary(
-            e => new Guid(e.Id),
-            e => e
+        ActionResult taskBindingError = ValidateTaskBindings(
+            mutationRequest,
+            existingDataElements,
+            instance,
+            application
         );
+        if (taskBindingError is not null)
+        {
+            return taskBindingError;
+        }
+
         ActionResult duplicateDataElementIdError = ValidateDuplicateDataElementMutationIds(
             mutationRequest
         );
@@ -322,12 +386,6 @@ public class InstanceMutationsController(
                 {
                     await CleanupStagedBlobs();
                     return dataTypeError;
-                }
-
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
-                {
-                    await CleanupStagedBlobs();
-                    return Forbid();
                 }
 
                 Guid dataElementId = Guid.NewGuid();
@@ -426,17 +484,11 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
-                {
-                    await CleanupStagedBlobs();
-                    return Forbid();
-                }
-
                 Dictionary<string, object> propertyList = BuildMetadataPropertyList(update);
                 bool hasContentUpdate = !string.IsNullOrWhiteSpace(update.ContentPartName);
                 if (hasContentUpdate)
                 {
-                    if (dataElement.Locked)
+                    if (dataElement.Locked && !dataType.IsTaskBound())
                     {
                         await CleanupStagedBlobs();
                         return Conflict(
@@ -536,7 +588,8 @@ public class InstanceMutationsController(
                         update.DataElementId,
                         propertyList,
                         expectedCurrentBlobVersion,
-                        IgnoreLock: !hasContentUpdate && update.Locked == false
+                        IgnoreLock: dataType.IsTaskBound()
+                            || (!hasContentUpdate && update.Locked == false)
                     )
                 );
             }
@@ -576,16 +629,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
-                {
-                    await CleanupStagedBlobs();
-                    return Forbid();
-                }
-
                 dataElement.LastChanged = mutationLastChanged;
                 dataElement.LastChangedBy = mutationLastChangedBy;
                 deleteDataElements.Add(
-                    new InstanceMutationDataElementDelete(dataElement, delete.IgnoreLock)
+                    new InstanceMutationDataElementDelete(dataElement, IgnoreLock: true)
                 );
                 postCommitBlobCleanupDataElements.Add(dataElement);
             }
@@ -736,8 +783,8 @@ public class InstanceMutationsController(
                 instanceUpdateProperties,
                 preconditions.InstanceVersion,
                 // As in Storage, the process state the request was authorized against must still be
-                // current when it commits, whether or not the caller sent a precondition.
-                preconditions.ProcessStateVersion ?? currentVersions.ProcessStateVersion,
+                // current when it commits.
+                snapshotVersions.ProcessStateVersion,
                 processState,
                 mutationInstanceEvents,
                 idempotencyKey,
@@ -796,13 +843,13 @@ public class InstanceMutationsController(
                 );
             }
 
+            // Preserve versioned blobs for workflow retries. LocalTest has no orphan cleanup to reclaim them.
             foreach (DataElement dataElement in postCommitBlobCleanupDataElements)
             {
-                await _dataService.CleanupDeletedDataElementBlobs(
+                await _dataService.DeleteLegacyDataElementBlob(
                     updatedInstance,
                     dataElement,
-                    application.StorageAccountNumber,
-                    CancellationToken.None
+                    application.StorageAccountNumber
                 );
             }
         }
@@ -1226,6 +1273,119 @@ public class InstanceMutationsController(
         );
 
         return authorizationResult.Succeeded ? null : Forbid();
+    }
+
+    // As Storage does, a caller who may not write one of the data types gets 403 before the deletion-period, process
+    // status and task-binding checks. Data types and data elements that don't resolve are refused per element later.
+    private async Task<ActionResult> AuthorizeDataTypeWrites(
+        InstanceMutationRequest request,
+        Instance instance,
+        Dictionary<Guid, DataElement> existingDataElements,
+        Application application,
+        CancellationToken cancellationToken
+    )
+    {
+        IEnumerable<string> dataTypeIds = EnumerateRequestedDataTypeWrites(request, existingDataElements)
+            .Select(write => write.DataTypeId)
+            .Distinct(StringComparer.Ordinal);
+
+        foreach (string dataTypeId in dataTypeIds)
+        {
+            DataType dataType = application.DataTypes.FirstOrDefault(e => e.Id == dataTypeId);
+            if (
+                dataType is not null
+                && await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true
+            )
+            {
+                return Forbid();
+            }
+        }
+
+        return null;
+    }
+
+    private static ActionResult ValidateTaskBindings(
+        InstanceMutationRequest mutationRequest,
+        Dictionary<Guid, DataElement> existingDataElements,
+        Instance instance,
+        Application application
+    )
+    {
+        foreach (
+            (string dataTypeId, bool isDelete) in EnumerateRequestedDataTypeWrites(
+                mutationRequest,
+                existingDataElements
+            )
+        )
+        {
+            // The per-write validation after this rejects undeclared data types.
+            DataType dataType = application.DataTypes.FirstOrDefault(e => e.Id == dataTypeId);
+            if (dataType?.GetTaskBindingConflict(instance, isDelete) is { } conflict)
+            {
+                return conflict;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<(string DataTypeId, bool IsDelete)> EnumerateRequestedDataTypeWrites(
+        InstanceMutationRequest mutationRequest,
+        Dictionary<Guid, DataElement> existingDataElements
+    )
+    {
+        foreach (
+            InstanceMutationCreateDataElement create in (mutationRequest.CreateDataElements ?? []).Where(
+                create => !string.IsNullOrWhiteSpace(create.DataType)
+            )
+        )
+        {
+            yield return (create.DataType, false);
+        }
+
+        // Updates and deletes take the data type from the existing element; the per-write validation
+        // answers 404 for an element that does not exist.
+        foreach (InstanceMutationUpdateDataElement update in mutationRequest.UpdateDataElements ?? [])
+        {
+            if (
+                existingDataElements.TryGetValue(update.DataElementId, out DataElement existingDataElement)
+                && !string.IsNullOrWhiteSpace(existingDataElement.DataType)
+            )
+            {
+                yield return (existingDataElement.DataType, false);
+            }
+        }
+
+        foreach (InstanceMutationDeleteDataElement delete in mutationRequest.DeleteDataElements ?? [])
+        {
+            if (
+                existingDataElements.TryGetValue(delete.DataElementId, out DataElement existingDataElement)
+                && !string.IsNullOrWhiteSpace(existingDataElement.DataType)
+            )
+            {
+                yield return (existingDataElement.DataType, true);
+            }
+        }
+    }
+
+    private ObjectResult ValidateProcessStateRequest(InstanceMutationRequest request)
+    {
+        if (
+            request.ProcessState?.State is not null
+            && (
+                request.CreateDataElements?.Count > 0
+                || request.UpdateDataElements?.Count > 0
+                || request.DeleteDataElements?.Count > 0
+            )
+        )
+        {
+            return Problem(
+                detail: "processState.state cannot be combined with data element creates, updates or deletes.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+        }
+
+        return null;
     }
 
     private static InstanceStatus BuildHardDeleteStatus(InstanceStatus currentStatus, DateTime now)

@@ -40,9 +40,19 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "the items every score is computed over",
     ),
     (
+        "benchmarks/assets/*",
+        "dataset",
+        "a file that a spec or end-to-end item sends to the model, or its source",
+    ),
+    (
         "benchmarks/gates.py",
         "evaluators",
-        "how a gate verdict is scored",
+        "how an intake verdict is scored",
+    ),
+    (
+        "benchmarks/decisions.py",
+        "evaluators",
+        "how a request gate verdict is scored",
     ),
     (
         "benchmarks/planner.py",
@@ -58,6 +68,26 @@ YARDSTICK: tuple[tuple[str, str, str], ...] = (
         "benchmarks/evaluators.py",
         "evaluators",
         "the structural rubric a built app is scored against",
+    ),
+    (
+        "benchmarks/app_checks.py",
+        "evaluators",
+        "the skill scores a built app gets",
+    ),
+    (
+        "benchmarks/app_model.py",
+        "evaluators",
+        "how a built app is read before it is scored",
+    ),
+    (
+        "benchmarks/bench_app.py",
+        "evaluators",
+        "the app an end-to-end item starts from",
+    ),
+    (
+        "benchmarks/app_templates.py",
+        "evaluators",
+        "the app templates the end-to-end evals build on",
     ),
     (
         "benchmarks/outputs.py",
@@ -103,7 +133,7 @@ BEHAVIOR: tuple[tuple[str, str, str], ...] = (
     (
         "agents/services/*",
         "code",
-        "a gate or the client that calls the model",
+        "the request gate or the client that calls a model",
     ),
     (
         "agents/workflows/*",

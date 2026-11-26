@@ -1,0 +1,9 @@
+{
+  "alg": "RS512",
+  "e": "AQAB",
+  "exp": 1706659200,
+  "kid": "9e5e51c1-de0e-4ad8-bb34-41018903b777.0",
+  "kty": "RSA",
+  "n": "wuJqqlMQUSTT6wMvNr7p2EPld4DKomkVEOUqpUJ61HpqAYTIp0gAJ5Er2uKaL3LBogQutZTpUnbgy22zjeyFXpli05aOH3_jT_jQ99v3-YYG6jOOeJKNEh_sbdmiSUdnPKcRvbgZiFOpEiWSXGVBIGikX9Xtaqk1sK3R089xqc8YcOtjPaggenvRB0Q09i_tfLIO5PcGtn5HPuA86FmZa7hw-lHfltQkSLeSVfvav6EI1t_OX20BUjeE4TBTaEN5dF8B7Quu17kCZz3adcM3QrvfBvbyk8Z5F1P3jFrDUj19nupjhbA4v815HhWzdP7_aR7u9176TkEIhRWjKWGJMzer4psgMZqqeSfNGYla4JRqQlcxyEKUHdwtumq2mNtE46gNaPFAea9RdB7jfFh65fobiuxmNukG3P4XqRcOEi8AfxRkQAPD9iCLfcxLhqL9yUsCpnsZZRQrDpz3FKvvCmOfSKD8sdki5_7haTc15KQfpRnOmA2Z9jaTfW3J5qLqhf5WhNPwIFf_vhLgcIfVU6td2FtFs1ew2n5SSTKr1GDifoygAIkLj2svV2ur5UrsoVhfs_oOar-z0z4SmAQ4UgZasrvuqyQRDof6aXuI20dcWamStMOW-wuo6p5NoJ4hlq6658uemjn0R5_f_kpRto5FFUWFLqCVKnSn4bV2dVk",
+  "use": "sig"
+}

@@ -70,6 +70,17 @@ Analysers
 @identifiers mimeTypeAnalyser enabledFileAnalysers
 Analyser
 
+# .NET's StringMarshalling, which LibraryImport takes to marshal strings to native code
+@identifiers StringMarshalling
+@paths src/core/preview/**
+Marshalling
+
+# The application metadata's partyTypesAllowed.organisation key, which preview
+# writes into the application metadata the app frontends read
+@identifiers organisation
+@paths src/core/preview/src/Altinn.Studio.Preview/AppApi/MockUser.cs
+organisation
+
 # MaskinportenSettings member name apps configure by key
 @identifiers ExhangeToAltinnToken
 Exhange
@@ -187,6 +198,24 @@ designet
 # product decision, not a spelling fix. Each family below is part of the
 # app-facing surface (PublicApi snapshots) or mirrors a platform contract.
 
+# The Studio Assistant's skills name the shipped v8 spellings an agent finds in
+# a v8 app, and what v9 renamed them to: IFileAnalyser, the Maskinporten and
+# Correspondence Authorisation members, and the OrganisationLookup component and
+# its text key. Prose in the skills stays enforced through the identifier scope.
+@identifiers CorrespondenceAuthorisation IFileAnalyser OrganisationLookup organisation_lookup_orgnr UseMaskinportenAltinnAuthorisation UseMaskinportenAuthorisation
+@paths src/AI/assistant/agents/skills/**
+Analyser
+Authorisation
+Organisation
+organisation
+
+# The partyTypesAllowed key `organisation` in applicationmetadata.json, and the
+# v8 IFileAnalyser method `Analyse`, which the skills quote as written.
+@identifiers Analyse organisation
+@paths src/AI/assistant/agents/skills/studio-app-settings/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md
+Analyse
+organisation
+
 # The OrganisationOrPersonIdentifier nested record `Organisation`, the
 # SystemUser/MaskinportenTokenRequest `Organisation` properties and their
 # pattern-match locals, the platform Register/Storage members
@@ -196,7 +225,7 @@ designet
 # Gitea Organization model type). Prose in these files stays enforced
 # through the exact-identifier scope.
 @identifiers Organisation organisation
-@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/App/backend/src/Altinn.App.Core/Internal/AccessManagement/Helpers/AuthorizedPartyMapper.cs src/Runtime/localtest/src/Controllers/AccessManagement/AuthorizedPartiesController.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts src/App/frontend/src/features/applicationMetadata/types.ts src/App/frontend/src/features/instantiate/containers/NoValidPartiesError.tsx src/App/frontend/src/features/instantiate/containers/PartySelection.tsx
+@paths src/App/backend/src/Altinn.App.Core/Models/OrganisationOrPersonIdentifier.cs src/App/backend/src/Altinn.App.Core/Features/Correspondence/Builder/CorrespondenceNotificationOverrideBuilder.cs src/App/backend/src/Altinn.App.Core/Features/Maskinporten/** src/App/backend/src/Altinn.App.Core/Features/Telemetry/** src/App/backend/src/Altinn.App.Core/Helpers/InstantiationHelper.cs src/App/backend/src/Altinn.App.Core/Internal/AccessManagement/Helpers/AuthorizedPartyMapper.cs src/Runtime/localtest/src/Controllers/AccessManagement/AuthorizedPartiesController.cs src/Runtime/localtest/src/Services/Register/** src/Runtime/localtest/src/Services/TestData/** src/Runtime/localtest/src/Models/Storage/PartyType.cs src/Runtime/localtest/src/Controllers/Storage/InstancesController.cs src/Designer/backend/src/Designer/Controllers/Organisation/** src/Designer/backend/src/Designer/Services/Implementation/Organisation/** src/Designer/backend/src/Designer/Services/Interfaces/Organisation/** src/Designer/backend/src/Designer/Infrastructure/ServiceRegistration.cs src/Designer/backend/src/Designer/Services/Implementation/Preview/PreviewBootstrapService.cs src/Designer/frontend/app-development/features/appSettings/** src/Designer/frontend/packages/shared/src/types/ApplicationMetadata.ts src/Designer/frontend/packages/app-builder/src/utils/submitterUtils.ts src/App/frontend/src/features/applicationMetadata/types.ts src/App/frontend/src/features/instantiate/containers/NoValidPartiesError.tsx src/App/frontend/src/features/instantiate/containers/PartySelection.tsx
 Organisation
 organisation
 
@@ -215,11 +244,26 @@ mis
 @paths src/App/frontend/src/features/devtools/utils/layoutSchemaValidation.ts
 lik
 
+# The Studio Assistant's skills quote Norwegian text verbatim, since agents must
+# match it: Studio's UI texts ("Generer modell"), the chat titles of the skills,
+# docs page titles ("Slik oppgraderer du appen fra v8 til v9").
+@paths src/AI/assistant/agents/skills/studio-app-development/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/SKILL.md src/AI/assistant/agents/skills/studio-app-lib/references/v8.md src/AI/assistant/agents/skills/studio-app-lib/references/v9.md src/AI/assistant/agents/skills/studio-app-settings/references/v9.md src/AI/assistant/agents/skills/studio-data-model/SKILL.md src/AI/assistant/agents/skills/studio-docs/SKILL.md src/AI/assistant/agents/skills/studio-integrations/SKILL.md src/AI/assistant/agents/skills/studio-integrations/references/v8.md src/AI/assistant/agents/skills/studio-integrations/references/v9.md src/AI/assistant/agents/skills/studio-layouts/references/v9.md src/AI/assistant/agents/skills/studio-process/SKILL.md src/AI/assistant/agents/skills/studio-process/references/v9.md
+Lage
+appen
+modell
+prosess
+ser
+
 # Norwegian working notes for the augmenter agent.
 @paths src/AI/augmenter-agent/TODO-coderabbit.md
 foldes
 prosess
 som
+
+# The Studio Assistant's policy skill gives an example rule description in
+# Norwegian, worded like the rules in the app template.
+@paths src/AI/assistant/agents/skills/studio-policy/SKILL.md
+Gir
 
 # The studioctl v8->v9 upgrade renames the SDK's misspelled v8 API names,
 # so the old spellings are its working data: the rename map, the rewrite
@@ -270,7 +314,3 @@ litres
 # login page; no Nordic letter or signal word on the line for the classifier
 @paths src/Designer/development/fake-ansattporten/main.go
 selv
-
-# "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
-@paths src/AI/assistant/agents/prompts/intent_security.md
-ser

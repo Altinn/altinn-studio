@@ -19,6 +19,11 @@ variable that overrides each one, such as `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`.
 `studioctl env status` shows the build each container runs. Quote it in a bug report, since the tags that follow tt02
 move with each deployment.
 
+## Another port than 8000
+
+`studioctl env up --port <port>` serves the environment on another host port, 1024 or above, when 8000 is taken.
+studioctl records the port, so `run`, `app env` and `env status` use it, until `env down` or `env reset` forgets it.
+
 studioctl supplies the configuration of the containers it starts, so a change to that configuration must keep working
 with the previous studioctl release. [Runtime's README](../Runtime/README.md#images-the-local-environment-runs) has
 the rule.
@@ -31,6 +36,11 @@ runs that installation.
 
 - `make dev-install` publishes `studioctl-server` in Release configuration, which can raise warnings that `make test`
   does not. Before you push .NET changes, run `make test` and `make dev-install`.
+- `studioctl-server` builds with the Sonar and CA analyzers as errors, so a mutation such as `if (false)` or
+  `x || true` fails to compile instead of failing a test. Mutate to a live expression: compare against a value that
+  never occurs, or add an impossible condition.
+- A Debug build formats the C# with CSharpier, and a Release build, such as `make dev-install`, fails on
+  unformatted files instead. Stage and commit after a Debug build, so the commit holds the formatted text.
 - On macOS, `make dev-run` in a deeply nested checkout, such as a worktree, fails with `connect: invalid argument`,
   because the socket path for `studioctl-server` is too long. Set `STUDIOCTL_SOCKET_DIR` to a short directory.
 - The top level of `internal/cmd` parses commands, orchestrates and renders output. The work lives in its subpackages

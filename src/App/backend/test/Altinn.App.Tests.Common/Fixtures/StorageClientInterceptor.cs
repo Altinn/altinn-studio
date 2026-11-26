@@ -615,7 +615,6 @@ public class StorageClientInterceptor : HttpMessageHandler
                 Filename = create.Filename ?? part.Filename,
                 Size = part.Bytes.Length,
                 Metadata = create.Metadata,
-                Locked = create.Locked ?? false,
             };
             instance.Data.Add(dataElement);
             _data[dataId] = part.Bytes;
@@ -627,25 +626,17 @@ public class StorageClientInterceptor : HttpMessageHandler
             DataElement dataElement = instance.Data.Single(dataElement =>
                 dataElement.Id == update.DataElementId.ToString()
             );
-            if (update.ContentPartName is { } contentPartName)
-            {
-                var part = contentParts[contentPartName];
-                dataElement.ContentType = update.ContentType ?? part.ContentType;
-                dataElement.Filename = update.Filename ?? part.Filename;
-                dataElement.Size = part.Bytes.Length;
-                _data[update.DataElementId] = part.Bytes;
+            var part = contentParts[update.ContentPartName];
+            dataElement.ContentType = update.ContentType ?? part.ContentType;
+            dataElement.Filename = update.Filename ?? part.Filename;
+            dataElement.Size = part.Bytes.Length;
+            _data[update.DataElementId] = part.Bytes;
 
-                dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
-            }
+            dataElement.BlobVersionId = BumpDataBlobVersionId(update.DataElementId);
 
             if (update.Metadata is not null)
             {
                 dataElement.Metadata = update.Metadata;
-            }
-
-            if (update.Locked is not null)
-            {
-                dataElement.Locked = update.Locked.Value;
             }
         }
 
@@ -671,6 +662,15 @@ public class StorageClientInterceptor : HttpMessageHandler
 
         ApplyInstanceFieldUpdates(instance.PresentationTexts ??= [], mutation.PresentationTexts);
         ApplyInstanceFieldUpdates(instance.DataValues ??= [], mutation.DataValues);
+        // Storage records the confirmation for the calling organization, which for an app is the instance's own.
+        if (mutation.AddCompleteConfirmation)
+        {
+            instance.CompleteConfirmations ??= [];
+            instance.CompleteConfirmations.Add(
+                new CompleteConfirmation { StakeholderId = instance.Org, ConfirmedOn = DateTime.UtcNow }
+            );
+        }
+
         if (mutation.ProcessState?.State is { } processState)
         {
             if (instance.Process?.Ended is null && processState.Ended is not null)
@@ -900,9 +900,9 @@ public class StorageClientInterceptor : HttpMessageHandler
                 );
             }
 
-            if (update.ContentPartName is { } contentPartName && !contentParts.TryGetValue(contentPartName, out _))
+            if (!contentParts.ContainsKey(update.ContentPartName))
             {
-                return CreateErrorResponse(HttpStatusCode.BadRequest, $"Missing content part {contentPartName}");
+                return CreateErrorResponse(HttpStatusCode.BadRequest, $"Missing content part {update.ContentPartName}");
             }
 
             if (
@@ -951,6 +951,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         || mutation.DeleteInstance is not null
         || mutation.DataValues.Count > 0
         || mutation.PresentationTexts.Count > 0
+        || mutation.AddCompleteConfirmation
         || mutation.ProcessState?.State is not null
         || mutation.ProcessState?.Events?.Count > 0;
 
@@ -960,6 +961,7 @@ public class StorageClientInterceptor : HttpMessageHandler
         && mutation.DeleteDataElements.Count == 0
         && mutation.DataValues.Count == 0
         && mutation.PresentationTexts.Count == 0
+        && !mutation.AddCompleteConfirmation
         && mutation.ProcessState?.State is null
         && mutation.ProcessState?.Events?.Count is not > 0
         && mutation.ExpectedProcessStatus is null or ProcessStatus.Idle;
@@ -971,6 +973,7 @@ public class StorageClientInterceptor : HttpMessageHandler
             && mutation.UpdateDataElements.Count == 0
             && mutation.DataValues.Count == 0
             && mutation.PresentationTexts.Count == 0
+            && !mutation.AddCompleteConfirmation
             && processState?.Ended is not null
             && processState.CurrentTask is null
             && !string.IsNullOrWhiteSpace(processState.EndEvent)

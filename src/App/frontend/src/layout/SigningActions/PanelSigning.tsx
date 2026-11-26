@@ -1,4 +1,4 @@
-import React, { useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import type { PropsWithChildren, ReactElement } from 'react';
 
 import { Button, FullWidthWrapper, LiveValidationMessage, Panel } from '@app/form-component';
@@ -7,21 +7,21 @@ import { Dialog, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { PanelProps } from '@app/form-component';
 
 import { useFocusOnRequest } from 'src/core/contexts/ElementFocusProvider';
-import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import classes from 'src/layout/SigningActions/SigningActions.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 type SigningPanelProps = {
   baseComponentId: string;
-  heading: React.ReactElement;
-  description?: React.ReactElement;
+  heading: ReactElement;
+  description?: ReactElement;
   variant?: PanelProps['variant'];
   actionButton?: ReactElement<typeof Button>;
-  errorMessage?: React.ReactElement;
+  errorMessage?: ReactElement;
 };
 
 export function SigningPanel({

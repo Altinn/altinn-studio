@@ -1,9 +1,14 @@
-import React from 'react';
-
-import { Description, getDescriptionId, getLabelId, HelpTextContainer, useIsMobileOrTablet } from '@app/form-component';
+import {
+  BaseTable,
+  Description,
+  getDescriptionId,
+  getLabelId,
+  HelpTextContainer,
+  useIsMobileOrTablet,
+} from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Table } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import type { PropsFromGenericComponent } from '..';
@@ -125,9 +130,16 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       {isFetching ? (
         <AltinnSpinner />
       ) : (
-        <Table
+        <BaseTable
           id={componentId}
           border
+          shadow
+          headerBackground='tintedThead'
+          headerDivider='light'
+          headerPadding='medium'
+          rowDivider='light'
+          cellPadding='large'
+          lookReachesNestedTables='all'
           className={classes.likertTable}
           aria-labelledby={title ? labelId : undefined}
           aria-describedby={description ? getDescriptionId(indexedId) : undefined}
@@ -143,9 +155,9 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
               />
             </caption>
           )}
-          <Table.Head id={`likert-table-header-${componentId}`}>
-            <Table.Row>
-              <Table.HeaderCell scope='col'>
+          <BaseTable.Head id={`likert-table-header-${componentId}`}>
+            <BaseTable.Row>
+              <BaseTable.HeaderCell scope='col'>
                 <span
                   className={cn({
                     'sr-only': leftColumnHeader == null,
@@ -153,11 +165,11 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
                 >
                   <Lang id={leftColumnHeader ?? 'likert.left_column_default_header_text'} />
                 </span>
-              </Table.HeaderCell>
+              </BaseTable.HeaderCell>
               {calculatedOptions.map((option, index) => {
                 const divider = config.columns?.find((column) => column.value == option.value)?.divider;
                 return (
-                  <Table.HeaderCell
+                  <BaseTable.HeaderCell
                     key={option.value}
                     scope='col'
                     id={`${componentId}-likert-columnheader-${index}`}
@@ -168,12 +180,12 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
                     })}
                   >
                     <Lang id={option.label} />
-                  </Table.HeaderCell>
+                  </BaseTable.HeaderCell>
                 );
               })}
-            </Table.Row>
-          </Table.Head>
-          <Table.Body>
+            </BaseTable.Row>
+          </BaseTable.Head>
+          <BaseTable.Body>
             {rows.map((row) => {
               const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
                 layout: LayoutStyle.Table,
@@ -192,8 +204,8 @@ export const LikertComponent = ({ baseComponentId }: PropsFromGenericComponent<'
                 </DataModelLocationProvider>
               ) : null;
             })}
-          </Table.Body>
-        </Table>
+          </BaseTable.Body>
+        </BaseTable>
       )}
     </ComponentStructureWrapper>
   );

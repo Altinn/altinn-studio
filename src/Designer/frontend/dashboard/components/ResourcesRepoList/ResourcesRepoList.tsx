@@ -1,13 +1,14 @@
 import React from 'react';
+import classes from './ResourcesRepoList.module.css';
 import { RESOURCEADM_BASENAME } from 'app-shared/constants';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
-import { ResourceTable } from 'resourceadm/components/ResourceTable';
+import { FilterableResourceTable } from 'resourceadm/components/FilterableResourceTable';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries/useGetResourceListQuery';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioLink, StudioSpinner, StudioHeading, StudioAlert } from '@studio/components';
+import { StudioLink, StudioSpinner, StudioHeading, StudioAlert } from '@designer/components';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
@@ -68,9 +69,10 @@ export const ResourcesRepoList = ({
       {isLoadingResourceList ? (
         <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (
-        <div data-testid='resource-table-wrapper'>
-          <ResourceTable
-            list={resourceListData}
+        <div className={classes.tableWrapper} data-testid='resource-table-wrapper'>
+          <FilterableResourceTable
+            list={resourceListData ?? []}
+            headingLevel={3}
             onClickEditResource={(id: string) => {
               // we have to do a hard navigation (without react-router) to load the correct script files
               const resourceUrl = getResourcePageURL(selectedContext, repo, id, 'about');

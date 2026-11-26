@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router';
 
 import { AppTable, Description, HelpTextContainer } from '@app/form-component';
@@ -6,11 +5,11 @@ import { Heading, Link } from '@digdir/designsystemet-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
 
 import captionClasses from 'src/components/form/caption/Caption.module.css';
+import { useDocumentList } from 'src/core/queries/signingDocuments';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
 import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
-import { useDocumentList } from 'src/layout/SigningDocumentList/api';
 import downloadClasses from 'src/layout/SigningDocumentList/SigningDocumentListComponent.module.css';
 import { SigningDocumentListError } from 'src/layout/SigningDocumentList/SigningDocumentListError';
 import utilClasses from 'src/styles/utils.module.css';

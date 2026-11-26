@@ -1,0 +1,3 @@
+[
+ {"type":"UpdateClientInApi","clientId":"test-client-id-123","scopes":["altinn:new/scope.write"]}
+]

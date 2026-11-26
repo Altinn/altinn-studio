@@ -136,6 +136,7 @@ async def start_agent(
             session_id=req.session_id,
             user_goal=req.goal,
             repo_path=str(repo_path),
+            start_commit=repo_manager.get_session_start_commit(session_id),
             app_name=app_name,
             developer=developer,
             repo_owner=repo_owner,

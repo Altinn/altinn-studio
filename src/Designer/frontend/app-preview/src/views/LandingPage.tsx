@@ -1,23 +1,33 @@
-import { useEffect } from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
-import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage, useMediaQuery } from '@studio/hooks';
+import { useAppVersionQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useLocalStorage, useMediaQuery } from '@designer/hooks';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { previewPage } from 'app-shared/api/paths';
+import { previewSessionHashPage, previewSessionPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
-import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import {
+  MAXIMUM_SUPPORTED_FRONTEND_VERSION,
+  MEDIA_QUERY_MAX_WIDTH,
+  NEXT_V9_VERSION,
+} from 'app-shared/constants';
+import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { StudioAlert, StudioPageHeader, StudioPageSpinner } from '@studio/components';
+import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
+import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
+import {
+  StudioAlert,
+  StudioCenter,
+  StudioPageHeader,
+  StudioPageSpinner,
+  StudioSpinner,
+  StudioValidationMessage,
+} from '@designer/components';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
@@ -27,8 +37,8 @@ export const LandingPage = () => {
   const { layoutSet } = useParams();
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const previewConnection = usePreviewConnection();
   const { data: user, isPending: isPendingUser } = useUserQuery();
+  const { data: version, isPending: isPendingVersion } = useAppVersionQuery(org, app);
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
   const { selectedFormLayoutName } = useSelectedFormLayoutName(layoutSet);
@@ -38,50 +48,23 @@ export const LandingPage = () => {
     'desktop',
   );
   const taskId = useSelectedTaskId(layoutSet);
-  const {
-    mutate: createInstance,
-    data: instance,
-    isPending: instanceIsPending,
-  } = useCreatePreviewInstanceMutation(org, app);
 
   const currentLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
   const isSubform = currentLayoutSet?.type === 'subform';
-
-  useEffect(() => {
-    if (!isPreviewDisabled && user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
-  }, [createInstance, user, taskId]);
-
-  const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
-    input !== null && input.tagName === 'IFRAME';
+  // The preview service shows v8 and v9 apps. Older apps keep the notice that preview is turned off.
+  const isV9 = !!version && !isBelowSupportedVersion(version.frontendVersion, NEXT_V9_VERSION);
+  const isV8 =
+    !!version &&
+    !isV9 &&
+    !isBelowSupportedVersion(version.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION);
 
   const handleChangeLayoutSet = (set: string) => {
     navigate(`/${org}/${app}/${set}`);
   };
 
-  if (previewConnection) {
-    previewConnection.on('ReceiveMessage', function (message) {
-      const frame = document.getElementById('app-frontend-react-iframe');
-      if (isIFrame(frame) && frame.contentWindow) {
-        const targetOrigin = window.origin;
-        // Trigger a reload of preview window until app-frontend implements re-calling api #https://github.com/Altinn/app-frontend-react/issues/1088
-        window.location.reload();
-        console.log('Sending reload message to app-frontend with targetOrigin: ' + targetOrigin);
-        frame.contentWindow.postMessage({ action: message }, targetOrigin);
-      }
-    });
-  }
-
-  if (isPendingUser || pendingLayoutsets || instanceIsPending)
+  if (isPendingUser || pendingLayoutsets || isPendingVersion)
     return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
-  const previewUrl = previewPage(
-    org,
-    app,
-    getSelectedFormLayoutSetName(layoutSet),
-    taskId,
-    selectedFormLayoutName,
-    instance?.id,
-  );
   return (
     <>
       <StudioPageHeader variant='preview'>
@@ -101,9 +84,7 @@ export const LandingPage = () => {
         </StudioPageHeader.Sub>
       </StudioPageHeader>
       <div className={classes.previewArea}>
-        {isPreviewDisabled ? (
-          <PreviewDisabledInfo className={classes.disabledInfo} />
-        ) : (
+        {isV9 || isV8 ? (
           <>
             <PreviewControlHeader
               setViewSize={setPreviewViewSize}
@@ -113,23 +94,67 @@ export const LandingPage = () => {
             />
             <PreviewLimitationsInfo />
             <div className={classes.iframeContainer}>
-              <iframe
-                title={t('preview.title')}
-                id='app-frontend-react-iframe'
-                src={previewUrl}
-                className={
-                  previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile
-                }
+              <PreviewFrame
+                taskId={taskId}
+                selectedFormLayoutName={selectedFormLayoutName}
+                viewSize={previewViewSize}
+                pageUrl={isV9 ? previewSessionPage : previewSessionHashPage}
               />
             </div>
           </>
+        ) : (
+          <PreviewDisabledInfo className={classes.disabledInfo} />
         )}
       </div>
     </>
   );
 };
 
-const getSelectedFormLayoutSetName = (layoutSet: string): string | undefined => {
-  if (layoutSet === '') return undefined;
-  return layoutSet;
+type PreviewFrameProps = {
+  taskId: string;
+  selectedFormLayoutName: string | undefined;
+  viewSize: PreviewAsViewSize;
+  pageUrl: (
+    sessionUrl: string,
+    instanceId: string,
+    taskId: string,
+    selectedFormLayoutName: string | undefined,
+  ) => string;
+};
+
+// The preview service shows the developer's working copy on a domain of its own, in one session for the page.
+const PreviewFrame = ({ taskId, selectedFormLayoutName, viewSize, pageUrl }: PreviewFrameProps) => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
+  const { data: session, isError: isSessionError } = usePreviewSessionQuery(org, app);
+  const { data: instance, isError: isInstanceError } = usePreviewSessionInstanceQuery(
+    org,
+    app,
+    session?.url,
+    taskId,
+  );
+
+  if (isSessionError || isInstanceError) {
+    return (
+      <StudioCenter>
+        <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
+      </StudioCenter>
+    );
+  }
+
+  if (!session || !instance) {
+    return (
+      <StudioCenter>
+        <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
+      </StudioCenter>
+    );
+  }
+
+  return (
+    <iframe
+      title={t('preview.title')}
+      src={pageUrl(session.url, instance.instanceId, taskId, selectedFormLayoutName)}
+      className={viewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
+    />
+  );
 };

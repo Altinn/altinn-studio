@@ -5,17 +5,21 @@ from __future__ import annotations
 import argparse
 import json
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
-from benchmarks import check, registry
+from benchmarks import check, provenance, registry, remote
 from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask
+from benchmarks.bench_app import BenchApp
+from benchmarks.lf_api import LangfuseApi
 
 
 class _Dataset:
     def __init__(self, items):
         self.items = items
-        self.version = "2026-09-08T14:22:00Z"
+        # The SDK sets a version only when get_dataset asks for one, and check does not ask.
+        self.version = None
 
 
 class _Client:
@@ -30,7 +34,17 @@ class _Client:
 
     def run_experiment(self, **kwargs):
         self.calls.append(kwargs)
-        return SimpleNamespace(item_results=[], format=lambda: "formatted result")
+        scored = [
+            SimpleNamespace(
+                item=item,
+                evaluations=[SimpleNamespace(name="gate_verdict", value=1.0, comment=None)],
+                output=None,
+                trace_id=None,
+                error=None,
+            )
+            for item in kwargs["data"]
+        ]
+        return SimpleNamespace(item_results=scored, format=lambda: "formatted result")
 
     def flush(self):
         self.flushed += 1
@@ -70,6 +84,7 @@ def client(monkeypatch):
     created = _Client([_item("item-1"), _item("item-2"), _item("archived", status="ARCHIVED")])
     monkeypatch.setattr(check, "get_client", lambda: created)
     monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": "gpt-5.6-terra"})
+    monkeypatch.setattr(check, "new_bench_app", lambda template: BenchApp("ttd", "bench", template))
     return created
 
 
@@ -97,13 +112,19 @@ class TestTheHandoverToTheSdk:
 class TestTheTaskMatchesTheDatasetKind:
     def test_an_e2e_dataset_builds_an_app(self, client):
         """The bug this covers: with no e2e branch, a build ran as a replay."""
-        _run_one(client, "Benchmarks/forms")
+        _run_one(client, "Benchmarks/app-v9")
         assert isinstance(client.last["task"], AgentTask)
 
-    def test_a_prompt_dataset_sends_one_gate_message(self, client):
-        from benchmarks.gates import GateTask
+    def test_a_gate_dataset_asks_the_decision_model(self, client):
+        from benchmarks.decisions import DecisionTask
 
         _run_one(client, "Gates/scope")
+        assert isinstance(client.last["task"], DecisionTask)
+
+    def test_a_prompt_dataset_sends_one_message(self, client):
+        from benchmarks.gates import GateTask
+
+        _run_one(client, "Planner/intake")
         assert isinstance(client.last["task"], GateTask)
 
     def test_a_planner_dataset_calls_the_planner(self, client):
@@ -123,7 +144,7 @@ class TestAnE2eBuildRunsOneItemAtATime:
     """It pushes to one repo and drives one browser preview, so items cannot overlap."""
 
     def test_concurrency_is_forced_to_one(self, client):
-        _run_one(client, "Benchmarks/forms", _args(max_concurrency=8))
+        _run_one(client, "Benchmarks/app-v9", _args(max_concurrency=8))
         assert check.E2E_MAX_CONCURRENCY == 1
         assert client.last["max_concurrency"] == check.E2E_MAX_CONCURRENCY
 
@@ -164,12 +185,46 @@ class TestTheRunRecordsWhatItRanAgainst:
         assert "Gates/scope" in client.last["description"]
 
 
+class TestARunReadBackFromLangfuseComparesWithItsLocalCopy:
+    """The bug this covers: Langfuse held no judge and no dataset for a run. On a machine without the local
+    copy of the baseline, `check` refused every comparison on those two axes."""
+
+    def _langfuse_holding(self, client):
+        """What the experiment endpoints return for the run that `client` recorded."""
+        experiment = {"id": "exp-1", "name": client.last["run_name"], "metadata": client.last["metadata"]}
+        items = [
+            {"experimentItemId": item.id, "scores": [{"name": "gate_verdict", "value": 1.0}]}
+            for item in client.last["data"]
+        ]
+
+        class _Api:
+            def _get(self, path, **_params):
+                rows = [experiment] if path.endswith("/experiments") else items
+                return {"data": rows, "meta": {}}
+
+        return cast(LangfuseApi, _Api())
+
+    def test_no_blocking_axis_differs(self, client, monkeypatch):
+        monkeypatch.setattr(check, "_judge_model", lambda: "sentinel-judge")
+        local = check.run(
+            label="round trip",
+            only=("Gates/scope",),
+            run_eval=check.langfuse_runner(_args(), check_id="check-1", label="round trip"),
+        )
+        fetched = remote.fetch("check-1", api=self._langfuse_holding(client))
+
+        assert fetched.provenance.judge == "sentinel-judge"
+        assert local.provenance.dataset and local.provenance.dataset.startswith("2 items ")
+        assert fetched.provenance.dataset == local.provenance.dataset
+        assert provenance.blocking_differences(local.provenance, fetched.provenance, under_test=()) == ()
+
+
 class TestTheMetadataAttributesAnE2eRunToTheAgent:
     """The bug this covers: metadata recorded the checkout's models even for e2e."""
 
     def test_e2e_metadata_uses_the_agents_model_not_the_checkouts(self, client, monkeypatch):
         monkeypatch.setattr(check, "agent_role_models", lambda _base: {"actor": "sentinel-agent-model"})
-        _run_one(client, "Benchmarks/forms")
+        _run_one(client, "Benchmarks/app-v9")
         metadata = client.last["metadata"]
         assert json.loads(metadata["models"])["actor"] == "sentinel-agent-model"
 
@@ -184,7 +239,7 @@ class TestTheStructuralScoresStillExist:
     def test_an_e2e_run_scores_with_the_structural_evaluator(self, client):
         from benchmarks.experiment import structural_evaluator
 
-        _run_one(client, "Benchmarks/forms")
+        _run_one(client, "Benchmarks/app-v9")
         assert client.last["evaluators"] == [structural_evaluator]
 
     def test_the_structural_score_names_are_declared(self):

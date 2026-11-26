@@ -1,18 +1,18 @@
 {
   "axes": {
-    "actor_prompt": "333710f2f15b",
-    "code": "519a974 clean",
-    "dataset": "116 items 90d5f6e70f83",
+    "actor_prompt": "0f3e7fbcdbe6",
+    "code": "b13cbfd clean",
+    "dataset": "85 items b0923ba3df4f",
     "environment": "local",
     "evaluators": "not recorded",
-    "judge": "gpt-5.6-sol",
-    "models": "actor gpt-5.6-terra, default gpt-5.4-mini, planner gpt-5.6-sol",
+    "judge": "gpt-6.1-sol",
+    "models": "actor gpt-6.1-terra, decision gpt-6-luna, default gpt-6-luna, planner gpt-6.1-sol",
     "prompts": "not recorded",
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
-    "tools": "36867ddc0e3f"
+    "tools": "be6a2325e8a0"
   },
-  "check_id": "20261021T081022Z-repo-owner-from-repo-url-519a974da8-d01f",
-  "label": "repo owner from repo_url 519a974da8",
-  "recorded_at": "2026-10-21T08:15:41+00:00",
-  "why": "Takes the repository owner from repo_url in #21389, which changes benchmarks/preview_check.py. Full check with e2e and the preview check: every pinned behavior scored, at the same scores as the earlier baseline."
+  "check_id": "20261126T092817Z-skills-rewrite-21793-on-b13cbfdb67-fd7c",
+  "label": "skills rewrite #21793 on b13cbfdb67",
+  "recorded_at": "2026-11-26T09:36:57+00:00",
+  "why": "Altinn/altinn-studio-docs#3383 moved the v9 Komponenter page, so studio-layouts links its new address. Only the skill text changes. Full check with e2e on b13cbfdb67 with a clean tree, against the local Designer stack, with the preview check off as in production. The scores match the last baseline: both builds committed an app, in about four minutes each, and every skill check passed on v8 and v9. actor.picks-allowed-tool stays at 0.889, from the replay build-verifies-before-committing, and actor.writes-usable-component-content stays at 0.000. The run is adopted with --force for the four render behaviors that the render check leaves unscored. The judge is gpt-6.1-sol."
 }

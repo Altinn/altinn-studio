@@ -6,7 +6,7 @@ import {
   type ValidateNavigationConfigProps,
 } from './ValidateNavigationConfig';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 
 const undefinedLabel = textMock('ux_editor.settings.navigation_validation_button_rule_undefined');
 const allTasksCardLabel = textMock('ux_editor.settings.navigation_validation_all_tasks_card_label');

@@ -95,3 +95,30 @@ class TestFormSpecSummary:
         )
         summary = spec.to_summary()
         assert "[Ny bevilling (ny-bevilling), Fornyelse (fornyelse)]" in summary
+
+    def test_long_texts_reach_the_actor_whole(self):
+        """The actor builds the form from the summary alone, so a cut text is a field it cannot build. With the
+        texts of a real grant form cut at 200 characters, the actor asked for the form again instead of building."""
+        description = "Beskriv hva slags dokumentasjon dere vil levere. " * 10
+        option = "Løsningen er ferdig og klar til å tas i bruk av andre, men har kort driftserfaring"
+        spec = FormSpec(
+            title="Søknad om tilskudd",
+            pages=[
+                FormSpecPage(
+                    page_name="del-b",
+                    title="Del B",
+                    fields=[
+                        FormSpecField(
+                            id="b5",
+                            label="B5. Hvor langt har prosjektet kommet?",
+                            description=description,
+                            field_type="radio",
+                            options=[FormSpecOption(label=option, value="klar-for-andre")],
+                        )
+                    ],
+                )
+            ],
+        )
+        summary = spec.to_summary()
+        assert description.strip() in summary
+        assert f"{option} (klar-for-andre)" in summary

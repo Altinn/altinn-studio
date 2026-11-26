@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { JSX } from 'react';
 
 import { Button, ErrorValidations, Flex } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
@@ -41,7 +42,7 @@ export function EditWindowComponent({
   baseComponentId,
   options,
   isFetching,
-}: EditWindowProps): React.JSX.Element {
+}: EditWindowProps): JSX.Element {
   const config = useComponentConfig(baseComponentId, 'FileUpload');
   const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
   const tagTitle = useEvalOptionalText(

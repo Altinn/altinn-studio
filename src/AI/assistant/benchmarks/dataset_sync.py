@@ -10,8 +10,6 @@ from typing import Any, NamedTuple
 
 from langfuse import get_client
 
-from agents.services.llm.llm_client import build_intent_parse_message
-from agents.services.llm.scope_checker import build_scope_check_message
 from benchmarks import registry
 from benchmarks.lf_api import LangfuseApi
 
@@ -49,6 +47,9 @@ def load_datasets() -> Iterator[Dataset]:
         if not path or not path.exists():
             raise FileNotFoundError(f"{entry.name} declares {entry.file} and it is not on disk")
         items = _read_items(path)
+        if entry.app_template:
+            # Langfuse keys an item by id across datasets, so each template's dataset gets its own ids.
+            items = [{**item, "id": f"{item['id']}-{entry.app_template}"} for item in items]
         yield Dataset(
             name=entry.name,
             prompt=entry.prompt,
@@ -57,26 +58,6 @@ def load_datasets() -> Iterator[Dataset]:
             items=items,
             kind=entry.kind,
         )
-
-
-MESSAGE_BUILDERS = {
-    "scope_check": lambda item: build_scope_check_message(item["input"]["goal"], item["input"].get("conversation")),
-    "intent_check": lambda item: build_intent_parse_message(
-        item["input"]["goal"], item["input"].get("attachments"), item["input"].get("conversation")
-    ),
-}
-
-
-def render_input(dataset: Dataset, item: dict[str, Any]) -> dict[str, Any]:
-    """The item input as uploaded."""
-    if dataset.kind in ("planner", "generation"):
-        return item["input"]
-    if dataset.kind == "prompt" and item["input"].get("user_message"):
-        return item["input"]
-    if dataset.prompt is None:
-        raise ValueError(f"{dataset.name}: items without a user_message need a prompt to build one")
-    build = MESSAGE_BUILDERS[dataset.prompt]
-    return {**item["input"], "user_message": build(item)}
 
 
 def validate(dataset: Dataset) -> list[str]:
@@ -88,16 +69,11 @@ def validate(dataset: Dataset) -> list[str]:
             problems.append(f"{dataset.path.name}: item is missing {sorted(missing)}")
             continue
         shaped.append(item)
-    if (
-        dataset.kind == "prompt"
-        and dataset.prompt not in MESSAGE_BUILDERS
-        and not all(item["input"].get("user_message") for item in shaped)
-    ):
-        problems.append(
-            f"{dataset.path.name}: no message builder for '{dataset.prompt}' and not every item carries a user_message"
-        )
+    if dataset.kind == "prompt" and not all(item["input"].get("user_message") for item in shaped):
+        problems.append(f"{dataset.path.name}: not every item carries a user_message")
     if dataset.kind == "generation":
         problems.extend(_generation_problems(dataset))
+    problems.extend(missing_assets(dataset._replace(items=shaped)))
     seen: set[str] = set()
     for item in shaped:
         if item["id"] in seen:
@@ -112,14 +88,14 @@ def validate(dataset: Dataset) -> list[str]:
 
 
 def missing_assets(dataset: Dataset) -> list[str]:
-    """Attachments a planner item names that are not on this machine."""
-    if dataset.kind != "planner":
+    """Attachments a planner or e2e item names that are not in assets/."""
+    if dataset.kind not in ("planner", "e2e"):
         return []
     from .planner import ASSETS_DIR
 
     problems = []
     for item in dataset.items:
-        for name in item["input"].get("attachments") or []:
+        for name in item["input"].get("attachments") or item["metadata"].get("attachments") or []:
             if not (ASSETS_DIR / name).is_file():
                 problems.append(f"{dataset.path.name}: {item['id']} names {name!r}, which is not in {ASSETS_DIR.name}/")
     return problems
@@ -172,9 +148,6 @@ def main() -> int:
         print(f"  INVALID: {problem}")
     if problems:
         return 1
-    for dataset in datasets:
-        for absent in missing_assets(dataset):
-            print(f"  LOCAL: {absent}")
 
     if args.check:
         for dataset in datasets:
@@ -195,7 +168,7 @@ def main() -> int:
             lf.upsert_dataset_item(
                 dataset_name=dataset.name,
                 item_id=item["id"],
-                input=render_input(dataset, item),
+                input=item["input"],
                 expected_output=item["expectedOutput"],
                 metadata={**item["metadata"], "prompt": dataset.prompt, "kind": dataset.kind},
             )

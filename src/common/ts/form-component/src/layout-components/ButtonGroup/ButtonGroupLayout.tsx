@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 
 import { Fieldset, Flex } from '@app/form-component/app-components';
@@ -30,7 +29,7 @@ export interface ButtonGroupLayoutProps {
   /** Rendered validation messages */
   validationMessages?: ReactNode;
   /** Pre-rendered child button components */
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function ButtonGroupLayout({

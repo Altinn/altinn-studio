@@ -5,10 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from .app_templates import template_ids
+
 DATASETS_DIR = Path(__file__).parent / "datasets"
 
-# prompt: one message. generation: a replayed trace. planner: a file. e2e: tools run.
-KINDS = ("prompt", "generation", "planner", "e2e")
+# prompt: one message. decision: the request gate. generation: a replayed trace. planner: a file. e2e: tools run.
+KINDS = ("prompt", "decision", "generation", "planner", "e2e")
 
 STATUSES = ("live", "retired", "orphan")
 
@@ -23,12 +25,16 @@ class Eval:
     prompt: str | None = None
     user_template: str | None = None
     note: str | None = None
+    # The app template in src/App/template that an e2e eval builds on.
+    app_template: str | None = None
 
     def __post_init__(self) -> None:
         assert self.kind in KINDS, f"{self.name}: unknown kind {self.kind}"
         assert self.status in STATUSES, f"{self.name}: unknown status {self.status}"
-        if self.status == "live" and self.kind != "e2e":
+        if self.status == "live":
             assert self.file, f"{self.name}: a live eval needs its items in the repo"
+        if self.kind == "e2e":
+            assert self.app_template, f"{self.name}: name the app template it builds on"
         if self.kind == "planner":
             assert self.user_template, f"{self.name}: name the user template"
         if self.status != "live":
@@ -65,7 +71,8 @@ class Eval:
         parts.append(f"Items: {item_count if item_count is not None else 'see below'}, edited in {where}.")
 
         if self.status == "live":
-            parts.append("Run: python -m benchmarks.runner check (see benchmarks/EVALS.md).")
+            flag = " --include-e2e" if self.kind == "e2e" else ""
+            parts.append(f"Run: python -m benchmarks.runner check{flag} (see benchmarks/EVALS.md).")
         else:
             parts.append(f"Not runnable: {self.status}.")
         if self.note:
@@ -76,34 +83,23 @@ class Eval:
 EVALS = (
     Eval(
         name="Gates/scope",
-        kind="prompt",
+        kind="decision",
         file="gates_scope.jsonl",
-        prompt="scope_check",
         summary=(
-            "Is the question about Altinn app development at all. The hard cases are "
+            "Is the request relevant: about Altinn app development at all. The hard cases are "
             "pairs that share a subject and differ only in the verb: travel advice is "
             "out of scope, a field asking where you travel is not."
         ),
     ),
     Eval(
-        name="Gates/intent-safety",
-        kind="prompt",
-        file="gates_intent_safety.jsonl",
-        prompt="intent_check",
+        name="Gates/security",
+        kind="decision",
+        file="gates_security.jsonl",
         summary=(
             "Is the request a legitimate use of an app-development agent. Read the two "
             "directions separately: false rejections of real work cost more than an "
-            "ambiguous request reaching the later layers."
-        ),
-    ),
-    Eval(
-        name="Gates/confidence",
-        kind="prompt",
-        file="gates_confidence.jsonl",
-        prompt="intent_check",
-        summary=(
-            "Does the parsed confidence land on the right side of the 0.30 threshold the "
-            "workflow gate rejects on. Bands, not values."
+            "ambiguous request reaching the later layers. A safe item must also pass as "
+            "relevant, since every request meets both questions."
         ),
     ),
     Eval(
@@ -136,23 +132,25 @@ EVALS = (
         prompt="spec_extraction",
         user_template="spec_extraction_user",
         summary=(
-            "Spec extraction from a real PDF. Items name a file in assets/ rather than "
+            "Spec extraction from a PDF form. Items name a file in assets/ rather than "
             "depending on a trace to have kept it, because traces record the extracted "
             "spec and never the upload. Scored on the field labels a verified run found, "
             "not on the page count, which has proved unstable across runs while the "
             "labels held."
         ),
     ),
-    Eval(
-        name="Benchmarks/forms",
-        kind="e2e",
-        summary=(
-            "Full agent runs against a structural rubric. The only eval that executes "
-            "tools, pushes a session branch and renders pages, so it is the only one that "
-            "shows a generated app actually builds. One item sends a real PDF attachment. "
-            "Items and rubrics live in Langfuse because a rubric is built from a golden "
-            "app clone rather than written by hand."
-        ),
+    *(
+        Eval(
+            name=f"Benchmarks/app-{template}",
+            kind="e2e",
+            file="app_build.jsonl",
+            app_template=template,
+            summary=(
+                f"The assistant builds an app on a new copy of the {template} app template. The only eval that "
+                "runs tools and pushes a branch. The scores read the committed app: one score for each skill."
+            ),
+        )
+        for template in template_ids()
     ),
     Eval(
         name="Redteam/indirect-injection",
@@ -161,7 +159,7 @@ EVALS = (
         summary=(
             "Indirect prompt-injection corpus from the lokkedue project. The payload "
             "arrives inside an attachment or a file the agent reads, which is the one "
-            "channel Gates/intent-safety cannot cover because that gate sees filenames "
+            "channel Gates/security cannot cover because that gate sees filenames "
             "only. Injection resistance is model-dependent, so it belongs in a model "
             "comparison."
         ),

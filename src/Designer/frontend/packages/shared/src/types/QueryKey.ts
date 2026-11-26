@@ -1,4 +1,5 @@
 export enum QueryKey {
+  AppBuilderFormLayouts = 'AppBuilderFormLayouts',
   AppDeployments = 'AppDeployments',
   AppMetadata = 'AppMetadata',
   AppMetadataModelIds = 'AppMetadataModelIds',
@@ -40,6 +41,8 @@ export enum QueryKey {
   OptionListIds = 'OptionListIds',
   Organizations = 'Organizations',
   Prefill = 'Prefill',
+  PreviewSession = 'PreviewSession',
+  PreviewSessionInstance = 'PreviewSessionInstance',
   OrgCodeLists = 'OrgCodeLists',
   OrgCodeListsNew = 'OrgCodeListsNew',
   OrgTextLanguages = 'OrgTextLanguages',
@@ -90,6 +93,7 @@ export enum QueryKey {
 
   // Resourceadm
   ResourceList = 'ResourceList',
+  ResourceEnvironments = 'ResourceEnvironments',
   Altinn2ResourcePolicies = 'Altinn2ResourcePolicies',
   ResourcePolicy = 'ResourcePolicy',
   ResourcePolicySubjects = 'ResourcePolicySubjects',

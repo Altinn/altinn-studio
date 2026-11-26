@@ -18,11 +18,6 @@ internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipe
 internal sealed record TaskStartContext
 {
     /// <summary>
-    /// The task that is starting.
-    /// </summary>
-    public required string TaskId { get; init; }
-
-    /// <summary>
     /// The start pipeline the entering task's type composed. Each stage becomes a step, unless there is only one.
     /// </summary>
     public required ProcessTaskPipeline StartPipeline { get; init; }
@@ -31,6 +26,12 @@ internal sealed record TaskStartContext
     /// If this is a service task, the task and its pipeline. Otherwise null.
     /// </summary>
     public required ResolvedServiceTask? ServiceTask { get; init; }
+
+    /// <summary>
+    /// The <see cref="IOnTaskStartingHandler"/> that runs for the task, whose step options its hook step carries, or
+    /// null when none does and no hook step is planned.
+    /// </summary>
+    public required IOnTaskStartingHandler? StartingHook { get; init; }
 
     /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
@@ -66,7 +67,18 @@ internal sealed record TaskStartContext
 internal sealed record ProcessEndContext
 {
     /// <summary>
+    /// The app's <see cref="IOnProcessEndedHandler"/>, whose step options its hook step carries, or null when the
+    /// app registers none and no hook step is planned.
+    /// </summary>
+    public required IOnProcessEndedHandler? ProcessEndedHook { get; init; }
+
+    /// <summary>
     /// Whether to register events with the events component.
     /// </summary>
     public bool RegisterEvents { get; init; }
+
+    /// <summary>
+    /// Whether to confirm the instance as complete for the service owner (<c>onProcessEnd.confirm</c>).
+    /// </summary>
+    public bool ConfirmComplete { get; init; }
 }

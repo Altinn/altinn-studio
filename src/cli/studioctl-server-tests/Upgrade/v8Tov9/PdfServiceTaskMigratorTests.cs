@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 using LayoutSetsToTaskUiMigrator = Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration.LayoutSetsToTaskUiMigrator;
@@ -14,7 +15,8 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private async Task<MigrationResult> MigrateResult() => await new PdfServiceTaskMigrator(_app.Root).Migrate();
+    private async Task<MigrationResult> MigrateResult() =>
+        await new PdfServiceTaskMigrator(_app.Root, new CSharpSourceScanner(Path.Combine(_app.Root, "App"))).Migrate();
 
     private async Task<IReadOnlyList<string>> Migrate() => (await MigrateResult()).Warnings;
 
@@ -262,6 +264,39 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         Assert.Equal("other-model", dataTypeIds[0].Value);
     }
 
+    [Theory]
+    [InlineData("ui/Task_1/Settings.json", """{ "defaultDataType": "model" }""")]
+    [InlineData("ui/layout-sets.json", """{ "sets": [{ "id": "form", "dataType": "model", "tasks": ["Task_1"] }] }""")]
+    public async Task DownstreamGateway_IsPinnedToTheDataModelOfTheTasksUiSettings(string file, string content)
+    {
+        // v8 gateways read the data model the current task's UI settings name, not the first PDF data type.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(
+                FormDataType("receipt", "Task_1", enablePdfCreation: true),
+                FormDataType("model", "Task_1", enablePdfCreation: false)
+            )
+        );
+        _app.Write(file, content);
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "data"),
+                Gateway("Gateway_1"),
+                Flow("Flow_to_gw", "Task_1", "Gateway_1"),
+                ConditionalFlow("Flow_yes", "Gateway_1", "EndEvent_1", "[\"equals\", [\"dataModel\", \"done\"], true]"),
+                ConditionalFlow("Flow_no", "Gateway_1", "EndEvent_2", "[\"equals\", [\"dataModel\", \"done\"], false]"),
+                EndEvent("EndEvent_1"),
+                EndEvent("EndEvent_2")
+            )
+        );
+
+        await Migrate();
+
+        var gateway = ElementById(ProcessAfter(), "Gateway_1");
+        Assert.Equal("model", gateway?.Descendants().Single(e => e.Name.LocalName == "connectedDataTypeId").Value);
+    }
+
     [Fact]
     public async Task ProcessFileBom_IsPreserved_AndAbsenceStaysAbsent()
     {
@@ -286,7 +321,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         second.Write("config/process/process.bpmn", bpmn);
 
-        await new PdfServiceTaskMigrator(second.Root).Migrate();
+        await new PdfServiceTaskMigrator(
+            second.Root,
+            new CSharpSourceScanner(Path.Combine(second.Root, "App"))
+        ).Migrate();
         Assert.False(
             second.ReadBytes("config/process/process.bpmn") is [0xEF, 0xBB, 0xBF, ..],
             "expected no UTF-8 BOM to be introduced"
@@ -800,6 +838,7 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
                       "taskId": "Task_1",
                       "EnablePdfCreation": true,
                       "appLogic": {
+                        "autoCreate": true,
                         "classRef": "Altinn.App.Models.model"
                       }
                     }

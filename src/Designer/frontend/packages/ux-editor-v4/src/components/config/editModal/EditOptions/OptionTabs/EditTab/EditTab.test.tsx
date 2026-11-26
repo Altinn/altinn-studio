@@ -5,7 +5,7 @@ import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../../../../../testing/componentMocks';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

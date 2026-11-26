@@ -123,8 +123,12 @@ export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
 // Preview
 export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
 export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
-// v9 app-frontend uses browser routing, so point straight at the browser-router URL and skip its hash redirect
-export const previewPageV9 = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/${org}/${app}/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}?${s({ selectedLayoutSet })}`;
+export const previewSessionsPath = (org, app) => `${apiBasePath}/${org}/${app}/preview-sessions`; // Post
+export const previewSessionInstancesPath = (org, app) => `${previewSessionsPath(org, app)}/instances`; // Post
+// A page of an instance in a preview session. The session's URL is the app's root on the preview service's domain.
+// Without a page, the app frontend shows the task's first.
+export const previewSessionPage = (sessionUrl, instanceId, taskId, selectedLayout) => `${sessionUrl}instance/${instanceId}/${taskId}${selectedLayout ? `/${selectedLayout}` : ''}`;
+export const previewSessionHashPage = (sessionUrl, instanceId, taskId, selectedLayout) => `${sessionUrl}#/instance/${instanceId}/${taskId}${selectedLayout ? `/${selectedLayout}` : ''}`;
 
 // Release and Deployment
 // See frontend/app-development/utils/urlHelper.ts Releases
@@ -133,6 +137,7 @@ export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${or
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
+export const restartAppPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/restart`; // Post
 export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
@@ -185,6 +190,7 @@ export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
+export const resourceEnvironmentsPath = (org) => `${apiBasePath}/${org}/resources/environments`; // Get
 export const resourceListPath = (org, skipGiteaFields, skipParseJson) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}&skipParseJson=${skipParseJson}`; // Get
 export const altinn2ResourcePoliciesPath = (org, env) => `${apiBasePath}/${org}/resources/altinn2resourcepolicies/${env}`; // Get
 export const publishResourcePolicyPath = (org, repo, id, env) => `${apiBasePath}/${org}/resources/publish/${repo}/${id}/${env}/policy`; // Post
@@ -227,7 +233,6 @@ export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
 export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
 export const assistantWebSocketHub = () => '/hubs/assistant';
-export const assistantAttachmentsUploadPath = () => `/designer/api/assistant/attachments`;
 
 // Assistant Chat
 export const chatThreadsPath = (org, app) => `${apiBasePath}/${org}/${app}/chat/threads`; // Get, Post
@@ -235,6 +240,9 @@ export const chatThreadPath = (org, app, threadId) => `${apiBasePath}/${org}/${a
 export const chatMessagesPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages`; // Get, Post
 export const chatMessagePath = (org, app, threadId, messageId) => `${apiBasePath}/${org}/${app}/chat/threads/${threadId}/messages/${messageId}`; // Delete
 export const chatFeedbackPath = (org, app, traceId) => `${apiBasePath}/${org}/${app}/chat/feedback/${traceId}`; // Put, Delete
+export const assistantWorkflowPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/assistant/threads/${threadId}/workflow`; // Post
+export const assistantWorkflowCancelPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/assistant/threads/${threadId}/workflow/cancel`; // Post
+export const assistantWorkflowPermissionPath = (org, app, threadId) => `${apiBasePath}/${org}/${app}/assistant/threads/${threadId}/workflow/permission`; // Post
 
 // Contact
 export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;

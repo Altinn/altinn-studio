@@ -1,8 +1,8 @@
 import type { JSONSchema7 } from 'json-schema';
 
+import type { FormBootstrapQueryResponse } from 'src/core/queries/formBootstrap';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { FormBootstrapQueryResponse } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import type { CalculationConfig } from 'src/features/formData/calculations';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type {
@@ -16,6 +16,7 @@ export interface RawDataModelInfo {
   schema: JSONSchema7;
   initialData: object;
   dataElementId: string | null;
+  writable: boolean;
   expressionValidationConfig: IExpressionValidationConfig | null;
   calculationConfig?: CalculationConfig | null;
   initialValidationIssues?: BackendValidationIssue[] | null;

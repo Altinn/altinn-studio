@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
@@ -19,11 +17,7 @@ describe('TaskTransitionBoundary', () => {
       ),
       taskId: 'Task_Other',
       waitUntilLoaded: false,
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
@@ -44,11 +38,7 @@ describe('TaskTransitionBoundary', () => {
         </TaskTransitionBoundary>
       ),
       taskId: 'Task_Service',
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(await screen.findByTestId('task-content')).toBeInTheDocument();
@@ -68,11 +58,7 @@ describe('TaskTransitionBoundary', () => {
       ),
       taskId: 'Task_Other',
       query: 'pdf=1',
-      apis: {
-        instanceApi: {
-          getInstance: async () => instance,
-        },
-      },
+      queries: { getInstance: async () => instance },
     });
 
     expect(await screen.findByTestId('task-content')).toBeInTheDocument();

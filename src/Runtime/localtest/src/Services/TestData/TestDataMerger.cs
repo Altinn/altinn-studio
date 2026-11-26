@@ -1,6 +1,7 @@
 #nullable enable
 
 using System.Text.Json;
+using Authorization.Interface.Models;
 
 namespace LocalTest.Services.TestData;
 
@@ -83,14 +84,33 @@ public static class TestDataMerger
             }
         }
 
+        if (source.Register?.OrgUnits != null)
+        {
+            foreach (var (partyId, unit) in source.Register.OrgUnits)
+            {
+                if (!target.Register.OrgUnits.TryAdd(partyId, unit) && unit != target.Register.OrgUnits[partyId])
+                {
+                    conflicts.Add($"Organization party ID {partyId}");
+                }
+            }
+        }
+
         if (source.Authorization?.PartyList != null)
         {
             foreach (var (userId, parties) in source.Authorization.PartyList)
             {
-                if (!target.Authorization.PartyList.ContainsKey(userId))
+                if (!target.Authorization.PartyList.TryGetValue(userId, out var targetParties))
                 {
                     target.Authorization.PartyList[userId] = parties;
+                    continue;
                 }
+
+                // The target's parties win; the source adds the parties the target does not list
+                target.Authorization.PartyList[userId] =
+                [
+                    .. targetParties,
+                    .. parties.Where(party => !targetParties.Any(targetParty => targetParty.PartyId == party.PartyId)),
+                ];
             }
         }
 
@@ -98,9 +118,72 @@ public static class TestDataMerger
         {
             foreach (var (userId, roles) in source.Authorization.Roles)
             {
-                if (!target.Authorization.Roles.ContainsKey(userId))
+                if (!target.Authorization.Roles.TryGetValue(userId, out var targetRoles))
                 {
                     target.Authorization.Roles[userId] = roles;
+                    continue;
+                }
+
+                // The target's roles for a party win; the source adds the parties the target has none for
+                var merged = new Dictionary<string, List<Role>>(targetRoles);
+                foreach (var (partyId, partyRoles) in roles)
+                {
+                    merged.TryAdd(partyId, partyRoles);
+                }
+                target.Authorization.Roles[userId] = merged;
+            }
+        }
+
+        if (source.Authorization?.AccessPackages != null)
+        {
+            foreach (var (userId, accessPackages) in source.Authorization.AccessPackages)
+            {
+                if (!target.Authorization.AccessPackages.TryGetValue(userId, out var targetPackages))
+                {
+                    target.Authorization.AccessPackages[userId] = accessPackages;
+                    continue;
+                }
+
+                // The target's packages for a party win; the source adds the parties the target has none for
+                var merged = new Dictionary<string, List<string>>(targetPackages);
+                foreach (var (partyId, packages) in accessPackages)
+                {
+                    merged.TryAdd(partyId, packages);
+                }
+                target.Authorization.AccessPackages[userId] = merged;
+            }
+        }
+
+        if (source.Authorization?.Systems != null)
+        {
+            foreach (var (systemId, system) in source.Authorization.Systems)
+            {
+                if (!target.Authorization.Systems.TryGetValue(systemId, out var targetSystem))
+                {
+                    target.Authorization.Systems[systemId] = system;
+                    continue;
+                }
+
+                // The same system in both: keep the target's system users and add the source's other ones
+                var systemUsers = new Dictionary<string, TestDataSystemUser>(targetSystem.SystemUsers);
+                foreach (var (systemUserId, systemUser) in system.SystemUsers)
+                {
+                    systemUsers.TryAdd(systemUserId, systemUser);
+                }
+                target.Authorization.Systems[systemId] = targetSystem with { SystemUsers = systemUsers };
+            }
+        }
+
+        if (source.Authorization?.SystemUsers != null)
+        {
+            foreach (var (systemUserId, systemUser) in source.Authorization.SystemUsers)
+            {
+                if (
+                    !target.Authorization.SystemUsers.TryAdd(systemUserId, systemUser)
+                    && !target.Authorization.SystemUsers[systemUserId].HasTheSameValues(systemUser)
+                )
+                {
+                    conflicts.Add($"System user ID {systemUserId}");
                 }
             }
         }
@@ -108,7 +191,7 @@ public static class TestDataMerger
         if (conflicts.Count > 0)
         {
             var sourceName = sourceIdentifier ?? "source";
-            var message = $"Test data conflict detected in {sourceName}. The following identifiers have conflicts: {string.Join(", ", conflicts)}. Each app must use unique user IDs, party IDs, SSNs, and organization numbers OR use the same identifiers with the exact same values.";
+            var message = $"Test data conflict detected in {sourceName}. The following identifiers have conflicts: {string.Join(", ", conflicts)}. Each app must use unique user IDs, party IDs, SSNs, organization numbers and system user IDs OR use the same identifiers with the exact same values.";
             throw new InvalidOperationException(message);
         }
     }

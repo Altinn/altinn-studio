@@ -1,4 +1,4 @@
-name: Assistant-evals
+name: Assistant - Evals
 
 on:
   pull_request:

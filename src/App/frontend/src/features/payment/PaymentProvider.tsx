@@ -1,12 +1,11 @@
-import React, { createContext, useContext, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import type { FC, ReactNode } from 'react';
 
-import type { AxiosError } from 'axios';
+import type { HttpError } from '@studio/http-client';
 
 import { Loader } from 'src/core/loading/Loader';
-import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
+import { usePaymentInformation, usePerformPayActionMutation } from 'src/core/queries/payment';
 import { PaymentStatus } from 'src/features/payment/types';
-import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
 import { useIsPayment } from 'src/features/payment/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';
@@ -15,7 +14,7 @@ import { useShallowMemo } from 'src/hooks/useShallowMemo';
 
 type PaymentContextProps = {
   performPayment: () => void;
-  paymentError: AxiosError | null;
+  paymentError: HttpError | null;
 };
 
 type PaymentContextProvider = {
@@ -27,7 +26,7 @@ export const PaymentContext = createContext<PaymentContextProps | undefined>(und
 // Module-level tracking to prevent duplicate payment calls across component remounts
 const paymentInitiatedForInstance = new Map<string, boolean>();
 
-export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) => {
+export const PaymentProvider: FC<PaymentContextProvider> = ({ children }) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const {

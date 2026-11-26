@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, waitFor } from '@testing-library/react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -8,6 +6,7 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { createHttpErrorMock } from 'src/__mocks__/httpErrorMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -89,7 +88,7 @@ async function render(props: TestProps) {
         autoCreate: true,
         classRef: name,
       },
-      taskId: 'Task_1',
+      taskIds: ['Task_1'],
       maxCount: 1,
       minCount: 1,
     }));
@@ -113,6 +112,7 @@ async function render(props: TestProps) {
     ),
     instanceId: instanceData.id,
     queries: {
+      getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
           for (const dm of Object.keys(props.dataModels)) {
@@ -144,11 +144,6 @@ async function render(props: TestProps) {
         throw new Error(
           `No form data mocked for testing (modelName = ${modelName}), or statically fetchable data model fetched via API.`,
         );
-      },
-    },
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({ ...instanceData, process: getProcessDataMock() }),
       },
     },
   });
@@ -205,9 +200,7 @@ describe('FormDataReaders', () => {
 
   it('advanced, should fetch data from multiple models, handle failures', async () => {
     vi.useFakeTimers();
-    const missingError = new Error('This should fail when fetching');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (missingError as any).isAxiosError = true;
+    const missingError = createHttpErrorMock(undefined, undefined, 'This should fail when fetching');
 
     const model2Promise = new Promise((resolve) => {
       setTimeout(() => resolve({ name: 'Universe' }), 100);

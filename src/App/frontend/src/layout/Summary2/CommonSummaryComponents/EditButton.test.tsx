@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
 
@@ -75,11 +75,7 @@ describe('EditButton', () => {
               },
             };
           }),
-      },
-      apis: {
-        instanceApi: {
-          getInstance: async () => getInstanceAtServiceTaskMock(),
-        },
+        getInstance: async () => getInstanceAtServiceTaskMock(),
       },
     });
 

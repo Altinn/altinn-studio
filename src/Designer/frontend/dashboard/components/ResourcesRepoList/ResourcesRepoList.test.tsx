@@ -4,7 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourcesRepoList } from './ResourcesRepoList';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { useParams } from 'react-router-dom';
 import type { User } from 'app-shared/types/Repository';
 import { MockServicesContextWrapper } from 'dashboard/dashboardTestUtils';
@@ -134,6 +134,44 @@ describe('RepoList', () => {
     expect(
       screen.getByRole('link', { name: textMock('dashboard.go_to_resources') }),
     ).toHaveAttribute('href', '/resourceadm/ttd/ttd-resources');
+  });
+
+  test('Should hide inactive resources until the switch is turned on', async () => {
+    (useParams as Mock).mockReturnValue({
+      selectedContext: 'ttd',
+    });
+    const deprecatedResourceTitle = 'Utgått ressurs';
+    renderWithMockServices({
+      searchRepos: () => Promise.resolve(searchReposResponse),
+      getResourceList: () =>
+        Promise.resolve([
+          ...getResourceListResponse,
+          {
+            ...getResourceListResponse[0],
+            title: { nb: deprecatedResourceTitle, nn: '', en: '' },
+            identifier: 'utgatt-ressurs',
+            status: 'Deprecated',
+          },
+        ]),
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('resource-table-wrapper')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(resourceTitle)).toBeInTheDocument();
+    expect(screen.queryByText(deprecatedResourceTitle)).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('switch', { name: textMock('dashboard.resource_table_show_inactive') }),
+    );
+
+    expect(screen.getByText(deprecatedResourceTitle)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('dashboard.resource_table_num_resources', { num: 2 }),
+        level: 3,
+      }),
+    ).toBeInTheDocument();
   });
 
   test('Should navigate to resourceadm editor on resource edit click', async () => {

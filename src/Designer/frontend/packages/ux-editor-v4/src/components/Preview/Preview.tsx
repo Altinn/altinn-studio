@@ -4,20 +4,19 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
-import { previewPage } from 'app-shared/api/paths';
+import { previewSessionHashPage } from 'app-shared/api/paths';
 import {
   StudioAlert,
   StudioCenter,
   StudioParagraph,
   StudioSpinner,
   StudioValidationMessage,
-} from '@studio/components';
+} from '@designer/components';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
-import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
-import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
+import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { PreviewActions } from './PreviewActions/PreviewActions';
 import useUxEditorParams from '@altinn/ux-editor-v4/hooks/useUxEditorParams';
 
@@ -55,7 +54,6 @@ type PreviewContentProps = {
 };
 
 const PreviewContent = ({ noPageSelected }: PreviewContentProps) => {
-  if (isPreviewDisabled) return <PreviewDisabledInfo className={classes.alert} />;
   if (noPageSelected) return <NoSelectedPageMessage />;
   return <PreviewFrame />;
 };
@@ -77,23 +75,21 @@ const PreviewFrame = () => {
   const { layoutSet } = useUxEditorParams();
   const taskId = useSelectedTaskId(layoutSet);
   const { t } = useTranslation();
-  const { data: user } = useUserQuery();
 
   const { shouldReloadPreview, previewHasLoaded } = useAppContext();
   const checksum = useChecksum(shouldReloadPreview);
-  const {
-    mutate: createInstance,
-    data: instance,
-    isError: createInstanceError,
-    isPending: createInstancePending,
-  } = useCreatePreviewInstanceMutation(org, app);
+  const { isPending: isLayoutSetsPending } = useLayoutSetsQuery(org, app);
+  const { data: session, isError: isSessionError } = usePreviewSessionQuery(org, app);
+  const sessionUrlOnceTheTaskIsKnown = isLayoutSetsPending ? undefined : session?.url;
+  const { data: instance, isError: isInstanceError } = usePreviewSessionInstanceQuery(
+    org,
+    app,
+    sessionUrlOnceTheTaskIsKnown,
+    taskId,
+  );
 
   const currentLayoutSet = useGetLayoutSetByName({ name: layoutSet, org, app });
   const isSubform = currentLayoutSet?.type === 'subform';
-
-  useEffect(() => {
-    if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
-  }, [createInstance, user, taskId]);
 
   useEffect(() => {
     return () => {
@@ -101,18 +97,27 @@ const PreviewFrame = () => {
     };
   }, [previewIframeRef]);
 
-  if (createInstancePending || !instance) {
+  if (isSessionError || isInstanceError) {
     return (
       <StudioCenter>
-        {createInstanceError ? (
-          <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
-        ) : (
-          <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
-        )}
+        <StudioValidationMessage>{t('general.page_error_title')}</StudioValidationMessage>
       </StudioCenter>
     );
   }
-  const previewURL = previewPage(org, app, layoutSet, taskId, selectedFormLayoutName, instance?.id);
+
+  if (!session || !instance) {
+    return (
+      <StudioCenter>
+        <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />
+      </StudioCenter>
+    );
+  }
+  const previewURL = previewSessionHashPage(
+    session.url,
+    instance.instanceId,
+    taskId,
+    selectedFormLayoutName,
+  );
 
   return (
     <div className={classes.root}>

@@ -1,8 +1,6 @@
-import React from 'react';
-
 import { Tabs } from '@digdir/designsystemet-react';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
+import { QueryDevtools } from 'src/core/queries/QueryDevtools';
 import { DevFontSelector } from 'src/features/devtools/components/DevFontSelector/DevFontSelector';
 import { DevHiddenFunctionality } from 'src/features/devtools/components/DevHiddenFunctionality/DevHiddenFunctionality';
 import { DevLanguageSelector } from 'src/features/devtools/components/DevLanguageSelector/DevLanguageSelector';
@@ -15,6 +13,7 @@ import { LayoutInspector } from 'src/features/devtools/components/LayoutInspecto
 import { NodeInspector } from 'src/features/devtools/components/NodeInspector/NodeInspector';
 import { PDFGeneratorPreviewSection } from 'src/features/devtools/components/PDFGeneratorPreviewSection/PDFGeneratorPreviewSection';
 import { PermissionsEditor } from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor';
+import { VersionSwitcher } from 'src/features/devtools/components/VersionSwitcher/VersionSwitcher';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import classes from 'src/features/devtools/DevTools.module.css';
@@ -58,11 +57,12 @@ export const DevToolsControls = () => {
           <PDFGeneratorPreviewSection />
           <DevNavigationButtons />
           <DevHiddenFunctionality />
+          <VersionSwitcher />
           <PermissionsEditor />
           <DevLanguageSelector />
           <DevFontSelector />
           <DownloadXMLButton />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <QueryDevtools />
         </div>
       </Tabs.Panel>
       <Tabs.Panel

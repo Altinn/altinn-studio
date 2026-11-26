@@ -79,8 +79,7 @@
       IsArchived: true,
       Archived: DateTime_3,
       IsSoftDeleted: false,
-      IsHardDeleted: false,
-      ReadStatus: Read
+      IsHardDeleted: false
     },
     Data: [
       {
@@ -95,12 +94,12 @@
         },
         Size: {Scrubbed},
         BlobVersionId: <blobVersionId[0]>,
-        Locked: true,
-        IsRead: true,
+        Locked: false,
+        IsRead: false,
         Created: DateTime_4,
         CreatedBy: 1337,
         LastChanged: DateTime_5,
-        LastChangedBy: 1337
+        LastChangedBy: 991825827
       }
     ],
     Created: DateTime_1,

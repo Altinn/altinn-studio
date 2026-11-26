@@ -2,7 +2,7 @@ import type { ExternalConfigState, InternalConfigState } from './ValidateNavigat
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor-v4/types/global';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ObjectUtils } from '@designer/pure-functions';
 
 export enum Scope {
   AllTasks = 'allTasks',

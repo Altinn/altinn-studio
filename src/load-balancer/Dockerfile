@@ -1,4 +1,4 @@
-FROM docker.io/library/nginx:1.30.6@sha256:a7675fcee220f59b4a99f7098c06a0d5d999c2c0ee37c0211efb780536e5cb20
+FROM docker.io/library/nginx:1.30.7@sha256:8a7280c664b1a205092ffea6443299e6d307fe65b6f946b02028fa311c29fd01
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg2 ca-certificates \
@@ -20,5 +20,10 @@ COPY k8s/extra-locations.conf /etc/nginx/extra-locations/
 COPY k8s/extra-servers.conf.template /etc/nginx/extra-servers/
 COPY k8s/ssl/ /etc/nginx/ssl/
 COPY k8s/logging/ /etc/nginx/logging/
+
+# Preview's servers, which the entrypoint adds where PREVIEW_SERVER_NAME is set. The k8s ones are the clusters' own.
+COPY preview/ /etc/nginx/preview-servers/
+COPY k8s/preview/servers/ /etc/nginx/preview-servers-k8s/
+COPY k8s/preview/ssl/ /etc/nginx/preview-ssl/
 
 ENTRYPOINT ["/entrypoint.sh"]

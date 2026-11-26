@@ -1,10 +1,10 @@
-import React from 'react';
+import type { ComponentProps } from 'react';
 
 import { Tag } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/SigneeList/SigningStateTag.module.css';
-import type { SigneeState } from 'src/layout/SigneeList/api';
+import type { SigneeState } from 'src/core/queries/signeeList';
 
 export const SIGNEE_STATUS = {
   signed: 'signee_list.signee_status_signed',
@@ -33,7 +33,7 @@ function getSigneeStatus(state: SigneeState): SigneeStatus {
 
 export function SigneeStateTag({ state }: { state: SigneeState }) {
   const status = getSigneeStatus(state);
-  const colorByStatus: Record<SigneeStatus, React.ComponentProps<typeof Tag>['data-color']> = {
+  const colorByStatus: Record<SigneeStatus, ComponentProps<typeof Tag>['data-color']> = {
     signed: 'success',
     delegationFailed: 'danger',
     notificationFailed: 'warning',

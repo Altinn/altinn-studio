@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { MultipleSelect } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
@@ -11,6 +9,7 @@ import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function MultipleSelectComponent({
@@ -21,6 +20,7 @@ export function MultipleSelectComponent({
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'MultipleSelect');
   const readOnly = useEvalExpression(config.readOnly, Expressions.MultipleSelect.readOnly);
   const required = useEvalExpression(config.required, Expressions.MultipleSelect.required);
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
   const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.MultipleSelect.alertOnChange);
   const title = useEvalOptionalText(
     config.textResourceBindings?.title,
@@ -67,7 +67,7 @@ export function MultipleSelectComponent({
       title={title}
       help={help}
       description={description}
-      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+      showOptionalMarking={showOptionalMarking}
       labelGrid={config.grid?.labelGrid}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLabel={overrideDisplay?.renderLabel}

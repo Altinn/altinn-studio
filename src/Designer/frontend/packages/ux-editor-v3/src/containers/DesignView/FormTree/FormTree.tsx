@@ -1,5 +1,5 @@
 import type { IInternalLayout } from '../../../types/global';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormItemContext } from '../../FormItemContext';

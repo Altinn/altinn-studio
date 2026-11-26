@@ -1,12 +1,12 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { usePaymentInformation } from 'src/core/queries/payment';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { getInstanceReferenceNumber } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import classes from 'src/layout/Payment/PaymentReceiptDetails/PaymentReceiptDetails.module.css';
 import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTable';
@@ -15,7 +15,7 @@ import { typedBoolean } from 'src/utils/typing';
 
 type PaymentInfoTableRowProps = {
   labelId: string;
-  value: React.ReactNode;
+  value: ReactNode;
 };
 
 // Reusable TableRow Component

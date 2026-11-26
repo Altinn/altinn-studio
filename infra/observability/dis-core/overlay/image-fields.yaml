@@ -1,0 +1,4 @@
+# Lets the images transformer in kustomization.yaml rewrite the collectors' image.
+images:
+  - path: spec/image
+    kind: OpenTelemetryCollector

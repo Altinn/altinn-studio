@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -17,6 +18,7 @@ export const HEADING_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Heading',
   component: Heading,
+  decorators: [withComponentGrid],
   excludeStories: ['HEADING_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

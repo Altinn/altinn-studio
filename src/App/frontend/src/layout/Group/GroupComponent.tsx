@@ -1,5 +1,4 @@
-import React from 'react';
-import type { JSX } from 'react';
+import type { JSX, Ref } from 'react';
 
 import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, Panel } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -18,7 +17,7 @@ import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface IGroupComponent {
   baseComponentId: string;
-  containerDivRef?: React.Ref<HTMLDivElement>;
+  containerDivRef?: Ref<HTMLDivElement>;
   id?: string;
   isSummary?: boolean;
   renderLayoutComponent: (baseComponentId: string) => JSX.Element | null;

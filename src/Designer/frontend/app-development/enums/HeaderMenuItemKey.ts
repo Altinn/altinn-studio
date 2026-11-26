@@ -7,5 +7,6 @@ export enum HeaderMenuItemKey {
   ProcessEditor = 'top_menu.process_editor',
   ContentLibrary = 'top_menu.content_library',
   AiAssistant = 'top_menu.ai_assistant',
+  AppBuilder = 'top_menu.app_builder',
   None = '',
 }

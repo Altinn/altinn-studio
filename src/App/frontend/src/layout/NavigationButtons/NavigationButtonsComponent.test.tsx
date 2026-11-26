@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { PageValidation } from '@app/layout-contract/generated/common.generated';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -155,7 +153,7 @@ describe('NavigationButtons', () => {
     expect(screen.getByText('Neste')).toBeInTheDocument();
   });
 
-  test('page validation overrides button validation', async () => {
+  test('button validation overrides page validation', async () => {
     await render({
       component: navButton3,
       pageValidation: { page: 'current', show: ['Required'] },
@@ -165,9 +163,7 @@ describe('NavigationButtons', () => {
 
     await userEvent.click(screen.getByText('Neste'));
 
-    await waitFor(() => expect(screen.getByText('Neste').closest('button')).not.toBeDisabled());
-
-    expect(screen.getByText('Neste')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Neste')).not.toBeInTheDocument());
   });
 
   test('button validation is used when page has no validation config', async () => {

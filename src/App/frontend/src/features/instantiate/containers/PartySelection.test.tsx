@@ -1,4 +1,3 @@
-import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -64,7 +63,7 @@ describe('PartySelection', () => {
             </Routes>
           </MemoryRouter>
         ),
-        apis: { partyApi: { getPartiesAllowedToInstantiateHierarchical: async () => parties } },
+        queries: { getPartiesAllowedToInstantiateHierarchical: async () => parties },
       });
     }
 
@@ -96,11 +95,9 @@ describe('PartySelection', () => {
           <PartySelection />
         </TestWrapper>
       ),
-      apis: {
-        partyApi: {
-          getPartiesAllowedToInstantiateHierarchical: async () => _parties,
-          ...(setPartiesMock ? { setSelectedParty: setPartiesMock } : {}),
-        },
+      mutations: setPartiesMock ? { setSelectedParty: setPartiesMock } : undefined,
+      queries: {
+        getPartiesAllowedToInstantiateHierarchical: async () => _parties,
       },
     });
   }

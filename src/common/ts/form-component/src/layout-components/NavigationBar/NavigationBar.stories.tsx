@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -21,6 +22,7 @@ const pages = [{ id: 'side1' }, { id: 'side2' }, { id: 'side3' }];
 const meta = {
   title: 'LayoutComponents/NavigationBar',
   component: NavigationBar,
+  decorators: [withComponentGrid],
   excludeStories: ['NAVIGATION_BAR_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

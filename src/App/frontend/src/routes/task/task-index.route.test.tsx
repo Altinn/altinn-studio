@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router';
 
 import { screen, waitFor } from '@testing-library/react';
@@ -47,8 +46,8 @@ async function renderPdfTask(query: string) {
             },
           };
         }),
+      getInstance: async () => instance,
     },
-    apis: { instanceApi: { getInstance: async () => instance } },
   });
 }
 

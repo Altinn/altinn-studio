@@ -9,7 +9,7 @@ import pytest
 
 from agents.altinn import cdn
 
-_SCHEMA_URL = "https://altinncdn.no/schemas/json/text-resources/text-resources.schema.v1.json"
+_SCHEMA_URL = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
 _SCHEMA = {"$id": _SCHEMA_URL}
 
 Handler = Callable[[httpx.Request], httpx.Response]

@@ -1,9 +1,9 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
-import { getLabelId, OptionalIndicator, RequiredIndicator } from '@app/form-component';
+import { BaseTable, getLabelId, OptionalIndicator, RequiredIndicator } from '@app/form-component';
 import { LayoutStyle } from '@app/layout-contract/generated/common.generated';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Label, Radio, Table } from '@digdir/designsystemet-react';
+import { Label, Radio } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { FormStore } from 'src/features/form/FormContext';
@@ -16,6 +16,7 @@ import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
@@ -51,20 +52,20 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
     config.textResourceBindings?.title,
     Expressions.LikertItem.textResourceBindings.title,
   );
-  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
+  const showOptionalMarking = useShowOptionalIndicator(config.labelSettings);
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   const likert = parent && parent.type === 'node' ? layoutLookups.getComponent(parent.id, 'Likert') : undefined;
   const columns = useComponentConfig(baseComponentId, 'LikertItem').columns;
   return (
-    <Table.Row
+    <BaseTable.Row
       data-componentid={indexedId}
       data-is-loading={fetchingOptions ? 'true' : 'false'}
       ref={ref}
       role='row'
     >
-      <Table.Cell
+      <BaseTable.Cell
         id={getLabelId(indexedId)}
         role='rowheader'
       >
@@ -75,11 +76,14 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
         >
           <span>
             <Lang id={title} />
-            <RequiredIndicator required={required} />
+            <RequiredIndicator
+              required={required}
+              readOnly={readOnly}
+            />
             <OptionalIndicator
               required={required}
               readOnly={readOnly}
-              showOptionalMarking={labelSettings?.optionalIndicator !== false}
+              showOptionalMarking={showOptionalMarking}
             />
           </span>
         </Label>
@@ -87,14 +91,14 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
           validations={validations}
           baseComponentId={baseComponentId}
         />
-      </Table.Cell>
+      </BaseTable.Cell>
       {calculatedOptions?.map((option, index) => {
         const isChecked = selectedValues[0] === option.value;
         const rowLabelId = getLabelId(componentId);
         const labelledby = `${rowLabelId} ${likert?.id}-likert-columnheader-${index}`;
         const divider = columns?.find((column) => column.value == option.value)?.divider;
         return (
-          <Table.Cell
+          <BaseTable.Cell
             key={option.value}
             className={cn({
               [classes.likertCellDividerStart]: divider === 'before',
@@ -112,10 +116,10 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
                 aria-labelledby={labelledby}
               />
             </div>
-          </Table.Cell>
+          </BaseTable.Cell>
         );
       })}
-    </Table.Row>
+    </BaseTable.Row>
   );
 });
 

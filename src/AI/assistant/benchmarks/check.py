@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -11,7 +12,7 @@ from typing import Any
 from langfuse import get_client
 
 from benchmarks import manifest, provenance, registry, runstore
-from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models
+from benchmarks.agent_task import STRUCTURAL_SCORE_NAMES, AgentTask, agent_role_models, new_bench_app
 from benchmarks.experiment import SCORES_KEY, ItemEvaluator, structural_evaluator
 from benchmarks.generation import ITEM_EVALUATORS, GenerationTask
 from benchmarks.generation import SCORE_NAMES as GENERATION_SCORE_NAMES
@@ -82,6 +83,7 @@ def task_for(
             agent_base=agent_base,
             assets_dir=Path(getattr(args, "assets_dir", None) or ASSETS_DIR).expanduser(),
             run_name=run_name,
+            app=new_bench_app(registry.by_name(dataset.name).app_template or ""),
             role_models=role_models,
             description=f"End to end build for {dataset.name}",
         )
@@ -106,13 +108,21 @@ def task_for(
             model,
         )
 
+    if dataset.kind == "decision":
+        from .decisions import ITEM_EVALUATORS as DECISION_EVALUATORS
+        from .decisions import DecisionTask
+
+        # --model does not apply, see DECISION_MODEL.
+        model = role_model("decision")
+        return DecisionTask(model=model), DECISION_EVALUATORS, ["gate_verdict"], model
+
     if dataset.kind == "prompt":
         from .gates import ITEM_EVALUATORS as GATE_EVALUATORS
         from .gates import GateTask
 
         model = args.model or role_model("default")
         task = GateTask(prompt_name=dataset.prompt_name, model=model)
-        return task, GATE_EVALUATORS, ["gate_verdict", "gate_decline_language"], model
+        return task, GATE_EVALUATORS, ["gate_verdict", "gate_required_keys"], model
 
     task = GenerationTask(role=args.role, max_tokens=args.max_tokens, model=args.model)
     model = args.model or role_model(args.role)
@@ -242,10 +252,18 @@ def _kept_metadata(metadata: dict) -> dict[str, str]:
 
 
 def _scored_set_digest(outcomes: dict[str, EvalOutcome]) -> str:
-    """What was measured, as one value a comparison can refuse on."""
+    return item_set_digest({name: outcome.per_item for name, outcome in outcomes.items()})
+
+
+def item_set_digest(items_by_eval: Mapping[str, Iterable[str]]) -> str:
+    """What was measured, as one value a comparison can refuse on.
+
+    `remote.fetch` builds it again from the items in Langfuse. The run metadata cannot hold it, because Langfuse
+    writes the metadata when the first eval starts, and the items are known only when the last eval ends.
+    """
     import hashlib
 
-    pairs = sorted(f"{name}:{item_id}" for name, outcome in outcomes.items() for item_id in outcome.per_item)
+    pairs = sorted(f"{name}:{item_id}" for name, item_ids in items_by_eval.items() for item_id in item_ids)
     if not pairs:
         return "nothing scored"
     digest = hashlib.sha256("\n".join(pairs).encode()).hexdigest()[:12]
@@ -432,7 +450,9 @@ def langfuse_runner(args, *, check_id: str = "", label: str = "", agent_models=N
         _warn_if_stale(entry, len(items))
         started = time.monotonic()
         concurrency = E2E_MAX_CONCURRENCY if entry.kind in SLOW_KINDS else getattr(args, "max_concurrency", 5)
-        state = provenance.collect(agent_models=getattr(task, "role_models", None))
+        # Langfuse cannot change the metadata later, and a blocking axis that `remote.fetch` cannot read makes
+        # every comparison with this run fail on a machine without the local copy.
+        state = provenance.collect(agent_models=getattr(task, "role_models", None), judge=_judge_model())
         result = client.run_experiment(
             name=entry.name,
             run_name=runstore.new_name(f"{entry.name}-{model}"),

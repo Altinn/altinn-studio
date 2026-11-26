@@ -1,0 +1,5 @@
+[
+{"header":{"Content-Type":"application/json"},"body":{"AttachStderr":true,"AttachStdin":true,"AttachStdout":true,"Cmd":["sh","-c","cat"]},"method":"POST","path":"/containers/ctr/exec"},
+{"header":{"Connection":"Upgrade","Content-Type":"application/json","Upgrade":"tcp"},"method":"POST","path":"/exec/id1/start"},
+{"method":"GET","path":"/exec/id1/json"}
+]

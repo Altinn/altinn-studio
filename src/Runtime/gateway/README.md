@@ -9,6 +9,15 @@ Studio environment that owns it.
 
 The [operator](../operator/README.md) supplies the gateway's credentials and can scale it down outside production.
 
+## Health
+
+`GET /runtime/gateway/api/v1/health` is for the platform team's uptime monitoring,
+[Altinn-Uptime](https://github.com/dis-way/gitops-manifests/tree/main/oci/altinn-uptime). It cannot authenticate, and
+it counts a cluster as up only on a 200 whose body starts with `{"status":"healthy"`.
+
+The checks call services at the addresses apps get from [apps-config](../../../infra/runtime/apps-config), so a cluster
+fault that breaks apps also fails them, as in [altinn-platform#4358](https://github.com/Altinn/altinn-platform/issues/4358).
+
 ## Telemetry
 
 The gateway follows the observability standard. The gateway dashboard in

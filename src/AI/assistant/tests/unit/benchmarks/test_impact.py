@@ -22,8 +22,9 @@ def _digests_match_the_baseline(monkeypatch):
     monkeypatch.setattr(impact, "current_digests", lambda: {axis: recorded.get(axis) for axis, _ in impact.DIGESTS})
 
 
-def test_a_dataset_edit_invalidates_the_baseline():
-    found = impact.analyze(["benchmarks/datasets/gates_scope.jsonl"])
+@pytest.mark.parametrize("path", ["datasets/gates_scope.jsonl", "assets/form.pdf", "assets/form.html"])
+def test_a_dataset_or_attachment_edit_invalidates_the_baseline(path):
+    found = impact.analyze([f"benchmarks/{path}"])
     assert found.needs_rebaseline
     assert found.axes == ("dataset",)
     assert any("not comparable" in line for line in found.explain())
@@ -382,7 +383,7 @@ class TestComponentCoverage:
         coverage = components.Coverage(
             universe=("Datepicker", "Input"),
             by_dataset={"Loop/traces": ("Datepicker", "Input")},
-            unavailable=("Benchmarks/forms",),
+            unavailable=("Benchmarks/app-v9",),
         )
         assert coverage.rendered == ()
         assert coverage.replay_only == ("Datepicker", "Input")
@@ -395,18 +396,11 @@ class TestComponentCoverage:
 
         coverage = components.Coverage(
             universe=("Datepicker",),
-            by_dataset={"Benchmarks/forms": ("Datepicker",)},
+            by_dataset={"Benchmarks/app-v9": ("Datepicker",)},
             unavailable=(),
         )
         assert coverage.rendered == ("Datepicker",)
         assert coverage.replay_only == ()
-
-    def test_it_says_when_the_only_rendering_eval_has_no_items_here(self):
-        from benchmarks import components
-
-        lines = "\n".join(components.render(components.collect()))
-        assert "Benchmarks/forms has no items in the repo" in lines
-        assert "the only kind that renders" in lines
 
     def test_no_schemas_degrades_rather_than_crashing(self, monkeypatch):
         from benchmarks import components
@@ -511,7 +505,7 @@ def test_documentation_beside_a_prompt_is_not_a_prompt():
 
 
 def test_a_prompt_itself_still_moves_the_axis():
-    hits = impact.analyze(["src/AI/assistant/agents/prompts/scope_check.md"]).hits
+    hits = impact.analyze(["src/AI/assistant/agents/prompts/goal_suggestions.md"]).hits
 
     assert [h.axis for h in hits] == ["prompts"]
 
@@ -650,7 +644,7 @@ def run(args):
 
     def test_the_gate_never_compares_a_markdown_file_as_code(self):
         found = impact.analyze(
-            ["agents/prompts/scope_check.md"],
+            ["agents/prompts/goal_suggestions.md"],
             before=lambda _path: "same",
             after=lambda _path: "same",
         )

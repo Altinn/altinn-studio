@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { InstantiationButtonDef } from 'src/layout/InstantiationButton/config.def.generated';

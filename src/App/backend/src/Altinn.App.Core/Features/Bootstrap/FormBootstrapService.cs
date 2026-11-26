@@ -25,10 +25,9 @@ namespace Altinn.App.Core.Features.Bootstrap;
 /// </summary>
 internal sealed class FormBootstrapService
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = AppFileJson.CreateSerializerOptions(
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    );
 
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
@@ -275,7 +274,8 @@ internal sealed class FormBootstrapService
 
             var schema = GetSchema(dataType);
             var formData = await GetFormData(dataAccessor, dataElement, language, cancellationToken);
-            var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
+            var writable = dataTypeDef.IsWritableInCurrentTask(dataAccessor.Instance, dataElement);
+            var validationConfig = isPdf || !writable ? null : GetValidationConfig(dataType);
 
             return (
                 dataType,
@@ -285,8 +285,9 @@ internal sealed class FormBootstrapService
                         Schema = schema,
                         InitialData = formData,
                         DataElementId = dataElement.Id,
+                        Writable = writable,
                         ExpressionValidationConfig = validationConfig,
-                        CalculationConfig = isPdf || dataElement.Locked ? null : GetCalculationConfig(dataType),
+                        CalculationConfig = isPdf || !writable ? null : _appResources.GetCalculationConfig(dataType),
                     }
             );
         });
@@ -353,8 +354,9 @@ internal sealed class FormBootstrapService
                     Schema = schema,
                     InitialData = defaultData,
                     DataElementId = null,
+                    Writable = true,
                     ExpressionValidationConfig = validationConfig,
-                    CalculationConfig = GetCalculationConfig(dataType),
+                    CalculationConfig = _appResources.GetCalculationConfig(dataType),
                 };
             }
             catch (Exception ex)
@@ -617,15 +619,17 @@ internal sealed class FormBootstrapService
         }
 
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
-        if (changes.AllChanges.Count == 0)
-        {
-            return;
-        }
+        // The save sends the data values and presentation texts the read hooks changed on the instance, with or
+        // without a form data change.
+        bool hasInstanceFieldChanges = dataAccessor.HasInstanceFieldChanges();
 
         var persistableChanges = changes
-            .AllChanges.Where(c => c is not FormDataChange { Type: ChangeType.Updated, DataElement.Locked: true })
+            .AllChanges.Where(c =>
+                c.DataElement is { } dataElement
+                && c.DataType.IsWritableInCurrentTask(dataAccessor.Instance, dataElement)
+            )
             .ToList();
-        if (persistableChanges.Count == 0)
+        if (persistableChanges.Count == 0 && !hasInstanceFieldChanges)
         {
             return;
         }
@@ -650,21 +654,13 @@ internal sealed class FormBootstrapService
         return _appModel.Create(classRef);
     }
 
-    private object? GetCalculationConfig(string dataType)
-    {
-        var configJson = _appResources.GetCalculationConfiguration(dataType);
-        return string.IsNullOrEmpty(configJson)
-            ? null
-            : JsonSerializer.Deserialize<JsonElement>(configJson, _jsonSerializerOptions);
-    }
-
     private HashSet<string> IncludeCalculationDependencies(HashSet<string> dataTypes)
     {
         var result = new HashSet<string>(dataTypes);
         var pending = new Queue<string>(dataTypes);
         while (pending.TryDequeue(out var dataType))
         {
-            var config = GetCalculationConfig(dataType);
+            var config = _appResources.GetCalculationConfig(dataType);
             if (config is null)
             {
                 continue;

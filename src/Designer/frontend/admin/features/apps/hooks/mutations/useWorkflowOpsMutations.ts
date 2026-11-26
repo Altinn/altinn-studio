@@ -1,6 +1,6 @@
 import type { QueryClient, UseMutationResult } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import { post } from 'app-shared/utils/networking';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResumeWorkflowResponse } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import {
@@ -26,16 +26,15 @@ export type WorkflowOpsContext = {
 
 export const useResumeWorkflowMutation = (
   context: WorkflowOpsContext,
-): UseMutationResult<ResumeWorkflowResponse, unknown, string> => {
+): UseMutationResult<ResumeWorkflowResponse | null, unknown, string> => {
   const queryClient = useQueryClient();
   const { org, env, app } = context;
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      const response = await axios.post<ResumeWorkflowResponse>(
+      return post<ResumeWorkflowResponse>(
         resumeWorkflowPath(org, env, app, workflowId, RESUME_CASCADE),
       );
-      return response.data;
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },
@@ -51,7 +50,7 @@ export const useNudgeWorkflowMutation = (
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      await axios.post(nudgeWorkflowPath(org, env, app, workflowId));
+      await post(nudgeWorkflowPath(org, env, app, workflowId));
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },
@@ -70,7 +69,7 @@ export const useFailWorkflowMutation = (
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      await axios.post(failWorkflowPath(org, env, app, workflowId));
+      await post(failWorkflowPath(org, env, app, workflowId));
     },
     onSuccess: () => invalidateWorkflowQueries(queryClient, context),
     meta: { hideDefaultError: true },

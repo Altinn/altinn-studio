@@ -1,7 +1,8 @@
-import React from 'react';
+import { useCallback, useState } from 'react';
 
 import { NavigationBar, useIsMobile } from '@app/form-component';
 
+import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/core/queries/processing';
 import { FormStore } from 'src/features/form/FormContext';
 import { useGetNavigationIsPrevented } from 'src/features/navigation/utils';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
@@ -9,16 +10,15 @@ import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { usePageValidation } from 'src/hooks/usePageValidation';
-import { useCurrentProcessKey, useProcessingMutationWithKey } from 'src/hooks/useProcessingMutation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import type { NavigatePageProcessKey } from 'src/hooks/useProcessingMutation';
+import type { NavigatePageProcessKey } from 'src/core/queries/processing';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComponent<'NavigationBar'>) {
   const config = useComponentConfig(baseComponentId, 'NavigationBar');
   const id = useIndexedId(baseComponentId);
-  const [showMenu, setShowMenu] = React.useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const isCompact = useIsMobile() || config.compact === true;
   const currentPageId = useNavigationParam('pageKey') ?? '';
   const { navigateToPage, order, maybeSaveOnPageChange } = useNavigatePage();
@@ -27,11 +27,10 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
   const currentProcessKey = useCurrentProcessKey<NavigatePageProcessKey>('navigate-page');
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
 
-  const { getPageValidation } = usePageValidation(baseComponentId);
-  // Use component-level validation if set, otherwise fall back to page-level
-  // When page-level validation is set, only validate forward navigation
-  const validationOnForward = getPageValidation() ?? config.validateOnForward;
-  const validationOnBackward = getPageValidation() ? undefined : config.validateOnBackward;
+  const { pageValidation } = usePageValidation(baseComponentId);
+  // Inherited validation applies only to forward navigation.
+  const validationOnForward = config.validateOnForward ?? pageValidation;
+  const validationOnBackward = config.validateOnBackward;
 
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
 
@@ -49,7 +48,7 @@ export function NavigationBarComponent({ baseComponentId }: PropsFromGenericComp
     navigateToPage,
   });
 
-  const handleNavigationClick = React.useCallback(
+  const handleNavigationClick = useCallback(
     (pageId: string) =>
       performProcess(pageId, async () => {
         const {

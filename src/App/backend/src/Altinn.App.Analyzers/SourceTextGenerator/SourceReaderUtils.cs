@@ -166,6 +166,22 @@ public static class SourceReaderUtils
         return false;
     }
 
+    public static bool HasJsonIncludeAttribute(IPropertySymbol property)
+    {
+        foreach (var attributeData in property.GetAttributes())
+        {
+            if (
+                attributeData.AttributeClass is { Name: "JsonIncludeAttribute" } attr
+                && attr.ContainingNamespace?.ToDisplayString() == "System.Text.Json.Serialization"
+            )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static bool HasBindNeverAttribute(IPropertySymbol property)
     {
         foreach (var attributeData in property.GetAttributes())

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import dot from 'dot-object';
 import type { ISubformCellContent } from '@app/layout-contract/generated/components/Subform/config.generated';
 

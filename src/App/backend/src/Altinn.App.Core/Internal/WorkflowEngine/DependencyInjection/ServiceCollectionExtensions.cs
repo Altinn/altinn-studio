@@ -52,7 +52,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, CommonTaskInitialization>();
         services.AddTransient<IWorkflowEngineCommand, StartTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskStartingHook>();
-        services.AddTransient<IWorkflowEngineCommand, UnlockTaskData>();
 
         // Workflow engine commands - TaskAbandon
         services.AddTransient<IWorkflowEngineCommand, AbandonTask>();
@@ -62,7 +61,6 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, CommonTaskFinalization>();
         services.AddTransient<IWorkflowEngineCommand, EndTask>();
         services.AddTransient<IWorkflowEngineCommand, OnTaskEndingHook>();
-        services.AddTransient<IWorkflowEngineCommand, LockTaskData>();
 
         // Workflow engine commands - ServiceTask
         services.AddTransient<IWorkflowEngineCommand, ExecuteServiceTask>();
@@ -74,6 +72,7 @@ internal static class ServiceCollectionExtensions
         // Workflow engine commands - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();
         services.AddTransient<IWorkflowEngineCommand, DeleteDataOnProcessEnd>();
+        services.AddTransient<IWorkflowEngineCommand, ConfirmCompleteOnProcessEnd>();
 
         // Workflow engine commands - State Management
         services.AddTransient<ProcessingStatusAcquirer>();

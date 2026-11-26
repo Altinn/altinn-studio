@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -989,6 +990,200 @@ public class SourceControlServiceTest : IDisposable
         using Repository repo = new(localRepoPath);
         Assert.NotNull(repo.Branches[$"origin/{General.DefaultBranch}"]);
         Assert.NotNull(repo.Branches["origin/aaa-other"]);
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_DiscardsLocalWork_AndMatchesTheRemoteBranch()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        string remoteSha = CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote");
+        CommitLocalChange(localRepoPath, "local-commit.txt", "local content", "local");
+        using (Repository localRepo = new(localRepoPath))
+        {
+            Commands.Checkout(localRepo, localRepo.CreateBranch("other"));
+        }
+        File.WriteAllText(Path.Join(localRepoPath, "test.txt"), "uncommitted change");
+        File.WriteAllText(Path.Join(localRepoPath, "untracked.txt"), "untracked");
+
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
+
+        using Repository repo = new(localRepoPath);
+        Assert.Equal(General.DefaultBranch, repo.Head.FriendlyName);
+        Assert.Equal(remoteSha, repo.Head.Tip.Sha);
+        Assert.False(repo.RetrieveStatus().IsDirty);
+        Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
+        Assert.False(File.Exists(Path.Join(localRepoPath, "local-commit.txt")));
+        Assert.False(File.Exists(Path.Join(localRepoPath, "untracked.txt")));
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_WhenTheRemoteHasNoSuchBranch_Throws()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out _
+        );
+
+        Assert.Throws<BranchNotFoundException>(() =>
+            _sourceControlService.ResetToRemoteBranch(authenticatedContext, "missing", localRepoPath)
+        );
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_WhenTheRemoteDeletedTheBranch_Throws()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            collaboratorRepo.CreateBranch("release");
+            collaboratorRepo.Network.Push(
+                collaboratorRepo.Network.Remotes["origin"],
+                "refs/heads/release",
+                new PushOptions()
+            );
+        }
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, "release", localRepoPath);
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            collaboratorRepo.Network.Push(
+                collaboratorRepo.Network.Remotes["origin"],
+                ":refs/heads/release",
+                new PushOptions()
+            );
+        }
+
+        Assert.Throws<BranchNotFoundException>(() =>
+            _sourceControlService.ResetToRemoteBranch(authenticatedContext, "release", localRepoPath)
+        );
+        using Repository localRepo = new(localRepoPath);
+        Assert.Null(localRepo.Branches["origin/release"]);
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_RemovesIgnoredFiles()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out _
+        );
+        WriteFile(localRepoPath, ".gitignore", "stale.yaml\nignored-folder/\n");
+        WriteFile(localRepoPath, "stale.yaml", "stale manifest");
+        WriteFile(localRepoPath, "ignored-folder/manifest.yaml", "stale manifest");
+
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
+
+        Assert.False(File.Exists(Path.Join(localRepoPath, ".gitignore")));
+        Assert.False(File.Exists(Path.Join(localRepoPath, "stale.yaml")));
+        Assert.False(File.Exists(Path.Join(localRepoPath, "ignored-folder", "manifest.yaml")));
+        Assert.True(File.Exists(Path.Join(localRepoPath, "test.txt")));
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_RemovesIgnoredFilesInAnIgnoredFolderWithTrackedFiles()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            // Tracked before the rule that ignores its folder, as staging skips ignored files.
+            WriteFile(collaboratorRepoPath, "apps/tracked.yaml", "tracked manifest");
+            Commands.Stage(collaboratorRepo, "apps/tracked.yaml");
+            WriteFile(collaboratorRepoPath, ".gitignore", "apps/\n");
+            Commands.Stage(collaboratorRepo, ".gitignore");
+            var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+            collaboratorRepo.Commit("ignore apps", signature, signature);
+            collaboratorRepo.Network.Push(collaboratorRepo.Head, new PushOptions());
+        }
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
+        WriteFile(localRepoPath, "apps/stale.yaml", "stale manifest");
+
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
+
+        Assert.False(File.Exists(Path.Join(localRepoPath, "apps", "stale.yaml")));
+        Assert.True(File.Exists(Path.Join(localRepoPath, "apps", "tracked.yaml")));
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_ThenCommitAndPush_BuildsOnTheRemoteTipWithOnlyTheNewChange()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        CommitLocalChange(localRepoPath, "failed-push.txt", "never pushed", "failed push");
+        WriteFile(localRepoPath, "leftover.txt", "leftover");
+        string remoteSha = CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote");
+
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
+        WriteFile(localRepoPath, "new.txt", "new content");
+        _sourceControlService.CommitAndPushChanges(
+            authenticatedContext,
+            General.DefaultBranch,
+            localRepoPath,
+            "deploy"
+        );
+
+        using Repository remoteRepo = new($"{TestDataHelper.GetTestDataRemoteRepository(_org, repoName)}.git");
+        LibGit2Sharp.Commit pushed = remoteRepo.Branches[General.DefaultBranch].Tip;
+        Assert.Equal(remoteSha, Assert.Single(pushed.Parents).Sha);
+        Assert.Equal(
+            ["new.txt", "remote-only.txt", "test.txt"],
+            pushed.Tree.Select(entry => entry.Path).Order().ToArray()
+        );
+    }
+
+    [Fact]
+    public void ResetToRemoteBranch_WhenTheCloneTracksAnotherServer_FetchesFromTheConfiguredRemote()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string otherServerRepoPath
+        );
+        string remoteSha;
+        using (Repository localRepo = new(localRepoPath))
+        {
+            remoteSha = localRepo.Head.Tip.Sha;
+            localRepo.Network.Remotes.Update(
+                "origin",
+                r =>
+                {
+                    r.Url = otherServerRepoPath;
+                    r.PushUrl = otherServerRepoPath;
+                }
+            );
+        }
+        CommitLocalChange(otherServerRepoPath, "other-server-only.txt", "other server content", "other server");
+
+        _sourceControlService.ResetToRemoteBranch(authenticatedContext, General.DefaultBranch, localRepoPath);
+
+        using Repository repo = new(localRepoPath);
+        Assert.Equal(remoteSha, repo.Head.Tip.Sha);
+        Assert.False(File.Exists(Path.Join(localRepoPath, "other-server-only.txt")));
+        string expectedUrl = _settings.RepositoryBaseURL + $"{_org}/{repoName}.git";
+        Assert.Equal(expectedUrl, repo.Network.Remotes["origin"].Url);
+        Assert.Equal(expectedUrl, repo.Network.Remotes["origin"].PushUrl);
     }
 
     private static HttpContext GetHttpContextForTestUser(string userName)

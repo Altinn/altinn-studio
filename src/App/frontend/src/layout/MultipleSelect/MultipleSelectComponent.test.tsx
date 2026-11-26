@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -86,9 +84,7 @@ describe('MultipleSelect', () => {
           metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
         },
       },
-      queries: {
-        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
-      },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

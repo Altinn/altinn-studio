@@ -6,7 +6,7 @@ import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery'
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
-import { StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@designer/components';
 
 export const Dynamics = () => {
   const { formItemId: formId, formItem: form } = useFormItemContext();

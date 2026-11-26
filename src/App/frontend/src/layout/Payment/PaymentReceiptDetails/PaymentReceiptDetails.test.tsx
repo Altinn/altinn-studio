@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen, within } from '@testing-library/react';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
@@ -11,15 +9,13 @@ describe('PaymentReceiptDetails', () => {
     await renderGenericComponentTest({
       type: 'Payment',
       renderer: () => <PaymentReceiptDetails />,
-      apis: {
-        instanceApi: {
-          getInstance: async () => {
-            const instance = getInstanceWithProcessMock();
-            if (instance.process.currentTask) {
-              instance.process.currentTask.altinnTaskType = 'payment';
-            }
-            return instance;
-          },
+      queries: {
+        getInstance: async () => {
+          const instance = getInstanceWithProcessMock();
+          if (instance.process.currentTask) {
+            instance.process.currentTask.altinnTaskType = 'payment';
+          }
+          return instance;
         },
       },
     });

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: $0 <runtime|studio> [output-dir] [--validate]" >&2
-  echo "       $0 <runtime|studio> --output-dir <dir> [--validate]" >&2
+  echo "usage: $0 <runtime|studio|dis-core> [output-dir] [--validate]" >&2
+  echo "       $0 <runtime|studio|dis-core> --output-dir <dir> [--validate]" >&2
 }
 
 overlay=${1:-}
@@ -14,7 +14,7 @@ fi
 shift
 
 case "$overlay" in
-  runtime|studio)
+  runtime|studio|dis-core)
     ;;
   *)
     echo "unknown overlay: $overlay" >&2
@@ -75,7 +75,14 @@ if [[ "$validate" == "true" ]]; then
     echo "kubectl not found; cannot validate kustomize output" >&2
     exit 1
   fi
-  kubectl kustomize "$overlay_dir" >/dev/null
+  if [[ "$overlay" == "dis-core" ]]; then
+    for env_dir in "$overlay_dir"/env/*/; do
+      kubectl kustomize "$env_dir" >/dev/null
+      kubectl kustomize "${env_dir}app" >/dev/null
+    done
+  else
+    kubectl kustomize "$overlay_dir" >/dev/null
+  fi
 fi
 
 if [[ -z "$output_dir" ]]; then
@@ -113,3 +120,18 @@ mkdir -p "$output_dir"
 
 cp -a "$base_dir" "$output_dir/base"
 cp -a "$overlay_dir" "$output_dir/$overlay"
+
+# DIS Core's root Kustomization applies the artifact's folder named after the cluster's
+# environment, such as ./at22. Each points at that environment's folder in the overlay.
+if [[ "$overlay" == "dis-core" ]]; then
+  for env_dir in "$overlay_dir"/env/*/; do
+    env=$(basename "$env_dir")
+    mkdir -p "$output_dir/$env"
+    printf '%s\n' \
+      "apiVersion: kustomize.config.k8s.io/v1beta1" \
+      "kind: Kustomization" \
+      "resources:" \
+      "  - ../$overlay/env/$env" \
+      >"$output_dir/$env/kustomization.yaml"
+  done
+fi

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 
 import { CircleIcon } from 'src/components/CircleIcon';

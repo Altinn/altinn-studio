@@ -1,3 +1,5 @@
+using System;
+
 namespace Altinn.Studio.Designer.Services.Runtime;
 
 /// <summary>
@@ -17,7 +19,20 @@ public abstract record AppRunState
     /// recording it. It matches the deploy's <see cref="Repository.Models.BuildEntity.Id"/> when this Studio
     /// environment deployed it.
     /// </param>
-    public sealed record Running(string Environment, string? Version, string? BuildId) : AppRunState(Environment);
+    /// <param name="Status">Whether the app runs its latest version, or null when the runtime could not tell.</param>
+    /// <param name="RestartedAt">When the app was last restarted without a deploy.</param>
+    /// <param name="CanRestart">
+    /// Whether this Studio environment may restart the app. It may unless another Studio environment deployed it, and
+    /// still has to wait while the app is <see cref="AppStatus.Updating"/>.
+    /// </param>
+    public sealed record Running(
+        string Environment,
+        string? Version,
+        string? BuildId,
+        AppStatus? Status,
+        DateTimeOffset? RestartedAt,
+        bool CanRestart
+    ) : AppRunState(Environment);
 
     public sealed record NotRunning(string Environment) : AppRunState(Environment);
 

@@ -1,14 +1,14 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useState } from 'react';
 import classes from './EditSubformTableColumns.module.css';
-import { StudioButton, StudioHeading } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import { StudioButton, StudioHeading } from '@designer/components';
+import { PlusIcon } from '@designer/icons';
 import { useTranslation } from 'react-i18next';
 import { type IGenericEditComponent } from '../../config/componentConfig';
 import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from './types/TableColumn';
 import { filterOutTableColumn, updateComponentWithSubform } from './utils';
-import { useUniqueKeys } from '@studio/hooks';
+import { useUniqueKeys } from '@designer/hooks';
 import { ColumnElement } from './ColumnElement';
 import { useSubformLayoutValidation } from './hooks/useSubformLayoutValidation';
 import { SubformMissingContentWarning } from './SubformMissingContentWarning/SubformMissingContentWarning';

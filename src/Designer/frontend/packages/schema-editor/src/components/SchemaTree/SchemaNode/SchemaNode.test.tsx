@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../test/renderWithProviders';
-import { StudioDragAndDropTree } from '@studio/components';
+import { StudioDragAndDropTree } from '@designer/components';
 import { SchemaNode } from './SchemaNode';
 import { userEvent } from '@testing-library/user-event';
 import type { FieldNode } from '@altinn/schema-model';
@@ -18,7 +18,7 @@ import {
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
+import { textMock } from '@designer/testing/mocks/i18nMock';
 import { getSavedModel } from '../../../../test/test-utils';
 
 const user = userEvent.setup();

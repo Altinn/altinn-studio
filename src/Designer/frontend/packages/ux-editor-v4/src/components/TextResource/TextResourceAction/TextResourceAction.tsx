@@ -1,5 +1,5 @@
-import type { StudioTextResourceActionTexts } from '@studio/components';
-import { StudioTextResourceAction } from '@studio/components';
+import type { StudioTextResourceActionTexts } from '@designer/components';
+import { StudioTextResourceAction } from '@designer/components';
 import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
 import type { TranslationKey } from '@altinn-studio/language/type';

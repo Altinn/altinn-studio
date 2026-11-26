@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -18,6 +19,7 @@ export const ACTION_BUTTON_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/ActionButton',
   component: ActionButton,
+  decorators: [withComponentGrid],
   excludeStories: ['ACTION_BUTTON_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

@@ -498,23 +498,26 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
     // --- RemovedInternalProcessTypeDetector ------------------------------------------------------
 
-    [Fact]
-    public void InternalProcessTypeDetector_FlagsRemovedHandlerReference()
+    [Theory]
+    [InlineData("EndTaskEventHandler", "task lifecycle handlers")]
+    [InlineData("IProcessTaskDataLocker", "taskIds")]
+    [InlineData("ProcessTaskDataLocker", "taskIds")]
+    public void InternalProcessTypeDetector_FlagsRemovedTypeWithItsOwnGuidance(string removedType, string guidance)
     {
         _app.Write(
             "logic/Custom.cs",
-            """
+            $$"""
             public class Custom
             {
-                private readonly EndTaskEventHandler _handler;
+                private readonly {{removedType}} _dependency;
             }
             """
         );
 
         var result = new RemovedInternalProcessTypeDetector(Scanner()).Detect();
 
-        Assert.NotEmpty(result.Todos);
-        Assert.Contains(result.Warnings, w => w.Contains("EndTaskEventHandler"));
+        Assert.Contains(guidance, Assert.Single(result.Todos));
+        Assert.Contains(result.Warnings, w => w.Contains(removedType));
     }
 
     // --- LegacyCorrespondenceCodeDetector --------------------------------------------------------
@@ -2121,6 +2124,31 @@ public sealed class CSharpApiMigrationTests : IDisposable
 
         Assert.NotEmpty(result.Todos);
         Assert.Contains(result.Warnings, w => w.Contains("Reader.cs") && w.Contains("GetApplication"));
+    }
+
+    [Fact]
+    public void AppResourcesDetector_FlagsGetCalculationConfigurationCall()
+    {
+        _app.Write(
+            "logic/Calculations.cs",
+            """
+            public class Calculations
+            {
+                public string? Read(IAppResources resources) => resources.GetCalculationConfiguration("model");
+            }
+            """
+        );
+
+        var result = new RemovedAppResourcesApiDetector(Scanner()).Detect();
+
+        // The replacement's name is a prefix of the removed one, so assert the call form, which only the
+        // replacement is written as.
+        var todo = Assert.Single(result.Todos, t => t.Contains("GetCalculationConfiguration(dataTypeId) is removed"));
+        Assert.Contains("Use GetCalculationConfig(dataTypeId), which returns a CalculationConfig", todo);
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Calculations.cs") && w.Contains("GetCalculationConfiguration")
+        );
     }
 
     [Fact]

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import type React from 'react';
+import type { RefObject } from 'react';
 
 import type { StoredImage } from '@app/form-component/layout-components/ImageUpload/imageUploadUtils';
 
 export function useFocusWhenUploaded(
   attachment: StoredImage | undefined,
-  elementRef: React.RefObject<HTMLElement | null>,
+  elementRef: RefObject<HTMLElement | null>,
 ) {
   const prevAttachmentIdRef = useRef<string | undefined>(undefined);
   const isInitialMountRef = useRef(true);
@@ -54,7 +54,7 @@ function hasAttachmentIdChanged(
   return !!currentId && currentId !== previousId;
 }
 
-function focusElement(elementRef: React.RefObject<HTMLElement | null>): void {
+function focusElement(elementRef: RefObject<HTMLElement | null>): void {
   requestAnimationFrame(() => {
     elementRef.current?.focus();
   });

@@ -1,4 +1,5 @@
-import React from 'react';
+import { forwardRef } from 'react';
+import type { Ref } from 'react';
 
 import { Flex } from '@app/form-component';
 import cn from 'classnames';
@@ -40,9 +41,9 @@ export interface LegacySummaryOverrides {
   excludedChildren?: string[];
 }
 
-export const SummaryComponentFor = React.forwardRef(function (
+export const SummaryComponentFor = forwardRef(function (
   { targetBaseComponentId, overrides }: { targetBaseComponentId: string; overrides?: LegacySummaryOverrides },
-  ref: React.Ref<HTMLDivElement>,
+  ref: Ref<HTMLDivElement>,
 ) {
   const targetItem = useComponentConfig(targetBaseComponentId);
   const componentId = useIndexedId(targetBaseComponentId);
@@ -71,9 +72,9 @@ SummaryComponentFor.displayName = 'SummaryComponentFor';
  * This component renders the alternative where only a `summaryNode` is provided, and the target node is inferred
  * from that `summaryNode`.
  */
-export const SummaryComponent = React.forwardRef(function (
+export const SummaryComponent = forwardRef(function (
   { summaryBaseId, overrides }: { summaryBaseId: string; overrides?: LegacySummaryOverrides },
-  ref: React.Ref<HTMLDivElement>,
+  ref: Ref<HTMLDivElement>,
 ) {
   const summaryItem = useComponentConfig(summaryBaseId, 'Summary');
   const componentId = useIndexedId(summaryBaseId);
@@ -112,7 +113,7 @@ interface ISummaryProps extends LegacySummaryOverrides {
   componentBaseId: string;
 }
 
-const SummaryComponentInner = React.forwardRef(function (
+const SummaryComponentInner = forwardRef(function (
   {
     originNodeId,
     targetBaseComponentId,
@@ -125,7 +126,7 @@ const SummaryComponentInner = React.forwardRef(function (
     largeGroup,
     excludedChildren,
   }: ISummaryProps,
-  ref: React.Ref<HTMLDivElement>,
+  ref: Ref<HTMLDivElement>,
 ) {
   const targetItem = useComponentConfig(targetBaseComponentId);
   const { langAsString } = useLanguage();

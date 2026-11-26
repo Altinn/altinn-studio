@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type { ReactNode } from 'react';
 
 import {
   Description,
@@ -14,11 +15,12 @@ import classes from 'src/components/label/LabelContent.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useFormComponentCtx } from 'src/layout/FormComponentContext';
+import { useShowOptionalIndicator } from 'src/utils/layout/useShowOptionalIndicator';
 
 export type LabelContentProps = Readonly<{
   id: string;
   wrapperId?: string;
-  label?: React.ReactNode;
+  label?: ReactNode;
   description?: string;
   required?: boolean;
   readOnly?: boolean;
@@ -48,6 +50,7 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
 ) {
   const { overrideDisplay } = useFormComponentCtx() ?? {};
   const { elementAsString } = useLanguage();
+  const showOptionalMarking = useShowOptionalIndicator(labelSettings);
 
   if (overrideDisplay?.renderLabel === false) {
     return null;
@@ -59,11 +62,14 @@ export const LabelContent = forwardRef<HTMLSpanElement, LabelContentProps>(funct
       <ContentTag className={classes.labelContainer}>
         <ContentTag className={classes.labelContent}>
           {typeof label === 'string' ? <Lang id={label} /> : label}
-          <RequiredIndicator required={required} />
+          <RequiredIndicator
+            required={required}
+            readOnly={readOnly}
+          />
           <OptionalIndicator
             readOnly={readOnly}
             required={required}
-            showOptionalMarking={labelSettings?.optionalIndicator !== false}
+            showOptionalMarking={showOptionalMarking}
           />
         </ContentTag>
         {help && (

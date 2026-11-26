@@ -1,5 +1,5 @@
-import React from 'react';
-import type { ReactNode } from 'react';
+import { Fragment } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 import { FatalError, Spinner } from '@app/form-component';
 
@@ -15,7 +15,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { IData } from 'src/types/shared';
 
-export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRendererProps): React.JSX.Element | null {
+export function SubformSummaryComponent({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
   const config = useComponentConfig(targetBaseComponentId, 'Subform');
   const id = useIndexedId(targetBaseComponentId);
   const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
@@ -87,10 +87,10 @@ function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IDat
     <div className={classes.row}>
       <div>
         {content.map((entry, i) => (
-          <React.Fragment key={`wrapper-${i}`}>
+          <Fragment key={`wrapper-${i}`}>
             {entry}
             {!isLastEntry(i) && <span key={`delimiter-${i}`}>{config.summaryDelimiter ?? ' — '}</span>}
-          </React.Fragment>
+          </Fragment>
         ))}
       </div>
     </div>
