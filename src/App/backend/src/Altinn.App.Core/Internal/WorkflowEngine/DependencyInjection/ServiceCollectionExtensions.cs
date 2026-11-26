@@ -30,7 +30,8 @@ internal static class ServiceCollectionExtensions
 
         // The inbound half of a mailbox exchange: whatever channel receives an external system's answer
         // hands it here, and it reaches the waiting service task's reply handler through the engine.
-        services.AddTransient<IServiceTaskReplyForwarder, ServiceTaskReplyForwarder>();
+        services.AddTransient<ServiceTaskReplyForwarder>();
+        services.AddTransient<IServiceTaskReplyForwarder>(sp => sp.GetRequiredService<ServiceTaskReplyForwarder>());
 
         services
             .AddHttpClient<IWorkflowEngineClient, WorkflowEngineClient>()

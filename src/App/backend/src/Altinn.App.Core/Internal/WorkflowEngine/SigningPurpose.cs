@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -28,9 +29,10 @@ internal enum SigningPurpose
 
     /// <summary>
     /// A message forwarded into a mailbox. Versioned: a change to the coverage takes a new member, invalidating
-    /// in-flight envelopes rather than reinterpreting them.
+    /// in-flight envelopes rather than reinterpreting them. V2 binds the pipeline instead of the service task type;
+    /// 2 was V1's.
     /// </summary>
-    MailboxDeliveryV1 = 2,
+    MailboxDeliveryV2 = 3,
 }
 
 /// <summary>
@@ -56,24 +58,25 @@ internal readonly record struct SigningDomain
     public static SigningDomain CallbackState => new(SigningPurpose.CallbackState, binding: null);
 
     /// <summary>
-    /// Bound to the reply address (no replay into another exchange), the handler's service task (no other task
+    /// Bound to the reply address (no replay into another exchange), the handler's pipeline (no other pipeline
     /// of the same app can read and conclude this exchange), and the source's message id (authenticated, and no
     /// re-delivery under a fresh key).
     /// </summary>
-    public static SigningDomain MailboxDelivery(Guid mailboxId, string serviceTaskType, string idempotencyKey) =>
-        new(SigningPurpose.MailboxDeliveryV1, new DeliveryBinding(mailboxId, serviceTaskType, idempotencyKey));
+    public static SigningDomain MailboxDelivery(Guid mailboxId, PipelineId pipeline, string idempotencyKey) =>
+        new(SigningPurpose.MailboxDeliveryV2, new DeliveryBinding(mailboxId, pipeline, idempotencyKey));
 
     /// <summary>The key-derivation tag; <see langword="null"/> for a domain signing under the app-code directly.</summary>
     /// <remarks>
-    /// Length-prefixed, load-bearing: the task type and message id are free-form, so raw concatenation would
-    /// let <c>type "a", id "b:c"</c> and <c>type "a:b", id "c"</c> derive the same key. The prefix counts
-    /// <see cref="string.Length"/> — UTF-16 code units, the unit the value is written in.
+    /// Length-prefixed, load-bearing: the task type, action and message id are free-form, so raw concatenation
+    /// would let <c>type "a", id "b:c"</c> and <c>type "a:b", id "c"</c> derive the same key. The prefix counts
+    /// <see cref="string.Length"/> — UTF-16 code units, the unit the value is written in. A missing action has
+    /// length <c>-1</c>, so it differs from an empty one.
     /// </remarks>
     public string? Tag =>
         Purpose switch
         {
             SigningPurpose.CallbackState => null,
-            SigningPurpose.MailboxDeliveryV1 => DeliveryTag(
+            SigningPurpose.MailboxDeliveryV2 => DeliveryTag(
                 Binding ?? throw new UnreachableException("A delivery domain always carries its binding.")
             ),
             _ => throw new InvalidOperationException(
@@ -85,12 +88,12 @@ internal readonly record struct SigningDomain
     private static string DeliveryTag(DeliveryBinding binding) =>
         string.Create(
             CultureInfo.InvariantCulture,
-            $"altinn:workflow-engine:mailbox-delivery:v1:{binding.MailboxId:N}:{binding.ServiceTaskType.Length}:{binding.ServiceTaskType}:{binding.IdempotencyKey.Length}:{binding.IdempotencyKey}"
+            $"altinn:workflow-engine:mailbox-delivery:v2:{binding.MailboxId:N}:{binding.Pipeline.TaskType.Length}:{binding.Pipeline.TaskType}:{binding.Pipeline.Action?.Length ?? -1}:{binding.Pipeline.Action}:{binding.IdempotencyKey.Length}:{binding.IdempotencyKey}"
         );
 
     /// <summary>
     /// Everything a delivered message asserts that the app acts on. The position is deliberately absent: the
     /// engine assigns it at ingestion, and nothing acts on it.
     /// </summary>
-    internal sealed record DeliveryBinding(Guid MailboxId, string ServiceTaskType, string IdempotencyKey);
+    internal sealed record DeliveryBinding(Guid MailboxId, PipelineId Pipeline, string IdempotencyKey);
 }

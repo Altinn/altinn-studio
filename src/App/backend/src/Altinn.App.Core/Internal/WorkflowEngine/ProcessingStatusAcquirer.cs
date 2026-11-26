@@ -17,7 +17,8 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Claims processing ownership and enqueues the transition from the workflow's signed snapshot.
+/// Claims processing ownership and enqueues the transition, or the action pipeline, from the workflow's signed
+/// snapshot.
 /// </summary>
 internal sealed class ProcessingStatusAcquirer
 {
@@ -52,7 +53,7 @@ internal sealed class ProcessingStatusAcquirer
         CancellationToken cancellationToken
     )
     {
-        if (!TryReadPayload(payload.Payload, out AcquireProcessingStatusPayload? acquirePayload))
+        if (!TryReadPayload(payload.Payload, out CommandRequestPayload? acquirePayload))
         {
             return new ProcessingStatusAcquisition.Rejected(
                 "AcquireProcessingStatus payload is invalid",
@@ -74,7 +75,7 @@ internal sealed class ProcessingStatusAcquirer
             );
         }
 
-        ProcessStateChange? transition = acquirePayload?.ProcessStateChange;
+        ProcessStateChange? transition = (acquirePayload as AcquireProcessingStatusPayload)?.ProcessStateChange;
         if (transition is not null)
         {
             ProcessEngine.ApplyExecutionContext(transition, payload.Actor, payload.ExecutionReferenceTime);
@@ -166,11 +167,23 @@ internal sealed class ProcessingStatusAcquirer
                 cancellationToken: cancellationToken
             );
         }
+        else if (acquirePayload is AcquireForActionPipelinePayload actionPipeline)
+        {
+            await _workflowEngineService.EnqueueDependentActionPipeline(
+                result.Instance,
+                actionPipeline.Pipeline,
+                payload.WorkflowId,
+                collectionKey ?? throw new InvalidOperationException("An action pipeline requires a collection key."),
+                acquiredState,
+                payload.Actor,
+                cancellationToken
+            );
+        }
 
         return new ProcessingStatusAcquisition.Acquired(acquiredState);
     }
 
-    private static bool TryReadPayload(string? payload, out AcquireProcessingStatusPayload? acquirePayload)
+    private static bool TryReadPayload(string? payload, out CommandRequestPayload? acquirePayload)
     {
         acquirePayload = null;
         if (payload is null)
@@ -180,15 +193,19 @@ internal sealed class ProcessingStatusAcquirer
 
         try
         {
-            acquirePayload =
-                CommandPayloadSerializer.Deserialize<CommandRequestPayload>(payload) as AcquireProcessingStatusPayload;
+            acquirePayload = CommandPayloadSerializer.Deserialize<CommandRequestPayload>(payload);
         }
         catch (Exception exception) when (exception is JsonException or NotSupportedException)
         {
             return false;
         }
 
-        return acquirePayload?.ProcessStateChange
+        if (acquirePayload is AcquireForActionPipelinePayload actionPipeline)
+        {
+            return !string.IsNullOrEmpty(actionPipeline.TaskType) && !string.IsNullOrEmpty(actionPipeline.Action);
+        }
+
+        return (acquirePayload as AcquireProcessingStatusPayload)?.ProcessStateChange
                 is {
                     OldProcessState.CurrentTask.ElementId.Length: > 0,
                     NewProcessState: { } nextState,
@@ -214,7 +231,7 @@ internal abstract record ProcessingStatusAcquisition
     internal sealed record Acquired(string State) : ProcessingStatusAcquisition;
 
     /// <summary>
-    /// A lost process/next acquire completes without a continuation.
+    /// A lost process/next or action pipeline acquire completes without a continuation.
     /// </summary>
     internal sealed record Superseded(PlatformHttpException Exception) : ProcessingStatusAcquisition;
 

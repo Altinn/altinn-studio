@@ -24,7 +24,7 @@ internal abstract record MailboxContinuation
     {
         public AwaitNextMessage(
             Guid mailboxId,
-            string serviceTaskType,
+            PipelineId pipeline,
             int handlerItemIndex,
             long position,
             ProcessStepOptions? handlerStepOptions = null,
@@ -32,7 +32,7 @@ internal abstract record MailboxContinuation
         )
         {
             MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
+            Pipeline = pipeline;
             HandlerItemIndex = handlerItemIndex;
             Position = position;
             HandlerStepOptions = handlerStepOptions;
@@ -42,8 +42,8 @@ internal abstract record MailboxContinuation
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
         public Guid MailboxId { get; }
 
-        /// <summary>The service task whose pipeline composes the reply handler.</summary>
-        public string ServiceTaskType { get; }
+        /// <summary>The pipeline that composes the reply handler.</summary>
+        public PipelineId Pipeline { get; }
 
         /// <summary>
         /// The handler's own position in the pipeline — what the successor's step names. Sourced from the
@@ -78,14 +78,14 @@ internal abstract record MailboxContinuation
     /// </summary>
     internal sealed record ContinueAfterStage : MailboxContinuation
     {
-        public ContinueAfterStage(string serviceTaskType, MailboxHandover handover)
+        public ContinueAfterStage(PipelineId pipeline, MailboxHandover handover)
         {
-            ServiceTaskType = serviceTaskType;
+            Pipeline = pipeline;
             Handover = handover;
         }
 
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
+        /// <summary>The pipeline the hand-over belongs to.</summary>
+        public PipelineId Pipeline { get; }
 
         /// <summary>What the pipeline runs next, decided and planned at the verdict this came from.</summary>
         public MailboxHandover Handover { get; }
@@ -93,7 +93,8 @@ internal abstract record MailboxContinuation
 
     /// <summary>
     /// The task is over and the pipeline has nothing left to run: close every named mailbox, then start
-    /// the after-workflow if — and only if — the answer asked the process to advance. One mailbox when a
+    /// the after-workflow if — and only if — the answer asked the process to advance, or the release workflow if
+    /// an action pipeline's answer asked to release the instance. One mailbox when a
     /// reply handler concluded its exchange; every mailbox the carry still held when a mailbox-opening
     /// stage concluded the whole task.
     /// </summary>
@@ -115,18 +116,18 @@ internal abstract record MailboxContinuation
     /// </summary>
     internal sealed record ConcludeAndContinue : MailboxContinuation
     {
-        public ConcludeAndContinue(Guid mailboxId, string serviceTaskType, MailboxHandover handover)
+        public ConcludeAndContinue(Guid mailboxId, PipelineId pipeline, MailboxHandover handover)
         {
             MailboxId = mailboxId;
-            ServiceTaskType = serviceTaskType;
+            Pipeline = pipeline;
             Handover = handover;
         }
 
         /// <summary>The concluded exchange's mailbox — the only one that closes here.</summary>
         public Guid MailboxId { get; }
 
-        /// <summary>The service task whose pipeline the hand-over belongs to.</summary>
-        public string ServiceTaskType { get; }
+        /// <summary>The pipeline the hand-over belongs to.</summary>
+        public PipelineId Pipeline { get; }
 
         /// <summary>
         /// What the pipeline runs once this exchange's mailbox is closed, decided and planned at the verdict

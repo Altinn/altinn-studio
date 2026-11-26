@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
@@ -8,10 +9,18 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for the MintMailbox command: the service task type and the item index of the stage whose
-/// mailbox this step opens — the exchange's identity, fixed at enqueue time and never re-derived.
+/// Request payload for the MintMailbox command: the pipeline and the item index of the stage whose mailbox this
+/// step opens — the exchange's identity, fixed at enqueue time and never re-derived.
 /// </summary>
-internal sealed record MintMailboxPayload(string ServiceTaskType, int StageIndex) : CommandRequestPayload;
+internal sealed record MintMailboxPayload(
+    [property: JsonPropertyName("serviceTaskType")] string TaskType,
+    int StageIndex,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Action = null
+) : CommandRequestPayload
+{
+    [JsonIgnore]
+    public PipelineId Pipeline => new(TaskType, Action);
+}
 
 /// <summary>
 /// Opens the mailbox a service-task stage sends its reply address in, as its own engine step immediately
@@ -34,18 +43,17 @@ internal sealed class MintMailbox(
         MintMailboxPayload payload
     )
     {
+        PipelineId pipelineId = payload.Pipeline;
         try
         {
-            IServiceTask serviceTask =
-                appImplementationFactory.FindServiceTask(payload.ServiceTaskType)
-                ?? throw new ProcessException($"No service task found for type {payload.ServiceTaskType}");
-
-            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            ServiceTaskPipeline pipeline =
+                appImplementationFactory.ResolvePipeline(pipelineId)
+                ?? throw new ProcessException($"{pipelineId} is not registered");
 
             if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not PipelineStage.MailboxOpening declaring)
             {
                 return FailedWorkflowEngineCommandResult.Permanent(
-                    $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "
+                    $"{pipelineId} opened a mailbox from the stage at index "
                         + $"{payload.StageIndex} when this workflow was enqueued, but its pipeline now composes no "
                         + "mailbox-opening stage at that index — stages were inserted, reordered or removed since "
                         + "it was enqueued. Resume the workflow on the code that enqueued it, or abandon it "

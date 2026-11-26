@@ -9,7 +9,10 @@ internal sealed record ProcessNextWorkflowResult(
     StorageVersionMetadata InstanceVersions,
     WorkflowFailure? WorkflowFailure,
     bool ProcessStateCommitted,
-    // The wait released a committed chain that is parked (a deferring service task, or a Held receiver waiting for
-    // its message), so the chain goes on after this result.
-    bool Parked = false
+    // The wait released a chain that is parked (a deferring service task, or a Held receiver waiting for its
+    // message), so the chain goes on after this result.
+    bool Parked = false,
+    // The workflow the anchor enqueues under its dependent key exists, so an acquire anchor won its compare-and-set
+    // and started what it holds the instance for.
+    bool AnchorHasDependent = false
 );

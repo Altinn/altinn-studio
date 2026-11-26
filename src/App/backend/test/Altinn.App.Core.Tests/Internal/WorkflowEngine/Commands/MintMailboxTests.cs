@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -113,6 +114,12 @@ public class MintMailboxTests
             string ns,
             Guid workflowId,
             bool cascade = false,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
+        public Task<MailboxResponse?> GetMailbox(
+            string ns,
+            Guid mailboxId,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
@@ -416,6 +423,33 @@ public class MintMailboxTests
         Assert.Empty(minter.Mints);
     }
 
+    [Fact]
+    public async Task Execute_ForAnActionPipeline_MintsForTheStageThePipelineDeclares()
+    {
+        var minter = new RecordingMailboxMinter();
+        var services = new ServiceCollection();
+        services.AddSingleton<AppImplementationFactory>();
+        services.AddSingleton<IProcessTask>(
+            new TestActionPipelineTask(pipeline =>
+                pipeline
+                    .Stage(Send, _threeDays, out MailboxHandle attempt)
+                    .ConcludeOnReplies(attempt, OnMessage, OnClosed)
+            )
+        );
+        var command = new MintMailbox(
+            services.BuildServiceProvider().GetRequiredService<AppImplementationFactory>(),
+            minter
+        );
+
+        WorkflowEngineCommandResult result = await command.Execute(
+            CreateContext(),
+            new MintMailboxPayload(TestActionPipelineTask.TaskType, SendStageIndex, TestActionPipelineTask.Action)
+        );
+
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.Equal(TimeSpan.FromDays(3), Assert.Single(minter.Mints).Request.Timeout);
+    }
+
     /// <summary>
     /// The payload has to survive the engine round trip: it is serialized at enqueue and read back at the
     /// callback through the polymorphic contract, so an unregistered discriminator is a runtime failure.
@@ -429,7 +463,7 @@ public class MintMailboxTests
 
         var restored = CommandPayloadSerializer.Deserialize<MintMailboxPayload>(json);
         Assert.NotNull(restored);
-        Assert.Equal("t", restored.ServiceTaskType);
+        Assert.Equal("t", restored.TaskType);
         Assert.Equal(3, restored.StageIndex);
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process;
@@ -9,18 +10,28 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// Request payload for the ExecuteServiceTask command: the service task type, and the one pipeline item this
-/// engine step runs, named by its position in <see cref="ServiceTaskPipeline.Items"/>. That item is the whole
-/// payload — a step says what it runs, never what runs after it, which every last step of a workflow derives
-/// from the pipeline it resolves when it runs.
+/// Request payload for the ExecuteServiceTask command: the pipeline, and the one pipeline item this engine step
+/// runs, named by its position in <see cref="ServiceTaskPipeline.Items"/>. That item is the whole payload — a step
+/// says what it runs, never what runs after it, which every last step of a workflow derives from the pipeline it
+/// resolves when it runs.
 /// </summary>
 /// <remarks>
 /// <see cref="ItemIndex"/> is semantically required but nullable: deserialization runs outside any handler, so
 /// a non-nullable <c>int</c> would either throw an old index-less payload out as an unhandled callback
 /// exception or bind <c>0</c> and silently dispatch the pipeline's first item. Guarded in
 /// <see cref="ExecuteServiceTask.Execute"/> so the refusal is a legible permanent failure.
+/// <see cref="TaskType"/> keeps the JSON name <c>serviceTaskType</c>, here and in <see cref="MintMailboxPayload"/>:
+/// steps enqueued before action pipelines carry it, and the workflow engine's dashboard titles steps by it.
 /// </remarks>
-internal sealed record ExecuteServiceTaskPayload(string ServiceTaskType, int? ItemIndex = null) : CommandRequestPayload;
+internal sealed record ExecuteServiceTaskPayload(
+    [property: JsonPropertyName("serviceTaskType")] string TaskType,
+    int? ItemIndex = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Action = null
+) : CommandRequestPayload
+{
+    [JsonIgnore]
+    public PipelineId Pipeline => new(TaskType, Action);
+}
 
 internal sealed class ExecuteServiceTask(
     AppImplementationFactory appImplementationFactory,
@@ -56,24 +67,22 @@ internal sealed class ExecuteServiceTask(
                 nameof(InvalidOperationException)
             );
         }
-        string serviceTaskType = payload.ServiceTaskType;
+        PipelineId pipelineId = payload.Pipeline;
 
-        using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, serviceTaskType);
+        using Activity? activity = telemetry?.StartProcessExecuteServiceTaskActivity(instance, pipelineId);
 
         // Refused before task resolution: inside the try below, a resolution throw becomes a retryable
         // failure, and no retry fixes a payload.
         if (payload.ItemIndex is not { } itemIndex)
         {
-            return MissingItemIndex(serviceTaskType);
+            return MissingItemIndex(pipelineId);
         }
 
         try
         {
-            IServiceTask serviceTask =
-                appImplementationFactory.FindServiceTask(serviceTaskType)
-                ?? throw new ProcessException($"No service task found for type {serviceTaskType}");
-
-            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
+            ServiceTaskPipeline pipeline =
+                appImplementationFactory.ResolvePipeline(pipelineId)
+                ?? throw new ProcessException($"{pipelineId} is not registered");
 
             StageContext serviceTaskContext = StageExecution.CreateContext(context);
 
@@ -81,15 +90,15 @@ internal sealed class ExecuteServiceTask(
             PipelineItem? pipelineItem = pipeline.Items.ElementAtOrDefault(itemIndex);
             WorkflowEngineCommandResult result = pipelineItem switch
             {
-                null => PipelineItemNotFound(serviceTaskType, itemIndex),
+                null => PipelineItemNotFound(pipelineId, itemIndex),
 
-                PipelineStage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
+                PipelineStage when rendezvous is not null => MailboxReceiptOnStage(pipelineId, itemIndex),
 
                 PipelineStage stage => await ExecuteStage(
                     context,
                     stage,
                     itemIndex,
-                    serviceTask,
+                    pipelineId,
                     serviceTaskContext,
                     pipeline
                 ),
@@ -99,7 +108,7 @@ internal sealed class ExecuteServiceTask(
                     segment,
                     segmentReceipt,
                     itemIndex,
-                    serviceTaskType,
+                    pipelineId,
                     serviceTaskContext,
                     pipeline
                 ),
@@ -110,21 +119,21 @@ internal sealed class ExecuteServiceTask(
                         exchange,
                         terminalReceipt,
                         itemIndex,
-                        serviceTaskType,
+                        pipelineId,
                         serviceTaskContext
                     ),
 
                 // Stated rather than left to arm order, exactly as the sibling mismatch arms state theirs: a
                 // kind of reply handler with no dispatch arm of its own must reach the throw below, not be
                 // told the engine handed it no rendezvous when the engine handed it one.
-                IReplyHandlerItem when rendezvous is null => MailboxReceiptMissing(serviceTaskType, itemIndex),
+                IReplyHandlerItem when rendezvous is null => MailboxReceiptMissing(pipelineId, itemIndex),
 
                 PipelineConclusion.Final when rendezvous is not null => MailboxReceiptOnConclusion(
-                    serviceTaskType,
+                    pipelineId,
                     itemIndex
                 ),
 
-                PipelineConclusion.Final final => await ExecuteConclusion(final, serviceTask, serviceTaskContext),
+                PipelineConclusion.Final final => await ExecuteConclusion(final, pipelineId, serviceTaskContext),
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
@@ -147,7 +156,7 @@ internal sealed class ExecuteServiceTask(
         WorkflowEngineCommandContext context,
         PipelineStage stage,
         int stageIndex,
-        IServiceTask serviceTask,
+        PipelineId pipelineId,
         StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     ) =>
@@ -155,7 +164,7 @@ internal sealed class ExecuteServiceTask(
         {
             PipelineStage.Plain plain => MapStageResult(
                 await plain.Work(serviceTaskContext),
-                serviceTask,
+                pipelineId,
                 context,
                 stageIndex,
                 pipeline
@@ -164,7 +173,7 @@ internal sealed class ExecuteServiceTask(
                 context,
                 opening,
                 stageIndex,
-                serviceTask,
+                pipelineId,
                 serviceTaskContext,
                 pipeline
             ),
@@ -179,7 +188,7 @@ internal sealed class ExecuteServiceTask(
         WorkflowEngineCommandContext context,
         PipelineStage.MailboxOpening stage,
         int stageIndex,
-        IServiceTask serviceTask,
+        PipelineId pipelineId,
         StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     )
@@ -198,7 +207,7 @@ internal sealed class ExecuteServiceTask(
         ServiceTaskMailbox mailbox = new() { Id = carried.Id, Deadline = carried.Deadline };
         return MapOpeningStageResult(
             await stage.Work(serviceTaskContext, mailbox),
-            serviceTask,
+            pipelineId,
             context,
             stageIndex,
             pipeline
@@ -212,7 +221,7 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     private async Task<WorkflowEngineCommandResult> ExecuteReply(
         AppCallbackMailbox receipt,
-        string serviceTaskType,
+        PipelineId pipelineId,
         Func<ServiceTaskReply, Task<WorkflowEngineCommandResult>> onMessage,
         Func<MailboxClosedReason, Task<WorkflowEngineCommandResult>> onClosed
     )
@@ -220,7 +229,7 @@ internal sealed class ExecuteServiceTask(
         if ((receipt.Delivery is null) == (receipt.DisposedReason is null))
         {
             return FailedWorkflowEngineCommandResult.Permanent(
-                $"Service task '{serviceTaskType}' was handed a mailbox rendezvous carrying "
+                $"{pipelineId} was handed a mailbox rendezvous carrying "
                     + (
                         receipt.Delivery is null
                             ? "neither a message nor a reason the mailbox closed"
@@ -233,25 +242,26 @@ internal sealed class ExecuteServiceTask(
 
         if (receipt.Delivery is { } delivery)
         {
-            // Opening the envelope is what makes the mailbox id, task type and idempotency key trustworthy —
-            // all three are read from the delivered callback.
-            string body;
+            // Opening the envelope is what makes the mailbox id, pipeline, idempotency key and sender
+            // trustworthy — all are read from the delivered callback.
+            MailboxDelivery opened;
             try
             {
-                body = deliveryEnvelope.Unwrap(delivery.Payload, receipt.Id, serviceTaskType, delivery.IdempotencyKey);
+                opened = deliveryEnvelope.Unwrap(delivery.Payload, receipt.Id, pipelineId, delivery.IdempotencyKey);
             }
             catch (MailboxDeliveryEnvelopeException ex)
             {
-                return DeliveryEnvelopeInvalid(serviceTaskType, receipt, ex);
+                return DeliveryEnvelopeInvalid(pipelineId, receipt, ex);
             }
 
             return await onMessage(
                 new ServiceTaskReply
                 {
-                    Payload = body,
+                    Payload = opened.Body,
                     IdempotencyKey = delivery.IdempotencyKey,
                     AcceptedAt = delivery.AcceptedAt,
                     Position = receipt.Seq,
+                    Sender = opened.Sender,
                 }
             );
         }
@@ -274,30 +284,40 @@ internal sealed class ExecuteServiceTask(
         PipelineConclusion.ReplyExchange exchange,
         AppCallbackMailbox receipt,
         int handlerItemIndex,
-        string serviceTaskType,
+        PipelineId pipelineId,
         StageContext serviceTaskContext
     )
     {
         return ExecuteReply(
             receipt,
-            serviceTaskType,
-            onMessage: async reply => Decide(await exchange.OnMessage(serviceTaskContext, reply)),
-            onClosed: async reason => Decide(await exchange.OnClosed(serviceTaskContext, reason))
+            pipelineId,
+            onMessage: async reply =>
+                Decide(await exchange.OnMessage(serviceTaskContext, reply), reply.Sender ?? ServiceOwner(context)),
+            onClosed: async reason => Decide(await exchange.OnClosed(serviceTaskContext, reason), ServiceOwner(context))
         );
 
-        WorkflowEngineCommandResult Decide(ServiceTaskExchangeResult verdict) =>
+        WorkflowEngineCommandResult Decide(ServiceTaskExchangeResult verdict, Actor actionPipelineActor) =>
             MailboxRelay.Decide(
                 verdict,
-                serviceTaskType,
+                pipelineId,
                 context.Payload.StepId,
                 receipt,
                 context.StateCarry,
                 handlerItemIndex,
                 exchange.OpeningIndex,
                 exchange.StepOptions,
-                exchange.DisplayName
+                exchange.DisplayName,
+                // A service task's conclusion runs as the workflow's actor, the caller that entered the task.
+                conclusionActor: pipelineId.IsActionPipeline ? actionPipelineActor : null
             );
     }
+
+    /// <summary>
+    /// The service owner, in the language of the caller that started the action pipeline, which every hop of it
+    /// runs as. No authentication level, so the events it writes record level 0.
+    /// </summary>
+    private static Actor ServiceOwner(WorkflowEngineCommandContext context) =>
+        new() { OrgId = context.AppId.Org, Language = context.Payload.Actor.Language };
 
     /// <summary>
     /// The exchange answered by a handler the pipeline <em>carries on past</em>: the verdict is the stage
@@ -308,14 +328,14 @@ internal sealed class ExecuteServiceTask(
         ReplySegment segment,
         AppCallbackMailbox receipt,
         int handlerItemIndex,
-        string serviceTaskType,
+        PipelineId pipelineId,
         StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     )
     {
         return ExecuteReply(
             receipt,
-            serviceTaskType,
+            pipelineId,
             onMessage: async reply => Decide(await segment.OnMessage(serviceTaskContext, reply)),
             onClosed: async reason => Decide(await segment.OnClosed(serviceTaskContext, reason))
         );
@@ -323,7 +343,7 @@ internal sealed class ExecuteServiceTask(
         WorkflowEngineCommandResult Decide(StageExchangeResult verdict) =>
             MailboxRelay.DecideSegment(
                 verdict,
-                serviceTaskType,
+                pipelineId,
                 context.Payload.StepId,
                 receipt,
                 context.StateCarry,
@@ -336,31 +356,31 @@ internal sealed class ExecuteServiceTask(
     /// <summary>The step that concludes the pipeline — the last step of its final segment.</summary>
     private static async Task<WorkflowEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.Final final,
-        IServiceTask serviceTask,
+        PipelineId pipelineId,
         StageContext serviceTaskContext
-    ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
+    ) => MapServiceTaskResult(await final.Work(serviceTaskContext), pipelineId);
 
-    private static FailedWorkflowEngineCommandResult PipelineItemNotFound(string serviceTaskType, int itemIndex) =>
+    private static FailedWorkflowEngineCommandResult PipelineItemNotFound(PipelineId pipelineId, int itemIndex) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' composes no pipeline item at index {itemIndex}. A pipeline's "
+            $"{pipelineId} composes no pipeline item at index {itemIndex}. A pipeline's "
                 + "indexes are positions in its composition: if stages or reply handlers were inserted, "
                 + "reordered or removed since this workflow was enqueued, every index behind the change has "
                 + "moved. Resume the workflow on the code that enqueued it, or abandon it deliberately.",
             "PipelineItemNotFound"
         );
 
-    private static FailedWorkflowEngineCommandResult MailboxReceiptOnStage(string serviceTaskType, int itemIndex) =>
+    private static FailedWorkflowEngineCommandResult MailboxReceiptOnStage(PipelineId pipelineId, int itemIndex) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"The stage at index {itemIndex} of service task '{serviceTaskType}' was handed a mailbox message, "
+            $"{pipelineId} was handed a mailbox message at the stage at index {itemIndex}, "
                 + "but only a pipeline's reply handler answers messages. Either the pipeline was reshaped since "
                 + "this workflow was enqueued, so the index this step carries now lands on a stage, or the "
                 + "workflow was not built by this application's pipeline expansion.",
             "MailboxReceiptOnStage"
         );
 
-    private static FailedWorkflowEngineCommandResult MailboxReceiptMissing(string serviceTaskType, int itemIndex) =>
+    private static FailedWorkflowEngineCommandResult MailboxReceiptMissing(PipelineId pipelineId, int itemIndex) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"The item at index {itemIndex} of service task '{serviceTaskType}' answers messages, but this "
+            $"{pipelineId} answers messages with the item at index {itemIndex}, but this "
                 + "step was handed no mailbox rendezvous. Either the workflow engine omitted it from a receive "
                 + "workflow's callback, or the pipeline was reshaped since this workflow was enqueued, so the "
                 + "index a step that answers nothing carries now lands on a reply handler. Answering without a "
@@ -368,12 +388,9 @@ internal sealed class ExecuteServiceTask(
             "MailboxReceiptMissing"
         );
 
-    private static FailedWorkflowEngineCommandResult MailboxReceiptOnConclusion(
-        string serviceTaskType,
-        int itemIndex
-    ) =>
+    private static FailedWorkflowEngineCommandResult MailboxReceiptOnConclusion(PipelineId pipelineId, int itemIndex) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"Service task '{serviceTaskType}' was handed a mailbox message on the concluding step at index "
+            $"{pipelineId} was handed a mailbox message on the concluding step at index "
                 + $"{itemIndex}, and a message is answered by a reply handler, never by the step that concludes "
                 + "the pipeline. Either the pipeline was reshaped since this workflow was enqueued, so the index "
                 + "this step carries now lands on the conclusion, or the workflow was not built by this "
@@ -382,9 +399,9 @@ internal sealed class ExecuteServiceTask(
             "MailboxReceiptOnConclusion"
         );
 
-    private static FailedWorkflowEngineCommandResult MissingItemIndex(string serviceTaskType) =>
+    private static FailedWorkflowEngineCommandResult MissingItemIndex(PipelineId pipelineId) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"A step of service task '{serviceTaskType}' names no pipeline item. Every step of a pipeline — "
+            $"{pipelineId} has a step that names no pipeline item. Every step of a pipeline — "
                 + "its stages, its reply handlers and its conclusion alike — names the one item it runs by "
                 + "that item's index, so this workflow was enqueued by a version of this app-lib that "
                 + "identified steps differently. Resume it on the version that enqueued it, or abandon it "
@@ -393,15 +410,15 @@ internal sealed class ExecuteServiceTask(
         );
 
     private static FailedWorkflowEngineCommandResult DeliveryEnvelopeInvalid(
-        string serviceTaskType,
+        PipelineId pipelineId,
         AppCallbackMailbox receipt,
         MailboxDeliveryEnvelopeException ex
     ) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"The message delivered to service task '{serviceTaskType}' at position {receipt.Seq} of "
-                + $"mailbox {receipt.Id} cannot be opened as one this application sealed: it was never "
+            $"{pipelineId} was delivered a message at position {receipt.Seq} of "
+                + $"mailbox {receipt.Id} that cannot be opened as one this application sealed: it was never "
                 + "sealed by IServiceTaskReplyForwarder, was altered after forwarding, was sealed for a "
-                + "different mailbox, service task or message id, or was sealed with a WorkflowEngineCallback "
+                + "different mailbox, pipeline or message id, or was sealed with a WorkflowEngineCallback "
                 + "app code that has since expired or been unmounted. The last is reachable without anything "
                 + "being wrong with the message: an early message can wait unread at its position while the "
                 + "exchange advances, so a long exchange can outlive the code that sealed one of its "
@@ -412,7 +429,7 @@ internal sealed class ExecuteServiceTask(
 
     private static WorkflowEngineCommandResult MapStageResult(
         StageResult result,
-        IServiceTask task,
+        PipelineId pipelineId,
         WorkflowEngineCommandContext context,
         int stageIndex,
         ServiceTaskPipeline pipeline
@@ -425,7 +442,7 @@ internal sealed class ExecuteServiceTask(
             // completing it is what starts that handler's receive workflow.
             CompletedStageResult when WorkflowStepSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
                 MailboxRelay.DecideStageEnd(
-                    task.Type,
+                    pipelineId,
                     context.Payload.StepId,
                     context.StateCarry,
                     stageIndex,
@@ -437,10 +454,14 @@ internal sealed class ExecuteServiceTask(
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            FailedStageResult failed => MapFailure(task, failed.ErrorMessage, failed.Kind == FailureKind.Permanent),
+            FailedStageResult failed => MapFailure(
+                pipelineId,
+                failed.ErrorMessage,
+                failed.Kind == FailureKind.Permanent
+            ),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
-                task,
+                pipelineId,
                 result,
                 nameof(StageResult),
                 $"{nameof(StageResult.Completed)}, {nameof(StageResult.Defer)}, "
@@ -460,7 +481,7 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     private static WorkflowEngineCommandResult MapOpeningStageResult(
         ServiceTaskOpeningStageResult result,
-        IServiceTask task,
+        PipelineId pipelineId,
         WorkflowEngineCommandContext context,
         int stageIndex,
         ServiceTaskPipeline pipeline
@@ -468,7 +489,7 @@ internal sealed class ExecuteServiceTask(
         result switch
         {
             CompletedServiceTaskOpeningStageResult => MailboxRelay.DecideStageEnd(
-                task.Type,
+                pipelineId,
                 context.Payload.StepId,
                 context.StateCarry,
                 stageIndex,
@@ -480,19 +501,19 @@ internal sealed class ExecuteServiceTask(
                 Reason = deferred.Reason,
             },
             FailedServiceTaskOpeningStageResult failed => MapFailure(
-                task,
+                pipelineId,
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
             ConcludedServiceTaskOpeningStageResult concluded => MailboxRelay.DecideOpeningStageConclusion(
                 concluded.Result,
-                task.Type,
+                pipelineId,
                 context.Payload.StepId,
                 context.StateCarry
             ),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
-                task,
+                pipelineId,
                 result,
                 nameof(ServiceTaskOpeningStageResult),
                 $"{nameof(ServiceTaskOpeningStageResult.Completed)}, "
@@ -503,11 +524,11 @@ internal sealed class ExecuteServiceTask(
             ),
         };
 
-    private static WorkflowEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTask task) =>
+    private static WorkflowEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, PipelineId pipelineId) =>
         result switch
         {
             FailedServiceTaskResult failed => MapFailure(
-                task,
+                pipelineId,
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
@@ -520,9 +541,14 @@ internal sealed class ExecuteServiceTask(
             {
                 ProcessNextContinuation = new(success.Action),
             },
+            ReleasedServiceTaskResult when pipelineId.IsActionPipeline => new SuccessfulWorkflowEngineCommandResult
+            {
+                Release = true,
+            },
+            ReleasedServiceTaskResult => ReleaseOutsideActionPipeline(pipelineId),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
-                task,
+                pipelineId,
                 result,
                 nameof(ServiceTaskResult),
                 $"{nameof(ServiceTaskResult.Success)}, "
@@ -536,13 +562,13 @@ internal sealed class ExecuteServiceTask(
     /// here would be caught by <see cref="Execute"/> and retried forever.
     /// </summary>
     private static FailedWorkflowEngineCommandResult UnknownResultType(
-        IServiceTask task,
+        PipelineId pipelineId,
         object? result,
         string rootTypeName,
         string factoryNames
     ) =>
         FailedWorkflowEngineCommandResult.Permanent(
-            $"Service task '{task.Type}' returned {StageExecution.DescribeResult(result)}, which this version "
+            $"{pipelineId} returned {StageExecution.DescribeResult(result)}, which this version "
                 + $"of the app-lib cannot act on. Return one of the results {rootTypeName}'s factory methods "
                 + $"produce ({factoryNames}) — never a type of your own or null, which have no meaning the "
                 + "workflow engine can be given.",
@@ -556,12 +582,26 @@ internal sealed class ExecuteServiceTask(
     internal const string FailedReasonCode = "ServiceTaskFailedException";
 
     /// <summary>The sentence such a failure is reported as, shared with <see cref="MailboxRelay"/>.</summary>
-    internal static string FailedMessage(string serviceTaskType, string errorMessage) =>
-        $"Service task '{serviceTaskType}' failed: {errorMessage}";
+    internal static string FailedMessage(PipelineId pipelineId, string errorMessage) =>
+        $"{pipelineId} failed: {errorMessage}";
 
-    private static FailedWorkflowEngineCommandResult MapFailure(IServiceTask task, string errorMessage, bool permanent)
+    /// <summary>
+    /// A service task returned the release ending, which only an action pipeline has: an idle instance in a service
+    /// task reads as one whose task failed. Permanent, with nothing closed, as an unknown result is.
+    /// </summary>
+    internal static FailedWorkflowEngineCommandResult ReleaseOutsideActionPipeline(PipelineId pipelineId) =>
+        FailedWorkflowEngineCommandResult.Permanent(
+            $"{pipelineId} returned the release ending, which only an action pipeline can return.",
+            "ReleaseOutsideActionPipeline"
+        );
+
+    private static FailedWorkflowEngineCommandResult MapFailure(
+        PipelineId pipelineId,
+        string errorMessage,
+        bool permanent
+    )
     {
-        string message = FailedMessage(task.Type, errorMessage);
+        string message = FailedMessage(pipelineId, errorMessage);
         return permanent
             ? FailedWorkflowEngineCommandResult.Permanent(message, FailedReasonCode)
             : FailedWorkflowEngineCommandResult.Retryable(message, FailedReasonCode);

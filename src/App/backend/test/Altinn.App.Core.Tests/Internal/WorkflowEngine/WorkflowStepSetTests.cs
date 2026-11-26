@@ -283,14 +283,25 @@ public class WorkflowStepSetTests
             .Finally(FinalWork);
 
         // The step that mints the mailbox stays unnamed; the stage that sends from it goes by its method.
-        Assert.Equal([null, "Send stage"], WorkflowStepSet.PlanSegment("archiving", pipeline).Steps.Select(StepName));
+        Assert.Equal(
+            [null, "Send stage"],
+            WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline).Steps.Select(StepName)
+        );
         Assert.Equal(
             "On segment message / On segment closed",
-            StepName(Assert.Single(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).Steps))
+            StepName(
+                Assert.Single(
+                    WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline, afterItemIndex: 0).Steps
+                )
+            )
         );
         Assert.Equal(
             "Final work",
-            StepName(Assert.Single(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).Steps))
+            StepName(
+                Assert.Single(
+                    WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline, afterItemIndex: 1).Steps
+                )
+            )
         );
     }
 
@@ -301,7 +312,10 @@ public class WorkflowStepSetTests
             .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
-        Assert.All(WorkflowStepSet.PlanSegment("signing", pipeline).Steps, step => Assert.Null(step.StepName));
+        Assert.All(
+            WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("signing"), pipeline).Steps,
+            step => Assert.Null(step.StepName)
+        );
     }
 
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
@@ -363,9 +377,17 @@ public class WorkflowStepSetTests
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
             .Finally(FinalWork, conclusion);
 
-        ServiceTaskSegmentPlan primary = WorkflowStepSet.PlanSegment("archiving", pipeline);
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
-        ServiceTaskSegmentPlan rest = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+        ServiceTaskSegmentPlan primary = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline);
+        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
+        ServiceTaskSegmentPlan rest = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 2
+        );
 
         // The mint between the plain stage and the send carries nothing, so it inherits neither's options.
         Assert.Equal([stage, null, send], primary.Steps.Select(step => step.DeclaredOptions));
@@ -381,7 +403,7 @@ public class WorkflowStepSetTests
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline);
 
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
@@ -391,7 +413,11 @@ public class WorkflowStepSetTests
         // when that step runs.
         Assert.Null(plan.ReceiveOpeningIndex);
 
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(receive));
         Assert.Equal(1, receive.ReceiveOpeningIndex);
     }
@@ -401,7 +427,7 @@ public class WorkflowStepSetTests
     {
         ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Finally(FinalWork);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("signing", pipeline);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("signing"), pipeline);
 
         Assert.Equal([$"{ExecuteServiceTask.Key}: 0", $"{ExecuteServiceTask.Key}: 1"], OperationIds(plan));
         Assert.Null(plan.ReceiveOpeningIndex);
@@ -417,7 +443,7 @@ public class WorkflowStepSetTests
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline);
 
         Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(plan));
         Assert.Null(plan.ReceiveOpeningIndex);
@@ -434,7 +460,11 @@ public class WorkflowStepSetTests
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 0
+        );
 
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(plan));
         Assert.Equal(1, StageStepPayloads(plan)[0].ItemIndex);
@@ -446,7 +476,11 @@ public class WorkflowStepSetTests
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
 
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: 2", $"{MintMailbox.Key}: 3", $"{ExecuteServiceTask.Key}: 3"],
@@ -465,7 +499,11 @@ public class WorkflowStepSetTests
             .Stage(PlainStage)
             .Finally(FinalWork);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
 
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2", $"{ExecuteServiceTask.Key}: 3"], OperationIds(plan));
         Assert.Null(plan.ReceiveOpeningIndex);
@@ -485,21 +523,33 @@ public class WorkflowStepSetTests
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Finally(FinalWork);
 
-        ServiceTaskSegmentPlan send = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan send = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline);
         Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(send));
         Assert.Null(send.ReceiveOpeningIndex);
 
         // The stage between the send and the handler rides its own workflow and ends there — not because it
         // opened anything, but because the handler after it cannot share a workflow.
-        ServiceTaskSegmentPlan between = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
+        ServiceTaskSegmentPlan between = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 0
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(between));
         Assert.Null(between.ReceiveOpeningIndex);
 
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(receive));
         Assert.Equal(0, receive.ReceiveOpeningIndex);
 
-        ServiceTaskSegmentPlan rest = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+        ServiceTaskSegmentPlan rest = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 2
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(rest));
         Assert.Null(rest.ReceiveOpeningIndex);
     }
@@ -519,7 +569,7 @@ public class WorkflowStepSetTests
             .Stage(PlainStage)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline);
 
         Assert.Equal(
             [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
@@ -529,11 +579,19 @@ public class WorkflowStepSetTests
 
         // And what follows the send is the trailing stage, which ends its own run because the terminal that
         // answers is composed right after it.
-        ServiceTaskSegmentPlan next = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan next = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(next));
         Assert.Null(next.ReceiveOpeningIndex);
 
-        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+        ServiceTaskSegmentPlan receive = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 2
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(receive));
         Assert.Equal(1, receive.ReceiveOpeningIndex);
     }
@@ -553,22 +611,34 @@ public class WorkflowStepSetTests
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .ConcludeOnReplies(journal, OnMessage, OnClosed);
 
-        ServiceTaskSegmentPlan first = WorkflowStepSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan first = WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline);
         Assert.Equal([$"{MintMailbox.Key}: 0", $"{ExecuteServiceTask.Key}: 0"], OperationIds(first));
         Assert.Null(first.ReceiveOpeningIndex);
 
-        ServiceTaskSegmentPlan second = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0);
+        ServiceTaskSegmentPlan second = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 0
+        );
         Assert.Equal([$"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"], OperationIds(second));
         Assert.Null(second.ReceiveOpeningIndex);
 
         // The handler that answers the *first* exchange follows the second send, so the second send's
         // completion is what starts exchange 0's receive leg.
-        ServiceTaskSegmentPlan archiveReceive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan archiveReceive = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 2"], OperationIds(archiveReceive));
         Assert.Equal(0, archiveReceive.ReceiveOpeningIndex);
 
         // Two handlers back to back: the run after the first is the second, alone, on the other exchange.
-        ServiceTaskSegmentPlan journalReceive = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+        ServiceTaskSegmentPlan journalReceive = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 2
+        );
         Assert.Equal([$"{ExecuteServiceTask.Key}: 3"], OperationIds(journalReceive));
         Assert.Equal(1, journalReceive.ReceiveOpeningIndex);
     }
@@ -591,11 +661,29 @@ public class WorkflowStepSetTests
 
         // Each send ends a segment and parks on nothing; the receive workflows come after them, journal's
         // first because its handler is composed first.
-        Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline).ReceiveOpeningIndex);
-        Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).ReceiveOpeningIndex);
-        Assert.Equal(1, WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).ReceiveOpeningIndex);
-        Assert.Equal(0, WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 2).ReceiveOpeningIndex);
-        Assert.Null(WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 3).ReceiveOpeningIndex);
+        Assert.Null(WorkflowStepSet.PlanSegment(PipelineId.ServiceTask("archiving"), pipeline).ReceiveOpeningIndex);
+        Assert.Null(
+            WorkflowStepSet
+                .PlanSegment(PipelineId.ServiceTask("archiving"), pipeline, afterItemIndex: 0)
+                .ReceiveOpeningIndex
+        );
+        Assert.Equal(
+            1,
+            WorkflowStepSet
+                .PlanSegment(PipelineId.ServiceTask("archiving"), pipeline, afterItemIndex: 1)
+                .ReceiveOpeningIndex
+        );
+        Assert.Equal(
+            0,
+            WorkflowStepSet
+                .PlanSegment(PipelineId.ServiceTask("archiving"), pipeline, afterItemIndex: 2)
+                .ReceiveOpeningIndex
+        );
+        Assert.Null(
+            WorkflowStepSet
+                .PlanSegment(PipelineId.ServiceTask("archiving"), pipeline, afterItemIndex: 3)
+                .ReceiveOpeningIndex
+        );
     }
 
     /// <summary>
@@ -610,7 +698,11 @@ public class WorkflowStepSetTests
     {
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: 1
+        );
 
         Assert.Equal(
             [
@@ -618,6 +710,23 @@ public class WorkflowStepSetTests
                 "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":3}",
             ],
             StageStepPayloadJson(plan)
+        );
+    }
+
+    [Fact]
+    public void PlanSegment_ForAnActionPipeline_PayloadsNameTheTaskTypeAndTheAction()
+    {
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(
+            PipelineId.ActionPipeline("archiving", "archive"),
+            ArchiveThenJournalPipeline()
+        );
+
+        Assert.Equal(
+            [
+                "{\"$type\":\"mintMailbox\",\"serviceTaskType\":\"archiving\",\"stageIndex\":0,\"action\":\"archive\"}",
+                "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0,\"action\":\"archive\"}",
+            ],
+            plan.Steps.Select(step => CommandPayloadSerializer.Serialize(step.Payload)!)
         );
     }
 
@@ -652,7 +761,11 @@ public class WorkflowStepSetTests
         ServiceTaskPipeline pipeline = ArchiveThenJournalPipeline();
         int lastIndex = pipeline.Items.Count - 1;
 
-        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment("archiving", pipeline, afterItemIndex: lastIndex);
+        ServiceTaskSegmentPlan plan = WorkflowStepSet.PlanSegment(
+            PipelineId.ServiceTask("archiving"),
+            pipeline,
+            afterItemIndex: lastIndex
+        );
 
         Assert.Empty(plan.Steps);
         Assert.Null(plan.ReceiveOpeningIndex);

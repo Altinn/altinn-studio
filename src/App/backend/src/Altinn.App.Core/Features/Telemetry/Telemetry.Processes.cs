@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
@@ -70,11 +71,12 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartProcessExecuteServiceTaskActivity(Instance instance, string serviceTaskType)
+    internal Activity? StartProcessExecuteServiceTaskActivity(Instance instance, PipelineId pipeline)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.ExecuteServiceTask");
         activity?.SetInstanceId(instance);
-        activity?.SetTag(InternalLabels.ProcessServiceTaskType, serviceTaskType);
+        activity?.SetTag(InternalLabels.ProcessServiceTaskType, pipeline.TaskType);
+        activity?.SetTag(InternalLabels.ProcessAction, pipeline.Action);
         return activity;
     }
 

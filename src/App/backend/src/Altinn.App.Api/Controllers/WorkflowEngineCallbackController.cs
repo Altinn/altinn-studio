@@ -257,8 +257,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload,
                         instanceDataUnitOfWork,
                         updatedState,
-                        success.ProcessNextContinuation is not null,
-                        success.ProcessNextContinuation?.Action,
+                        success.ProcessNextContinuation,
+                        success.Release,
                         cancellationToken
                     );
 
@@ -284,6 +284,25 @@ public class WorkflowEngineCallbackController : ControllerBase
                             payload.ExecutionReferenceTime,
                             processNextContinuation.Action,
                             cancellationToken: cancellationToken
+                        );
+                }
+                else if (success.Release)
+                {
+                    if (GetCollectionKey() is not { } collectionKey)
+                    {
+                        return MissingCollectionKey(commandKey, instanceId, activity);
+                    }
+
+                    await _serviceProvider
+                        .GetRequiredService<IWorkflowEngineService>()
+                        .EnqueueRelease(
+                            instanceDataUnitOfWork.Instance,
+                            payload.WorkflowId,
+                            collectionKey,
+                            updatedState,
+                            payload.Actor,
+                            payload.StepId.ToString(),
+                            cancellationToken
                         );
                 }
 
@@ -354,8 +373,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                         payload,
                         instanceDataUnitOfWork,
                         state: null,
-                        autoAdvanceProcess: false,
-                        autoAdvanceAction: null,
+                        advance: null,
+                        release: false,
                         cancellationToken
                     );
                 }
@@ -525,8 +544,8 @@ public class WorkflowEngineCallbackController : ControllerBase
         AppCallbackPayload payload,
         InstanceDataUnitOfWork unitOfWork,
         string? state,
-        bool autoAdvanceProcess,
-        string? autoAdvanceAction,
+        ProcessNextContinuation? advance,
+        bool release,
         CancellationToken cancellationToken
     )
     {
@@ -540,8 +559,8 @@ public class WorkflowEngineCallbackController : ControllerBase
                 Payload = payload,
                 DataAccessor = unitOfWork,
                 State = state,
-                AutoAdvanceProcess = autoAdvanceProcess,
-                AutoAdvanceAction = autoAdvanceAction,
+                Advance = advance,
+                Release = release,
             },
             cancellationToken
         );

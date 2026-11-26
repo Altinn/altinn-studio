@@ -85,7 +85,8 @@ the step's execution reference time, which stays the same across retries.
 - Rejected: an invalid payload, or a lost claim during instantiation, fails permanently.
 
 Every later save expects `processing`. `ReleaseProcessingStatus` moves the instance back to `idle` in the last save,
-unless a service task follows. Then the workflow that the service task enqueues when it concludes releases it. A
+unless a service task follows. Then the workflow that the service task enqueues when it concludes releases it. An
+[action pipeline](#action-pipelines) releases the instance the same way, or with a release workflow of its own. A
 failed service task therefore leaves the instance in `processing`, and a resume runs the failed step without
 acquiring.
 
@@ -207,8 +208,9 @@ Storage. The chain is the workflow it enqueued and every later primary workflow.
 
 - The wait answers 504 after a fixed time.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
-  returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
-  request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
+  returns on the first poll that sees it, once the transition has committed or when every parked workflow runs an
+  action pipeline. The task goes on without the request: process/next and process/resume answer 202 with the process
+  state, and instantiation answers 201 as usual.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind
@@ -266,11 +268,45 @@ and delivers messages.
   follows.
 - Each hop re-signs with the app code current then. A message that waits past the expiry of the code that sealed it
   fails permanently, since a retry opens the same bytes.
-- `IServiceTaskReplyForwarder` seals a message in an envelope signed for the mailbox, the service task type and the
-  idempotency key, so someone with access to the engine API cannot redirect or replay it. The forwarder does not check
+- `IServiceTaskReplyForwarder` seals a message in an envelope signed for the mailbox, the pipeline and the
+  idempotency key, so someone with access to the engine API cannot redirect or replay it. The pipeline is the task
+  type, plus the action for an [action pipeline](#action-pipelines). The forwarder does not check
   the mailbox's status first. The engine answers a key it already holds with 200 even after the mailbox closed, so a
   check would dead-letter a message that still waits to be read.
 - Integration tests match the operation IDs of receive and continuation workflows.
+
+## Action pipelines
+
+An action pipeline is a pipeline that a user action starts in a user task. It holds the instance in `processing` while
+it waits for messages, and ends by moving the process or by releasing the instance on the same task. The
+[ADR](../../../../docs/adr/2026-11-25-payment-attempt-holds-the-instance.md) records why a payment attempt runs as
+one. Only built-in task types declare one, through the internal `IActionPipelineTask`. Its composition, steps,
+mailboxes and relay are a service task's, and a step names the pipeline by task type and action.
+
+- The request acquires the instance as `process/next` does, under the same idempotency key, so the two cannot both
+  start from one version. The acquire's callback enqueues the pipeline's first workflow on the current task instead
+  of a transition. The pipeline commits no process state.
+- Every workflow that runs the pipeline's items carries the `actionPipeline` label. While such a workflow is the
+  active head, reads report `processing` with `awaitingMessages`, so the frontend shows the task's page read-only.
+  The acquire, the after-workflow and the release workflow do not carry it.
+- Nothing the pipeline runs before its first receiver may defer. The request that started the pipeline would then
+  answer before the pipeline is open.
+- `Release()` ends the pipeline without moving the process. The step closes the pipeline's mailboxes and then
+  enqueues a release workflow, whose one step returns the instance to `idle`. The release is a workflow of its own
+  because the step saves before the relay runs, and an idle instance must not exist while the mailbox is still open.
+- A request that sends a message seals its caller into the envelope as the sender. A conclusion from a message moves
+  the process as that sender, in their language. A conclusion from a message without a sender, or from the deadline,
+  moves it as the service owner in the language of the caller that started the pipeline. A conclusion from the
+  opening stage moves it as that caller.
+- A request that sends a message waits for that message to be handled, not for an earlier one. The relay enqueues
+  the receiver for position p + 1 only from inside the callback of the receiver for p, after its save, so the wait
+  ends once the mailbox's receiver sequence is past p + 1. A closed mailbox ends it only once no parked workflow
+  runs the attempt the message was sent to: the engine still hands the messages it accepted before the close to the
+  receivers that follow. A later attempt's workflows do not count: they come after the first workflow without the
+  `actionPipeline` label, which ends an attempt. The request that started the pipeline does not answer from a later
+  attempt either, and times out instead.
+- `process/next` on an idle task of such a type refuses every action but `reject` with a 409 and the task's own
+  validation issue, since only the pipeline moves the task on.
 
 ## In-flight workflows
 
@@ -294,6 +330,8 @@ app does not guard against it. Names would not help either, since a redeploy can
   planned every hook step has one, but a transition planned without a handler does not.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
+- A message forwarded before action pipelines was sealed in the earlier envelope format, which carries no sender.
+  Its receiver fails permanently, as for an envelope sealed with a code that has expired.
 - A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can
   leave a stale mailbox entry in the callback state, and the next mint at that index retries until its retry strategy
   runs out.

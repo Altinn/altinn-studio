@@ -79,6 +79,13 @@ internal sealed class ProcessNextRequestFactory
     internal const string ProcessNextElementLabel = "processNextElement";
 
     /// <summary>
+    /// The user action that started the action pipeline whose items the workflow runs: its first workflow, its
+    /// receivers and its continuations. Not on the acquire, the after-workflow or the release workflow. Status
+    /// reads tell from it that the instance is held for messages in a user task.
+    /// </summary>
+    internal const string ActionPipelineLabel = "actionPipeline";
+
+    /// <summary>
     /// OperationId prefix for the transition's primary process-next workflow (the one the process waits on,
     /// carrying the task-end, commit, task-start and post-commit steps).
     /// </summary>
@@ -106,6 +113,12 @@ internal sealed class ProcessNextRequestFactory
     /// identifies a continuation by it.
     /// </summary>
     internal const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
+
+    /// <summary>
+    /// OperationId prefix for an action pipeline's first workflow and for the workflow that releases the instance
+    /// at its end. A naming convention for ops and logs.
+    /// </summary>
+    internal const string ActionPipelineOperationIdPrefix = "Action pipeline:";
 
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IAuthenticationContext _authenticationContext;
@@ -138,7 +151,7 @@ internal sealed class ProcessNextRequestFactory
     /// Creates a WorkflowEnqueueEnvelope from the process state change.
     /// The bundle contains the request body plus the metadata (namespace, idempotency key,
     /// collection key) that must be sent via URL path and HTTP headers.
-    /// <paramref name="language"/> is the language the instance was created with (see <see cref="ExtractActor"/>).
+    /// <paramref name="language"/> is the language the instance was created with (see <see cref="CreateCallerActor"/>).
     /// </summary>
     public Task<WorkflowEnqueueEnvelope> CreateChainInitiating(
         Instance instance,
@@ -173,59 +186,40 @@ internal sealed class ProcessNextRequestFactory
         string state,
         string idempotencyKey,
         string? language
-    ) => CreateAcquire(instance, processStateChange, state, idempotencyKey, await ExtractActor(language));
+    ) =>
+        CreateAcquire(
+            instance,
+            new AcquireProcessingStatusPayload(processStateChange),
+            processStateChange.NewProcessState?.CurrentTask?.ElementId,
+            state,
+            idempotencyKey,
+            await CreateCallerActor(_authenticationContext.Current, language)
+        );
 
     /// <summary>
-    /// Creates the acquire-only workflow for process/next, run as <paramref name="actor"/>.
+    /// Creates the acquire-only workflow, run as <paramref name="actor"/>, whose step starts what
+    /// <paramref name="acquirePayload"/> names once it holds the instance.
     /// </summary>
     public WorkflowEnqueueEnvelope CreateAcquire(
         Instance instance,
-        ProcessStateChange processStateChange,
+        CommandRequestPayload acquirePayload,
+        string? targetTaskId,
         string state,
         string idempotencyKey,
         Actor actor
-    )
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
-        InstanceIdentifier instanceId = new(instance);
-        List<WorkflowRequest> workflows =
-        [
+    ) =>
+        CreateSingleWorkflow(
+            instance,
             new WorkflowRequest
             {
                 OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
-                Steps =
-                [
-                    CreateStep(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
-                ],
+                Steps = [CreateStep(ProcessingStatusAcquirer.Key, acquirePayload)],
                 State = state,
             },
-        ];
-        var context = new AppWorkflowContext
-        {
-            Actor = actor,
-            Org = _appIdentifier.Org,
-            App = _appIdentifier.App,
-            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
-            InstanceGuid = instanceId.InstanceGuid,
-            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, workflows),
-        };
-        var request = new WorkflowEnqueueRequest
-        {
-            Labels = CreateProcessNextLabels(
-                instanceId,
-                instance.Process?.CurrentTask,
-                processStateChange.NewProcessState?.CurrentTask?.ElementId
-            ),
-            Context = JsonSerializer.SerializeToElement(context),
-            Workflows = workflows,
-        };
-        return new WorkflowEnqueueEnvelope(
-            request,
-            $"{_appIdentifier.Org}/{_appIdentifier.App}",
-            idempotencyKey,
-            CreateCollectionKey(instanceId)
+            CreateProcessNextLabels(new InstanceIdentifier(instance), instance.Process?.CurrentTask, targetTaskId),
+            actor,
+            idempotencyKey
         );
-    }
 
     /// <summary>
     /// Creates an engine-owned continuation that remains inside an already acquired transition chain.
@@ -251,6 +245,108 @@ internal sealed class ProcessNextRequestFactory
             notification: null,
             idempotencyKey
         );
+
+    /// <summary>
+    /// Creates an action pipeline's first workflow, which runs inside the acquire that holds the instance for it:
+    /// the pipeline's items up to the first workflow boundary, on the current task.
+    /// </summary>
+    public WorkflowEnqueueEnvelope CreateDependentActionPipeline(
+        Instance instance,
+        PipelineId pipelineId,
+        string state,
+        Actor actor,
+        IEnumerable<WorkflowRef> dependsOn,
+        string idempotencyKey
+    )
+    {
+        string action =
+            pipelineId.Action
+            ?? throw new ArgumentException($"{pipelineId} is not an action pipeline.", nameof(pipelineId));
+        ServiceTaskPipeline pipeline =
+            _appImplementationFactory.ResolvePipeline(pipelineId)
+            ?? throw new InvalidOperationException($"{pipelineId} is not registered.");
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
+
+        Dictionary<string, string> labels = CreateProcessNextLabels(new InstanceIdentifier(instance), null, taskId);
+        labels[ActionPipelineLabel] = action;
+
+        return CreateSingleWorkflow(
+            instance,
+            new WorkflowRequest
+            {
+                OperationId = $"{ActionPipelineOperationIdPrefix} {taskId} · {action}",
+                Steps =
+                [
+                    .. WorkflowStepSet.PlanSegment(pipelineId, pipeline).Steps.ToStepRequests(_stepOptionsResolver),
+                ],
+                State = state,
+                DependsOn = dependsOn,
+            },
+            labels,
+            actor,
+            idempotencyKey
+        );
+    }
+
+    /// <summary>
+    /// Creates the workflow that ends an action pipeline by returning the instance to idle on its task.
+    /// </summary>
+    public WorkflowEnqueueEnvelope CreateDependentRelease(
+        Instance instance,
+        string state,
+        Actor actor,
+        IEnumerable<WorkflowRef> dependsOn,
+        string idempotencyKey
+    )
+    {
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
+        return CreateSingleWorkflow(
+            instance,
+            new WorkflowRequest
+            {
+                OperationId = $"{ActionPipelineOperationIdPrefix} {taskId} · release",
+                Steps = [CreateStep(ReleaseProcessingStatus.Key)],
+                State = state,
+                DependsOn = dependsOn,
+            },
+            CreateProcessNextLabels(new InstanceIdentifier(instance), null, taskId),
+            actor,
+            idempotencyKey
+        );
+    }
+
+    private WorkflowEnqueueEnvelope CreateSingleWorkflow(
+        Instance instance,
+        WorkflowRequest workflow,
+        Dictionary<string, string> labels,
+        Actor actor,
+        string idempotencyKey
+    )
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        InstanceIdentifier instanceId = new(instance);
+        var context = new AppWorkflowContext
+        {
+            Actor = actor,
+            Org = _appIdentifier.Org,
+            App = _appIdentifier.App,
+            InstanceOwnerPartyId = instanceId.InstanceOwnerPartyId,
+            InstanceGuid = instanceId.InstanceGuid,
+            CallbackToken = _callbackTokenGenerator.GenerateToken(instanceId.InstanceGuid, actor, [workflow]),
+        };
+        var request = new WorkflowEnqueueRequest
+        {
+            Labels = labels,
+            Context = JsonSerializer.SerializeToElement(context),
+            Workflows = [workflow],
+        };
+        return new WorkflowEnqueueEnvelope(
+            request,
+            $"{_appIdentifier.Org}/{_appIdentifier.App}",
+            idempotencyKey,
+            CreateCollectionKey(instanceId)
+        );
+    }
 
     private async Task<WorkflowEnqueueEnvelope> Create(
         Instance instance,
@@ -284,7 +380,7 @@ internal sealed class ProcessNextRequestFactory
             ?? processStateChange.NewProcessState?.EndEvent
             ?? "End event";
 
-        Actor resolvedActor = actor ?? await ExtractActor(language);
+        Actor resolvedActor = actor ?? await CreateCallerActor(_authenticationContext.Current, language);
         InstanceIdentifier instanceId = new(instance);
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
@@ -630,18 +726,19 @@ internal sealed class ProcessNextRequestFactory
         ?? throw new InvalidOperationException($"Workflow event {eventType} is missing current task information.");
 
     /// <summary>
-    /// The actor the chain's callbacks run on behalf of, from the current request's authentication.
+    /// The actor the chain's callbacks run on behalf of, from the current request's authentication
+    /// <paramref name="caller"/>.
     /// </summary>
+    /// <param name="caller">The current request's authentication.</param>
     /// <param name="language">
     /// The language the caller chose in the app, sent with process/next or instantiation, or null when the request
     /// has none. Every callback of the chain restores its data mutator in the actor's language, so the caller's
     /// profile language (nb for anyone but a user) is only the fallback. Like the rest of the actor it
     /// rides in the context, outside the engine's idempotency hash and the callback token's actor hash.
     /// </param>
-    private async Task<Actor> ExtractActor(string? language)
+    internal static async Task<Actor> CreateCallerActor(Authenticated caller, string? language)
     {
-        Authenticated currentAuth = _authenticationContext.Current;
-        if (currentAuth is Authenticated.User user)
+        if (caller is Authenticated.User user)
         {
             Authenticated.User.Details details = await user.LoadDetails(validateSelectedParty: true);
             return new Actor
@@ -649,12 +746,12 @@ internal sealed class ProcessNextRequestFactory
                 UserId = user.UserId,
                 AuthenticationLevel = user.AuthenticationLevel,
                 NationalIdentityNumber = details.Profile.Party.SSN,
-                Language = await currentAuth.GetLanguage(language),
+                Language = await caller.GetLanguage(language),
             };
         }
 
-        string resolvedLanguage = await currentAuth.GetLanguage(language);
-        return currentAuth switch
+        string resolvedLanguage = await caller.GetLanguage(language);
+        return caller switch
         {
             // Organization authentication currently emits an empty PlatformUser in process events.
             Authenticated.Org => new Actor { Language = resolvedLanguage },
@@ -672,7 +769,7 @@ internal sealed class ProcessNextRequestFactory
                 SystemUserName = null,
                 Language = resolvedLanguage,
             },
-            _ => throw new InvalidOperationException($"Unknown authentication type: {currentAuth.GetType().Name}"),
+            _ => throw new InvalidOperationException($"Unknown authentication type: {caller.GetType().Name}"),
         };
     }
 

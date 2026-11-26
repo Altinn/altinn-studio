@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -188,5 +189,76 @@ public class ServiceTaskRegistrationValidatorTests
 
         Assert.NotNull(exception);
         Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
+    }
+
+    // ── Action pipelines ─────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ActionPipelineTask_PassesValidation()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<IProcessTask>(new TestActionPipelineTask(pipeline => pipeline.Finally(NoopFinally)))
+        );
+
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("reject")]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task ActionPipelineTask_StartedByRejectOrNoAction_FailsStartup(string startAction)
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<IProcessTask>(
+                new TestActionPipelineTask(pipeline => pipeline.Finally(NoopFinally)) { StartAction = startAction }
+            )
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(nameof(TestActionPipelineTask), exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ActionPipelineTaskOpeningAMailboxNothingAnswers_FailsStartup()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<IProcessTask>(
+                new TestActionPipelineTask(pipeline =>
+                    pipeline
+                        .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(1) }, out _)
+                        .Finally(NoopFinally)
+                )
+            )
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains("defining the action pipeline failed", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ActionPipelineTaskAnsweringWithHandleReplies_FailsStartup()
+    {
+        var exception = await Validate(s =>
+            s.AddSingleton<IProcessTask>(
+                new TestActionPipelineTask(pipeline =>
+                    pipeline
+                        .Stage(
+                            NoopSend,
+                            new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
+                            out MailboxHandle attempt
+                        )
+                        .HandleReplies(
+                            attempt,
+                            (_, _) => Task.FromResult<StageExchangeResult>(StageResult.Completed()),
+                            (_, _) => Task.FromResult(StageResult.Completed())
+                        )
+                        .Finally(NoopFinally)
+                )
+            )
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains("cannot answer messages with HandleReplies", exception.Message, StringComparison.Ordinal);
     }
 }

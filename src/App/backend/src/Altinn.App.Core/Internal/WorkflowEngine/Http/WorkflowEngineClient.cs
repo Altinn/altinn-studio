@@ -261,6 +261,28 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
     }
 
     /// <inheritdoc />
+    public async Task<MailboxResponse?> GetMailbox(
+        string ns,
+        Guid mailboxId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/mailboxes/{mailboxId}";
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<MailboxResponse>(cancellationToken)
+            ?? throw new InvalidOperationException("The expected mailbox was not found in the response content.");
+    }
+
+    /// <inheritdoc />
     public async Task<MailboxResponse?> CloseMailbox(
         string ns,
         Guid mailboxId,

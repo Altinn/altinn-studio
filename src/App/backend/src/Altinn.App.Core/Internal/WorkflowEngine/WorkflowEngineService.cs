@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -122,7 +123,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 Task.FromResult(
                     _processNextRequestFactory.CreateAcquire(
                         instance,
-                        processStateChange,
+                        new AcquireProcessingStatusPayload(processStateChange),
+                        processStateChange.NewProcessState?.CurrentTask?.ElementId,
                         state,
                         CreateProcessNextIdempotencyKey(instance, instanceVersions),
                         actor
@@ -153,13 +155,89 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         );
     }
 
+    public async Task<ProcessNextWorkflowResult> EnqueueAndWaitForActionPipeline(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        PipelineId pipelineId,
+        Actor actor,
+        CancellationToken cancellationToken = default
+    )
+    {
+        string action =
+            pipelineId.Action
+            ?? throw new ArgumentException($"{pipelineId} is not an action pipeline.", nameof(pipelineId));
+        string? taskId = instance.Process?.CurrentTask?.ElementId;
+        return await EnqueueAndWaitForWorkflow(
+            instance,
+            () =>
+                Task.FromResult(
+                    _processNextRequestFactory.CreateAcquire(
+                        instance,
+                        new AcquireForActionPipelinePayload(pipelineId.TaskType, action),
+                        taskId,
+                        state,
+                        CreateProcessNextIdempotencyKey(instance, instanceVersions),
+                        actor
+                    )
+                ),
+            cancellationToken,
+            // Once a later attempt parks, it holds the instance, which then no longer tells how this request's ended.
+            parkedIsFinal: (chain, parkedWorkflows, _) =>
+                Task.FromResult(
+                    parkedWorkflows.All(workflow =>
+                        !IsActionPipelineWorkflow(workflow) || IsPipelineWorkflowOfTheAttempt(chain, workflow)
+                    )
+                )
+        );
+    }
+
+    public async Task<Guid?> FindActiveWorkflow(Instance instance, CancellationToken cancellationToken = default)
+    {
+        WorkflowCollectionDetailResponse? collection = await _workflowEngineClient.GetCollection(
+            GetNamespace(),
+            ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance)),
+            cancellationToken
+        );
+        return collection?.Heads.FirstOrDefault(IsActiveCollectionHeadStatus)?.DatabaseId;
+    }
+
+    public Task<ProcessNextWorkflowResult> WaitForActionPipelineMessage(
+        Instance instance,
+        Guid sinceWorkflowId,
+        Guid mailboxId,
+        long position,
+        CancellationToken cancellationToken = default
+    ) =>
+        WaitForWorkflowCollectionAndRefetchInstance(
+            instance,
+            ProcessNextRequestFactory.CreateCollectionKey(new InstanceIdentifier(instance)),
+            sinceWorkflowId,
+            cancellationToken,
+            parkedIsFinal: async (chain, parkedWorkflows, ct) =>
+                await _workflowEngineClient.GetMailbox(GetNamespace(), mailboxId, ct) switch
+                {
+                    // Receiver p + 1 is enqueued only from inside receiver p's callback, after its save, so a
+                    // receiver sequence past it means the receiver of this message has run.
+                    { NextSeq: var nextSeq } when nextSeq > position + 1 => true,
+                    // The engine still hands a closed mailbox's backlog to the receivers that follow, so a closed
+                    // mailbox ends the wait only once this attempt's receivers are done.
+                    { Status: MailboxStatus.Open } => false,
+                    { } => !parkedWorkflows.Any(workflow => IsPipelineWorkflowOfTheAttempt(chain, workflow)),
+                    // The engine no longer knows the mailbox, so its exchange ended long ago.
+                    null => true,
+                }
+        );
+
     /// <param name="instance">The instance the workflow is enqueued for.</param>
     /// <param name="createEnvelope">Builds the enqueue request.</param>
     /// <param name="cancellationToken">Cancels the enqueue and the wait.</param>
+    /// <param name="parkedIsFinal">A further condition a parked chain must meet to end the wait.</param>
     private async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
         Instance instance,
         Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        ParkedIsFinal? parkedIsFinal = null
     )
     {
         (Guid enqueuedWorkflowId, string collectionKey) = await SubmitWorkflow(createEnvelope, cancellationToken);
@@ -168,7 +246,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             instance,
             collectionKey,
             sinceWorkflowId: enqueuedWorkflowId,
-            cancellationToken
+            cancellationToken,
+            parkedIsFinal
         );
     }
 
@@ -229,7 +308,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return (enqueuedWorkflowId, collectionKey);
     }
 
-    public Task<Guid> EnqueueDependentProcessNext(
+    public async Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
         ProcessStateChange processStateChange,
         Guid dependsOnWorkflowId,
@@ -239,14 +318,62 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default
     ) =>
-        EnqueueDependentWorkflow(
-            instance,
-            processStateChange,
+        await EnqueueDependentWorkflow(
+            await _processNextRequestFactory.CreateDependent(
+                instance,
+                processStateChange,
+                state,
+                actor,
+                [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
+                idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
+            ),
             dependsOnWorkflowId,
             collectionKey,
-            state,
-            actor,
-            idempotencyKey,
+            cancellationToken
+        );
+
+    public Task EnqueueDependentActionPipeline(
+        Instance instance,
+        PipelineId pipelineId,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        Actor actor,
+        CancellationToken cancellationToken = default
+    ) =>
+        EnqueueDependentWorkflow(
+            _processNextRequestFactory.CreateDependentActionPipeline(
+                instance,
+                pipelineId,
+                state,
+                actor,
+                [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
+                CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
+            ),
+            dependsOnWorkflowId,
+            collectionKey,
+            cancellationToken
+        );
+
+    public Task EnqueueRelease(
+        Instance instance,
+        Guid dependsOnWorkflowId,
+        string collectionKey,
+        string state,
+        Actor actor,
+        string idempotencyKey,
+        CancellationToken cancellationToken = default
+    ) =>
+        EnqueueDependentWorkflow(
+            _processNextRequestFactory.CreateDependentRelease(
+                instance,
+                state,
+                actor,
+                [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
+                idempotencyKey
+            ),
+            dependsOnWorkflowId,
+            collectionKey,
             cancellationToken
         );
 
@@ -319,6 +446,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 WorkflowActivityStatus.Processing,
                 ExtractTargetTask(activeHead.Labels),
                 Failure: null,
+                AwaitingMessages: activeHead.Labels?.ContainsKey(ProcessNextRequestFactory.ActionPipelineLabel) == true,
                 Retrying: activeHead.Status == PersistentItemStatus.Requeued,
                 Progress: activeHead is { StepsCompleted: int completed, StepsTotal: int total and > 0 }
                     ? new WorkflowStepProgress(completed, total)
@@ -383,24 +511,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     private async Task<Guid> EnqueueDependentWorkflow(
-        Instance instance,
-        ProcessStateChange processStateChange,
+        WorkflowEnqueueEnvelope bundle,
         Guid dependsOnWorkflowId,
         string collectionKey,
-        string state,
-        Actor actor,
-        string? idempotencyKey,
         CancellationToken cancellationToken
     )
     {
-        WorkflowEnqueueEnvelope bundle = await _processNextRequestFactory.CreateDependent(
-            instance,
-            processStateChange,
-            state,
-            actor,
-            [WorkflowRef.FromDatabaseId(dependsOnWorkflowId)],
-            idempotencyKey ?? CreateDependentWorkflowIdempotencyKey(dependsOnWorkflowId)
-        );
         try
         {
             (Guid workflowId, _) = await EnqueueWorkflowEnvelope(bundle, collectionKey, cancellationToken);
@@ -495,19 +611,28 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         return (response.Workflows[0].DatabaseId, effectiveCollectionKey);
     }
 
+    /// <summary>Whether a parked chain's wait may end, given the chain and its parked workflows.</summary>
+    private delegate Task<bool> ParkedIsFinal(
+        IReadOnlyList<WorkflowStatusResponse> chain,
+        IReadOnlyList<WorkflowStatusResponse> parkedWorkflows,
+        CancellationToken cancellationToken
+    );
+
     /// <summary>
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
     /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
-    /// a mailbox receive workflow is waiting for its message — is released as a committed, parked success on
-    /// the first poll that sees it, and a chain that is neither settled nor parked when
-    /// <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a <see cref="WorkflowFailureKind.Timeout"/>.
+    /// a mailbox receive workflow is waiting for its message — is released as a parked success on the first
+    /// poll that sees it and <paramref name="parkedIsFinal"/> holds for it, and a chain that is
+    /// neither settled nor parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a
+    /// <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
         string collectionKey,
         Guid sinceWorkflowId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        ParkedIsFinal? parkedIsFinal = null
     )
     {
         long startedAt = _timeProvider.GetTimestamp();
@@ -552,7 +677,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             freshInstance.Instance,
                             freshInstance.Metadata,
                             BuildWorkflowFailure(currentChain),
-                            HasCommittedProcessState(currentChain)
+                            HasCommittedProcessState(currentChain),
+                            AnchorHasDependent: HasDependentOf(currentChain, sinceWorkflowId)
                         );
                     }
                 }
@@ -576,8 +702,17 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
                     // The committed-state guard is defensive: should a pre-commit step ever learn to
                     // defer, fall through to the ordinary wait (and its timeout) rather than returning a
-                    // process state that does not exist yet.
-                    if (anchoredChainParked && HasCommittedProcessState(currentChain))
+                    // process state that does not exist yet. An action pipeline commits no process state, so a
+                    // chain parked only on action pipeline workflows returns too.
+                    bool processStateCommitted = HasCommittedProcessState(currentChain);
+                    if (
+                        anchoredChainParked
+                        && (processStateCommitted || activeWorkflows.TrueForAll(IsActionPipelineWorkflow))
+                        && (
+                            parkedIsFinal is null
+                            || await parkedIsFinal(currentChain, activeWorkflows, cancellationToken)
+                        )
+                    )
                     {
                         InstanceWithStorageMetadata freshInstance =
                             await _instanceClient.GetInstanceWithStorageMetadata(
@@ -588,8 +723,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             freshInstance.Instance,
                             freshInstance.Metadata,
                             WorkflowFailure: null,
-                            ProcessStateCommitted: true,
-                            Parked: true
+                            processStateCommitted,
+                            Parked: true,
+                            AnchorHasDependent: HasDependentOf(currentChain, sinceWorkflowId)
                         );
                     }
                 }
@@ -782,6 +918,35 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         return ExtractTargetTask(workflow?.Labels);
     }
+
+    private static bool IsActionPipelineWorkflow(WorkflowStatusResponse workflow) =>
+        workflow.Labels?.ContainsKey(ProcessNextRequestFactory.ActionPipelineLabel) == true;
+
+    /// <summary>
+    /// Whether <paramref name="workflow"/> runs the action pipeline attempt that <paramref name="chain"/> starts with,
+    /// not a later one. The first workflow without the label after one with it ends the attempt: the after-workflow,
+    /// the release workflow or the next acquire.
+    /// </summary>
+    private static bool IsPipelineWorkflowOfTheAttempt(
+        IReadOnlyList<WorkflowStatusResponse> chain,
+        WorkflowStatusResponse workflow
+    )
+    {
+        if (!IsActionPipelineWorkflow(workflow))
+        {
+            return false;
+        }
+
+        DateTimeOffset? attemptEnd = chain
+            .OrderBy(candidate => candidate.CreatedAt)
+            .SkipWhile(candidate => !IsActionPipelineWorkflow(candidate))
+            .FirstOrDefault(candidate => !IsActionPipelineWorkflow(candidate))
+            ?.CreatedAt;
+        return attemptEnd is null || workflow.CreatedAt < attemptEnd;
+    }
+
+    private static bool HasDependentOf(IReadOnlyList<WorkflowStatusResponse> workflows, Guid workflowId) =>
+        workflows.Any(workflow => workflow.IdempotencyKey == CreateDependentWorkflowIdempotencyKey(workflowId));
 
     private static bool HasCommittedProcessState(IReadOnlyList<WorkflowStatusResponse> hierarchyWorkflows) =>
         hierarchyWorkflows.Any(workflow =>

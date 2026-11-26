@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
@@ -12,6 +13,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(AcquireProcessingStatusPayload), typeDiscriminator: "acquireProcessingStatus")]
+[JsonDerivedType(typeof(AcquireForActionPipelinePayload), typeDiscriminator: "acquireForActionPipeline")]
 [JsonDerivedType(typeof(ExecuteServiceTaskPayload), typeDiscriminator: "executeServiceTask")]
 [JsonDerivedType(typeof(ProcessStateChangePayload), typeDiscriminator: "processStateChange")]
 [JsonDerivedType(typeof(CommonTaskInitializationPayload), typeDiscriminator: "commonTaskInitialization")]
@@ -36,12 +38,23 @@ internal sealed record ProcessTaskStagePayload(int? StageIndex) : CommandRequest
 internal sealed record AcquireProcessingStatusPayload(ProcessStateChange ProcessStateChange) : CommandRequestPayload;
 
 /// <summary>
+/// An action pipeline's acquire: once it holds the instance, the pipeline the user task type declares for the
+/// action starts on the current task.
+/// </summary>
+internal sealed record AcquireForActionPipelinePayload(string TaskType, string Action) : CommandRequestPayload
+{
+    [JsonIgnore]
+    public PipelineId Pipeline => PipelineId.ActionPipeline(TaskType, Action);
+}
+
+/// <summary>
 /// Source-generated JSON serialization context for command payloads.
 /// Provides AOT-compatible, high-performance serialization.
 /// </summary>
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(CommandRequestPayload))]
 [JsonSerializable(typeof(AcquireProcessingStatusPayload))]
+[JsonSerializable(typeof(AcquireForActionPipelinePayload))]
 [JsonSerializable(typeof(ExecuteServiceTaskPayload))]
 [JsonSerializable(typeof(ProcessStateChangePayload))]
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]

@@ -9,7 +9,10 @@ using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.task_action.config.models;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
@@ -257,6 +260,128 @@ public class ActionsControllerTests : ApiTestBase
                 }
             }
         );
+    }
+
+    private async Task<(HttpStatusCode Status, UserActionResponse Response)> PerformActionThatMovesTheProcessOn(
+        bool failsAfterwards = false,
+        bool stagesADataElement = false
+    )
+    {
+        OverrideServicesForThisTest = services =>
+        {
+            // Replaces the built-in data task, as an app replaces a built-in task type.
+            services.AddSingleton<IProcessTask>(new MovingOnActionPipelineTask());
+            services.AddTransient<IUserAction>(sp => new StartActionPipelineAction(
+                sp.GetRequiredService<IProcessEngine>(),
+                failsAfterwards,
+                stagesADataElement
+            ));
+        };
+        var org = "tdd";
+        var app = "task-action";
+        HttpClient client = GetRootedClient(org, app);
+        Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        TestData.PrepareInstance(org, app, 1337, guid);
+        string token = TestAuthentication.GetUserToken(1337, authenticationLevel: 3);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+        using var requestContent = new StringContent("{\"action\":\"lookup\"}", Encoding.UTF8, "application/json");
+        using HttpResponseMessage response = await client.PostAsync(
+            $"/{org}/{app}/instances/1337/{guid}/actions",
+            requestContent
+        );
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
+        var actionResponse = await response.Content.ReadFromJsonAsync<UserActionResponse>(_jsonSerializerOptions);
+        return (response.StatusCode, actionResponse!);
+    }
+
+    [Fact]
+    public async Task Perform_ActionThatStartsAnActionPipeline_AnswersWithTheInstanceThePipelineLeft()
+    {
+        (HttpStatusCode status, UserActionResponse response) = await PerformActionThatMovesTheProcessOn();
+
+        status.Should().Be(HttpStatusCode.OK);
+        response.Instance.Process.EndEvent.Should().Be("EndEvent_1");
+        response.Instance.Process.Status.Should().Be(ProcessStatus.Idle);
+    }
+
+    [Fact]
+    public async Task Perform_ActionThatChangedTheInstanceInStorage_RunsNoIncrementalValidation()
+    {
+        (HttpStatusCode status, UserActionResponse response) = await PerformActionThatMovesTheProcessOn();
+
+        status.Should().Be(HttpStatusCode.OK);
+        response.UpdatedValidationIssues.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Perform_ActionThatFailsAfterChangingTheInstance_AnswersWithTheChangedInstance()
+    {
+        (HttpStatusCode status, UserActionResponse response) = await PerformActionThatMovesTheProcessOn(
+            failsAfterwards: true
+        );
+
+        status.Should().Be(HttpStatusCode.InternalServerError);
+        response.Instance.Process.EndEvent.Should().Be("EndEvent_1");
+    }
+
+    [Fact]
+    public async Task Perform_ActionThatChangedTheInstanceAndStagedADataElement_Throws()
+    {
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            PerformActionThatMovesTheProcessOn(stagesADataElement: true)
+        );
+
+        exception.Message.Should().Contain("staged data changes");
+    }
+
+    /// <summary>A user task type whose <c>lookup</c> action moves the process on through an action pipeline.</summary>
+    private sealed class MovingOnActionPipelineTask : IActionPipelineTask
+    {
+        public string Type => "data";
+
+        public string StartAction => "lookup";
+
+        public ServiceTaskPipeline DefineActionPipeline(PipelineBuilder pipeline) =>
+            pipeline.Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        public ValidationIssue ProcessNextRefusal(string taskId) =>
+            new() { Code = "LookupNotDone", Severity = ValidationIssueSeverity.Error };
+    }
+
+    private sealed class StartActionPipelineAction(
+        IProcessEngine processEngine,
+        bool failsAfterwards,
+        bool stagesADataElement
+    ) : IUserAction
+    {
+        public string Id => "lookup";
+
+        public async Task<UserActionResult> HandleAction(UserActionContext context)
+        {
+            if (stagesADataElement)
+            {
+                context.DataMutator.AddBinaryDataElement(
+                    "ref-data-as-pdf",
+                    "application/pdf",
+                    "receipt.pdf",
+                    "%PDF"u8.ToArray()
+                );
+            }
+
+            ActionPipelineOutcome outcome = await processEngine.StartActionPipeline(
+                context.DataMutator.Instance,
+                ((InstanceDataUnitOfWork)context.DataMutator).StorageVersions,
+                Id,
+                context.Language,
+                context.CancellationToken
+            );
+            var moved = Assert.IsType<ActionPipelineOutcome.Moved>(outcome);
+            UserActionResult result = failsAfterwards
+                ? UserActionResult.FailureResult(new ActionError { Code = "LookupFailed", Message = "Lookup failed." })
+                : UserActionResult.SuccessResult();
+            result.UpdatedInstance = moved.Instance;
+            return result;
+        }
     }
 
     [Fact]

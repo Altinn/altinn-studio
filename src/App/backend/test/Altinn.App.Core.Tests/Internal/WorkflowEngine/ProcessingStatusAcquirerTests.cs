@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
@@ -144,6 +145,72 @@ public class ProcessingStatusAcquirerTests
             Assert.Equal(exception.GetType().Name, rejected.ExceptionType);
         }
         setup.InstanceClient.VerifyNoOtherCalls();
+        setup.WorkflowEngineService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Acquire_ForAnActionPipeline_EnqueuesItsFirstWorkflowUnderTheAcquire()
+    {
+        var setup = new Setup();
+        setup.SetupCommit(
+            (_, _, _) =>
+                Task.FromResult(
+                    new InstanceMutationWithStorageMetadata(
+                        setup.CreateInstance(ProcessStatus.Processing),
+                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
+                    )
+                )
+        );
+        (
+            Instance Instance,
+            PipelineId Pipeline,
+            Guid DependsOn,
+            string CollectionKey,
+            string State,
+            Actor Actor
+        )? enqueued = null;
+        setup
+            .WorkflowEngineService.Setup(service =>
+                service.EnqueueDependentActionPipeline(
+                    It.IsAny<Instance>(),
+                    It.IsAny<PipelineId>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Actor>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, PipelineId, Guid, string, string, Actor, CancellationToken>(
+                (instance, pipeline, dependsOn, collectionKey, state, actor, _) =>
+                    enqueued = (instance, pipeline, dependsOn, collectionKey, state, actor)
+            )
+            .Returns(Task.CompletedTask);
+
+        ProcessingStatusAcquisition result = await setup.Acquire(Setup.CreateActionPipelinePayload(), Guid.NewGuid());
+
+        var acquired = Assert.IsType<ProcessingStatusAcquisition.Acquired>(result);
+        Assert.NotNull(enqueued);
+        Assert.Equal(ProcessStatus.Processing, enqueued.Value.Instance.Process?.Status);
+        Assert.Equal(PipelineId.ActionPipeline("testAttempt", "attempt"), enqueued.Value.Pipeline);
+        Assert.Equal(setup.WorkflowId, enqueued.Value.DependsOn);
+        Assert.Equal("process-chain", enqueued.Value.CollectionKey);
+        Assert.Equal(acquired.State, enqueued.Value.State);
+        Assert.Equal(new Actor { UserId = PartyId, Language = "nb" }, enqueued.Value.Actor);
+    }
+
+    [Fact]
+    public async Task Acquire_ForAnActionPipelineThatLostTheRace_EnqueuesNothing()
+    {
+        var setup = new Setup();
+        PlatformHttpException exception = await PlatformHttpException.Create(
+            new HttpResponseMessage(HttpStatusCode.PreconditionFailed)
+        );
+        setup.SetupCommit((_, _, _) => Task.FromException<InstanceMutationWithStorageMetadata>(exception));
+
+        ProcessingStatusAcquisition result = await setup.Acquire(Setup.CreateActionPipelinePayload(), Guid.NewGuid());
+
+        Assert.IsType<ProcessingStatusAcquisition.Superseded>(result);
         setup.WorkflowEngineService.VerifyNoOtherCalls();
     }
 
@@ -291,6 +358,7 @@ public class ProcessingStatusAcquirerTests
     [InlineData("""{"$type":"acquireProcessingStatus"}""")]
     [InlineData("""{"$type":"acquireProcessingStatus","processStateChange":null}""")]
     [InlineData("""{"$type":"acquireProcessingStatus","processStateChange":{}}""")]
+    [InlineData("""{"$type":"acquireForActionPipeline","taskType":"testAttempt"}""")]
     public async Task Acquire_WithAnInvalidPayload_RejectsWithoutCallingStorage(string payload)
     {
         var setup = new Setup();
@@ -545,6 +613,9 @@ public class ProcessingStatusAcquirerTests
             return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(transition))
                 ?? throw new InvalidOperationException("Prepared payload was not serialized.");
         }
+
+        public static string CreateActionPipelinePayload() =>
+            CommandPayloadSerializer.Serialize(new AcquireForActionPipelinePayload("testAttempt", "attempt"))!;
 
         public void SetupCommit(
             Func<

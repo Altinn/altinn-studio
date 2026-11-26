@@ -37,6 +37,7 @@ public class MailboxRelayFrontierTests
     private const string App = "test-app";
     private const string Namespace = "ttd/test-app";
     private const string ServiceTaskType = "archiving";
+    private static readonly PipelineId ArchivingPipeline = PipelineId.ServiceTask(ServiceTaskType);
 
     /// <summary>The item index of the stage that opens the exchange.</summary>
     private const int OpeningStageIndex = 0;
@@ -159,6 +160,12 @@ public class MailboxRelayFrontierTests
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
+        public Task<MailboxResponse?> GetMailbox(
+            string ns,
+            Guid mailboxId,
+            CancellationToken cancellationToken = default
+        ) => throw new NotSupportedException();
+
         public Task<MailboxResponse?> CloseMailbox(
             string ns,
             Guid mailboxId,
@@ -258,7 +265,7 @@ public class MailboxRelayFrontierTests
     /// pass an item the plan after which is an ordinary continuation, so no target rides along.
     /// </summary>
     private static MailboxHandover Handover(ServiceTaskPipeline pipeline, int afterItemIndex) =>
-        new(afterItemIndex, WorkflowStepSet.PlanSegment(ServiceTaskType, pipeline, afterItemIndex), target: null);
+        new(afterItemIndex, WorkflowStepSet.PlanSegment(ArchivingPipeline, pipeline, afterItemIndex), target: null);
 
     private static Instance CreateInstance() =>
         new()
@@ -333,7 +340,8 @@ public class MailboxRelayFrontierTests
                 == "callback-token"
             ),
             new ProcessStepOptionsResolver([]),
-            processEngine.Object
+            processEngine.Object,
+            Mock.Of<IWorkflowEngineService>(MockBehavior.Strict)
         );
     }
 
@@ -369,8 +377,8 @@ public class MailboxRelayFrontierTests
                 language: null
             ),
             State = "published-state",
-            AutoAdvanceProcess = true,
-            AutoAdvanceAction = null,
+            Advance = new ProcessNextContinuation(Action: null),
+            Release = false,
         };
 
     [Fact]
@@ -399,7 +407,7 @@ public class MailboxRelayFrontierTests
             // The relay's enqueue happens inside the callback — the receiver is still unsettled.
             int headsBefore = collection.EnqueuedByTheRelay.Count;
             await relay.Continue(
-                new MailboxContinuation.AwaitNextMessage(_mailboxId, ServiceTaskType, OpeningStageIndex, hop),
+                new MailboxContinuation.AwaitNextMessage(_mailboxId, ArchivingPipeline, OpeningStageIndex, hop),
                 CreateRequest(receiver, Guid.NewGuid()),
                 CancellationToken.None
             );
@@ -453,7 +461,7 @@ public class MailboxRelayFrontierTests
         await relay.Continue(
             new MailboxContinuation.ConcludeAndContinue(
                 _mailboxId,
-                ServiceTaskType,
+                ArchivingPipeline,
                 // ArchiveThenJournalTask answers exchange A with the handler at item index 1, and the hop
                 // that concludes it carries the segment it planned.
                 Handover(new ArchiveThenJournalTask().ResolvePipeline(), afterItemIndex: 1)
@@ -502,7 +510,7 @@ public class MailboxRelayFrontierTests
         int headsBefore = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
             new MailboxContinuation.ContinueAfterStage(
-                ServiceTaskType,
+                ArchivingPipeline,
                 Handover(new UpFrontSendsTask().ResolvePipeline(), OpeningStageIndex)
             ),
             CreateRequest(primary, Guid.NewGuid()),

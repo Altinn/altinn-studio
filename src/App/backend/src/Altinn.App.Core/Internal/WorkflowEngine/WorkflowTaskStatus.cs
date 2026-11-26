@@ -19,6 +19,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// engine clock, it lets a reconnecting client measure elapsed processing time without comparing
 /// client and server clocks. <see cref="ServiceTaskWithoutWorkflow"/> marks the failed status of an idle instance in a
 /// service task that no workflow runs, whose task process/next and process/resume start again.
+/// <see cref="AwaitingMessages"/> (processing-only) marks an action pipeline that holds the instance in the current
+/// user task and takes messages for it.
 /// </summary>
 internal sealed record WorkflowTaskStatus(
     WorkflowActivityStatus Status,
@@ -32,7 +34,8 @@ internal sealed record WorkflowTaskStatus(
     int FailedAttempts = 0,
     DateTimeOffset? ResumedAt = null,
     DateTimeOffset? FirstFailedAt = null,
-    bool ServiceTaskWithoutWorkflow = false
+    bool ServiceTaskWithoutWorkflow = false,
+    bool AwaitingMessages = false
 )
 {
     /// <summary>
@@ -46,6 +49,7 @@ internal sealed record WorkflowTaskStatus(
             Status = Status,
             TargetTask = TargetTask,
             Retrying = Retrying ? true : null,
+            AwaitingMessages = AwaitingMessages ? true : null,
             FailedAttempts = FailedAttempts > 0 ? FailedAttempts : null,
             FirstFailedAt = FailedAttempts > 0 ? FirstFailedAt : null,
             WaitingReason = WaitingReason,

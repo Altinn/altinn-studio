@@ -1,8 +1,12 @@
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 internal abstract class WorkflowEngineCommandResult { }
 
-internal sealed record ProcessNextContinuation(string? Action);
+/// <param name="Action">The process action that selects the transition.</param>
+/// <param name="Actor">Who the transition runs as; null for the workflow's own actor.</param>
+internal sealed record ProcessNextContinuation(string? Action, Actor? Actor = null);
 
 internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineCommandResult
 {
@@ -19,6 +23,12 @@ internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineComm
     /// because the successor must start on the state this handler <em>published</em>.
     /// </summary>
     public MailboxContinuation? MailboxContinuation { get; init; }
+
+    /// <summary>
+    /// Enqueues the workflow that returns the instance to idle on the same task after saving, once the mailbox relay
+    /// has closed what the result names. Only an action pipeline's ending sets it.
+    /// </summary>
+    public bool Release { get; init; }
 }
 
 /// <summary>

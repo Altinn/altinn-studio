@@ -1,3 +1,4 @@
+using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models.Process;
 
 namespace Altinn.App.Core.Models.UserAction;
@@ -65,6 +66,11 @@ public sealed class UserActionResult
     /// If this is set, the client should redirect to this url
     /// </summary>
     public Uri? RedirectUrl { get; set; }
+
+    /// <summary>
+    /// The instance as the action left it, when the action changed it in Storage itself.
+    /// </summary>
+    internal InstanceWithStorageMetadata? UpdatedInstance { get; set; }
 
     /// <summary>
     /// Creates a success result

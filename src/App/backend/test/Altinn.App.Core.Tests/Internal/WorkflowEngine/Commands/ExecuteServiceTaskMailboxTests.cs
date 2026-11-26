@@ -169,7 +169,9 @@ public class ExecuteServiceTaskMailboxTests
             Delivery = new AppCallbackMailboxDelivery
             {
                 IdempotencyKey = key,
-                Payload = TestMailboxDeliveryEnvelope.Create().Wrap(payload, mailboxId, "archiving", key),
+                Payload = TestMailboxDeliveryEnvelope
+                    .Create()
+                    .Wrap(payload, mailboxId, PipelineId.ServiceTask("archiving"), key, sender: null),
                 AcceptedAt = new DateTimeOffset(2026, 8, 19, 9, 30, 0, TimeSpan.Zero),
             },
         };
@@ -418,7 +420,7 @@ public class ExecuteServiceTaskMailboxTests
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal("archiving", continuing.Pipeline.TaskType);
         Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(continuing.Handover));
 
@@ -509,7 +511,7 @@ public class ExecuteServiceTaskMailboxTests
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
-        Assert.Equal("archiving", continuing.ServiceTaskType);
+        Assert.Equal("archiving", continuing.Pipeline.TaskType);
         // The plan rides the verdict: the stage composed after the send, and nothing more.
         Assert.Equal(SendStageIndex, continuing.Handover.AfterItemIndex);
         Assert.Equal([$"{ExecuteServiceTask.Key}: 1"], OperationIds(continuing.Handover));

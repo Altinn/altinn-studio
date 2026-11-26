@@ -3,6 +3,7 @@ using System.Net;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,47 @@ internal sealed class ServiceTaskReplyForwarder(
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(serviceTaskType);
+        await Deliver(
+            mailboxId,
+            PipelineId.ServiceTask(serviceTaskType),
+            payload,
+            idempotencyKey,
+            sender: null,
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Forwards a message sealed with its <paramref name="sender"/>, and returns the position the mailbox gave it,
+    /// the original one when the key was already accepted.
+    /// </summary>
+    /// <exception cref="ServiceTaskReplyForwardException">Not accepted, or accepted without a position.</exception>
+    internal async Task<long> Forward(
+        Guid mailboxId,
+        PipelineId pipeline,
+        string payload,
+        string idempotencyKey,
+        Actor? sender,
+        CancellationToken cancellationToken
+    ) =>
+        await Deliver(mailboxId, pipeline, payload, idempotencyKey, sender, cancellationToken)
+        // Forwarding again is answered from the engine's idempotency record, so the position can still be learned.
+        ?? throw Failure(
+            ServiceTaskReplyForwardOutcome.EngineUnavailable,
+            mailboxId,
+            idempotencyKey,
+            "the workflow engine accepted the message without saying at which position"
+        );
+
+    private async Task<long?> Deliver(
+        Guid mailboxId,
+        PipelineId pipeline,
+        string payload,
+        string idempotencyKey,
+        Actor? sender,
+        CancellationToken cancellationToken
+    )
+    {
         ArgumentNullException.ThrowIfNull(payload);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
 
@@ -41,7 +83,7 @@ internal sealed class ServiceTaskReplyForwarder(
         {
             // Sealing reads the callback code, absent during a mounting/rotation gap — an ordinary outcome, so
             // inside the try.
-            string sealedPayload = envelope.Wrap(payload, mailboxId, serviceTaskType, idempotencyKey);
+            string sealedPayload = envelope.Wrap(payload, mailboxId, pipeline, idempotencyKey, sender);
 
             var request = new MailboxDeliveryRequest { IdempotencyKey = idempotencyKey, Payload = sealedPayload };
 
@@ -80,7 +122,7 @@ internal sealed class ServiceTaskReplyForwarder(
                     mailboxId,
                     result.Body?.Idx
                 );
-                return;
+                return result.Body?.Idx;
 
             case HttpStatusCode.OK:
                 logger.LogDebug(
@@ -90,7 +132,7 @@ internal sealed class ServiceTaskReplyForwarder(
                     mailboxId,
                     result.Body?.Idx
                 );
-                return;
+                return result.Body?.Idx;
 
             default:
                 throw Failure(

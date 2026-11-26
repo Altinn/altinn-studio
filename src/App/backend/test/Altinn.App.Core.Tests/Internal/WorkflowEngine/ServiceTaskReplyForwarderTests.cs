@@ -115,15 +115,15 @@ public class ServiceTaskReplyForwarderTests
 
         string sealedPayload = observedRequest!.Payload;
         Assert.NotEqual(Body, sealedPayload);
-        Assert.Equal(Body, _envelope.Unwrap(sealedPayload, mailboxId, TaskType, Key));
+        Assert.Equal(Body, _envelope.Unwrap(sealedPayload, mailboxId, PipelineId.ServiceTask(TaskType), Key).Body);
         Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
-            _envelope.Unwrap(sealedPayload, Guid.CreateVersion7(), TaskType, Key)
+            _envelope.Unwrap(sealedPayload, Guid.CreateVersion7(), PipelineId.ServiceTask(TaskType), Key)
         );
         Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
-            _envelope.Unwrap(sealedPayload, mailboxId, "someOtherServiceTask", Key)
+            _envelope.Unwrap(sealedPayload, mailboxId, PipelineId.ServiceTask("someOtherServiceTask"), Key)
         );
         Assert.Throws<MailboxDeliveryEnvelopeException>(() =>
-            _envelope.Unwrap(sealedPayload, mailboxId, TaskType, "fiks-message-999")
+            _envelope.Unwrap(sealedPayload, mailboxId, PipelineId.ServiceTask(TaskType), "fiks-message-999")
         );
     }
 
@@ -283,6 +283,35 @@ public class ServiceTaskReplyForwarderTests
     }
 
     [Fact]
+    public async Task Forward_AcceptedWithoutAPosition_IsEngineUnavailable()
+    {
+        _client
+            .Setup(x =>
+                x.DeliverToMailbox(
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<MailboxDeliveryRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new MailboxDeliveryResult(HttpStatusCode.Accepted, Body: null, ErrorDetail: null));
+
+        var exception = await Assert.ThrowsAsync<ServiceTaskReplyForwardException>(() =>
+            CreateSut()
+                .Forward(
+                    Guid.CreateVersion7(),
+                    PipelineId.ActionPipeline(TaskType, "pay"),
+                    Body,
+                    Key,
+                    sender: null,
+                    CancellationToken.None
+                )
+        );
+
+        Assert.Equal(ServiceTaskReplyForwardOutcome.EngineUnavailable, exception.Outcome);
+    }
+
+    [Fact]
     public async Task ForwardReply_CallerCancelled_PropagatesCancellation()
     {
         using var cts = new CancellationTokenSource();
@@ -367,6 +396,9 @@ public class ServiceTaskReplyForwarderTests
 
         await CreateSut().ForwardReply(mailboxId, TaskType, string.Empty, Key);
 
-        Assert.Equal(string.Empty, _envelope.Unwrap(observedRequest!.Payload, mailboxId, TaskType, Key));
+        Assert.Equal(
+            string.Empty,
+            _envelope.Unwrap(observedRequest!.Payload, mailboxId, PipelineId.ServiceTask(TaskType), Key).Body
+        );
     }
 }

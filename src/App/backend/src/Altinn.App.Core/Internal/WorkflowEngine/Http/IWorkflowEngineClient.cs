@@ -100,6 +100,12 @@ internal interface IWorkflowEngineClient
         CancellationToken cancellationToken = default
     );
 
+    /// <summary>Reads a mailbox.</summary>
+    /// <returns>
+    /// The mailbox, or <see langword="null"/> on <c>404</c>. Every other unsuccessful status throws.
+    /// </returns>
+    Task<MailboxResponse?> GetMailbox(string ns, Guid mailboxId, CancellationToken cancellationToken = default);
+
     /// <summary>Closes a mailbox. Terminal and idempotent: a repeat close reports the original closure.</summary>
     /// <returns>
     /// The closed mailbox, or <see langword="null"/> on <c>404</c>. Every other unsuccessful status throws.

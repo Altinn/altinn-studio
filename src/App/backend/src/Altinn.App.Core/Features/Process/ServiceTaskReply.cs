@@ -1,3 +1,5 @@
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
@@ -31,4 +33,9 @@ public sealed record ServiceTaskReply
     /// idempotency key (<see cref="IdempotencyKey"/> is).
     /// </summary>
     public required long Position { get; init; }
+
+    /// <summary>
+    /// Who sent the message: the caller a request authenticated, or null for a message forwarded from outside.
+    /// </summary>
+    internal Actor? Sender { get; init; }
 }
