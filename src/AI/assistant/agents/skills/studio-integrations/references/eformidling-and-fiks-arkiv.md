@@ -49,4 +49,4 @@ Both send the instance's data from a service task: `eFormidling` through the eFo
 - [Fiks Arkiv (v8)](https://docs.altinn.studio/nb/altinn-studio/v8/guides/development/fiks-arkiv/) and
   [Fiks Arkiv (v9)](https://docs.altinn.studio/nb/altinn-studio/v9/receive-data/fiks-arkiv/): the account, every key
   of `FiksArkivSettings`, the process around the task, and replacing the archive record with an
-  `IFiksArkivPayloadGenerator`. The v9 page's message handler takes a `ServiceTaskContext`, which v9 no longer has.
+  `IFiksArkivPayloadGenerator`.

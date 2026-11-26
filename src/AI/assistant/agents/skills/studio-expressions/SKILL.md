@@ -49,7 +49,7 @@ cast to. The ones you meet most:
   writing the field. Check it in C# when it matters.
 - The backend lacks these frontend functions: `displayValue`, `formatNumber`, `optionLabel`, `linkToPage`,
   `linkToComponent`, `value`, `authContext` and `externalApi`. Never use them in `hidden`, `required`, validation
-  files or gateway conditions. `gatewayAction` exists only in the backend, for gateway conditions.
+  files, calculation files or gateway conditions. `gatewayAction` exists only in the backend, for gateway conditions.
 - When an expression fails, the frontend logs the error in the browser console and uses the property's default. A
   failing `hidden` therefore shows the component. The backend has no fallback. The request fails, which can stop the
   user from submitting.
