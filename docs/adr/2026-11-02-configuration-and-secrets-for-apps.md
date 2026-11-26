@@ -268,9 +268,20 @@ not settled yet>`. The collectors are shared with our own services, with a pipel
 
 ### v8 apps
 
-v8 apps do not change. They keep getting runtime configuration as environment variables, read Key Vault as they do
-today, and export telemetry as they do today. The runtime cluster provides their Application Insights connection
-string and instrumentation key as environment variables, so the deploy pipeline no longer looks them up.
+- v8 apps do not change. They keep getting runtime configuration as environment variables, read Key Vault as they do
+  today, and export telemetry as they do today. The runtime cluster provides their Application Insights connection
+  string and instrumentation key as environment variables, so the deploy pipeline no longer looks them up.
+- v8 and v9 apps run side by side in the same runtime clusters. The runtime chooses the v8 or v9 shape for each
+  deploy, not for each app, so a rolling update and a redeploy of an older v8 release both work. It decides from the
+  version of the app's Altinn.App backend package, which the build reads with the app model in
+  [`src/common`](../../src/common/README.md) and records on the release and the image. An app whose version the
+  build cannot read gets the v8 shape, and a v9 app given it stops at the startup check.
+- The environment variables for v8 apps and the files for v9 apps come from one source, so the two cannot disagree.
+  v9 apps never get the v8 environment variables, which would hide a value missing from the files.
+- The v8 libraries from 8.11 read every JSON file at the top of `/mnt/app-secrets`. v9's subdirectories stay out of
+  their way.
+- A user keeps their session when an app moves to v9. v9 apps read the same data protection keys as v8 apps, and the
+  cookie names in runtime configuration keep v8's values.
 
 ## Problem context
 
@@ -591,8 +602,10 @@ These are the Azure services left in the contract, and what leaving each takes. 
 - The connection string the runtime cluster provides for it: goes with Application Insights.
 - The APIM subscription key: goes with APIM, through #21765.
 
-v8 apps keep the Application Insights SDK and Key Vault in their own code, so leaving Azure for them needs the
-service owner to upgrade them.
+v8 apps keep Key Vault in their own code, so leaving Key Vault for them needs the service owner to upgrade them.
+Their telemetry can move without an upgrade from 8.11, where `AppSettings:UseOpenTelemetry` and
+`AppSettings:UseOpenTelemetryCollector` in the config map send it to the collectors. That changes the shape of the
+service owner's data in Application Insights, so we do it with the service owners rather than for them.
 
 ## Consequences
 
