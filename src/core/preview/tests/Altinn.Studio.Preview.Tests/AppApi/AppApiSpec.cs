@@ -13,20 +13,27 @@ internal sealed class AppApiSpec
 {
     private readonly JsonObject _paths;
     private readonly JsonObject _schemas;
+    private readonly IReadOnlySet<string> _leftOut;
 
-    private AppApiSpec(JsonObject spec)
+    private AppApiSpec(JsonObject spec, IReadOnlySet<string> leftOut)
     {
+        _leftOut = leftOut;
         _paths = spec["paths"] as JsonObject ?? throw new InvalidOperationException("The spec has no paths.");
         _schemas =
             spec["components"]?["schemas"] as JsonObject
             ?? throw new InvalidOperationException("The spec has no schemas.");
     }
 
-    public static AppApiSpec Load() =>
+    /// <param name="leftOut">
+    /// The properties an answer may leave out although the app API always has them, by their path in the answer, such
+    /// as <c>$.instanceOwner.party</c>.
+    /// </param>
+    public static AppApiSpec Load(IReadOnlySet<string> leftOut) =>
         new(
             JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "AppApi", "app-api.json")))
                 as JsonObject
-                ?? throw new InvalidOperationException("The spec is not an object.")
+                ?? throw new InvalidOperationException("The spec is not an object."),
+            leftOut
         );
 
     /// <summary>
@@ -51,9 +58,14 @@ internal sealed class AppApiSpec
             return [$"{request}: the app API never answers {code}"];
         }
 
-        if (body is null || response["content"]?["application/json"]?["schema"] is not JsonObject schema)
+        if (response["content"]?["application/json"]?["schema"] is not JsonObject schema)
         {
             return [];
+        }
+
+        if (body is null)
+        {
+            return [$"{request}: answers no JSON, where the app API does"];
         }
 
         List<string> differences = [];
@@ -175,9 +187,7 @@ internal sealed class AppApiSpec
             string required in (schema["required"] as JsonArray ?? []).Select(name => (string?)name).OfType<string>()
         )
         {
-            // Preview leaves out what it has no value for, where the app API answers null. A property that can't be
-            // null must be there.
-            if (!value.ContainsKey(required) && !(properties[required] is JsonObject property && Fits(null, property)))
+            if (!value.ContainsKey(required) && !_leftOut.Contains($"{path}.{required}"))
             {
                 differences.Add($"{path} lacks {required}");
             }

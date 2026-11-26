@@ -16,7 +16,28 @@ public sealed class V9TemplateTests : IDisposable
     private const string App = "my-app";
     private const int PartyId = 51001;
 
-    private static readonly AppApiSpec s_appApi = AppApiSpec.Load();
+    /// <summary>
+    /// The instance's properties that preview has no values for and leaves out. The app API answers null for most of
+    /// them. Any other property the app API always has must be in preview's answers, also one it adds later.
+    /// </summary>
+    private static readonly AppApiSpec s_appApi = AppApiSpec.Load(
+        new HashSet<string>(StringComparer.Ordinal)
+        {
+            "$.createdBy",
+            "$.lastChangedBy",
+            "$.dueBefore",
+            "$.visibleAfter",
+            "$.selfLinks",
+            "$.status",
+            "$.presentationTexts",
+            "$.dataValues",
+            "$.completeConfirmations",
+            "$.instanceOwner.organisationNumber",
+            "$.instanceOwner.personNumber",
+            "$.instanceOwner.username",
+            "$.instanceOwner.party",
+        }
+    );
 
     private readonly PreviewApplicationFactory _factory = new();
     private readonly List<string> _differences = [];
