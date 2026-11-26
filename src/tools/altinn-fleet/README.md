@@ -70,19 +70,23 @@ packages from the network, so its results are kept app by app. `fleet query --db
 environment's index attached, so a query can join it with `prod.apps`.
 
 - The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and analyzed there,
-  and `--out` must be outside the store.
-- Each analysis of an app runs in a process of its own, `fleet analysis run-app`, because it may keep state in the
-  process and can hang. `--timeout` ends one that takes too long.
+  and `--out` must be outside the store. A run takes no lock on the store, so a sync at the same time can move an
+  app while it is copied. The app then fails, or is recorded at the version it had, and the next run analyzes it
+  again.
+- Each analysis of an app runs in a process of its own, `fleet analysis job`, because it may keep state in the
+  process and can hang. `--timeout` ends one that takes too long. Nothing an analysis does runs in fleet's own
+  process, which only copies the apps and records the results, so a service could host the library.
 - An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only analyzes what changed.
   An app that failed is tried again, and so is one whose version the index does not know, as after `index rebuild`
   without the old index. `--force` analyzes every app again.
 - `runs` has a row for each app each analysis looked at, with its deployed version and why the analysis failed when
   it did. Each analysis has tables of its own, named after it, such as `api_usage_uses`.
-- Once the apps are recorded, an analysis can record what it compares them with, in fleet's own process, such as
-  the app library's public API for `api-usage`.
-- An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs) and is listed in
-  [AnalysisCommands.cs](src/Altinn.Studio.Fleet.Cli/AnalysisCommands.cs). A new version of an analysis replaces its
-  tables, so every app is analyzed again.
+- Once the apps are recorded, an analysis can analyze items that are not apps, to compare the apps with, such as
+  the app library versions for `api-usage`. They run in processes of their own too, and a run with an item that
+  failed exits with an error, since what the apps are compared with is then incomplete.
+- An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs), and `IItemAnalysis` for
+  items, and is listed in [Analyses.cs](src/Altinn.Studio.Fleet/Analysis/Analyses.cs). A new version of an analysis
+  replaces its tables, so every app is analyzed again.
 
 ### api-usage: what apps use of the app library
 

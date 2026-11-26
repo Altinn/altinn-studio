@@ -2,26 +2,24 @@ using System.Diagnostics;
 
 namespace Altinn.Studio.Fleet.Analysis;
 
-/// <summary>Runs each analysis of an app in a process of its own, which writes the result to a file.</summary>
+/// <summary>
+/// Runs each analysis job in a process of its own, which writes the result to a file. The host gives the command that
+/// starts its own program in the child, and that program passes the arguments it gets to <see cref="RunJob"/>.
+/// </summary>
 /// <remarks>
 /// An analysis may keep state in the process, as MSBuild and Roslyn do, and an app's build can hang or take gigabytes.
-/// A process per app keeps one app from affecting another, and lets a timeout end an analysis that hangs.
+/// A process per job keeps one job from affecting another or the host, and lets a timeout end a job that hangs.
 /// </remarks>
 /// <param name="command">
-/// The program and the arguments that run an analysis. The analysis's name, the app's folder and the result file are
-/// added to them.
+/// The program and the arguments that start a child, such as <c>fleet analysis job</c>. The job's arguments are added
+/// to them.
 /// </param>
-/// <param name="timeout">How long one analysis of one app may take.</param>
+/// <param name="timeout">How long one job may take.</param>
 public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan timeout) : IAnalysisExecutor
 {
     private const int MaxErrorLength = 2000;
 
-    public async Task<string?> Run(
-        IAppAnalysis analysis,
-        string appDir,
-        string resultFile,
-        CancellationToken cancellationToken
-    )
+    public async Task<string?> Run(AnalysisJob job, string resultFile, CancellationToken cancellationToken)
     {
         var start = new ProcessStartInfo(command[0])
         {
@@ -29,7 +27,7 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
             RedirectStandardError = true,
             UseShellExecute = false,
         };
-        foreach (string arg in command.Skip(1).Concat([analysis.Name, appDir, resultFile]))
+        foreach (string arg in command.Skip(1).Concat(Arguments(job, resultFile)))
         {
             start.ArgumentList.Add(arg);
         }
@@ -76,6 +74,60 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
         }
 
         return $"The analysis exited with code {process.ExitCode} without a result. {errors}".Trim();
+    }
+
+    /// <summary>The exit code of a child whose analysis failed, after it wrote why to standard error.</summary>
+    public const int ChildFailed = 1;
+
+    /// <summary>The exit code of a child that got arguments it does not understand.</summary>
+    public const int ChildUsage = 2;
+
+    /// <summary>The arguments that describe a job to the child, after the host's command.</summary>
+    public static IReadOnlyList<string> Arguments(AnalysisJob job, string resultFile) =>
+        job switch
+        {
+            AnalysisJob.App app => ["app", app.Analysis, app.AppDir, resultFile],
+            AnalysisJob.Item item => ["item", item.Analysis, item.Value.Key, item.Value.Input, resultFile],
+            _ => throw new ArgumentException($"Unknown job {job}.", nameof(job)),
+        };
+
+    /// <summary>
+    /// Runs, in the child, the job that <see cref="Arguments"/> describes. Writes why the analysis failed to
+    /// <paramref name="error"/>, and returns the process's exit code.
+    /// </summary>
+    public static async Task<int> RunJob(
+        IReadOnlyList<string> arguments,
+        IReadOnlyList<IAppAnalysis> analyses,
+        TextWriter error,
+        CancellationToken cancellationToken
+    )
+    {
+        IAppAnalysis? analysis = arguments.Count > 1 ? analyses.FirstOrDefault(a => a.Name == arguments[1]) : null;
+        Func<Task>? run = (arguments, analysis) switch
+        {
+            (["app", _, string appDir, string resultFile], not null) => () =>
+                analysis.Analyze(appDir, resultFile, cancellationToken),
+            (["item", _, string key, string input, string resultFile], IItemAnalysis items) => () =>
+                items.AnalyzeItem(new AnalysisItem(key, input), resultFile, cancellationToken),
+            _ => null,
+        };
+        if (run is null)
+        {
+            error.WriteLine($"Not an analysis job: {string.Join(' ', arguments)}");
+            return ChildUsage;
+        }
+
+        try
+        {
+            await run();
+            return 0;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Whatever the analysis throws is a fact about the job. The host records what this writes.
+            error.WriteLine(ex is FleetException ? ex.Message : ex.ToString());
+            return ChildFailed;
+        }
     }
 
     /// <summary>

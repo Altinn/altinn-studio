@@ -7,16 +7,6 @@ public interface ISyncObserver
 {
     /// <summary>Called when a stage starts and as it makes progress.</summary>
     void OnProgress(SyncProgress progress);
-
-    /// <summary>
-    /// Called as an analysis makes progress on what it records besides the apps, such as the app library versions
-    /// they use.
-    /// </summary>
-    /// <param name="analysis">The analysis.</param>
-    /// <param name="activity">What it does, such as <c>reading app library versions</c>.</param>
-    /// <param name="completed">How many of the step's items are done.</param>
-    /// <param name="total">How many items the step has.</param>
-    void OnAnalysisProgress(string analysis, string activity, int completed, int total) { }
 }
 
 /// <summary>How far a sync of an environment has come.</summary>
@@ -40,7 +30,4 @@ public enum SyncStage
 
     /// <summary>Rebuilding the index from the files on disk.</summary>
     Indexing,
-
-    /// <summary>Analyzing copies of the apps, for <c>fleet analysis run</c>.</summary>
-    Analyzing,
 }

@@ -19,7 +19,7 @@ public sealed record AnalysisOutcome(string? Failure, string? ResultFile, double
 
 /// <summary>
 /// The SQLite file that <c>fleet analysis</c> writes: a <c>runs</c> table with each app each analysis has looked at,
-/// and the analyses' own tables.
+/// and the analyses' own tables. It is safe to use from several threads: one call at a time reads or writes.
 /// </summary>
 /// <remarks>
 /// It is separate from the environments' indexes. An index is derived from the files in the store and can be rebuilt
@@ -55,6 +55,7 @@ public sealed class AnalysisDatabase : IDisposable
         """;
 
     private readonly SqliteConnection _connection;
+    private readonly Lock _gate = new();
 
     private AnalysisDatabase(SqliteConnection connection)
     {
@@ -122,6 +123,7 @@ public sealed class AnalysisDatabase : IDisposable
     /// </remarks>
     public void Prepare(IAppAnalysis analysis)
     {
+        using Lock.Scope scope = _gate.EnterScope();
         string versionKey = $"analysis.{analysis.Name}.version";
         string tablesKey = $"analysis.{analysis.Name}.tables";
         // As in Open, the write lock comes before the version is read.
@@ -169,6 +171,7 @@ public sealed class AnalysisDatabase : IDisposable
     /// <summary>The apps an analysis has looked at in an environment.</summary>
     public Dictionary<AppIdentifier, AnalyzedApp> ReadApps(IAppAnalysis analysis, RuntimeEnvironment environment)
     {
+        using Lock.Scope scope = _gate.EnterScope();
         var apps = new Dictionary<AppIdentifier, AnalyzedApp>();
         using SqliteCommand command = Command(
             null,
@@ -202,24 +205,36 @@ public sealed class AnalysisDatabase : IDisposable
         DateTimeOffset analyzedAt
     )
     {
-        try
+        lock (_gate)
         {
-            return Put(analysis, environment, app, version, outcome, analyzedAt);
+            try
+            {
+                return Put(analysis, environment, app, version, outcome, analyzedAt);
+            }
+            catch (Exception ex) when (ex is JsonException or IOException)
+            {
+                return Put(analysis, environment, app, version, Unreadable(outcome, ex), analyzedAt);
+            }
         }
-        catch (Exception ex) when (ex is JsonException or IOException)
+    }
+
+    /// <summary>
+    /// Records how the analysis of an item ended, with <see cref="IItemAnalysis.RecordItem"/>, in one transaction. A
+    /// result file that cannot be read is recorded as a failure.
+    /// </summary>
+    /// <returns>Why the item could not be analyzed, or <c>null</c> when it could.</returns>
+    public string? PutItem(IItemAnalysis analysis, AnalysisItem item, AnalysisOutcome outcome)
+    {
+        lock (_gate)
         {
-            return Put(
-                analysis,
-                environment,
-                app,
-                version,
-                outcome with
-                {
-                    Failure = $"The analysis's result could not be read: {ex.Message}",
-                    ResultFile = null,
-                },
-                analyzedAt
-            );
+            try
+            {
+                return WriteLocked(tables => analysis.RecordItem(tables, item, outcome));
+            }
+            catch (Exception ex) when (ex is JsonException or IOException)
+            {
+                return WriteLocked(tables => analysis.RecordItem(tables, item, Unreadable(outcome, ex)));
+            }
         }
     }
 
@@ -230,40 +245,52 @@ public sealed class AnalysisDatabase : IDisposable
         IReadOnlyCollection<AppIdentifier> apps
     )
     {
-        using SqliteTransaction transaction = _connection.BeginTransaction();
-        foreach (AppIdentifier app in apps)
+        lock (_gate)
         {
-            DeleteApp(analysis, environment, app, transaction);
-        }
+            using SqliteTransaction transaction = _connection.BeginTransaction();
+            foreach (AppIdentifier app in apps)
+            {
+                DeleteApp(analysis, environment, app, transaction);
+            }
 
-        transaction.Commit();
+            transaction.Commit();
+        }
     }
 
     /// <summary>
-    /// Reads and changes an analysis's tables in one transaction, for what an analysis records other than its apps,
-    /// such as what to compare them with. It is not safe to call from several threads at a time.
+    /// Reads and changes the analyses' tables in one transaction, as <see cref="IItemAnalysis.PlanItems"/> does. The
+    /// analyses' tables must exist, from <see cref="Prepare"/>.
     /// </summary>
-    public void Change(IAppAnalysis analysis, Action<SqliteConnection, SqliteTransaction> change) =>
-        Change(
-            analysis,
-            (connection, transaction) =>
-            {
-                change(connection, transaction);
-                return true;
-            }
-        );
-
-    /// <inheritdoc cref="Change(IAppAnalysis, Action{SqliteConnection, SqliteTransaction})"/>
-    public T Change<T>(IAppAnalysis analysis, Func<SqliteConnection, SqliteTransaction, T> change)
+    internal T Write<T>(Func<AnalysisTables, T> change)
     {
-        Prepare(analysis);
+        lock (_gate)
+        {
+            return WriteLocked(change);
+        }
+    }
+
+    private T WriteLocked<T>(Func<AnalysisTables, T> change)
+    {
         using SqliteTransaction transaction = _connection.BeginTransaction();
-        T result = change(_connection, transaction);
+        T result = change(new AnalysisTables(_connection, transaction));
         transaction.Commit();
         return result;
     }
 
-    public void Dispose() => _connection.Dispose();
+    private static AnalysisOutcome Unreadable(AnalysisOutcome outcome, Exception ex) =>
+        outcome with
+        {
+            Failure = $"The analysis's result could not be read: {ex.Message}",
+            ResultFile = null,
+        };
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            _connection.Dispose();
+        }
+    }
 
     private string? Put(
         IAppAnalysis analysis,
@@ -390,6 +417,67 @@ public sealed class AnalysisDatabase : IDisposable
 }
 
 /// <summary>
+/// An analysis's tables, in the transaction that records what the analysis found. SQL values are given as
+/// <c>("$name", value)</c> pairs, and <c>null</c> is SQL's <c>NULL</c>.
+/// </summary>
+public sealed class AnalysisTables
+{
+    private readonly SqliteConnection _connection;
+    private readonly SqliteTransaction _transaction;
+
+    internal AnalysisTables(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        _connection = connection;
+        _transaction = transaction;
+    }
+
+    /// <summary>Runs a statement, and returns how many rows it changed.</summary>
+    public int Execute(string sql, params ReadOnlySpan<(string Name, object? Value)> values)
+    {
+        using SqliteCommand command = Command(sql, values);
+        return command.ExecuteNonQuery();
+    }
+
+    /// <summary>Runs a query, and returns its rows as <paramref name="read"/> makes them.</summary>
+    public List<T> Query<T>(
+        string sql,
+        Func<SqliteDataReader, T> read,
+        params ReadOnlySpan<(string Name, object? Value)> values
+    )
+    {
+        using SqliteCommand command = Command(sql, values);
+        using SqliteDataReader reader = command.ExecuteReader();
+        var rows = new List<T>();
+        while (reader.Read())
+        {
+            rows.Add(read(reader));
+        }
+
+        return rows;
+    }
+
+    /// <summary>Prepares to insert rows into a table, with these columns.</summary>
+    /// <param name="table">The table.</param>
+    /// <param name="columns">The columns that <see cref="TableRows.Add"/> gives values for, in that order.</param>
+    /// <param name="ignoreDuplicates">Whether a row with the key of one already there is skipped.</param>
+    public TableRows Rows(string table, IReadOnlyList<string> columns, bool ignoreDuplicates = false) =>
+        TableRows.Create(_connection, _transaction, table, [], columns, ignoreDuplicates);
+
+    private SqliteCommand Command(string sql, ReadOnlySpan<(string Name, object? Value)> values)
+    {
+        SqliteCommand command = _connection.CreateCommand();
+        command.Transaction = _transaction;
+        command.CommandText = sql;
+        foreach ((string name, object? value) in values)
+        {
+            command.Parameters.AddWithValue(name, value ?? DBNull.Value);
+        }
+
+        return command;
+    }
+}
+
+/// <summary>
 /// Writes an app's rows into an analysis's tables, in the transaction that records the app. Each row gets the app's
 /// <c>env</c>, <c>org</c> and <c>app</c>.
 /// </summary>
@@ -402,47 +490,77 @@ public sealed class AppRecorder(
 {
     /// <summary>Prepares to insert rows into one of the analysis's tables, with these columns besides the app's.</summary>
     /// <param name="table">The table.</param>
-    /// <param name="columns">The columns that <see cref="AppRows.Add"/> gives values for, in that order.</param>
+    /// <param name="columns">The columns that <see cref="TableRows.Add"/> gives values for, in that order.</param>
     /// <param name="ignoreDuplicates">Whether a row with the key of one already there is skipped.</param>
-    public AppRows Rows(string table, IReadOnlyList<string> columns, bool ignoreDuplicates = false)
+    public TableRows Rows(string table, IReadOnlyList<string> columns, bool ignoreDuplicates = false) =>
+        TableRows.Create(
+            connection,
+            transaction,
+            table,
+            [("env", environment.Name), ("org", app.Org.Value), ("app", app.App.Value)],
+            columns,
+            ignoreDuplicates
+        );
+}
+
+/// <summary>Inserts rows into one table. See <see cref="AnalysisTables.Rows"/> and <see cref="AppRecorder.Rows"/>.</summary>
+public sealed class TableRows : IDisposable
+{
+    private readonly SqliteCommand _command;
+    private readonly int _fixed;
+    private readonly int _columns;
+
+    private TableRows(SqliteCommand command, int fixedColumns, int columns)
+    {
+        _command = command;
+        _fixed = fixedColumns;
+        _columns = columns;
+    }
+
+    internal static TableRows Create(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string table,
+        IReadOnlyList<(string Column, object Value)> fixedValues,
+        IReadOnlyList<string> columns,
+        bool ignoreDuplicates
+    )
     {
         SqliteCommand command = connection.CreateCommand();
         command.Transaction = transaction;
-        IEnumerable<string> names = ["env", "org", "app", .. columns];
+        IEnumerable<string> names = [.. fixedValues.Select(f => f.Column), .. columns];
         command.CommandText =
             $"INSERT {(ignoreDuplicates ? "OR IGNORE " : "")}INTO {AnalysisDatabase.Quote(table)} "
             + $"({string.Join(", ", names.Select(AnalysisDatabase.Quote))}) "
             + $"VALUES ({string.Join(", ", names.Select((_, i) => $"$p{i}"))})";
-        command.Parameters.AddWithValue("$p0", environment.Name);
-        command.Parameters.AddWithValue("$p1", app.Org.Value);
-        command.Parameters.AddWithValue("$p2", app.App.Value);
-        for (int i = 0; i < columns.Count; i++)
+        for (int i = 0; i < fixedValues.Count; i++)
         {
-            command.Parameters.AddWithValue($"$p{i + 3}", DBNull.Value);
+            command.Parameters.AddWithValue($"$p{i}", fixedValues[i].Value);
         }
 
-        return new AppRows(command, columns.Count);
-    }
-}
+        for (int i = 0; i < columns.Count; i++)
+        {
+            command.Parameters.AddWithValue($"$p{fixedValues.Count + i}", DBNull.Value);
+        }
 
-/// <summary>Inserts rows about one app into one table. See <see cref="AppRecorder.Rows"/>.</summary>
-public sealed class AppRows(SqliteCommand command, int columns) : IDisposable
-{
+        return new TableRows(command, fixedValues.Count, columns.Count);
+    }
+
     /// <summary>Inserts a row with these values, in the order of the columns.</summary>
     public void Add(params ReadOnlySpan<object?> values)
     {
-        if (values.Length != columns)
+        if (values.Length != _columns)
         {
-            throw new ArgumentException($"Expected {columns} values, not {values.Length}.", nameof(values));
+            throw new ArgumentException($"Expected {_columns} values, not {values.Length}.", nameof(values));
         }
 
         for (int i = 0; i < values.Length; i++)
         {
-            command.Parameters[i + 3].Value = values[i] ?? DBNull.Value;
+            _command.Parameters[_fixed + i].Value = values[i] ?? DBNull.Value;
         }
 
-        command.ExecuteNonQuery();
+        _command.ExecuteNonQuery();
     }
 
-    public void Dispose() => command.Dispose();
+    public void Dispose() => _command.Dispose();
 }

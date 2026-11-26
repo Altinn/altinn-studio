@@ -136,7 +136,8 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
                 """
             );
 
-            List<PackageUse> found = BinaryReferences.Scan(root);
+            using ProjectAssets assets = ProjectAssets.Read(root)!;
+            List<PackageUse> found = BinaryReferences.Scan(assets);
 
             Assert.Equal(
                 [("Altinn.App.Extra", "1.0.0"), ("Rid.Package", "2.0.0")],

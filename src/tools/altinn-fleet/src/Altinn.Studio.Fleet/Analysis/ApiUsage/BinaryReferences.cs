@@ -21,84 +21,40 @@ internal static class BinaryReferences
     // package named Altinn.App.Something is still read.
     private static readonly string[] s_skippedPrefixes = ["Microsoft.", "System.", "runtime."];
 
-    /// <summary>
-    /// The version of the app library package that a restored project uses: <c>Altinn.App.Core</c>, or
-    /// <c>Altinn.App.Api</c> for v6 and older, which have no Core. <c>null</c> when it uses neither, such as with a
-    /// project reference to the app library's source or a preview build in <c>Altinn.App.Core.Experimental</c>, whose
-    /// versions the published packages do not have.
-    /// </summary>
-    public static string? LibraryPackageVersion(string projectDir)
-    {
-        string assetsFile = Path.Join(projectDir, "obj", "project.assets.json");
-        if (!File.Exists(assetsFile))
-        {
-            return null;
-        }
-
-        using JsonDocument assets = JsonDocument.Parse(File.ReadAllBytes(assetsFile));
-        var versions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        foreach (JsonProperty target in assets.RootElement.GetProperty("targets").EnumerateObject())
-        {
-            foreach (JsonProperty library in target.Value.EnumerateObject())
-            {
-                int slash = library.Name.IndexOf('/', StringComparison.Ordinal);
-                if (slash > 0 && library.Value.GetProperty("type").GetString() == "package")
-                {
-                    versions.TryAdd(library.Name[..slash], library.Name[(slash + 1)..]);
-                }
-            }
-        }
-
-        return versions.GetValueOrDefault("Altinn.App.Core") ?? versions.GetValueOrDefault("Altinn.App.Api");
-    }
-
     /// <summary>The package assemblies in a restored project's graph that reference the app library.</summary>
-    public static List<PackageUse> Scan(string projectDir)
+    public static List<PackageUse> Scan(ProjectAssets assets)
     {
-        string assetsFile = Path.Join(projectDir, "obj", "project.assets.json");
-        if (!File.Exists(assetsFile))
-        {
-            return [];
-        }
-
-        using JsonDocument assets = JsonDocument.Parse(File.ReadAllBytes(assetsFile));
-        JsonElement root = assets.RootElement;
-        List<string> packageFolders = [.. root.GetProperty("packageFolders").EnumerateObject().Select(p => p.Name)];
-        JsonElement libraries = root.GetProperty("libraries");
         var result = new List<PackageUse>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (JsonProperty target in root.GetProperty("targets").EnumerateObject())
+        foreach (AssetsPackage package in assets.Packages)
         {
-            foreach (JsonProperty library in target.Value.EnumerateObject())
+            if (
+                package.Path is null
+                || s_skippedPrefixes.Any(prefix => package.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            )
             {
-                if (library.Value.GetProperty("type").GetString() != "package" || !seen.Add(library.Name))
+                continue;
+            }
+
+            foreach (string file in Assemblies(package.Target))
+            {
+                if (LibrarySymbols.IsLibraryAssembly(Path.GetFileNameWithoutExtension(file)))
                 {
                     continue;
                 }
 
-                int slash = library.Name.IndexOf('/', StringComparison.Ordinal);
-                string name = library.Name[..slash];
-                string version = library.Name[(slash + 1)..];
-                if (s_skippedPrefixes.Any(prefix => name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                string? path = assets
+                    .PackageFolders.Select(folder => Path.Join(folder, package.Path, file))
+                    .FirstOrDefault(File.Exists);
+                if (path is not null && Read(path) is { } references)
                 {
-                    continue;
-                }
-
-                string? libraryPath = libraries.GetProperty(library.Name).GetProperty("path").GetString();
-                foreach (string file in Assemblies(library.Value))
-                {
-                    if (libraryPath is null || LibrarySymbols.IsLibraryAssembly(Path.GetFileNameWithoutExtension(file)))
-                    {
-                        continue;
-                    }
-
-                    string? path = packageFolders
-                        .Select(folder => Path.Join(folder, libraryPath, file))
-                        .FirstOrDefault(File.Exists);
-                    if (path is not null && Read(path) is { } references)
-                    {
-                        result.Add(new PackageUse(name, version, Path.GetFileNameWithoutExtension(path), references));
-                    }
+                    result.Add(
+                        new PackageUse(
+                            package.Name,
+                            package.Version,
+                            Path.GetFileNameWithoutExtension(path),
+                            references
+                        )
+                    );
                 }
             }
         }

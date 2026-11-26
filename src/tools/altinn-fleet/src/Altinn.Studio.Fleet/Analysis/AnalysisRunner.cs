@@ -5,16 +5,6 @@ using Altinn.Studio.Fleet.Store;
 
 namespace Altinn.Studio.Fleet.Analysis;
 
-/// <summary>Runs an analysis of an app's folder and says whether it wrote its result.</summary>
-public interface IAnalysisExecutor
-{
-    /// <summary>
-    /// Runs <see cref="IAppAnalysis.Analyze"/> on an app's folder, and returns why it wrote no result file, or
-    /// <c>null</c> when it wrote one.
-    /// </summary>
-    Task<string?> Run(IAppAnalysis analysis, string appDir, string resultFile, CancellationToken cancellationToken);
-}
-
 /// <summary>What <see cref="AnalysisRunner.Run"/> does.</summary>
 public sealed record AnalysisOptions
 {
@@ -44,21 +34,33 @@ public sealed record AnalysisRunResult(
     int Removed
 );
 
-/// <summary>What an analysis recorded besides the apps, in a line for the run's summary.</summary>
-public sealed record AnalysisCompletion(string Analysis, string Summary);
+/// <summary>What a run of an <see cref="IItemAnalysis"/> did with its items.</summary>
+/// <param name="Analysis">The analysis.</param>
+/// <param name="ItemsName">What the items are, such as <c>app library versions</c>.</param>
+/// <param name="Items">How many items the analysis needs.</param>
+/// <param name="Analyzed">How many of them it analyzed.</param>
+/// <param name="Unchanged">How many it had already.</param>
+/// <param name="Failed">How many of those it analyzed failed.</param>
+/// <param name="Removed">How many it forgot, because they are no longer needed.</param>
+public sealed record AnalysisItemsResult(
+    string Analysis,
+    string ItemsName,
+    int Items,
+    int Analyzed,
+    int Unchanged,
+    int Failed,
+    int Removed
+);
 
 /// <summary>What a run of analyses did.</summary>
 /// <param name="Results">What each analysis did in each environment.</param>
-/// <param name="Completions">What the analyses recorded besides the apps, for those that did.</param>
-public sealed record AnalysisReport(
-    IReadOnlyList<AnalysisRunResult> Results,
-    IReadOnlyList<AnalysisCompletion> Completions
-);
+/// <param name="Items">What each <see cref="IItemAnalysis"/> did with its items.</param>
+public sealed record AnalysisReport(IReadOnlyList<AnalysisRunResult> Results, IReadOnlyList<AnalysisItemsResult> Items);
 
 /// <summary>
-/// Runs analyses over the apps in a store's environments and records the results. An app already analyzed at its
-/// deployed version is skipped, unless the analysis failed or the version is not known, so a run after a sync only
-/// analyzes what changed.
+/// Runs analyses over the apps in a store's environments and records the results, then the items of each
+/// <see cref="IItemAnalysis"/>. An app already analyzed at its deployed version is skipped, unless the analysis failed
+/// or the version is not known, so a run after a sync only analyzes what changed.
 /// </summary>
 /// <remarks>
 /// The store's app folders are never changed: an analysis may build the app, which writes into its folder, and the
@@ -71,14 +73,12 @@ public sealed class AnalysisRunner(
     IAnalysisExecutor executor
 )
 {
-    private readonly Lock _databaseGate = new();
-
     // An analysis named twice would run twice on the same copy of each app.
     private readonly List<IAppAnalysis> _analyses = [.. analyses.DistinctBy(analysis => analysis.Name)];
 
     public async Task<AnalysisReport> Run(
         AnalysisOptions options,
-        ISyncObserver? observer,
+        IAnalysisObserver? observer,
         CancellationToken cancellationToken
     )
     {
@@ -96,16 +96,13 @@ public sealed class AnalysisRunner(
                 results.AddRange(await Run(environment, options, workFolder, observer, cancellationToken));
             }
 
-            var completions = new List<AnalysisCompletion>();
-            foreach (IAppAnalysis analysis in _analyses)
+            var items = new List<AnalysisItemsResult>();
+            foreach (IItemAnalysis analysis in _analyses.OfType<IItemAnalysis>())
             {
-                if (await analysis.Complete(database, options, observer, cancellationToken) is { } summary)
-                {
-                    completions.Add(new AnalysisCompletion(analysis.Name, summary));
-                }
+                items.Add(await RunItems(analysis, options, workFolder, observer, cancellationToken));
             }
 
-            return new AnalysisReport(results, completions);
+            return new AnalysisReport(results, items);
         }
         finally
         {
@@ -120,7 +117,7 @@ public sealed class AnalysisRunner(
         RuntimeEnvironment environment,
         AnalysisOptions options,
         string workFolder,
-        ISyncObserver? observer,
+        IAnalysisObserver? observer,
         CancellationToken cancellationToken
     )
     {
@@ -169,7 +166,7 @@ public sealed class AnalysisRunner(
         }
 
         int completed = 0;
-        observer?.OnProgress(new SyncProgress(environment, SyncStage.Analyzing, 0, jobs.Count));
+        observer?.OnAppsProgress(environment, 0, jobs.Count);
         await Parallel.ForEachAsync(
             jobs,
             new ParallelOptions { MaxDegreeOfParallelism = options.Parallelism, CancellationToken = cancellationToken },
@@ -185,7 +182,7 @@ public sealed class AnalysisRunner(
                 }
 
                 int done = Interlocked.Increment(ref completed);
-                observer?.OnProgress(new SyncProgress(environment, SyncStage.Analyzing, done, jobs.Count));
+                observer?.OnAppsProgress(environment, done, jobs.Count);
             }
         );
 
@@ -221,40 +218,100 @@ public sealed class AnalysisRunner(
             try
             {
                 CopyFolder(store.AppPath(environment, app.App), copy);
-                failure = await executor.Run(analysis, copy, resultFile, cancellationToken);
+                failure = await executor.Run(new AnalysisJob.App(analysis.Name, copy), resultFile, cancellationToken);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 failure = $"Could not copy the app to {copy}: {ex.Message}";
             }
 
-            var outcome = new AnalysisOutcome(
-                failure,
-                failure is null && File.Exists(resultFile) ? resultFile : null,
-                timer.Elapsed.TotalSeconds
+            return database.PutApp(
+                analysis,
+                environment,
+                app.App,
+                app.Version?.Value,
+                Outcome(failure, resultFile, timer),
+                DateTimeOffset.UtcNow
             );
-            if (outcome is { Failure: null, ResultFile: null })
-            {
-                outcome = outcome with { Failure = "The analysis wrote no result." };
-            }
-
-            lock (_databaseGate)
-            {
-                return database.PutApp(
-                    analysis,
-                    environment,
-                    app.App,
-                    app.Version?.Value,
-                    outcome,
-                    DateTimeOffset.UtcNow
-                );
-            }
         }
         finally
         {
             TryDelete(copy);
             TryDelete(resultFile);
         }
+    }
+
+    /// <summary>
+    /// Forgets the items an analysis no longer needs, analyzes those it says to, and records each.
+    /// </summary>
+    private async Task<AnalysisItemsResult> RunItems(
+        IItemAnalysis analysis,
+        AnalysisOptions options,
+        string workFolder,
+        IAnalysisObserver? observer,
+        CancellationToken cancellationToken
+    )
+    {
+        ItemPlan plan = database.Write(tables => analysis.PlanItems(tables, options));
+        string folder = Path.Join(workFolder, "items", analysis.Name);
+        Directory.CreateDirectory(folder);
+        int completed = 0;
+        int failed = 0;
+        observer?.OnItemsProgress(analysis.Name, analysis.ItemsName, 0, plan.Pending.Count);
+        await Parallel.ForEachAsync(
+            plan.Pending.Select((item, index) => (Item: item, Index: index)),
+            new ParallelOptions { MaxDegreeOfParallelism = options.Parallelism, CancellationToken = cancellationToken },
+            async (job, token) =>
+            {
+                string resultFile = Path.Join(folder, $"{job.Index}.result");
+                var timer = Stopwatch.StartNew();
+                try
+                {
+                    string? failure = await executor.Run(
+                        new AnalysisJob.Item(analysis.Name, job.Item),
+                        resultFile,
+                        token
+                    );
+                    if (database.PutItem(analysis, job.Item, Outcome(failure, resultFile, timer)) is not null)
+                    {
+                        Interlocked.Increment(ref failed);
+                    }
+                }
+                finally
+                {
+                    TryDelete(resultFile);
+                }
+
+                int done = Interlocked.Increment(ref completed);
+                observer?.OnItemsProgress(analysis.Name, analysis.ItemsName, done, plan.Pending.Count);
+            }
+        );
+
+        return new AnalysisItemsResult(
+            analysis.Name,
+            analysis.ItemsName,
+            plan.Total,
+            plan.Pending.Count,
+            plan.Total - plan.Pending.Count,
+            failed,
+            plan.Removed
+        );
+    }
+
+    /// <summary>How a job ended, from why the executor says it failed and the file it wrote.</summary>
+    private static AnalysisOutcome Outcome(string? failure, string resultFile, Stopwatch timer)
+    {
+        var outcome = new AnalysisOutcome(
+            failure,
+            failure is null && File.Exists(resultFile) ? resultFile : null,
+            timer.Elapsed.TotalSeconds
+        );
+        return outcome is { Failure: null, ResultFile: null }
+            ? outcome with
+            {
+                Failure = "The analysis wrote no result.",
+            }
+            : outcome;
     }
 
     /// <summary>

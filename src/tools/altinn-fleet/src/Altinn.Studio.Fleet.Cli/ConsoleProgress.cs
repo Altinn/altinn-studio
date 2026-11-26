@@ -1,12 +1,17 @@
 using System.Diagnostics;
+using Altinn.Studio.Common.Domain;
+using Altinn.Studio.Fleet.Analysis;
 
 namespace Altinn.Studio.Fleet.Cli;
 
 /// <summary>
-/// Shows a sync's progress on standard error: one line rewritten in place at a terminal, and an occasional line
-/// otherwise, so that logs stay short.
+/// Shows the progress of a sync or a run of analyses on standard error: one line rewritten in place at a terminal, and
+/// an occasional line otherwise, so that logs stay short.
 /// </summary>
-internal sealed class ConsoleProgress(TextWriter output, bool interactive) : ISyncObserver, IDisposable
+internal sealed class ConsoleProgress(TextWriter output, bool interactive)
+    : ISyncObserver,
+        IAnalysisObserver,
+        IDisposable
 {
     private static readonly TimeSpan s_terminalInterval = TimeSpan.FromMilliseconds(100);
     private static readonly TimeSpan s_logInterval = TimeSpan.FromSeconds(10);
@@ -24,8 +29,11 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive) : ISy
             progress.Total
         );
 
-    public void OnAnalysisProgress(string analysis, string activity, int completed, int total) =>
-        Write($"{analysis}|{activity}", $"{analysis} {activity}", completed, total);
+    public void OnAppsProgress(RuntimeEnvironment environment, int completed, int total) =>
+        Write($"{environment.Name}|apps", $"{environment.Name, -5} analyzing", completed, total);
+
+    public void OnItemsProgress(string analysis, string items, int completed, int total) =>
+        Write($"{analysis}|items", $"{analysis} analyzing {items}", completed, total);
 
     private void Write(string stage, string label, int completed, int total)
     {
@@ -75,7 +83,6 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive) : ISy
             SyncStage.Resolving => "looking up releases",
             SyncStage.Fetching => "downloading",
             SyncStage.Indexing => "indexing",
-            SyncStage.Analyzing => "analyzing",
             _ => stage.ToString(),
         };
 }

@@ -1,10 +1,9 @@
 using Altinn.Studio.Fleet.Analysis;
 using Altinn.Studio.Fleet.Analysis.ApiUsage;
-using Microsoft.Data.Sqlite;
 
 namespace Altinn.Studio.Fleet.Tests.Analysis.ApiUsage;
 
-public sealed class ApiUsageAnalysisTests(LibraryFixture fixture) : IClassFixture<LibraryFixture>, IDisposable
+public sealed class ApiUsageAnalysisTests : IDisposable
 {
     private readonly string _folder = Folder.CreateTemporary();
 
@@ -43,7 +42,7 @@ public sealed class ApiUsageAnalysisTests(LibraryFixture fixture) : IClassFixtur
     [InlineData("Altinn.App.Core/8.12.17,Altinn.App.Api/8.12.17,Some.Package/1.0.0", "8.12.17")]
     [InlineData("Altinn.App.Api/6.0.2,Altinn.App.Common/6.0.2", "6.0.2")]
     [InlineData("Some.Package/1.0.0", null)]
-    public void LibraryPackageVersion_IsTheCorePackagesVersion_OrApisBeforeV7(string libraries, string? expected)
+    public void LibraryVersion_IsTheCorePackagesVersion_OrApisBeforeV7(string libraries, string? expected)
     {
         string targets = string.Join(
             ',',
@@ -51,113 +50,124 @@ public sealed class ApiUsageAnalysisTests(LibraryFixture fixture) : IClassFixtur
         );
         Write("obj/project.assets.json", $$"""{ "targets": { "net8.0": { {{targets}} } } }""");
 
-        Assert.Equal(expected, BinaryReferences.LibraryPackageVersion(_folder));
+        using ProjectAssets? assets = ProjectAssets.Read(_folder);
+
+        Assert.Equal(expected, assets?.LibraryVersion);
     }
 
     [Fact]
-    public async Task Complete_RecordsTheSourcesApi_AndKeepsItWhenALaterReadFails()
+    public void PlanItems_ReadsTheVersionsTheAppsUseThatAreNotRead_AndForgetsTheOthers()
     {
         using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath);
-        var good = new ApiUsageAnalysis { Source = new LibrarySource(fixture.Root, [fixture.LibraryProject]) };
-        Write(
-            "broken/Altinn.App.Api.csproj",
-            """
-            <Project Sdk="Microsoft.NET.Sdk">
-              <Import Project="missing.props" />
-            </Project>
-            """
-        );
-        var broken = new ApiUsageAnalysis
+        var analysis = new ApiUsageAnalysis
         {
-            Source = new LibrarySource(_folder, [Path.Join(_folder, "broken", "Altinn.App.Api.csproj")]),
+            Source = new LibrarySource(Path.Join(_folder, "checkout"), ["Altinn.App.Api.csproj"]),
         };
-
-        string? first = await Complete(database, good);
-        string? second = await Complete(database, broken);
-
-        Assert.Equal("app library API  1 versions · 1 read · 0 removed · 0 failed", first);
-        Assert.Equal("app library API  1 versions · 1 read · 0 removed · 1 failed", second);
-        Assert.Contains(
-            "M:Altinn.App.Core.Features.DataClient.Unused",
-            Query(database, good, "SELECT symbol FROM api_usage_library_api WHERE version = 'source'")
+        database.Prepare(analysis);
+        database.Write(tables =>
+            tables.Execute(
+                """
+                INSERT INTO api_usage_apps (env, org, app, library_version, compile_errors) VALUES
+                    ('prod', 'ttd', 'app-one', '8.0.0', 0),
+                    ('prod', 'ttd', 'app-two', '8.1.0', 0),
+                    ('prod', 'ttd', 'app-three', '8.2.0', 0);
+                INSERT INTO api_usage_library_versions (version, read_at, failure) VALUES
+                    ('8.0.0', '2026-11-26T00:00:00Z', NULL),
+                    ('8.1.0', '2026-11-26T00:00:00Z', 'The feed did not answer.'),
+                    ('7.0.0', '2026-11-26T00:00:00Z', NULL),
+                    ('source', '2026-11-26T00:00:00Z', NULL);
+                INSERT INTO api_usage_library_api (version, symbol, assembly, kind, namespace, visible, obsolete,
+                    extension_point)
+                VALUES ('7.0.0', 'T:A', 'Altinn.App.Core', 'class', 'A', 1, 0, 0);
+                """
+            )
         );
-        Assert.Contains(
-            "broken",
-            Assert.Single(Query(database, good, "SELECT failure FROM api_usage_library_versions")),
-            StringComparison.Ordinal
+
+        ItemPlan plan = database.Write(tables =>
+            analysis.PlanItems(tables, new AnalysisOptions { Environments = [FleetTestContext.Prod] })
         );
+
+        Assert.Equal(
+            [
+                new AnalysisItem("8.1.0", "8.1.0"),
+                new AnalysisItem("8.2.0", "8.2.0"),
+                new AnalysisItem("source", Path.Join(_folder, "checkout")),
+            ],
+            plan.Pending
+        );
+        Assert.Equal((4, 1), (plan.Total, plan.Removed));
+        Assert.Equal(
+            ["8.0.0", "8.1.0", "source"],
+            Query(database, "SELECT version FROM api_usage_library_versions ORDER BY version")
+        );
+        Assert.Empty(Query(database, "SELECT symbol FROM api_usage_library_api"));
     }
 
     [Fact]
-    public async Task Complete_ReadsOnlyTheVersionsTheAppsUseThatAreNotRead_AndForgetsTheOthers()
+    public async Task AnalyzeItem_ReadsTheSourcesApi_AndAFailedReadKeepsIt()
     {
         using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath);
         var analysis = new ApiUsageAnalysis();
-        database.Change(
-            analysis,
-            (connection, transaction) =>
-                Execute(
-                    connection,
-                    transaction,
-                    """
-                    INSERT INTO api_usage_apps (env, org, app, library_version, compile_errors)
-                    VALUES ('prod', 'ttd', 'app-one', '8.0.0', 0);
-                    INSERT INTO api_usage_library_versions (version, read_at) VALUES ('8.0.0', '2026-11-26T00:00:00Z');
-                    INSERT INTO api_usage_library_versions (version, read_at) VALUES ('7.0.0', '2026-11-26T00:00:00Z');
-                    INSERT INTO api_usage_library_api (version, symbol, assembly, kind, namespace, visible, obsolete,
-                        extension_point)
-                    VALUES ('7.0.0', 'T:A', 'Altinn.App.Core', 'class', 'A', 1, 0, 0);
-                    INSERT INTO api_usage_library_versions (version, read_at) VALUES ('source', '2026-11-26T00:00:00Z');
-                    """
-                )
+        database.Prepare(analysis);
+        Write(
+            "checkout/src/Altinn.App.Api/Altinn.App.Api.csproj",
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>net{Environment.Version.Major}.0</TargetFramework>
+              </PropertyGroup>
+            </Project>
+            """
         );
+        Write(
+            "checkout/src/Altinn.App.Api/Controller.cs",
+            """
+            namespace Altinn.App.Api;
 
-        string? summary = await Complete(database, analysis);
+            public sealed class Controller
+            {
+                public int Unused() => 0;
+            }
+            """
+        );
+        var item = new AnalysisItem(ApiUsageAnalysis.SourceVersion, Path.Join(_folder, "checkout"));
+        string resultFile = Path.Join(_folder, "source.result");
 
-        Assert.Equal("app library API  2 versions · 0 read · 1 removed · 0 failed", summary);
+        await analysis.AnalyzeItem(item, resultFile, TestContext.Current.CancellationToken);
+        string? first = database.PutItem(analysis, item, new AnalysisOutcome(null, resultFile, 1));
+        string? second = database.PutItem(analysis, item, new AnalysisOutcome("It does not compile.", null, 1));
+
+        Assert.Equal((null, "It does not compile."), (first, second));
+        Assert.Contains(
+            "M:Altinn.App.Api.Controller.Unused",
+            Query(database, "SELECT symbol FROM api_usage_library_api WHERE version = 'source'")
+        );
         Assert.Equal(
-            ["8.0.0", "source"],
-            Query(database, analysis, "SELECT version FROM api_usage_library_versions ORDER BY version")
+            ["It does not compile."],
+            Query(database, "SELECT failure FROM api_usage_library_versions WHERE read_at IS NOT NULL")
         );
-        Assert.Empty(Query(database, analysis, "SELECT symbol FROM api_usage_library_api"));
+    }
+
+    [Fact]
+    public async Task AnalyzeItem_WithoutTheAppLibrary_Throws()
+    {
+        var item = new AnalysisItem(ApiUsageAnalysis.SourceVersion, _folder);
+
+        FleetException ex = await Assert.ThrowsAsync<FleetException>(() =>
+            new ApiUsageAnalysis().AnalyzeItem(
+                item,
+                Path.Join(_folder, "result"),
+                TestContext.Current.CancellationToken
+            )
+        );
+
+        Assert.Contains("has no app library", ex.Message, StringComparison.Ordinal);
     }
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
-    private static Task<string?> Complete(AnalysisDatabase database, ApiUsageAnalysis analysis) =>
-        analysis.Complete(
-            database,
-            new AnalysisOptions { Environments = [FleetTestContext.Prod] },
-            null,
-            TestContext.Current.CancellationToken
-        );
-
-    private static List<string> Query(AnalysisDatabase database, ApiUsageAnalysis analysis, string sql) =>
-        database.Change(
-            analysis,
-            (connection, transaction) =>
-            {
-                using SqliteCommand command = connection.CreateCommand();
-                command.Transaction = transaction;
-                command.CommandText = sql;
-                using SqliteDataReader reader = command.ExecuteReader();
-                var values = new List<string>();
-                while (reader.Read())
-                {
-                    values.Add(reader.GetString(0));
-                }
-
-                return values;
-            }
-        );
-
-    private static void Execute(SqliteConnection connection, SqliteTransaction transaction, string sql)
-    {
-        using SqliteCommand command = connection.CreateCommand();
-        command.Transaction = transaction;
-        command.CommandText = sql;
-        command.ExecuteNonQuery();
-    }
+    private static List<string> Query(AnalysisDatabase database, string sql) =>
+        database.Write(tables => tables.Query(sql, reader => reader.GetString(0)));
 
     private void Write(string relativePath, string content)
     {

@@ -127,7 +127,7 @@ internal static class AppCollector
         }
 
         bool referencesLibrary = references.Any(a => LibrarySymbols.IsLibraryAssembly(a.Name));
-        string? libraryVersion = BinaryReferences.LibraryPackageVersion(Path.GetDirectoryName(projectFile) ?? appDir);
+        using ProjectAssets? assets = ProjectAssets.Read(Path.GetDirectoryName(projectFile) ?? appDir);
         // Uses in code that does not compile are missing. So a run with errors is a failure, with the uses that were
         // found, and the next run tries the app again. A restore that failed for a moment, such as a feed that did not
         // answer, is one too, even when what it left compiles.
@@ -140,7 +140,7 @@ internal static class AppCollector
             : null;
         return new AppUsage(
             project,
-            libraryVersion,
+            assets?.LibraryVersion,
             failure,
             restoreError,
             loadFailures,
@@ -148,7 +148,7 @@ internal static class AppCollector
             [.. errors.Take(SampleErrorCount).Select(e => e.ToString())],
             testProjects,
             uses.ToList(),
-            BinaryReferences.Scan(Path.GetDirectoryName(projectFile) ?? appDir)
+            assets is null ? [] : BinaryReferences.Scan(assets)
         );
     }
 
@@ -256,7 +256,9 @@ internal static class AppCollector
             CancellationToken cancellationToken
         )
         {
-            foreach (SyntaxTree tree in compilation.SyntaxTrees)
+            // In path order, so that the first location is the same on every run: source generators add their trees
+            // in no fixed order.
+            foreach (SyntaxTree tree in compilation.SyntaxTrees.OrderBy(t => t.FilePath, StringComparer.Ordinal))
             {
                 if (sourceOf(tree) is not { } source)
                 {

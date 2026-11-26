@@ -220,13 +220,12 @@ public sealed class AnalysisRunnerTests
         string root = Folder.CreateTemporary();
         try
         {
-            // sh -c SCRIPT gets the analysis's name, the app's folder and the result file as $0, $1 and $2.
+            // sh -c SCRIPT gets the job's arguments as $0, $1 and so on.
             var executor = new ChildProcessExecutor(["sh", "-c", "sleep 20 & exit 3"], TimeSpan.FromSeconds(1));
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
             string? failure = await executor.Run(
-                new FakeAnalysis(),
-                root,
+                new AnalysisJob.App("fake", root),
                 Path.Join(root, "result"),
                 TestContext.Current.CancellationToken
             );
@@ -242,26 +241,93 @@ public sealed class AnalysisRunnerTests
     }
 
     [Fact]
-    public async Task Run_CompletesEachAnalysisAfterItsApps()
+    public async Task Run_AnalyzesTheItemsOfAnAnalysisAfterItsApps_AndRecordsThem()
     {
         using var context = new FleetTestContext();
         context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
-        context.Altinn.Deploy("prod", "ssb", "app-two", "2.0.0");
+        context.Altinn.Deploy("prod", "ssb", "broken", "2.0.0");
         await context.SyncProd();
         using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
+        var analysis = new FakeItemAnalysis();
+        var plain = new FakeAnalysis { Name = "plain" };
+        var progress = new RecordingObserver();
 
         AnalysisReport report = await new AnalysisRunner(
             context.Store,
             database,
-            [new FakeAnalysis(), new FakeAnalysis { Name = "quiet", Summarizes = false }],
-            new InProcessExecutor()
+            [analysis, plain],
+            new InProcessExecutor([analysis, plain])
         ).Run(
             new AnalysisOptions { Environments = [FleetTestContext.Prod] },
-            null,
+            progress,
             TestContext.Current.CancellationToken
         );
 
-        Assert.Equal(new AnalysisCompletion("fake", "2 apps recorded"), Assert.Single(report.Completions));
+        Assert.Equal(new AnalysisItemsResult("fake", "counts", 3, 2, 1, 1, 4), Assert.Single(report.Items));
+        // The items see the apps recorded: one app analyzed, one failed.
+        Assert.Equal(
+            [
+                ["apps", "1"],
+            ],
+            Query(context, "SELECT item, apps FROM fake_items")
+        );
+        Assert.Contains(("items", 2, 2), progress.Events);
+        Assert.Contains(("apps", 4, 4), progress.Events);
+    }
+
+    [Theory]
+    [InlineData("app")]
+    [InlineData("item")]
+    public async Task RunJob_RunsTheJobThatItsArgumentsDescribe(string kind)
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            string resultFile = Path.Join(root, "result");
+            AnalysisJob job =
+                kind == "app"
+                    ? new AnalysisJob.App("fake", root)
+                    : new AnalysisJob.Item("fake", new AnalysisItem("apps", "count"));
+            using var error = new StringWriter();
+
+            int exit = await ChildProcessExecutor.RunJob(
+                ChildProcessExecutor.Arguments(job, resultFile),
+                [new FakeAnalysis { Name = "other" }, new FakeItemAnalysis()],
+                error,
+                TestContext.Current.CancellationToken
+            );
+
+            Assert.Equal((0, ""), (exit, error.ToString()));
+            Assert.Equal(kind == "app" ? "0" : "count", File.ReadAllText(resultFile));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(1, "item", "fake", "fails", "count", "result")]
+    [InlineData(2, "item", "other", "apps", "count", "result")]
+    [InlineData(2, "app", "missing", "folder", "result")]
+    [InlineData(2, "app", "fake")]
+    public async Task RunJob_SaysWhyAJobFailed_OrThatItsArgumentsAreNotAJob(int expected, params string[] arguments)
+    {
+        using var error = new StringWriter();
+
+        int exit = await ChildProcessExecutor.RunJob(
+            arguments,
+            [new FakeAnalysis { Name = "other" }, new FakeItemAnalysis()],
+            error,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(expected, exit);
+        Assert.Contains(
+            expected == 1 ? "Fails on purpose." : "Not an analysis job",
+            error.ToString(),
+            StringComparison.Ordinal
+        );
     }
 
     [Fact]
@@ -277,7 +343,7 @@ public sealed class AnalysisRunnerTests
             context.Store,
             database,
             [analysis, analysis],
-            new InProcessExecutor()
+            new InProcessExecutor([analysis])
         ).Run(
             new AnalysisOptions { Environments = [FleetTestContext.Prod] },
             null,
@@ -348,8 +414,7 @@ public sealed class AnalysisRunnerTests
             );
 
             string? failure = await executor.Run(
-                new FakeAnalysis(),
-                root,
+                new AnalysisJob.App("fake", root),
                 Path.Join(root, "result"),
                 TestContext.Current.CancellationToken
             );
@@ -379,7 +444,7 @@ public sealed class AnalysisRunnerTests
             context.Store,
             database,
             [analysis],
-            new InProcessExecutor()
+            new InProcessExecutor([analysis])
         ).Run(
             new AnalysisOptions
             {
@@ -414,19 +479,26 @@ public sealed class AnalysisRunnerTests
 
     private static string DatabasePath(FleetTestContext context) => Path.Join(context.Outside, "analysis.sqlite");
 
-    /// <summary>Runs the analysis in this process, and turns what it throws into a failure.</summary>
-    private sealed class InProcessExecutor : IAnalysisExecutor
+    /// <summary>Runs the analyses in this process, and turns what they throw into a failure.</summary>
+    private sealed class InProcessExecutor(IReadOnlyList<IAppAnalysis> analyses) : IAnalysisExecutor
     {
-        public async Task<string?> Run(
-            IAppAnalysis analysis,
-            string appDir,
-            string resultFile,
-            CancellationToken cancellationToken
-        )
+        public async Task<string?> Run(AnalysisJob job, string resultFile, CancellationToken cancellationToken)
         {
+            IAppAnalysis analysis = analyses.Single(a => a.Name == job.Analysis);
             try
             {
-                await analysis.Analyze(appDir, resultFile, cancellationToken);
+                await (
+                    job switch
+                    {
+                        AnalysisJob.App app => analysis.Analyze(app.AppDir, resultFile, cancellationToken),
+                        AnalysisJob.Item item => ((IItemAnalysis)analysis).AnalyzeItem(
+                            item.Value,
+                            resultFile,
+                            cancellationToken
+                        ),
+                        _ => throw new ArgumentException(job.ToString()),
+                    }
+                );
                 return null;
             }
             catch (InvalidOperationException ex)
@@ -436,11 +508,22 @@ public sealed class AnalysisRunnerTests
         }
     }
 
+    private sealed class RecordingObserver : IAnalysisObserver
+    {
+        public ConcurrentBag<(string Stage, int Completed, int Total)> Events { get; } = [];
+
+        public void OnAppsProgress(Common.Domain.RuntimeEnvironment environment, int completed, int total) =>
+            Events.Add(("apps", completed, total));
+
+        public void OnItemsProgress(string analysis, string items, int completed, int total) =>
+            Events.Add(("items", completed, total));
+    }
+
     /// <summary>
     /// Records whether each app's copy has its project, and which folder it was analyzed in. Fails the app named
     /// <c>broken</c>. Named <c>misnamed</c>, it creates a table outside its name.
     /// </summary>
-    private sealed class FakeAnalysis : IAppAnalysis
+    private class FakeAnalysis : IAppAnalysis
     {
         public string Name { get; init; } = "fake";
 
@@ -448,14 +531,14 @@ public sealed class AnalysisRunnerTests
 
         public string Column { get; init; } = "had_project";
 
-        public string Schema =>
+        public virtual string Schema =>
             Name == "misnamed"
                 ? "CREATE TABLE elsewhere (env TEXT, org TEXT, app TEXT);"
                 : $"CREATE TABLE {Table} (env TEXT, org TEXT, app TEXT, {Column} INTEGER, PRIMARY KEY (env, org, app));";
 
         public IReadOnlyList<string> AppTables => [Table];
 
-        private string Table => $"{AnalysisDatabase.TablePrefix(this)}apps";
+        protected string Table => $"{AnalysisDatabase.TablePrefix(this)}apps";
 
         public ConcurrentDictionary<string, string> Folders { get; } = new();
 
@@ -477,33 +560,44 @@ public sealed class AnalysisRunnerTests
 
         public string? Record(AppRecorder recorder, string resultFile)
         {
-            using AppRows rows = recorder.Rows(Table, [Column]);
+            using TableRows rows = recorder.Rows(Table, [Column]);
             rows.Add(int.Parse(File.ReadAllText(resultFile), System.Globalization.CultureInfo.InvariantCulture));
             return null;
         }
+    }
 
-        /// <summary>Whether <see cref="Complete"/> says how many apps it has.</summary>
-        public bool Summarizes { get; init; } = true;
+    /// <summary>
+    /// A <see cref="FakeAnalysis"/> whose items count the apps it recorded. It plans three items, one of which it has
+    /// already, analyzes the other two, of which <c>fails</c> fails, and forgets four that it no longer needs.
+    /// </summary>
+    private sealed class FakeItemAnalysis : FakeAnalysis, IItemAnalysis
+    {
+        public override string Schema =>
+            base.Schema + "CREATE TABLE fake_items (item TEXT NOT NULL PRIMARY KEY, apps INTEGER NOT NULL);";
 
-        public Task<string?> Complete(
-            AnalysisDatabase database,
-            AnalysisOptions options,
-            ISyncObserver? observer,
-            CancellationToken cancellationToken
-        ) =>
-            Task.FromResult(
-                Summarizes
-                    ? database.Change(
-                        this,
-                        (connection, transaction) =>
-                        {
-                            using SqliteCommand count = connection.CreateCommand();
-                            count.Transaction = transaction;
-                            count.CommandText = $"SELECT count(*) FROM {Table}";
-                            return $"{count.ExecuteScalar()} apps recorded";
-                        }
-                    )
-                    : null
+        public string ItemsName => "counts";
+
+        public ItemPlan PlanItems(AnalysisTables tables, AnalysisOptions options) =>
+            new([new AnalysisItem("apps", "count"), new AnalysisItem("fails", "count")], Total: 3, Removed: 4);
+
+        public Task AnalyzeItem(AnalysisItem item, string resultFile, CancellationToken cancellationToken) =>
+            item.Key == "fails"
+                ? throw new InvalidOperationException("Fails on purpose.")
+                : File.WriteAllTextAsync(resultFile, item.Input, cancellationToken);
+
+        public string? RecordItem(AnalysisTables tables, AnalysisItem item, AnalysisOutcome outcome)
+        {
+            if (outcome.ResultFile is null)
+            {
+                return outcome.Failure;
+            }
+
+            Assert.Equal("count", File.ReadAllText(outcome.ResultFile));
+            tables.Execute(
+                $"INSERT INTO fake_items (item, apps) SELECT $item, count(*) FROM {Table}",
+                ("$item", item.Key)
             );
+            return null;
+        }
     }
 }

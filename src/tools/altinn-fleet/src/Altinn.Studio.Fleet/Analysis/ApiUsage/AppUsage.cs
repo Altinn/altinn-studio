@@ -41,7 +41,9 @@ internal sealed record AppUsage(
 /// <param name="Kind">How the code uses it. See <see cref="UseKinds"/>.</param>
 /// <param name="Source">Whose code uses it. See <see cref="UseSources"/>.</param>
 /// <param name="Count">How many times.</param>
-/// <param name="FirstLocation">The first place, as a path relative to the app's folder and a line.</param>
+/// <param name="FirstLocation">
+/// The first place, in the order of the files' paths, as a path relative to the app's folder and a line.
+/// </param>
 internal sealed record SymbolUse(
     string Symbol,
     string Assembly,
@@ -96,4 +98,5 @@ internal static class UseSources
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(AppUsage))]
+[JsonSerializable(typeof(LibraryApi))]
 internal sealed partial class ApiUsageJsonContext : JsonSerializerContext;

@@ -10,9 +10,6 @@ internal static class AnalysisCommands
 {
     public const string DefaultOut = "analysis.sqlite";
 
-    /// <summary>The analyses that <c>fleet analysis run</c> runs when it is given no names.</summary>
-    public static IReadOnlyList<IAppAnalysis> All { get; } = [new ApiUsageAnalysis()];
-
     /// <summary><c>fleet analysis run [NAMES]</c>.</summary>
     public static async Task<int> Run(
         Arguments args,
@@ -25,7 +22,7 @@ internal static class AnalysisCommands
     )
     {
         List<IAppAnalysis> analyses = names is null
-            ? [.. All]
+            ? [.. Analyses.All]
             :
             [
                 .. names
@@ -92,41 +89,29 @@ internal static class AnalysisCommands
             );
         }
 
-        foreach (AnalysisCompletion completion in report.Completions)
+        foreach (AnalysisItemsResult items in report.Items)
         {
-            output.WriteLine($"{completion.Analysis}  {completion.Summary}");
+            output.WriteLine(
+                $"{items.Analysis}  {items.Items} {items.ItemsName} · {items.Analyzed} analyzed · "
+                    + $"{items.Unchanged} unchanged · {items.Removed} removed · {items.Failed} failed"
+            );
         }
 
         output.WriteLine($"Took {duration}.");
 
         output.WriteLine($"Wrote {Path.GetFullPath(outPath)}. Query it with `fleet query --db {outPath} \"...\"`.");
-        return 0;
-    }
 
-    /// <summary>
-    /// <c>fleet analysis run-app NAME APP_DIR RESULT_FILE</c>, which <see cref="ChildProcessExecutor"/> runs for each
-    /// app in a process of its own.
-    /// </summary>
-    public static async Task<int> RunApp(
-        string name,
-        string appDir,
-        string resultFile,
-        TextWriter error,
-        CancellationToken cancellationToken
-    )
-    {
-        IAppAnalysis analysis = Find(name);
-        try
+        // A failed app is a fact about the app, but a failed item leaves what the apps are compared with incomplete.
+        List<AnalysisItemsResult> failed = [.. report.Items.Where(items => items.Failed > 0)];
+        foreach (AnalysisItemsResult items in failed)
         {
-            await analysis.Analyze(appDir, resultFile, cancellationToken);
-            return 0;
+            error.WriteLine(
+                $"fleet: {items.Analysis} could not analyze {items.Failed} of its {items.ItemsName}. Its tables in "
+                    + $"{outPath} say why."
+            );
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            // Whatever an app's analysis throws is a fact about the app. The parent records what this writes.
-            error.WriteLine(ex.ToString());
-            return 1;
-        }
+
+        return failed.Count > 0 ? 1 : 0;
     }
 
     /// <summary>The file to write, from <c>--out</c>, which must not be in the store.</summary>
@@ -148,13 +133,13 @@ internal static class AnalysisCommands
         return outPath;
     }
 
-    public static IAppAnalysis Find(string name) =>
-        All.FirstOrDefault(a => a.Name == name)
+    private static IAppAnalysis Find(string name) =>
+        Analyses.Find(name)
         ?? throw new UsageException(
-            $"There is no analysis named '{name}'. The analyses are {string.Join(", ", All.Select(a => a.Name))}."
+            $"There is no analysis named '{name}'. The analyses are {string.Join(", ", Analyses.All.Select(a => a.Name))}."
         );
 
-    /// <summary>How to run <c>fleet analysis run-app</c> with the program that runs now.</summary>
+    /// <summary>How to run <c>fleet analysis job</c> with the program that runs now.</summary>
     private static List<string> SelfCommand()
     {
         string program = Environment.ProcessPath ?? throw new FleetException("Cannot tell which program runs fleet.");
@@ -168,7 +153,7 @@ internal static class AnalysisCommands
             );
         }
 
-        command.AddRange(["analysis", "run-app"]);
+        command.AddRange(["analysis", "job"]);
         return command;
     }
 }
