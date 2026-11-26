@@ -13,27 +13,20 @@ internal sealed class AppApiSpec
 {
     private readonly JsonObject _paths;
     private readonly JsonObject _schemas;
-    private readonly IReadOnlySet<string> _leftOut;
 
-    private AppApiSpec(JsonObject spec, IReadOnlySet<string> leftOut)
+    private AppApiSpec(JsonObject spec)
     {
-        _leftOut = leftOut;
         _paths = spec["paths"] as JsonObject ?? throw new InvalidOperationException("The spec has no paths.");
         _schemas =
             spec["components"]?["schemas"] as JsonObject
             ?? throw new InvalidOperationException("The spec has no schemas.");
     }
 
-    /// <param name="leftOut">
-    /// The properties an answer may leave out although the app API always has them, by their path in the answer, such
-    /// as <c>$.instanceOwner.party</c>.
-    /// </param>
-    public static AppApiSpec Load(IReadOnlySet<string> leftOut) =>
+    public static AppApiSpec Load() =>
         new(
             JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "AppApi", "app-api.json")))
                 as JsonObject
-                ?? throw new InvalidOperationException("The spec is not an object."),
-            leftOut
+                ?? throw new InvalidOperationException("The spec is not an object.")
         );
 
     /// <summary>
@@ -187,7 +180,7 @@ internal sealed class AppApiSpec
             string required in (schema["required"] as JsonArray ?? []).Select(name => (string?)name).OfType<string>()
         )
         {
-            if (!value.ContainsKey(required) && !_leftOut.Contains($"{path}.{required}"))
+            if (!value.ContainsKey(required))
             {
                 differences.Add($"{path} lacks {required}");
             }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Preview.AppApi;
@@ -11,17 +12,29 @@ internal static class MockUser
     public const int PartyId = 51001;
     public const int UserId = 1024;
 
+    /// <summary>The user's ID, as Storage names who created or changed something.</summary>
+    public static string Id => UserId.ToString(CultureInfo.InvariantCulture);
+
     /// <summary>The party, as the app frontend's <c>IParty</c>.</summary>
-    public static JsonObject Party() =>
+    public static JsonObject Party()
+    {
+        JsonObject party = Party(PartyId);
+        party["onlyHierarchyElementWithNoAccess"] = false;
+        return party;
+    }
+
+    /// <summary>A party the user acts for, as the app API names an instance's owner.</summary>
+    public static JsonObject Party(int partyId) =>
         new()
         {
-            ["partyId"] = PartyId,
+            ["partyId"] = partyId,
+            ["partyUuid"] = null,
             ["partyTypeName"] = 1, // Person
             ["ssn"] = null,
             ["orgNumber"] = null,
+            ["unitType"] = null,
             ["name"] = "Test Testesen",
             ["isDeleted"] = false,
-            ["onlyHierarchyElementWithNoAccess"] = false,
         };
 
     public static JsonObject PartyTypesThatLetAnyPartyIn() =>

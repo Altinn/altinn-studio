@@ -1,6 +1,6 @@
 namespace Altinn.Studio.Preview.AppApi;
 
-// The parts of Storage's instance model that the app frontend reads, in the app API's JSON, which is camelCase.
+// Storage's instance model, in the app API's JSON, which is camelCase.
 
 internal sealed class Instance
 {
@@ -21,9 +21,42 @@ internal sealed class Instance
     public required ProcessState Process { get; set; }
 
     public List<DataElement> Data { get; init; } = [];
+
+    // What the app API answers with for every instance, which preview derives rather than keeps.
+
+    public string CreatedBy => MockUser.Id;
+
+    public string LastChangedBy => MockUser.Id;
+
+    public DateTimeOffset? DueBefore => null;
+
+    public DateTimeOffset? VisibleAfter => null;
+
+    public ResourceLinks SelfLinks => new(Apps: null, Platform: null);
+
+    public InstanceStatus Status =>
+        new(IsArchived: Process.Ended is not null, IsSoftDeleted: false, IsHardDeleted: false);
+
+    public IReadOnlyList<object> CompleteConfirmations => [];
+
+    public IReadOnlyDictionary<string, string> PresentationTexts => new Dictionary<string, string>();
+
+    public IReadOnlyDictionary<string, string> DataValues => new Dictionary<string, string>();
 }
 
-internal sealed record InstanceOwner(string PartyId);
+/// <summary>The party that owns an instance. Every party in preview is the mock user's, a person without these IDs.</summary>
+internal sealed record InstanceOwner(string PartyId)
+{
+    public string? PersonNumber => null;
+
+    public string? OrganisationNumber => null;
+
+    public string? Username => null;
+}
+
+internal sealed record ResourceLinks(string? Apps, string? Platform);
+
+internal sealed record InstanceStatus(bool IsArchived, bool IsSoftDeleted, bool IsHardDeleted);
 
 internal sealed class ProcessState
 {
