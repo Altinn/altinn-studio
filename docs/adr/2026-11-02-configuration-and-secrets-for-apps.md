@@ -25,20 +25,59 @@ The decisions:
 6. `deployment/app.yaml` is part of this contract. How the runtime turns it into a running app, the `App` resource
    in [#21792](https://github.com/Altinn/altinn-studio/issues/21792), gets its own ADR, decided together with this
    one.
+7. The runtime contract has a version of its own, starting at 9. It is independent of the app libraries' version and
+   of the schema version of `deployment/app.yaml`. A form app gets it from its app libraries, and any app can set it
+   in `deployment/app.yaml`.
 
 ### Kinds of values
 
 Every value a v9 app reads belongs to one of these kinds, and each kind has one owner and one way into the app.
 
-| Kind                  | Examples                                                                                             | Owner              | Deployed app                                                                                   | Local run                                                                                            | App can override |
-| --------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
-| Provisioned secrets   | The app's Maskinporten client, app codes, the APIM subscription key                                  | Team Altinn Studio | Files the runtime operator writes into `provisioned-secrets/`                                  | Files studioctl writes into `provisioned-secrets/`                                                   | No               |
-| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services, the OTLP export | Team Altinn Studio | JSON files in `runtime-config/`, from `infra/runtime/apps-config` and from the runtime cluster | JSON files studioctl writes into `runtime-config/`                                                   | No               |
-| Startup values        | The environment's name, where the runtime directory is, the app's version, the pod's UID             | Team Altinn Studio | Environment variables the runtime cluster sets                                                 | Environment variables studioctl sets                                                                 | No               |
-| Contracts             | The validation message prefixes that app code writes and the app libraries parse                     | Team Altinn Studio | Constants in the app libraries                                                                 | The same                                                                                             | No               |
-| App configuration     | Which validations run, PDF settings, the app's own integrations                                      | The app            | `appsettings*.json`, over defaults in the app libraries                                        | The same, plus user secrets and `appsettings.Local.json`                                             | Yes              |
-| App secrets           | API keys for the app's own integrations                                                              | The service owner  | The service owner's vault, which the runtime operator writes into `app-secrets/`               | Values studioctl stores and writes into `app-secrets/`, or user secrets and `appsettings.Local.json` | Yes              |
-| Deployment settings   | Replicas, resources, which shared secrets the app reads                                              | The app            | `deployment/app.yaml`                                                                          | studioctl reads the same file                                                                        | -                |
+| Kind                  | Examples                                                                                            | Owner              | Deployed app                                                                                   | Local run                                                                                            | App can override |
+| --------------------- | --------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
+| Provisioned secrets   | The app's Maskinporten client, app codes, the APIM subscription key                                 | Team Altinn Studio | Files the runtime operator writes into `provisioned-secrets/`                                  | Files studioctl writes into `provisioned-secrets/`                                                   | No               |
+| Runtime configuration | Altinn Platform endpoints, host names, cookie names, links to other Altinn services                 | Team Altinn Studio | JSON files in `runtime-config/`, from `infra/runtime/apps-config` and from the runtime cluster | JSON files studioctl writes into `runtime-config/`                                                   | No               |
+| Startup values        | The environment's name, where the runtime directory is, the app's version, the OTLP export settings | Team Altinn Studio | Environment variables the runtime cluster sets                                                 | Environment variables studioctl sets                                                                 | No               |
+| Contracts             | The validation message prefixes that app code writes and the app libraries parse                    | Team Altinn Studio | Constants in the app libraries                                                                 | The same                                                                                             | No               |
+| App configuration     | Which validations run, PDF settings, the app's own integrations                                     | The app            | `appsettings*.json`, over defaults in the app libraries                                        | The same, plus user secrets and `appsettings.Local.json`                                             | Yes              |
+| App secrets           | API keys for the app's own integrations                                                             | The service owner  | The service owner's vault, which the runtime operator writes into `app-secrets/`               | Values studioctl stores and writes into `app-secrets/`, or user secrets and `appsettings.Local.json` | Yes              |
+| Deployment settings   | Replicas, resources, which shared secrets the app reads                                             | The app            | `deployment/app.yaml`                                                                          | studioctl reads the same file                                                                        | -                |
+
+### The runtime version
+
+- The runtime contract has a version of its own, the runtime version. The runtime gives each deploy the shape of
+  its runtime version.
+- The runtime version starts at 9, the major version of the app libraries that first implement it. An app without
+  `deployment/app.yaml` gets the shape v8 apps have today.
+- The build decides an app's runtime version once per release:
+  - from `runtimeVersion` in `deployment/app.yaml`, when the app sets it
+  - otherwise, from the runtime version the app's libraries implement. The contract file maps each range of
+    Altinn.App versions to the runtime version it implements, so the v9 libraries give runtime version 9.
+- A form app normally leaves `runtimeVersion` out, and moves to a new runtime version when it upgrades its
+  libraries. The template and the upgrade do not write it. An app whose libraries implement no runtime version, or
+  more than one, sets it, and the build stops when it does not.
+- The runtime version is independent of the app libraries' major version, and of the schema version of
+  `deployment/app.yaml` in its `apiVersion` and `kind`. The libraries can change their public API, and the file can
+  gain fields, without a new runtime version.
+- A new kind of app, such as one from an empty template with only a Dockerfile and `deployment/app.yaml`, sets
+  `runtimeVersion`, and gets the same contract as a form app.
+- An addition keeps the runtime version, such as a new key, a new file or a new optional field. Only a change that
+  breaks apps on a runtime version gives a new one. The runtime keeps serving every runtime version that a deployed
+  release declares.
+- The build reads the app with the app model in [`src/common`](../../src/common/README.md). It records the runtime
+  version and the Altinn.App version on the release and the image, so the deploy and the runtime never infer them
+  again. It stops when the app sets a runtime version that its libraries do not implement.
+
+### The pod around the app
+
+We own how the app runs in its pod, and no app configures it. The contract names:
+
+- the port the app listens on
+- the path the app is served under, `/<org>/<app>/`
+- the path each of the startup, readiness and liveness probes calls
+
+The runtime sets the probes' timings and thresholds. In runtime version 9, all three probes call `/health`. The v9
+libraries serve it, and an app of another kind serves it itself.
 
 ### The runtime directory
 
@@ -95,7 +134,7 @@ The app's configuration is layered from lowest to highest:
     owner first
 - The app libraries reload the files. Code that reads runtime configuration through `IOptionsMonitor` picks up a
   change without a restart, where a change should apply while the app runs. The contract file says which values
-  apply only at startup, such as the OTLP exporter's settings. The runtime operator restarts the apps to apply them.
+  apply only at startup, and the runtime operator restarts the apps to apply a change to them.
 - A reload that does not parse, or that leaves out a required value, does not apply. The libraries keep the last
   valid configuration and log an error.
 - The app libraries have no defaults for runtime configuration, and the app template has no keys for it.
@@ -127,8 +166,13 @@ The app's configuration is layered from lowest to highest:
   - the startup values
   - the runtime directory's subdirectories, the runtime configuration files' names and order, and the provisioned
     secret files with the section each holds
+  - the runtime versions, the range of Altinn.App versions that implements each, and the port, the path and the
+    probe paths for the pod around the app
   - every runtime configuration key, whether it is required always or for a feature, whether a change applies while
     the app runs, and who supplies it, including the keys that only a deployed app or only a local run has
+  - which keys every app gets, such as the host name, and which only the Altinn.App libraries
+    read, such as Altinn Platform endpoints, cookie names and the app frontend's links. The runtime gives every app
+    the same files, and an app of another kind reads only what it needs.
   - the features, and where a supplier cannot provide one
   - the schema of `deployment/app.yaml`
 - Each part is tested against it:
@@ -212,11 +256,12 @@ configuration in a library that does not know it.
 
 - OTLP is the only way a v9 app exports telemetry. The app libraries drop the classic Application Insights SDK, the
   Azure Monitor exporter and the settings that chose between them.
-- The exporter's settings are runtime configuration under the standard `OTEL_*` keys: the endpoint, the protocol and
-  the metric export interval of 15 s that [observability.md](../observability.md#setting-up-a-service) asks for. The
-  SDK reads them at startup. Without an endpoint, the app exports nothing, as in a local run without a collector.
-- The libraries set no `OTEL_*` values in code, not even for Development. The pod's UID reaches the app as a
-  startup value in `OTEL_RESOURCE_ATTRIBUTES`.
+- The exporter's settings are startup values, in the standard `OTEL_*` environment variables, as
+  [observability.md](../observability.md#setting-up-a-service) asks of every service: the endpoint, the protocol, the
+  metric export interval of 15 s, and the pod's UID in `OTEL_RESOURCE_ATTRIBUTES`. The runtime cluster sets them
+  for a deployed app, from `infra/runtime/apps-config`, and studioctl for a local run. Without an endpoint, the app
+  exports nothing, as in a local run without a collector.
+- The libraries set no `OTEL_*` values in code, not even for Development.
 - In a runtime cluster, the endpoint is the collectors in `runtime-obs`: `<the collectors' OTLP endpoint for apps,
 not settled yet>`. The collectors are shared with our own services, with a pipeline of their own for apps:
   - The router sends telemetry from the apps' namespace to the apps pipeline.
@@ -234,6 +279,8 @@ not settled yet>`. The collectors are shared with our own services, with a pipel
   `deployment/templates`.
 - It holds only what the service owner controls. The schema in the contract file validates it in studioctl and in
   the deploy, which reject an unknown field or a field we own.
+- Its `apiVersion` and `kind` give the version of the file's schema. The optional `spec.runtimeVersion` sets the
+  [runtime version](#the-runtime-version). The upgrade and the template leave it out.
 - The fields the upgrade writes have to be right when v9 is stable. They carry over what apps set in
   `deployment/values*.yaml` today:
   - `scaling`: either a fixed number of replicas, or autoscaling with a minimum, a maximum and the CPU use it aims
@@ -264,18 +311,18 @@ not settled yet>`. The collectors are shared with our own services, with a pipel
 - A field the upgrade does not write can come later, since an app without it gets our default. The telemetry levels
   in [#19775](https://github.com/Altinn/altinn-studio/issues/19775) are one.
 - The upgrade drops what we own, such as the probes, the `datakeys`, `accesstoken` and `altinn-appsettings-secret`
-  volumes, `image`, `service`, `ingressRoute` and `linkerd`. It reports anything else it cannot carry over.
+  volumes, `image`, `service`, `ingressRoute` and `linkerd`. It reports anything else it cannot carry over. In
+  production, 776 apps turn the probes on, as the template does, and 5 set probe timings of their own, which the
+  upgrade reports.
 
 ### v8 apps
 
 - v8 apps do not change. They keep getting runtime configuration as environment variables, read Key Vault as they do
   today, and export telemetry as they do today. The runtime cluster provides their Application Insights connection
   string and instrumentation key as environment variables, so the deploy pipeline no longer looks them up.
-- v8 and v9 apps run side by side in the same runtime clusters. The runtime chooses the v8 or v9 shape for each
-  deploy, not for each app, so a rolling update and a redeploy of an older v8 release both work. It decides from the
-  version of the app's Altinn.App backend package, which the build reads with the app model in
-  [`src/common`](../../src/common/README.md) and records on the release and the image. An app whose version the
-  build cannot read gets the v8 shape, and a v9 app given it stops at the startup check.
+- v8 and v9 apps run side by side in the same runtime clusters. The runtime chooses the shape for each deploy from
+  its runtime version, not for each app, so a rolling update and a redeploy of an older v8 release both work. A v9
+  app without `deployment/app.yaml` would get the v8 shape, and stops at the startup check.
 - The environment variables for v8 apps and the files for v9 apps come from one source, so the two cannot disagree.
   v9 apps never get the v8 environment variables, which would hide a value missing from the files.
 - The v8 libraries from 8.11 read every JSON file at the top of `/mnt/app-secrets`. v9's subdirectories stay out of
@@ -580,6 +627,19 @@ The runtime directory (A5.1):
   the kind of a file part of where it is, which no later change on our side can get wrong for an older library.
 - `RUNTIME_APP_SECRETS_DIR` names a directory that holds much more than secrets, and "app secrets" is the name of
   another kind. The name cannot change after v9 is stable without a library upgrade in every app.
+
+The runtime version:
+
+- The runtime contract lasts longer than a major version of the app libraries, and covers apps that have no
+  Altinn.App libraries at all. A version of its own lets a new kind of app use the contract as it is.
+- A form app's libraries implement one runtime version, so the version follows from them, and the app's files do not
+  repeat it. The build decides it once and records it, so the runtime never infers it from a package.
+- Starting at 9 places the first runtime version next to the libraries that implement it.
+- The OTLP exporter's settings are environment variables, because that is how OpenTelemetry SDKs in every language
+  read them, and how our own services get them. They apply only at startup, so a file would not let them change
+  while the app runs.
+- We own the probes, as we own the rest of the pod, so we can change how the runtime checks apps without app
+  changes. The probe paths are in the contract because the app serves them.
 
 `deployment/app.yaml` here, the deploy model in its own ADR:
 
