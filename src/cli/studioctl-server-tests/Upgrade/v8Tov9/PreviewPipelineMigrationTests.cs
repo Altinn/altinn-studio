@@ -174,6 +174,20 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                 {
                     Task ForwardReply(Guid mailboxId, string serviceTaskType, string payload, string idempotencyKey);
                 }
+
+                public abstract record HandlerResult
+                {
+                    public static SuccessfulHandlerResult Success() => new();
+
+                    public static FailedHandlerResult FailedPermanent(string errorMessage) => new() { ErrorMessage = errorMessage };
+                }
+
+                public sealed record SuccessfulHandlerResult : HandlerResult;
+
+                public sealed record FailedHandlerResult : HandlerResult
+                {
+                    public string ErrorMessage { get; init; } = "";
+                }
         """;
 
     /// <summary>
@@ -335,6 +349,19 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
                         System.Threading.CancellationToken cancellationToken = default
                     );
                 }
+
+                public abstract record HandlerResult
+                {
+                    private protected HandlerResult() { }
+
+                    public static HandlerResult Success() => new SuccessfulHandlerResult();
+
+                    public static HandlerResult FailedPermanent(string errorMessage) => new FailedHandlerResult();
+                }
+
+                internal sealed record SuccessfulHandlerResult : HandlerResult;
+
+                internal sealed record FailedHandlerResult : HandlerResult;
         """;
 
     /// <summary>
@@ -2895,6 +2922,42 @@ public sealed partial class PreviewPipelineMigrationTests : IDisposable
         Assert.Contains("=> new SuccessfulServiceTaskResult { Action = \"reject\" };", migrated);
         Assert.Contains("result is SuccessfulServiceTaskResult { Action: \"reject\" };", migrated);
         Assert.Contains("result is StageAwaitNextReplyResult;", migrated);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task HandlerResultCasesNamedInCode_AreReportedAtTheirLines_AndTheFactoriesAreLeft(bool semantic)
+    {
+        var handler = Write(
+            "logic/EndingHandler.cs",
+            """
+            public static class EndingHandler
+            {
+                public static HandlerResult Done() => new SuccessfulHandlerResult();
+
+                public static bool Failed(HandlerResult result) => result is FailedHandlerResult;
+
+                public static HandlerResult Ok() => HandlerResult.Success();
+            }
+            """
+        );
+
+        var result = Migrate(semantic);
+
+        var file = Path.Combine("logic", "EndingHandler.cs");
+        Assert.Equal(
+            [
+                $"{file}:8: SuccessfulHandlerResult was removed. A process hook returns HandlerResult.Success(), and "
+                    + "results compare by value, as in result == HandlerResult.Success().",
+                $"{file}:10: FailedHandlerResult was removed. Create the result with HandlerResult.FailedPermanent or "
+                    + "FailedRetryable, and compare results by value.",
+            ],
+            result.Todos
+        );
+        var migrated = await ReadMigrated(handler);
+        Assert.Contains("=> new SuccessfulHandlerResult();", migrated);
+        Assert.Contains("public static HandlerResult Ok() => HandlerResult.Success();", migrated);
     }
 
     [Theory]

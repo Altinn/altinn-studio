@@ -31,7 +31,7 @@ internal sealed partial class PreviewPipelineMigration
     internal sealed record ParameterRename(string Type, string Method, string Parameter, string Renamed);
 
     /// <summary>
-    /// The previews' pipeline API that the current one renamed or removed, each name once. The patterns that find it
+    /// The previews' pipeline and process hook API that the current one renamed or removed, each name once. The patterns that find it
     /// in code a directive disables are built from it, and a test checks it against the App library's public API.
     /// </summary>
     internal static class PreviewApi
@@ -124,6 +124,11 @@ internal sealed partial class PreviewPipelineMigration
                 + "compare results by value",
             ["DeferredServiceTaskResult"] =
                 $"Create the result with {PipelineApi.ServiceTaskResult}.Defer, and compare results by value",
+            ["SuccessfulHandlerResult"] =
+                "A process hook returns HandlerResult.Success(), and results compare by value, as in "
+                + "result == HandlerResult.Success()",
+            ["FailedHandlerResult"] =
+                "Create the result with HandlerResult.FailedPermanent or FailedRetryable, and compare results by value",
         };
 
         private static readonly string _types = Words(RemovedTypes.Keys.Concat(RenamedTypes.Keys));

@@ -7,16 +7,22 @@ namespace Altinn.App.Core.Features.Process;
 public abstract record HandlerResult
 {
     /// <summary>
+    /// Declares no constructor an app can call: the runtime maps each result by type, as it does
+    /// <see cref="ServiceTaskReplyResult"/>'s.
+    /// </summary>
+    private protected HandlerResult() { }
+
+    /// <summary>
     /// Creates a result representing successful handler execution.
     /// </summary>
-    public static SuccessfulHandlerResult Success() => new();
+    public static HandlerResult Success() => SuccessfulHandlerResult.Instance;
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedHandlerResult FailedRetryable(string errorMessage)
+    public static HandlerResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
         return new FailedHandlerResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
@@ -28,7 +34,7 @@ public abstract record HandlerResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedHandlerResult FailedPermanent(string errorMessage)
+    public static HandlerResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
         return new FailedHandlerResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
@@ -38,16 +44,17 @@ public abstract record HandlerResult
 /// <summary>
 /// Represents a successful handler execution.
 /// </summary>
-public sealed record SuccessfulHandlerResult : HandlerResult;
+internal sealed record SuccessfulHandlerResult : HandlerResult
+{
+    internal static readonly SuccessfulHandlerResult Instance = new();
+}
 
 /// <summary>
 /// Represents a failed handler execution. Construct via <see cref="HandlerResult.FailedRetryable"/>
 /// or <see cref="HandlerResult.FailedPermanent"/>.
 /// </summary>
-public sealed record FailedHandlerResult : HandlerResult
+internal sealed record FailedHandlerResult : HandlerResult
 {
-    internal FailedHandlerResult() { }
-
     /// <summary>
     /// Human-readable error message describing the failure.
     /// </summary>
