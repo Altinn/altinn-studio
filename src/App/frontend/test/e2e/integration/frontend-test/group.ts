@@ -289,6 +289,20 @@ describe('Group', () => {
     cy.get(showcaseRow('mixed', 0)).next().next().find(appFrontend.group.editContainer).should('be.visible');
     cy.get(showcaseRow('mixed', 0)).next().should('contain.text', rowObjectMessage('Balder'));
 
+    // Pagination counts visible rows, so hiding Balder moves Milo's error onto the second page.
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'validation-default') {
+        component.pagination = { rowsPerPage: 2 };
+        component.hiddenRow = ['equals', ['dataModel', 'Pets.Name'], 'Balder'];
+      }
+    });
+    cy.get('[data-pagination-id="validation-default"]').findByRole('button', { name: 'Side 1' }).should('exist');
+    cy.get('[data-pagination-id="validation-default"]').findByRole('button', { name: 'Rett feil her: Side 2' }).click();
+    cy.get(showcaseRow('default', 4)).should('contain.text', 'Milo');
+    cy.get('[data-pagination-id="validation-default"]')
+      .findByRole('button', { name: 'Rett feil her: Side 3' })
+      .should('exist');
+
     // A message for the whole array is not tied to a row, so it only shows in the error report
     cy.findByRole('checkbox', { name: 'På hele gruppen' }).check();
     cy.waitUntilSaved();
