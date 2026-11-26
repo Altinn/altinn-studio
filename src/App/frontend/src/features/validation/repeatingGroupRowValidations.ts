@@ -113,14 +113,19 @@ function getRowMask(row: RepeatingGroupRowValidations, mask: NodeVisibility): nu
   return row.visibility | (mask === 'showAll' ? ValidationMask.Backend | ValidationMask.CustomBackend : 0);
 }
 
-/** Takes the same arguments as `getNodeRefValidations`, plus a row index that limits the result to one row. */
+interface RowValidationQuery {
+  mask: NodeVisibility;
+  severity?: ValidationSeverity;
+  /** Includes rows hidden by `hiddenRow`. */
+  includeHidden?: boolean;
+  /** Limits the result to one row. */
+  rowIndex?: number;
+}
+
 export function getRepeatingGroupRowValidations(
   derived: DerivedValidationState,
   nodeId: string,
-  mask: NodeVisibility,
-  severity?: ValidationSeverity,
-  includeHidden = false,
-  rowIndex?: number,
+  { mask, severity, includeHidden = false, rowIndex }: RowValidationQuery,
 ): NodeRefValidation[] {
   const node = derived.nodeById.get(nodeId);
   if (!node) {

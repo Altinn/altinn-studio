@@ -429,20 +429,10 @@ export function getNodeRefValidations(
   mask: NodeVisibility,
   severity?: ValidationSeverity,
   includeHidden = false,
-  rowIndex?: number,
 ): NodeRefValidation[] {
-  const node = derived.nodeById.get(nodeId);
-  if (!node) {
-    return emptyArray;
-  }
-
   return [
-    ...getValidationsForNode(derived, nodeId, mask, severity, includeHidden).map((validation) => ({
-      ...validation,
-      baseComponentId: node.baseId,
-      nodeId,
-    })),
-    ...getRepeatingGroupRowValidations(derived, nodeId, mask, severity, includeHidden, rowIndex),
+    ...getOwnNodeRefValidations(derived, nodeId, mask, severity, includeHidden),
+    ...getRepeatingGroupRowValidations(derived, nodeId, { mask, severity, includeHidden }),
   ];
 }
 
@@ -474,9 +464,8 @@ export function getDeepNodeRefValidations(
   { mask, severity, includeSelf, rowIndex }: DeepValidationQuery,
 ): NodeRefValidation[] {
   return [
-    ...(includeSelf
-      ? getNodeRefValidations(derived, nodeId, mask, severity, false, rowIndex)
-      : getRepeatingGroupRowValidations(derived, nodeId, mask, severity, false, rowIndex)),
+    ...(includeSelf ? getOwnNodeRefValidations(derived, nodeId, mask, severity) : []),
+    ...getRepeatingGroupRowValidations(derived, nodeId, { mask, severity, rowIndex }),
     ...getValidationDescendantIds(derived, nodeId, rowIndex).flatMap((id) =>
       getNodeRefValidations(derived, id, mask, severity),
     ),
