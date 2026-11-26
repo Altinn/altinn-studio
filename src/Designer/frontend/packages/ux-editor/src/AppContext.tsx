@@ -11,6 +11,8 @@ import useUxEditorParams from './hooks/useUxEditorParams';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import {
   noPreviewComponentErrors,
+  previewChangeMessage,
+  type PreviewChange,
   type PreviewComponentErrors,
 } from './components/Preview/studioBridge';
 
@@ -35,7 +37,7 @@ export interface AppContextProps {
   updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   updateLayoutSetsForPreview: (resetQueries?: boolean) => Promise<void>;
   updateLayoutSettingsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  updateTextsForPreview: (language: string, resetQueries?: boolean) => Promise<void>;
+  updateTextsForPreview: (language?: string, resetQueries?: boolean) => Promise<void>;
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
@@ -44,6 +46,8 @@ export interface AppContextProps {
   /** The errors that the app frontend in preview found in the components of the layout set it shows. */
   previewComponentErrors: PreviewComponentErrors;
   setPreviewComponentErrors: (errors: PreviewComponentErrors) => void;
+  /** The origin of the Studio bridge in the preview frame, once the page in the frame has said it is ready. */
+  previewBridgeOriginRef: MutableRefObject<string | null>;
 }
 
 export const AppContext = createContext<AppContextProps>(null);
@@ -62,6 +66,7 @@ export const AppContextProvider = ({
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
+  const previewBridgeOriginRef = useRef<string | null>(null);
   const { doReloadPreview } = usePreviewContext();
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
@@ -78,11 +83,23 @@ export const AppContextProvider = ({
   const [previewComponentErrors, setPreviewComponentErrors] =
     useState<PreviewComponentErrors>(noPreviewComponentErrors);
 
-  // Preview runs on a domain of its own, where the editors can't reach the app frontend's queries, so they reload
-  // the frame. The frame's session keeps the instance and its form data.
-  const updateLayoutsForPreview = useCallback(async (): Promise<void> => {
-    doReloadPreview();
-  }, [doReloadPreview]);
+  // Preview runs on a domain of its own, so the editors can't reach the app frontend's queries. The Studio bridge in the
+  // frame has the frontend show changed layouts and texts in place, which keeps the developer's place in the form.
+  // Other changes, and a frame without a ready bridge, reload the frame. Its session keeps the instance and its data.
+  const tellPreview = useCallback((change: PreviewChange): boolean => {
+    const frameWindow = previewIframeRef.current?.contentWindow;
+    const bridgeOrigin = previewBridgeOriginRef.current;
+    if (!frameWindow || !bridgeOrigin) return false;
+    frameWindow.postMessage(previewChangeMessage(change), bridgeOrigin);
+    return true;
+  }, []);
+
+  const updateLayoutsForPreview = useCallback(
+    async (_layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
+      if (resetQueries || !tellPreview({ type: 'layoutsChanged' })) doReloadPreview();
+    },
+    [tellPreview, doReloadPreview],
+  );
 
   const updateLayoutSetsForPreview = useCallback(async (): Promise<void> => {
     doReloadPreview();
@@ -93,8 +110,8 @@ export const AppContextProvider = ({
   }, [doReloadPreview]);
 
   const updateTextsForPreview = useCallback(async (): Promise<void> => {
-    doReloadPreview();
-  }, [doReloadPreview]);
+    if (!tellPreview({ type: 'textsChanged' })) doReloadPreview();
+  }, [tellPreview, doReloadPreview]);
 
   const value = useMemo(
     () => ({
@@ -112,6 +129,7 @@ export const AppContextProvider = ({
       setSelectedItem,
       previewComponentErrors,
       setPreviewComponentErrors,
+      previewBridgeOriginRef,
     }),
     [
       selectedFormLayoutName,

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { FormDesigner } from './containers/FormDesigner';
-import { useText } from './hooks';
+import { useAppContext, useText } from './hooks';
 import { StudioPageError, StudioPageSpinner } from '@designer/components';
 import { useDataModelMetadataQuery } from './hooks/queries/useDataModelMetadataQuery';
 import { useWidgetsQuery } from './hooks/queries/useWidgetsQuery';
@@ -8,7 +8,6 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResources
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { FormItemContextProvider } from './containers/FormItemContext';
 import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
-import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useLayoutSetsExtendedQuery } from './hooks/queries/useLayoutSetsExtendedQuery';
@@ -64,9 +63,9 @@ export function App() {
   });
   const { status: textsStatus, data: textResources } = useTextResourcesQuery(org, app);
 
-  const { doReloadPreview } = usePreviewContext();
+  const { updateTextsForPreview } = useAppContext();
   useEffect(() => {
-    doReloadPreview();
+    updateTextsForPreview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [textResources]);
 

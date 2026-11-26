@@ -219,6 +219,18 @@ describe('Preview', () => {
     expect(appContextMock.setPreviewComponentErrors).toHaveBeenCalledWith(new Map());
   });
 
+  it('sends changes to the bridge in the frame once its page is ready', async () => {
+    render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('preview.loading_preview_controller')),
+    );
+    expect(appContextMock.previewBridgeOriginRef.current).toBeNull();
+
+    postFromFrame({ ...fromBridge, type: 'ready' });
+
+    expect(appContextMock.previewBridgeOriginRef.current).toBe(new URL(mockSessionUrl).origin);
+  });
+
   it('ignores messages from other windows, from other origins, and of other kinds', async () => {
     render();
     await waitForElementToBeRemoved(() =>
@@ -230,8 +242,10 @@ describe('Preview', () => {
     postFromFrame(errors, { origin: 'https://other.test' });
     postFromFrame(errors, { source: window });
     postFromFrame({ ...errors, source: 'app' });
+    postFromFrame({ ...fromBridge, type: 'ready' }, { origin: 'https://other.test' });
 
     expect(appContextMock.setPreviewComponentErrors).not.toHaveBeenCalled();
+    expect(appContextMock.previewBridgeOriginRef.current).toBeNull();
   });
 
   it("points the iframe at the layout set's task in the preview session", async () => {

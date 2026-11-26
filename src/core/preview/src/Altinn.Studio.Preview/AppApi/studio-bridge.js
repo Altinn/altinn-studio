@@ -1,11 +1,16 @@
 // The Studio bridge, which preview adds to each page before the app frontend. It tells Studio, the page that frames
 // preview, which components the app frontend found errors in, so the editors can show the errors by the components.
+// Studio tells it when the app's layouts or texts change, and it has the frontend show them without reloading the page,
+// which would lose the developer's place in the form.
 //
 // It needs nothing new from the app frontend, so it works with each published version:
 // - The frontend validates the layout when window.forceLayoutPropertiesValidation is 'on'. It does so only on hosts it
 //   knows as Studio's or a test environment's otherwise, and preview's domain is neither.
 // - The frontend logs through window.logError and window.logErrorOnce, and keeps the functions a page defined before
 //   it. Each error in a component's configuration is logged with the component's ID.
+// - The frontend sets window.queryClient. It keeps the layouts in the formBootstrap queries and the texts in the
+//   textResources queries, which take the texts in the page's language from window.altinnAppGlobalData. When the
+//   frontend has no such queries, the bridge reloads the page.
 //
 // It catches its own errors, so preview works as before when it fails, and Studio shows no errors. Studio treats each
 // message as untrusted, since the app's own scripts run on this page too and can send the same messages.
@@ -13,6 +18,7 @@
   'use strict';
 
   var SOURCE = 'altinn-studio-preview';
+  var STUDIO_SOURCE = 'altinn-studio';
   var VERSION = 1;
   var MAX_COMPONENTS = 200;
   var MAX_ERRORS = 20;
@@ -57,7 +63,12 @@
       if (typeof arg === 'string') {
         return arg;
       }
-      if (arg && typeof arg === 'object' && typeof arg.name === 'string' && typeof arg.message === 'string') {
+      if (
+        arg &&
+        typeof arg === 'object' &&
+        typeof arg.name === 'string' &&
+        typeof arg.message === 'string'
+      ) {
         return arg.name + ': ' + arg.message;
       }
       try {
@@ -73,7 +84,8 @@
         if (message.length === 0) {
           message = part;
         } else if (part.length > 0) {
-          message = message.charAt(message.length - 1) === '\n' ? message + part : message + ' ' + part;
+          message =
+            message.charAt(message.length - 1) === '\n' ? message + part : message + ' ' + part;
         }
       }
       return message;
@@ -146,7 +158,71 @@
       window.logErrorOnce = logFunction(true);
     }
 
-    // Studio forgets the errors of the page before.
+    var reload = function () {
+      try {
+        window.location.reload();
+      } catch (e) {
+        // Preview works without the bridge.
+      }
+    };
+
+    var refetch = function (queryKey) {
+      var client = window.queryClient;
+      if (!client || client.getQueryCache().findAll({ queryKey: queryKey }).length === 0) {
+        reload();
+        return;
+      }
+      return client.invalidateQueries({ queryKey: queryKey });
+    };
+
+    var refetchTexts = function () {
+      var texts = window.altinnAppGlobalData && window.altinnAppGlobalData.textResources;
+      if (!texts) {
+        return refetch(['textResources']);
+      }
+      return fetch(
+        '/' + window.org + '/' + window.app + '/api/v1/texts/' + encodeURIComponent(texts.language),
+      )
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error('The texts answered ' + response.status);
+          }
+          return response.json();
+        })
+        .then(function (fresh) {
+          texts.resources = fresh.resources;
+          return refetch(['textResources']);
+        });
+    };
+
+    var changes = {
+      layoutsChanged: function () {
+        return refetch(['formBootstrap']);
+      },
+      textsChanged: refetchTexts,
+    };
+
+    // The app's own scripts and other pages can post to this window too, so only Studio's page that frames it counts.
+    window.addEventListener('message', function (event) {
+      var data = event.data;
+      if (
+        event.source !== window.parent ||
+        event.origin !== studioOrigin ||
+        !data ||
+        data.source !== STUDIO_SOURCE ||
+        data.version !== VERSION ||
+        !Object.prototype.hasOwnProperty.call(changes, data.type)
+      ) {
+        return;
+      }
+      try {
+        Promise.resolve(changes[data.type]()).catch(reload);
+      } catch (e) {
+        reload();
+      }
+    });
+
+    // Studio forgets the errors of the page before, and sends changes from now on.
     post({ type: 'ready' });
   } catch (e) {
     // Preview works without the bridge.

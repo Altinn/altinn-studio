@@ -10,6 +10,7 @@ export type StudioBridgeMessage =
   { type: 'ready' } | { type: 'componentErrors'; errors: PreviewComponentErrors };
 
 const SOURCE = 'altinn-studio-preview';
+const STUDIO_SOURCE = 'altinn-studio';
 const VERSION = 1;
 const MAX_COMPONENTS = 200;
 const MAX_ERRORS = 20;
@@ -48,6 +49,17 @@ const parseComponentErrors = (errors: Record<string, unknown>): PreviewComponent
       ])
       .filter(([, messages]) => messages.length > 0),
   );
+
+/** A change in the app that the Studio bridge has the app frontend show without reloading the page. */
+export type PreviewChange = { type: 'layoutsChanged' } | { type: 'textsChanged' };
+
+export type PreviewChangeMessage = PreviewChange & { source: string; version: number };
+
+export const previewChangeMessage = (change: PreviewChange): PreviewChangeMessage => ({
+  ...change,
+  source: STUDIO_SOURCE,
+  version: VERSION,
+});
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);

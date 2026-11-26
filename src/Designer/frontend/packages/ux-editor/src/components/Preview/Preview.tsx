@@ -94,6 +94,7 @@ const PreviewFrame = () => {
     shouldReloadPreview,
     previewHasLoaded,
     setPreviewComponentErrors,
+    previewBridgeOriginRef,
   } = useAppContext();
   const { t } = useTranslation();
   const checksum = useChecksum(shouldReloadPreview);
@@ -121,12 +122,18 @@ const PreviewFrame = () => {
     previewIframeRef,
     session ? originOf(session.url) : undefined,
     setPreviewComponentErrors,
+    previewBridgeOriginRef,
   );
-  // Each page in the frame reports the errors it finds, so those of the page before go, also when a page can't report.
+  // Each page in the frame reports the errors it finds and says when it is ready for changes, so what the page before
+  // said goes, also when a page can't report.
   useEffect(() => {
+    previewBridgeOriginRef.current = null;
     setPreviewComponentErrors(noPreviewComponentErrors);
-    return () => setPreviewComponentErrors(noPreviewComponentErrors);
-  }, [previewURL, checksum, setPreviewComponentErrors]);
+    return () => {
+      previewBridgeOriginRef.current = null;
+      setPreviewComponentErrors(noPreviewComponentErrors);
+    };
+  }, [previewURL, checksum, setPreviewComponentErrors, previewBridgeOriginRef]);
 
   if (isSessionError || isInstanceError) {
     return (

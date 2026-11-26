@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { RefObject } from 'react';
+import type { MutableRefObject, RefObject } from 'react';
 import {
   noPreviewComponentErrors,
   parseStudioBridgeMessage,
@@ -7,13 +7,15 @@ import {
 } from './studioBridge';
 
 /**
- * Keeps the errors that the Studio bridge in the preview frame reports. Any page can post messages to Studio's window,
- * so only those from the frame's window, on preview's origin, count.
+ * Keeps the errors that the Studio bridge in the preview frame reports, and the origin of a bridge that has said it is
+ * ready for changes. Any page can post messages to Studio's window, so only those from the frame's window, on
+ * preview's origin, count.
  */
 export const useStudioBridge = (
   frameRef: RefObject<HTMLIFrameElement | null>,
   previewOrigin: string | undefined,
   setComponentErrors: (errors: PreviewComponentErrors) => void,
+  bridgeOriginRef: MutableRefObject<string | null>,
 ): void => {
   useEffect(() => {
     if (!previewOrigin) return;
@@ -22,11 +24,12 @@ export const useStudioBridge = (
         return;
       const message = parseStudioBridgeMessage(event.data);
       if (!message) return;
+      if (message.type === 'ready') bridgeOriginRef.current = previewOrigin;
       setComponentErrors(
         message.type === 'componentErrors' ? message.errors : noPreviewComponentErrors,
       );
     };
     window.addEventListener('message', listener);
     return () => window.removeEventListener('message', listener);
-  }, [frameRef, previewOrigin, setComponentErrors]);
+  }, [frameRef, previewOrigin, setComponentErrors, bridgeOriginRef]);
 };

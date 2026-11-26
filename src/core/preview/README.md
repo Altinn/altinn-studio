@@ -58,24 +58,37 @@ mock user, the instances and the process are the same as for a v9 app.
 
 A v9 app's page runs a script of preview's before the app frontend,
 [studio-bridge.js](src/Altinn.Studio.Preview/AppApi/studio-bridge.js). It tells Studio's page which components the
-frontend found errors in, and the UI editor shows the errors by the components. The script needs nothing new from
-the frontend, so it works with each published version, and it is never part of a published app.
+frontend found errors in, and the UI editor shows the errors by the components. Studio's page tells it when the app's
+layouts or texts change, and it has the frontend show the change without reloading the page, so the developer keeps
+their place in the form. The script needs nothing new from the frontend, so it works with each published version, and
+it is never part of a published app.
 
 - It turns on the frontend's validation of the layout, which the frontend otherwise runs only on hosts it knows as
   Studio's or a test environment's. The page also says that developers test the app here
   (`platformFrontendSettings.development`), which turns on the validation, the errors in place of a component and
-  the developer tools in frontend versions that read it (#21860). Older versions leave out a component with errors,
-  and the editor says why.
+  the developer tools in frontend versions that read it (#21860). Older versions leave out a component with errors.
 - It defines `window.logError` and `window.logErrorOnce` before the frontend, which then logs through them. The
   frontend logs each error in a component's configuration with the component's ID.
 - The frontend reads the layout schema from Studio's app frontend distributions, which Designer lets any origin read.
+- For a changed layout it has the frontend fetch the form bootstrap again. For changed texts it first replaces the
+  texts in the page's `altinnAppGlobalData`, since the frontend takes the texts in the page's language from there.
+  When the frontend has no such queries, the script reloads the page.
 - It catches its own errors, so preview works without it. The app's own scripts run on the same page and can send the
   same messages, so Studio checks each message as untrusted input and only shows what it says.
 
-It sends Studio's origin a message when the page starts, so Studio forgets the errors of the page before, and then
-the errors the frontend has logged so far, by component ID. The script defines the messages and limits their size,
-and Studio's [studioBridge.ts](../../Designer/frontend/packages/ux-editor/src/components/Preview/studioBridge.ts)
-checks them.
+The messages in both directions have a `source`, a `version` and a `type`:
+
+| From     | `source`                | `type`            | Meaning                                                                                            |
+| -------- | ----------------------- | ----------------- | -------------------------------------------------------------------------------------------------- |
+| The page | `altinn-studio-preview` | `ready`           | The page has started: Studio forgets the errors of the page before, and sends changes from now on. |
+| The page | `altinn-studio-preview` | `componentErrors` | The errors the frontend has logged so far, by component ID.                                        |
+| Studio   | `altinn-studio`         | `layoutsChanged`  | The app's layouts changed.                                                                         |
+| Studio   | `altinn-studio`         | `textsChanged`    | The app's texts changed.                                                                           |
+
+Each side takes messages only from the other's window and origin. The script limits the size of what it sends, and
+Studio's [studioBridge.ts](../../Designer/frontend/packages/ux-editor/src/components/Preview/studioBridge.ts) checks
+it. Studio reloads the frame for other changes, such as a component's new ID or the page order, and until the page in
+the frame is ready.
 
 ## Security rules
 

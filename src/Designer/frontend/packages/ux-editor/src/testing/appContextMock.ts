@@ -22,4 +22,5 @@ export const appContextMock: AppContextProps = {
   setSelectedItem: vi.fn(),
   previewComponentErrors: new Map(),
   setPreviewComponentErrors: vi.fn(),
+  previewBridgeOriginRef: { current: null },
 };

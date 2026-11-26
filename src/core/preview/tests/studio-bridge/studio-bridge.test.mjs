@@ -16,12 +16,18 @@ function runBridge({ framed = true, origin = studioOrigin, globals = {}, postMes
   const posted = [];
   const timers = [];
   const consoleErrors = [];
+  const listeners = [];
+  const reloads = [];
   const page = {
     document: {
-      currentScript: { getAttribute: (name) => (name === 'data-studio-origin' ? origin : null) },
+      currentScript: {
+        getAttribute: (name) => (name === 'data-studio-origin' ? origin : null),
+      },
     },
     console: { error: (...args) => consoleErrors.push(args) },
     setTimeout: (callback) => timers.push(callback),
+    addEventListener: (type, listener) => type === 'message' && listeners.push(listener),
+    location: { reload: () => reloads.push(true) },
     ...globals,
   };
   page.window = page;
@@ -29,18 +35,48 @@ function runBridge({ framed = true, origin = studioOrigin, globals = {}, postMes
     ? {
         postMessage:
           postMessage ??
-          ((message, targetOrigin) => posted.push({ message: structuredClone(message), targetOrigin })),
+          ((message, targetOrigin) =>
+            posted.push({ message: structuredClone(message), targetOrigin })),
       }
     : page;
   vm.runInNewContext(bridge, page);
   const flush = () => timers.splice(0).forEach((callback) => callback());
-  const lastErrors = () => posted.findLast(({ message }) => message.type === 'componentErrors')?.message.errors;
-  return { page, posted, flush, lastErrors, consoleErrors };
+  const lastErrors = () =>
+    posted.findLast(({ message }) => message.type === 'componentErrors')?.message.errors;
+  // A message to the page, as Studio's page that frames it posts it unless the options say otherwise.
+  const receive = async (type, { from = page.parent, fromOrigin = studioOrigin, ...data } = {}) => {
+    listeners.forEach((listener) =>
+      listener({
+        source: from,
+        origin: fromOrigin,
+        data: { source: 'altinn-studio', version: 1, type, ...data },
+      }),
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+  };
+  return { page, posted, flush, lastErrors, consoleErrors, receive, reloads };
+}
+
+// The app frontend's query client, with queries for the layouts and the texts.
+function frontendQueries() {
+  const invalidated = [];
+  return {
+    invalidated,
+    queryClient: {
+      getQueryCache: () => ({
+        findAll: ({ queryKey }) =>
+          ['formBootstrap', 'textResources'].includes(queryKey[0]) ? [{ queryKey }] : [],
+      }),
+      invalidateQueries: async ({ queryKey }) => invalidated.push([...queryKey]),
+    },
+  };
 }
 
 test('tells Studio that a new page is ready, on Studio’s origin only', () => {
   const { posted } = runBridge();
-  assert.deepEqual(posted, [{ message: { type: 'ready', source, version: 1 }, targetOrigin: studioOrigin }]);
+  assert.deepEqual(posted, [
+    { message: { type: 'ready', source, version: 1 }, targetOrigin: studioOrigin },
+  ]);
 });
 
 test('turns on the layout validation of the app frontend, unless the page chose', () => {
@@ -52,10 +88,19 @@ test('turns on the layout validation of the app frontend, unless the page chose'
 test('sends the errors the app frontend logs, by component', () => {
   const { page, flush, lastErrors } = runBridge();
 
-  page.logErrorOnce("Layout configuration errors for component '/name':\n- /readOnly: Must be boolean");
-  page.logErrorOnce("Data model binding errors for component '/name':\n- Field 'Model.missing' is not in the model");
-  page.logErrorOnce("Validation error for 'summary': Målet for oppsummeringen (missing) ble ikke funnet");
-  page.logError('Exception thrown when rendering node "button":\n', new TypeError('x is undefined'));
+  page.logErrorOnce(
+    "Layout configuration errors for component '/name':\n- /readOnly: Must be boolean",
+  );
+  page.logErrorOnce(
+    "Data model binding errors for component '/name':\n- Field 'Model.missing' is not in the model",
+  );
+  page.logErrorOnce(
+    "Validation error for 'summary': Målet for oppsummeringen (missing) ble ikke funnet",
+  );
+  page.logError(
+    'Exception thrown when rendering node "button":\n',
+    new TypeError('x is undefined'),
+  );
   page.logError("No component definition found for type 'Unknown' (component 'unknown')");
   flush();
 
@@ -152,4 +197,89 @@ test('lets preview work when it cannot tell Studio', () => {
   flush();
 
   assert.equal(consoleErrors.length, 1);
+});
+
+test('has the frontend fetch the layouts again when Studio says they changed', async () => {
+  const { queryClient, invalidated } = frontendQueries();
+  const { receive, reloads } = runBridge({ globals: { queryClient } });
+
+  await receive('layoutsChanged');
+
+  assert.deepEqual(invalidated, [['formBootstrap']]);
+  assert.equal(reloads.length, 0);
+});
+
+test('gives the frontend the texts preview has now when Studio says they changed', async () => {
+  const { queryClient, invalidated } = frontendQueries();
+  const fetched = [];
+  const textResources = { language: 'nb', resources: [{ id: 'title', value: 'Before' }] };
+  const { page, receive, reloads } = runBridge({
+    globals: {
+      queryClient,
+      org: 'session/ttd',
+      app: 'my-app',
+      altinnAppGlobalData: { textResources },
+      fetch: async (url) => {
+        fetched.push(url);
+        return {
+          ok: true,
+          json: async () => ({
+            language: 'nb',
+            resources: [{ id: 'title', value: 'After' }],
+          }),
+        };
+      },
+    },
+  });
+
+  await receive('textsChanged');
+
+  assert.deepEqual(fetched, ['/session/ttd/my-app/api/v1/texts/nb']);
+  assert.deepEqual(page.altinnAppGlobalData.textResources.resources, [
+    { id: 'title', value: 'After' },
+  ]);
+  assert.deepEqual(invalidated, [['textResources']]);
+  assert.equal(reloads.length, 0);
+});
+
+test('takes changes only from Studio’s page that frames it', async () => {
+  const { queryClient, invalidated } = frontendQueries();
+  const { receive, reloads } = runBridge({ globals: { queryClient } });
+
+  await receive('layoutsChanged', { from: {} });
+  await receive('layoutsChanged', { fromOrigin: 'https://elsewhere.test' });
+  await receive('layoutsChanged', { source: 'altinn-studio-preview' });
+  await receive('layoutsChanged', { version: 2 });
+  await receive('toString');
+
+  assert.deepEqual(invalidated, []);
+  assert.equal(reloads.length, 0);
+});
+
+test('reloads the page when the frontend has no queries to fetch again', async () => {
+  const withoutClient = runBridge();
+  await withoutClient.receive('layoutsChanged');
+  assert.equal(withoutClient.reloads.length, 1);
+
+  const { queryClient } = frontendQueries();
+  queryClient.getQueryCache = () => ({ findAll: () => [] });
+  const withoutQueries = runBridge({ globals: { queryClient } });
+  await withoutQueries.receive('layoutsChanged');
+  assert.equal(withoutQueries.reloads.length, 1);
+});
+
+test('reloads the page when it cannot fetch the texts', async () => {
+  const { queryClient, invalidated } = frontendQueries();
+  const { receive, reloads } = runBridge({
+    globals: {
+      queryClient,
+      altinnAppGlobalData: { textResources: { language: 'nb', resources: [] } },
+      fetch: async () => ({ ok: false, status: 404 }),
+    },
+  });
+
+  await receive('textsChanged');
+
+  assert.deepEqual(invalidated, []);
+  assert.equal(reloads.length, 1);
 });
