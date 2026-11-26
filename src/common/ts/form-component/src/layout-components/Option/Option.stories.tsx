@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -22,6 +23,7 @@ export const OPTION_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Option',
   component: Option,
+  decorators: [withComponentGrid],
   excludeStories: ['OPTION_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -27,6 +28,7 @@ export const DEMO_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/DemoLayoutComponent',
   component: DemoLayoutComponent,
+  decorators: [withComponentGrid],
   // DEMO_PROP_CATEGORIES is a docs helper, not a story — keep CSF from rendering it as one.
   excludeStories: ['DEMO_PROP_CATEGORIES'],
   parameters: {

@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -20,6 +21,7 @@ export const DATE_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/Date',
   component: Date,
+  decorators: [withComponentGrid],
   excludeStories: ['DATE_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

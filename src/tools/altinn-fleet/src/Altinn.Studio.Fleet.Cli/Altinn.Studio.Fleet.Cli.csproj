@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Altinn.Studio.Fleet.Cli</RootNamespace>
+    <AssemblyName>fleet</AssemblyName>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Altinn.Studio.Fleet.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Altinn.Studio.Fleet/Altinn.Studio.Fleet.csproj" />
+  </ItemGroup>
+</Project>

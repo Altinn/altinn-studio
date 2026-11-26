@@ -20,7 +20,10 @@ anything, read [references/v8.md](references/v8.md) for a v8 app or [references/
   `<xacml:Match>` elements in one AllOf must match, which is how org, app and task combine.
 - `[ORG]`, `[APP]` and `[org]` are placeholders. Studio replaces them with the app's org and name when it deploys,
   and LocalTest does the same. Keep them.
-- Studio matches subjects and actions with `string-equal-ignore-case` and resources with `string-equal`.
+- Studio matches subjects and actions with `urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case`, and
+  resources with `urn:oasis:names:tc:xacml:1.0:function:string-equal`. Use these. A function that the decision point
+  does not have, such as `urn:oasis:names:tc:xacml:3.0:function:string-equal`, stops it with an error, and the
+  request is denied.
 
 ## Which subject to use
 
@@ -203,7 +206,8 @@ task:
 - A button that moves the process with an action, such as `reject` on a signing task, needs that action on the
   task in the policy. `ActionButton`, the server actions of `CustomButton`, and the signing and confirm buttons check
   the user's rights, and they know only `read`, `write` and the actions listed on the task in `process.bpmn`. So list
-  the action there too. The app also skips validation on `reject` only when the task lists `reject`.
+  the action there too. The app also skips validation on `reject` only when the task lists `reject`. The
+  `studio-process` skill covers the process side.
 - Users also need `instantiate` to start an instance and `read` to see it.
 - A user rule scoped to tasks must name every task the user acts on. The version file says what users need on
   service tasks.

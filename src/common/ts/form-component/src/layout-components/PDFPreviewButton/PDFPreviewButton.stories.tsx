@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -23,6 +24,7 @@ const storybookGenerate: PDFPreviewButtonProps['onGenerate'] = async () => ({
 const meta = {
   title: 'LayoutComponents/PDFPreviewButton',
   component: PDFPreviewButton,
+  decorators: [withComponentGrid],
   excludeStories: ['PDF_PREVIEW_BUTTON_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

@@ -1,73 +1,73 @@
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
 import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
-import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
-import { previewPage } from 'app-shared/api/paths';
-import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
-import { useUserQuery } from 'app-shared/hooks/queries';
+import { previewSessionHashPage, previewSessionPage } from 'app-shared/api/paths';
+import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { usePreviewSessionQuery } from 'app-shared/hooks/queries/usePreviewSessionQuery';
+import { usePreviewSessionInstanceQuery } from 'app-shared/hooks/queries/usePreviewSessionInstanceQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useCurrentBranchQuery } from 'app-shared/hooks/queries/useCurrentBranchQuery';
+import { MAXIMUM_SUPPORTED_FRONTEND_VERSION, NEXT_V9_VERSION } from 'app-shared/constants';
+import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 import { StudioAlert, StudioCenter, StudioSpinner } from '@designer/components';
 import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/usePreviewLayoutMetadata';
 import classes from './Preview.module.css';
 
 export const Preview = (): ReactElement => {
-  if (isPreviewDisabled) {
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: version, isPending: versionPending } = useAppVersionQuery(org, app);
+
+  if (versionPending) return <PreviewSpinner />;
+
+  // The preview service shows v8 and v9 apps. Older apps keep the notice that preview is turned off.
+  const isV9 = !!version && !isBelowSupportedVersion(version.frontendVersion, NEXT_V9_VERSION);
+  const isV8 =
+    !!version &&
+    !isV9 &&
+    !isBelowSupportedVersion(version.frontendVersion, MAXIMUM_SUPPORTED_FRONTEND_VERSION);
+  if (!isV9 && !isV8) {
     return (
       <StudioCenter>
         <PreviewDisabledInfo />
       </StudioCenter>
     );
   }
-  return <PreviewFrame />;
+  return <PreviewFrame isV9={isV9} />;
 };
 
-const PreviewFrame = (): ReactElement => {
+const PreviewSpinner = (): ReactElement => (
+  <StudioCenter>
+    <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
+  </StudioCenter>
+);
+
+type PreviewFrameProps = {
+  isV9: boolean;
+};
+
+// The preview service shows the developer's working copy on a domain of its own, in one session for the page.
+const PreviewFrame = ({ isV9 }: PreviewFrameProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: user } = useUserQuery();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);
 
-  const {
-    mutate: createInstance,
-    data: instance,
-    isPending: createInstancePending,
-    isError: createInstanceError,
-  } = useCreatePreviewInstanceMutation(org, app);
+  const { metadata: layoutMetadata, error: layoutMetadataError } = usePreviewLayoutMetadata(
+    org,
+    app,
+  );
+  // A v9 app's layout set is named after its task, and a v8 app's names its task.
+  const { layoutName } = layoutMetadata;
+  const taskId = isV9 ? layoutMetadata.layoutSetName : layoutMetadata.taskId;
+  const pageUrl = isV9 ? previewSessionPage : previewSessionHashPage;
 
-  const {
-    metadata: layoutMetadata,
-    isPending: layoutMetadataPending,
-    error: layoutMetadataError,
-  } = usePreviewLayoutMetadata(org, app);
-
-  useEffect(() => {
-    const { taskId } = layoutMetadata;
-    if (!user || !taskId || layoutMetadataPending || createInstancePending || instance) {
-      return;
-    }
-
-    createInstance({ partyId: user.id, taskId });
-  }, [
-    createInstance,
-    createInstancePending,
-    instance,
-    layoutMetadata,
-    layoutMetadataPending,
-    user,
-  ]);
-
-  const { layoutSetName, layoutName, taskId } = layoutMetadata;
+  const { data: session, isError: sessionError } = usePreviewSessionQuery(org, app);
+  const { data: instance, isError: instanceError } = usePreviewSessionInstanceQuery(
+    org,
+    app,
+    session?.url,
+    taskId,
+  );
 
   const previewError =
-    layoutMetadataError || (createInstanceError ? 'Error loading preview' : undefined);
-
-  if (!instance && !previewError) {
-    return (
-      <StudioCenter>
-        <StudioSpinner spinnerTitle='Loading preview...' aria-hidden='true' />
-      </StudioCenter>
-    );
-  }
+    layoutMetadataError || (sessionError || instanceError ? 'Error loading preview' : undefined);
 
   if (previewError) {
     return (
@@ -77,7 +77,7 @@ const PreviewFrame = (): ReactElement => {
     );
   }
 
-  const previewURL = previewPage(org, app, layoutSetName, taskId, layoutName, instance.id);
+  if (!session || !instance) return <PreviewSpinner />;
 
   return (
     <div className={classes.previewContainer}>
@@ -85,7 +85,7 @@ const PreviewFrame = (): ReactElement => {
         key={currentBranchInfo?.commitSha}
         className={classes.previewIframe}
         title='App Preview'
-        src={previewURL}
+        src={pageUrl(session.url, instance.instanceId, taskId, layoutName)}
       />
     </div>
   );

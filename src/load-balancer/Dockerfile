@@ -21,4 +21,9 @@ COPY k8s/extra-servers.conf.template /etc/nginx/extra-servers/
 COPY k8s/ssl/ /etc/nginx/ssl/
 COPY k8s/logging/ /etc/nginx/logging/
 
+# Preview's servers, which the entrypoint adds where PREVIEW_SERVER_NAME is set. The k8s ones are the clusters' own.
+COPY preview/ /etc/nginx/preview-servers/
+COPY k8s/preview/servers/ /etc/nginx/preview-servers-k8s/
+COPY k8s/preview/ssl/ /etc/nginx/preview-ssl/
+
 ENTRYPOINT ["/entrypoint.sh"]

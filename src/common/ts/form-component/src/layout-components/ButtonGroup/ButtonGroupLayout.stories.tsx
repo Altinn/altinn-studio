@@ -1,4 +1,5 @@
 import { Button } from '@app/form-component/app-components';
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -24,6 +25,7 @@ export const BUTTON_GROUP_PROP_CATEGORIES = {
 const meta = {
   title: 'LayoutComponents/ButtonGroup',
   component: ButtonGroupLayout,
+  decorators: [withComponentGrid],
   excludeStories: ['BUTTON_GROUP_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',

@@ -1,3 +1,4 @@
+import { withComponentGrid } from '@app/form-component/layout-components/common/storybook';
 import { StaticLanguageTranslatorProvider } from '@app/form-component/test/StaticLanguageTranslatorProvider';
 import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
@@ -54,6 +55,7 @@ const meta = {
         <Story />
       </StaticLanguageTranslatorProvider>
     ),
+    withComponentGrid,
   ],
   argTypes: {
     displayMode: {
