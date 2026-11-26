@@ -28,6 +28,8 @@ import { EditableComponent } from '../EditableComponent/EditableComponent';
 import { EditorTranslatorProvider } from '../EditorTranslator/EditorTranslatorProvider';
 import { InsertLine } from '../InsertLine/InsertLine';
 import { NewComponentForm } from '../NewComponentForm/NewComponentForm';
+import { NewLikertForm } from '../NewLikertForm/NewLikertForm';
+import { isLikertStatic } from '../../utils/likertUtils';
 import { PageEditingProvider, usePageEditing } from '../PageEditing/PageEditingContext';
 import { ComponentSettingsPanel } from '../SettingsPanel/ComponentSettingsPanel';
 import { PageSettingsPanel, SummarySettingsPanel } from '../SettingsPanel/PageSettingsPanel';
@@ -233,6 +235,18 @@ function AddArea({ placement, addFlow, className }: AddAreaProps): ReactElement 
   const { dataModel, texts } = useAppBuilder();
   const { layout } = usePageEditing();
   const { newQuestion, stopAdding } = useCanvasState();
+
+  if (newQuestion && isLikertStatic(newQuestion)) {
+    return (
+      <div className={className}>
+        <NewLikertForm
+          isSaving={addFlow.isSaving}
+          onAdd={(values) => void addFlow.addLikert(values)}
+          onCancel={stopAdding}
+        />
+      </div>
+    );
+  }
 
   if (newQuestion) {
     return (

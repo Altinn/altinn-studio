@@ -7,7 +7,7 @@ import { RuleBox } from '../RuleBox/RuleBox';
 import { SettingsSection } from './SettingsPanelFrame';
 import classes from './SettingsPanel.module.css';
 
-export type VisibilityTarget = 'field' | 'group' | 'text' | 'page';
+export type VisibilityTarget = 'field' | 'group' | 'table' | 'text' | 'page';
 
 export type VisibilitySettingProps = {
   target: VisibilityTarget;

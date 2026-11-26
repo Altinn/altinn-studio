@@ -17,6 +17,14 @@ import {
 } from '../../utils/newComponentUtils';
 import type { AddableComponentType, QuestionComponentType } from '../../utils/newComponentUtils';
 import { hasCodeList, YES_NO_CODE_LIST_ID, yesNoOptions } from '../../utils/optionUtils';
+import {
+  createLikert,
+  hasLikertModel,
+  isLikertStatic,
+  withLikertModel,
+} from '../../utils/likertUtils';
+import type { NewLikertValues } from '../../utils/likertUtils';
+import { useLanguagesQuery } from '../../hooks/useLanguagesQuery';
 import type { NewComponentValues } from '../NewComponentForm/NewComponentForm';
 import { useCanvasState } from '../CanvasState/CanvasStateContext';
 import { usePageEditing } from '../PageEditing/PageEditingContext';
@@ -27,6 +35,7 @@ export type AddFlow = {
   addedComponentId?: string;
   chooseType: (type: AddableComponentType, placement: Placement) => void;
   addQuestion: (values: NewComponentValues) => Promise<void>;
+  addLikert: (values: NewLikertValues) => Promise<void>;
   clearAddedComponent: () => void;
 };
 
@@ -43,6 +52,7 @@ export const useAddFlow = (): AddFlow => {
   const addComponent = useAddComponent(org, app, layoutSetName, pageName, layout, fixedIds);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [addedComponentId, setAddedComponentId] = useState<string>();
+  const { data: languages = [] } = useLanguagesQuery(org, app);
 
   const defaultOptionTexts = [1, 2].map((number) =>
     t('app_builder.default_text.option', { number }),
@@ -60,7 +70,7 @@ export const useAddFlow = (): AddFlow => {
   };
 
   const chooseType = (type: AddableComponentType, placement: Placement): void => {
-    if (isQuestionType(type)) {
+    if (isQuestionType(type) || isLikertStatic({ type })) {
       startNewQuestion({ type, placement });
       return;
     }
@@ -120,6 +130,30 @@ export const useAddFlow = (): AddFlow => {
     });
   };
 
+  /**
+   * Adds a Likert table with a question per row. The data model gets the shared list the first time
+   * a table is added, and is never changed by the questions. The ready-made scale gets its texts in
+   * the app's other languages, and the layout is saved last.
+   */
+  const addLikert = async (values: NewLikertValues): Promise<void> => {
+    if (!newQuestion) return;
+    const likert = createLikert({ values, pageName, layouts, dataType: dataModel?.dataType });
+    const translations = Object.fromEntries(
+      Object.entries(likert.translations).filter(([language]) => languages.includes(language)),
+    );
+    await add({
+      component: likert.parent,
+      children: likert.children,
+      texts: likert.texts,
+      translations,
+      placement: newQuestion.placement,
+      newSchema:
+        dataModel && !hasLikertModel(dataModel.schema)
+          ? { schema: withLikertModel(dataModel.schema), dataModel }
+          : undefined,
+    });
+  };
+
   // A radio button question without its own options asks yes or no. A checkbox list or dropdown
   // whose options were left empty gets example options, which the user renames in place.
   const getOptionTexts = (
@@ -141,6 +175,7 @@ export const useAddFlow = (): AddFlow => {
     addedComponentId,
     chooseType,
     addQuestion,
+    addLikert,
     clearAddedComponent: () => setAddedComponentId(undefined),
   };
 };

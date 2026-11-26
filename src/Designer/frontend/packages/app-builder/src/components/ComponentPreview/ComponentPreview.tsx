@@ -26,6 +26,7 @@ import { getOptionSource, resolveOptions } from '../../utils/optionUtils';
 import type { ResolvedOption } from '../../utils/optionUtils';
 import { PlainTextsProvider } from '../EditorTranslator/PlainTextsProvider';
 import classes from './ComponentPreview.module.css';
+import { LikertPreview } from './LikertPreview';
 
 export type ComponentPreviewProps = {
   component: LayoutComponent;
@@ -52,6 +53,9 @@ const previews: Partial<Record<string, ComponentType<PreviewProps>>> = {
   Heading: HeadingPreview,
   // Input is not extracted to the shared library yet, so it is put together from shared parts.
   Input: InputPreview,
+  LikertStatic: ({ component, isSelected }: PreviewProps) => (
+    <LikertPreview component={component} isSelected={isSelected} />
+  ),
   Paragraph: ParagraphPreview,
   RadioButtons: RadioButtonsPreview,
   TextArea: TextAreaPreview,

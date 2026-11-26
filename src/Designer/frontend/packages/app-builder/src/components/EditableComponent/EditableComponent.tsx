@@ -18,6 +18,8 @@ import { usePageEditing } from '../PageEditing/PageEditingContext';
 import { RequiredMenu } from '../RequiredMenu/RequiredMenu';
 import type { RequiredChoice } from '../RequiredMenu/RequiredMenu';
 import { ComponentStrip } from './ComponentStrip';
+import { isLikertStatic } from '../../utils/likertUtils';
+import { findComponent } from '../../utils/layoutUtils';
 import { InlineAddButtons } from './InlineAddButtons';
 import classes from './EditableComponent.module.css';
 
@@ -43,7 +45,10 @@ export function EditableComponent({
   const { t } = useTranslation();
   const { texts } = useAppBuilder();
   const { selectedComponentId, selectComponent } = useCanvasState();
-  const { updateComponent } = usePageEditing();
+  const { updateComponent, layout } = usePageEditing();
+  // The component whose "required" tag opened the menu: the component, or a question in its table.
+  const [menuTargetId, setMenuTargetId] = useState<string>(component.id);
+  const menuTarget = findComponent(layout, menuTargetId) ?? component;
   const ruleFields = useRuleFields(component.id);
   const previewRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState<CSSProperties>();
@@ -60,7 +65,11 @@ export function EditableComponent({
     // A click on a label would otherwise move focus to its input instead of editing the label.
     if (target.closest('label')) event.preventDefault();
     const indicator = target.closest<HTMLElement>(`[${INDICATOR_ATTRIBUTE}]`);
-    if (indicator && canBeRequired(component)) {
+    const questionId = isLikertStatic(component)
+      ? indicator?.closest<HTMLElement>('[data-question-id]')?.dataset.questionId
+      : undefined;
+    if (indicator && (canBeRequired(component) || questionId)) {
+      setMenuTargetId(questionId ?? component.id);
       setMenuPosition(getPositionBelow(indicator, event.currentTarget));
     }
   };
@@ -73,7 +82,7 @@ export function EditableComponent({
       optional: false,
       conditional: defaultRule ? toRequiredExpression(defaultRule) : true,
     };
-    updateComponent(component.id, (current) => setRequiredValue(current, values[choice]));
+    updateComponent(menuTarget.id, (current) => setRequiredValue(current, values[choice]));
   };
 
   return (
@@ -98,7 +107,7 @@ export function EditableComponent({
       {isSelected && <ComponentStrip component={component} onDelete={onDelete} />}
       {menuPosition && (
         <RequiredMenu
-          current={getRequiredChoice(component)}
+          current={getRequiredChoice(menuTarget)}
           position={menuPosition}
           onChoose={handleRequiredChoice}
           onClose={() => setMenuPosition(undefined)}
@@ -125,7 +134,7 @@ function getPositionBelow(element: HTMLElement, container: HTMLElement): CSSProp
 }
 
 const focusableControls =
-  'input, select, textarea, button, a[href], [tabindex]:not([data-text-key])';
+  'input, select, textarea, button:not([data-canvas-control]), a[href], [tabindex]:not([data-text-key])';
 
 /**
  * The controls in the preview only show what the app looks like, so they are kept out of the tab

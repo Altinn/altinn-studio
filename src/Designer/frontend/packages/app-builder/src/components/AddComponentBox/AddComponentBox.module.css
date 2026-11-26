@@ -29,3 +29,12 @@
   flex-wrap: wrap;
   gap: var(--ds-size-2);
 }
+
+/* What the type in focus is for, in a fixed place with room for two lines, so nothing moves. */
+.description {
+  margin: var(--ds-size-2) 0 0;
+  min-height: 3em;
+  line-height: 1.5;
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+  color: var(--ds-color-neutral-text-subtle);
+}

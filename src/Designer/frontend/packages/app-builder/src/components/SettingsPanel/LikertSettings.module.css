@@ -1,0 +1,211 @@
+.note {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.questionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+}
+
+.question {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  gap: var(--ds-size-2);
+  align-items: start;
+  padding-bottom: var(--ds-size-3);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.number {
+  padding-top: var(--ds-size-1);
+  color: var(--ds-color-neutral-text-subtle);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.questionMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+  min-width: 0;
+}
+
+.field {
+  font-size: var(--ds-body-xs-font-size, 0.8125rem);
+  color: var(--ds-color-neutral-text-subtle);
+  overflow-wrap: anywhere;
+}
+
+.field code {
+  font-size: 0.8125rem;
+  background: var(--ds-color-neutral-background-tinted);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.requiredToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+}
+
+.questionActions {
+  display: flex;
+}
+
+.addQuestion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  align-items: flex-start;
+}
+
+.questionsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-size-2);
+}
+
+/* Closed sections say what they hold, so the user sees the scale without opening it. */
+.collapsible {
+  border-top: 1px solid var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-4) var(--ds-size-6);
+}
+
+/* Kept as a list item, so the browser's own open/closed marker stays. */
+.collapsible > summary {
+  cursor: pointer;
+}
+
+.collapsibleSummary {
+  display: block;
+  margin-top: 2px;
+  padding-left: var(--ds-size-4);
+}
+
+.collapsibleTitle {
+  font-weight: 500;
+  font-size: var(--ds-body-md-font-size, 1rem);
+}
+
+.collapsibleSummary {
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+  color: var(--ds-color-neutral-text-subtle);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.collapsibleBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  padding-top: var(--ds-size-3);
+}
+
+/* Compact rows: text, required, and the row's tools, drawn only for the row in use. */
+.quiet {
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.columnHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: calc(3 * 2.25rem + var(--ds-size-2));
+}
+
+.master {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto calc(3 * 2.25rem);
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.rowActions {
+  display: flex;
+  /* Always there and reachable, quiet until the row is in use. */
+  opacity: 0.45;
+}
+
+.row:hover .rowActions,
+.row:focus-within .rowActions {
+  opacity: 1;
+}
+
+.addQuestion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ds-size-2);
+  align-items: center;
+  padding-right: calc(3 * 2.25rem - 0.5rem);
+}
+
+.scale {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  max-width: 26rem;
+}
+
+.ownLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+}
+
+.undo {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  margin: 0;
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+}
+
+/* The data itself, so the receiver's view is shown, not described. */
+.example {
+  margin: 0;
+  padding: var(--ds-size-2) var(--ds-size-3);
+  font-family: var(--ds-font-family-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  background: var(--ds-color-neutral-background-tinted);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-1);
+}
+
+.error {
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+  color: var(--ds-color-danger-text-subtle);
+}

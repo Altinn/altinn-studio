@@ -16,6 +16,8 @@ import type { ComponentWidth } from '../../utils/layoutUtils';
 import { isQuestionType } from '../../utils/newComponentUtils';
 import { createDefaultRule, toHiddenExpression, toRequiredExpression } from '../../utils/ruleUtils';
 import { BindingLine } from '../BindingLine/BindingLine';
+import { LikertBindingLine } from '../BindingLine/LikertBindingLine';
+import { isLikertStatic } from '../../utils/likertUtils';
 import { useCanvasState } from '../CanvasState/CanvasStateContext';
 import { usePageEditing } from '../PageEditing/PageEditingContext';
 import { RuleBox } from '../RuleBox/RuleBox';
@@ -50,6 +52,7 @@ export function ComponentStrip({ component, onDelete }: ComponentStripProps): Re
           }
         />
       )}
+      {isLikertStatic(component) && <LikertBindingLine component={component} />}
       {requiredProperty.kind === 'rule' && (
         <RuleBox
           kind='required'

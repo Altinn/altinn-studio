@@ -3,6 +3,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { LayoutComponent, PageLayouts, TextsById } from '../types';
 import { YES_NO_CODE_LIST_ID } from './optionUtils';
+import { LIKERT_STATIC_TYPE } from '../constants';
 
 /** The component types that can be added, in the groups the add box shows them in. */
 export const addableComponentGroups = {
@@ -15,6 +16,7 @@ export const addableComponentGroups = {
     ComponentType.Dropdown,
     ComponentType.Datepicker,
     ComponentType.FileUpload,
+    LIKERT_STATIC_TYPE,
   ],
   grouping: [ComponentType.Group],
   // An app without a summary page needs a way to submit, such as a button last on the form.
@@ -27,8 +29,13 @@ export type AddableComponentType = (typeof addableComponentGroups)[AddableCompon
 
 export type QuestionComponentType = (typeof addableComponentGroups.question)[number];
 
+/** Component types that are only offered when their own feature flag is on. */
+export const flaggedComponentTypes: ComponentType[] = [LIKERT_STATIC_TYPE];
+
 /** Questions ask for a label before they are added, since the label names their data model field. */
 export function isQuestionType(type: ComponentType): type is QuestionComponentType {
+  // A Likert table is listed with the questions, but it is a table of questions, each with a field.
+  if (type === LIKERT_STATIC_TYPE) return false;
   return (addableComponentGroups.question as readonly ComponentType[]).includes(type);
 }
 

@@ -1,0 +1,5 @@
+/* The line the user reads to know where answers go, so it is body size, not caption size. */
+.text {
+  font-size: var(--ds-body-sm-font-size, 0.875rem);
+  color: var(--ds-color-neutral-text-default);
+}
