@@ -55,17 +55,31 @@ internal sealed class ProjectAssets : IDisposable
     public IReadOnlyList<AssetsPackage> Packages { get; }
 
     /// <summary>
-    /// The version of the app library the project uses, from the first of
-    /// <see cref="AltinnAppLibraries.VersionPackageNames"/> it resolved. <c>null</c> when it resolved none, such as
-    /// with a project reference to the app library's source.
+    /// The Altinn.App package that says which version of the app library the project uses: the first of
+    /// <see cref="AltinnAppPackage.PackageNames"/> it resolved, also from a build of a pull request. <c>null</c> when
+    /// it resolved none, such as with a project reference to the app library's source.
     /// </summary>
-    public string? LibraryVersion =>
-        AltinnAppLibraries
-            .VersionPackageNames.Select(name =>
-                Packages.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-            )
-            .FirstOrDefault(package => package is not null)
-            ?.Version;
+    public AltinnAppPackage? LibraryPackage
+    {
+        get
+        {
+            foreach (string name in AltinnAppPackage.PackageNames)
+            {
+                if (
+                    Packages.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is { } found
+                    && AltinnAppPackage.TryParse(
+                        new PackageReference(found.Name, found.Version),
+                        out AltinnAppPackage? package
+                    )
+                )
+                {
+                    return package;
+                }
+            }
+
+            return null;
+        }
+    }
 
     /// <summary>Reads a restored project's assets, or returns <c>null</c> when it has none.</summary>
     public static ProjectAssets? Read(string projectDir)

@@ -22,6 +22,7 @@ internal static class AppUsageRows
                 "api_usage_apps",
                 [
                     "project",
+                    "library_package",
                     "library_version",
                     "restore_error",
                     "compile_errors",
@@ -32,6 +33,7 @@ internal static class AppUsageRows
             );
             apps.Add(
                 usage.Project,
+                usage.LibraryPackage,
                 usage.LibraryVersion,
                 usage.RestoreError,
                 usage.CompileErrors,

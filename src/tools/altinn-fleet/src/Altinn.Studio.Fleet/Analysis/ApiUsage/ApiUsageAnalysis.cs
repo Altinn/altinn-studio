@@ -21,8 +21,8 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
     public string Name => "api-usage";
 
     // 2 records the app library's package version rather than its assembly version, and the public API of each
-    // version the apps use.
-    public int Version => 2;
+    // version the apps use. 3 records the package the version comes from, so that builds of pull requests are read.
+    public int Version => 3;
 
     public string ItemsName => "app library versions";
 
@@ -40,7 +40,8 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
                 org TEXT NOT NULL,
                 app TEXT NOT NULL,
                 project TEXT,
-                library_version TEXT, -- the version of the app library package it references
+                library_package TEXT, -- the Altinn.App package that gives library_version, such as Altinn.App.Api
+                library_version TEXT, -- the version of it that the restore resolved
                 restore_error TEXT,
                 compile_errors INTEGER NOT NULL,
                 sample_errors TEXT,
@@ -83,6 +84,7 @@ public sealed class ApiUsageAnalysis : IItemAnalysis
             -- or source, read from --source at commit_id. The API is from read_at; failure is why the last read failed.
             CREATE TABLE api_usage_library_versions (
                 version TEXT NOT NULL PRIMARY KEY,
+                package TEXT, -- read from this package's version, such as Altinn.App.Api.Experimental; NULL for source
                 commit_id TEXT,
                 read_at TEXT,
                 failure TEXT

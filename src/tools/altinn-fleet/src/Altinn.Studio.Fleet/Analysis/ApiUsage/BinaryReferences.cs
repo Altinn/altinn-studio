@@ -17,8 +17,8 @@ namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 internal static class BinaryReferences
 {
     // Packages that cannot be built on the app library. The app library's own assemblies are skipped by assembly name,
-    // whatever package carries them, such as a preview build in Altinn.App.Api.Experimental, so that a third-party
-    // package named Altinn.App.Something is still read.
+    // whatever package carries them, such as a build of a pull request in Altinn.App.Api.Experimental, so that a
+    // third-party package named Altinn.App.Something is still read.
     private static readonly string[] s_skippedPrefixes = ["Microsoft.", "System.", "runtime."];
 
     /// <summary>The package assemblies in a restored project's graph that reference the app library.</summary>

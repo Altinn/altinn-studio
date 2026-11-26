@@ -4,10 +4,12 @@ namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
 /// <summary>What one app uses of the app library, or why that could not be found out.</summary>
 /// <param name="Project">The app's project, relative to the app's folder.</param>
-/// <param name="LibraryVersion">
-/// The version of the app library package the app uses, or <c>null</c> when it uses none, such as with a project
-/// reference to the app library or a preview build in <c>Altinn.App.Core.Experimental</c>.
+/// <param name="LibraryPackage">
+/// The Altinn.App package that says which version of the app library the app uses, such as <c>Altinn.App.Api</c>, or
+/// <c>Altinn.App.Api.Experimental</c> for a build of a pull request. <c>null</c> when it uses none, such as with a
+/// project reference to the app library.
 /// </param>
+/// <param name="LibraryVersion">The version of <paramref name="LibraryPackage"/> that the restore resolved.</param>
 /// <param name="Failure">
 /// Why the app could not be analyzed, or not completely, or <c>null</c>. Uses found despite it are still listed.
 /// </param>
@@ -20,6 +22,7 @@ namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 /// <param name="Packages">The third-party packages the app uses that reference the app library.</param>
 internal sealed record AppUsage(
     string? Project,
+    string? LibraryPackage,
     string? LibraryVersion,
     string? Failure,
     string? RestoreError,
@@ -32,7 +35,7 @@ internal sealed record AppUsage(
 )
 {
     public static AppUsage Failed(string failure, string? project = null, string? restoreError = null) =>
-        new(project, null, failure, restoreError, [], 0, [], [], [], []);
+        new(project, null, null, failure, restoreError, [], 0, [], [], [], []);
 }
 
 /// <summary>An app library symbol that the app's code binds to.</summary>

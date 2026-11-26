@@ -100,10 +100,12 @@ fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || ap
                                   GROUP BY symbol ORDER BY apps DESC"
 ```
 
-To tell what apps do not use, the analysis also records the app library's public API: the types and members it
-makes public. It records the API of each app library version the apps use, read from that version's NuGet packages
-once, since a published version does not change. With `--source`, it also records the API of the app library in a
-checkout of altinn-studio or app-lib-dotnet, such as the coming version on `main`, under the version `source`:
+To tell what apps do not use, the analysis also records the app library's public API: the types and members it makes
+public. It records the API of each app library version the apps use, read from that version's NuGet packages once, since
+a published version does not change. An app on a build of a pull request, such as `Altinn.App.Api.Experimental`
+`8.7.0-pr.1973.…`, gets that build's API from its `.Experimental` packages. With `--source`, it also records the API of
+the app library in a checkout of altinn-studio or app-lib-dotnet, such as the coming version on `main`, under the
+version `source`:
 
 ```sql
 -- Public in the checkout, used by no app

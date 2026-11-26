@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Altinn.Studio.Common.Domain.App;
 
 namespace Altinn.Studio.Fleet.Analysis.ApiUsage;
 
@@ -32,20 +33,24 @@ internal static class LibraryVersions
         tables.Execute($"DELETE FROM api_usage_library_api WHERE {Unused}", ("$source", Source));
         tables.Execute($"DELETE FROM api_usage_library_api_exposes WHERE {Unused}", ("$source", Source));
 
-        List<(string Version, bool Pending)> used = tables.Query(
+        // A version is published either as the library's packages or, by a build of a pull request, as their
+        // Experimental packages, whose versions name the pull request. So the apps on a version agree on which.
+        List<(string Version, string Package, bool Pending)> used = tables.Query(
             """
-            SELECT DISTINCT a.library_version, ($force OR v.version IS NULL OR v.failure IS NOT NULL)
+            SELECT a.library_version, min(a.library_package),
+                max($force OR v.version IS NULL OR v.failure IS NOT NULL)
             FROM api_usage_apps a
             LEFT JOIN api_usage_library_versions v ON v.version = a.library_version
-            WHERE a.library_version IS NOT NULL
+            WHERE a.library_version IS NOT NULL AND a.library_package IS NOT NULL
+            GROUP BY a.library_version
             ORDER BY a.library_version
             """,
-            reader => (reader.GetString(0), reader.GetBoolean(1)),
+            reader => (reader.GetString(0), reader.GetString(1), reader.GetBoolean(2)),
             ("$force", force)
         );
         List<AnalysisItem> pending =
         [
-            .. used.Where(u => u.Pending).Select(u => new AnalysisItem(u.Version, u.Version)),
+            .. used.Where(u => u.Pending).Select(u => new AnalysisItem(u.Version, $"{u.Package}/{u.Version}")),
         ];
         if (source is not null)
         {
@@ -56,8 +61,9 @@ internal static class LibraryVersions
     }
 
     /// <summary>
-    /// Reads a version's public API, in the child process, and writes it to a file: from its packages, or for
-    /// <see cref="Source"/>, from the checkout in the item's input. MSBuild must be registered.
+    /// Reads a version's public API, in the child process, and writes it to a file: from the packages of the
+    /// <c>package/version</c> in the item's input, or for <see cref="Source"/>, from the checkout in it. MSBuild must
+    /// be registered.
     /// </summary>
     public static async Task Read(AnalysisItem item, string resultFile, CancellationToken cancellationToken)
     {
@@ -72,7 +78,10 @@ internal static class LibraryVersions
         }
         else
         {
-            api = new LibraryApi(null, await LibraryApiReader.ReadPublished(item.Input, cancellationToken));
+            AltinnAppPackage package =
+                Package(item.Input)
+                ?? throw new FleetException($"{item.Input} is not an Altinn.App package and version.");
+            api = new LibraryApi(null, await LibraryApiReader.ReadPublished(package, cancellationToken));
         }
 
         await using FileStream stream = File.Create(resultFile);
@@ -91,10 +100,11 @@ internal static class LibraryVersions
             string failure = outcome.Failure ?? "The analysis wrote no result.";
             tables.Execute(
                 """
-                INSERT INTO api_usage_library_versions (version, failure) VALUES ($version, $failure)
-                ON CONFLICT (version) DO UPDATE SET failure = excluded.failure
+                INSERT INTO api_usage_library_versions (version, package, failure) VALUES ($version, $package, $failure)
+                ON CONFLICT (version) DO UPDATE SET package = excluded.package, failure = excluded.failure
                 """,
                 ("$version", item.Key),
+                ("$package", Package(item.Input)?.Name),
                 ("$failure", failure)
             );
             return failure;
@@ -112,10 +122,11 @@ internal static class LibraryVersions
         tables.Execute("DELETE FROM api_usage_library_api_exposes WHERE version = $version", ("$version", item.Key));
         tables.Execute(
             """
-            INSERT OR REPLACE INTO api_usage_library_versions (version, commit_id, read_at, failure)
-            VALUES ($version, $commitId, $readAt, NULL)
+            INSERT OR REPLACE INTO api_usage_library_versions (version, package, commit_id, read_at, failure)
+            VALUES ($version, $package, $commitId, $readAt, NULL)
             """,
             ("$version", item.Key),
+            ("$package", Package(item.Input)?.Name),
             ("$commitId", api.CommitId),
             (
                 "$readAt",
@@ -162,6 +173,13 @@ internal static class LibraryVersions
 
         return null;
     }
+
+    /// <summary>The Altinn.App package and version in an item's <c>package/version</c> input, or <c>null</c>.</summary>
+    private static AltinnAppPackage? Package(string input) =>
+        input.Split('/') is [string name, string version]
+        && AltinnAppPackage.TryParse(new PackageReference(name, version), out AltinnAppPackage? package)
+            ? package
+            : null;
 
     /// <summary>The commit a folder's checkout is at, with <c>+changes</c> when it has uncommitted ones.</summary>
     private static async Task<string?> CommitId(string folder, CancellationToken cancellationToken)

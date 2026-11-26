@@ -141,7 +141,8 @@ internal static class AppCollector
             : null;
         return new AppUsage(
             project,
-            assets?.LibraryVersion,
+            assets?.LibraryPackage?.Name,
+            assets?.LibraryPackage?.Version,
             failure,
             restoreError,
             loadFailures,

@@ -305,6 +305,7 @@ public sealed class CliTests
 
             var usage = new AppUsage(
                 "App/App.csproj",
+                "Altinn.App.Api",
                 "8.5.0",
                 null,
                 null,

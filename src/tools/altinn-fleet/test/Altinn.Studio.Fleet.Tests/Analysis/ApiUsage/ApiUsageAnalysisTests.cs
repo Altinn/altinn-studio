@@ -39,10 +39,15 @@ public sealed class ApiUsageAnalysisTests : IDisposable
     }
 
     [Theory]
-    [InlineData("Altinn.App.Core/8.12.17,Altinn.App.Api/8.12.17,Some.Package/1.0.0", "8.12.17")]
-    [InlineData("Altinn.App.Api/6.0.2,Altinn.App.Common/6.0.2", "6.0.2")]
+    [InlineData("Altinn.App.Core/8.12.17,Altinn.App.Api/8.12.17,Some.Package/1.0.0", "Altinn.App.Api/8.12.17")]
+    [InlineData("Altinn.App.Core/8.12.17,Some.Package/1.0.0", "Altinn.App.Core/8.12.17")]
+    [InlineData("Altinn.App.Api/6.0.2,Altinn.App.Common/6.0.2", "Altinn.App.Api/6.0.2")]
+    [InlineData(
+        "Altinn.App.Core.Experimental/8.7.0-pr.1973.x.0124a541,Altinn.App.Api.Experimental/8.7.0-pr.1973.x.0124a541",
+        "Altinn.App.Api.Experimental/8.7.0-pr.1973.x.0124a541"
+    )]
     [InlineData("Some.Package/1.0.0", null)]
-    public void LibraryVersion_IsTheCorePackagesVersion_OrApisBeforeV7(string libraries, string? expected)
+    public void LibraryPackage_IsTheFirstAltinnAppPackageTheRestoreResolved(string libraries, string? expected)
     {
         string targets = string.Join(
             ',',
@@ -52,7 +57,7 @@ public sealed class ApiUsageAnalysisTests : IDisposable
 
         using ProjectAssets? assets = ProjectAssets.Read(_folder);
 
-        Assert.Equal(expected, assets?.LibraryVersion);
+        Assert.Equal(expected, assets?.LibraryPackage is { } package ? $"{package.Name}/{package.Version}" : null);
     }
 
     [Fact]
@@ -67,10 +72,12 @@ public sealed class ApiUsageAnalysisTests : IDisposable
         database.Write(tables =>
             tables.Execute(
                 """
-                INSERT INTO api_usage_apps (env, org, app, library_version, compile_errors) VALUES
-                    ('prod', 'ttd', 'app-one', '8.0.0', 0),
-                    ('prod', 'ttd', 'app-two', '8.1.0', 0),
-                    ('prod', 'ttd', 'app-three', '8.2.0', 0);
+                INSERT INTO api_usage_apps (env, org, app, library_package, library_version, compile_errors) VALUES
+                    ('prod', 'ttd', 'app-one', 'Altinn.App.Api', '8.0.0', 0),
+                    ('prod', 'ttd', 'app-two', 'Altinn.App.Api', '8.1.0', 0),
+                    ('prod', 'ttd', 'app-three', 'Altinn.App.Core', '8.2.0', 0),
+                    ('prod', 'ttd', 'app-four', 'Altinn.App.Api', '8.2.0', 0),
+                    ('prod', 'ttd', 'app-five', 'Altinn.App.Api.Experimental', '8.7.0-pr.1973.x.0124a541', 0);
                 INSERT INTO api_usage_library_versions (version, read_at, failure) VALUES
                     ('8.0.0', '2026-11-26T00:00:00Z', NULL),
                     ('8.1.0', '2026-11-26T00:00:00Z', 'The feed did not answer.'),
@@ -89,13 +96,14 @@ public sealed class ApiUsageAnalysisTests : IDisposable
 
         Assert.Equal(
             [
-                new AnalysisItem("8.1.0", "8.1.0"),
-                new AnalysisItem("8.2.0", "8.2.0"),
+                new AnalysisItem("8.1.0", "Altinn.App.Api/8.1.0"),
+                new AnalysisItem("8.2.0", "Altinn.App.Api/8.2.0"),
+                new AnalysisItem("8.7.0-pr.1973.x.0124a541", "Altinn.App.Api.Experimental/8.7.0-pr.1973.x.0124a541"),
                 new AnalysisItem("source", Path.Join(_folder, "checkout")),
             ],
             plan.Pending
         );
-        Assert.Equal((4, 1), (plan.Total, plan.Removed));
+        Assert.Equal((5, 1), (plan.Total, plan.Removed));
         Assert.Equal(
             ["8.0.0", "8.1.0", "source"],
             Query(database, "SELECT version FROM api_usage_library_versions ORDER BY version")
@@ -146,6 +154,50 @@ public sealed class ApiUsageAnalysisTests : IDisposable
             ["It does not compile."],
             Query(database, "SELECT failure FROM api_usage_library_versions WHERE read_at IS NOT NULL")
         );
+    }
+
+    [Fact]
+    public void RecordItem_RecordsWhichPackageTheVersionWasReadFrom()
+    {
+        using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath);
+        var analysis = new ApiUsageAnalysis();
+        database.Prepare(analysis);
+        const string Version = "8.7.0-pr.1973.x.0124a541";
+        var item = new AnalysisItem(Version, $"Altinn.App.Api.Experimental/{Version}");
+        string resultFile = Path.Join(_folder, "version.result");
+        File.WriteAllText(
+            resultFile,
+            """
+            { "commitId": null, "entries": [ { "symbol": "T:A", "assembly": "Altinn.App.Core", "kind": "class",
+              "namespace": "A", "containingType": null, "visible": true, "obsolete": false, "extensionPoint": false,
+              "file": null, "line": null, "exposes": [] } ] }
+            """
+        );
+
+        string? failure = database.PutItem(analysis, item, new AnalysisOutcome(null, resultFile, 1));
+
+        Assert.Null(failure);
+        Assert.Equal(
+            ["Altinn.App.Api.Experimental"],
+            Query(database, $"SELECT package FROM api_usage_library_versions WHERE version = '{Version}'")
+        );
+        Assert.Equal(["T:A"], Query(database, $"SELECT symbol FROM api_usage_library_api WHERE version = '{Version}'"));
+    }
+
+    [Fact]
+    public async Task AnalyzeItem_OfAVersionWithoutAPackage_Throws()
+    {
+        var item = new AnalysisItem("8.0.0", "8.0.0");
+
+        FleetException ex = await Assert.ThrowsAsync<FleetException>(() =>
+            new ApiUsageAnalysis().AnalyzeItem(
+                item,
+                Path.Join(_folder, "result"),
+                TestContext.Current.CancellationToken
+            )
+        );
+
+        Assert.Contains("is not an Altinn.App package and version", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

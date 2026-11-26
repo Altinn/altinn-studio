@@ -55,15 +55,16 @@ public sealed record LibrarySource(string Root, IReadOnlyList<string> Projects)
         string root = Path.GetFullPath(path);
         foreach (string folder in s_projectFolders)
         {
+            // The first of the library's packages is Altinn.App.Api, which every version has.
             List<string> projects =
             [
-                .. LibraryApiReader
-                    .Packages.Select(package => Path.Join(root, folder, package, $"{package}.csproj"))
+                .. AltinnAppPackage
+                    .LibraryPackageNames.Select(package => Path.Join(root, folder, package, $"{package}.csproj"))
                     .Where(File.Exists),
             ];
             if (
                 projects.Count > 0
-                && projects[0].EndsWith($"{LibraryApiReader.ApiPackage}.csproj", StringComparison.Ordinal)
+                && projects[0].EndsWith($"{AltinnAppPackage.LibraryPackageNames[0]}.csproj", StringComparison.Ordinal)
             )
             {
                 return new LibrarySource(root, projects);
@@ -217,18 +218,24 @@ internal static class LibraryApiReader
     }
 
     /// <summary>
-    /// Reads a published app library version, from its packages at exactly that version. The packages a version did
-    /// not publish, such as <c>Altinn.App.Clients.Fiks</c> before it existed or <c>Altinn.App.Core</c> before v7, are
-    /// left out rather than taken from a later version.
+    /// Reads a published app library version, from the packages of the version that <paramref name="package"/> belongs
+    /// to, at exactly that version: for a build of a pull request, its <c>.Experimental</c> packages. The packages a
+    /// version did not publish, such as <c>Altinn.App.Clients.Fiks</c> before it existed or <c>Altinn.App.Core</c>
+    /// before v7, are left out rather than taken from a later version.
     /// </summary>
-    public static async Task<List<LibraryApiEntry>> ReadPublished(string version, CancellationToken cancellationToken)
+    public static async Task<List<LibraryApiEntry>> ReadPublished(
+        AltinnAppPackage package,
+        CancellationToken cancellationToken
+    )
     {
+        string version = package.Version;
         string folder = Path.Join(Path.GetTempPath(), $"fleet-library-api-{Guid.NewGuid():N}");
         Directory.CreateDirectory(folder);
         try
         {
             string projectFile = Path.Join(folder, "LibraryApi.csproj");
-            List<string> packages = [.. Packages];
+            List<string> packages = [.. package.VersionPackageNames];
+            string api = packages[0];
             while (true)
             {
                 await File.WriteAllTextAsync(projectFile, ReferencingProject(packages, version), cancellationToken);
@@ -240,11 +247,9 @@ internal static class LibraryApiReader
                 // Only a package that does not exist at this version is left out. Any other failure, such as a feed
                 // that did not answer or a missing dependency, would make the API silently smaller.
                 HashSet<string>? missing = MissingPackages(error);
-                if (missing is null || missing.Contains(ApiPackage) || !missing.IsSubsetOf(packages))
+                if (missing is null || missing.Contains(api) || !missing.IsSubsetOf(packages))
                 {
-                    throw new FleetException(
-                        $"Could not restore the app library packages of version {version}: {error}"
-                    );
+                    throw new FleetException($"Could not restore {string.Join(", ", packages)} {version}: {error}");
                 }
 
                 packages.RemoveAll(missing.Contains);
@@ -255,12 +260,6 @@ internal static class LibraryApiReader
             Directory.Delete(folder, recursive: true);
         }
     }
-
-    /// <summary>The app library's packages that have a public API, <see cref="ApiPackage"/> first.</summary>
-    internal static IReadOnlyList<string> Packages => AltinnAppLibraries.PublishedPackageNames;
-
-    /// <summary>The package every version of the app library has.</summary>
-    internal static string ApiPackage => Packages[0];
 
     // NuGet's "Unable to find package X with version (= V)" (NU1102), or "Unable to find package X" (NU1101).
     private static readonly Regex s_missingPackage = new(
