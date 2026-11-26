@@ -16,7 +16,10 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 /// </remarks>
 internal static class BinaryReferences
 {
-    private static readonly string[] s_skippedPrefixes = ["Altinn.App.", "Microsoft.", "System.", "runtime."];
+    // Packages that cannot be built on the app library. The app library's own assemblies are skipped by assembly name,
+    // whatever package carries them, such as a preview build in Altinn.App.Api.Experimental, so that a third-party
+    // package named Altinn.App.Something is still read.
+    private static readonly string[] s_skippedPrefixes = ["Microsoft.", "System.", "runtime."];
 
     /// <summary>The package assemblies in a restored project's graph that reference the app library.</summary>
     public static List<PackageUse> Scan(string projectDir)
@@ -37,11 +40,7 @@ internal static class BinaryReferences
         {
             foreach (JsonProperty library in target.Value.EnumerateObject())
             {
-                if (
-                    library.Value.GetProperty("type").GetString() != "package"
-                    || !seen.Add(library.Name)
-                    || !library.Value.TryGetProperty("compile", out JsonElement compile)
-                )
+                if (library.Value.GetProperty("type").GetString() != "package" || !seen.Add(library.Name))
                 {
                     continue;
                 }
@@ -55,15 +54,15 @@ internal static class BinaryReferences
                 }
 
                 string? libraryPath = libraries.GetProperty(library.Name).GetProperty("path").GetString();
-                foreach (JsonProperty file in compile.EnumerateObject())
+                foreach (string file in Assemblies(library.Value))
                 {
-                    if (!file.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || libraryPath is null)
+                    if (libraryPath is null || LibrarySymbols.IsLibraryAssembly(Path.GetFileNameWithoutExtension(file)))
                     {
                         continue;
                     }
 
                     string? path = packageFolders
-                        .Select(folder => Path.Join(folder, libraryPath, file.Name))
+                        .Select(folder => Path.Join(folder, libraryPath, file))
                         .FirstOrDefault(File.Exists);
                     if (path is not null && Read(path) is { } references)
                     {
@@ -74,6 +73,33 @@ internal static class BinaryReferences
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// A package's assemblies. The runtime ones come first: a reference assembly, under <c>ref/</c>, has no method
+    /// bodies, so it does not show what the package's code calls.
+    /// </summary>
+    private static List<string> Assemblies(JsonElement library)
+    {
+        foreach (string assets in (string[])["runtime", "compile"])
+        {
+            if (library.TryGetProperty(assets, out JsonElement files))
+            {
+                List<string> dlls =
+                [
+                    .. files
+                        .EnumerateObject()
+                        .Select(file => file.Name)
+                        .Where(file => file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)),
+                ];
+                if (dlls.Count > 0)
+                {
+                    return dlls;
+                }
+            }
+        }
+
+        return [];
     }
 
     /// <summary>What an assembly references of the app library, or <c>null</c> when it references none of it.</summary>

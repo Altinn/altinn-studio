@@ -27,6 +27,9 @@ public sealed class LibraryFixture : IAsyncLifetime
 
     public string AppDir => Path.Join(Root, "app");
 
+    /// <summary>An app with a compile error, beside code that uses the library.</summary>
+    public string BrokenAppDir => Path.Join(Root, "broken-app");
+
     public string PackageAssembly => Path.Join(Root, "package-build", "Some.Package.dll");
 
     public async ValueTask InitializeAsync()
@@ -76,6 +79,32 @@ public sealed class LibraryFixture : IAsyncLifetime
             }
 
             internal sealed class Hidden { }
+
+            public sealed class Items
+            {
+                public Enumerator GetEnumerator() => default;
+
+                public struct Enumerator
+                {
+                    public int Current => 0;
+
+                    public bool MoveNext() => false;
+                }
+            }
+
+            public sealed record Pair(int Left, int Right);
+
+            public sealed class Bag : System.Collections.IEnumerable
+            {
+                public void Add(int item) { }
+
+                public System.Collections.IEnumerator GetEnumerator() => Array.Empty<int>().GetEnumerator();
+            }
+
+            public sealed class Later
+            {
+                public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => Task.CompletedTask.GetAwaiter();
+            }
             """
         );
         Write(
@@ -121,6 +150,46 @@ public sealed class LibraryFixture : IAsyncLifetime
             public sealed class Validator : ValidatorBase
             {
                 public override string Name => "validator";
+            }
+            """
+        );
+
+        Write(
+            "app/App/Implicit.cs",
+            """
+            using Altinn.App.Core.Features;
+
+            namespace App;
+
+            public static class Implicit
+            {
+                public static async Task<int> Use()
+                {
+                    int sum = 0;
+                    foreach (int item in new Items())
+                    {
+                        sum += item;
+                    }
+
+                    var (left, right) = new Pair(1, 2);
+                    _ = new Bag { 1, 2 };
+                    await new Later();
+                    return sum + left + right;
+                }
+            }
+            """
+        );
+        Write("broken-app/App/App.csproj", Project("", ["../../lib/Altinn.App.Core/Altinn.App.Core.csproj"]));
+        Write(
+            "broken-app/App/Broken.cs",
+            """
+            using Altinn.App.Core.Features;
+
+            namespace App;
+
+            public static class Broken
+            {
+                public static Task<int> Use() => new DataClient("broken").Get(NoSuchValue);
             }
             """
         );

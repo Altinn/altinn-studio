@@ -147,6 +147,7 @@ namespace Altinn.Studio.Fleet.Cli
                     ),
                     ["analysis", "api-usage", "surface", string label] => await ApiUsageCommands.Surface(
                         parsed,
+                        store,
                         (ApiUsageAnalysis)AnalysisCommands.Find("api-usage"),
                         label,
                         output,

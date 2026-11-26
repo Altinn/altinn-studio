@@ -137,6 +137,110 @@ public sealed class AnalysisRunnerTests
         Assert.Contains("must start with misnamed_", ex.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task Run_WithANewVersionOfAnAnalysis_KeepsTheTablesOfOneWhoseNameStartsTheSame()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        await Run(context, new FakeAnalysis());
+        await Run(context, new FakeAnalysis { Name = "fake-two" });
+
+        await Run(context, new FakeAnalysis { Version = 2 });
+
+        Assert.Equal(
+            [
+                ["app-one"],
+            ],
+            Query(context, "SELECT app FROM fake_two_apps")
+        );
+        Assert.Equal(
+            [
+                ["fake"],
+                ["fake-two"],
+            ],
+            Query(context, "SELECT analysis FROM runs ORDER BY analysis")
+        );
+    }
+
+    [Fact]
+    public async Task Run_AnalyzesAgainAnAppWhoseVersionIsNotKnown()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+        await Run(context, new FakeAnalysis());
+        // An index rebuilt without the old one does not know the deployed versions.
+        File.Delete(context.Store.IndexPath(FleetTestContext.Prod));
+        await context.Sync.RebuildIndex(FleetTestContext.Prod, 1, null, TestContext.Current.CancellationToken);
+        await Run(context, new FakeAnalysis());
+        var analysis = new FakeAnalysis();
+
+        AnalysisRunResult result = await Run(context, analysis);
+
+        Assert.Equal(("fake", 1, 1, 0, 0, 0), Counts(result));
+        Assert.Equal(
+            [
+                ["NULL"],
+            ],
+            Query(context, "SELECT version FROM runs")
+        );
+    }
+
+    [Fact]
+    public void CopyFolder_MakesWritableCopiesOfReadOnlyFiles()
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            string source = Path.Join(root, "source");
+            Directory.CreateDirectory(Path.Join(source, "App"));
+            string file = Path.Join(source, "App", "App.csproj");
+            File.WriteAllText(file, "<Project />");
+            File.SetAttributes(file, FileAttributes.ReadOnly);
+
+            AnalysisRunner.CopyFolder(source, Path.Join(root, "copy"));
+
+            Assert.False(
+                File.GetAttributes(Path.Join(root, "copy", "App", "App.csproj")).HasFlag(FileAttributes.ReadOnly)
+            );
+            Directory.Delete(Path.Join(root, "copy"), recursive: true);
+            File.SetAttributes(file, FileAttributes.Normal);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ChildProcessExecutor_StopsAtTheDeadline_WhenAProcessItStartedHoldsTheOutput()
+    {
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "Starts a background process with sh");
+        string root = Folder.CreateTemporary();
+        try
+        {
+            // sh -c SCRIPT gets the analysis's name, the app's folder and the result file as $0, $1 and $2.
+            var executor = new ChildProcessExecutor(["sh", "-c", "sleep 20 & exit 3"], TimeSpan.FromSeconds(1));
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+
+            string? failure = await executor.Run(
+                new FakeAnalysis(),
+                root,
+                Path.Join(root, "result"),
+                TestContext.Current.CancellationToken
+            );
+
+            Assert.True(timer.Elapsed < TimeSpan.FromSeconds(10), $"Took {timer.Elapsed}.");
+            Assert.Contains("exited with code 3", failure, StringComparison.Ordinal);
+            Assert.Contains("still held its output", failure, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static (string, int, int, int, int, int) Counts(AnalysisRunResult r) =>
         (r.Analysis, r.Apps, r.Analyzed, r.Unchanged, r.Failed, r.Removed);
 
@@ -185,7 +289,7 @@ public sealed class AnalysisRunnerTests
         return rows;
     }
 
-    private static string DatabasePath(FleetTestContext context) => Path.Join(context.Root, "analysis.sqlite");
+    private static string DatabasePath(FleetTestContext context) => Path.Join(context.Outside, "analysis.sqlite");
 
     /// <summary>Runs the analysis in this process, and turns what it throws into a failure.</summary>
     private sealed class InProcessExecutor : IAnalysisExecutor
@@ -224,9 +328,11 @@ public sealed class AnalysisRunnerTests
         public string Schema =>
             Name == "misnamed"
                 ? "CREATE TABLE elsewhere (env TEXT, org TEXT, app TEXT);"
-                : $"CREATE TABLE {Name}_apps (env TEXT, org TEXT, app TEXT, {Column} INTEGER, PRIMARY KEY (env, org, app));";
+                : $"CREATE TABLE {Table} (env TEXT, org TEXT, app TEXT, {Column} INTEGER, PRIMARY KEY (env, org, app));";
 
-        public IReadOnlyList<string> AppTables => [$"{Name}_apps"];
+        public IReadOnlyList<string> AppTables => [Table];
+
+        private string Table => $"{AnalysisDatabase.TablePrefix(this)}apps";
 
         public ConcurrentDictionary<string, string> Folders { get; } = new();
 
@@ -248,7 +354,7 @@ public sealed class AnalysisRunnerTests
 
         public string? Record(AppRecorder recorder, string resultFile)
         {
-            using AppRows rows = recorder.Rows($"{Name}_apps", [Column]);
+            using AppRows rows = recorder.Rows(Table, [Column]);
             rows.Add(int.Parse(File.ReadAllText(resultFile), System.Globalization.CultureInfo.InvariantCulture));
             return null;
         }

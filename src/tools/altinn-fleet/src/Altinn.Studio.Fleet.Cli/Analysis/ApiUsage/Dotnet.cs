@@ -28,6 +28,13 @@ internal static class MSBuildSetup
 /// <summary>Runs the <c>dotnet</c> commands an analysis needs.</summary>
 internal static class Dotnet
 {
+    /// <summary>
+    /// The MSBuild properties an analysis builds with: the release configuration apps deploy with, and no NuGet
+    /// audit, whose warnings fail the build of a project that treats warnings as errors, though the code compiles.
+    /// </summary>
+    public static Dictionary<string, string> BuildProperties() =>
+        new() { ["Configuration"] = "Release", ["NuGetAudit"] = "false" };
+
     private const int MaxErrorLength = 2000;
 
     // MSBuildLocator sets these to the SDK this tool runs with. A project whose global.json selects another SDK must
@@ -52,7 +59,15 @@ internal static class Dotnet
         };
         foreach (
             string arg in (string[])
-                ["restore", projectFile, "-p:Configuration=Release", "--verbosity", "quiet", "--disable-build-servers"]
+                [
+                    "restore",
+                    projectFile,
+                    "-p:Configuration=Release",
+                    "-p:NuGetAudit=false",
+                    "--verbosity",
+                    "quiet",
+                    "--disable-build-servers",
+                ]
         )
         {
             start.ArgumentList.Add(arg);

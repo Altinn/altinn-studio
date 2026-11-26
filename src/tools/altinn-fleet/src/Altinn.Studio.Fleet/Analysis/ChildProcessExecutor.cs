@@ -36,8 +36,9 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
 
         using Process process =
             Process.Start(start) ?? throw new InvalidOperationException($"{command[0]} did not start.");
-        Task<string> stderr = process.StandardError.ReadToEndAsync(cancellationToken);
-        Task drain = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        using var reading = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        Task<string> stdout = process.StandardOutput.ReadToEndAsync(reading.Token);
+        Task<string> stderr = process.StandardError.ReadToEndAsync(reading.Token);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(timeout);
         try
@@ -48,18 +49,46 @@ public sealed class ChildProcessExecutor(IReadOnlyList<string> command, TimeSpan
         {
             process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync(CancellationToken.None);
+            StopReading(reading, stdout, stderr);
             cancellationToken.ThrowIfCancellationRequested();
             return $"The analysis took longer than {timeout.TotalSeconds:F0} s.";
         }
 
-        await drain;
-        string errors = (await stderr).Trim();
+        // The output only explains a failure.
         if (process.ExitCode == 0 && File.Exists(resultFile))
         {
+            StopReading(reading, stdout, stderr);
             return null;
+        }
+
+        // A process that the analysis started and that outlived it, such as a build server, can keep the output open.
+        // Reading it then stops at the deadline, which the analysis's own exit does not.
+        string errors;
+        try
+        {
+            await Task.WhenAll(stdout, stderr).WaitAsync(deadline.Token);
+            errors = (await stderr).Trim();
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            StopReading(reading, stdout, stderr);
+            errors = "Processes that the analysis started still held its output when the time was up.";
         }
 
         string tail = errors.Length > MaxErrorLength ? errors[^MaxErrorLength..] : errors;
         return $"The analysis exited with code {process.ExitCode} without a result. {tail}".Trim();
+    }
+
+    /// <summary>Stops reading output that may never end, and observes how the reads end.</summary>
+    private static void StopReading(CancellationTokenSource reading, Task<string> stdout, Task<string> stderr)
+    {
+        reading.Cancel();
+        _ = Task.WhenAll(stdout, stderr)
+            .ContinueWith(
+                task => task.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default
+            );
     }
 }

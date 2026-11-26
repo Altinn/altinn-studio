@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Altinn.Studio.Fleet.Analysis;
+using Altinn.Studio.Fleet.Store;
 
 namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
@@ -13,6 +14,7 @@ internal static class ApiUsageCommands
     /// <summary><c>fleet analysis api-usage surface LABEL</c>.</summary>
     public static async Task<int> Surface(
         Arguments args,
+        FleetStore store,
         ApiUsageAnalysis analysis,
         string label,
         TextWriter output,
@@ -21,7 +23,7 @@ internal static class ApiUsageCommands
     {
         string? source = args.Value("source");
         string? version = args.Value("version");
-        string outPath = args.Value("out") ?? AnalysisCommands.DefaultOut;
+        string outPath = AnalysisCommands.OutPath(args, store);
         args.RejectUnused();
         List<string> projects = source is null
             ? []
@@ -36,6 +38,7 @@ internal static class ApiUsageCommands
             throw new UsageException($"--source names {missing}, which is not a file.");
         }
 
+        Dotnet.PrepareProcess();
         MSBuildSetup.EnsureRegistered();
         int count = await WriteSurface(analysis, label, projects, version, outPath, cancellationToken);
         output.WriteLine($"Wrote {count} types and members of {label} to {Path.GetFullPath(outPath)}.");

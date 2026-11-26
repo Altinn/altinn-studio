@@ -109,36 +109,50 @@ public sealed class AnalysisDatabase : IDisposable
     /// <summary>
     /// Creates an analysis's tables, or replaces them and forgets its runs when another version of it created them.
     /// </summary>
+    /// <remarks>
+    /// The tables an analysis created are recorded, and only those are dropped: another analysis's name can start with
+    /// this one's, as <c>api_usage_</c> starts with <c>api_</c>.
+    /// </remarks>
     public void Prepare(IAppAnalysis analysis)
     {
-        string key = $"analysis.{analysis.Name}.version";
-        string? recorded = ReadMeta(key);
+        string versionKey = $"analysis.{analysis.Name}.version";
+        string tablesKey = $"analysis.{analysis.Name}.tables";
+        string? recorded = ReadMeta(versionKey);
         if (recorded == Invariant(analysis.Version))
         {
             return;
         }
 
         string prefix = TablePrefix(analysis);
+        string[] earlierTables = (ReadMeta(tablesKey) ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries);
         using SqliteTransaction transaction = _connection.BeginTransaction();
-        foreach (string table in ObjectsStartingWith(prefix, "table", transaction))
+        foreach (string table in earlierTables)
         {
-            Execute(transaction, $"DROP TABLE {Quote(table)}", []);
+            Execute(transaction, $"DROP TABLE IF EXISTS {Quote(table)}", []);
         }
 
         Execute(transaction, "DELETE FROM runs WHERE analysis = $analysis", [("$analysis", analysis.Name)]);
-        HashSet<string> before = [.. ObjectsStartingWith("", null, transaction)];
+        HashSet<string> before = [.. Objects(null, transaction)];
         Execute(transaction, analysis.Schema, []);
-        foreach (string name in ObjectsStartingWith("", null, transaction))
+        var created = new List<string>();
+        foreach (string name in Objects(null, transaction).Where(name => !before.Contains(name)))
         {
-            if (!before.Contains(name) && !name.StartsWith(prefix, StringComparison.Ordinal))
+            if (!name.StartsWith(prefix, StringComparison.Ordinal))
             {
                 throw new InvalidOperationException(
                     $"The {analysis.Name} analysis creates {name}, but its tables and indexes must start with {prefix}."
                 );
             }
+
+            created.Add(name);
         }
 
-        SetMeta(key, Invariant(analysis.Version), transaction);
+        SetMeta(versionKey, Invariant(analysis.Version), transaction);
+        SetMeta(
+            tablesKey,
+            string.Join('\n', Objects("table", transaction).Where(created.Contains).Order(StringComparer.Ordinal)),
+            transaction
+        );
         transaction.Commit();
     }
 
@@ -290,17 +304,12 @@ public sealed class AnalysisDatabase : IDisposable
         );
     }
 
-    private List<string> ObjectsStartingWith(string prefix, string? type, SqliteTransaction transaction)
+    private List<string> Objects(string? type, SqliteTransaction transaction)
     {
         using SqliteCommand command = Command(
             transaction,
-            """
-            SELECT name FROM sqlite_master
-            WHERE substr(name, 1, length($prefix)) = $prefix AND ($type IS NULL OR type = $type)
-                AND name NOT LIKE 'sqlite_%'
-            """
+            "SELECT name FROM sqlite_master WHERE ($type IS NULL OR type = $type) AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\'"
         );
-        command.Parameters.AddWithValue("$prefix", prefix);
         command.Parameters.AddWithValue("$type", (object?)type ?? DBNull.Value);
         using SqliteDataReader reader = command.ExecuteReader();
         var names = new List<string>();

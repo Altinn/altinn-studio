@@ -113,7 +113,7 @@ public sealed class CliTests
         using var context = new FleetTestContext();
         context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
         await context.SyncProd();
-        string file = Path.Join(context.Root, "analysis.sqlite");
+        string file = Path.Join(context.Outside, "analysis.sqlite");
 
         (int exit, string output, _) = await Run(
             context,
@@ -148,6 +148,49 @@ public sealed class CliTests
             "app\tversion\tsymbol\napp-one\t1.0.0\tT:Altinn.App.Core.Features.IDataProcessor\n",
             tsv.ReplaceLineEndings("\n")
         );
+    }
+
+    [Fact]
+    public async Task AnalysisRun_RefusesToWriteIntoTheStore()
+    {
+        using var context = new FleetTestContext();
+
+        (int exit, _, string error) = await Run(
+            context,
+            "analysis",
+            "run",
+            "--out",
+            Path.Join(context.Root, "analysis.sqlite"),
+            "--store",
+            context.Root
+        );
+
+        Assert.Equal(2, exit);
+        Assert.Contains("is in the store", error, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Join(context.Root, "analysis.sqlite")));
+    }
+
+    [Fact]
+    public async Task AnalysisRun_RunsAnAnalysisNamedTwiceOnce()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        await context.SyncProd();
+
+        (int exit, string output, _) = await Run(
+            context,
+            new CannedApiUsage(),
+            "analysis",
+            "run",
+            "api-usage,api-usage",
+            "--out",
+            Path.Join(context.Outside, "analysis.sqlite"),
+            "--store",
+            context.Root
+        );
+
+        Assert.Equal(0, exit);
+        Assert.Single(output.Split('\n'), line => line.Contains("1 analyzed", StringComparison.Ordinal));
     }
 
     [Fact]

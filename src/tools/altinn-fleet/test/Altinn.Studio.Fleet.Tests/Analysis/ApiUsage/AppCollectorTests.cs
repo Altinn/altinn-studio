@@ -40,6 +40,121 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
     }
 
     [Fact]
+    public async Task Collect_RecordsTheMembersThatCodeCallsWithoutNamingThem()
+    {
+        AppUsage usage = await AppCollector.Collect(fixture.AppDir, TestContext.Current.CancellationToken);
+
+        HashSet<string> uses = [.. usage.Uses.Select(u => $"{u.Kind} {u.Symbol}")];
+        Assert.Superset(
+            new HashSet<string>
+            {
+                $"call M:{Ns}.Items.GetEnumerator",
+                $"call M:{Ns}.Items.Enumerator.MoveNext",
+                $"access P:{Ns}.Items.Enumerator.Current",
+                $"call M:{Ns}.Pair.Deconstruct(System.Int32@,System.Int32@)",
+                $"call M:{Ns}.Bag.Add(System.Int32)",
+                $"call M:{Ns}.Later.GetAwaiter",
+            },
+            uses
+        );
+    }
+
+    [Fact]
+    public async Task Collect_WithCompileErrors_FailsButKeepsTheUsesItFound()
+    {
+        AppUsage usage = await AppCollector.Collect(fixture.BrokenAppDir, TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, usage.CompileErrors);
+        Assert.StartsWith("The app has 1 compile errors", usage.Failure, StringComparison.Ordinal);
+        Assert.Contains(usage.Uses, u => u.Symbol == $"M:{Ns}.DataClient.#ctor(System.String)");
+    }
+
+    [Fact]
+    public void Scan_ReadsAPackagesImplementation_AndSkipsTheLibrarysOwnAssembliesWhateverThePackage()
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            string packages = Path.Join(root, "packages");
+            string lib = Path.Join(packages, "altinn.app.extra", "1.0.0", "lib", "net8.0");
+            Directory.CreateDirectory(lib);
+            File.Copy(fixture.PackageAssembly, Path.Join(lib, "Altinn.App.Extra.dll"));
+            // A preview build of the app library, in a package of its own name, is the library, not a package on it.
+            string preview = Path.Join(packages, "altinn.app.api.experimental", "1.0.0-pr.1", "lib", "net8.0");
+            Directory.CreateDirectory(preview);
+            File.Copy(fixture.PackageAssembly, Path.Join(preview, "Altinn.App.Api.dll"));
+            Directory.CreateDirectory(Path.Join(root, "obj"));
+            File.WriteAllText(
+                Path.Join(root, "obj", "project.assets.json"),
+                $$"""
+                {
+                  "targets": {
+                    "net8.0": {
+                      "Altinn.App.Extra/1.0.0": {
+                        "type": "package",
+                        "compile": { "ref/net8.0/Altinn.App.Extra.dll": {} },
+                        "runtime": { "lib/net8.0/Altinn.App.Extra.dll": {} }
+                      },
+                      "Altinn.App.Core/1.0.0": {
+                        "type": "package",
+                        "compile": { "lib/net8.0/Altinn.App.Core.dll": {} }
+                      },
+                      "Altinn.App.Api.Experimental/1.0.0-pr.1": {
+                        "type": "package",
+                        "runtime": { "lib/net8.0/Altinn.App.Api.dll": {} }
+                      }
+                    }
+                  },
+                  "libraries": {
+                    "Altinn.App.Extra/1.0.0": { "path": "altinn.app.extra/1.0.0" },
+                    "Altinn.App.Api.Experimental/1.0.0-pr.1": { "path": "altinn.app.api.experimental/1.0.0-pr.1" },
+                    "Altinn.App.Core/1.0.0": { "path": "altinn.app.core/1.0.0" }
+                  },
+                  "packageFolders": { {{System.Text.Json.JsonSerializer.Serialize(
+                    packages + Path.DirectorySeparatorChar
+                )}}: {} }
+                }
+                """
+            );
+
+            PackageUse package = Assert.Single(BinaryReferences.Scan(root));
+
+            Assert.Equal(("Altinn.App.Extra", "1.0.0"), (package.Package, package.Version));
+            Assert.Contains(new PackageReferenceUse($"M:{Ns}.DataClient.Get", UseKinds.Call), package.References);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Read_WithAProjectThatDoesNotLoad_Throws()
+    {
+        string root = Folder.CreateTemporary();
+        try
+        {
+            string project = Path.Join(root, "Altinn.App.Core.csproj");
+            File.WriteAllText(
+                project,
+                """
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <Import Project="missing.props" />
+                </Project>
+                """
+            );
+
+            await Assert.ThrowsAsync<FleetException>(() =>
+                SurfaceReader.Read([project], fromReferences: false, root, TestContext.Current.CancellationToken)
+            );
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void Read_ListsWhatAPackageAssemblyReferences_ByName()
     {
         List<PackageReferenceUse>? references = BinaryReferences.Read(fixture.PackageAssembly);

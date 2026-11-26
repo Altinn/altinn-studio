@@ -40,8 +40,8 @@ internal sealed record SurfaceEntry(
 internal static class SurfaceReader
 {
     /// <summary>
-    /// Reads the app library from projects: its own source projects, or with <paramref name="fromReferences"/>, the
-    /// app library packages that the projects reference.
+    /// Reads the app library from projects: its own source projects, which it restores first, or with
+    /// <paramref name="fromReferences"/>, the app library packages that already restored projects reference.
     /// </summary>
     public static async Task<List<SurfaceEntry>> Read(
         IReadOnlyList<string> projectFiles,
@@ -50,11 +50,27 @@ internal static class SurfaceReader
         CancellationToken cancellationToken
     )
     {
-        using var workspace = MSBuildWorkspace.Create();
+        using var workspace = MSBuildWorkspace.Create(Dotnet.BuildProperties());
+        var loadFailures = new List<string>();
+        workspace.RegisterWorkspaceFailedHandler(args =>
+        {
+            if (args.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+            {
+                loadFailures.Add(args.Diagnostic.Message);
+            }
+        });
         var entries = new Dictionary<string, SurfaceEntry>(StringComparer.Ordinal);
         var seenAssemblies = new HashSet<string>(StringComparer.Ordinal);
         foreach (string projectFile in projectFiles)
         {
+            if (
+                !fromReferences
+                && await Dotnet.Restore(Path.GetFullPath(projectFile), cancellationToken) is { } restoreError
+            )
+            {
+                throw new FleetException($"Could not restore {projectFile}: {restoreError}");
+            }
+
             Project project = await workspace.OpenProjectAsync(
                 Path.GetFullPath(projectFile),
                 cancellationToken: cancellationToken
@@ -64,7 +80,20 @@ internal static class SurfaceReader
             {
                 Compilation compilation =
                     await current.GetCompilationAsync(cancellationToken)
-                    ?? throw new InvalidOperationException($"{current.FilePath} has no compilation.");
+                    ?? throw new FleetException($"{current.FilePath} has no compilation.");
+                // A project that did not load or compile yields a partial surface, which must not replace a good one.
+                Diagnostic? error = fromReferences
+                    ? null
+                    : compilation
+                        .GetDiagnostics(cancellationToken)
+                        .FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+                if (loadFailures.Count > 0 || error is not null)
+                {
+                    throw new FleetException(
+                        $"{current.FilePath} did not load or compile: {loadFailures.FirstOrDefault() ?? error?.ToString()}"
+                    );
+                }
+
                 IEnumerable<IAssemblySymbol> assemblies = fromReferences
                     ? compilation.References.Select(compilation.GetAssemblyOrModuleSymbol).OfType<IAssemblySymbol>()
                     : [compilation.Assembly];
@@ -78,12 +107,18 @@ internal static class SurfaceReader
             }
         }
 
+        if (!entries.Values.Any(e => e.Visible))
+        {
+            throw new FleetException("The projects expose nothing of the app library.");
+        }
+
         return [.. entries.Values.OrderBy(e => e.Symbol, StringComparer.Ordinal)];
     }
 
     /// <summary>
-    /// Reads a published app library version, from its packages. <c>Altinn.App.Clients.Fiks</c> is left out for
-    /// versions that did not publish it.
+    /// Reads a published app library version, from its packages at exactly that version. The packages a version did
+    /// not publish, such as <c>Altinn.App.Clients.Fiks</c> before it existed or <c>Altinn.App.Core</c> before v7, are
+    /// left out rather than taken from a later version.
     /// </summary>
     public static async Task<List<SurfaceEntry>> ReadPublished(string version, CancellationToken cancellationToken)
     {
@@ -96,8 +131,9 @@ internal static class SurfaceReader
             foreach (
                 string[] packages in (string[][])
                     [
-                        [.. s_packages, FiksPackage],
-                        s_packages,
+                        [ApiPackage, CorePackage, FiksPackage],
+                        [ApiPackage, CorePackage],
+                        [ApiPackage],
                     ]
             )
             {
@@ -117,9 +153,11 @@ internal static class SurfaceReader
         }
     }
 
-    private const string FiksPackage = "Altinn.App.Clients.Fiks";
+    private const string ApiPackage = "Altinn.App.Api";
 
-    private static readonly string[] s_packages = ["Altinn.App.Api", "Altinn.App.Core"];
+    private const string CorePackage = "Altinn.App.Core";
+
+    private const string FiksPackage = "Altinn.App.Clients.Fiks";
 
     // The newest target framework reads packages for every older one.
     private static string ReferencingProject(IEnumerable<string> packages, string version) =>
@@ -131,7 +169,10 @@ internal static class SurfaceReader
                 <NuGetAudit>false</NuGetAudit>
               </PropertyGroup>
               <ItemGroup>
-            {string.Join('\n', packages.Select(p => $"    <PackageReference Include=\"{p}\" Version=\"{version}\" />"))}
+            {string.Join(
+                '\n',
+                packages.Select(p => $"    <PackageReference Include=\"{p}\" Version=\"[{version}]\" />")
+            )}
               </ItemGroup>
             </Project>
             """;

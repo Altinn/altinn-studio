@@ -5,7 +5,9 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 /// <summary>What one app uses of the app library, or why that could not be found out.</summary>
 /// <param name="Project">The app's project, relative to the app's folder.</param>
 /// <param name="LibraryVersion">The assembly version of the app library the app compiles against.</param>
-/// <param name="Failure">Why the app could not be analyzed at all, or <c>null</c>.</param>
+/// <param name="Failure">
+/// Why the app could not be analyzed, or not completely, or <c>null</c>. Uses found despite it are still listed.
+/// </param>
 /// <param name="RestoreError">What <c>dotnet restore</c> wrote when it failed, or <c>null</c>.</param>
 /// <param name="LoadFailures">What MSBuild reported while it loaded the projects.</param>
 /// <param name="CompileErrors">How many errors the compilation has. Uses in code that does not bind are missing.</param>

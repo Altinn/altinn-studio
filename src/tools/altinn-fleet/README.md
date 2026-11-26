@@ -69,11 +69,13 @@ rebuilt from them at any time, and the store may be a read-only copy. An analysi
 packages from the network, so its results are kept app by app. `fleet query --db` reads the file with every
 environment's index attached, so a query can join it with `prod.apps`.
 
-- The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and analyzed there.
+- The store is not changed, so a read-only copy works. Each app is copied to a temporary folder and analyzed there,
+  and `--out` must be outside the store.
 - Each analysis of an app runs in a process of its own, `fleet analysis run-app`, because it may keep state in the
   process and can hang. `--timeout` ends one that takes too long.
 - An app already analyzed at its deployed version is skipped, so a run after `fleet sync` only analyzes what changed.
-  An app that failed is tried again, and `--force` analyzes every app again.
+  An app that failed is tried again, and so is one whose version the index does not know, as after `index rebuild`
+  without the old index. `--force` analyzes every app again.
 - `runs` has a row for each app each analysis looked at, with its deployed version and why the analysis failed when
   it did. Each analysis has tables of its own, named after it, such as `api_usage_uses`.
 - An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs) and is listed in
@@ -96,12 +98,18 @@ fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || ap
 ```
 
 `api-usage surface` records the types and members a version of the app library exposes, under a label, to compare
-with what the apps use. [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analysis/ApiUsage/ApiUsageAnalysis.cs) has
-the analysis's tables.
+with what the apps use. `--source` restores and compiles the projects, and records nothing when they do not compile,
+so a good surface is never replaced with part of one. `--version` reads the packages of exactly that version and
+leaves out those it did not publish.
+[ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
 
 - It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
-  An app that cannot be restored or compiled is recorded with the reason.
+  An app that cannot be restored or compiled is recorded as failed with the reason, and tried again on the next run.
+  The uses found in an app with compile errors are kept, but those in the code that does not compile are missing.
 - Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
   since a test project that uses a type is a weaker reason to keep it public than the app itself.
-- Third-party packages that the apps use and that are built on the app library are read from their IL. IL
-  references are not bound, so a member that a package uses stands for every overload of that name.
+- Members that code calls without naming them count too, such as `GetEnumerator` in a `foreach`, `GetAwaiter` in an
+  `await`, `Deconstruct` and a collection initializer's `Add`.
+- Third-party packages that the apps use and that are built on the app library are read from the IL of their
+  implementation assemblies, whatever the package is named. IL references are not bound, so a member that a package
+  uses stands for every overload of that name.

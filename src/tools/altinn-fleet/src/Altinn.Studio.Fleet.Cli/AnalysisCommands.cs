@@ -30,6 +30,7 @@ internal static class AnalysisCommands
             [
                 .. names
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Distinct(StringComparer.Ordinal)
                     .Select(Find),
             ];
         var options = new AnalysisOptions
@@ -40,7 +41,7 @@ internal static class AnalysisCommands
             Force = args.Flag("force"),
         };
         TimeSpan timeout = TimeSpan.FromSeconds(args.Int("timeout", 900, 10, 24 * 3600));
-        string outPath = args.Value("out") ?? DefaultOut;
+        string outPath = OutPath(args, store);
         args.RejectUnused();
 
         executor ??= new ChildProcessExecutor(SelfCommand(), timeout);
@@ -101,6 +102,25 @@ internal static class AnalysisCommands
             error.WriteLine(ex.ToString());
             return 1;
         }
+    }
+
+    /// <summary>The file to write, from <c>--out</c>, which must not be in the store.</summary>
+    public static string OutPath(Arguments args, FleetStore store)
+    {
+        string outPath = args.Value("out") ?? DefaultOut;
+        string relative = Path.GetRelativePath(Path.GetFullPath(store.Root), Path.GetFullPath(outPath));
+        if (
+            relative != ".."
+            && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            && !Path.IsPathRooted(relative)
+        )
+        {
+            throw new UsageException(
+                $"--out {outPath} is in the store, which fleet analysis does not change. Give a path outside {store.Root}."
+            );
+        }
+
+        return outPath;
     }
 
     public static IAppAnalysis Find(string name) =>

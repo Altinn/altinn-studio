@@ -46,7 +46,8 @@ public sealed record AnalysisRunResult(
 
 /// <summary>
 /// Runs analyses over the apps in a store's environments and records the results. An app already analyzed at its
-/// deployed version is skipped, unless the analysis failed, so a run after a sync only analyzes what changed.
+/// deployed version is skipped, unless the analysis failed or the version is not known, so a run after a sync only
+/// analyzes what changed.
 /// </summary>
 /// <remarks>
 /// The store's app folders are never changed: an analysis may build the app, which writes into its folder, and the
@@ -85,9 +86,9 @@ public sealed class AnalysisRunner(
         }
         finally
         {
-            if (options.WorkFolder is null && Directory.Exists(workFolder))
+            if (options.WorkFolder is null)
             {
-                Directory.Delete(workFolder, recursive: true);
+                TryDelete(workFolder);
             }
         }
     }
@@ -125,6 +126,9 @@ public sealed class AnalysisRunner(
             jobs.AddRange(
                 apps.Where(app =>
                         options.Force
+                        // An index rebuilt from the files on disk does not know the deployed versions, so nothing
+                        // tells whether such an app changed.
+                        || app.Version is null
                         || !earlier.TryGetValue(app.App, out AnalyzedApp? before)
                         || before.Failed
                         || before.Version != app.Version?.Value
@@ -225,16 +229,16 @@ public sealed class AnalysisRunner(
         }
         finally
         {
-            if (Directory.Exists(copy))
-            {
-                Directory.Delete(copy, recursive: true);
-            }
-
-            File.Delete(resultFile);
+            TryDelete(copy);
+            TryDelete(resultFile);
         }
     }
 
-    private static void CopyFolder(string source, string destination)
+    /// <summary>
+    /// Copies an app's folder. The copies are writable, whatever the store's files are, so that an analysis can build
+    /// in them and they can be deleted on Windows, where a read-only file cannot be.
+    /// </summary>
+    internal static void CopyFolder(string source, string destination)
     {
         if (Directory.Exists(destination))
         {
@@ -249,7 +253,33 @@ public sealed class AnalysisRunner(
 
         foreach (string file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
-            File.Copy(file, Path.Join(destination, Path.GetRelativePath(source, file)));
+            string copy = Path.Join(destination, Path.GetRelativePath(source, file));
+            File.Copy(file, copy);
+            FileAttributes attributes = File.GetAttributes(copy);
+            if (attributes.HasFlag(FileAttributes.ReadOnly))
+            {
+                File.SetAttributes(copy, attributes & ~FileAttributes.ReadOnly);
+            }
         }
+    }
+
+    /// <summary>
+    /// Deletes a copy or a result file. What an analysis leaves behind, such as a file a process it started still
+    /// holds, stays in the temporary folder rather than ending the run.
+    /// </summary>
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+            else
+            {
+                File.Delete(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
     }
 }

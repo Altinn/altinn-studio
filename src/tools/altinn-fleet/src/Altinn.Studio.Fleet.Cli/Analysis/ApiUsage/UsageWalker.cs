@@ -7,8 +7,10 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 /// <summary>Reports each app library symbol a syntax tree binds to, with how the code uses it.</summary>
 /// <remarks>
 /// A name binds to a type or member, so asking the semantic model about every name, creation, attribute and operator
-/// finds the uses. A type declaration adds what it inherits, implements and overrides, since an app that implements
-/// an interface depends on all of its members, called or not.
+/// finds the uses. Some code calls members it does not name, such as <c>foreach</c>, <c>await</c>, deconstruction,
+/// collection initializers and query expressions, so those ask the semantic model what they bind to. A type
+/// declaration adds what it inherits, implements and overrides, since an app that implements an interface depends on
+/// all of its members, called or not.
 /// </remarks>
 internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, Location> report) : CSharpSyntaxWalker
 {
@@ -29,10 +31,13 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
             or AssignmentExpressionSyntax
             or ElementAccessExpressionSyntax
             or ConstructorInitializerSyntax
-            or PrimaryConstructorBaseTypeSyntax:
+            or PrimaryConstructorBaseTypeSyntax
+            or SelectOrGroupClauseSyntax:
                 ReportBound(node);
                 break;
         }
+
+        ReportImplicit(node);
 
         if (node is ExpressionSyntax expression && model.GetConversion(expression).MethodSymbol is { } conversion)
         {
@@ -52,6 +57,67 @@ internal sealed class UsageWalker(SemanticModel model, Action<ISymbol, string, L
         }
 
         Report(symbol, KindOf(symbol, node), node.GetLocation());
+    }
+
+    /// <summary>Reports the members that code calls without naming them.</summary>
+    private void ReportImplicit(SyntaxNode node)
+    {
+        Location location = node.GetLocation();
+        switch (node)
+        {
+            case CommonForEachStatementSyntax forEach:
+                ForEachStatementInfo info = model.GetForEachStatementInfo(forEach);
+                ReportMember(info.GetEnumeratorMethod, location);
+                ReportMember(info.MoveNextMethod, location);
+                ReportMember(info.CurrentProperty, location);
+                ReportMember(info.DisposeMethod, location);
+                if (forEach is ForEachVariableStatementSyntax variables)
+                {
+                    ReportDeconstruction(model.GetDeconstructionInfo(variables), location);
+                }
+
+                break;
+            case AwaitExpressionSyntax awaitExpression:
+                AwaitExpressionInfo awaited = model.GetAwaitExpressionInfo(awaitExpression);
+                ReportMember(awaited.GetAwaiterMethod, location);
+                ReportMember(awaited.IsCompletedProperty, location);
+                ReportMember(awaited.GetResultMethod, location);
+                break;
+            case AssignmentExpressionSyntax { Left: TupleExpressionSyntax or DeclarationExpressionSyntax } assignment:
+                ReportDeconstruction(model.GetDeconstructionInfo(assignment), location);
+                break;
+            case InitializerExpressionSyntax initializer
+                when initializer.IsKind(SyntaxKind.CollectionInitializerExpression):
+                foreach (ExpressionSyntax element in initializer.Expressions)
+                {
+                    ReportMember(model.GetCollectionInitializerSymbolInfo(element).Symbol, element.GetLocation());
+                }
+
+                break;
+            case QueryClauseSyntax clause:
+                QueryClauseInfo query = model.GetQueryClauseInfo(clause);
+                ReportMember(query.OperationInfo.Symbol, location);
+                ReportMember(query.CastInfo.Symbol, location);
+                break;
+        }
+    }
+
+    private void ReportDeconstruction(DeconstructionInfo deconstruction, Location location)
+    {
+        ReportMember(deconstruction.Method, location);
+        foreach (DeconstructionInfo nested in deconstruction.Nested)
+        {
+            ReportDeconstruction(nested, location);
+        }
+    }
+
+    private void ReportMember(ISymbol? symbol, Location location)
+    {
+        if (symbol is not null)
+        {
+            // An extension method such as a Deconstruct or GetAwaiter extension is recorded as its declaration.
+            Report(symbol, symbol is IPropertySymbol ? UseKinds.Access : UseKinds.Call, location);
+        }
     }
 
     private static string KindOf(ISymbol symbol, SyntaxNode node) =>

@@ -28,7 +28,7 @@ internal static class AppCollector
 
         string project = Relative(appDir, projectFile);
         string? restoreError = await Dotnet.Restore(projectFile, cancellationToken);
-        using var workspace = MSBuildWorkspace.Create(new Dictionary<string, string> { ["Configuration"] = "Release" });
+        using var workspace = MSBuildWorkspace.Create(Dotnet.BuildProperties());
         var loadFailures = new List<string>();
         workspace.RegisterWorkspaceFailedHandler(args =>
         {
@@ -111,10 +111,18 @@ internal static class AppCollector
             .OrderBy(a => a.Name == "Altinn.App.Core" ? 0 : 1)
             .FirstOrDefault()
             ?.Version.ToString();
+        // Uses in code that does not compile are missing, so a run with errors is a failure, and the next run tries the
+        // app again. A restore that failed for a moment, such as a feed that did not answer, looks the same.
+        string? failure =
+            libraryVersion is null ? "The app does not compile against the app library."
+            : errors.Count > 0
+                ? $"The app has {errors.Count} compile errors{(restoreError is null ? "" : " after a failed restore")}, "
+                    + "so uses in the code that does not compile are missing."
+            : null;
         return new AppUsage(
             project,
             libraryVersion,
-            libraryVersion is null ? "The app does not compile against the app library." : null,
+            failure,
             restoreError,
             loadFailures,
             errors.Count,
