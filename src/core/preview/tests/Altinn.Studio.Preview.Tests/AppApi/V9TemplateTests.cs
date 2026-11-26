@@ -5,11 +5,7 @@ using Altinn.Studio.Preview.Sessions;
 
 namespace Altinn.Studio.Preview.Tests.AppApi;
 
-/// <summary>
-/// An app from the v9 template in preview, through the requests its frontend makes. Preview must follow the template,
-/// which Designer creates every v9 app from, and the app API's description, which the frontend is built against. The
-/// workflow runs these tests when either changes, so a change that preview doesn't follow fails here.
-/// </summary>
+/// <summary>An app from the v9 template in preview, through the requests its frontend makes.</summary>
 public sealed class V9TemplateTests : IDisposable
 {
     private const string Org = "ttd";
@@ -94,7 +90,6 @@ public sealed class V9TemplateTests : IDisposable
         return body?.Url ?? throw new InvalidOperationException("No session URL.");
     }
 
-    /// <summary>Sends a request to the app, notes how the answer differs from the app API's, and returns its body.</summary>
     private async Task<JsonNode> Send(HttpMethod method, Uri appRoot, string path, string? body = null)
     {
         var url = new Uri(appRoot, path);

@@ -12,8 +12,7 @@
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- What a v9 app has and what its frontend gets, which preview must follow: the template Designer creates v9 apps
-       from, and the app API's description, which the app backend's tests keep up to date. -->
+  <!-- What V9TemplateTests check preview against. -->
   <PropertyGroup>
     <AppTemplate>..\..\..\..\App\template\v9\src\</AppTemplate>
   </PropertyGroup>

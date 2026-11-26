@@ -41,7 +41,6 @@ internal sealed partial class AppFiles(AppFolder folder)
                 .Select(match => match.Groups["language"].Value),
         ];
 
-    /// <summary>The app's texts in a language, without the file's <c>$schema</c>, which the app backend leaves out.</summary>
     public JsonNode? TextResources(string language)
     {
         if (!TextFileName().IsMatch($"resource.{language}.json"))
@@ -50,6 +49,7 @@ internal sealed partial class AppFiles(AppFolder folder)
         }
 
         JsonNode? texts = ReadJson($"App/config/texts/resource.{language}.json");
+        // The app backend answers without it.
         (texts as JsonObject)?.Remove("$schema");
         return texts;
     }

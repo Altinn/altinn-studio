@@ -5,10 +5,7 @@ using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Preview.Tests.AppApi;
 
-/// <summary>
-/// The app API's OpenAPI description, which the app backend's tests keep up to date with what a v9 app answers. The
-/// v9 frontend is built against it, so preview's answers must match it.
-/// </summary>
+/// <summary>The app API's OpenAPI description, which the app backend's tests keep up to date.</summary>
 internal sealed class AppApiSpec
 {
     private readonly JsonObject _paths;
@@ -29,14 +26,7 @@ internal sealed class AppApiSpec
                 ?? throw new InvalidOperationException("The spec is not an object.")
         );
 
-    /// <summary>
-    /// How an answer differs from what the app API answers to the same request, such as a property it lacks, has in
-    /// addition or has of another type.
-    /// </summary>
-    /// <param name="method">The request's method.</param>
-    /// <param name="appPath">The request's path from the app's root, <c>/{org}/{app}/…</c>.</param>
-    /// <param name="status">The answer's status.</param>
-    /// <param name="body">The answer's JSON body, or <c>null</c> when it has none.</param>
+    /// <summary>How an answer differs from the app API's answer to the same request.</summary>
     public IReadOnlyList<string> Differences(HttpMethod method, string appPath, HttpStatusCode status, JsonNode? body)
     {
         string request = $"{method} {appPath}";

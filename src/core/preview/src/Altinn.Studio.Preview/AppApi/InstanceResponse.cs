@@ -3,11 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace Altinn.Studio.Preview.AppApi;
 
-/// <summary>
-/// An instance as the app API's instance endpoints answer with it, which names its owner's party where Storage's
-/// instance doesn't.
-/// </summary>
-/// <typeparam name="TProcess">The process, as Storage keeps it or enriched with what the user may do.</typeparam>
+/// <summary>The instance endpoints' answer. Its owner has a party, which Storage's instance doesn't.</summary>
 internal sealed record InstanceResponse<TProcess>(
     string Id,
     InstanceOwnerResponse InstanceOwner,

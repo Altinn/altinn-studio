@@ -12,7 +12,6 @@ internal static class MockUser
     public const int PartyId = 51001;
     public const int UserId = 1024;
 
-    /// <summary>The user's ID, as Storage names who created or changed something.</summary>
     public static string Id => UserId.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>The party, as the app frontend's <c>IParty</c>.</summary>
@@ -23,7 +22,6 @@ internal static class MockUser
         return party;
     }
 
-    /// <summary>A party the user acts for, as the app API names an instance's owner.</summary>
     public static JsonObject Party(int partyId) =>
         new()
         {

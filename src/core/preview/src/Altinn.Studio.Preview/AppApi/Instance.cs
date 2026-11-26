@@ -22,8 +22,6 @@ internal sealed class Instance
 
     public List<DataElement> Data { get; init; } = [];
 
-    // What the app API answers with for every instance, which preview derives rather than keeps.
-
     public string CreatedBy => MockUser.Id;
 
     public string LastChangedBy => MockUser.Id;
@@ -44,7 +42,6 @@ internal sealed class Instance
     public IReadOnlyDictionary<string, string> DataValues => new Dictionary<string, string>();
 }
 
-/// <summary>The party that owns an instance. Every party in preview is the mock user's, a person without these IDs.</summary>
 internal sealed record InstanceOwner(string PartyId)
 {
     public string? PersonNumber => null;
