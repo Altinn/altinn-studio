@@ -195,15 +195,23 @@ internal sealed class FleetIndex : IDisposable
     /// The apps the index has. Only reads the columns every schema version has. A release whose columns do not all
     /// parse counts as unknown, so the next sync fetches the app again.
     /// </summary>
-    public Dictionary<AppIdentifier, IndexedApp> ReadApps()
+    /// <param name="only">The one app to read, or <c>null</c> for every app.</param>
+    public Dictionary<AppIdentifier, IndexedApp> ReadApps(AppIdentifier? only = null)
     {
         var apps = new Dictionary<AppIdentifier, IndexedApp>();
         using SqliteCommand command = _connection.CreateCommand();
         command.CommandText = "SELECT org, app, version, commit_sha, studio_host, released_at, fetched_at FROM apps";
+        if (only is { } app)
+        {
+            command.CommandText += " WHERE org = $org AND app = $app";
+            command.Parameters.AddWithValue("$org", app.Org.Value);
+            command.Parameters.AddWithValue("$app", app.App.Value);
+        }
+
         using SqliteDataReader reader = command.ExecuteReader();
         while (reader.Read())
         {
-            if (!AppIdentifier.TryParse(reader.GetString(0), reader.GetString(1), out AppIdentifier app))
+            if (!AppIdentifier.TryParse(reader.GetString(0), reader.GetString(1), out AppIdentifier read))
             {
                 continue;
             }
@@ -216,7 +224,7 @@ internal sealed class FleetIndex : IDisposable
                 && ParseTime(NullableString(reader, 6)) is { } fetched
                     ? new StoredRelease(version, commit, host, released, fetched)
                     : null;
-            apps[app] = new IndexedApp(app, release);
+            apps[read] = new IndexedApp(read, release);
         }
 
         return apps;

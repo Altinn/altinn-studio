@@ -8,8 +8,8 @@ using System.Text.RegularExpressions;
 namespace Altinn.Studio.Fleet.Tests;
 
 /// <summary>
-/// Plays the service owner registry, each service owner's kuberneteswrapper and the Studio installations, in memory.
-/// Tests change it between syncs and read which requests it got.
+/// Plays the service owner and environment registries, each service owner's kuberneteswrapper and the Studio
+/// installations, in memory. Tests change it between syncs and read which requests it got.
 /// </summary>
 internal sealed partial class FakeAltinn : HttpMessageHandler
 {
@@ -19,6 +19,10 @@ internal sealed partial class FakeAltinn : HttpMessageHandler
 
     /// <summary>The environments, in the registry's terms, of each service owner.</summary>
     public Dictionary<string, string[]> Orgs { get; } = [];
+
+    /// <summary>The environment registry: each environment's name, as the registry has it, and its host name.</summary>
+    public Dictionary<string, string> Environments { get; } =
+        new() { ["production"] = "altinn.no", ["tt02"] = "tt02.altinn.no" };
 
     /// <summary>What each service owner's cluster runs, by environment and service owner: app to version.</summary>
     public Dictionary<(string Env, string Org), Dictionary<string, string>> Deployments { get; } = [];
@@ -101,6 +105,24 @@ internal sealed partial class FakeAltinn : HttpMessageHandler
         string? body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
         lock (_gate)
         {
+            if (url == "https://altinncdn.no/config/environments.json")
+            {
+                var environments = new JsonArray();
+                foreach ((string name, string hostname) in Environments)
+                {
+                    environments.Add(
+                        new JsonObject
+                        {
+                            ["name"] = name,
+                            ["hostname"] = hostname,
+                            ["appPrefix"] = "apps",
+                        }
+                    );
+                }
+
+                return Json(new JsonObject { ["environments"] = environments });
+            }
+
             if (url == "https://altinncdn.no/orgs/altinn-orgs.json")
             {
                 var orgs = new JsonObject();

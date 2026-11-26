@@ -89,11 +89,21 @@ public sealed class FleetSync
         var keys = new StudioKeys(_credentials);
         var discovery = new Discovery(_http, _options, options.Parallelism);
         AltinnOrgsRegistry serviceOwners = await discovery.GetServiceOwners(cancellationToken);
+        AltinnEnvironmentsRegistry environments = await discovery.GetEnvironments(cancellationToken);
         var results = new List<EnvironmentSyncResult>();
         foreach (RuntimeEnvironment environment in options.Environments)
         {
             results.Add(
-                await SyncEnvironment(environment, serviceOwners, discovery, keys, options, observer, cancellationToken)
+                await SyncEnvironment(
+                    environment,
+                    serviceOwners,
+                    environments,
+                    discovery,
+                    keys,
+                    options,
+                    observer,
+                    cancellationToken
+                )
             );
         }
 
@@ -125,6 +135,7 @@ public sealed class FleetSync
     private async Task<EnvironmentSyncResult> SyncEnvironment(
         RuntimeEnvironment environment,
         AltinnOrgsRegistry serviceOwners,
+        AltinnEnvironmentsRegistry environments,
         Discovery discovery,
         StudioKeys keys,
         SyncOptions options,
@@ -144,6 +155,7 @@ public sealed class FleetSync
         DiscoveryResult found = await discovery.Discover(
             environment,
             serviceOwners,
+            environments,
             options.Orgs,
             (done, total) => Report(SyncStage.Discovering, done, total),
             cancellationToken

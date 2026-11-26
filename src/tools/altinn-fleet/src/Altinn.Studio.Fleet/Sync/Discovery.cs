@@ -30,36 +30,11 @@ internal sealed class Discovery(HttpClient http, FleetOptions options, int paral
     /// <exception cref="FleetException">The registry cannot be read.</exception>
     public async Task<AltinnOrgsRegistry> GetServiceOwners(CancellationToken cancellationToken)
     {
-        byte[] document;
-        try
-        {
-            using HttpResponseMessage response = await http.GetAsync(
-                options.ServiceOwnerRegistry,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken
-            );
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new FleetException(
-                    $"Could not read the service owners from {options.ServiceOwnerRegistry}: {(int)response.StatusCode}."
-                );
-            }
-
-            document = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-        }
-        catch (Exception ex) when (ex is HttpRequestException or IOException)
-        {
-            throw new FleetException(
-                $"Could not read the service owners from {options.ServiceOwnerRegistry}: {ex.Message}",
-                ex
-            );
-        }
-
+        const string What = "the service owners";
+        byte[] document = await Download(options.ServiceOwnerRegistry, What, cancellationToken);
         if (!AltinnOrgsRegistry.TryParse(document, out AltinnOrgsRegistry? registry))
         {
-            throw new FleetException(
-                $"Could not read the service owners from {options.ServiceOwnerRegistry}: it is not the registry."
-            );
+            throw NotTheRegistry(options.ServiceOwnerRegistry, What);
         }
 
         return registry.ServiceOwners.Count > 0
@@ -67,15 +42,39 @@ internal sealed class Discovery(HttpClient http, FleetOptions options, int paral
             : throw new FleetException($"{options.ServiceOwnerRegistry} lists no service owners.");
     }
 
+    /// <summary>Downloads the environment registry, which says where each environment serves apps.</summary>
+    /// <exception cref="FleetException">The registry cannot be read.</exception>
+    public async Task<AltinnEnvironmentsRegistry> GetEnvironments(CancellationToken cancellationToken)
+    {
+        const string What = "the environments";
+        byte[] document = await Download(options.EnvironmentRegistry, What, cancellationToken);
+        if (
+            !AltinnEnvironmentsRegistry.TryParse(
+                document,
+                options.AppsHostPattern,
+                out AltinnEnvironmentsRegistry? registry
+            )
+        )
+        {
+            throw NotTheRegistry(options.EnvironmentRegistry, What);
+        }
+
+        return registry.Environments.Count > 0
+            ? registry
+            : throw new FleetException($"{options.EnvironmentRegistry} lists no environments.");
+    }
+
     /// <summary>Asks each service owner that has the environment which apps it runs there.</summary>
     /// <param name="environment">The environment.</param>
     /// <param name="registry">The service owner registry.</param>
+    /// <param name="environments">The environment registry.</param>
     /// <param name="orgFilter">The service owners to cover, or <c>null</c> for all.</param>
     /// <param name="onProgress">Called with the number of service owners done and the total.</param>
     /// <param name="cancellationToken">Cancels the discovery.</param>
     public async Task<DiscoveryResult> Discover(
         RuntimeEnvironment environment,
         AltinnOrgsRegistry registry,
+        AltinnEnvironmentsRegistry environments,
         IReadOnlySet<ServiceOwnerCode>? orgFilter,
         Action<int, int> onProgress,
         CancellationToken cancellationToken
@@ -99,7 +98,7 @@ internal sealed class Discovery(HttpClient http, FleetOptions options, int paral
             new ParallelOptions { MaxDegreeOfParallelism = parallelism, CancellationToken = cancellationToken },
             async (index, token) =>
             {
-                outcomes[index] = await DiscoverOrg(environment, covered[index], token);
+                outcomes[index] = await DiscoverOrg(environment, environments, covered[index], token);
                 onProgress(Interlocked.Increment(ref done), covered.Length);
             }
         );
@@ -115,11 +114,40 @@ internal sealed class Discovery(HttpClient http, FleetOptions options, int paral
                 .. registry.UnknownEnvironments.Select(unknown =>
                     $"The service owner registry lists the environment '{unknown.Name}' for {unknown.Code}, which is not an environment."
                 ),
+                .. environments.Skipped.Select(name =>
+                    $"The environment registry lists '{name}', which is not an environment with a host name and an "
+                    + "app prefix."
+                ),
                 .. outcomes.OfType<OrgOutcome.Listed>().SelectMany(o => o.Notes),
             ],
             outcomes.OfType<OrgOutcome.Listed>().SelectMany(o => o.Unreadable).ToHashSet()
         );
     }
+
+    private async Task<byte[]> Download(Uri url, string what, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using HttpResponseMessage response = await http.GetAsync(
+                url,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken
+            );
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new FleetException($"Could not read {what} from {url}: {(int)response.StatusCode}.");
+            }
+
+            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException)
+        {
+            throw new FleetException($"Could not read {what} from {url}: {ex.Message}", ex);
+        }
+    }
+
+    private static FleetException NotTheRegistry(Uri url, string what) =>
+        new($"Could not read {what} from {url}: it is not the registry.");
 
     private abstract record OrgOutcome
     {
@@ -131,13 +159,22 @@ internal sealed class Discovery(HttpClient http, FleetOptions options, int paral
 
     private async Task<OrgOutcome> DiscoverOrg(
         RuntimeEnvironment environment,
+        AltinnEnvironmentsRegistry environments,
         ServiceOwnerCode org,
         CancellationToken cancellationToken
     )
     {
-        if (FleetOptions.AppsHost(org, environment) is not { } host)
+        // A service owner whose apps' host is not known keeps its apps, as one whose cluster does not answer does.
+        if (!environments.TryGetAppsHost(org, environment, out string? name))
         {
-            return new OrgOutcome.Failed(new OrgFailure(org.Value, "its code gives no host name for its apps"));
+            return new OrgOutcome.Failed(
+                new OrgFailure(org.Value, $"the environment registry does not list {environment.RegistryName}")
+            );
+        }
+
+        if (!HostName.TryParse(name, out HostName? host))
+        {
+            return new OrgOutcome.Failed(new OrgFailure(org.Value, $"its apps' host, {name}, is not a host name"));
         }
 
         string url = $"https://{host}/kuberneteswrapper/api/v1/deployments";

@@ -15,4 +15,14 @@
     <IsPackable>false</IsPackable>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
+
+  <!--
+    The api-usage analysis uses Roslyn's MSBuild workspace, and MSBuildLocator loads MSBuild from the installed SDK at
+    run time. MSBuildLocator fails the build of any project that would copy MSBuild's assemblies to its output, which
+    Roslyn's packages bring along, so every project references them for compiling only.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

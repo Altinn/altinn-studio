@@ -794,6 +794,49 @@ public sealed class AppDescriptionReaderTests
         Assert.Equal(8 + (version.StartsWith('9') ? 1 : 0), package.Major);
     }
 
+    [Theory]
+    [InlineData("Altinn.App.Api", false)]
+    [InlineData("altinn.app.core", false)]
+    [InlineData("Altinn.App.Api.Experimental", true)]
+    [InlineData("Altinn.App.Core.Experimental", true)]
+    public void AltinnAppPackage_KnowsTheOtherPackagesOfItsVersion(string name, bool experimental)
+    {
+        Assert.True(AltinnAppPackage.TryParse(new PackageReference(name, "8.7.0"), out var package));
+
+        Assert.Equal(experimental, package.IsExperimental);
+        Assert.Equal(
+            AltinnAppPackage.LibraryPackageNames.Select(n => experimental ? n + ".Experimental" : n),
+            package.VersionPackageNames
+        );
+        Assert.Contains(package.Name, package.VersionPackageNames);
+    }
+
+    [Fact]
+    public void AltinnAppPackage_PackageNamesAreLibraryPackagesOrTheirBuildsOfAPullRequest()
+    {
+        Assert.Equal("Altinn.App.Api", AltinnAppPackage.LibraryPackageNames[0]);
+        Assert.All(
+            AltinnAppPackage.PackageNames,
+            name =>
+                Assert.Contains(
+                    name.Replace(AltinnAppPackage.ExperimentalSuffix, "", StringComparison.Ordinal),
+                    AltinnAppPackage.LibraryPackageNames
+                )
+        );
+    }
+
+    [Theory]
+    [InlineData("Altinn.App.Core", true)]
+    [InlineData("Altinn.App.PlatformServices", true)]
+    [InlineData("Altinn.App.Core.Experimental", false)]
+    [InlineData("altinn.app.core", false)]
+    [InlineData("Altinn.App.Ai.Enrichment", false)]
+    [InlineData(null, false)]
+    public void AltinnAppPackage_IsLibraryAssembly_KnowsTheAssembliesOfEveryVersion(string? name, bool expected)
+    {
+        Assert.Equal(expected, AltinnAppPackage.IsLibraryAssembly(name));
+    }
+
     [Fact]
     public void Build_ReadsOldStyleProjectsWithTheMsBuildNamespace()
     {

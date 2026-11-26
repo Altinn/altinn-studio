@@ -1,9 +1,7 @@
 using Altinn.Studio.Common.Domain;
-using Altinn.Studio.Fleet;
+using Altinn.Studio.Fleet.Analysis;
 using Altinn.Studio.Fleet.Cli;
-using Altinn.Studio.Fleet.Http;
 using Altinn.Studio.Fleet.Store;
-using Altinn.Studio.Fleet.Sync;
 using Microsoft.Data.Sqlite;
 
 using var cancellation = new CancellationTokenSource();
@@ -34,6 +32,14 @@ namespace Altinn.Studio.Fleet.Cli
               query "<sql>"    Run a read-only SQL query against the index of --env, where prod.apps or tt02.apps
                                name another environment's tables
               index rebuild    Build an environment's index again from the files on disk, without downloading
+              analysis run [NAMES]
+                               Run analyses on a copy of each app of --env, and record what they find in --out.
+                               NAMES lists analyses, separated by commas (default: all of them)
+
+            Analyses:
+              api-usage        Which app library types and members each app's code and packages use. Compiles each
+                               app against the app library version it references, and records the public API of
+                               each version the apps use
 
             Options:
               --store PATH     The store's folder (default: ~/altinn-fleet)
@@ -48,6 +54,17 @@ namespace Altinn.Studio.Fleet.Cli
             query:
               --tsv            Write tab-separated values
               --json           Write a JSON array of objects
+              --db PATH        Query this SQLite file, such as analysis.sqlite, with every environment's index
+                               attached as prod and tt02
+
+            analysis:
+              --out PATH       The SQLite file to write (default: analysis.sqlite)
+              --org ORGS       run: only these service owners, separated by commas
+              --parallel N     run: apps analyzed at a time (default: 4)
+              --timeout S      run: seconds one analysis of one app may take (default: 900)
+              --force          run: analyze every app again, also those analyzed at their deployed version
+              --source PATH    run api-usage: also record the public API of the app library in this checkout of
+                               altinn-studio or app-lib-dotnet, as the version `source`
 
             fleet asks studioctl for the Altinn Studio API keys, with `studioctl auth token`.
             """;
@@ -59,6 +76,7 @@ namespace Altinn.Studio.Fleet.Cli
             "tsv",
             "json",
             "help",
+            "force",
         };
 
         public static async Task<int> Run(
@@ -67,7 +85,8 @@ namespace Altinn.Studio.Fleet.Cli
             TextWriter error,
             CancellationToken cancellationToken,
             IStudioCredentials? credentials = null,
-            HttpMessageHandler? handler = null
+            HttpMessageHandler? handler = null,
+            IAnalysisExecutor? executor = null
         )
         {
             try
@@ -82,7 +101,7 @@ namespace Altinn.Studio.Fleet.Cli
                 var store = new FleetStore(ExpandHome(parsed.Value("store")) ?? FleetStore.DefaultRoot);
                 return parsed.Positionals switch
                 {
-                    ["sync"] => await Sync(
+                    ["sync"] => await SyncCommands.Sync(
                         parsed,
                         store,
                         output,
@@ -92,14 +111,39 @@ namespace Altinn.Studio.Fleet.Cli
                         new FleetOptions(),
                         cancellationToken
                     ),
-                    ["status"] => Status(parsed, store, output),
-                    ["query", string sql] => Query(parsed, store, sql, output),
-                    ["index", "rebuild"] => await Rebuild(
+                    ["status"] => StatusCommand.Run(parsed, store, output),
+                    ["query", string sql] => QueryCommand.Run(parsed, store, sql, output),
+                    ["index", "rebuild"] => await SyncCommands.RebuildIndex(
                         parsed,
                         store,
                         output,
                         error,
                         new FleetOptions(),
+                        cancellationToken
+                    ),
+                    ["analysis", "run"] => await AnalysisCommands.Run(
+                        parsed,
+                        null,
+                        store,
+                        output,
+                        error,
+                        executor,
+                        cancellationToken
+                    ),
+                    ["analysis", "run", string names] => await AnalysisCommands.Run(
+                        parsed,
+                        names,
+                        store,
+                        output,
+                        error,
+                        executor,
+                        cancellationToken
+                    ),
+                    // Run by `analysis run` for each job, in a process of its own.
+                    ["analysis", "job", .. List<string> job] => await ChildProcessExecutor.RunJob(
+                        job,
+                        Analyses.All,
+                        error,
                         cancellationToken
                     ),
                     _ => throw new UsageException($"Unknown command: {string.Join(' ', parsed.Positionals)}"),
@@ -130,156 +174,7 @@ namespace Altinn.Studio.Fleet.Cli
             }
         }
 
-        private static async Task<int> Sync(
-            Arguments args,
-            FleetStore store,
-            TextWriter output,
-            TextWriter error,
-            IStudioCredentials? credentials,
-            HttpMessageHandler? handler,
-            FleetOptions fleetOptions,
-            CancellationToken cancellationToken
-        )
-        {
-            var options = new SyncOptions
-            {
-                Environments = Environments(args.Value("env") ?? "prod"),
-                Orgs = Orgs(args.Value("org")),
-                DryRun = args.Flag("dry-run"),
-                RetryFailed = args.Flag("retry-failed"),
-                Parallelism = args.Int("parallel", 16, 1, 64),
-            };
-            args.RejectUnused();
-
-            var studioctl = new StudioctlCredentials();
-            using HttpClient http = FleetHttp.CreateClient(FleetSync.Version, innerHandler: handler);
-            var sync = new FleetSync(store, http, credentials ?? studioctl, fleetOptions);
-            DateTimeOffset startedAt = DateTimeOffset.UtcNow;
-            IReadOnlyList<EnvironmentSyncResult> results;
-            using (
-                var progress = new ConsoleProgress(error, interactive: handler is null && !Console.IsErrorRedirected)
-            )
-            {
-                try
-                {
-                    results = await sync.Sync(options, progress, cancellationToken);
-                }
-                catch (FleetException) when (studioctl.Problems.Count > 0)
-                {
-                    progress.Dispose();
-                    foreach ((string host, string problem) in studioctl.Problems)
-                    {
-                        error.WriteLine($"fleet: studioctl gave no API key for {host}: {problem}");
-                    }
-
-                    throw;
-                }
-            }
-
-            foreach (EnvironmentSyncResult result in results)
-            {
-                SyncSummary.Write(output, result, startedAt);
-            }
-
-            return 0;
-        }
-
-        private static int Status(Arguments args, FleetStore store, TextWriter output)
-        {
-            string? env = args.Value("env");
-            args.RejectUnused();
-            output.WriteLine($"Store: {store.Root}");
-            foreach (RuntimeEnvironment environment in Environments(env ?? "all"))
-            {
-                string name = $"{environment.Name, -5}";
-                if (FleetStoreReader.GetStatus(store, environment) is not EnvironmentStatus.Synced status)
-                {
-                    output.WriteLine($"{name} not synced");
-                    continue;
-                }
-
-                output.WriteLine(
-                    $"{name} {SyncSummary.Count(status.Apps, "app", "apps")} · "
-                        + $"{SyncSummary.Count(status.Orgs, "service owner", "service owners")} · {status.Failures} failed   "
-                        + $"content changed {Time(status.LastContentChange)}"
-                );
-                CheckState? check = status.LastCheck;
-                if (check is null)
-                {
-                    output.WriteLine("      not checked from this store");
-                    continue;
-                }
-
-                output.WriteLine(
-                    $"      checked {Time(check.CheckedAt)}: {check.Deployed} deployed, {check.Failed} failed"
-                );
-                foreach (OrgFailure failure in check.DiscoveryFailures)
-                {
-                    output.WriteLine($"      could not list the apps of {failure.Org}: {failure.Reason}");
-                }
-            }
-
-            return 0;
-        }
-
-        private static int Query(Arguments args, FleetStore store, string sql, TextWriter output)
-        {
-            List<RuntimeEnvironment> environments = Environments(args.Value("env") ?? "prod");
-            if (environments.Count != 1)
-            {
-                throw new UsageException("query reads one environment's index; give --env prod or --env tt02.");
-            }
-
-            QueryFormat format = (args.Flag("json"), args.Flag("tsv")) switch
-            {
-                (true, true) => throw new UsageException("Give --json or --tsv, not both."),
-                (true, _) => QueryFormat.Json,
-                (_, true) => QueryFormat.Tsv,
-                _ => QueryFormat.Table,
-            };
-            args.RejectUnused();
-
-            using SqliteConnection connection = FleetStoreReader.OpenForQueries(store, environments[0]);
-            using SqliteCommand command = connection.CreateCommand();
-            command.CommandText = sql;
-            using SqliteDataReader reader = command.ExecuteReader();
-            QueryOutput.Write(reader, format, output);
-            return 0;
-        }
-
-        private static async Task<int> Rebuild(
-            Arguments args,
-            FleetStore store,
-            TextWriter output,
-            TextWriter error,
-            FleetOptions fleetOptions,
-            CancellationToken cancellationToken
-        )
-        {
-            List<RuntimeEnvironment> environments = Environments(args.Value("env") ?? "prod");
-            int parallelism = args.Int("parallel", Environment.ProcessorCount, 1, 64);
-            args.RejectUnused();
-
-            using HttpClient http = FleetHttp.CreateClient(FleetSync.Version);
-            var sync = new FleetSync(store, http, new StudioctlCredentials(), fleetOptions);
-            foreach (RuntimeEnvironment environment in environments)
-            {
-                var started = System.Diagnostics.Stopwatch.StartNew();
-                int apps;
-                using (var progress = new ConsoleProgress(error, interactive: !Console.IsErrorRedirected))
-                {
-                    apps = await sync.RebuildIndex(environment, parallelism, progress, cancellationToken);
-                }
-
-                output.WriteLine(
-                    $"{environment.Name, -5} indexed {apps} apps   {SyncSummary.Duration(started.Elapsed)}"
-                );
-            }
-
-            return 0;
-        }
-
-        private static List<RuntimeEnvironment> Environments(string value) =>
+        internal static List<RuntimeEnvironment> Environments(string value) =>
             value switch
             {
                 "all" => [RuntimeEnvironment.Production, RuntimeEnvironment.TT02],
@@ -288,7 +183,7 @@ namespace Altinn.Studio.Fleet.Cli
                 _ => throw new UsageException($"--env must be prod, tt02 or all, not '{value}'."),
             };
 
-        private static HashSet<ServiceOwnerCode>? Orgs(string? value)
+        internal static HashSet<ServiceOwnerCode>? Orgs(string? value)
         {
             if (value is null)
             {
@@ -318,18 +213,5 @@ namespace Altinn.Studio.Fleet.Cli
             path is not null && (path == "~" || path.StartsWith("~/", StringComparison.Ordinal))
                 ? Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), path[1..])
                 : path;
-
-        private static string Time(DateTimeOffset? time) => time is { } value ? FormatTime(value) : "unknown";
-
-        private static string FormatTime(DateTimeOffset time)
-        {
-            TimeSpan age = DateTimeOffset.UtcNow - time;
-            string ago =
-                age.TotalMinutes < 1 ? "just now"
-                : age.TotalHours < 1 ? $"{(int)age.TotalMinutes} min ago"
-                : age.TotalDays < 1 ? $"{(int)age.TotalHours} h ago"
-                : $"{(int)age.TotalDays} days ago";
-            return $"{time.ToLocalTime():yyyy-MM-dd HH:mm} ({ago})";
-        }
     }
 }
