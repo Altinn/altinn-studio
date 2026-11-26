@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Repeating group rows with errors keep their configured edit-button text instead of changing it to “Fix error here”. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
+- Repeating group rows with errors keep their configured edit-button text. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
 - Validations on the data object of a repeating group row, such as `Pets[2]`, now show on that row and in the error summary, and stop **Next** and saving the row. ([#19853](https://github.com/Altinn/altinn-studio/issues/19853))
 
 ## [9.0.0-preview.15] - 2026-11-25
