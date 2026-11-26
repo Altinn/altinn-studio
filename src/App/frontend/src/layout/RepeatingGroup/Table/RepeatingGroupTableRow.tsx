@@ -17,7 +17,7 @@ import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getRowObjectIndex } from 'src/features/validation/repeatingGroupRowValidations';
-import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
+import { useRepeatingGroupRowValidations } from 'src/features/validation/selectors/deepValidationsForNode';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
@@ -114,7 +114,7 @@ export function RepeatingGroupTableRow({
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
   const instanceLocked = FormStore.useIsInstanceLocked();
 
-  const rowValidations = useDeepValidationsForNode(baseComponentId, false, index, true);
+  const rowValidations = useRepeatingGroupRowValidations(baseComponentId, index);
   const editableIds = new Set(
     tableItems
       .filter((item) => shouldEditInTable(config.edit?.mode, item.baseId, item.type, config.tableColumns))

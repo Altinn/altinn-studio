@@ -17,3 +17,11 @@ export function useDeepValidationsForNode(
   const indexedId = useIndexedId(baseComponentId, skipLastIdMutator);
   return useVisibleValidationsDeep(baseComponentId, indexedId, mask, includeSelf, restriction);
 }
+
+/**
+ * Returns the messages in one row of a repeating group, including messages on the row object itself. Call it from
+ * inside the row: the row's own index is left off the group's id.
+ */
+export function useRepeatingGroupRowValidations(baseComponentId: string, rowIndex: number | undefined) {
+  return useDeepValidationsForNode(baseComponentId, false, rowIndex, true);
+}
