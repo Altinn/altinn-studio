@@ -264,6 +264,7 @@ describe('Group', () => {
     cy.viewport(1536, 768);
 
     // A message for the row object itself is only shown in the panel, and blocks Next and saving of that row
+    cy.findByRole('checkbox', { name: 'På feltene' }).uncheck();
     cy.findByRole('checkbox', { name: 'På raden samlet' }).check();
     cy.waitUntilSaved();
     cy.findByRole('button', { name: /Neste/ }).click();
