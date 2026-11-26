@@ -6,6 +6,9 @@ on:
     paths:
       - 'src/core/preview/**'
       - 'src/common/dotnet/**'
+      # What a v9 app has and what its frontend gets, which preview's tests check it against.
+      - 'src/App/template/v9/**'
+      - 'src/App/backend/test/Altinn.App.Api.Tests/OpenApi/OpenApiSpecChangeDetection.SaveJsonSwagger.verified.json'
       - '.github/workflows/core-preview-build-test.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'

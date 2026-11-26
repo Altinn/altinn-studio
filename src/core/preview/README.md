@@ -30,6 +30,10 @@ Preview serves a v9 app as the app backend serves it, with a mock of the backend
   session's state, which Redis keeps in the same key as the session, so they end together.
 - Preview follows the process without evaluating its gateways, and moves past service tasks, as the process engine
   runs them without the user.
+- The mock follows the latest v9 prerelease. Its tests run an app from the [v9 template](../../App/template/v9)
+  through the frontend's requests, and compare the answers with the app API's description, which the app backend's
+  tests keep up to date. The [workflow](../../../.github/workflows/core-preview-build-test.yaml) runs them when either
+  changes, so a change to what a v9 app has or gets fails there until preview follows it.
 
 ## v8 apps
 
