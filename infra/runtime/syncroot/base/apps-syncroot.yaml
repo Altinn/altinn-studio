@@ -36,6 +36,9 @@ spec:
   # HelmRelease comes from its deploy's artifact, which only a deploy changes, so every per-app Kustomization patches
   # it here. retries: -1 uninstalls a failed install and installs again, with no limit. Upgrades keep their own
   # remediation: roll back, retry once, then stop.
+  # In ttd's test clusters, the GitOps repository also holds the syncroots of Studio dev and staging, which hold
+  # per-app Kustomizations of their own. So every Kustomization gets the HelmRelease patch, and a second patch that
+  # hands it on to the Kustomizations it applies. Each patch matches nothing where there is nothing to patch.
   patches:
     - target:
         group: kustomize.toolkit.fluxcd.io
@@ -59,3 +62,25 @@ spec:
                   install:
                     remediation:
                       retries: -1
+            - target:
+                group: kustomize.toolkit.fluxcd.io
+                kind: Kustomization
+              patch: |
+                apiVersion: kustomize.toolkit.fluxcd.io/v1
+                kind: Kustomization
+                metadata:
+                  name: not-used
+                spec:
+                  patches:
+                    - target:
+                        group: helm.toolkit.fluxcd.io
+                        kind: HelmRelease
+                      patch: |
+                        apiVersion: helm.toolkit.fluxcd.io/v2
+                        kind: HelmRelease
+                        metadata:
+                          name: not-used
+                        spec:
+                          install:
+                            remediation:
+                              retries: -1
