@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>Reports each app library symbol a syntax tree binds to, with how the code uses it.</summary>
 /// <remarks>

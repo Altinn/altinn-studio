@@ -3,7 +3,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text.Json;
 
-namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>
 /// Finds the third-party package assemblies that an app compiles against and that reference the app library, and

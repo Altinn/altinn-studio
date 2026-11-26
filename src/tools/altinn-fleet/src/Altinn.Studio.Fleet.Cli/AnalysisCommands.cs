@@ -1,6 +1,6 @@
 using System.Reflection;
 using Altinn.Studio.Fleet.Analysis;
-using Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 using Altinn.Studio.Fleet.Store;
 
 namespace Altinn.Studio.Fleet.Cli;

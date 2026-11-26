@@ -3,7 +3,7 @@ using System.Text.Json;
 using Altinn.Studio.Fleet.Analysis;
 using Microsoft.Data.Sqlite;
 
-namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>
 /// Which app library types and members each app uses: compiles the app with Roslyn against the app library version it

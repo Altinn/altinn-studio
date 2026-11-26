@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Build.Locator;
 
-namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>Registers MSBuild for Roslyn's MSBuild workspace, once per process.</summary>
 internal static class MSBuildSetup

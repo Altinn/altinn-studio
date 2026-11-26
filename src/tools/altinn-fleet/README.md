@@ -96,7 +96,7 @@ fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || ap
 ```
 
 `api-usage surface` records the types and members a version of the app library exposes, under a label, to compare
-with what the apps use. [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analyses/ApiUsage/ApiUsageAnalysis.cs) has
+with what the apps use. [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analysis/ApiUsage/ApiUsageAnalysis.cs) has
 the analysis's tables.
 
 - It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.

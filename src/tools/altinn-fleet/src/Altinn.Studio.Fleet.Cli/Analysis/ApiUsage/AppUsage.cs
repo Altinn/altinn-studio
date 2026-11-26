@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>What one app uses of the app library, or why that could not be found out.</summary>
 /// <param name="Project">The app's project, relative to the app's folder.</param>

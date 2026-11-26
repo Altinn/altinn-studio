@@ -1,7 +1,7 @@
 using System.Xml.Linq;
-using Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+using Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
-namespace Altinn.Studio.Fleet.Tests.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Tests.Analysis.ApiUsage;
 
 public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<LibraryFixture>
 {

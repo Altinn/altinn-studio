@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Altinn.Studio.Fleet.Analysis;
 
-namespace Altinn.Studio.Fleet.Cli.Analyses.ApiUsage;
+namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>The commands of the api-usage analysis besides <c>fleet analysis run</c>.</summary>
 /// <remarks>
