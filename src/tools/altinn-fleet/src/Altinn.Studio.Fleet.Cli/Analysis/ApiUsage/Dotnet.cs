@@ -10,8 +10,9 @@ internal static class MSBuildSetup
     private static readonly Lock s_gate = new();
 
     /// <summary>
-    /// Loads MSBuild from the .NET SDK that this tool runs with. Call it before any code that uses MSBuild types is
-    /// compiled, which means from a method that does not use them itself.
+    /// Prepares the process with <see cref="Dotnet.PrepareProcess"/> and loads MSBuild from the .NET SDK that this
+    /// tool runs with. Call it before any code that uses MSBuild types is compiled, which means from a method that
+    /// does not use them itself.
     /// </summary>
     public static void EnsureRegistered()
     {
@@ -19,6 +20,7 @@ internal static class MSBuildSetup
         {
             if (!MSBuildLocator.IsRegistered)
             {
+                Dotnet.PrepareProcess();
                 MSBuildLocator.RegisterDefaults();
             }
         }

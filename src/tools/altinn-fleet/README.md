@@ -78,6 +78,8 @@ environment's index attached, so a query can join it with `prod.apps`.
   without the old index. `--force` analyzes every app again.
 - `runs` has a row for each app each analysis looked at, with its deployed version and why the analysis failed when
   it did. Each analysis has tables of its own, named after it, such as `api_usage_uses`.
+- Once the apps are recorded, an analysis can record what it compares them with, in fleet's own process, such as
+  the app library's public API for `api-usage`.
 - An analysis implements [IAppAnalysis](src/Altinn.Studio.Fleet/Analysis/IAppAnalysis.cs) and is listed in
   [AnalysisCommands.cs](src/Altinn.Studio.Fleet.Cli/AnalysisCommands.cs). A new version of an analysis replaces its
   tables, so every app is analyzed again.
@@ -89,24 +91,31 @@ which app library types and members the app uses and how: called, implemented, o
 is for deciding what the app library can stop making public, and for finding the apps a change to it affects.
 
 ```sh
-fleet analysis run api-usage --env prod
-fleet analysis api-usage surface v8 --version 8.12.17
-fleet analysis api-usage surface main \
-    --source src/App/backend/src/Altinn.App.Api/Altinn.App.Api.csproj,src/App/backend/src/Altinn.App.Clients.Fiks/Altinn.App.Clients.Fiks.csproj
+fleet analysis run api-usage --env prod --source ../altinn-studio
 fleet query --db analysis.sqlite "SELECT symbol, count(DISTINCT org || '/' || app) AS apps FROM api_usage_uses
                                   GROUP BY symbol ORDER BY apps DESC"
 ```
 
-`api-usage surface` records the types and members a version of the app library exposes, under a label, to compare
-with what the apps use. `--source` restores and compiles the projects, and records nothing when they do not compile
-or a source generator fails, so a good surface is never replaced with part of one. `--version` reads the packages of
-exactly that version, and leaves out only those NuGet says it did not publish.
+To tell what apps do not use, the analysis also records the app library's public API: the types and members it
+makes public. It records the API of each app library version the apps use, read from that version's NuGet packages
+once, since a published version does not change. With `--source`, it also records the API of the app library in a
+checkout of altinn-studio or app-lib-dotnet, such as the coming version on `main`, under the version `source`:
+
+```sql
+-- Public in the checkout, used by no app
+SELECT symbol FROM api_usage_library_api
+WHERE version = 'source' AND visible AND symbol NOT IN (SELECT symbol FROM api_usage_uses);
+```
+
+The checkout is restored and compiled on every run. When it does not compile, or a source generator fails, the API
+from the last run that read it is kept, and `api_usage_library_versions` says why the read failed.
 [ApiUsageAnalysis.cs](src/Altinn.Studio.Fleet.Cli/Analysis/ApiUsage/ApiUsageAnalysis.cs) has the analysis's tables.
 
 - It needs the .NET SDKs the apps' `global.json` files select, and network access to the NuGet feeds the apps use.
-  An app whose restore, compilation or source generators fail is recorded as failed with the reason, and tried again
-  on the next run. The uses found are kept, but those in the code that does not compile are missing. A test project
-  that does not compile is noted in `load_failures` instead.
+  An app whose restore or compilation fails is recorded as failed with the reason, and tried again on the next run.
+  The uses found are kept, but those in the code that does not compile are missing. A test project that does not
+  compile is noted in `load_failures` instead, and so is a source generator that fails on the app's code, since it
+  fails in the app's own build too, and the app runs without what it would write.
 - Uses in the app's own code, in code that source generators add to it and in its test projects are told apart,
   since a test project that uses a type is a weaker reason to keep it public than the app itself.
 - Members that code calls without naming them count too, such as `GetEnumerator` in a `foreach`, `GetAwaiter` in an

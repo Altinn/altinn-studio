@@ -22,7 +22,7 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 /// The app library types its signature names: parameter, return and property types, base types, interfaces and
 /// generic constraints. They have to stay public for as long as it does.
 /// </param>
-internal sealed record SurfaceEntry(
+internal sealed record LibraryApiEntry(
     string Symbol,
     string Assembly,
     string Kind,
@@ -36,15 +36,54 @@ internal sealed record SurfaceEntry(
     IReadOnlyList<string> Exposes
 );
 
-/// <summary>Lists the types and members that the app library exposes outside its assemblies.</summary>
-/// <remarks>MSBuild must be registered with <see cref="MSBuildSetup.EnsureRegistered"/> before it is called.</remarks>
-internal static class SurfaceReader
+/// <summary>The app library's projects in a folder.</summary>
+/// <param name="Root">The folder given, which the source files are recorded relative to.</param>
+/// <param name="Projects">The projects of the app library's packages that the folder has.</param>
+internal sealed record LibrarySource(string Root, IReadOnlyList<string> Projects);
+
+/// <summary>Lists the types and members that the app library exposes outside its assemblies: its public API.</summary>
+/// <remarks>MSBuild must be registered with <see cref="MSBuildSetup.EnsureRegistered"/> before it reads.</remarks>
+internal static class LibraryApiReader
 {
+    // Where the app library's projects are in a checkout of altinn-studio, of app-lib-dotnet, or in the folder itself.
+    private static readonly string[] s_projectFolders = ["src/App/backend/src", "src", ""];
+
+    /// <summary>
+    /// Finds the app library's projects in a checkout of altinn-studio or app-lib-dotnet, or in the folder that holds
+    /// them.
+    /// </summary>
+    /// <exception cref="UsageException">The folder has no app library.</exception>
+    public static LibrarySource FindSource(string path)
+    {
+        string root = Path.GetFullPath(path);
+        foreach (string folder in s_projectFolders)
+        {
+            List<string> projects =
+            [
+                .. ((string[])[ApiPackage, CorePackage, FiksPackage])
+                    .Select(package => Path.Join(root, folder, package, $"{package}.csproj"))
+                    .Where(File.Exists),
+            ];
+            if (projects.Count > 0 && projects[0].EndsWith($"{ApiPackage}.csproj", StringComparison.Ordinal))
+            {
+                return new LibrarySource(root, projects);
+            }
+        }
+
+        throw new UsageException(
+            $"--source {path} has no {ApiPackage} project. Give a checkout of altinn-studio or app-lib-dotnet."
+        );
+    }
+
+    /// <summary>Reads the app library from its source, which it restores and compiles.</summary>
+    public static Task<List<LibraryApiEntry>> ReadSource(LibrarySource source, CancellationToken cancellationToken) =>
+        Read(source.Projects, fromReferences: false, source.Root, cancellationToken);
+
     /// <summary>
     /// Reads the app library from projects: its own source projects, which it restores first, or with
     /// <paramref name="fromReferences"/>, the app library packages that already restored projects reference.
     /// </summary>
-    public static async Task<List<SurfaceEntry>> Read(
+    public static async Task<List<LibraryApiEntry>> Read(
         IReadOnlyList<string> projectFiles,
         bool fromReferences,
         string? sourceRoot,
@@ -60,7 +99,7 @@ internal static class SurfaceReader
                 loadFailures.Add(args.Diagnostic.Message);
             }
         });
-        var entries = new Dictionary<string, SurfaceEntry>(StringComparer.Ordinal);
+        var entries = new Dictionary<string, LibraryApiEntry>(StringComparer.Ordinal);
         // A project that targets several frameworks loads once per framework, and each can expose more.
         var seenProjects = new HashSet<string>(StringComparer.Ordinal);
         var seenAssemblies = new HashSet<string>(StringComparer.Ordinal);
@@ -90,7 +129,7 @@ internal static class SurfaceReader
                 Compilation compilation =
                     await current.GetCompilationAsync(cancellationToken)
                     ?? throw new FleetException($"{current.FilePath} has no compilation.");
-                // A project that did not load or compile yields a partial surface, which must not replace a good one.
+                // A project that did not load or compile yields part of the API, which must not replace the whole of it.
                 Diagnostic? error = fromReferences
                     ? null
                     : compilation
@@ -135,9 +174,9 @@ internal static class SurfaceReader
     }
 
     /// <summary>Reads one assembly's types and members, such as a compiled app library.</summary>
-    internal static List<SurfaceEntry> ReadAssembly(IAssemblySymbol assembly, string? sourceRoot)
+    internal static List<LibraryApiEntry> ReadAssembly(IAssemblySymbol assembly, string? sourceRoot)
     {
-        var entries = new Dictionary<string, SurfaceEntry>(StringComparer.Ordinal);
+        var entries = new Dictionary<string, LibraryApiEntry>(StringComparer.Ordinal);
         new Visitor(entries, sourceRoot).Visit(assembly.GlobalNamespace);
         return [.. entries.Values.OrderBy(e => e.Symbol, StringComparer.Ordinal)];
     }
@@ -179,13 +218,13 @@ internal static class SurfaceReader
     /// not publish, such as <c>Altinn.App.Clients.Fiks</c> before it existed or <c>Altinn.App.Core</c> before v7, are
     /// left out rather than taken from a later version.
     /// </summary>
-    public static async Task<List<SurfaceEntry>> ReadPublished(string version, CancellationToken cancellationToken)
+    public static async Task<List<LibraryApiEntry>> ReadPublished(string version, CancellationToken cancellationToken)
     {
-        string folder = Path.Join(Path.GetTempPath(), $"fleet-surface-{Guid.NewGuid():N}");
+        string folder = Path.Join(Path.GetTempPath(), $"fleet-library-api-{Guid.NewGuid():N}");
         Directory.CreateDirectory(folder);
         try
         {
-            string projectFile = Path.Join(folder, "Surface.csproj");
+            string projectFile = Path.Join(folder, "LibraryApi.csproj");
             List<string> packages = [ApiPackage, CorePackage, FiksPackage];
             while (true)
             {
@@ -196,7 +235,7 @@ internal static class SurfaceReader
                 }
 
                 // Only a package that does not exist at this version is left out. Any other failure, such as a feed
-                // that did not answer or a missing dependency, would make the surface silently smaller.
+                // that did not answer or a missing dependency, would make the API silently smaller.
                 HashSet<string>? missing = MissingPackages(error);
                 if (missing is null || missing.Contains(ApiPackage) || !missing.IsSubsetOf(packages))
                 {
@@ -244,7 +283,7 @@ internal static class SurfaceReader
             </Project>
             """;
 
-    private sealed class Visitor(Dictionary<string, SurfaceEntry> entries, string? sourceRoot)
+    private sealed class Visitor(Dictionary<string, LibraryApiEntry> entries, string? sourceRoot)
     {
         public void Visit(INamespaceSymbol ns)
         {
@@ -339,7 +378,7 @@ internal static class SurfaceReader
 
             FileLinePositionSpan? location = symbol.Locations.FirstOrDefault(l => l.IsInSource)?.GetLineSpan();
             INamedTypeSymbol? type = symbol as INamedTypeSymbol ?? symbol.ContainingType;
-            entries[id] = new SurfaceEntry(
+            entries[id] = new LibraryApiEntry(
                 id,
                 symbol.ContainingAssembly.Name,
                 Describe(symbol),

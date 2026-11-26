@@ -21,6 +21,37 @@ internal static class BinaryReferences
     // package named Altinn.App.Something is still read.
     private static readonly string[] s_skippedPrefixes = ["Microsoft.", "System.", "runtime."];
 
+    /// <summary>
+    /// The version of the app library package that a restored project uses: <c>Altinn.App.Core</c>, or
+    /// <c>Altinn.App.Api</c> for v6 and older, which have no Core. <c>null</c> when it uses neither, such as with a
+    /// project reference to the app library's source or a preview build in <c>Altinn.App.Core.Experimental</c>, whose
+    /// versions the published packages do not have.
+    /// </summary>
+    public static string? LibraryPackageVersion(string projectDir)
+    {
+        string assetsFile = Path.Join(projectDir, "obj", "project.assets.json");
+        if (!File.Exists(assetsFile))
+        {
+            return null;
+        }
+
+        using JsonDocument assets = JsonDocument.Parse(File.ReadAllBytes(assetsFile));
+        var versions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (JsonProperty target in assets.RootElement.GetProperty("targets").EnumerateObject())
+        {
+            foreach (JsonProperty library in target.Value.EnumerateObject())
+            {
+                int slash = library.Name.IndexOf('/', StringComparison.Ordinal);
+                if (slash > 0 && library.Value.GetProperty("type").GetString() == "package")
+                {
+                    versions.TryAdd(library.Name[..slash], library.Name[(slash + 1)..]);
+                }
+            }
+        }
+
+        return versions.GetValueOrDefault("Altinn.App.Core") ?? versions.GetValueOrDefault("Altinn.App.Api");
+    }
+
     /// <summary>The package assemblies in a restored project's graph that reference the app library.</summary>
     public static List<PackageUse> Scan(string projectDir)
     {

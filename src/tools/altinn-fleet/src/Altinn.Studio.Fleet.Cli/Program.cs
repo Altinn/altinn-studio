@@ -39,12 +39,11 @@ namespace Altinn.Studio.Fleet.Cli
               analysis run [NAMES]
                                Run analyses on a copy of each app of --env, and record what they find in --out.
                                NAMES lists analyses, separated by commas (default: all of them)
-              analysis api-usage surface LABEL
-                               Record the types and members of an app library version in --out, under LABEL
 
             Analyses:
               api-usage        Which app library types and members each app's code and packages use. Compiles each
-                               app against the app library version it references
+                               app against the app library version it references, and records the public API of
+                               each version the apps use
 
             Options:
               --store PATH     The store's folder (default: ~/altinn-fleet)
@@ -68,9 +67,8 @@ namespace Altinn.Studio.Fleet.Cli
               --parallel N     run: apps analyzed at a time (default: 4)
               --timeout S      run: seconds one analysis of one app may take (default: 900)
               --force          run: analyze every app again, also those analyzed at their deployed version
-              --source PROJECTS
-                               api-usage surface: the app library's projects, separated by commas
-              --version V      api-usage surface: a published app library version, read from its packages
+              --source PATH    run api-usage: also record the public API of the app library in this checkout of
+                               altinn-studio or app-lib-dotnet, as the version `source`
 
             fleet asks studioctl for the Altinn Studio API keys, with `studioctl auth token`.
             """;
@@ -143,14 +141,6 @@ namespace Altinn.Studio.Fleet.Cli
                         output,
                         error,
                         executor,
-                        cancellationToken
-                    ),
-                    ["analysis", "api-usage", "surface", string label] => await ApiUsageCommands.Surface(
-                        parsed,
-                        store,
-                        (ApiUsageAnalysis)AnalysisCommands.Find("api-usage"),
-                        label,
-                        output,
                         cancellationToken
                     ),
                     // Run by `analysis run` for each app, in a process of its own.

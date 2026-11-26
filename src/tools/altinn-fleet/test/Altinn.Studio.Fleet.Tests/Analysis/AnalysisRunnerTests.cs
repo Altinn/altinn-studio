@@ -242,6 +242,29 @@ public sealed class AnalysisRunnerTests
     }
 
     [Fact]
+    public async Task Run_CompletesEachAnalysisAfterItsApps()
+    {
+        using var context = new FleetTestContext();
+        context.Altinn.Deploy("prod", "ttd", "app-one", "1.0.0");
+        context.Altinn.Deploy("prod", "ssb", "app-two", "2.0.0");
+        await context.SyncProd();
+        using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
+
+        AnalysisReport report = await new AnalysisRunner(
+            context.Store,
+            database,
+            [new FakeAnalysis(), new FakeAnalysis { Name = "quiet", Summarizes = false }],
+            new InProcessExecutor()
+        ).Run(
+            new AnalysisOptions { Environments = [FleetTestContext.Prod] },
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(new AnalysisCompletion("fake", "2 apps recorded"), Assert.Single(report.Completions));
+    }
+
+    [Fact]
     public async Task Run_WithTheSameAnalysisTwice_RunsItOnce()
     {
         using var context = new FleetTestContext();
@@ -250,7 +273,7 @@ public sealed class AnalysisRunnerTests
         var analysis = new FakeAnalysis();
         using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
 
-        List<AnalysisRunResult> results = await new AnalysisRunner(
+        AnalysisReport report = await new AnalysisRunner(
             context.Store,
             database,
             [analysis, analysis],
@@ -261,7 +284,7 @@ public sealed class AnalysisRunnerTests
             TestContext.Current.CancellationToken
         );
 
-        Assert.Equal(("fake", 1, 1, 0, 0, 0), Counts(Assert.Single(results)));
+        Assert.Equal(("fake", 1, 1, 0, 0, 0), Counts(Assert.Single(report.Results)));
     }
 
     [Fact]
@@ -352,7 +375,7 @@ public sealed class AnalysisRunnerTests
     )
     {
         using AnalysisDatabase database = AnalysisDatabase.Open(DatabasePath(context));
-        List<AnalysisRunResult> results = await new AnalysisRunner(
+        AnalysisReport report = await new AnalysisRunner(
             context.Store,
             database,
             [analysis],
@@ -367,7 +390,7 @@ public sealed class AnalysisRunnerTests
             null,
             TestContext.Current.CancellationToken
         );
-        return Assert.Single(results);
+        return Assert.Single(report.Results);
     }
 
     private static List<string[]> Query(FleetTestContext context, string sql)
@@ -458,5 +481,29 @@ public sealed class AnalysisRunnerTests
             rows.Add(int.Parse(File.ReadAllText(resultFile), System.Globalization.CultureInfo.InvariantCulture));
             return null;
         }
+
+        /// <summary>Whether <see cref="Complete"/> says how many apps it has.</summary>
+        public bool Summarizes { get; init; } = true;
+
+        public Task<string?> Complete(
+            AnalysisDatabase database,
+            AnalysisOptions options,
+            ISyncObserver? observer,
+            CancellationToken cancellationToken
+        ) =>
+            Task.FromResult(
+                Summarizes
+                    ? database.Change(
+                        this,
+                        (connection, transaction) =>
+                        {
+                            using SqliteCommand count = connection.CreateCommand();
+                            count.Transaction = transaction;
+                            count.CommandText = $"SELECT count(*) FROM {Table}";
+                            return $"{count.ExecuteScalar()} apps recorded";
+                        }
+                    )
+                    : null
+            );
     }
 }

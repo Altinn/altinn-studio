@@ -93,9 +93,8 @@ public sealed class CliTests
     [InlineData("analysis", "run", "--timeout", "1")]
     [InlineData("analysis", "run", "--parallel", "0")]
     [InlineData("analysis", "run", "api-usage,frobnicate")]
+    [InlineData("analysis", "run", "--source", "no-such-checkout")]
     [InlineData("analysis", "api-usage", "surface", "main")]
-    [InlineData("analysis", "api-usage", "surface", "main", "--version", "9.0.0", "--source", "Core.csproj")]
-    [InlineData("analysis", "api-usage", "surface", "main", "--source", "missing.csproj")]
     [InlineData("analysis", "frobnicate")]
     public async Task InvalidArguments_ExitWithUsageError(params string[] args)
     {

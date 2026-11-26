@@ -41,6 +41,17 @@ internal static class AnalysisCommands
             Force = args.Flag("force"),
         };
         TimeSpan timeout = TimeSpan.FromSeconds(args.Int("timeout", 900, 10, 24 * 3600));
+        if (args.Value("source") is { } source)
+        {
+            int apiUsage = analyses.FindIndex(a => a is ApiUsageAnalysis);
+            if (apiUsage < 0)
+            {
+                throw new UsageException("--source is for the api-usage analysis, which this run does not include.");
+            }
+
+            analyses[apiUsage] = new ApiUsageAnalysis { Source = LibraryApiReader.FindSource(source) };
+        }
+
         string outPath = OutPath(args, store);
         args.RejectUnused();
 
@@ -48,12 +59,12 @@ internal static class AnalysisCommands
         using AnalysisDatabase database = AnalysisDatabase.Open(outPath);
         var runner = new AnalysisRunner(store, database, analyses, executor);
         DateTimeOffset startedAt = DateTimeOffset.UtcNow;
-        List<AnalysisRunResult> results;
+        AnalysisReport report;
         using (var progress = new ConsoleProgress(error, interactive: !Console.IsErrorRedirected))
         {
             try
             {
-                results = await runner.Run(options, progress, cancellationToken);
+                report = await runner.Run(options, progress, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -66,13 +77,20 @@ internal static class AnalysisCommands
         }
 
         string duration = SyncSummary.Duration(DateTimeOffset.UtcNow - startedAt);
-        foreach (AnalysisRunResult result in results)
+        foreach (AnalysisRunResult result in report.Results)
         {
             output.WriteLine(
                 $"{result.Environment.Name, -5} {result.Analysis}  {result.Apps} apps · {result.Analyzed} analyzed · "
-                    + $"{result.Unchanged} unchanged · {result.Removed} removed · {result.Failed} failed   {duration}"
+                    + $"{result.Unchanged} unchanged · {result.Removed} removed · {result.Failed} failed"
             );
         }
+
+        foreach (AnalysisCompletion completion in report.Completions)
+        {
+            output.WriteLine($"{completion.Analysis}  {completion.Summary}");
+        }
+
+        output.WriteLine($"Took {duration}.");
 
         output.WriteLine($"Wrote {Path.GetFullPath(outPath)}. Query it with `fleet query --db {outPath} \"...\"`.");
         return 0;

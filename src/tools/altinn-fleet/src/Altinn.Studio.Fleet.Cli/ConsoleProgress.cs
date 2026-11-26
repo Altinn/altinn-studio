@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Altinn.Studio.Common.Domain;
 
 namespace Altinn.Studio.Fleet.Cli;
 
@@ -13,16 +12,27 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive) : ISy
     private static readonly TimeSpan s_logInterval = TimeSpan.FromSeconds(10);
 
     private readonly Lock _gate = new();
-    private (RuntimeEnvironment? Environment, SyncStage Stage) _current;
+    private string? _current;
     private long _lastWrite;
     private bool _lineOpen;
 
-    public void OnProgress(SyncProgress progress)
+    public void OnProgress(SyncProgress progress) =>
+        Write(
+            $"{progress.Environment.Name}|{progress.Stage}",
+            $"{progress.Environment.Name, -5} {Describe(progress.Stage)}",
+            progress.Completed,
+            progress.Total
+        );
+
+    public void OnAnalysisProgress(string analysis, string activity, int completed, int total) =>
+        Write($"{analysis}|{activity}", $"{analysis} {activity}", completed, total);
+
+    private void Write(string stage, string label, int completed, int total)
     {
         lock (_gate)
         {
-            bool stageChanged = _current != (progress.Environment, progress.Stage);
-            bool done = progress.Completed >= progress.Total;
+            bool stageChanged = _current != stage;
+            bool done = completed >= total;
             TimeSpan elapsed = Stopwatch.GetElapsedTime(_lastWrite);
             bool due = interactive ? done || elapsed >= s_terminalInterval : elapsed >= s_logInterval;
             if (!stageChanged && !due)
@@ -30,10 +40,9 @@ internal sealed class ConsoleProgress(TextWriter output, bool interactive) : ISy
                 return;
             }
 
-            _current = (progress.Environment, progress.Stage);
+            _current = stage;
             _lastWrite = Stopwatch.GetTimestamp();
-            string line =
-                $"{progress.Environment.Name, -5} {Describe(progress.Stage)} {progress.Completed}/{progress.Total}";
+            string line = $"{label} {completed}/{total}";
             if (interactive)
             {
                 output.Write($"\r\u001b[2K{line}");

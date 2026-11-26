@@ -40,4 +40,16 @@ public interface IAppAnalysis
     /// analyzed, or <c>null</c> when it could.
     /// </summary>
     string? Record(AppRecorder recorder, string resultFile);
+
+    /// <summary>
+    /// Runs once the apps of every environment are recorded, for what the analysis records besides them, such as what
+    /// to compare them with. Unlike <see cref="Analyze"/>, it runs in fleet's own process. Returns a line for the
+    /// run's summary, or <c>null</c>.
+    /// </summary>
+    Task<string?> Complete(
+        AnalysisDatabase database,
+        AnalysisOptions options,
+        ISyncObserver? observer,
+        CancellationToken cancellationToken
+    ) => Task.FromResult<string?>(null);
 }

@@ -44,6 +44,17 @@ public sealed record AnalysisRunResult(
     int Removed
 );
 
+/// <summary>What an analysis recorded besides the apps, in a line for the run's summary.</summary>
+public sealed record AnalysisCompletion(string Analysis, string Summary);
+
+/// <summary>What a run of analyses did.</summary>
+/// <param name="Results">What each analysis did in each environment.</param>
+/// <param name="Completions">What the analyses recorded besides the apps, for those that did.</param>
+public sealed record AnalysisReport(
+    IReadOnlyList<AnalysisRunResult> Results,
+    IReadOnlyList<AnalysisCompletion> Completions
+);
+
 /// <summary>
 /// Runs analyses over the apps in a store's environments and records the results. An app already analyzed at its
 /// deployed version is skipped, unless the analysis failed or the version is not known, so a run after a sync only
@@ -65,7 +76,7 @@ public sealed class AnalysisRunner(
     // An analysis named twice would run twice on the same copy of each app.
     private readonly List<IAppAnalysis> _analyses = [.. analyses.DistinctBy(analysis => analysis.Name)];
 
-    public async Task<List<AnalysisRunResult>> Run(
+    public async Task<AnalysisReport> Run(
         AnalysisOptions options,
         ISyncObserver? observer,
         CancellationToken cancellationToken
@@ -85,7 +96,16 @@ public sealed class AnalysisRunner(
                 results.AddRange(await Run(environment, options, workFolder, observer, cancellationToken));
             }
 
-            return results;
+            var completions = new List<AnalysisCompletion>();
+            foreach (IAppAnalysis analysis in _analyses)
+            {
+                if (await analysis.Complete(database, options, observer, cancellationToken) is { } summary)
+                {
+                    completions.Add(new AnalysisCompletion(analysis.Name, summary));
+                }
+            }
+
+            return new AnalysisReport(results, completions);
         }
         finally
         {

@@ -4,7 +4,10 @@ namespace Altinn.Studio.Fleet.Cli.Analysis.ApiUsage;
 
 /// <summary>What one app uses of the app library, or why that could not be found out.</summary>
 /// <param name="Project">The app's project, relative to the app's folder.</param>
-/// <param name="LibraryVersion">The assembly version of the app library the app compiles against.</param>
+/// <param name="LibraryVersion">
+/// The version of the app library package the app uses, or <c>null</c> when it uses none, such as with a project
+/// reference to the app library or a preview build in <c>Altinn.App.Core.Experimental</c>.
+/// </param>
 /// <param name="Failure">
 /// Why the app could not be analyzed, or not completely, or <c>null</c>. Uses found despite it are still listed.
 /// </param>

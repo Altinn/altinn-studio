@@ -15,7 +15,8 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
         AppUsage usage = await AppCollector.Collect(fixture.AppDir, TestContext.Current.CancellationToken);
 
         Assert.Null(usage.Failure);
-        Assert.Equal(("App/App.csproj", "1.0.0.0", 0), (usage.Project, usage.LibraryVersion, usage.CompileErrors));
+        // The app references the library's project, not a package, so there is no published version to read.
+        Assert.Equal(("App/App.csproj", null, 0), (usage.Project, usage.LibraryVersion, usage.CompileErrors));
         HashSet<string> uses = [.. usage.Uses.Select(u => $"{u.Kind} {u.Symbol}")];
         Assert.Superset(
             new HashSet<string>
@@ -173,7 +174,7 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
             );
 
             await Assert.ThrowsAsync<FleetException>(() =>
-                SurfaceReader.Read([project], fromReferences: false, root, TestContext.Current.CancellationToken)
+                LibraryApiReader.Read([project], fromReferences: false, root, TestContext.Current.CancellationToken)
             );
         }
         finally
@@ -185,7 +186,7 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
     [Fact]
     public async Task Read_ListsTheSameMembersFromSourceAsFromTheCompiledLibrary()
     {
-        List<SurfaceEntry> source = await SurfaceReader.Read(
+        List<LibraryApiEntry> source = await LibraryApiReader.Read(
             [fixture.LibraryProject],
             fromReferences: false,
             fixture.Root,
@@ -204,7 +205,7 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
         );
         var assembly = (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(library)!;
 
-        List<SurfaceEntry> compiled = SurfaceReader.ReadAssembly(assembly, sourceRoot: null);
+        List<LibraryApiEntry> compiled = LibraryApiReader.ReadAssembly(assembly, sourceRoot: null);
 
         Assert.Equal(
             source.Where(e => e.Visible).Select(e => e.Symbol),
@@ -217,14 +218,14 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
     [Fact]
     public async Task Read_WithAProjectBeforeOneItReferences_ReadsBoth()
     {
-        List<SurfaceEntry> surface = await SurfaceReader.Read(
+        List<LibraryApiEntry> api = await LibraryApiReader.Read(
             [fixture.PackageProject, fixture.LibraryProject],
             fromReferences: false,
             fixture.Root,
             TestContext.Current.CancellationToken
         );
 
-        Assert.Contains(surface, e => e.Symbol == $"T:{Ns}.DataClient");
+        Assert.Contains(api, e => e.Symbol == $"T:{Ns}.DataClient");
     }
 
     [Theory]
@@ -233,12 +234,12 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
         "Altinn.App.Clients.Fiks"
     )]
     [InlineData(
-        "/x/Surface.csproj : error NU1101: Unable to find package Altinn.App.Core. No packages exist.",
+        "/x/LibraryApi.csproj : error NU1101: Unable to find package Altinn.App.Core. No packages exist.",
         "Altinn.App.Core"
     )]
     [InlineData(
-        "/x/Surface.csproj : error NU1102: Unable to find package Altinn.App.Core with version (= 6.0.0)\n"
-            + "/x/Surface.csproj : error NU1102:   - Found 59 version(s) in nuget.org [ Nearest version: 7.0.0 ]",
+        "/x/LibraryApi.csproj : error NU1102: Unable to find package Altinn.App.Core with version (= 6.0.0)\n"
+            + "/x/LibraryApi.csproj : error NU1102:   - Found 59 version(s) in nuget.org [ Nearest version: 7.0.0 ]",
         "Altinn.App.Core"
     )]
     [InlineData("error NU1301: Unable to load the service index for source https://api.nuget.org/v3/index.json.", null)]
@@ -248,7 +249,9 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
     )]
     public void MissingPackages_NamesOnlyPackagesThatDoNotExist(string error, string? package)
     {
-        HashSet<string>? missing = SurfaceReader.MissingPackages(error.Replace("\\n", "\n", StringComparison.Ordinal));
+        HashSet<string>? missing = LibraryApiReader.MissingPackages(
+            error.Replace("\\n", "\n", StringComparison.Ordinal)
+        );
 
         Assert.Equal(package is null ? null : [package], missing?.ToArray());
     }
@@ -271,16 +274,16 @@ public sealed class AppCollectorTests(LibraryFixture fixture) : IClassFixture<Li
     }
 
     [Fact]
-    public async Task Read_ListsTheSurface_WithInternalTypesAndWhatSignaturesExpose()
+    public async Task Read_ListsThePublicApi_WithInternalTypesAndWhatSignaturesExpose()
     {
-        List<SurfaceEntry> surface = await SurfaceReader.Read(
+        List<LibraryApiEntry> api = await LibraryApiReader.Read(
             [fixture.LibraryProject],
             fromReferences: false,
             fixture.Root,
             TestContext.Current.CancellationToken
         );
 
-        Dictionary<string, SurfaceEntry> bySymbol = surface.ToDictionary(e => e.Symbol);
+        Dictionary<string, LibraryApiEntry> bySymbol = api.ToDictionary(e => e.Symbol);
         Assert.False(bySymbol[$"T:{Ns}.Hidden"].Visible);
         Assert.True(bySymbol[$"T:{Ns}.IDataProcessor"].ExtensionPoint);
         Assert.Equal([$"T:{Ns}.Payload"], bySymbol[$"M:{Ns}.Exposed.Get"].Exposes);

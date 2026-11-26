@@ -240,15 +240,27 @@ public sealed class AnalysisDatabase : IDisposable
     }
 
     /// <summary>
-    /// Changes an analysis's tables in one transaction, for what an analysis records other than its apps, such as
-    /// reference data to compare them with.
+    /// Reads and changes an analysis's tables in one transaction, for what an analysis records other than its apps,
+    /// such as what to compare them with. It is not safe to call from several threads at a time.
     /// </summary>
-    public void Change(IAppAnalysis analysis, Action<SqliteConnection, SqliteTransaction> change)
+    public void Change(IAppAnalysis analysis, Action<SqliteConnection, SqliteTransaction> change) =>
+        Change(
+            analysis,
+            (connection, transaction) =>
+            {
+                change(connection, transaction);
+                return true;
+            }
+        );
+
+    /// <inheritdoc cref="Change(IAppAnalysis, Action{SqliteConnection, SqliteTransaction})"/>
+    public T Change<T>(IAppAnalysis analysis, Func<SqliteConnection, SqliteTransaction, T> change)
     {
         Prepare(analysis);
         using SqliteTransaction transaction = _connection.BeginTransaction();
-        change(_connection, transaction);
+        T result = change(_connection, transaction);
         transaction.Commit();
+        return result;
     }
 
     public void Dispose() => _connection.Dispose();
