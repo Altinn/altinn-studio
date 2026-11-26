@@ -41,7 +41,6 @@ import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { NodeRefValidation, ValidationSeverity } from 'src/features/validation';
 import type { CompTypes } from 'src/layout/layout';
 import type { RepeatingGroupPanelMessage } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableValidation';
@@ -61,16 +60,6 @@ export interface IRepeatingGroupTableRowProps {
 /** A stacked mobile row has one cell for its fields and one for its actions. */
 const MOBILE_ROW_CELL_COUNT = 2;
 
-function getEditButtonText(
-  isEditing: boolean,
-  langTools: IUseLanguage,
-  editButtonOpen: string | undefined,
-  editButtonClose: string | undefined,
-) {
-  const buttonTextKey = isEditing ? editButtonClose || 'general.save_and_close' : editButtonOpen || 'general.edit_alt';
-  return langTools.langAsString(buttonTextKey);
-}
-
 export function RepeatingGroupTableRow({
   className,
   uuid,
@@ -89,21 +78,12 @@ export function RepeatingGroupTableRow({
   const toggleEditing = RepGroupContext.useToggleEditing();
   const indexedId = useIndexedId(baseComponentId);
   const ownerIndexedId = useIndexedId(baseComponentId, true);
-  const langTools = useLanguage();
-  const { langAsString } = langTools;
+  const { langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
 
   const compactButtons = Boolean(config.edit?.compactButtons);
   const editButton = useEvalExpression(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
   const deleteButton = useEvalExpression(config.edit?.deleteButton, Expressions.RepeatingGroup.edit.deleteButton);
-  const editButtonOpen = useEvalExpression(
-    config.textResourceBindings?.editButtonOpen,
-    Expressions.RepeatingGroup.textResourceBindings.editButtonOpen,
-  );
-  const editButtonClose = useEvalExpression(
-    config.textResourceBindings?.editButtonClose,
-    Expressions.RepeatingGroup.textResourceBindings.editButtonClose,
-  );
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const tableItems = tableIds.map((baseId) => ({
@@ -139,7 +119,6 @@ export function RepeatingGroupTableRow({
   const rowHasErrors = rowValidations.some(
     (validation) => validation.severity === 'error' && !editableIds.has(validation.baseComponentId),
   );
-  const editButtonText = getEditButtonText(isEditingRow, langTools, editButtonOpen, editButtonClose);
   const editElement = editButton !== false && displayEditColumn && (
     <EditElement
       mobileViewSmall={mobileView && mobileViewSmall}
@@ -148,7 +127,6 @@ export function RepeatingGroupTableRow({
       uuid={uuid}
       onClick={() => toggleEditing({ index, uuid })}
       disabled={instanceLocked}
-      editButtonText={editButtonText}
       compactButtons={compactButtons}
       buttonRef={(node) => refSetter(index, 'editButton', node)}
     />
@@ -156,7 +134,7 @@ export function RepeatingGroupTableRow({
 
   const stackedActions = mobileView || useVerticalButtonLayout;
   const deleteButtonText = langAsString('general.delete');
-  const toggleDeletebuttonText = isEditingRow || !mobileViewSmall ? deleteButtonText : null;
+  const showDeleteText = compactButtons ? isEditingRow : !stackedActions || isEditingRow || !mobileViewSmall;
   const deleteElement = deleteButton !== false && displayDeleteColumn && (
     <DeleteElement
       index={index}
@@ -166,13 +144,7 @@ export function RepeatingGroupTableRow({
       deleteButtonText={deleteButtonText}
       langAsString={langAsString}
     >
-      {compactButtons
-        ? isEditingRow
-          ? deleteButtonText
-          : null
-        : stackedActions
-          ? toggleDeletebuttonText
-          : deleteButtonText}
+      {showDeleteText ? deleteButtonText : null}
     </DeleteElement>
   );
 
@@ -205,50 +177,14 @@ export function RepeatingGroupTableRow({
               />
             ),
           )
-        ) : mobileTableItems.length > 0 ? (
-          <BaseTable.Cell className={classes.mobileTableCell}>
-            <Flex
-              container
-              spacing={6}
-            >
-              {mobileTableItems.map((item, i, { length }) =>
-                editableIds.has(item.baseId) ? (
-                  <Flex
-                    container
-                    item
-                    key={item.baseId}
-                    ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
-                  >
-                    <GenericComponent
-                      baseComponentId={item.baseId}
-                      overrideItemProps={{
-                        grid: {},
-                      }}
-                    />
-                  </Flex>
-                ) : (
-                  <Flex
-                    container
-                    item
-                    key={item.baseId}
-                  >
-                    <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
-                      <TableTitle
-                        baseComponentId={item.baseId}
-                        compType={item.type}
-                      />
-                      :
-                    </b>
-                    <span className={classes.contentFormatting}>
-                      <DisplayData baseComponentId={item.baseId} />
-                    </span>
-                    {i < length - 1 && <div style={{ height: 8 }} />}
-                  </Flex>
-                ),
-              )}
-            </Flex>
-          </BaseTable.Cell>
-        ) : null}
+        ) : (
+          <MobileFieldsCell
+            items={mobileTableItems}
+            editableIds={editableIds}
+            index={index}
+            refSetter={refSetter}
+          />
+        )}
         <RowActionCells
           stacked={stackedActions}
           mobileView={mobileView}
@@ -374,7 +310,6 @@ export function shouldEditInTable(
 
 function EditElement({
   ariaExpanded,
-  editButtonText,
   indexedId,
   mobileViewSmall,
   onClick,
@@ -388,11 +323,23 @@ function EditElement({
   uuid: string;
   mobileViewSmall: boolean;
   onClick: () => void;
-  editButtonText: string;
   compactButtons: boolean;
   buttonRef?: (node: HTMLButtonElement | null) => void;
   disabled?: boolean;
 }) {
+  const { langAsString } = useLanguage();
+  const { textResourceBindings } = useComponentConfig(useRepeatingGroupComponentId(), 'RepeatingGroup');
+  const editButtonOpen = useEvalExpression(
+    textResourceBindings?.editButtonOpen,
+    Expressions.RepeatingGroup.textResourceBindings.editButtonOpen,
+  );
+  const editButtonClose = useEvalExpression(
+    textResourceBindings?.editButtonClose,
+    Expressions.RepeatingGroup.textResourceBindings.editButtonClose,
+  );
+  const editButtonText = langAsString(
+    ariaExpanded ? editButtonClose || 'general.save_and_close' : editButtonOpen || 'general.edit_alt',
+  );
   const ariaLabel = useRowAriaLabel(editButtonText);
   const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
   return (
@@ -477,6 +424,67 @@ function DeleteElement({
         />
       </Button>
     </>
+  );
+}
+
+/** On a phone the row's fields stack in one cell. Fields edited in the table keep their label and messages. */
+function MobileFieldsCell({
+  items,
+  editableIds,
+  index,
+  refSetter,
+}: {
+  items: { baseId: string; type: CompTypes }[];
+  editableIds: Set<string>;
+  index: number;
+  refSetter: ((index: number, id: string, ref: HTMLDivElement | null) => void) | undefined;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <BaseTable.Cell className={classes.mobileTableCell}>
+      <Flex
+        container
+        spacing={6}
+      >
+        {items.map((item, i, { length }) =>
+          editableIds.has(item.baseId) ? (
+            <Flex
+              container
+              item
+              key={item.baseId}
+              ref={(ref) => refSetter && refSetter(index, `component-${item.baseId}`, ref)}
+            >
+              <GenericComponent
+                baseComponentId={item.baseId}
+                overrideItemProps={{
+                  grid: {},
+                }}
+              />
+            </Flex>
+          ) : (
+            <Flex
+              container
+              item
+              key={item.baseId}
+            >
+              <b className={cn(classes.contentFormatting, classes.spaceAfterContent)}>
+                <TableTitle
+                  baseComponentId={item.baseId}
+                  compType={item.type}
+                />
+                :
+              </b>
+              <span className={classes.contentFormatting}>
+                <DisplayData baseComponentId={item.baseId} />
+              </span>
+              {i < length - 1 && <div style={{ height: 8 }} />}
+            </Flex>
+          ),
+        )}
+      </Flex>
+    </BaseTable.Cell>
   );
 }
 
