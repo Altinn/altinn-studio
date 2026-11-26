@@ -216,11 +216,12 @@ function usePagesWithErrors(rowsPerPage: number | undefined, baseComponentId: st
 
     const pagesWithErrors = new Set<number>();
     for (const i of rowsWithErrors) {
-      if (!rows.some((row) => row.index === i)) {
+      const visibleIndex = rows.findIndex((row) => row.index === i);
+      if (visibleIndex === -1) {
         continue;
       }
 
-      const pageNumber = Math.floor(i / rowsPerPage);
+      const pageNumber = Math.floor(visibleIndex / rowsPerPage);
       pagesWithErrors.add(pageNumber);
     }
 
